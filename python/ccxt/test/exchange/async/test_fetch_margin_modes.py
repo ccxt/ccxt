@@ -17,7 +17,7 @@ from ccxt.test.exchange.base import test_shared_methods  # noqa E402
 
 async def test_fetch_margin_modes(exchange, skipped_properties, symbol):
     method = 'fetchMarginModes'
-    margin_modes = await exchange.fetch_margin_modes(['symbol'])
+    margin_modes = await exchange.fetch_margin_modes([symbol])
     test_shared_methods.assert_dictionary_response(exchange, method, margin_modes, symbol)
     margin_mode_keys = list(margin_modes.keys())
     test_shared_methods.assert_non_emtpy_array(exchange, skipped_properties, method, margin_modes, symbol)

@@ -5,16 +5,18 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache
-from ccxt.base.types import Any, Int, Market, OrderBook, Trade
+from ccxt.base.types import Int, Market, OrderBook, Trade
 from ccxt.async_support.base.ws.client import Client
-from typing import List
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import ChecksumError
+from ccxt.base.decimal_to_precision import ROUND
+from ccxt.base.decimal_to_precision import DECIMAL_PLACES
+from ccxt.base.decimal_to_precision import PAD_WITH_ZERO
 
 
 class independentreserve(ccxt.async_support.independentreserve):
 
-    def describe(self) -> Any:
+    def describe(self) -> object:
         return self.deep_extend(super(independentreserve, self).describe(), {
             'has': {
                 'ws': True,
@@ -44,7 +46,7 @@ class independentreserve(ccxt.async_support.independentreserve):
             },
         })
 
-    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
@@ -62,7 +64,7 @@ class independentreserve(ccxt.async_support.independentreserve):
         trades = await self.watch(url, messageHash, None, messageHash)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    def handle_trades(self, client: Client, message: Any):
+    def handle_trades(self, client: Client, message: object):
         #
         #    {
         #        "Channel": "ticker-btc-usd",
@@ -95,7 +97,7 @@ class independentreserve(ccxt.async_support.independentreserve):
         self.trades[symbol] = stored
         client.resolve(self.trades[symbol], messageHash)
 
-    def parse_ws_trade(self, trade: Any, market: Market = None):
+    def parse_ws_trade(self, trade: object, market: Market = None):
         #
         #    {
         #        "TradeGuid": "2f316718-0d0b-4e33-a30c-c2c06f3cfb34",
@@ -149,7 +151,7 @@ class independentreserve(ccxt.async_support.independentreserve):
         orderbook = await self.watch(url, messageHash, None, messageHash, subscription)
         return orderbook.limit()
 
-    def handle_order_book(self, client: Client, message: Any):
+    def handle_order_book(self, client: Client, message: object):
         #
         #    {
         #        "Channel": "orderbook/1/eth/aud",
@@ -188,14 +190,18 @@ class independentreserve(ccxt.async_support.independentreserve):
         subscription = self.safe_value(client.subscriptions, messageHash, {})
         receivedSnapshot = self.safe_bool(subscription, 'receivedSnapshot', False)
         timestamp = self.safe_integer(message, 'Time')
-        # orderbook = self.safe_value(self.orderbooks, symbol)
+        # let orderbook = this.safeValue (this.orderbooks, symbol);
         if not (symbol in self.orderbooks):
             self.orderbooks[symbol] = self.order_book({})
         orderbook = self.orderbooks[symbol]
         if event == 'OrderBookSnapshot':
             snapshot = self.parse_order_book(orderBook, symbol, timestamp, 'Bids', 'Offers', 'Price', 'Volume')
             orderbook.reset(snapshot)
-            subscription['receivedSnapshot'] = True
+            # write through the parent index: php copies arrays by value, so
+            # mutating the local bind would not persist the flag
+            client.subscriptions[messageHash] = self.extend(subscription, {
+                'receivedSnapshot': True,
+            })
         else:
             asks = self.safe_list(orderBook, 'Offers', [])
             bids = self.safe_list(orderBook, 'Bids', [])
@@ -204,7 +210,7 @@ class independentreserve(ccxt.async_support.independentreserve):
             orderbook['timestamp'] = timestamp
             orderbook['datetime'] = self.iso8601(timestamp)
         checksum = self.handle_option('watchOrderBook', 'checksum', True)
-        if checksum and receivedSnapshot:
+        if (checksum is True) and (receivedSnapshot is True):
             storedAsks = orderbook['asks']
             storedBids = orderbook['bids']
             asksLength = len(storedAsks)
@@ -216,7 +222,7 @@ class independentreserve(ccxt.async_support.independentreserve):
             for i in range(0, 10):
                 if i < asksLength:
                     payload = payload + self.value_to_checksum(storedAsks[i][0]) + self.value_to_checksum(storedAsks[i][1])
-            calculatedChecksum = self.crc32(payload, True)
+            calculatedChecksum = self.crc32(payload, False)
             responseChecksum = self.safe_integer(orderBook, 'Crc32')
             if calculatedChecksum != responseChecksum:
                 error = ChecksumError(self.id + ' ' + self.orderbook_checksum_message(symbol))
@@ -224,26 +230,29 @@ class independentreserve(ccxt.async_support.independentreserve):
                 del self.orderbooks[symbol]
                 client.reject(error, messageHash)
                 return
-        if receivedSnapshot:
+        if receivedSnapshot is True:
             client.resolve(orderbook, messageHash)
 
-    def value_to_checksum(self, value: Any):
-        result = format(value, '.8f')
+    def value_to_checksum(self, value: object):
+        # toFixed returns a zero-padded *string* in js but a *number* in
+        # go/c#/java, dropping trailing zeros. decimalToPrecision with
+        # PAD_WITH_ZERO is string-typed everywhere and emits the same digits.
+        result = self.decimal_to_precision(value, ROUND, 8, DECIMAL_PLACES, PAD_WITH_ZERO)
         result = result.replace('.', '')
         # remove leading zeros
         result = self.parse_number(result)
         result = self.number_to_string(result)
         return result
 
-    def handle_delta(self, bookside: Any, delta: Any):
+    def handle_delta(self, bookside: object, delta: object):
         bidAsk = self.parse_order_book_bid_ask(delta, 'Price', 'Volume')
         bookside.storeArray(bidAsk)
 
-    def handle_deltas(self, bookside: Any, deltas: Any):
+    def handle_deltas(self, bookside: object, deltas: object):
         for i in range(0, len(deltas)):
             self.handle_delta(bookside, deltas[i])
 
-    def handle_heartbeat(self, client: Client, message: Any):
+    def handle_heartbeat(self, client: Client, message: object):
         #
         #    {
         #        "Time": 1676156208182,
@@ -252,17 +261,17 @@ class independentreserve(ccxt.async_support.independentreserve):
         #
         return message
 
-    def handle_subscriptions(self, client: Client, message: Any):
+    def handle_subscriptions(self, client: Client, message: object):
         #
         #    {
-        #        "Data": ["ticker-btc-sgd"],
+        #        "Data": [ "ticker-btc-sgd" ],
         #        "Time": 1676157556223,
         #        "Event": "Subscriptions"
         #    }
         #
         return message
 
-    def handle_message(self, client: Client, message: Any):
+    def handle_message(self, client: Client, message: object):
         event = self.safe_string(message, 'Event')
         handlers = {
             'Subscriptions': self.handle_subscriptions,

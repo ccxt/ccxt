@@ -27,5 +27,6 @@ public partial class BaseTest
             Assert(isEqual(exchange.isDictionary("str"), false));
             Assert(isEqual(exchange.isDictionary(5), false));
             Assert(isEqual(exchange.isDictionary(true), false));
+            Assert(isEqual(exchange.isDictionary(new Dictionary<string, object>() {}), true));
         }
 }

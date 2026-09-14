@@ -1,8 +1,7 @@
 from ccxt.base.types import Entry
-from typing import Any as PythonAny, Dict, List
+_Dict = dict[str, object]
+_List = list[object]
 
-_Dict = Dict[str, PythonAny]
-_List = List[PythonAny]
 
 class ImplicitAPI:
     public_get_api_server_time = publicGetApiServerTime = Entry[_Dict]('api/server_time', 'public', 'GET', {'cost': 5})
@@ -21,7 +20,9 @@ class ImplicitAPI:
     private_post_openorders = privatePostOpenOrders = Entry[_Dict]('openOrders', 'private', 'POST', {'cost': 4})
     private_post_orderhistory = privatePostOrderHistory = Entry[_Dict]('orderHistory', 'private', 'POST', {'cost': 4})
     private_post_getorder = privatePostGetOrder = Entry[_Dict]('getOrder', 'private', 'POST', {'cost': 4})
+    private_post_getorderbyclientorderid = privatePostGetOrderByClientOrderId = Entry[_Dict]('getOrderByClientOrderId', 'private', 'POST', {'cost': 4})
     private_post_cancelorder = privatePostCancelOrder = Entry[_Dict]('cancelOrder', 'private', 'POST', {'cost': 4})
+    private_post_cancelbyclientorderid = privatePostCancelByClientOrderId = Entry[_Dict]('cancelByClientOrderId', 'private', 'POST', {'cost': 4})
     private_post_withdrawfee = privatePostWithdrawFee = Entry[_Dict]('withdrawFee', 'private', 'POST', {'cost': 4})
     private_post_withdrawcoin = privatePostWithdrawCoin = Entry[_Dict]('withdrawCoin', 'private', 'POST', {'cost': 4})
     private_post_listdownline = privatePostListDownline = Entry[_Dict]('listDownline', 'private', 'POST', {'cost': 4})

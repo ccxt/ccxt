@@ -1,8 +1,7 @@
 from ccxt.base.types import Entry
-from typing import Any as PythonAny, Dict, List
+_Dict = dict[str, object]
+_List = list[object]
 
-_Dict = Dict[str, PythonAny]
-_List = List[PythonAny]
 
 class ImplicitAPI:
     v1_pub_get_hist_kline = v1PubGetHistKline = Entry[_Dict]('hist/kline', ['v1', 'pub'], 'GET', {'cost': 10})
@@ -60,7 +59,6 @@ class ImplicitAPI:
     v1_private_delete_client_order = v1PrivateDeleteClientOrder = Entry[_Dict]('client/order', ['v1', 'private'], 'DELETE', {'cost': 1})
     v1_private_delete_orders = v1PrivateDeleteOrders = Entry[_List]('orders', ['v1', 'private'], 'DELETE', {'cost': 1})
     v1_private_delete_asset_withdraw = v1PrivateDeleteAssetWithdraw = Entry[_Dict]('asset/withdraw', ['v1', 'private'], 'DELETE', {'cost': 120})
-    v2_private_get_client_holding = v2PrivateGetClientHolding = Entry[_Dict]('client/holding', ['v2', 'private'], 'GET', {'cost': 1})
     v3_public_get_systeminfo = v3PublicGetSystemInfo = Entry[_Dict]('systemInfo', ['v3', 'public'], 'GET', {'cost': 1})
     v3_public_get_instruments = v3PublicGetInstruments = Entry[_Dict]('instruments', ['v3', 'public'], 'GET', {'cost': 1})
     v3_public_get_token = v3PublicGetToken = Entry[_Dict]('token', ['v3', 'public'], 'GET', {'cost': 1})
@@ -120,12 +118,16 @@ class ImplicitAPI:
     v3_private_post_asset_wallet_withdraw = v3PrivatePostAssetWalletWithdraw = Entry[_Dict]('asset/wallet/withdraw', ['v3', 'private'], 'POST', {'cost': 60})
     v3_private_post_spotmargin_leverage = v3PrivatePostSpotMarginLeverage = Entry[_Dict]('spotMargin/leverage', ['v3', 'private'], 'POST', {'cost': 120})
     v3_private_post_spotmargin_interestrepay = v3PrivatePostSpotMarginInterestRepay = Entry[_Dict]('spotMargin/interestRepay', ['v3', 'private'], 'POST', {'cost': 60})
+    v3_private_post_futures_defaultmarginmode_reset = v3PrivatePostFuturesDefaultMarginModeReset = Entry[_Dict]('futures/defaultMarginMode/reset', ['v3', 'private'], 'POST', {'cost': 60})
+    v3_private_post_isolatedmargin_margin = v3PrivatePostIsolatedMarginMargin = Entry[_Dict]('isolatedMargin/margin', ['v3', 'private'], 'POST', {'cost': 60})
     v3_private_post_algo_order = v3PrivatePostAlgoOrder = Entry[_Dict]('algo/order', ['v3', 'private'], 'POST', {'cost': 5})
     v3_private_post_convert_rft = v3PrivatePostConvertRft = Entry[_Dict]('convert/rft', ['v3', 'private'], 'POST', {'cost': 60})
     v3_private_put_trade_order = v3PrivatePutTradeOrder = Entry[_Dict]('trade/order', ['v3', 'private'], 'PUT', {'cost': 2})
     v3_private_put_trade_algoorder = v3PrivatePutTradeAlgoOrder = Entry[_Dict]('trade/algoOrder', ['v3', 'private'], 'PUT', {'cost': 2})
     v3_private_put_futures_leverage = v3PrivatePutFuturesLeverage = Entry[_Dict]('futures/leverage', ['v3', 'private'], 'PUT', {'cost': 60})
     v3_private_put_futures_positionmode = v3PrivatePutFuturesPositionMode = Entry[_Dict]('futures/positionMode', ['v3', 'private'], 'PUT', {'cost': 120})
+    v3_private_put_futures_defaultmarginmode = v3PrivatePutFuturesDefaultMarginMode = Entry[_Dict]('futures/defaultMarginMode', ['v3', 'private'], 'PUT', {'cost': 60})
+    v3_private_put_futures_defaultmarginmode_symbol = v3PrivatePutFuturesDefaultMarginModeSymbol = Entry[_Dict]('futures/defaultMarginMode/{symbol}', ['v3', 'private'], 'PUT', {'cost': 60})
     v3_private_put_order_oid = v3PrivatePutOrderOid = Entry[_Dict]('order/{oid}', ['v3', 'private'], 'PUT', {'cost': 2})
     v3_private_put_order_client_client_order_id = v3PrivatePutOrderClientClientOrderId = Entry[_Dict]('order/client/{client_order_id}', ['v3', 'private'], 'PUT', {'cost': 2})
     v3_private_put_algo_order_oid = v3PrivatePutAlgoOrderOid = Entry[_Dict]('algo/order/{oid}', ['v3', 'private'], 'PUT', {'cost': 2})
@@ -139,3 +141,4 @@ class ImplicitAPI:
     v3_private_delete_algo_orders_pending = v3PrivateDeleteAlgoOrdersPending = Entry[_Dict]('algo/orders/pending', ['v3', 'private'], 'DELETE', {'cost': 1})
     v3_private_delete_algo_orders_pending_symbol = v3PrivateDeleteAlgoOrdersPendingSymbol = Entry[_Dict]('algo/orders/pending/{symbol}', ['v3', 'private'], 'DELETE', {'cost': 1})
     v3_private_delete_orders_pending = v3PrivateDeleteOrdersPending = Entry[_Dict]('orders/pending', ['v3', 'private'], 'DELETE', {'cost': 1})
+    v3_private_delete_asset_wallet_withdraw_withdrawid = v3PrivateDeleteAssetWalletWithdrawWithdrawId = Entry[_Dict]('asset/wallet/withdraw/{withdrawId}', ['v3', 'private'], 'DELETE', {'cost': 60})

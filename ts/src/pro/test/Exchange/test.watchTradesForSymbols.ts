@@ -8,22 +8,24 @@ async function testWatchTradesForSymbols (exchange: Exchange, skippedProperties:
     const method = 'watchTradesForSymbols';
     let now = exchange.milliseconds ();
     const ends = now + 15000;
+    const maxIdleTime = 5000;
+    let idle = false;
     const returnedSymbols: string[] = [];
-    while (now < ends || returnedSymbols.length < symbols.length) {
+    while ((now < ends) && !idle) {
         let response: Trade[] | undefined = undefined;
-        const success = true;
+        let success = true;
+        const startTime = exchange.milliseconds ();
         try {
             response = await exchange.watchTradesForSymbols (symbols);
         } catch (e) {
             if (!testSharedMethods.isTemporaryFailure (e)) {
                 throw e;
             }
-            now = exchange.milliseconds ();
-            // continue;
+            success = false;
         }
+        now = exchange.milliseconds ();
         if ((success === true) && (response !== undefined)) {
             assert (Array.isArray (response), exchange.id + ' ' + method + ' ' + exchange.json (symbols) + ' must return an array. ' + exchange.json (response));
-            now = exchange.milliseconds ();
             let symbol: Str = undefined;
             for (let i = 0; i < response.length; i++) {
                 const trade = response[i];
@@ -37,9 +39,9 @@ async function testWatchTradesForSymbols (exchange: Exchange, skippedProperties:
                     returnedSymbols.push (symbol);
                 }
             }
-            // if (!('timestampSort' in skippedProperties)) {
-            //     testSharedMethods.assertTimestampOrder (exchange, method, symbol, response);
-            // }
+            if ((now - startTime) > maxIdleTime) {
+                idle = true;
+            }
         }
     }
     return true;

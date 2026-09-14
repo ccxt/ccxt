@@ -183,6 +183,7 @@ export default class bittrade extends Exchange {
                         'common/timestamp': { 'cost': 1 }, // 查询系统当前时间
                         'common/exchange': { 'cost': 1 }, // order limits
                         'settings/currencys': { 'cost': 1 }, // ?language=en-US
+                        'retail/maintain/time': { 'cost': 1 }, // 零售维护时间
                     },
                 },
                 'private': {
@@ -213,6 +214,7 @@ export default class bittrade extends Exchange {
                         'subuser/aggregate-balance': { 'cost': 10 },
                         'stable-coin/exchange_rate': { 'cost': 1 },
                         'stable-coin/quote': { 'cost': 1 },
+                        'retail/order/list': { 'cost': 1 }, // 零售订单历史
                     },
                     'post': {
                         'account/transfer': { 'cost': 1 }, // 资产划转(该节点为母用户和子用户进行资产划转的通用接口。)
@@ -240,6 +242,7 @@ export default class bittrade extends Exchange {
                         'cross-margin/orders/{id}/repay': { 'cost': 1 }, // 归还借币
                         'stable-coin/exchange': { 'cost': 1 },
                         'subuser/transfer': { 'cost': 10 },
+                        'retail/order/place': { 'cost': 1 }, // 零售下单
                     },
                 },
             },
@@ -514,7 +517,13 @@ export default class bittrade extends Exchange {
      */
     async fetchMarkets(params = {}) {
         const method = this.handleOption('fetchMarkets', 'method', 'publicGetCommonSymbols');
-        const response = await this[method](params);
+        let response = undefined;
+        if (method === 'publicGetCommonSymbols') {
+            response = await this.publicGetCommonSymbols(params);
+        }
+        else {
+            throw new NotSupported(this.id + ' fetchMarkets() does not support the ' + method + ' method');
+        }
         //
         //    {
         //        "status": "ok",
@@ -547,7 +556,7 @@ export default class bittrade extends Exchange {
         //         ]
         //    }
         //
-        const markets = this.safeValue(response, 'data', []);
+        const markets = this.safeList(response, 'data', []);
         const numMarkets = markets.length;
         if (numMarkets < 1) {
             throw new NetworkError(this.id + ' fetchMarkets() returned empty response: ' + this.json(markets));
@@ -754,7 +763,7 @@ export default class bittrade extends Exchange {
         //     }
         //
         if ('tick' in response) {
-            if (!response['tick']) {
+            if ((response['tick'] === undefined) || (response['tick'] === null)) {
                 throw new BadSymbol(this.id + ' fetchOrderBook() returned empty response: ' + this.json(response));
             }
             const tick = this.safeValue(response, 'tick');
@@ -823,7 +832,7 @@ export default class bittrade extends Exchange {
         }
         symbols = this.marketSymbols(symbols);
         const response = await this.marketGetTickers(params);
-        const tickers = this.safeValue(response, 'data', []);
+        const tickers = this.safeList(response, 'data', []);
         const timestamp = this.safeInteger(response, 'ts');
         const result = {};
         for (let i = 0; i < tickers.length; i++) {
@@ -1018,10 +1027,10 @@ export default class bittrade extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         let result = [];
         for (let i = 0; i < data.length; i++) {
-            const trades = this.safeValue(data[i], 'data', []);
+            const trades = this.safeList(data[i], 'data', []);
             for (let j = 0; j < trades.length; j++) {
                 const trade = this.parseTrade(trades[j], market);
                 result.push(trade);
@@ -1168,7 +1177,7 @@ export default class bittrade extends Exchange {
         const countryDisabled = this.safeValue(currency, 'country-disabled');
         const visible = this.safeBool(currency, 'visible', false);
         const state = this.safeString(currency, 'state');
-        const active = visible && depositEnabled && withdrawEnabled && (state === 'online') && !countryDisabled;
+        const active = (visible === true) && (depositEnabled === true) && (withdrawEnabled === true) && (state === 'online') && (countryDisabled !== true);
         const name = this.safeString(currency, 'display-name');
         const precision = this.parseNumber(this.parsePrecision(this.safeString(currency, 'withdraw-precision')));
         return this.safeCurrencyStructure({
@@ -1203,7 +1212,7 @@ export default class bittrade extends Exchange {
         });
     }
     parseBalance(response) {
-        const balances = this.safeValue(response['data'], 'list', []);
+        const balances = this.safeList(response['data'], 'list', []);
         const result = { 'info': response };
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
@@ -1250,7 +1259,13 @@ export default class bittrade extends Exchange {
         const request = {
             'id': this.accounts[0]['id'],
         };
-        const response = await this[method](this.extend(request, params));
+        let response = undefined;
+        if (method === 'privateGetAccountAccountsIdBalance') {
+            response = await this.privateGetAccountAccountsIdBalance(this.extend(request, params));
+        }
+        else {
+            throw new NotSupported(this.id + ' fetchBalance() does not support the ' + method + ' method');
+        }
         return this.parseBalance(response);
     }
     async fetchOrdersByStates(states, symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1266,7 +1281,13 @@ export default class bittrade extends Exchange {
             request['symbol'] = market['id'];
         }
         const method = this.handleOption('fetchOrdersByStates', 'method', 'private_get_order_orders');
-        const response = await this[method](this.extend(request, params));
+        let response = undefined;
+        if ((method === 'private_get_order_history') || (method === 'privateGetOrderHistory')) {
+            response = await this.privateGetOrderHistory(this.extend(request, params));
+        }
+        else {
+            response = await this.privateGetOrderOrders(this.extend(request, params));
+        }
         //
         //     { "status":   "ok",
         //         "data": [ {                  id:  13997833016,
@@ -1331,7 +1352,10 @@ export default class bittrade extends Exchange {
      */
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         const method = this.handleOption('fetchOpenOrders', 'method', 'fetch_open_orders_v1');
-        return await this[method](symbol, since, limit, params);
+        if ((method === 'fetch_open_orders_v2') || (method === 'fetchOpenOrdersV2')) {
+            return await this.fetchOpenOrdersV2(symbol, since, limit, params);
+        }
+        return await this.fetchOpenOrdersV1(symbol, since, limit, params);
     }
     async fetchOpenOrdersV1(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
@@ -1513,7 +1537,7 @@ export default class bittrade extends Exchange {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (!market['spot']) {
+        if (market['spot'] !== true) {
             throw new NotSupported(this.id + ' createMarketBuyOrderWithCost() supports spot orders only');
         }
         params['createMarketBuyOrderRequiresPrice'] = false;
@@ -1588,8 +1612,14 @@ export default class bittrade extends Exchange {
         if (type === 'limit' || type === 'ioc' || type === 'limit-maker' || type === 'stop-limit' || type === 'stop-limit-fok') {
             request['price'] = this.priceToPrecision(symbol, price);
         }
-        const method = this.options['createOrderMethod'];
-        const response = await this[method](this.extend(request, params));
+        const method = this.handleOption('createOrder', 'method', 'privatePostOrderOrdersPlace');
+        let response = undefined;
+        if (method === 'privatePostOrderOrdersPlace') {
+            response = await this.privatePostOrderOrdersPlace(this.extend(request, params));
+        }
+        else {
+            throw new NotSupported(this.id + ' createOrder() does not support the ' + method + ' method');
+        }
         const id = this.safeString(response, 'data');
         return this.safeOrder({
             'info': response,
@@ -2089,7 +2119,7 @@ export default class bittrade extends Exchange {
             }
         }
         else {
-            if (Object.keys(params).length) {
+            if (Object.keys(params).length > 0) {
                 url += '?' + this.urlencode(params);
             }
         }

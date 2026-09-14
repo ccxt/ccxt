@@ -106,8 +106,20 @@ abstract class indodax extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function private_post_getorderbyclientorderid($params = array()) {
+        return $this->request('getOrderByClientOrderId', 'private', 'POST', $params, null, null, array("cost" => 4));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function private_post_cancelorder($params = array()) {
         return $this->request('cancelOrder', 'private', 'POST', $params, null, null, array("cost" => 4));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_post_cancelbyclientorderid($params = array()) {
+        return $this->request('cancelByClientOrderId', 'private', 'POST', $params, null, null, array("cost" => 4));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -238,8 +250,20 @@ abstract class indodax extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function privatePostGetOrderByClientOrderId($params = array()) {
+        return $this->request('getOrderByClientOrderId', 'private', 'POST', $params, null, null, array("cost" => 4));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function privatePostCancelOrder($params = array()) {
         return $this->request('cancelOrder', 'private', 'POST', $params, null, null, array("cost" => 4));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privatePostCancelByClientOrderId($params = array()) {
+        return $this->request('cancelByClientOrderId', 'private', 'POST', $params, null, null, array("cost" => 4));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>

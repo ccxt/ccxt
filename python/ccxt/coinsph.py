@@ -6,8 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.coinsph import ImplicitAPI
 import hashlib
-from ccxt.base.types import Any, Balances, Currencies, Currency, CurrencyInterface, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Status, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction
-from typing import List
+from ccxt.base.types import Balances, Currencies, Currency, CurrencyInterface, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Status, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -30,7 +29,7 @@ from ccxt.base.precise import Precise
 
 class coinsph(Exchange, ImplicitAPI):
 
-    def describe(self) -> Any:
+    def describe(self) -> object:
         return self.deep_extend(super(coinsph, self).describe(), {
             'id': 'coinsph',
             'name': 'Coins.ph',
@@ -210,14 +209,14 @@ class coinsph(Exchange, ImplicitAPI):
                         'openapi/v1/ping': {'cost': 1},
                         'openapi/v1/time': {'cost': 1},
                         'openapi/v1/user/ip': {'cost': 1},
-                        # cost 1 if 'symbol' param defined(one market symbol) or if 'symbols' param is a list of 1-20 market symbols
+                        # cost 1 if 'symbol' param defined (one market symbol) or if 'symbols' param is a list of 1-20 market symbols
                         # cost 20 if 'symbols' param is a list of 21-100 market symbols
                         # cost 40 if 'symbols' param is a list of 101 or more market symbols or if both 'symbol' and 'symbols' params are omitted
                         'openapi/quote/v1/ticker/24hr': {'cost': 1, 'noSymbolAndNoSymbols': 40, 'byNumberOfSymbols': [[101, 40], [21, 20], [0, 1]]},
-                        # cost 1 if 'symbol' param defined(one market symbol)
+                        # cost 1 if 'symbol' param defined (one market symbol)
                         # cost 2 if 'symbols' param is a list of 1 or more market symbols or if both 'symbol' and 'symbols' params are omitted
                         'openapi/quote/v1/ticker/price': {'cost': 1, 'noSymbol': 2},
-                        # cost 1 if 'symbol' param defined(one market symbol)
+                        # cost 1 if 'symbol' param defined (one market symbol)
                         # cost 2 if 'symbols' param is a list of 1 or more market symbols or if both 'symbol' and 'symbols' params are omitted
                         'openapi/quote/v1/ticker/bookTicker': {'cost': 1, 'noSymbol': 2},
                         'openapi/v1/exchangeInfo': {'cost': 10},
@@ -243,7 +242,7 @@ class coinsph(Exchange, ImplicitAPI):
                         'openapi/v1/openOrders': {'cost': 3, 'noSymbol': 40},
                         'openapi/v1/asset/tradeFee': {'cost': 1},
                         'openapi/v1/order': {'cost': 2},
-                        # cost 10 with symbol, 40 when the symbol parameter is omitted
+                        # cost 10 with symbol, 40 when the symbol parameter is omitted;
                         'openapi/v1/historyOrders': {'cost': 10, 'noSymbol': 40},
                         'openapi/v1/myTrades': {'cost': 10},
                         'openapi/v1/capital/deposit/history': {'cost': 1},
@@ -287,6 +286,8 @@ class coinsph(Exchange, ImplicitAPI):
                         'openapi/fiat/v1/support-channel': {'cost': 1},
                         'openapi/fiat/v1/cash-out': {'cost': 1},
                         'openapi/fiat/v1/history': {'cost': 1},
+                        'openapi/fiat/v2/history': {'cost': 1},
+                        'openapi/fiat/v1/cancel_qr_code': {'cost': 1},
                         'openapi/migration/v4/sellorder': {'cost': 1},
                         'openapi/migration/v4/validate-field': {'cost': 1},
                         'openapi/transfer/v3/transfers': {'cost': 1},
@@ -347,7 +348,7 @@ class coinsph(Exchange, ImplicitAPI):
             'precisionMode': TICK_SIZE,
             # exchange-specific options
             'options': {
-                'createMarketBuyOrderRequiresPrice': True,  # True or False
+                'createMarketBuyOrderRequiresPrice': True,  # true or false
                 'withdraw': {
                     'warning': False,
                 },
@@ -454,7 +455,7 @@ class coinsph(Exchange, ImplicitAPI):
                 'exact': {
                     '-1000': BadRequest,  # An unknown error occured while processing the request.
                     '-1001': BadRequest,  # {"code":-1001,"msg":"Internal error."}
-                    '-1002': AuthenticationError,  # You are not authorized to execute self request. Request need API Key included in . We suggest that API Key be included in any request.
+                    '-1002': AuthenticationError,  # You are not authorized to execute this request. Request need API Key included in . We suggest that API Key be included in any request.
                     '-1003': RateLimitExceeded,  # Too many requests; please use the websocket for live updates. Too many requests; current limit is %s requests per minute. Please use the websocket for live updates to avoid polling the API. Way too many requests; IP banned until %s. Please use the websocket for live updates to avoid bans.
                     '-1004': InvalidOrder,  # {"code":-1004,"msg":"Missing required parameter \u0027symbol\u0027"}
                     '-1006': BadResponse,  # An unexpected response was received from the message bus. Execution status unknown. OPEN API server find some exception in execute request .Please report to Customer service.
@@ -463,20 +464,20 @@ class coinsph(Exchange, ImplicitAPI):
                     '-1015': RateLimitExceeded,  # Reach the rate limit .Please slow down your request speed. Too many new orders. Too many new orders; current limit is %s orders per %s.
                     '-1016': NotSupported,  # This service is no longer available.
                     '-1020': NotSupported,  # This operation is not supported.
-                    '-1021': BadRequest,  # {"code":-1021,"msg":"Timestamp for self request is outside of the recvWindow."}
-                    '-1022': BadRequest,  # {"code":-1022,"msg":"Signature for self request is not valid."}
+                    '-1021': BadRequest,  # {"code":-1021,"msg":"Timestamp for this request is outside of the recvWindow."}
+                    '-1022': BadRequest,  # {"code":-1022,"msg":"Signature for this request is not valid."}
                     '-1023': AuthenticationError,  # Please set IP whitelist before using API.
                     '-1024': BadRequest,  # {"code":-1024,"msg":"recvWindow is not valid."}
                     '-1025': BadRequest,  # {"code":-1025,"msg":"recvWindow cannot be greater than 60000"}
                     '-1030': ExchangeError,  # Business error.
                     '-1100': BadRequest,  # Illegal characters found in a parameter. Illegal characters found in parameter ‘%s’; legal range is ‘%s’.
-                    '-1101': BadRequest,  # Too many parameters sent for self endpoint. Too many parameters; expected ‘%s’ and received ‘%s’. Duplicate values for a parameter detected.
+                    '-1101': BadRequest,  # Too many parameters sent for this endpoint. Too many parameters; expected ‘%s’ and received ‘%s’. Duplicate values for a parameter detected.
                     '-1102': BadRequest,  # A mandatory parameter was not sent, was empty/null, or malformed. Mandatory parameter ‘%s’ was not sent, was empty/null, or malformed. Param ‘%s’ or ‘%s’ must be sent, but both were empty/null!
                     '-1103': BadRequest,  # An unknown parameter was sent. In BHEx Open Api , each request requires at least one parameter. {Timestamp}.
                     '-1104': BadRequest,  # Not all sent parameters were read. Not all sent parameters were read; read ‘%s’ parameter(s) but was sent ‘%s’.
                     '-1105': BadRequest,  # {"code":-1105,"msg":"Parameter \u0027orderId and origClientOrderId\u0027 is empty."}
                     '-1106': BadRequest,  # A parameter was sent when not required. Parameter ‘%s’ sent when not required.
-                    '-1111': BadRequest,  # Precision is over the maximum defined for self asset.
+                    '-1111': BadRequest,  # Precision is over the maximum defined for this asset.
                     '-1112': BadResponse,  # No orders on book for symbol.
                     '-1114': BadRequest,  # TimeInForce parameter sent when not required.
                     '-1115': InvalidOrder,  # {"code":-1115,"msg":"Invalid timeInForce."}
@@ -532,13 +533,13 @@ class coinsph(Exchange, ImplicitAPI):
                     '-3127': InvalidOrder,  # {"code":-3127,"msg":"Order price higher than 1523.192"}
                     '-4001': BadRequest,  # {"code":-4001,"msg":"start time must less than end time"}
                     '-100011': BadSymbol,  # {"code":-100011,"msg":"Not supported symbols"}
-                    '-100012': BadSymbol,  # {"code":-100012,"msg":"Parameter symbol [str] missing!"}
+                    '-100012': BadSymbol,  # {"code":-100012,"msg":"Parameter symbol [String] missing!"}
                     '-30008': InsufficientFunds,  # {"code":-30008,"msg":"withdraw balance insufficient"}
                     '-30036': InsufficientFunds,  # {"code":-30036,"msg":"Available balance not enough!"}
                     '403': ExchangeNotAvailable,
                 },
                 'broad': {
-                    'Unknown order sent': OrderNotFound,  # The order(by either orderId, clOrdId, origClOrdId) could not be found
+                    'Unknown order sent': OrderNotFound,  # The order (by either orderId, clOrdId, origClOrdId) could not be found
                     'Duplicate order sent': DuplicateOrderId,  # The clOrdId is already in use
                     'Market is closed': BadSymbol,  # The symbol is not trading
                     'Account has insufficient balance for requested action': InsufficientFunds,  # Not enough funds to complete the action
@@ -584,20 +585,20 @@ class coinsph(Exchange, ImplicitAPI):
         #        {
         #            "coin": "PHP",
         #            "name": "PHP",
-        #            "depositAllEnable": False,
-        #            "withdrawAllEnable": False,
+        #            "depositAllEnable": false,
+        #            "withdrawAllEnable": false,
         #            "free": "0",
         #            "locked": "0",
         #            "transferPrecision": "2",
         #            "transferMinQuantity": "0",
         #            "networkList": [],
-        #            "legalMoney": True
+        #            "legalMoney": true
         #        },
         #        {
         #            "coin": "USDT",
         #            "name": "USDT",
-        #            "depositAllEnable": True,
-        #            "withdrawAllEnable": True,
+        #            "depositAllEnable": true,
+        #            "withdrawAllEnable": true,
         #            "free": "0",
         #            "locked": "0",
         #            "transferPrecision": "8",
@@ -607,36 +608,36 @@ class coinsph(Exchange, ImplicitAPI):
         #                    "addressRegex": "^0x[0-9a-fA-F]{40}$",
         #                    "memoRegex": " ",
         #                    "network": "ETH",
-        #                    "name": "Ethereum(ERC20)",
-        #                    "depositEnable": True,
+        #                    "name": "Ethereum (ERC20)",
+        #                    "depositEnable": true,
         #                    "minConfirm": "12",
         #                    "unLockConfirm": "-1",
         #                    "withdrawDesc": "",
-        #                    "withdrawEnable": True,
+        #                    "withdrawEnable": true,
         #                    "withdrawFee": "6",
         #                    "withdrawIntegerMultiple": "0.000001",
         #                    "withdrawMax": "500000",
         #                    "withdrawMin": "10",
-        #                    "sameAddress": False
+        #                    "sameAddress": false
         #                },
         #                {
         #                    "addressRegex": "^T[0-9a-zA-Z]{33}$",
         #                    "memoRegex": "",
         #                    "network": "TRX",
         #                    "name": "TRON",
-        #                    "depositEnable": True,
+        #                    "depositEnable": true,
         #                    "minConfirm": "19",
         #                    "unLockConfirm": "-1",
         #                    "withdrawDesc": "",
-        #                    "withdrawEnable": True,
+        #                    "withdrawEnable": true,
         #                    "withdrawFee": "3",
         #                    "withdrawIntegerMultiple": "0.000001",
         #                    "withdrawMax": "1000000",
         #                    "withdrawMin": "20",
-        #                    "sameAddress": False
+        #                    "sameAddress": false
         #                }
         #            ],
-        #            "legalMoney": False
+        #            "legalMoney": false
         #        }
         #    ]
         #
@@ -677,7 +678,7 @@ class coinsph(Exchange, ImplicitAPI):
             'id': id,
             'name': self.safe_string(rawCurrency, 'name'),
             'code': code,
-            'type': 'fiat' if isFiat else 'crypto',
+            'type': 'fiat' if (isFiat is True) else 'crypto',
             'precision': self.parse_number(self.parse_precision(self.safe_string(rawCurrency, 'transferPrecision'))),
             'info': rawCurrency,
             'active': None,
@@ -689,7 +690,7 @@ class coinsph(Exchange, ImplicitAPI):
             'limits': {},
         })
 
-    def calculate_rate_limiter_cost(self, api: Any, method: Any, path: Any, params: Any, config={}):
+    def calculate_rate_limiter_cost(self, api: object, method: object, path: object, params: object, config={}):
         if ('noSymbol' in config) and not ('symbol' in params):
             return config['noSymbol']
         elif ('noSymbolAndNoSymbols' in config) and not ('symbol' in params) and not ('symbols' in params):
@@ -744,7 +745,7 @@ class coinsph(Exchange, ImplicitAPI):
         #
         return self.safe_integer(response, 'serverTime')
 
-    def fetch_markets(self, params={}) -> List[Market]:
+    def fetch_markets(self, params={}) -> list[Market]:
         """
         retrieves data on all markets for coinsph
 
@@ -789,8 +790,8 @@ class coinsph(Exchange, ImplicitAPI):
         #                         "stepSize": "0.01",
         #                         "filterType": "LOT_SIZE"
         #                     },
-        #                     {minNotional: "50", filterType: "NOTIONAL"},
-        #                     {minNotional: "50", filterType: "MIN_NOTIONAL"},
+        #                     { minNotional: "50", filterType: "NOTIONAL" },
+        #                     { minNotional: "50", filterType: "MIN_NOTIONAL" },
         #                     {
         #                         "priceUp": "99999999",
         #                         "priceDown": "0.01",
@@ -806,8 +807,8 @@ class coinsph(Exchange, ImplicitAPI):
         #                         "multiplierDown": "0.9",
         #                         "filterType": "PERCENT_PRICE_ORDER_SIZE"
         #                     },
-        #                     {maxNumOrders: "200", filterType: "MAX_NUM_ORDERS"},
-        #                     {maxNumAlgoOrders: "5", filterType: "MAX_NUM_ALGO_ORDERS"}
+        #                     { maxNumOrders: "200", filterType: "MAX_NUM_ORDERS" },
+        #                     { maxNumAlgoOrders: "5", filterType: "MAX_NUM_ALGO_ORDERS" }
         #                 ]
         #             },
         #         ]
@@ -972,7 +973,7 @@ class coinsph(Exchange, ImplicitAPI):
         #     }
         #
         # publicGetOpenapiQuoteV1TickerPrice
-        #     {"symbol": "ETHUSDT", "price": "1599.68"}
+        #     { "symbol": "ETHUSDT", "price": "1599.68" }
         #
         # publicGetOpenapiQuoteV1TickerBookTicker
         #     {
@@ -1046,12 +1047,12 @@ class coinsph(Exchange, ImplicitAPI):
         #     {
         #         "lastUpdateId": "1667022157000699400",
         #         "bids": [
-        #             ['1651.810000000000000000', '0.214556000000000000'],
-        #             ['1651.730000000000000000', '0.257343000000000000'],
+        #             [ '1651.810000000000000000', '0.214556000000000000' ],
+        #             [ '1651.730000000000000000', '0.257343000000000000' ],
         #         ],
         #         "asks": [
-        #             ['1660.510000000000000000', '0.299092000000000000'],
-        #             ['1660.600000000000000000', '0.253667000000000000'],
+        #             [ '1660.510000000000000000', '0.299092000000000000' ],
+        #             [ '1660.600000000000000000', '0.253667000000000000' ],
         #         ]
         #     }
         #
@@ -1059,7 +1060,7 @@ class coinsph(Exchange, ImplicitAPI):
         orderbook['nonce'] = self.safe_integer(response, 'lastUpdateId')
         return orderbook
 
-    def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> list[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -1071,7 +1072,7 @@ class coinsph(Exchange, ImplicitAPI):
         :param int [limit]: the maximum amount of candles to fetch(default 500, max 1000)
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: timestamp in ms of the latest candle to fetch
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             self.load_markets()
@@ -1105,24 +1106,24 @@ class coinsph(Exchange, ImplicitAPI):
         #
         #     [
         #         [
-        #             1499040000000,      # Open time
-        #             "0.01634790",       # Open
-        #             "0.80000000",       # High
-        #             "0.01575800",       # Low
-        #             "0.01577100",       # Close
-        #             "148976.11427815",  # Volume
-        #             1499644799999,      # Close time
-        #             "2434.19055334",    # Quote asset volume
-        #             308,                # Number of trades
-        #             "1756.87402397",    # Taker buy base asset volume
-        #             "28.46694368"       # Taker buy quote asset volume
+        #             1499040000000,      // Open time
+        #             "0.01634790",       // Open
+        #             "0.80000000",       // High
+        #             "0.01575800",       // Low
+        #             "0.01577100",       // Close
+        #             "148976.11427815",  // Volume
+        #             1499644799999,      // Close time
+        #             "2434.19055334",    // Quote asset volume
+        #             308,                // Number of trades
+        #             "1756.87402397",    // Taker buy base asset volume
+        #             "28.46694368"       // Taker buy quote asset volume
         #         ]
         #     ]
         #
         ohlcvs = self.to_array(response)
         return self.parse_ohlcvs(ohlcvs, market, timeframe, since, limit)
 
-    def parse_ohlcv(self, ohlcv: Any, market: Market = None) -> list:
+    def parse_ohlcv(self, ohlcv: object, market: Market = None) -> list:
         return [
             self.safe_integer(ohlcv, 0),
             self.safe_number(ohlcv, 1),
@@ -1132,7 +1133,7 @@ class coinsph(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 5),
         ]
 
-    def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
         """
         get the list of most recent trades for a particular symbol
 
@@ -1165,8 +1166,8 @@ class coinsph(Exchange, ImplicitAPI):
         #             "qty": "0.000004",
         #             "quoteQty": "0.000004000000000000",
         #             "time": "1677523569575",
-        #             "isBuyerMaker": False,
-        #             "isBestMatch": True
+        #             "isBuyerMaker": false,
+        #             "isBestMatch": true
         #         },
         #     ]
         #
@@ -1228,10 +1229,10 @@ class coinsph(Exchange, ImplicitAPI):
         #         "price": "89685.8",
         #         "id": "1365561108437680129",
         #         "qty": "0.000004",
-        #         "quoteQty": "0.000004000000000000",  # warning: report to exchange - self is not quote quantity, self is base quantity
+        #         "quoteQty": "0.000004000000000000", // warning: report to exchange - this is not quote quantity, this is base quantity
         #         "time": "1677523569575",
-        #         "isBuyerMaker": False,
-        #         "isBestMatch": True
+        #         "isBuyerMaker": false,
+        #         "isBestMatch": true
         #     },
         #
         # fetchMyTrades
@@ -1245,7 +1246,7 @@ class coinsph(Exchange, ImplicitAPI):
         #         "commission": "0",
         #         "commissionAsset": "USDT",
         #         "time": 1678699593307,
-        #         "isBuyer": False,
+        #         "isBuyer": false,
         #         "isMaker":false,
         #         "isBestMatch":false
         #     }
@@ -1330,15 +1331,15 @@ class coinsph(Exchange, ImplicitAPI):
         #                 "locked": "0.00000000"
         #             }
         #         ],
-        #         "canDeposit": True,
-        #         "canTrade": True,
-        #         "canWithdraw": True,
+        #         "canDeposit": true,
+        #         "canTrade": true,
+        #         "canWithdraw": true,
         #         "updateTime": "1677430932528"
         #     }
         #
         return self.parse_balance(response)
 
-    def parse_balance(self, response: Any) -> Balances:
+    def parse_balance(self, response: object) -> Balances:
         balances = self.safe_list(response, 'balances', [])
         result = {
             'info': response,
@@ -1368,7 +1369,7 @@ class coinsph(Exchange, ImplicitAPI):
         :param float amount: how much of currency you want to trade in units of base currency
         :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param float [params.cost]: the quote quantity that can be used alternative for the amount for market buy orders
+        :param float [params.cost]: the quote quantity that can be used as an alternative for the amount for market buy orders
         :param bool [params.test]: set to True to test an order, no order will be created but the request will be validated
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
@@ -1430,7 +1431,7 @@ class coinsph(Exchange, ImplicitAPI):
         request['newOrderRespType'] = newOrderRespType
         params = self.omit(params, 'price', 'stopPrice', 'triggerPrice', 'quantity', 'quoteOrderQty')
         response = {}
-        if testOrder:
+        if testOrder is True:
             response = self.privatePostOpenapiV1OrderTest(self.extend(request, params))
         else:
             response = self.privatePostOpenapiV1Order(self.extend(request, params))
@@ -1486,7 +1487,7 @@ class coinsph(Exchange, ImplicitAPI):
         response = self.privateGetOpenapiV1Order(self.extend(request, params))
         return self.parse_order(response)
 
-    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         fetch all unfilled currently open orders
 
@@ -1508,7 +1509,7 @@ class coinsph(Exchange, ImplicitAPI):
         response = self.privateGetOpenapiV1OpenOrders(self.extend(request, params))
         return self.parse_orders(response, market, since, limit)
 
-    def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         fetches information on multiple closed orders made by the user
 
@@ -1683,7 +1684,7 @@ class coinsph(Exchange, ImplicitAPI):
             'info': order,
         }, market)
 
-    def parse_order_side(self, status: Any):
+    def parse_order_side(self, status: object):
         statuses = {
             'BUY': 'buy',
             'SELL': 'sell',
@@ -1692,7 +1693,7 @@ class coinsph(Exchange, ImplicitAPI):
             return None
         return self.safe_string(statuses, status, status)
 
-    def encode_order_side(self, status: Any):
+    def encode_order_side(self, status: object):
         statuses = {
             'buy': 'BUY',
             'sell': 'SELL',
@@ -1701,7 +1702,7 @@ class coinsph(Exchange, ImplicitAPI):
             return None
         return self.safe_string(statuses, status, status)
 
-    def parse_order_type(self, status: Any):
+    def parse_order_type(self, status: object):
         statuses = {
             'MARKET': 'market',
             'LIMIT': 'limit',
@@ -1715,7 +1716,7 @@ class coinsph(Exchange, ImplicitAPI):
             return None
         return self.safe_string(statuses, status, status)
 
-    def encode_order_type(self, status: Any):
+    def encode_order_type(self, status: object):
         statuses = {
             'market': 'MARKET',
             'limit': 'LIMIT',
@@ -1742,7 +1743,7 @@ class coinsph(Exchange, ImplicitAPI):
             return None
         return self.safe_string(statuses, status, status)
 
-    def parse_order_time_in_force(self, status: Any):
+    def parse_order_time_in_force(self, status: object):
         statuses = {
             'GTC': 'GTC',
             'FOK': 'FOK',
@@ -1851,7 +1852,7 @@ class coinsph(Exchange, ImplicitAPI):
         """
         options = self.safe_value(self.options, 'withdraw')
         warning = self.safe_bool(options, 'warning', True)
-        if warning:
+        if warning is True:
             raise InvalidAddress(self.id + " withdraw() makes a withdrawals only to coins_ph account, add .options['withdraw']['warning'] = False to make a withdrawal to your coins_ph account")
         networkCode = self.safe_string(params, 'network')
         networkId = None if (networkCode is None) else self.network_code_to_id(networkCode, code)
@@ -1872,7 +1873,7 @@ class coinsph(Exchange, ImplicitAPI):
         response = self.privatePostOpenapiWalletV1WithdrawApply(self.extend(request, params))
         return self.parse_transaction(response, currency)
 
-    def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+    def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
         """
         fetch all deposits made to an account
 
@@ -1927,7 +1928,7 @@ class coinsph(Exchange, ImplicitAPI):
         #
         return self.parse_transactions(response, currency, since, limit)
 
-    def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+    def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
         """
         fetch all withdrawals made from an account
 
@@ -2024,7 +2025,7 @@ class coinsph(Exchange, ImplicitAPI):
         #         "applyTime": 1657967792000
         #     }
         #
-        # todo: self is in progress
+        # todo: this is in progress
         id = self.safe_string(transaction, 'id')
         address = self.safe_string(transaction, 'address')
         tag = self.safe_string(transaction, 'addressTag')
@@ -2119,7 +2120,7 @@ class coinsph(Exchange, ImplicitAPI):
         #
         return self.parse_deposit_address(response, currency)
 
-    def parse_deposit_address(self, depositAddress: Any, currency: Currency = None) -> DepositAddress:
+    def parse_deposit_address(self, depositAddress: object, currency: Currency = None) -> DepositAddress:
         #
         #     {
         #         "coin": "ETH",
@@ -2155,14 +2156,14 @@ class coinsph(Exchange, ImplicitAPI):
         else:
             return encodedArrayParams
 
-    def parse_array_param(self, array: Any, key: Any):
+    def parse_array_param(self, array: object, key: object):
         stringifiedArray = self.json(array)
         stringifiedArray = stringifiedArray.replace('[', '%5B')
         stringifiedArray = stringifiedArray.replace(']', '%5D')
         urlEncodedParam = key + '=' + stringifiedArray
         return urlEncodedParam
 
-    def sign(self, path: Any, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
+    def sign(self, path: object, api: object = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         url = self.urls['api'][api]
         query = self.omit(params, self.extract_params(path))
         endpoint = self.implode_params(path, params)
@@ -2187,7 +2188,7 @@ class coinsph(Exchange, ImplicitAPI):
                 url += '?' + query
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: Any, requestHeaders: Any, requestBody: Any):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         if response is None:
             return None
         responseCode = self.safe_string(response, 'code')

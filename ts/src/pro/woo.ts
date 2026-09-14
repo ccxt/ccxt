@@ -153,7 +153,7 @@ export default class woo extends wooRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const defaultMethod = (market['spot']) ? 'orderbook10' : 'orderbookupdate';
+        const defaultMethod = (market['spot'] === true) ? 'orderbook10' : 'orderbookupdate';
         let method: Str = undefined;
         [ method, params ] = this.handleOptionAndParams (params, 'watchOrderBook', 'method', defaultMethod);
         let topic: Str = undefined;
@@ -213,7 +213,7 @@ export default class woo extends wooRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const defaultMethod = (market['spot']) ? 'orderbook10' : 'orderbookupdate';
+        const defaultMethod = (market['spot'] === true) ? 'orderbook10' : 'orderbookupdate';
         let method: Str = undefined;
         [ method, params ] = this.handleOptionAndParams (params, 'watchOrderBook', 'method', defaultMethod);
         let subHash: Str = undefined;
@@ -1370,7 +1370,7 @@ export default class woo extends wooRest {
         this.setPositionsCache (client, symbols);
         const fetchPositionsSnapshot = this.handleOption ('watchPositions', 'fetchPositionsSnapshot', true);
         const awaitPositionsSnapshot = this.handleOption ('watchPositions', 'awaitPositionsSnapshot', true);
-        if (fetchPositionsSnapshot && awaitPositionsSnapshot && this.positions === undefined) {
+        if ((fetchPositionsSnapshot === true) && (awaitPositionsSnapshot === true) && (this.positions === undefined)) {
             const snapshot = await client.future ('fetchPositionsSnapshot');
             return this.filterBySymbolsSinceLimit (snapshot, symbols, since, limit, true);
         }
@@ -1384,7 +1384,7 @@ export default class woo extends wooRest {
 
     setPositionsCache (client: Client, symbols: Strings = undefined) {
         const fetchPositionsSnapshot = this.handleOption ('watchPositions', 'fetchPositionsSnapshot', false);
-        if (fetchPositionsSnapshot) {
+        if (fetchPositionsSnapshot === true) {
             const messageHash = 'fetchPositionsSnapshot';
             if (!(messageHash in client.futures)) {
                 client.future (messageHash);
@@ -1694,7 +1694,7 @@ export default class woo extends wooRest {
             return false;
         }
         const success = this.safeBool (message, 'success');
-        if (success) {
+        if (success === true) {
             return false;
         }
         const errorMessage = this.safeString2 (message, 'message', 'errorMsg');
@@ -1746,7 +1746,7 @@ export default class woo extends wooRest {
     }
 
     override handleMessage (client: Client, message: any) {
-        if (this.handleErrorMessage (client, message)) {
+        if (this.handleErrorMessage (client, message) === true) {
             return;
         }
         const cmd = this.safeString (message, 'cmd');

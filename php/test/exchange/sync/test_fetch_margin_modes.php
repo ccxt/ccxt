@@ -11,7 +11,7 @@ include_once PATH_TO_CCXT . '/test/exchange/base/test_margin_mode.php';
 
 function test_fetch_margin_modes($exchange, $skipped_properties, $symbol) {
     $method = 'fetchMarginModes';
-    $margin_modes = $exchange->fetch_margin_modes(['symbol']);
+    $margin_modes = $exchange->fetch_margin_modes([$symbol]);
     assert_dictionary_response($exchange, $method, $margin_modes, $symbol);
     $margin_mode_keys = is_array($margin_modes) ? array_keys($margin_modes) : array();
     assert_non_emtpy_array($exchange, $skipped_properties, $method, $margin_modes, $symbol);

@@ -29,7 +29,7 @@
                         "clientOrderId": "myorder2"
                     }
                 ],
-                "output": "{\"instId\":\"LTC-USDT\",\"side\":\"buy\",\"ordType\":\"market\",\"clOrdId\":\"myorder2\",\"sz\":\"15\",\"tgtCcy\":\"quote_ccy\",\"tdMode\":\"cash\"}"
+                "output": { "instId": "LTC-USDT", "side": "buy", "ordType": "market", "clOrdId": "myorder2", "sz": "15", "tgtCcy": "quote_ccy", "tdMode": "cash" }
             }
         ],
         "createTriggerOrder": [
@@ -45,7 +45,7 @@
                     null,
                     0.01
                 ],
-                "output": "{\"instId\":\"DOGE-USDT-SWAP\",\"productGroup\":\"Swap\",\"sz\":\"20\",\"side\":\"buy\",\"orderType\":\"market\",\"triggerPrice\":0.01,\"isCrossMargin\":1,\"tdMode\":\"cross\",\"posSide\":\"long\",\"mrgPosition\":\"merge\"}"
+                "output": { "instId": "DOGE-USDT-SWAP", "productGroup": "Swap", "sz": "20", "side": "buy", "orderType": "market", "triggerPrice": 0.01, "isCrossMargin": 1, "tdMode": "cross", "posSide": "long", "mrgPosition": "merge" }
             }
         ],
         "createOrderWithTakeProfitAndStopLoss": [
@@ -62,7 +62,7 @@
                     1,
                     0.01
                 ],
-                "output": "{\"instId\":\"DOGE-USDT-SWAP\",\"side\":\"buy\",\"ordType\":\"limit\",\"slTriggerPx\":\"0.01\",\"tpTriggerPx\":\"1\",\"px\":\"0.1\",\"sz\":\"20\",\"tdMode\":\"cross\",\"mrgPosition\":\"merge\",\"posSide\":\"long\"}"
+                "output": { "instId": "DOGE-USDT-SWAP", "side": "buy", "ordType": "limit", "slTriggerPx": "0.01", "tpTriggerPx": "1", "px": "0.1", "sz": "20", "tdMode": "cross", "mrgPosition": "merge", "posSide": "long" }
             }
         ],
         "editOrder": [
@@ -82,7 +82,7 @@
                         "stopLossPrice": 0.02
                     }
                 ],
-                "output": "{\"OrderSysID\":1001112132350609,\"slTriggerPx\":\"0.02\",\"tpTriggerPx\":\"1.2\"}"
+                "output": { "OrderSysID": 1001112132350609, "slTriggerPx": "0.02", "tpTriggerPx": "1.2" }
             },
             {
                 "description": "edit order amount and price",
@@ -96,7 +96,7 @@
                     25,
                     0.02
                 ],
-                "output": "{\"OrderSysID\":1001111677169084,\"price\":\"0.02\",\"volume\":\"25\"}"
+                "output": { "OrderSysID": 1001111677169084, "price": "0.02", "volume": "25" }
             }
         ],
         "fetchClosedOrders": [
@@ -174,7 +174,7 @@
                         "trigger": true
                     }
                 ],
-                "output": "{\"instId\":\"DOGE-USDT-SWAP\",\"ordId\":1001112135133243}"
+                "output": { "instId": "DOGE-USDT-SWAP", "ordId": 1001112135133243 }
             },
             {
                 "description": "Cancel order",
@@ -184,7 +184,7 @@
                     "1001441400627435",
                     "ETH/USDT"
                 ],
-                "output": "{\"instId\":\"ETH-USDT\",\"ordId\":\"1001441400627435\"}"
+                "output": { "instId": "ETH-USDT", "ordId": "1001441400627435" }
             }
         ],
         "fetchOpenOrders": [
@@ -295,7 +295,7 @@
                     0.005,
                     3900
                 ],
-                "output": "{\"instId\":\"ETH-USDT\",\"side\":\"buy\",\"ordType\":\"limit\",\"px\":\"3900\",\"sz\":\"0.005\",\"tgtCcy\":\"base_ccy\",\"tdMode\":\"cash\"}"
+                "output": { "instId": "ETH-USDT", "side": "buy", "ordType": "limit", "px": "3900", "sz": "0.005", "tgtCcy": "base_ccy", "tdMode": "cash" }
             },
             {
                 "description": "Create spot order",
@@ -307,7 +307,7 @@
                     "buy",
                     0.01
                 ],
-                "output": "{\"instId\":\"ETH-USDT\",\"side\":\"buy\",\"ordType\":\"market\",\"sz\":\"0.01\",\"tgtCcy\":\"base_ccy\",\"tdMode\":\"cash\"}"
+                "output": { "instId": "ETH-USDT", "side": "buy", "ordType": "market", "sz": "0.01", "tgtCcy": "base_ccy", "tdMode": "cash" }
             }
         ],
         "fetchLedger": [

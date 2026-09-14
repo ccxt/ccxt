@@ -41,9 +41,9 @@ def test_liquidation(exchange, skipped_properties, method, entry, symbol):
     contract_size = exchange.safe_string(entry, 'contractSize')
     price = exchange.safe_string(entry, 'price')
     base_value = exchange.safe_string(entry, 'baseValue')
-    if contracts and contract_size:
+    if (contracts is not None) and (contracts != '') and (contract_size is not None) and (contract_size != ''):
         assert Precise.string_eq(base_value, Precise.string_mul(contracts, contract_size)), 'baseValue == contracts * contractSize' + log_text
-        if price:
+        if (price is not None) and (price != ''):
             assert Precise.string_eq(base_value, Precise.string_mul(Precise.string_mul(contracts, contract_size), price)), 'quoteValue == contracts * contractSize * price' + log_text
     # if singular was called, then symbol needs to be asserted
     if method == 'watchLiquidations' or method == 'fetchLiquidations':

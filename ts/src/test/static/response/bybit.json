@@ -6965,6 +6965,56 @@
         ]
       }
     ],
+    "fetchCrossBorrowRate": [
+      {
+        "description": "cross borrow rate for BTC",
+        "method": "fetchCrossBorrowRate",
+        "input": [
+          "BTC"
+        ],
+        "httpResponse": {
+          "retCode": 0,
+          "retMsg": "success",
+          "result": {
+            "vipCoinList": [
+              {
+                "list": [
+                  {
+                    "borrowable": true,
+                    "collateralRatio": "0.98",
+                    "currency": "BTC",
+                    "hourlyBorrowRate": "0.0000005030430000",
+                    "liquidationOrder": "3",
+                    "marginCollateral": true,
+                    "maxBorrowingAmount": "300"
+                  }
+                ],
+                "vipLevel": "No VIP"
+              }
+            ]
+          },
+          "retExtInfo": "{}",
+          "time": 1786958335109
+        },
+        "parsedResponse": {
+          "currency": "BTC",
+          "rate": 5.03043e-7,
+          "period": 3600000,
+          "timestamp": 1786958335109,
+          "datetime": "2026-08-17T09:18:55.109Z",
+          "info": {
+            "borrowable": true,
+            "collateralRatio": "0.98",
+            "currency": "BTC",
+            "hourlyBorrowRate": "0.0000005030430000",
+            "liquidationOrder": "3",
+            "marginCollateral": true,
+            "maxBorrowingAmount": "300",
+            "timestamp": 1786958335109
+          }
+        }
+      }
+    ],
     "fetchFundingRates": [
       {
         "description": "fetchFundingRates",

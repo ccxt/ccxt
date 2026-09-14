@@ -6,8 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.hollaex import ImplicitAPI
 import hashlib
-from ccxt.base.types import Any, Balances, Currencies, Currency, CurrencyInterface, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, OrderBooks, Trade, TradingFees, DepositWithdrawFees, Transaction
-from typing import List
+from ccxt.base.types import Balances, Currencies, Currency, CurrencyInterface, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, OrderBooks, Trade, TradingFees, DepositWithdrawFees, Transaction
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
@@ -23,7 +22,7 @@ from ccxt.base.precise import Precise
 
 class hollaex(Exchange, ImplicitAPI):
 
-    def describe(self) -> Any:
+    def describe(self) -> object:
         return self.deep_extend(super(hollaex, self).describe(), {
             'id': 'hollaex',
             'name': 'HollaEx',
@@ -163,12 +162,14 @@ class hollaex(Exchange, ImplicitAPI):
                         'user/deposits': {'cost': 1},
                         'user/withdrawals': {'cost': 1},
                         'user/withdrawal/fee': {'cost': 1},
+                        'subaccounts': {'cost': 1},
                         'user/trades': {'cost': 1},
                         'orders': {'cost': 1},
                         'order': {'cost': 1},
                     },
                     'post': {
                         'user/withdrawal': {'cost': 1},
+                        'subaccount/transfer': {'cost': 1},
                         'order': {'cost': 1},
                     },
                     'delete': {
@@ -269,7 +270,7 @@ class hollaex(Exchange, ImplicitAPI):
                     'Invalid token': AuthenticationError,
                     'Order not found': OrderNotFound,
                     'Insufficient balance': InsufficientFunds,
-                    'Error 1001 - Order rejected. Order could not be submitted order was set to a post only order.': OrderImmediatelyFillable,
+                    'Error 1001 - Order rejected. Order could not be submitted as self order was set to a post only order.': OrderImmediatelyFillable,
                 },
                 'exact': {
                     '400': BadRequest,
@@ -307,7 +308,7 @@ class hollaex(Exchange, ImplicitAPI):
             },
         })
 
-    def fetch_markets(self, params={}) -> List[Market]:
+    def fetch_markets(self, params={}) -> list[Market]:
         """
         retrieves data on all markets for hollaex
 
@@ -324,19 +325,19 @@ class hollaex(Exchange, ImplicitAPI):
         #                 "id": 7,
         #                 "fullname": "Monero",
         #                 "symbol": "xmr",
-        #                 "active": True,
-        #                 "allow_deposit": True,
-        #                 "allow_withdrawal": True,
+        #                 "active": true,
+        #                 "allow_deposit": true,
+        #                 "allow_withdrawal": true,
         #                 "withdrawal_fee": 0.02,
         #                 "min": 0.001,
         #                 "max": 100000,
         #                 "increment_unit": 0.001,
-        #                 "deposit_limits": {'1': 0, '2': 0, '3': 0, '4': 0, "5": 0, "6": 0},
-        #                 "withdrawal_limits": {'1': 10, '2': 15, '3': 100, '4': 100, '5': 200, '6': 300, '7': 350, '8': 400, "9": 500, "10": -1},
+        #                 "deposit_limits": { '1': 0, '2': 0, '3': 0, '4': 0, "5": 0, "6": 0 },
+        #                 "withdrawal_limits": { '1': 10, '2': 15, '3': 100, '4': 100, '5': 200, '6': 300, '7': 350, '8': 400, "9": 500, "10": -1 },
         #                 "created_at": "2019-12-09T07:14:02.720Z",
         #                 "updated_at": "2020-01-16T12:12:53.162Z"
         #             },
-        #             # ...
+        #             // ...
         #         },
         #         "pairs": {
         #             "btc-usdt": {
@@ -344,24 +345,24 @@ class hollaex(Exchange, ImplicitAPI):
         #                 "name": "btc-usdt",
         #                 "pair_base": "btc",
         #                 "pair_2": "usdt",
-        #                 "taker_fees": {'1': 0.3, '2': 0.25, '3': 0.2, '4': 0.18, '5': 0.1, '6': 0.09, '7': 0.08, '8': 0.06, "9": 0.04, "10": 0},
-        #                 "maker_fees": {'1': 0.1, '2': 0.08, '3': 0.05, '4': 0.03, '5': 0, '6': 0, '7': 0, '8': 0, "9": 0, "10": 0},
+        #                 "taker_fees": { '1': 0.3, '2': 0.25, '3': 0.2, '4': 0.18, '5': 0.1, '6': 0.09, '7': 0.08, '8': 0.06, "9": 0.04, "10": 0 },
+        #                 "maker_fees": { '1': 0.1, '2': 0.08, '3': 0.05, '4': 0.03, '5': 0, '6': 0, '7': 0, '8': 0, "9": 0, "10": 0 },
         #                 "min_size": 0.0001,
         #                 "max_size": 1000,
         #                 "min_price": 100,
         #                 "max_price": 100000,
         #                 "increment_size": 0.0001,
         #                 "increment_price": 0.05,
-        #                 "active": True,
+        #                 "active": true,
         #                 "created_at": "2019-12-09T07:15:54.537Z",
         #                 "updated_at": "2019-12-09T07:15:54.537Z"
         #             },
         #         },
-        #         "config": {tiers: 10},
-        #         "status": True
+        #         "config": { tiers: 10 },
+        #         "status": true
         #     }
         #
-        pairs = self.safe_value(response, 'pairs', {})
+        pairs = self.safe_dict(response, 'pairs', {})
         keys = list(pairs.keys())
         result = []
         for i in range(0, len(keys)):
@@ -439,17 +440,17 @@ class hollaex(Exchange, ImplicitAPI):
         #                "id": "6",
         #                "fullname": "USD Tether",
         #                "symbol": "usdt",
-        #                "active": True,
-        #                "verified": True,
-        #                "allow_deposit": True,
-        #                "allow_withdrawal": True,
+        #                "active": true,
+        #                "verified": true,
+        #                "allow_deposit": true,
+        #                "allow_withdrawal": true,
         #                "withdrawal_fee": "20",
         #                "min": "1",
         #                "max": "10000000",
         #                "increment_unit": "0.0001",
         #                "logo": "https://hollaex-resources.s3.ap-southeast-1.amazonaws.com/icons/usdt.svg",
         #                "code": "usdt",
-        #                "is_public": True,
+        #                "is_public": true,
         #                "meta": {
         #                    "color": "#27a17a",
         #                    "website": "https://tether.to",
@@ -457,7 +458,7 @@ class hollaex(Exchange, ImplicitAPI):
         #                    "decimal_points": "6"
         #                },
         #                "estimated_price": "1",
-        #                "description": "<p>Tether(USDT) is a stablecoin pegged 1:1 to the US dollar. It is a digital currency that aims to maintain its value while allowing for fast and secure transfer of funds. It was the first stablecoin, and is the most widely used due stablecoin due to its stability and low volatility compared to other cryptocurrencies. It was launched in 2014 by Tether Limited.</p>",
+        #                "description": "<p>Tether (USDT) is a stablecoin pegged 1:1 to the US dollar. It is a digital currency that aims to maintain its value while allowing for fast and secure transfer of funds. It was the first stablecoin, and is the most widely used due stablecoin due to its stability and low volatility compared to other cryptocurrencies. It was launched in 2014 by Tether Limited.</p>",
         #                "type": "blockchain",
         #                "network": "eth,trx,bnb,matic",
         #                "standard": "",
@@ -465,28 +466,28 @@ class hollaex(Exchange, ImplicitAPI):
         #                "withdrawal_fees": {
         #                    "bnb": {
         #                        "value": "0.8",
-        #                        "active": True,
+        #                        "active": true,
         #                        "symbol": "usdt"
         #                    },
         #                    "eth": {
         #                        "value": "1.5",
-        #                        "active": True,
+        #                        "active": true,
         #                        "symbol": "usdt"
         #                    },
         #                    "trx": {
         #                        "value": "4",
-        #                        "active": True,
+        #                        "active": true,
         #                        "symbol": "usdt"
         #                    },
         #                    "matic": {
         #                        "value": "0.3",
-        #                        "active": True,
+        #                        "active": true,
         #                        "symbol": "usdt"
         #                    }
         #                },
         #                "display_name": null,
         #                "deposit_fees": null,
-        #                "is_risky": False,
+        #                "is_risky": false,
         #                "market_cap": "144568098696.29",
         #                "category": "stable",
         #                "created_at": "2019-08-09T10:45:43.367Z",
@@ -603,19 +604,19 @@ class hollaex(Exchange, ImplicitAPI):
         #     {
         #         "btc-usdt": {
         #             "bids": [
-        #                 [8836.4, 1.022],
-        #                 [8800, 0.0668],
-        #                 [8797.75, 0.2398],
+        #                 [ 8836.4, 1.022 ],
+        #                 [ 8800, 0.0668 ],
+        #                 [ 8797.75, 0.2398 ],
         #             ],
         #             "asks": [
-        #                 [8839.35, 1.5334],
-        #                 [8852.6, 0.0579],
-        #                 [8860.45, 0.1815],
+        #                 [ 8839.35, 1.5334 ],
+        #                 [ 8852.6, 0.0579 ],
+        #                 [ 8860.45, 0.1815 ],
         #             ],
         #             "timestamp": "2020-03-03T02:27:25.147Z"
         #         },
         #         "eth-usdt": {},
-        #         # ...
+        #         // ...
         #     }
         #
         orderbook = self.safe_value(response, market['id'])
@@ -678,12 +679,12 @@ class hollaex(Exchange, ImplicitAPI):
         #             "volume":0.054,
         #             "symbol":"bch-usdt"
         #         },
-        #         # ...
+        #         // ...
         #     }
         #
         return self.parse_tickers(response, symbols)
 
-    def parse_tickers(self, tickers: Any, symbols: Strings = None, params={}) -> Tickers:
+    def parse_tickers(self, tickers: object, symbols: Strings = None, params={}) -> Tickers:
         result = {}
         keys = list(tickers.keys())
         for i in range(0, len(keys)):
@@ -750,7 +751,7 @@ class hollaex(Exchange, ImplicitAPI):
             'quoteVolume': None,
         }, market)
 
-    def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
         """
         get the list of most recent trades for a particular symbol
 
@@ -778,7 +779,7 @@ class hollaex(Exchange, ImplicitAPI):
         #                 "side": "buy",
         #                 "timestamp": "2020-03-03T04:44:33.034Z"
         #             },
-        #             # ...
+        #             // ...
         #         ]
         #     }
         #
@@ -787,7 +788,7 @@ class hollaex(Exchange, ImplicitAPI):
 
     def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #
-        # fetchTrades(public)
+        # fetchTrades (public)
         #
         #     {
         #         "size": 0.5,
@@ -796,7 +797,7 @@ class hollaex(Exchange, ImplicitAPI):
         #         "timestamp": "2020-03-03T04:44:33.034Z"
         #     }
         #
-        # fetchMyTrades(private)
+        # fetchMyTrades (private)
         #  {
         #      "side":"sell",
         #      "symbol":"doge-usdt",
@@ -901,7 +902,7 @@ class hollaex(Exchange, ImplicitAPI):
             }
         return result
 
-    def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> list[list]:
         """
         hollaex has large gaps between candles, so it's recommended to specify since
 
@@ -913,7 +914,7 @@ class hollaex(Exchange, ImplicitAPI):
         :param int [limit]: the maximum amount of candles to fetch(max 500)
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: timestamp in ms of the latest candle to fetch
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             self.load_markets()
@@ -954,7 +955,7 @@ class hollaex(Exchange, ImplicitAPI):
         #
         return self.parse_ohlcvs(self.to_array(response), market, timeframe, since, limit)
 
-    def parse_ohlcv(self, ohlcv: Any, market: Market = None) -> list:
+    def parse_ohlcv(self, ohlcv: object, market: Market = None) -> list:
         #
         #     {
         #         "time":"2020-03-02T20:00:00.000Z",
@@ -975,7 +976,7 @@ class hollaex(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 'volume'),
         ]
 
-    def parse_balance(self, response: Any) -> Balances:
+    def parse_balance(self, response: object) -> Balances:
         timestamp = self.parse8601(self.safe_string(response, 'updated_at'))
         result = {
             'info': response,
@@ -1017,7 +1018,7 @@ class hollaex(Exchange, ImplicitAPI):
         #         "eth_balance": 0,
         #         "eth_pending": 0,
         #         "eth_available": 0,
-        #         # ...
+        #         // ...
         #     }
         #
         return self.parse_balance(response)
@@ -1065,7 +1066,7 @@ class hollaex(Exchange, ImplicitAPI):
         #
         return self.parse_order(response)
 
-    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         fetch all unfilled currently open orders
 
@@ -1082,7 +1083,7 @@ class hollaex(Exchange, ImplicitAPI):
         }
         return self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
-    def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         fetches information on multiple closed orders made by the user
 
@@ -1143,7 +1144,7 @@ class hollaex(Exchange, ImplicitAPI):
             raise OrderNotFound(self.id + ' fetchOrder() could not find order id ' + id)
         return self.parse_order(order)
 
-    def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         fetches information on multiple orders made by the user
 
@@ -1160,15 +1161,15 @@ class hollaex(Exchange, ImplicitAPI):
         market = None
         request = {
             # 'symbol': market['id'],
-            # 'side': 'buy',  # 'sell'
-            # 'status': 'new',  # 'filled', 'pfilled', 'canceled'
-            # 'open': True,
-            # 'limit': limit,  # default 50, max 100
+            # 'side': 'buy', // 'sell'
+            # 'status': 'new', // 'filled', 'pfilled', 'canceled'
+            # 'open': true,
+            # 'limit': limit, // default 50, max 100
             # 'page': 1,
-            # 'order_by': 'created_at',  # id, ...
-            # 'order': 'asc',  # 'desc'
-            # 'start_date': self.iso8601(since),
-            # 'end_date': self.iso8601(self.milliseconds()),
+            # 'order_by': 'created_at', // id, ...
+            # 'order': 'asc', // 'desc'
+            # 'start_date': this.iso8601 (since),
+            # 'end_date': this.iso8601 (this.milliseconds ()),
         }
         if symbol is not None:
             market = self.market(symbol)
@@ -1237,7 +1238,7 @@ class hollaex(Exchange, ImplicitAPI):
         #          "status":"canceled",
         #          "fee":0,
         #          "fee_coin":"doge",
-        #          "meta": {                # optional field only returned for postOnly orders
+        #          "meta": {                 // optional field only returned for postOnly orders
         #              "post_only":true
         #          },
         #          "fee_structure": {
@@ -1308,8 +1309,8 @@ class hollaex(Exchange, ImplicitAPI):
             'side': side,
             'size': self.amount_to_precision(symbol, amount),
             'type': type,
-            # 'stop': float(self.price_to_precision(symbol, stopPrice)),
-            # 'meta': {},  # other options such
+            # 'stop': parseFloat (this.priceToPrecision (symbol, stopPrice)),
+            # 'meta': {}, // other options such as post_only
         }
         triggerPrice = self.safe_number_n(params, ['triggerPrice', 'stopPrice', 'stop'])
         meta = self.safe_value(params, 'meta', {})
@@ -1433,12 +1434,12 @@ class hollaex(Exchange, ImplicitAPI):
             self.load_markets()
         request = {
             # 'symbol': market['id'],
-            # 'limit': 50,  # default 50, max 100
-            # 'page': 1,  # page of data to retrieve
-            # 'order_by': 'timestamp',  # field to order data
-            # 'order': 'asc',  # asc or desc
-            # 'start_date': 123,  # starting date of queried data
-            # 'end_date': 321,  # ending date of queried data
+            # 'limit': 50, // default 50, max 100
+            # 'page': 1, // page of data to retrieve
+            # 'order_by': 'timestamp', // field to order data
+            # 'order': 'asc', // asc or desc
+            # 'start_date': 123, // starting date of queried data
+            # 'end_date': 321, // ending date of queried data
         }
         market = None
         if symbol is not None:
@@ -1467,7 +1468,7 @@ class hollaex(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_trades(data, market, since, limit)
 
-    def parse_deposit_address(self, depositAddress: Any, currency: Currency = None) -> DepositAddress:
+    def parse_deposit_address(self, depositAddress: object, currency: Currency = None) -> DepositAddress:
         #
         #     {
         #         "currency":"usdt",
@@ -1496,7 +1497,7 @@ class hollaex(Exchange, ImplicitAPI):
             'tag': tag,
         }
 
-    def fetch_deposit_addresses(self, codes: Strings = None, params={}) -> List[DepositAddress]:
+    def fetch_deposit_addresses(self, codes: Strings = None, params={}) -> list[DepositAddress]:
         """
         fetch deposit addresses for multiple currencies and chain types
 
@@ -1558,9 +1559,9 @@ class hollaex(Exchange, ImplicitAPI):
         #
         wallet = self.safe_value(response, 'wallet', [])
         addresses = wallet if (network is None) else self.filter_by(wallet, 'network', network)
-        return self.parse_deposit_addresses(addresses, codes)
+        return self.parse_deposit_addresses(addresses, codes, False)
 
-    def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+    def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
         """
         fetch all deposits made to an account
 
@@ -1576,12 +1577,12 @@ class hollaex(Exchange, ImplicitAPI):
             self.load_markets()
         request = {
             # 'currency': currency['id'],
-            # 'limit': 50,  # default 50, max 100
-            # 'page': 1,  # page of data to retrieve
-            # 'order_by': 'timestamp',  # field to order data
-            # 'order': 'asc',  # asc or desc
-            # 'start_date': 123,  # starting date of queried data
-            # 'end_date': 321,  # ending date of queried data
+            # 'limit': 50, // default 50, max 100
+            # 'page': 1, // page of data to retrieve
+            # 'order_by': 'timestamp', // field to order data
+            # 'order': 'asc', // asc or desc
+            # 'start_date': 123, // starting date of queried data
+            # 'end_date': 321, // ending date of queried data
         }
         currency = None
         if code is not None:
@@ -1602,9 +1603,9 @@ class hollaex(Exchange, ImplicitAPI):
         #                 "fee": 0,
         #                 "address": "0x5c0cc98270d7089408fcbcc8e2131287f5be2306",
         #                 "transaction_id": "0xd4006327a5ec2c41adbdcf566eaaba6597c3d45906abe78ea1a4a022647c2e28",
-        #                 "status": True,
-        #                 "dismissed": False,
-        #                 "rejected": False,
+        #                 "status": true,
+        #                 "dismissed": false,
+        #                 "rejected": false,
         #                 "description": "",
         #                 "type": "deposit",
         #                 "currency": "usdt",
@@ -1618,7 +1619,7 @@ class hollaex(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_transactions(data, currency, since, limit)
 
-    def fetch_withdrawal(self, id: str, code: Str = None, params={}):
+    def fetch_withdrawal(self, id: str, code: Str = None, params={}) -> Transaction:
         """
         fetch data on a currency withdrawal via the withdrawal id
 
@@ -1649,9 +1650,9 @@ class hollaex(Exchange, ImplicitAPI):
         #                 "fee": 0,
         #                 "address": "0x5c0cc98270d7089408fcbcc8e2131287f5be2306",
         #                 "transaction_id": "0xd4006327a5ec2c41adbdcf566eaaba6597c3d45906abe78ea1a4a022647c2e28",
-        #                 "status": True,
-        #                 "dismissed": False,
-        #                 "rejected": False,
+        #                 "status": true,
+        #                 "dismissed": false,
+        #                 "rejected": false,
         #                 "description": "",
         #                 "type": "withdrawal",
         #                 "currency": "usdt",
@@ -1666,7 +1667,7 @@ class hollaex(Exchange, ImplicitAPI):
         transaction = self.safe_dict(data, 0, {})
         return self.parse_transaction(transaction, currency)
 
-    def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+    def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
         """
         fetch all withdrawals made from an account
 
@@ -1682,12 +1683,12 @@ class hollaex(Exchange, ImplicitAPI):
             self.load_markets()
         request = {
             # 'currency': currency['id'],
-            # 'limit': 50,  # default 50, max 100
-            # 'page': 1,  # page of data to retrieve
-            # 'order_by': 'timestamp',  # field to order data
-            # 'order': 'asc',  # asc or desc
-            # 'start_date': 123,  # starting date of queried data
-            # 'end_date': 321,  # ending date of queried data
+            # 'limit': 50, // default 50, max 100
+            # 'page': 1, // page of data to retrieve
+            # 'order_by': 'timestamp', // field to order data
+            # 'order': 'asc', // asc or desc
+            # 'start_date': 123, // starting date of queried data
+            # 'end_date': 321, // ending date of queried data
         }
         currency = None
         if code is not None:
@@ -1708,9 +1709,9 @@ class hollaex(Exchange, ImplicitAPI):
         #                 "fee": 0,
         #                 "address": "0x5c0cc98270d7089408fcbcc8e2131287f5be2306",
         #                 "transaction_id": "0xd4006327a5ec2c41adbdcf566eaaba6597c3d45906abe78ea1a4a022647c2e28",
-        #                 "status": True,
-        #                 "dismissed": False,
-        #                 "rejected": False,
+        #                 "status": true,
+        #                 "dismissed": false,
+        #                 "rejected": false,
         #                 "description": "",
         #                 "type": "withdrawal",
         #                 "currency": "usdt",
@@ -1734,9 +1735,9 @@ class hollaex(Exchange, ImplicitAPI):
         #         "fee": 0,
         #         "address": "0x5c0cc98270d7089408fcbcc8e2131287f5be2306",
         #         "transaction_id": "0xd4006327a5ec2c41adbdcf566eaaba6597c3d45906abe78ea1a4a022647c2e28",
-        #         "status": True,
-        #         "dismissed": False,
-        #         "rejected": False,
+        #         "status": true,
+        #         "dismissed": false,
+        #         "rejected": false,
         #         "description": "",
         #         "type": "withdrawal",
         #         "currency": "usdt",
@@ -1779,11 +1780,11 @@ class hollaex(Exchange, ImplicitAPI):
         status = self.safe_value(transaction, 'status')
         dismissed = self.safe_value(transaction, 'dismissed')
         rejected = self.safe_value(transaction, 'rejected')
-        if status:
+        if status is True:
             status = 'ok'
-        elif dismissed:
+        elif dismissed is True:
             status = 'canceled'
-        elif rejected:
+        elif rejected is True:
             status = 'failed'
         else:
             status = 'pending'
@@ -1862,7 +1863,7 @@ class hollaex(Exchange, ImplicitAPI):
         #
         return self.parse_transaction(response, currency)
 
-    def parse_deposit_withdraw_fee(self, fee: Any, currency: Currency = None):
+    def parse_deposit_withdraw_fee(self, fee: object, currency: Currency = None):
         #
         #    "bch":{
         #        "id":4,
@@ -1906,7 +1907,7 @@ class hollaex(Exchange, ImplicitAPI):
             'networks': {},
         }
         allowWithdrawal = self.safe_value(fee, 'allow_withdrawal')
-        if allowWithdrawal:
+        if allowWithdrawal is True:
             result['withdraw'] = {'fee': self.safe_number(fee, 'withdrawal_fee'), 'percentage': False}
         withdrawalFees = self.safe_value(fee, 'withdrawal_fees')
         if withdrawalFees is not None:
@@ -1977,11 +1978,11 @@ class hollaex(Exchange, ImplicitAPI):
         coins = self.safe_dict(response, 'coins', {})
         return self.parse_deposit_withdraw_fees(coins, codes, 'symbol')
 
-    def sign(self, path: Any, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
+    def sign(self, path: object, api: object = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         query = self.omit(params, self.extract_params(path))
         path = '/' + self.version + '/' + self.implode_params(path, params)
         if (method == 'GET') or (method == 'DELETE'):
-            if query:
+            if len(query) > 0:
                 path += '?' + self.urlencode(query)
         url = self.urls['api']['rest'] + path
         if api == 'private':
@@ -1996,26 +1997,26 @@ class hollaex(Exchange, ImplicitAPI):
             }
             if method == 'POST':
                 headers['Content-type'] = 'application/json'
-                if query:
+                if len(query) > 0:
                     body = self.json(query)
                     auth += body
             signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256)
             headers['api-signature'] = signature
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: Any, requestHeaders: Any, requestBody: Any):
-        # {"message": "Invalid token"}
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
+        # { "message": "Invalid token" }
         if response is None:
             return None
         if (code >= 400) and (code <= 503):
             #
-            #  {"message": "Invalid token"}
+            #  { "message": "Invalid token" }
             #
             # different errors return the same code eg
             #
-            #  {"message":"Error 1001 - Order rejected. Order could not be submitted order was set to a post only order."}
+            #  { "message":"Error 1001 - Order rejected. Order could not be submitted as this order was set to a post only order." }
             #
-            #  {"message":"Error 1001 - POST ONLY order can not be of type market"}
+            #  { "message":"Error 1001 - POST ONLY order can not be of type market" }
             #
             feedback = self.id + ' ' + body
             message = self.safe_string(response, 'message')

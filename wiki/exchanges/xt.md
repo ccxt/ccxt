@@ -40,6 +40,8 @@
 * [fetchFundingInterval](#fetchfundinginterval)
 * [fetchFundingRate](#fetchfundingrate)
 * [fetchOpenInterest](#fetchopeninterest)
+* [fetchTradingFee](#fetchtradingfee)
+* [fetchTradingFees](#fetchtradingfees)
 * [fetchFundingHistory](#fetchfundinghistory)
 * [fetchPosition](#fetchposition)
 * [fetchPositions](#fetchpositions)
@@ -357,6 +359,7 @@ create a trade order
 - https://doc.xt.com/docs/futures/Order/Create%20Orders
 - https://doc.xt.com/docs/futures/Entrust/CreateTriggerOrders
 - https://doc.xt.com/docs/futures/Entrust/CreateStopLimit
+- https://doc.xt.com/docs/futures/Entrust/CreateTrack
 
 
 | Param | Type | Required | Description |
@@ -367,13 +370,18 @@ create a trade order
 | amount | <code>float</code> | Yes | how much you want to trade in units of the base currency |
 | price | <code>float</code> | No | the price to fulfill the order, in units of the quote currency, can be ignored in market orders |
 | params | <code>object</code> | Yes | extra parameters specific to the exchange API endpoint |
-| params.timeInForce | <code>string</code> | No | 'GTC', 'IOC', 'FOK' or 'GTX' |
+| params.timeInForce | <code>string</code> | No | 'GTC', 'IOC', 'FOK', 'PO' or 'GTX' |
+| params.postOnly | <code>bool</code> | No | true or false whether the order is post-only, mapped to timeInForce GTX |
 | params.entrustType | <code>string</code> | No | 'TAKE_PROFIT', 'STOP', 'TAKE_PROFIT_MARKET', 'STOP_MARKET', 'TRAILING_STOP_MARKET', required if stopPrice is defined, currently isn't functioning on xt's side |
 | params.triggerPriceType | <code>string</code> | No | 'INDEX_PRICE', 'MARK_PRICE', 'LATEST_PRICE', required if stopPrice is defined |
 | params.triggerPrice | <code>float</code> | No | price to trigger a stop order |
 | params.stopPrice | <code>float</code> | No | alias for triggerPrice |
 | params.stopLoss | <code>float</code> | No | price to set a stop-loss on an open position |
 | params.takeProfit | <code>float</code> | No | price to set a take-profit on an open position |
+| params.trailingPercent | <code>float</code> | No | the percent to trail away from the current market price, swap markets only |
+| params.trailingAmount | <code>float</code> | No | the quote amount to trail away from the current market price, swap markets only |
+| params.trailingTriggerPrice | <code>float</code> | No | the price to activate a trailing order, swap markets only |
+| params.marginMode | <code>string</code> | No | 'cross' or 'isolated', for trailing orders only, default is 'cross' |
 
 
 ```javascript
@@ -395,6 +403,7 @@ fetches information on an order made by the user
 - https://doc.xt.com/docs/futures/Order/see-orders-by-id
 - https://doc.xt.com/docs/futures/Entrust/SeeTriggerOrdersByEntrustId
 - https://doc.xt.com/docs/futures/Entrust/SeeStopLimitByProfitId
+- https://doc.xt.com/docs/futures/Entrust/GetSingleTrackDetail
 
 
 | Param | Type | Required | Description |
@@ -404,6 +413,7 @@ fetches information on an order made by the user
 | params | <code>object</code> | Yes | extra parameters specific to the exchange API endpoint |
 | params.trigger | <code>bool</code> | No | if the order is a trigger order or not |
 | params.stopLossTakeProfit | <code>bool</code> | No | if the order is a stop-loss or take-profit order |
+| params.trailing | <code>bool</code> | No | if the order is a trailing order or not |
 
 
 ```javascript
@@ -424,6 +434,7 @@ fetches information on multiple orders made by the user
 - https://doc.xt.com/docs/spot/Order/QueryHistoricalOrders
 - https://doc.xt.com/docs/futures/Order/see-order-history
 - https://doc.xt.com/docs/futures/Entrust/SeeTriggerOrdersHistory
+- https://doc.xt.com/docs/futures/Entrust/GetHistoryTrackListInactive
 
 
 | Param | Type | Required | Description |
@@ -433,6 +444,7 @@ fetches information on multiple orders made by the user
 | limit | <code>int</code> | No | the maximum number of order structures to retrieve |
 | params | <code>object</code> | Yes | extra parameters specific to the exchange API endpoint |
 | params.trigger | <code>bool</code> | No | if the order is a trigger order or not |
+| params.trailing | <code>bool</code> | No | if the orders are trailing orders or not |
 
 
 ```javascript
@@ -454,6 +466,7 @@ fetch all unfilled currently open orders
 - https://doc.xt.com/docs/futures/Order/see-orders
 - https://doc.xt.com/docs/futures/Entrust/SeeTriggerOrders
 - https://doc.xt.com/docs/futures/Entrust/SeeStopLimit
+- https://doc.xt.com/docs/futures/Entrust/getTrackList
 
 
 | Param | Type | Required | Description |
@@ -464,6 +477,7 @@ fetch all unfilled currently open orders
 | params | <code>object</code> | Yes | extra parameters specific to the exchange API endpoint |
 | params.trigger | <code>bool</code> | No | if the order is a trigger order or not |
 | params.stopLossTakeProfit | <code>bool</code> | No | if the order is a stop-loss or take-profit order |
+| params.trailing | <code>bool</code> | No | if the orders are trailing orders or not |
 
 
 ```javascript
@@ -485,6 +499,7 @@ fetches information on multiple closed orders made by the user
 - https://doc.xt.com/docs/futures/Order/see-orders
 - https://doc.xt.com/docs/futures/Entrust/SeeTriggerOrders
 - https://doc.xt.com/docs/futures/Entrust/SeeStopLimit
+- https://doc.xt.com/docs/futures/Entrust/GetHistoryTrackListInactive
 
 
 | Param | Type | Required | Description |
@@ -495,6 +510,7 @@ fetches information on multiple closed orders made by the user
 | params | <code>object</code> | Yes | extra parameters specific to the exchange API endpoint |
 | params.trigger | <code>bool</code> | No | if the order is a trigger order or not |
 | params.stopLossTakeProfit | <code>bool</code> | No | if the order is a stop-loss or take-profit order |
+| params.trailing | <code>bool</code> | No | if the orders are trailing orders or not |
 
 
 ```javascript
@@ -516,6 +532,7 @@ fetches information on multiple canceled orders made by the user
 - https://doc.xt.com/docs/futures/Order/see-orders
 - https://doc.xt.com/docs/futures/Entrust/SeeTriggerOrders
 - https://doc.xt.com/docs/futures/Entrust/SeeStopLimit
+- https://doc.xt.com/docs/futures/Entrust/GetHistoryTrackListInactive
 
 
 | Param | Type | Required | Description |
@@ -526,6 +543,7 @@ fetches information on multiple canceled orders made by the user
 | params | <code>object</code> | Yes | extra parameters specific to the exchange API endpoint |
 | params.trigger | <code>bool</code> | No | if the order is a trigger order or not |
 | params.stopLossTakeProfit | <code>bool</code> | No | if the order is a stop-loss or take-profit order |
+| params.trailing | <code>bool</code> | No | if the orders are trailing orders or not |
 
 
 ```javascript
@@ -547,6 +565,7 @@ cancels an open order
 - https://doc.xt.com/docs/futures/Order/cancel-orders
 - https://doc.xt.com/docs/futures/Entrust/CancelTriggerOrders
 - https://doc.xt.com/docs/futures/Entrust/CancelStopLimit
+- https://doc.xt.com/docs/futures/Entrust/CancelSingleTrack
 
 
 | Param | Type | Required | Description |
@@ -556,6 +575,7 @@ cancels an open order
 | params | <code>object</code> | Yes | extra parameters specific to the exchange API endpoint |
 | params.trigger | <code>bool</code> | No | if the order is a trigger order or not |
 | params.stopLossTakeProfit | <code>bool</code> | No | if the order is a stop-loss or take-profit order |
+| params.trailing | <code>bool</code> | No | if the order is a trailing order or not |
 
 
 ```javascript
@@ -577,6 +597,7 @@ cancel all open orders in a market
 - https://doc.xt.com/docs/futures/Order/cancel-all-orders
 - https://doc.xt.com/docs/futures/Entrust/CancelAllTriggerOrders
 - https://doc.xt.com/docs/futures/Entrust/CancelAllStopLimit
+- https://doc.xt.com/docs/futures/Entrust/CancelAllTrack
 
 
 | Param | Type | Required | Description |
@@ -585,6 +606,7 @@ cancel all open orders in a market
 | params | <code>object</code> | Yes | extra parameters specific to the exchange API endpoint |
 | params.trigger | <code>bool</code> | No | if the order is a trigger order or not |
 | params.stopLossTakeProfit | <code>bool</code> | No | if the order is a stop-loss or take-profit order |
+| params.trailing | <code>bool</code> | No | if the orders are trailing orders or not |
 
 
 ```javascript
@@ -924,6 +946,48 @@ retrieves the open interest of a contract trading pair
 
 ```javascript
 xt.fetchOpenInterest (symbol, params?)
+```
+
+
+<a name="fetchTradingFee" id="fetchtradingfee"></a>
+
+### fetchTradingFee{docsify-ignore}
+fetch the trading fees for a contract market, the same account-level rate applies to all contract markets of the same subtype
+
+**Kind**: instance method of [<code>xt</code>](#xt)  
+**Returns**: <code>object</code> - a [fee structure](https://docs.ccxt.com/?id=fee-structure)
+
+**See**: https://doc.xt.com/docs/futures/User/Get%20User's%20Step%20Rate  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified market symbol |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+xt.fetchTradingFee (symbol, params?)
+```
+
+
+<a name="fetchTradingFees" id="fetchtradingfees"></a>
+
+### fetchTradingFees{docsify-ignore}
+fetch the trading fees for multiple markets, the same account-level rate applies to all contract markets of the requested subtype
+
+**Kind**: instance method of [<code>xt</code>](#xt)  
+**Returns**: <code>object</code> - a dictionary of [fee structures](https://docs.ccxt.com/?id=fee-structure) indexed by market symbol
+
+**See**: https://doc.xt.com/docs/futures/User/Get%20User's%20Step%20Rate  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.subType | <code>string</code> | No | 'linear' (default) or 'inverse' |
+
+
+```javascript
+xt.fetchTradingFees (params?)
 ```
 
 

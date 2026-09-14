@@ -11,10 +11,13 @@ async function testWatchTradesForSymbols(exchange, skippedProperties, symbols) {
     const method = 'watchTradesForSymbols';
     let now = exchange.milliseconds();
     const ends = now + 15000;
+    const maxIdleTime = 5000;
+    let idle = false;
     const returnedSymbols = [];
-    while (now < ends || returnedSymbols.length < symbols.length) {
+    while ((now < ends) && !idle) {
         let response = undefined;
-        const success = true;
+        let success = true;
+        const startTime = exchange.milliseconds();
         try {
             response = await exchange.watchTradesForSymbols(symbols);
         }
@@ -22,12 +25,11 @@ async function testWatchTradesForSymbols(exchange, skippedProperties, symbols) {
             if (!testSharedMethods.isTemporaryFailure(e)) {
                 throw e;
             }
-            now = exchange.milliseconds();
-            // continue;
+            success = false;
         }
+        now = exchange.milliseconds();
         if ((success === true) && (response !== undefined)) {
             assert(Array.isArray(response), exchange.id + ' ' + method + ' ' + exchange.json(symbols) + ' must return an array. ' + exchange.json(response));
-            now = exchange.milliseconds();
             let symbol = undefined;
             for (let i = 0; i < response.length; i++) {
                 const trade = response[i];
@@ -41,9 +43,9 @@ async function testWatchTradesForSymbols(exchange, skippedProperties, symbols) {
                     returnedSymbols.push(symbol);
                 }
             }
-            // if (!('timestampSort' in skippedProperties)) {
-            //     testSharedMethods.assertTimestampOrder (exchange, method, symbol, response);
-            // }
+            if ((now - startTime) > maxIdleTime) {
+                idle = true;
+            }
         }
     }
     return true;

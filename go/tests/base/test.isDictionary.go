@@ -26,4 +26,5 @@ func TestIsDictionary() {
 	Assert(ccxt.IsEqual(exchange.IsDictionary("str"), false))
 	Assert(ccxt.IsEqual(exchange.IsDictionary(5), false))
 	Assert(ccxt.IsEqual(exchange.IsDictionary(true), false))
+	Assert(ccxt.IsEqual(exchange.IsDictionary(map[string]any{}), true))
 }

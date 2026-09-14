@@ -5,16 +5,15 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp
-from ccxt.base.types import Any, Balances, Int, Market, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, FundingRate, Trade
+from ccxt.base.types import Balances, Int, Market, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, FundingRate, Trade
 from ccxt.async_support.base.ws.client import Client
-from typing import List
-from ccxt.base.errors import BadSymbol
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import NotSupported
 
 
 class xt(ccxt.async_support.xt):
 
-    def describe(self) -> Any:
+    def describe(self) -> object:
         return self.deep_extend(super(xt, self).describe(), {
             'has': {
                 'ws': True,
@@ -49,10 +48,10 @@ class xt(ccxt.async_support.xt):
                 'ordersLimit': 1000,
                 'OHLCVLimit': 1000,
                 'watchTicker': {
-                    'method': 'ticker',  # agg_ticker(contract only)
+                    'method': 'ticker',  # agg_ticker (contract only)
                 },
                 'watchTickers': {
-                    'method': 'tickers',  # agg_tickers(contract only)
+                    'method': 'tickers',  # agg_tickers (contract only)
                 },
                 'watchPositions': {
                     'type': 'swap',
@@ -86,35 +85,62 @@ class xt(ccxt.async_support.xt):
         client = self.client(url)
         token = self.safe_string(client.subscriptions, 'token')
         if token is None:
-            if isContract:
-                response = await self.privateLinearGetFutureUserV1UserListenKey()
-                #
-                #    {
-                #        returnCode: '0',
-                #        msgInfo: 'success',
-                #        error: null,
-                #        result: '3BC1D71D6CF96DA3458FC35B05B633351684511731128'
-                #    }
-                #
-                client.subscriptions['token'] = self.safe_string(response, 'result')
-            else:
-                response = await self.privateSpotPostWsToken()
-                #
-                #    {
-                #        "rc": 0,
-                #        "mc": "SUCCESS",
-                #        "ma": [],
-                #        "result": {
-                #            "token": "eyJhbqGciOiJSUzI1NiJ9.eyJhY2NvdW50SWQiOiIyMTQ2Mjg1MzIyNTU5Iiwic3ViIjoibGh4dDRfMDAwMUBzbmFwbWFpbC5jYyIsInNjb3BlIjoiYXV0aCIsImlzcyI6Inh0LmNvbSIsImxhc3RBdXRoVGltZSI6MTY2MzgxMzY5MDk1NSwic2lnblR5cGUiOiJBSyIsInVzZXJOYW1lIjoibGh4dDRfMDAwMUBzbmFwbWFpbC5jYyIsImV4cCI6MTY2NjQwNTY5MCwiZGV2aWNlIjoidW5rbm93biIsInVzZXJJZCI6MjE0NjI4NTMyMjU1OX0.h3zJlJBQrK2x1HvUxsKivnn6PlSrSDXXXJ7WqHAYSrN2CG5XPTKc4zKnTVoYFbg6fTS0u1fT8wH7wXqcLWXX71vm0YuP8PCvdPAkUIq4-HyzltbPr5uDYd0UByx0FPQtq1exvsQGe7evXQuDXx3SEJXxEqUbq_DNlXPTq_JyScI",
-                #            "refreshToken": "eyJhbGciOiqJSUzI1NiJ9.eyJhY2NvdW50SWQiOiIyMTQ2Mjg1MzIyNTU5Iiwic3ViIjoibGh4dDRfMDAwMUBzbmFwbWFpbC5jYyIsInNjb3BlIjoicmVmcmVzaCIsImlzcyI6Inh0LmNvbSIsImxhc3RBdXRoVGltZSI6MTY2MzgxMzY5MDk1NSwic2lnblR5cGUiOiJBSyIsInVzZXJOYW1lIjoibGh4dDRfMDAwMUBzbmFwbWFpbC5jYyIsImV4cCI6MTY2NjQwNTY5MCwiZGV2aWNlIjoidW5rbm93biIsInVzZXJJZCI6MjE0NjI4NTMyMjU1OX0.Fs3YVm5YrEOzzYOSQYETSmt9iwxUHBovh2u73liv1hLUec683WGfktA_s28gMk4NCpZKFeQWFii623FvdfNoteXR0v1yZ2519uNvNndtuZICDdv3BQ4wzW1wIHZa1skxFfqvsDnGdXpjqu9UFSbtHwxprxeYfnxChNk4ssei430"
-                #        }
-                #    }
-                #
-                result = self.safe_dict(response, 'result')
-                client.subscriptions['token'] = self.safe_string(result, 'accessToken')
+            # single-flight leader election, see https://github.com/ccxt/ccxt/issues/29393:
+            # concurrent callers each minted their own token, last write won, and the losers
+            # carried an orphaned token into name + '@' + listenKey so their streams went dead
+            messageHash = 'authenticate:' + tradeType
+            if messageHash in client.futures:
+                # a flight is already in progress - wake when the leader
+                # settles it: the token is then in the bucket
+                await client.future(messageHash)
+                return client.subscriptions['token']
+            # client.futures is the same registry Exchange.watch () dedupes on, so registering
+            # the flight here, before any suspension point, makes concurrent callers wait
+            future = client.reusableFuture(messageHash)
+            try:
+                listenKey = None
+                if isContract:
+                    response = await self.privateLinearGetFutureUserV1UserListenKey()
+                    #
+                    #    {
+                    #        returnCode: '0',
+                    #        msgInfo: 'success',
+                    #        error: null,
+                    #        result: '3BC1D71D6CF96DA3458FC35B05B633351684511731128'
+                    #    }
+                    #
+                    listenKey = self.safe_string(response, 'result')
+                else:
+                    response = await self.privateSpotPostWsToken()
+                    #
+                    #    {
+                    #        "rc": 0,
+                    #        "mc": "SUCCESS",
+                    #        "ma": [],
+                    #        "result": {
+                    #            "token": "eyJhbqGciOiJSUzI1NiJ9.eyJhY2NvdW50SWQiOiIyMTQ2Mjg1MzIyNTU5Iiwic3ViIjoibGh4dDRfMDAwMUBzbmFwbWFpbC5jYyIsInNjb3BlIjoiYXV0aCIsImlzcyI6Inh0LmNvbSIsImxhc3RBdXRoVGltZSI6MTY2MzgxMzY5MDk1NSwic2lnblR5cGUiOiJBSyIsInVzZXJOYW1lIjoibGh4dDRfMDAwMUBzbmFwbWFpbC5jYyIsImV4cCI6MTY2NjQwNTY5MCwiZGV2aWNlIjoidW5rbm93biIsInVzZXJJZCI6MjE0NjI4NTMyMjU1OX0.h3zJlJBQrK2x1HvUxsKivnn6PlSrSDXXXJ7WqHAYSrN2CG5XPTKc4zKnTVoYFbg6fTS0u1fT8wH7wXqcLWXX71vm0YuP8PCvdPAkUIq4-HyzltbPr5uDYd0UByx0FPQtq1exvsQGe7evXQuDXx3SEJXxEqUbq_DNlXPTq_JyScI",
+                    #            "refreshToken": "eyJhbGciOiqJSUzI1NiJ9.eyJhY2NvdW50SWQiOiIyMTQ2Mjg1MzIyNTU5Iiwic3ViIjoibGh4dDRfMDAwMUBzbmFwbWFpbC5jYyIsInNjb3BlIjoicmVmcmVzaCIsImlzcyI6Inh0LmNvbSIsImxhc3RBdXRoVGltZSI6MTY2MzgxMzY5MDk1NSwic2lnblR5cGUiOiJBSyIsInVzZXJOYW1lIjoibGh4dDRfMDAwMUBzbmFwbWFpbC5jYyIsImV4cCI6MTY2NjQwNTY5MCwiZGV2aWNlIjoidW5rbm93biIsInVzZXJJZCI6MjE0NjI4NTMyMjU1OX0.Fs3YVm5YrEOzzYOSQYETSmt9iwxUHBovh2u73liv1hLUec683WGfktA_s28gMk4NCpZKFeQWFii623FvdfNoteXR0v1yZ2519uNvNndtuZICDdv3BQ4wzW1wIHZa1skxFfqvsDnGdXpjqu9UFSbtHwxprxeYfnxChNk4ssei430"
+                    #        }
+                    #    }
+                    #
+                    result = self.safe_dict(response, 'result')
+                    listenKey = self.safe_string(result, 'accessToken')
+                if listenKey is None:
+                    # reject instead of caching an empty token, so waiters
+                    # retry rather than subscribing with the literal
+                    # string 'undefined' for the rest of the session
+                    raise AuthenticationError(self.id + ' getListenKey() received an empty listen key')
+                client.subscriptions['token'] = listenKey
+                client.resolve(listenKey, messageHash)
+            except Exception as e:
+                # hand the failure to every waiter so the next caller re-leads instead of
+                # deadlocking on a dead flight. no throw here: the trailing future rethrows
+                # to this caller and keeps a waiterless rejection from crashing the process
+                client.reject(e, messageHash)
+            await future
         return client.subscriptions['token']
 
-    def get_cache_index(self, orderbook: Any, cache: Any):
+    def get_cache_index(self, orderbook: object, cache: object):
         # return the first index of the cache that can be applied to the orderbook or -1 if not possible
         nonce = self.safe_integer(orderbook, 'nonce')
         firstDelta = self.safe_value(cache, 0)
@@ -128,7 +154,7 @@ class xt(ccxt.async_support.xt):
                 return i
         return len(cache)
 
-    def handle_delta(self, orderbook: Any, delta: Any):
+    def handle_delta(self, orderbook: object, delta: object):
         orderbook['nonce'] = self.safe_integer_2(delta, 'i', 'u')
         obAsks = self.safe_list(delta, 'a', [])
         obBids = self.safe_list(delta, 'b', [])
@@ -144,8 +170,8 @@ class xt(ccxt.async_support.xt):
             price = self.safe_number(ask, 0)
             quantity = self.safe_number(ask, 1)
             asks.store(price, quantity)
-        # self.handleBidAsks(storedBids, bids)
-        # self.handleBidAsks(storedAsks, asks)
+        # this.handleBidAsks (storedBids, bids);
+        # this.handleBidAsks (storedAsks, asks);
 
     async def subscribe(self, name: str, access: str, methodName: str, market: Market = None, symbols: Strings = None, params={}):
         """
@@ -196,7 +222,7 @@ class xt(ccxt.async_support.xt):
         url = self.urls['api']['ws'][tradeType] + '/' + tail
         return await self.watch(url, messageHash, request, messageHash, subscription)
 
-    async def un_subscribe(self, messageHash: str, name: str, access: str, methodName: str, topic: str, market: Market = None, symbols: Strings = None, params={}, subscriptionParams={}) -> Any:
+    async def un_subscribe(self, messageHash: str, name: str, access: str, methodName: str, topic: str, market: Market = None, symbols: Strings = None, params={}, subscriptionParams={}) -> object:
         """
  @ignore
         Connects to a websocket channel
@@ -348,7 +374,7 @@ class xt(ccxt.async_support.xt):
             return tickers
         return self.filter_by_array(self.tickers, 'symbol', symbols)
 
-    async def watch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def watch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> list[list]:
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -360,7 +386,7 @@ class xt(ccxt.async_support.xt):
         :param int [since]: not used by xt watchOHLCV
         :param int [limit]: not used by xt watchOHLCV
         :param dict params: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()
@@ -371,7 +397,7 @@ class xt(ccxt.async_support.xt):
             limit = ohlcv.getLimit(symbol, limit)
         return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
 
-    async def un_watch_ohlcv(self, symbol: str, timeframe: str = '1m', params={}) -> List[list]:
+    async def un_watch_ohlcv(self, symbol: str, timeframe: str = '1m', params={}) -> list[list]:
         """
         stops watching historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -381,7 +407,7 @@ class xt(ccxt.async_support.xt):
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: 1m, 3m, 5m, 15m, 30m, 1h, 2h, 4h, 6h, 8h, 12h, 1d, 3d, 1w, or 1M
         :param dict params: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()
@@ -391,7 +417,7 @@ class xt(ccxt.async_support.xt):
         symbolsAndTimeframes = [[market['symbol'], timeframe]]
         return await self.un_subscribe(messageHash, name, 'public', 'unWatchOHLCV', 'ohlcv', market, [symbol], params, {'symbolsAndTimeframes': symbolsAndTimeframes})
 
-    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
         """
         get the list of most recent trades for a particular symbol
 
@@ -413,7 +439,7 @@ class xt(ccxt.async_support.xt):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp')
 
-    async def un_watch_trades(self, symbol: str, params={}) -> List[Trade]:
+    async def un_watch_trades(self, symbol: str, params={}) -> list[Trade]:
         """
         stops watching the list of most recent trades for a particular symbol
 
@@ -482,7 +508,7 @@ class xt(ccxt.async_support.xt):
         messageHash = 'unsubscribe::' + name
         return await self.un_subscribe(messageHash, name, 'public', 'unWatchOrderBook', 'orderbook', market, [symbol], params)
 
-    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         watches information on multiple orders made by the user
 
@@ -506,7 +532,7 @@ class xt(ccxt.async_support.xt):
             limit = orders.getLimit(symbol, limit)
         return self.filter_by_since_limit(orders, since, limit, 'timestamp')
 
-    async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
         """
         watches information on multiple trades made by the user
 
@@ -545,7 +571,7 @@ class xt(ccxt.async_support.xt):
         name = 'balance'
         return await self.subscribe(name, 'private', 'watchBalance', None, None, params)
 
-    async def watch_positions(self, symbols: Strings = None, since: Int = None, limit: Int = None, params={}) -> List[Position]:
+    async def watch_positions(self, symbols: Strings = None, since: Int = None, limit: Int = None, params={}) -> list[Position]:
         """
 
         https://doc.xt.com/docs/futures/UserWebsocket/ChangePosition
@@ -565,7 +591,7 @@ class xt(ccxt.async_support.xt):
         fetchPositionsSnapshot = self.handle_option('watchPositions', 'fetchPositionsSnapshot', True)
         awaitPositionsSnapshot = self.handle_option('watchPositions', 'awaitPositionsSnapshot', True)
         cache = self.positions
-        if fetchPositionsSnapshot and awaitPositionsSnapshot and self.is_empty(cache):
+        if (fetchPositionsSnapshot is True) and (awaitPositionsSnapshot is True) and self.is_empty(cache):
             snapshot = await client.future('fetchPositionsSnapshot')
             return self.filter_by_symbols_since_limit(snapshot, symbols, since, limit, True)
         name = 'position'
@@ -587,8 +613,8 @@ class xt(ccxt.async_support.xt):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        if not market['swap']:
-            raise BadSymbol(self.id + ' watchFundingRate() supports swap contracts only')
+        if market['swap'] is not True:
+            raise NotSupported(self.id + ' watchFundingRate() supports swap contracts only')
         name = 'fund_rate@' + market['id']
         return await self.subscribe(name, 'public', 'watchFundingRate', market, None, params)
 
@@ -605,8 +631,8 @@ class xt(ccxt.async_support.xt):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        if not market['swap']:
-            raise BadSymbol(self.id + ' unWatchFundingRate() supports swap contracts only')
+        if market['swap'] is not True:
+            raise NotSupported(self.id + ' unWatchFundingRate() supports swap contracts only')
         name = 'fund_rate@' + market['id']
         messageHash = 'unsubscribe::' + name
         return await self.un_subscribe(messageHash, name, 'public', 'unWatchFundingRate', 'fund_rate', market, None, params)
@@ -617,9 +643,9 @@ class xt(ccxt.async_support.xt):
         #         "topic": "fund_rate",
         #         "event": "fund_rate@btc_usdt",
         #         "data": {
-        #             "s": "btc_usdt",  # symbol
-        #             "r": "0.01",      # funding rate
-        #             "t": 123124124    # timestamp
+        #             "s": "btc_usdt",  // symbol
+        #             "r": "0.01",      // funding rate
+        #             "t": 123124124    // timestamp
         #         }
         #     }
         #
@@ -645,13 +671,13 @@ class xt(ccxt.async_support.xt):
         if self.positions is None:
             self.positions = ArrayCacheBySymbolBySide()
         fetchPositionsSnapshot = self.handle_option('watchPositions', 'fetchPositionsSnapshot')
-        if fetchPositionsSnapshot:
+        if fetchPositionsSnapshot is True:
             messageHash = 'fetchPositionsSnapshot'
             if not (messageHash in client.futures):
                 client.future(messageHash)
                 self.spawn(self.load_positions_snapshot, client, messageHash)
 
-    async def load_positions_snapshot(self, client: Client, messageHash: Any):
+    async def load_positions_snapshot(self, client: Client, messageHash: object):
         positions = await self.fetch_positions()
         self.positions = ArrayCacheBySymbolBySide()
         cache = self.positions
@@ -666,7 +692,7 @@ class xt(ccxt.async_support.xt):
             future.resolve(cache)
             client.resolve(cache, 'position::contract')
 
-    def handle_position(self, client: Any, message: Any):
+    def handle_position(self, client: object, message: object):
         #
         #    {
         #      topic: 'position',
@@ -688,7 +714,7 @@ class xt(ccxt.async_support.xt):
         #        openOrderMarginFrozen: '2.78832014',
         #        underlyingType: 'U_BASED',
         #        leverage: 10,
-        #        welfareAccount: False,
+        #        welfareAccount: false,
         #        profitFixedLatest: {},
         #        closeProfit: '0.0000',
         #        totalFee: '-0.0158',
@@ -722,16 +748,16 @@ class xt(ccxt.async_support.xt):
         #        topic: 'ticker',
         #        event: 'ticker@btc_usdt',
         #        data: {
-        #           s: 'btc_usdt',            # symbol
-        #           t: 1683501935877,         # time(Last transaction time)
-        #           cv: '-82.67',             # priceChangeValue(24 hour price change)
-        #           cr: '-0.0028',            # priceChangeRate 24-hour price change(percentage)
-        #           o: '28823.87',            # open price
-        #           c: '28741.20',            # close price
-        #           h: '29137.64',            # highest price
-        #           l: '28660.93',            # lowest price
-        #           q: '6372.601573',         # quantity
-        #           v: '184086075.2772391'    # volume
+        #           s: 'btc_usdt',            // symbol
+        #           t: 1683501935877,         // time(Last transaction time)
+        #           cv: '-82.67',             // priceChangeValue(24 hour price change)
+        #           cr: '-0.0028',            // priceChangeRate 24-hour price change (percentage)
+        #           o: '28823.87',            // open price
+        #           c: '28741.20',            // close price
+        #           h: '29137.64',            // highest price
+        #           l: '28660.93',            // lowest price
+        #           q: '6372.601573',         // quantity
+        #           v: '184086075.2772391'    // volume
         #        }
         #    }
         #
@@ -741,37 +767,37 @@ class xt(ccxt.async_support.xt):
         #        "topic": "ticker",
         #        "event": "ticker@btc_usdt",
         #        "data": {
-        #            "s": "btc_index",  # trading pair
-        #            "o": "49000",      # opening price
-        #            "c": "50000",      # closing price
-        #            "h": "0.1",        # highest price
-        #            "l": "0.1",        # lowest price
-        #            "a": "0.1",        # volume
-        #            "v": "0.1",        # turnover
-        #            "ch": "0.21",      # quote change
-        #            "t": 123124124     # timestamp
+        #            "s": "btc_index",  // trading pair
+        #            "o": "49000",      // opening price
+        #            "c": "50000",      // closing price
+        #            "h": "0.1",        // highest price
+        #            "l": "0.1",        // lowest price
+        #            "a": "0.1",        // volume
+        #            "v": "0.1",        // turnover
+        #            "ch": "0.21",      // quote change
+        #            "t": 123124124     // timestamp
         #       }
         #    }
         #
-        # agg_ticker(contract)
+        # agg_ticker (contract)
         #
         #    {
         #        "topic": "agg_ticker",
         #        "event": "agg_ticker@btc_usdt",
         #        "data": {
-        #            "s": "btc_index",          # trading pair
-        #            "o": "49000",              # opening price
-        #            "c": "50000",              # closing price
-        #            "h": "0.1",                # highest price
-        #            "l": "0.1",                # lowest price
-        #            "a": "0.1",                # volume
-        #            "v": "0.1",                # turnover
-        #            "ch": "0.21",              # quote change
-        #            "i": "0.21" ,              # index price
-        #            "m": "0.21",               # mark price
-        #            "bp": "0.21",              # bid price
-        #            "ap": "0.21" ,             # ask price
-        #            "t": 123124124             # timestamp
+        #            "s": "btc_index",          // trading pair
+        #            "o": "49000",              // opening price
+        #            "c": "50000",              // closing price
+        #            "h": "0.1",                // highest price
+        #            "l": "0.1",                // lowest price
+        #            "a": "0.1",                // volume
+        #            "v": "0.1",                // turnover
+        #            "ch": "0.21",              // quote change
+        #            "i": "0.21" ,              // index price
+        #            "m": "0.21",               // mark price
+        #            "bp": "0.21",              // bid price
+        #            "ap": "0.21" ,             // ask price
+        #            "t": 123124124             // timestamp
         #       }
         #    }
         #
@@ -821,39 +847,39 @@ class xt(ccxt.async_support.xt):
         #        "event": "tickers",
         #        "data": [
         #            {
-        #                "s": "btc_index",  # trading pair
-        #                "o": "49000",      # opening price
-        #                "c": "50000",      # closing price
-        #                "h": "0.1",        # highest price
-        #                "l": "0.1",        # lowest price
-        #                "a": "0.1",        # volume
-        #                "v": "0.1",        # turnover
-        #                "ch": "0.21",      # quote change
-        #                "t": 123124124     # timestamp
+        #                "s": "btc_index",  // trading pair
+        #                "o": "49000",      // opening price
+        #                "c": "50000",      // closing price
+        #                "h": "0.1",        // highest price
+        #                "l": "0.1",        // lowest price
+        #                "a": "0.1",        // volume
+        #                "v": "0.1",        // turnover
+        #                "ch": "0.21",      // quote change
+        #                "t": 123124124     // timestamp
         #            }
         #        ]
         #    }
         #
-        # agg_ticker(contract)
+        # agg_ticker (contract)
         #
         #    {
         #        "topic": "agg_tickers",
         #        "event": "agg_tickers",
         #        "data": [
         #            {
-        #                "s": "btc_index",          # trading pair
-        #                "o": "49000",              # opening price
-        #                "c": "50000",              # closing price
-        #                "h": "0.1",                # highest price
-        #                "l": "0.1",                # lowest price
-        #                "a": "0.1",                # volume
-        #                "v": "0.1",                # turnover
-        #                "ch": "0.21",              # quote change
-        #                "i": "0.21" ,              # index price
-        #                "m": "0.21",               # mark price
-        #                "bp": "0.21",              # bid price
-        #                "ap": "0.21" ,             # ask price
-        #                "t": 123124124             # timestamp
+        #                "s": "btc_index",          // trading pair
+        #                "o": "49000",              // opening price
+        #                "c": "50000",              // closing price
+        #                "h": "0.1",                // highest price
+        #                "l": "0.1",                // lowest price
+        #                "a": "0.1",                // volume
+        #                "v": "0.1",                // turnover
+        #                "ch": "0.21",              // quote change
+        #                "i": "0.21" ,              // index price
+        #                "m": "0.21",               // mark price
+        #                "bp": "0.21",              // bid price
+        #                "ap": "0.21" ,             // ask price
+        #                "t": 123124124             // timestamp
         #            }
         #        ]
         #    }
@@ -893,15 +919,15 @@ class xt(ccxt.async_support.xt):
         #        "topic": "kline",
         #        "event": "kline@btc_usdt,5m",
         #        "data": {
-        #            "s": "btc_usdt",        # symbol
-        #            "t": 1656043200000,     # time
-        #            "i": "5m",              # interval
-        #            "o": "44000",           # open price
-        #            "c": "50000",           # close price
-        #            "h": "52000",           # highest price
-        #            "l": "36000",           # lowest price
-        #            "q": "34.2",            # qty(quantity)
-        #            "v": "230000"           # volume
+        #            "s": "btc_usdt",        // symbol
+        #            "t": 1656043200000,     // time
+        #            "i": "5m",              // interval
+        #            "o": "44000",           // open price
+        #            "c": "50000",           // close price
+        #            "h": "52000",           // highest price
+        #            "l": "36000",           // lowest price
+        #            "q": "34.2",            // qty(quantity)
+        #            "v": "230000"           // volume
         #        }
         #    }
         #
@@ -911,15 +937,15 @@ class xt(ccxt.async_support.xt):
         #        "topic": "kline",
         #        "event": "kline@btc_usdt,5m",
         #        "data": {
-        #            "s": "btc_index",      # trading pair
-        #            "o": "49000",          # opening price
-        #            "c": "50000",          # closing price
-        #            "h": "0.1",            # highest price
-        #            "l": "0.1",            # lowest price
-        #            "a": "0.1",            # volume
-        #            "v": "0.1",            # turnover
-        #            "ch": "0.21",          # quote change
-        #            "t": 123124124         # timestamp
+        #            "s": "btc_index",      // trading pair
+        #            "o": "49000",          // opening price
+        #            "c": "50000",          // closing price
+        #            "h": "0.1",            // highest price
+        #            "l": "0.1",            // lowest price
+        #            "a": "0.1",            // volume
+        #            "v": "0.1",            // turnover
+        #            "ch": "0.21",          // quote change
+        #            "t": 123124124         // timestamp
         #        }
         #    }
         #
@@ -956,7 +982,7 @@ class xt(ccxt.async_support.xt):
         #            t: 1684258222702,
         #            p: '27003.65',
         #            q: '0.000796',
-        #            b: True
+        #            b: true
         #        }
         #    }
         #
@@ -966,11 +992,11 @@ class xt(ccxt.async_support.xt):
         #        "topic": "trade",
         #        "event": "trade@btc_usdt",
         #        "data": {
-        #            "s": "btc_index",  # trading pair
-        #            "p": "50000",      # price
-        #            "a": "0.1"         # Quantity
-        #            "m": "BID"         # Deal side  BID:Buy ASK:Sell
-        #            "t": 123124124     # timestamp
+        #            "s": "btc_index",  // trading pair
+        #            "p": "50000",      // price
+        #            "a": "0.1"         // Quantity
+        #            "m": "BID"         // Deal side  BID:Buy ASK:Sell
+        #            "t": 123124124     // timestamp
         #        }
         #    }
         #
@@ -1001,20 +1027,20 @@ class xt(ccxt.async_support.xt):
         #        "topic": "depth",
         #        "event": "depth@btc_usdt,20",
         #        "data": {
-        #            "s": "btc_usdt",        # symbol
-        #            "fi": 1681433733351,    # firstUpdateId = previous lastUpdateId + 1
-        #            "i": 1681433733371,     # updateId
-        #            "a": [                 # asks(sell order)
-        #                [                  # [0]price, [1]quantity
-        #                    "34000",        # price
-        #                    "1.2"           # quantity
+        #            "s": "btc_usdt",        // symbol
+        #            "fi": 1681433733351,    // firstUpdateId = previous lastUpdateId + 1
+        #            "i": 1681433733371,     // updateId
+        #            "a": [                  // asks(sell order)
+        #                [                   // [0]price, [1]quantity
+        #                    "34000",        // price
+        #                    "1.2"           // quantity
         #                ],
         #                [
         #                    "34001",
         #                    "2.3"
         #                ]
         #            ],
-        #            "b": [                  # bids(buy order)
+        #            "b": [                   // bids(buy order)
         #                [
         #                    "32000",
         #                    "0.2"
@@ -1104,33 +1130,33 @@ class xt(ccxt.async_support.xt):
     def parse_ws_order_trade(self, trade: dict, market: Market = None):
         #
         #    {
-        #        "s": "btc_usdt",                         # symbol
-        #        "t": 1656043204763,                      # time happened time
-        #        "i": "6216559590087220004",              # orderId,
-        #        "ci": "test123",                         # clientOrderId
-        #        "st": "PARTIALLY_FILLED",                # state
-        #        "sd": "BUY",                             # side BUY/SELL
-        #        "eq": "2",                               # executedQty executed quantity
-        #        "ap": "30000",                           # avg price
-        #        "f": "0.002"                             # fee
+        #        "s": "btc_usdt",                         // symbol
+        #        "t": 1656043204763,                      // time happened time
+        #        "i": "6216559590087220004",              // orderId,
+        #        "ci": "test123",                         // clientOrderId
+        #        "st": "PARTIALLY_FILLED",                // state
+        #        "sd": "BUY",                             // side BUY/SELL
+        #        "eq": "2",                               // executedQty executed quantity
+        #        "ap": "30000",                           // avg price
+        #        "f": "0.002"                             // fee
         #    }
         #
         # contract
         #
         #    {
-        #        "symbol": "btc_usdt",                    # Trading pair
-        #        "orderId": "1234",                       # Order Id
-        #        "origQty": "34244",                      # Original Quantity
-        #        "avgPrice": "123",                       # Quantity
-        #        "price": "1111",                         # Average price
-        #        "executedQty": "34244",                  # Volume(Cont)
-        #        "orderSide": "BUY",                      # BUY, SELL
-        #        "positionSide": "LONG",                  # LONG, SHORT
-        #        "marginFrozen": "123",                   # Occupied margin
-        #        "sourceType": "default",                 # DEFAULT:normal order,ENTRUST:plan commission,PROFIR:Take Profit and Stop Loss
-        #        "sourceId" : "1231231",                  # Triggering conditions ID
-        #        "state": "",                             # state:NEW：New order(unfilled);PARTIALLY_FILLED:Partial deal;PARTIALLY_CANCELED:Partial revocation;FILLED:Filled;CANCELED:Cancled;REJECTED:Order failed;EXPIRED：Expired
-        #        "createTime": 1731231231,                # CreateTime
+        #        "symbol": "btc_usdt",                    // Trading pair
+        #        "orderId": "1234",                       // Order Id
+        #        "origQty": "34244",                      // Original Quantity
+        #        "avgPrice": "123",                       // Quantity
+        #        "price": "1111",                         // Average price
+        #        "executedQty": "34244",                  // Volume (Cont)
+        #        "orderSide": "BUY",                      // BUY, SELL
+        #        "positionSide": "LONG",                  // LONG, SHORT
+        #        "marginFrozen": "123",                   // Occupied margin
+        #        "sourceType": "default",                 // DEFAULT:normal order,ENTRUST:plan commission,PROFIR:Take Profit and Stop Loss
+        #        "sourceId" : "1231231",                  // Triggering conditions ID
+        #        "state": "",                             // state:NEW：New order (unfilled);PARTIALLY_FILLED:Partial deal;PARTIALLY_CANCELED:Partial revocation;FILLED:Filled;CANCELED:Cancled;REJECTED:Order failed;EXPIRED：Expired
+        #        "createTime": 1731231231,                // CreateTime
         #        "clientOrderId": "204788317630342726"
         #    }
         #
@@ -1163,41 +1189,41 @@ class xt(ccxt.async_support.xt):
         # spot
         #
         #    {
-        #        "s": "btc_usdt",                # symbol
-        #        "bc": "btc",                    # base currency
-        #        "qc": "usdt",                   # quotation currency
-        #        "t": 1656043204763,             # happened time
-        #        "ct": 1656043204663,            # create time
-        #        "i": "6216559590087220004",     # order id,
-        #        "ci": "test123",                # client order id
-        #        "st": "PARTIALLY_FILLED",       # state NEW/PARTIALLY_FILLED/FILLED/CANCELED/REJECTED/EXPIRED
-        #        "sd": "BUY",                    # side BUY/SELL
-        #        "tp": "LIMIT",                  # type LIMIT/MARKET
-        #        "oq":  "4"                      # original quantity
-        #        "oqq":  48000,                  # original quotation quantity
-        #        "eq": "2",                      # executed quantity
-        #        "lq": "2",                      # remaining quantity
-        #        "p": "4000",                    # price
-        #        "ap": "30000",                  # avg price
-        #        "f":"0.002"                     # fee
+        #        "s": "btc_usdt",                // symbol
+        #        "bc": "btc",                    // base currency
+        #        "qc": "usdt",                   // quotation currency
+        #        "t": 1656043204763,             // happened time
+        #        "ct": 1656043204663,            // create time
+        #        "i": "6216559590087220004",     // order id,
+        #        "ci": "test123",                // client order id
+        #        "st": "PARTIALLY_FILLED",       // state NEW/PARTIALLY_FILLED/FILLED/CANCELED/REJECTED/EXPIRED
+        #        "sd": "BUY",                    // side BUY/SELL
+        #        "tp": "LIMIT",                  // type LIMIT/MARKET
+        #        "oq":  "4"                      // original quantity
+        #        "oqq":  48000,                  // original quotation quantity
+        #        "eq": "2",                      // executed quantity
+        #        "lq": "2",                      // remaining quantity
+        #        "p": "4000",                    // price
+        #        "ap": "30000",                  // avg price
+        #        "f":"0.002"                     // fee
         #    }
         #
         # contract
         #
         #    {
-        #        "symbol": "btc_usdt",                    # Trading pair
-        #        "orderId": "1234",                       # Order Id
-        #        "origQty": "34244",                      # Original Quantity
-        #        "avgPrice": "123",                       # Quantity
-        #        "price": "1111",                         # Average price
-        #        "executedQty": "34244",                  # Volume(Cont)
-        #        "orderSide": "BUY",                      # BUY, SELL
-        #        "positionSide": "LONG",                  # LONG, SHORT
-        #        "marginFrozen": "123",                   # Occupied margin
-        #        "sourceType": "default",                 # DEFAULT:normal order,ENTRUST:plan commission,PROFIR:Take Profit and Stop Loss
-        #        "sourceId" : "1231231",                  # Triggering conditions ID
-        #        "state": "",                             # state:NEW：New order(unfilled);PARTIALLY_FILLED:Partial deal;PARTIALLY_CANCELED:Partial revocation;FILLED:Filled;CANCELED:Cancled;REJECTED:Order failed;EXPIRED：Expired
-        #        "createTime": 1731231231,                # CreateTime
+        #        "symbol": "btc_usdt",                    // Trading pair
+        #        "orderId": "1234",                       // Order Id
+        #        "origQty": "34244",                      // Original Quantity
+        #        "avgPrice": "123",                       // Quantity
+        #        "price": "1111",                         // Average price
+        #        "executedQty": "34244",                  // Volume (Cont)
+        #        "orderSide": "BUY",                      // BUY, SELL
+        #        "positionSide": "LONG",                  // LONG, SHORT
+        #        "marginFrozen": "123",                   // Occupied margin
+        #        "sourceType": "default",                 // DEFAULT:normal order,ENTRUST:plan commission,PROFIR:Take Profit and Stop Loss
+        #        "sourceId" : "1231231",                  // Triggering conditions ID
+        #        "state": "",                             // state:NEW：New order (unfilled);PARTIALLY_FILLED:Partial deal;PARTIALLY_CANCELED:Partial revocation;FILLED:Filled;CANCELED:Cancled;REJECTED:Order failed;EXPIRED：Expired
+        #        "createTime": 1731231231,                // CreateTime
         #        "clientOrderId": "204788317630342726"
         #    }
         #
@@ -1242,15 +1268,15 @@ class xt(ccxt.async_support.xt):
         #        "topic": "order",
         #        "event": "order",
         #        "data": {
-        #            "s": "btc_usdt",                # symbol
-        #            "t": 1656043204763,             # time happened time
-        #            "i": "6216559590087220004",     # orderId,
-        #            "ci": "test123",                # clientOrderId
-        #            "st": "PARTIALLY_FILLED",       # state
-        #            "sd": "BUY",                    # side BUY/SELL
-        #            "eq": "2",                      # executedQty executed quantity
-        #            "ap": "30000",                  # avg price
-        #            "f": "0.002"                    # fee
+        #            "s": "btc_usdt",                // symbol
+        #            "t": 1656043204763,             // time happened time
+        #            "i": "6216559590087220004",     // orderId,
+        #            "ci": "test123",                // clientOrderId
+        #            "st": "PARTIALLY_FILLED",       // state
+        #            "sd": "BUY",                    // side BUY/SELL
+        #            "eq": "2",                      // executedQty executed quantity
+        #            "ap": "30000",                  // avg price
+        #            "f": "0.002"                    // fee
         #        }
         #    }
         #
@@ -1260,19 +1286,19 @@ class xt(ccxt.async_support.xt):
         #        "topic": "order",
         #        "event": "order@123456",
         #        "data": {
-        #             "symbol": "btc_usdt",                    # Trading pair
-        #             "orderId": "1234",                       # Order Id
-        #             "origQty": "34244",                      # Original Quantity
-        #             "avgPrice": "123",                       # Quantity
-        #             "price": "1111",                         # Average price
-        #             "executedQty": "34244",                  # Volume(Cont)
-        #             "orderSide": "BUY",                      # BUY, SELL
-        #             "positionSide": "LONG",                  # LONG, SHORT
-        #             "marginFrozen": "123",                   # Occupied margin
-        #             "sourceType": "default",                 # DEFAULT:normal order,ENTRUST:plan commission,PROFIR:Take Profit and Stop Loss
-        #             "sourceId" : "1231231",                  # Triggering conditions ID
-        #             "state": "",                             # state:NEW：New order(unfilled);PARTIALLY_FILLED:Partial deal;PARTIALLY_CANCELED:Partial revocation;FILLED:Filled;CANCELED:Cancled;REJECTED:Order failed;EXPIRED：Expired
-        #             "createTime": 1731231231,                # CreateTime
+        #             "symbol": "btc_usdt",                    // Trading pair
+        #             "orderId": "1234",                       // Order Id
+        #             "origQty": "34244",                      // Original Quantity
+        #             "avgPrice": "123",                       // Quantity
+        #             "price": "1111",                         // Average price
+        #             "executedQty": "34244",                  // Volume (Cont)
+        #             "orderSide": "BUY",                      // BUY, SELL
+        #             "positionSide": "LONG",                  // LONG, SHORT
+        #             "marginFrozen": "123",                   // Occupied margin
+        #             "sourceType": "default",                 // DEFAULT:normal order,ENTRUST:plan commission,PROFIR:Take Profit and Stop Loss
+        #             "sourceId" : "1231231",                  // Triggering conditions ID
+        #             "state": "",                             // state:NEW：New order (unfilled);PARTIALLY_FILLED:Partial deal;PARTIALLY_CANCELED:Partial revocation;FILLED:Filled;CANCELED:Cancled;REJECTED:Order failed;EXPIRED：Expired
+        #             "createTime": 1731231231,                // CreateTime
         #             "clientOrderId": "204788317630342726"
         #           }
         #    }
@@ -1316,11 +1342,11 @@ class xt(ccxt.async_support.xt):
         #        "event": "balance@123456",
         #        "data": {
         #            "coin": "usdt",
-        #            "underlyingType": 1,                          # 1:Coin-M,2:USDT-M
-        #            "walletBalance": "123",                       # Balance
-        #            "openOrderMarginFrozen": "123",               # Frozen order
-        #            "isolatedMargin": "213",                      # Isolated Margin
-        #            "crossedMargin": "0"                          # Crossed Margin
+        #            "underlyingType": 1,                          // 1:Coin-M,2:USDT-M
+        #            "walletBalance": "123",                       // Balance
+        #            "openOrderMarginFrozen": "123",               // Frozen order
+        #            "isolatedMargin": "213",                      // Isolated Margin
+        #            "crossedMargin": "0"                          // Crossed Margin
         #            "availableBalance": '2.256114450000000000',
         #            "coupon": '0',
         #            "bonus": '0'
@@ -1348,13 +1374,13 @@ class xt(ccxt.async_support.xt):
         #        "topic": "trade",
         #        "event": "trade",
         #        "data": {
-        #            "s": "btc_usdt",                # symbol
-        #            "t": 1656043204763,             # time
-        #            "i": "6316559590087251233",     # tradeId
-        #            "oi": "6216559590087220004",    # orderId
-        #            "p": "30000",                   # trade price
-        #            "q": "3",                       # qty quantity
-        #            "v": "90000"                    # volume trade amount
+        #            "s": "btc_usdt",                // symbol
+        #            "t": 1656043204763,             // time
+        #            "i": "6316559590087251233",     // tradeId
+        #            "oi": "6216559590087220004",    // orderId
+        #            "p": "30000",                   // trade price
+        #            "q": "3",                       // qty quantity
+        #            "v": "90000"                    // volume trade amount
         #        }
         #    }
         #
@@ -1387,10 +1413,10 @@ class xt(ccxt.async_support.xt):
             return
         market = self.market(tradeSymbol)
         stored.append(parsedTrade)
-        tradeType = 'contract' if market['contract'] else 'spot'
+        tradeType = 'contract' if (market['contract'] is True) else 'spot'
         client.resolve(stored, 'trade::' + tradeType)
 
-    def handle_message(self, client: Client, message: Any):
+    def handle_message(self, client: Client, message: object):
         event = self.safe_string(message, 'event')
         if event == 'pong':
             client.onPong()
@@ -1425,7 +1451,7 @@ class xt(ccxt.async_support.xt):
         client.lastPong = self.milliseconds()
         return 'ping'
 
-    def handle_subscription_status(self, client: Client, message: Any):
+    def handle_subscription_status(self, client: Client, message: object):
         #
         #     {
         #         id: '1763045665228ticker@eth_usdt',
@@ -1447,7 +1473,7 @@ class xt(ccxt.async_support.xt):
         if id is not None:
             subscription = self.safe_dict(subscriptionsById, id, {})
             unsubscribe = self.safe_bool(subscription, 'unsubscribe', False)
-            if unsubscribe:
+            if unsubscribe is True:
                 self.handle_un_subscription(client, subscription)
         return message
 

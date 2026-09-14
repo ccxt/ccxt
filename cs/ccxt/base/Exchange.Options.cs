@@ -32,7 +32,7 @@ public partial class BaseExchange
 
     public bool reloadingMarkets { get; set; } = false;
 
-    public Task<object> marketsLoading { get; set; } = null;
+    public Task<IDictionary<string, object>> marketsLoading { get; set; } = null;
 
     public IDictionary<string, object> quoteCurrencies { get; set; } = null;
 

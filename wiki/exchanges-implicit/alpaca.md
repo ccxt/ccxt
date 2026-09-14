@@ -1,6 +1,6 @@
 Every endpoint in `alpaca`'s `api` definition is exposed as an **implicit method** — a thin, generated wrapper around the raw exchange endpoint. Use these for exchange-specific functionality the [CCXT API](/docs/exchanges/alpaca) does not cover.
 
-These methods are available in every CCXT language — TypeScript, JavaScript, Python, PHP, C#, Go and Java. Call them by the camelCase name shown in the tables below (e.g. `traderPrivateGetV2Account`); the snake_case alias (`trader_private_get_v2_account`) also works in JavaScript, Python and PHP, and Go uses the PascalCase form (`TraderPrivateGetV2Account`). Switch tabs for the call in each language:
+These methods are available in every CCXT language — TypeScript, JavaScript, Python, PHP, C#, Go and Java. Call them by the camelCase name shown in the tables below (e.g. `brokerPrivateGetV1AccountsAccountIdTokenizationRequests`); the snake_case alias (`broker_private_get_v1_accounts_account_id_tokenization_requests`) also works in JavaScript, Python and PHP, and Go uses the PascalCase form (`BrokerPrivateGetV1AccountsAccountIdTokenizationRequests`). Switch tabs for the call in each language:
 
 <!-- tabs:start -->
 
@@ -8,7 +8,7 @@ These methods are available in every CCXT language — TypeScript, JavaScript, P
 
 ```javascript
 const alpaca = new ccxt.alpaca ();
-const response = await alpaca.traderPrivateGetV2Account (params);
+const response = await alpaca.brokerPrivateGetV1AccountsAccountIdTokenizationRequests (params);
 ```
 
 #### **TypeScript**
@@ -16,7 +16,7 @@ const response = await alpaca.traderPrivateGetV2Account (params);
 ```typescript
 import ccxt from 'ccxt';
 const alpaca = new ccxt.alpaca ();
-const response = await alpaca.traderPrivateGetV2Account (params);
+const response = await alpaca.brokerPrivateGetV1AccountsAccountIdTokenizationRequests (params);
 ```
 
 #### **Python**
@@ -24,14 +24,14 @@ const response = await alpaca.traderPrivateGetV2Account (params);
 ```python
 import ccxt
 alpaca = ccxt.alpaca()
-response = alpaca.trader_private_get_v2_account(params)
+response = alpaca.broker_private_get_v1_accounts_account_id_tokenization_requests(params)
 ```
 
 #### **PHP**
 
 ```php
 $alpaca = new \ccxt\alpaca();
-$response = $alpaca->trader_private_get_v2_account($params);
+$response = $alpaca->broker_private_get_v1_accounts_account_id_tokenization_requests($params);
 ```
 
 #### **C#**
@@ -39,14 +39,14 @@ $response = $alpaca->trader_private_get_v2_account($params);
 ```csharp
 using ccxt;
 var alpaca = new Alpaca();
-var response = await alpaca.traderPrivateGetV2Account(parameters);
+var response = await alpaca.brokerPrivateGetV1AccountsAccountIdTokenizationRequests(parameters);
 ```
 
 #### **Go**
 
 ```go
 alpaca := ccxt.NewAlpaca(nil)
-response := <-alpaca.TraderPrivateGetV2Account(params)
+response := <-alpaca.BrokerPrivateGetV1AccountsAccountIdTokenizationRequests(params)
 ```
 
 <!-- tabs:end -->
@@ -55,7 +55,29 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 📚 **Official alpaca API documentation:** [alpaca.markets](https://alpaca.markets/docs/)
 
-> 70 implicit endpoints across 2 access groups.
+> 96 implicit endpoints across 3 access groups.
+
+## broker
+
+**Base URL**: `https://broker-api.{hostname}`
+
+| Method | HTTP | Endpoint | Cost |
+| --- | --- | --- | --- |
+| `brokerPrivateGetV1AccountsAccountIdTokenizationRequests` | GET | `v1/accounts/{account_id}/tokenization/requests` | 1 |
+| `brokerPrivateGetV1AccountsAccountIdTokenizationRequestsTokenizationRequestId` | GET | `v1/accounts/{account_id}/tokenization/requests/{tokenization_request_id}` | 1 |
+| `brokerPrivateGetV1AccountsAccountIdTokenizationRequestsByClientRequestId` | GET | `v1/accounts/{account_id}/tokenization/requests:by_client_request_id` | 1 |
+| `brokerPrivateGetV1AccountsAccountIdTokenizationRequestsByIssuerRequestId` | GET | `v1/accounts/{account_id}/tokenization/requests:by_issuer_request_id` | 1 |
+| `brokerPrivateGetV1FpslAnalyticsAccountIdLoans` | GET | `v1/fpsl/analytics/{account_id}/loans` | 1 |
+| `brokerPrivateGetV1Ipos` | GET | `v1/ipos` | 1 |
+| `brokerPrivateGetV1IposOfferingReference` | GET | `v1/ipos/{offering_reference}` | 1 |
+| `brokerPrivateGetV1WalletsTravelRuleVasps` | GET | `v1/wallets/travel-rule/vasps` | 1 |
+| `brokerPrivateGetV1beta1Acats` | GET | `v1beta1/acats` | 1 |
+| `brokerPrivateGetV1beta1AcatsContrabrokers` | GET | `v1beta1/acats/contrabrokers` | 1 |
+| `brokerPrivateGetV1beta1AcatsAccountId` | GET | `v1beta1/acats/{account_id}` | 1 |
+| `brokerPrivateGetV1beta1AcatsAccountIdAcatsId` | GET | `v1beta1/acats/{account_id}/{acats_id}` | 1 |
+| `brokerPrivateGetV1beta1AcatsAccountIdAcatsIdAssets` | GET | `v1beta1/acats/{account_id}/{acats_id}/assets` | 1 |
+| `brokerPrivatePostV1beta1AcatsAccountId` | POST | `v1beta1/acats/{account_id}` | 1 |
+| `brokerPrivatePatchV1AccountsAccountIdWalletsWhitelistsWhitelistedAddressIdTravelRuleInfo` | PATCH | `v1/accounts/{account_id}/wallets/whitelists/{whitelisted_address_id}/travel-rule-info` | 1 |
 
 ## trader
 
@@ -83,16 +105,25 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `traderPrivateGetV2CorporateActionsAnnouncements` | GET | `v2/corporate_actions/announcements` | 1 |
 | `traderPrivateGetV2Wallets` | GET | `v2/wallets` | 1 |
 | `traderPrivateGetV2WalletsTransfers` | GET | `v2/wallets/transfers` | 1 |
+| `traderPrivateGetV1Locates` | GET | `v1/locates` | 1 |
+| `traderPrivateGetV1LocatesLocateId` | GET | `v1/locates/{locate_id}` | 1 |
+| `traderPrivateGetV1LocatesQuotes` | GET | `v1/locates/quotes` | 1 |
+| `traderPrivateGetV2TokenizationRequests` | GET | `v2/tokenization/requests` | 1 |
+| `traderPrivateGetV2TokenizationRequestsTokenizationRequestId` | GET | `v2/tokenization/requests/{tokenization_request_id}` | 1 |
+| `traderPrivateGetV2TokenizationRequestsByClientRequestId` | GET | `v2/tokenization/requests:by_client_request_id` | 1 |
+| `traderPrivateGetV2WalletsTravelRuleVasps` | GET | `v2/wallets/travel-rule/vasps` | 1 |
 | `traderPrivatePostV2Orders` | POST | `v2/orders` | 1 |
 | `traderPrivatePostV2Watchlists` | POST | `v2/watchlists` | 1 |
 | `traderPrivatePostV2WatchlistsWatchlistId` | POST | `v2/watchlists/{watchlist_id}` | 1 |
 | `traderPrivatePostV2WatchlistsByName` | POST | `v2/watchlists:by_name` | 1 |
 | `traderPrivatePostV2WalletsTransfers` | POST | `v2/wallets/transfers` | 1 |
+| `traderPrivatePostV1Locates` | POST | `v1/locates` | 1 |
 | `traderPrivatePutV2OrdersOrderId` | PUT | `v2/orders/{order_id}` | 1 |
 | `traderPrivatePutV2WatchlistsWatchlistId` | PUT | `v2/watchlists/{watchlist_id}` | 1 |
 | `traderPrivatePutV2WatchlistsByName` | PUT | `v2/watchlists:by_name` | 1 |
 | `traderPrivatePatchV2OrdersOrderId` | PATCH | `v2/orders/{order_id}` | 1 |
 | `traderPrivatePatchV2AccountConfigurations` | PATCH | `v2/account/configurations` | 1 |
+| `traderPrivatePatchV2WalletsWhitelistsWhitelistedAddressIdTravelRuleInfo` | PATCH | `v2/wallets/whitelists/{whitelisted_address_id}/travel-rule-info` | 1 |
 | `traderPrivateDeleteV2Orders` | DELETE | `v2/orders` | 1 |
 | `traderPrivateDeleteV2OrdersOrderId` | DELETE | `v2/orders/{order_id}` | 1 |
 | `traderPrivateDeleteV2Positions` | DELETE | `v2/positions` | 1 |
@@ -116,6 +147,8 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `marketPublicGetV1beta3CryptoLocSnapshots` | GET | `v1beta3/crypto/{loc}/snapshots` | 1 |
 | `marketPublicGetV1beta3CryptoLocTrades` | GET | `v1beta3/crypto/{loc}/trades` | 1 |
 | `marketPrivateGetV1beta1CorporateActions` | GET | `v1beta1/corporate-actions` | 1 |
+| `marketPrivateGetV1beta1FixedIncomeLatestPrices` | GET | `v1beta1/fixed_income/latest/prices` | 1 |
+| `marketPrivateGetV1beta1FixedIncomeLatestQuotes` | GET | `v1beta1/fixed_income/latest/quotes` | 1 |
 | `marketPrivateGetV1beta1ForexLatestRates` | GET | `v1beta1/forex/latest/rates` | 1 |
 | `marketPrivateGetV1beta1ForexRates` | GET | `v1beta1/forex/rates` | 1 |
 | `marketPrivateGetV1beta1LogosSymbol` | GET | `v1beta1/logos/{symbol}` | 1 |

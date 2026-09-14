@@ -5,8 +5,7 @@
 
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.backpack import ImplicitAPI
-from ccxt.base.types import Any, Balances, Currencies, Currency, CurrencyInterface, DepositAddress, Int, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Status, Str, Strings, Ticker, Tickers, FundingRate, Trade, Transaction, FundingRateHistory
-from typing import List
+from ccxt.base.types import Balances, Currencies, Currency, CurrencyInterface, DepositAddress, Int, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Status, Str, Strings, Ticker, Tickers, FundingRate, Trade, Transaction, FundingRateHistory
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
@@ -26,7 +25,7 @@ from ccxt.base.precise import Precise
 
 class backpack(Exchange, ImplicitAPI):
 
-    def describe(self) -> Any:
+    def describe(self) -> object:
         return self.deep_extend(super(backpack, self).describe(), {
             'id': 'backpack',
             'name': 'Backpack',
@@ -172,11 +171,17 @@ class backpack(Exchange, ImplicitAPI):
                         'api/v1/collateral': {'cost': 1},  # not used
                         'api/v1/borrowLend/markets': {'cost': 1},
                         'api/v1/borrowLend/markets/history': {'cost': 1},
+                        'api/v1/borrowLend/apy': {'cost': 1},
                         'api/v1/markets': {'cost': 1},  # done
                         'api/v1/market': {'cost': 1},  # not used
                         'api/v1/ticker': {'cost': 1},  # done
                         'api/v1/tickers': {'cost': 1},  # done
                         'api/v1/depth': {'cost': 1},  # done
+                        'api/v1/prediction': {'cost': 1},
+                        'api/v1/prediction/tags': {'cost': 1},
+                        'api/v1/market-sessions': {'cost': 1},
+                        'api/v1/market-holidays': {'cost': 1},
+                        'api/v1/securities': {'cost': 1},
                         'api/v1/klines': {'cost': 1},  # done
                         'api/v1/markPrices': {'cost': 1},  # done
                         'api/v1/openInterest': {'cost': 1},  # done
@@ -196,6 +201,7 @@ class backpack(Exchange, ImplicitAPI):
                         'api/v1/account/limits/order': {'cost': 1},  # not used
                         'api/v1/account/limits/withdrawal': {'cost': 1},  # not used
                         'api/v1/borrowLend/positions': {'cost': 1},  # todo fetchBorrowInterest
+                        'api/v1/borrowLend/position/liquidationPrice': {'cost': 1},
                         'api/v1/capital': {'cost': 1},  # done
                         'api/v1/capital/collateral': {'cost': 1},  # not used
                         'wapi/v1/capital/deposits': {'cost': 1},  # done
@@ -208,11 +214,17 @@ class backpack(Exchange, ImplicitAPI):
                         'wapi/v1/history/dust': {'cost': 1},  # not used
                         'wapi/v1/history/fills': {'cost': 1},  # done
                         'wapi/v1/history/funding': {'cost': 1},  # done
+                        'wapi/v1/history/position': {'cost': 1},
                         'wapi/v1/history/orders': {'cost': 1},  # done
+                        'api/v1/rfqs': {'cost': 1},
                         'wapi/v1/history/rfq': {'cost': 1},
                         'wapi/v1/history/quote': {'cost': 1},
+                        'wapi/v1/history/rfq/fill': {'cost': 1},
+                        'wapi/v1/history/quote/fill': {'cost': 1},
                         'wapi/v1/history/settlement': {'cost': 1},
                         'wapi/v1/history/strategies': {'cost': 1},
+                        'api/v1/strategy': {'cost': 1},
+                        'api/v1/strategies': {'cost': 1},
                         'api/v1/order': {'cost': 1},  # done
                         'api/v1/orders': {'cost': 1},  # done
                     },
@@ -227,10 +239,13 @@ class backpack(Exchange, ImplicitAPI):
                         'api/v1/rfq/refresh': {'cost': 1},
                         'api/v1/rfq/cancel': {'cost': 1},
                         'api/v1/rfq/quote': {'cost': 1},
+                        'api/v1/strategy': {'cost': 1},
                     },
                     'delete': {
                         'api/v1/order': {'cost': 1},  # done
                         'api/v1/orders': {'cost': 1},  # done
+                        'api/v1/strategy': {'cost': 1},
+                        'api/v1/strategies': {'cost': 1},
                     },
                     'patch': {
                         'api/v1/account': {'cost': 1},
@@ -502,7 +517,7 @@ class backpack(Exchange, ImplicitAPI):
                     'TRADING_PAUSED': ExchangeNotAvailable,
                     'UNAUTHORIZED': AuthenticationError,
                 },
-                # Bad Request parse request payload error: failed to parse "MarketSymbol": Invalid market symbol(occurred while parsing "OrderExecutePayload")
+                # Bad Request parse request payload error: failed to parse "MarketSymbol": Invalid market symbol (occurred while parsing "OrderExecutePayload")
                 # failed to parse parameter `interval`: failed to parse "KlineInterval": Expect a valid enumeration value.
                 'broad': {},
             },
@@ -528,12 +543,12 @@ class backpack(Exchange, ImplicitAPI):
         #                 {
         #                     "blockchain": "Solana",
         #                     "contractAddress": "jtojtomepa8beP8AuQc6eXt5FriJwfFMwQx2v2f9mCL",
-        #                     "depositEnabled": True,
+        #                     "depositEnabled": true,
         #                     "displayName": "Jito",
         #                     "maximumWithdrawal": null,
         #                     "minimumDeposit": "0.28",
         #                     "minimumWithdrawal": "0.58",
-        #                     "withdrawEnabled": True,
+        #                     "withdrawEnabled": true,
         #                     "withdrawalFee": "0.29"
         #                 }
         #             ]
@@ -605,7 +620,7 @@ class backpack(Exchange, ImplicitAPI):
             'info': rawCurrency,
         })
 
-    async def fetch_markets(self, params={}) -> List[Market]:
+    async def fetch_markets(self, params={}) -> list[Market]:
         """
         retrieves data on all markets for bitbank
 
@@ -614,7 +629,7 @@ class backpack(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
-        if self.options['adjustForTimeDifference']:
+        if self.options['adjustForTimeDifference'] is True:
             await self.load_time_difference()
         response = await self.publicGetApiV1Markets(params)
         return self.parse_markets(response)
@@ -793,7 +808,7 @@ class backpack(Exchange, ImplicitAPI):
             'info': market,
         })
 
-    def parse_market_type(self, type: Any):
+    def parse_market_type(self, type: object):
         types = {
             'SPOT': 'spot',
             'PERP': 'swap',
@@ -939,7 +954,7 @@ class backpack(Exchange, ImplicitAPI):
         orderbook['nonce'] = self.safe_integer(response, 'lastUpdateId')
         return orderbook
 
-    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> list[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -950,7 +965,7 @@ class backpack(Exchange, ImplicitAPI):
         :param int [since]: timestamp in seconds of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch(default 100)
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()
@@ -969,7 +984,7 @@ class backpack(Exchange, ImplicitAPI):
             if limit is None:
                 limit = defaultLimit
             duration = self.parse_timeframe(timeframe)
-            endTime = self.parse_to_int(until / 1000) if until else self.seconds()
+            endTime = self.parse_to_int(until / 1000) if (until is not None and until is not None and until != 0) else self.seconds()
             startTime = endTime - (limit * duration)
             request['startTime'] = startTime
         else:
@@ -982,7 +997,7 @@ class backpack(Exchange, ImplicitAPI):
         ohlcvs = self.to_array(response)
         return self.parse_ohlcvs(ohlcvs, market, timeframe, since, limit)
 
-    def parse_ohlcv(self, ohlcv: Any, market: Market = None) -> list:
+    def parse_ohlcv(self, ohlcv: object, market: Market = None) -> list:
         #
         #     [
         #         {
@@ -1021,7 +1036,7 @@ class backpack(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        if market['spot']:
+        if market['spot'] is True:
             raise BadRequest(self.id + ' fetchFundingRate() symbol does not support market ' + symbol)
         request = {
             'symbol': market['id'],
@@ -1030,7 +1045,7 @@ class backpack(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 0, {})
         return self.parse_funding_rate(data, market)
 
-    def parse_funding_rate(self, contract: Any, market: Market = None) -> FundingRate:
+    def parse_funding_rate(self, contract: object, market: Market = None) -> FundingRate:
         #
         #     {
         #         "fundingRate": "0.0001",
@@ -1078,7 +1093,7 @@ class backpack(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        if market['spot']:
+        if market['spot'] is True:
             raise BadRequest(self.id + ' fetchOpenInterest() symbol does not support market ' + symbol)
         request = {
             'symbol': market['id'],
@@ -1087,7 +1102,7 @@ class backpack(Exchange, ImplicitAPI):
         interest = self.safe_dict(response, 0, {})
         return self.parse_open_interest(interest, market)
 
-    def parse_open_interest(self, interest: Any, market: Market = None):
+    def parse_open_interest(self, interest: object, market: Market = None):
         #
         #     [
         #         {
@@ -1108,7 +1123,7 @@ class backpack(Exchange, ImplicitAPI):
             'info': interest,
         }, market)
 
-    async def fetch_funding_rate_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[FundingRateHistory]:
+    async def fetch_funding_rate_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[FundingRateHistory]:
         """
         fetches historical funding rate prices
 
@@ -1156,7 +1171,7 @@ class backpack(Exchange, ImplicitAPI):
         sorted = self.sort_by(rates, 'timestamp')
         return self.filter_by_symbol_since_limit(sorted, market['symbol'], since, limit)
 
-    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
         """
         get the list of most recent trades for a particular symbol
 
@@ -1228,7 +1243,7 @@ class backpack(Exchange, ImplicitAPI):
         # fetchTrades
         #     {
         #         "id": 8721563,
-        #         "isBuyerMaker": False,
+        #         "isBuyerMaker": false,
         #         "price": "117427.6",
         #         "quantity": "0.00016",
         #         "quoteQuantity": "18.788416",
@@ -1240,7 +1255,7 @@ class backpack(Exchange, ImplicitAPI):
         #         "clientId": null,
         #         "fee": "0.004974",
         #         "feeSymbol": "USDC",
-        #         "isMaker": False,
+        #         "isMaker": false,
         #         "orderId": "4238907375",
         #         "price": "3826.15",
         #         "quantity": "0.0026",
@@ -1352,7 +1367,7 @@ class backpack(Exchange, ImplicitAPI):
         response = await self.privateGetApiV1Capital(params)
         return self.parse_balance(response)
 
-    def parse_balance(self, response: Any) -> Balances:
+    def parse_balance(self, response: object) -> Balances:
         #
         #     {
         #         "USDC": {
@@ -1378,7 +1393,7 @@ class backpack(Exchange, ImplicitAPI):
                 result[code] = account
         return self.safe_balance(result)
 
-    async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+    async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
         """
         fetch all deposits made to an account
 
@@ -1409,7 +1424,7 @@ class backpack(Exchange, ImplicitAPI):
         response = await self.privateGetWapiV1CapitalDeposits(self.extend(request, params))
         return self.parse_transactions(response, currency, since, limit)
 
-    async def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+    async def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
         """
         fetch all withdrawals made from an account
 
@@ -1471,7 +1486,7 @@ class backpack(Exchange, ImplicitAPI):
         response = await self.privatePostWapiV1CapitalWithdrawals(self.extend(request, query))
         return self.parse_transaction(response, currency)
 
-    def parse_transaction(self, transaction: Any, currency: Currency = None) -> Transaction:
+    def parse_transaction(self, transaction: object, currency: Currency = None) -> Transaction:
         #
         # fetchDeposits
         #     [
@@ -1506,7 +1521,7 @@ class backpack(Exchange, ImplicitAPI):
         #         "fiatSymbol": null,
         #         "id": 5479929,
         #         "identifier": null,
-        #         "isInternal": False,
+        #         "isInternal": false,
         #         "providerId": null,
         #         "quantity": "10",
         #         "status": "pending",
@@ -1532,7 +1547,7 @@ class backpack(Exchange, ImplicitAPI):
         #             "fiatSymbol": null,
         #             "id": 5479929,
         #             "identifier": null,
-        #             "isInternal": False,
+        #             "isInternal": false,
         #             "providerId": null,
         #             "quantity": "10",
         #             "status": "confirmed",
@@ -1624,7 +1639,7 @@ class backpack(Exchange, ImplicitAPI):
         response = await self.privateGetWapiV1CapitalDepositAddress(self.extend(request, params))
         return self.parse_deposit_address(response, currency)
 
-    def parse_deposit_address(self, depositAddress: Any, currency: Currency = None) -> DepositAddress:
+    def parse_deposit_address(self, depositAddress: object, currency: Currency = None) -> DepositAddress:
         #
         #     {
         #         "address": "0xfBe7CbfCde93c8a4204a4be6B56732Eb32690170"
@@ -1679,7 +1694,7 @@ class backpack(Exchange, ImplicitAPI):
         response = await self.privatePostApiV1Order(orderRequest)
         return self.parse_order(response, market)
 
-    async def create_orders(self, orders: List[OrderRequest], params={}):
+    async def create_orders(self, orders: list[OrderRequest], params={}):
         """
         create a list of trade orders
 
@@ -1772,7 +1787,7 @@ class backpack(Exchange, ImplicitAPI):
                 request['selfTradePrevention'] = 'RejectBoth'
         return self.extend(request, params)
 
-    def encode_order_side(self, side: Any):
+    def encode_order_side(self, side: object):
         sides = {
             'buy': 'Bid',
             'sell': 'Ask',
@@ -1868,7 +1883,7 @@ class backpack(Exchange, ImplicitAPI):
         response = await self.privateDeleteApiV1Orders(self.extend(request, params))
         return self.parse_orders(response, market)
 
-    async def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    async def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         fetches information on multiple orders made by the user
 
@@ -1931,7 +1946,7 @@ class backpack(Exchange, ImplicitAPI):
         #         "executedQuoteQuantity": "0",
         #         "id": "4228978331",
         #         "orderType": "Limit",
-        #         "postOnly": True,
+        #         "postOnly": true,
         #         "price": "3000",
         #         "quantity": "0.001",
         #         "reduceOnly": null,
@@ -1963,7 +1978,7 @@ class backpack(Exchange, ImplicitAPI):
         #         "expiryReason": null,
         #         "id": "4239996998",
         #         "orderType": "Limit",
-        #         "postOnly": False,
+        #         "postOnly": false,
         #         "price": "4500",
         #         "quantity": null,
         #         "quoteQuantity": null,
@@ -2051,7 +2066,7 @@ class backpack(Exchange, ImplicitAPI):
         }
         return self.safe_string(sides, side, side)
 
-    async def fetch_positions(self, symbols: Strings = None, params={}) -> List[Position]:
+    async def fetch_positions(self, symbols: Strings = None, params={}) -> list[Position]:
         """
         fetch all open positions
 
@@ -2178,7 +2193,7 @@ class backpack(Exchange, ImplicitAPI):
         response = await self.privateGetWapiV1HistoryFunding(self.extend(request, params))
         return self.parse_incomes(response, market, since, limit)
 
-    def parse_income(self, income: Any, market: Market = None):
+    def parse_income(self, income: object, market: Market = None):
         #
         #     {
         #         "fundingRate": "0.0001",
@@ -2209,7 +2224,7 @@ class backpack(Exchange, ImplicitAPI):
     def nonce(self):
         return self.milliseconds() - self.options['timeDifference']
 
-    def sign(self, path: Any, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
+    def sign(self, path: object, api: object = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         endpoint = '/' + path
         url = self.urls['api'][api]
         sortedParams = params if isinstance(params, list) else self.keysort(params)
@@ -2248,7 +2263,7 @@ class backpack(Exchange, ImplicitAPI):
         url += endpoint
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def generate_batch_payload(self, params: Any, ts: Any, recvWindow: Any, instruction: Any):
+    def generate_batch_payload(self, params: object, ts: object, recvWindow: object, instruction: object):
         payload = ''
         for i in range(0, len(params)):
             order = self.safe_dict(params, i, {})
@@ -2259,7 +2274,7 @@ class backpack(Exchange, ImplicitAPI):
                 payload += 'timestamp=' + ts + '&window=' + recvWindow
         return payload
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: Any, requestHeaders: Any, requestBody: Any):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         if response is None:
             return None  # fallback to default error handler
         #

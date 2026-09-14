@@ -9,8 +9,7 @@ import asyncio
 import hashlib
 import math
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheByOutcomeById
-from ccxt.base.types import Any, Balances, Int, Market, Num, Str, Strings, PredictionEvent, fetchEventsParams, PredictionTicker, PredictionTickers, PredictionOrder, PredictionOrderBook, PredictionTrade, PredictionPosition, PredictionOpenInterest, PredictionTradingFee, PredictionOrderRequest
-from typing import List
+from ccxt.base.types import Balances, Int, Market, Num, Str, Strings, PredictionEvent, fetchEventsParams, PredictionTicker, PredictionTickers, PredictionOrder, PredictionOrderBook, PredictionTrade, PredictionPosition, PredictionOpenInterest, PredictionTradingFee, PredictionOrderRequest
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -28,7 +27,7 @@ from ccxt.base.precise import Precise
 
 class polymarket(PredictionExchange, ImplicitAPI):
 
-    def describe(self) -> Any:
+    def describe(self) -> object:
         return self.deep_extend(super(polymarket, self).describe(), {
             'id': 'polymarket',
             'name': 'Polymarket',
@@ -37,8 +36,8 @@ class polymarket(PredictionExchange, ImplicitAPI):
             'certified': False,
             'pro': True,
             'streaming': {
-                # Polymarket's CLOB ws(market + user channels) has no protocol-level ping-pong
-                # it requires a text "PING" every 10s and replies "PONG"(see @see in describe)
+                # Polymarket's CLOB ws (market + user channels) has no protocol-level ping-pong;
+                # it requires a text "PING" every 10s and replies "PONG" (see @see in describe)
                 'ping': self.ping,
                 'keepAlive': 10000,
             },
@@ -290,8 +289,8 @@ class polymarket(PredictionExchange, ImplicitAPI):
                     'invalid amount': InvalidOrder,
                     'invalid price': InvalidOrder,
                     'minimum tick size': InvalidOrder,
-                    # a FAK/FOK order that finds no match is killed(a normal order outcome, not a
-                    # transport outage) — map it to OrderNotFillable so callers don't retry down
+                    # a FAK/FOK order that finds no match is killed (a normal order outcome, not a
+                    # transport outage) — map it to OrderNotFillable so callers don't retry as if down
                     'no orders found to match': OrderNotFillable,
                     'could not be fully filled': OrderNotFillable,
                     'geoblocked': PermissionDenied,
@@ -302,13 +301,13 @@ class polymarket(PredictionExchange, ImplicitAPI):
             'requiredCredentials': {
                 # dual auth: either pass the L2 api credentials directly
                 # apiKey=POLY_API_KEY, secret=POLY_API_SECRET, password=POLY_PASSPHRASE
-                # or a privateKey to derive them(see loadApiCredentials); none are
+                # or a privateKey to derive them (see loadApiCredentials); none are
                 # individually required, so validation happens in loadApiCredentials
                 'apiKey': False,
                 'secret': False,
                 'password': False,
                 'privateKey': False,   # EOA private key, used to derive L2 creds + sign orders
-                'walletAddress': False,   # Ethereum wallet address(POLY_ADDRESS)
+                'walletAddress': False,   # Ethereum wallet address (POLY_ADDRESS)
             },
             'fees': {
                 'trading': {
@@ -322,28 +321,28 @@ class polymarket(PredictionExchange, ImplicitAPI):
                 'defaultFetchEventsLimit': 100,
                 # gamma caps each /events response at 100, so paginate at that page size
                 'eventsPageSize': 100,
-                # cap the cold-start listing: each gamma event is heavy(~90 KB with the HTML
-                # description), so 200 events(2 pages, volume-ordered) is ~18 MB; raise via
-                # params.limit or self option when you need a wider set
+                # cap the cold-start listing: each gamma event is heavy (~90 KB with the HTML
+                # description), so 200 events (2 pages, volume-ordered) is ~18 MB; raise via
+                # params.limit or this option when you need a wider set
                 'fetchMarketsLimit': 200,
                 'maxFetchEventsLimit': 500,
                 'defaultEventStatus': 'active',  # 'active' | 'closed' | 'all'
                 # prices-history rejects startTs/endTs spans over 15 days regardless of fidelity
                 'maxPricesHistoryWindow': 1296000,
-                # CTF Exchange V2 signing constants(Polygon); the V2 contracts are the same on
-                # mainnet(137) and Amoy(80002), see @polymarket/clob-client config.ts
+                # CTF Exchange V2 signing constants (Polygon); the V2 contracts are the same on
+                # mainnet (137) and Amoy (80002), see @polymarket/clob-client config.ts
                 'chainId': 137,
                 'ctfExchangeName': 'Polymarket CTF Exchange',
                 'ctfExchangeVersion': '2',
                 'exchangeAddress': '0xE111180000d2663C0091e4f400237545B87B996B',
                 'negRiskExchangeAddress': '0xe2222d279d744050d28e00520010520000310F59',
                 'builder': '0xea409de8b037bb6ac664b6d12d6831b03cb04a37',
-                'builderFee': True,  # when True, feeRate below is packed into the builder code's upper bytes
-                'feeRate': 0,  # builder fee in bps, applied only when builderFee is True
+                'builderFee': True,  # when true, feeRate below is packed into the builder code's upper bytes
+                'feeRate': 0,  # builder fee in bps, applied only when builderFee is true
             },
         })
 
-    async def fetch_markets(self, params={}) -> List[Market]:
+    async def fetch_markets(self, params={}) -> list[Market]:
         """
         retrieves data on all markets for polymarket, each prediction market becomes one market with its outcome tokens listed under the outcomes key
 
@@ -375,13 +374,13 @@ class polymarket(PredictionExchange, ImplicitAPI):
                 flatMarkets.append(ccxtMarkets[mi])
             parsedEvent = self.parse_event(rawEvent)
             eventSlug = self.safe_string(rawEvent, 'slug')
-            if eventSlug:
+            if (eventSlug is not None) and (eventSlug != ''):
                 eventKey = self.shorten_slug(eventSlug)
                 eventsDict[eventKey] = parsedEvent
         self.events = eventsDict
         return flatMarkets
 
-    async def fetch_raw_events_by_search(self, queries: List[str], params={}) -> List[Any]:
+    async def fetch_raw_events_by_search(self, queries: list[str], params={}) -> list[object]:
         """
  @ignore
         fetches raw gamma event objects matching the given search terms, paginating through all result pages
@@ -394,8 +393,8 @@ class polymarket(PredictionExchange, ImplicitAPI):
         :returns dict[]: an array of raw gamma event objects
         """
         resultLimit = self.safe_integer(params, 'limit')
-        # fixed page size(gamma's limit_per_type). do NOT tie it to `limit`: that made a small
-        # limit fan out into many tiny-page requests(limit:1 -> ~one request per matching event).
+        # fixed page size (gamma's limit_per_type). do NOT tie it to `limit`: that made a small
+        # limit fan out into many tiny-page requests (limit:1 -> ~one request per matching event).
         # tunable per-call via params.searchPageSize, else the exchange option, else 100
         optionPageSize = self.safe_integer(self.options, 'searchPageSize', 100)
         pageSize = self.safe_integer(params, 'searchPageSize', optionPageSize)
@@ -428,7 +427,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
             pagination = self.safe_dict(first, 'pagination', {})
             totalResults = self.safe_integer(pagination, 'totalResults', firstEventsLength)
             totalPages = int(math.ceil(totalResults / pageSize))
-            # only page as `limit` needs(applyEventFetchParams slices to it afterwards)
+            # only page as far as `limit` needs (applyEventFetchParams slices to it afterwards);
             # with no limit, cap the fan-out at options.maxSearchPages so a broad query stays bounded
             if resultLimit is not None:
                 limitPages = int(math.ceil(resultLimit / pageSize))
@@ -458,7 +457,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
             for ei in range(0, len(allEvents)):
                 rawEvent = allEvents[ei]
                 eventId = self.safe_string(rawEvent, 'id')
-                if eventId and not (eventId in seen):
+                if (eventId is not None and eventId != '') and not (eventId in seen):
                     seen[eventId] = True
                     rawEvents.append(rawEvent)
         return rawEvents
@@ -489,7 +488,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
             return lower
         return slug
 
-    async def fetch_raw_events_list(self, params={}) -> List[Any]:
+    async def fetch_raw_events_list(self, params={}) -> list[object]:
         """
  @ignore
         fetches raw gamma event objects from the events listing endpoint, paginating in parallel
@@ -502,10 +501,10 @@ class polymarket(PredictionExchange, ImplicitAPI):
         :returns dict[]: an array of raw gamma event objects
         """
         # gamma hard-caps each response at 100 events regardless of the requested limit, so the
-        # page size must be that cap or pagination never advances(the > check below stays False)
+        # page size must be that cap or pagination never advances (the > check below stays false)
         pageSize = self.safe_integer(self.options, 'eventsPageSize', 100)
         # scope the listing: without a search query loadMarkets would otherwise dump every
-        # active event(tens of thousands of markets). Cap to `limit` events(most-traded first).
+        # active event (tens of thousands of markets). Cap to `limit` events (most-traded first).
         limit = self.safe_integer(params, 'limit', self.safe_integer(self.options, 'fetchMarketsLimit', 200))
         maxPages = int(math.ceil(limit / pageSize))
         status = self.safe_string(params, 'status', self.safe_string(self.options, 'defaultEventStatus', 'active'))
@@ -519,7 +518,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
         rest = self.omit(params, ['status', 'limit', 'sort', 'searchIn', 'eventId', 'slug', 'query', 'queries', 'tags'])
         baseRequest = {'limit': pageSize, 'order': order, 'ascending': False}
         baseRequest = self.extend(baseRequest, rest)
-        # push requested tags server-side(gamma accepts one tag_slug per request) so a tags-only
+        # push requested tags server-side (gamma accepts one tag_slug per request) so a tags-only
         # fetchEvents returns the tagged events rather than filtering the top-volume listing down
         # to nothing; multiple tags run one listing per tag, unioned and deduped by event id
         requestedTags = self.safe_list(params, 'tags', [])
@@ -539,8 +538,8 @@ class polymarket(PredictionExchange, ImplicitAPI):
                         unioned.append(rawEvent)
             return unioned
         if requestedTagsLength > 0:
-            # gamma matches tag_slug case-insensitively but only in slug form("fed-rates"),
-            # so human-readable labels("Fed Rates") must be slugified first
+            # gamma matches tag_slug case-insensitively but only in slug form ("fed-rates"),
+            # so human-readable labels ("Fed Rates") must be slugified first
             baseRequest['tag_slug'] = self.tag_to_slug(self.safe_string(requestedTags, 0))
         if status == 'active':
             baseRequest['active'] = True
@@ -579,7 +578,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
             return self.array_slice(allRawEvents, 0, limit)
         return allRawEvents
 
-    def parse_event_to_markets(self, event: dict) -> List[Market]:
+    def parse_event_to_markets(self, event: dict) -> list[Market]:
         eventSlug = self.safe_string(event, 'slug', self.safe_string(event, 'id'))
         rawMarkets = self.safe_list(event, 'markets', [])
         result = []
@@ -594,7 +593,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
         #    "startDate":"2025-09-19T21:22:54.912576Z",
         #    "image":"https://polymarket-upload.s3.us-east-2.amazonaws.com/will-trump-visit-china-by-october-31-ujqWMja0Uizt.png",
         #    "icon":"https://polymarket-upload.s3.us-east-2.amazonaws.com/will-trump-visit-china-by-october-31-ujqWMja0Uizt.png",
-        #    "description":"If U.S. President Donald Trump visits China by October 31, 2025, 11:59 PM ET, self market will resolve to \\""Yes\\"". Otherwise, self market will resolve to \\""No\\"".\\n\\nFor the purpose of self market, a \\""visit\\"" is defined physically entering the terrestrial or maritime territory of the listed country. Whether or not Trump enters the country's airspace during the timeframe of self market will have no bearing on a positive resolution.\\n\\nThe primary resolution source for self information will be official information from government of the United States of America, official information from Trump or released by his verified social media accounts(e.g. https://twitter.com/POTUS), however, a consensus of credible reporting will also be used.",
+        #    "description":"If U.S. President Donald Trump visits China by October 31, 2025, 11:59 PM ET, this market will resolve to \\""Yes\\"". Otherwise, this market will resolve to \\""No\\"".\\n\\nFor the purpose of this market, a \\""visit\\"" is defined as Trump physically entering the terrestrial or maritime territory of the listed country. Whether or not Trump enters the country's airspace during the timeframe of this market will have no bearing on a positive resolution.\\n\\nThe primary resolution source for this information will be official information from government of the United States of America, official information from Trump or released by his verified social media accounts (e.g. https://twitter.com/POTUS), however, a consensus of credible reporting will also be used.",
         #    "outcomes":"[\\""Yes\\"", \\""No\\""]",
         #    "outcomePrices":"[\\"0\\", \\"1\\"]",
         #    "volume":"549414.493468",
@@ -677,16 +676,16 @@ class polymarket(PredictionExchange, ImplicitAPI):
             active = self.safe_bool(market, 'active', False)
             closed = self.safe_bool(market, 'closed', False)
             # resolution: a closed/uma-resolved market settles each outcome price to 0 or 1
-            marketResolved = closed or (self.safe_string_lower(market, 'umaResolutionStatus') == 'resolved')
+            marketResolved = (closed is True) or (self.safe_string_lower(market, 'umaResolutionStatus') == 'resolved')
             resolvedOutcome = None
-            # gamma exposes the order-book tick; minimumTickSize is the clob alias
+            # gamma exposes the order-book tick as orderPriceMinTickSize; minimumTickSize is the clob alias
             tickSize = self.safe_number_2(market, 'orderPriceMinTickSize', 'minimumTickSize', 0.01)
-            # real per-market min order size(shares) and price tick — don't hardcode 1 / 0.01..0.99
+            # real per-market min order size (shares) and price tick — don't hardcode 1 / 0.01..0.99
             orderMinSize = self.safe_number(market, 'orderMinSize', 1)
             priceMax = self.parse_number(Precise.string_sub('1', self.number_to_string(tickSize)))
             negRisk = self.safe_bool(market, 'negRisk', False)
             endDate = self.safe_string(market, 'endDate', self.safe_string(market, 'end_date_iso'))
-            # Gamma API returns these arrays-encoded strings
+            # Gamma API returns these arrays as JSON-encoded strings
             outcomeLabels = []
             clobTokenIds = []
             outcomePrices = []
@@ -702,17 +701,17 @@ class polymarket(PredictionExchange, ImplicitAPI):
             parsedPricesLength = None
             if parsedPrices is not None:
                 parsedPricesLength = (len(parsedPrices))
-            if parsedOutcomes and (parsedOutcomesLength is not None):
+            if (parsedOutcomes is not None) and (parsedOutcomesLength is not None):
                 outcomeLabels = parsedOutcomes
-            if parsedTokenIds and (parsedTokenIdsLength is not None):
+            if (parsedTokenIds is not None) and (parsedTokenIdsLength is not None):
                 clobTokenIds = parsedTokenIds
-            if parsedPrices and (parsedPricesLength is not None):
+            if (parsedPrices is not None) and (parsedPricesLength is not None):
                 outcomePrices = parsedPrices
             outcomeLabelsLength = len(outcomeLabels)
             clobTokenIdsLength = len(clobTokenIds)
             if outcomeLabelsLength == 0 or clobTokenIdsLength == 0:
                 continue
-            # Market outcome(no outcome suffix)
+            # Market outcome (no outcome suffix)
             marketSymbol = self.slug_to_market_symbol(eventSlug, marketSlug)
             # Build outcomes array
             outcomes = []
@@ -720,16 +719,16 @@ class polymarket(PredictionExchange, ImplicitAPI):
                 outcomeLabel = outcomeLabels[oi]
                 clobTokenId = clobTokenIds[oi]
                 outcomePrice = self.safe_number(outcomePrices, oi)
-                if not clobTokenId:
+                if (clobTokenId is None) or (clobTokenId == ''):
                     continue
                 outcomeHandle = self.slug_to_outcome_symbol(eventSlug, marketSlug, outcomeLabel)
                 winnerRaw = None
                 settleFractionRaw = None
                 if marketResolved and (outcomePrice is not None):
-                    # a genuinely-settled polymarket outcome is at 1(won) or 0(lost). a market
-                    # that is only closed-for-trading(not yet UMA-resolved) still has fractional
-                    # prices — don't report a fractional mid final settleFraction; leave the
-                    # outcome-level fields None until a decisive price exists
+                    # a genuinely-settled polymarket outcome is at 1 (won) or 0 (lost). a market
+                    # that is only closed-for-trading (not yet UMA-resolved) still has fractional
+                    # prices — don't report a fractional mid as a final settleFraction; leave the
+                    # outcome-level fields undefined until a decisive price exists
                     if outcomePrice >= 0.99:
                         winnerRaw = True
                         settleFractionRaw = 1
@@ -737,7 +736,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
                     elif outcomePrice <= 0.01:
                         winnerRaw = False
                         settleFractionRaw = 0
-                # effectively-final copies: Java emits the object literal below anonymous
+                # effectively-final copies: Java emits the object literal below as an anonymous
                 # inner class, which cannot capture a reassigned local
                 winner = winnerRaw
                 settleFraction = settleFractionRaw
@@ -747,7 +746,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
                     'market': marketSymbol,
                     'label': outcomeLabel,
                     'price': outcomePrice,
-                    'active': active and not closed,
+                    'active': (active is True) and (closed is not True),
                     'winner': winner,
                     'settleFraction': settleFraction,
                     # carry the order precision so createOrder needs no extra request
@@ -760,7 +759,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
                 })
             baseId = conditionId if (conditionId is not None) else marketId
             marketType = 'categorical' if (outcomeLabelsLength > 2) else 'binary'
-            # effectively-final copy for the market object literal below(reassigned in the loop)
+            # effectively-final copy for the market object literal below (reassigned in the loop)
             marketResolvedOutcome = resolvedOutcome
             result.append({
                 'id': conditionId,
@@ -781,14 +780,14 @@ class polymarket(PredictionExchange, ImplicitAPI):
                 'future': False,
                 'option': False,
                 'prediction': True,
-                'active': active and not closed,
+                'active': (active is True) and (closed is not True),
                 'resolved': marketResolved,
                 'resolvedOutcome': marketResolvedOutcome,
                 'contract': False,
                 'linear': None,
                 'inverse': None,
                 'contractSize': None,
-                'expiry': self.parse8601(endDate) if endDate else None,
+                'expiry': self.parse8601(endDate) if (endDate is not None and endDate != '') else None,
                 'expiryDatetime': endDate,
                 'strike': None,
                 'optionType': None,
@@ -813,7 +812,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
             })
         return result
 
-    async def fetch_outcome(self, outcomeSymbol: str) -> Any:
+    async def fetch_outcome(self, outcomeSymbol: str) -> object:
         """
  @ignore
         resolves a single outcome by its CLOB token id in one request, so a cache miss
@@ -823,12 +822,12 @@ class polymarket(PredictionExchange, ImplicitAPI):
         :param str outcomeSymbol: the outcome token id or handle
         :returns dict: the resolved outcome object
         """
-        # a bare CLOB token id has no ':'(an outcome handle is always "MARKET:LABEL") and no
-        # searchable words — outcomeSearchQuery returns None only for id-like inputs, so
-        # word-bearing junk like 'BTC/USDT' skips the gamma by-id lookup(which 422s on
+        # a bare CLOB token id has no ':' (an outcome handle is always "MARKET:LABEL") and no
+        # searchable words — outcomeSearchQuery returns undefined only for id-like inputs, so
+        # word-bearing junk like 'BTC/USDT' skips the gamma by-id lookup (which 422s on
         # non-ids) and falls through to the search path and its local BadSymbol below.
-        # absence must be `< 0` — the php transpiler maps that to `== False`, while a literal
-        # `== -1` passes through and never matches mb_strpos's False return
+        # absence must be `< 0` — the php transpiler maps that to `=== false`, while a literal
+        # `=== -1` passes through and never matches mb_strpos's false return
         if (outcomeSymbol.find(':') < 0) and (self.outcome_search_query(outcomeSymbol) is None):
             response = await self.gammaPublicGetMarkets({'clob_token_ids': outcomeSymbol})
             rawMarkets = response if (response is not None) else []
@@ -849,7 +848,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
                     return byId
         return await super(polymarket, self).fetch_outcome(outcomeSymbol)
 
-    async def fetch_outcomes(self, outcomeSymbols: List[str]) -> Any:
+    async def fetch_outcomes(self, outcomeSymbols: list[str]) -> object:
         """
  @ignore
         resolves several uncached outcomes at once — bare CLOB token ids are batched into gamma markets requests(repeated clob_token_ids params, 50 per request to keep the URL bounded); handle-shaped symbols fall back to the single fetch and its search path
@@ -862,10 +861,10 @@ class polymarket(PredictionExchange, ImplicitAPI):
         tokenIds = []
         for i in range(0, len(outcomeSymbols)):
             outcomeSymbol = outcomeSymbols[i]
-            # only id-like symbols(no ':', no searchable words) belong in the by-id batch —
+            # only id-like symbols (no ':', no searchable words) belong in the by-id batch —
             # see the same gate in fetchOutcome. absence must be `< 0` — the php transpiler
-            # maps that to `== False`, while a literal `== -1` passes through and never
-            # matches mb_strpos's False return
+            # maps that to `=== false`, while a literal `=== -1` passes through and never
+            # matches mb_strpos's false return
             if (outcomeSymbol.find(':') < 0) and (self.outcome_search_query(outcomeSymbol) is None):
                 tokenIds.append(outcomeSymbol)
         tokenIdsLength = len(tokenIds)
@@ -944,7 +943,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
         #             ],
         #             "min_order_size": "5",
         #             "tick_size": "0.001",
-        #             "neg_risk": False,
+        #             "neg_risk": false,
         #             "last_trade_price": "0.998"
         #         },
         #         "lastTrade": {
@@ -972,7 +971,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
         """
         if outcomes is None:
             raise ArgumentsRequired(self.id + ' fetchTickers() requires an outcomes argument — the venue has no all-tickers endpoint; pass the outcome handles or token ids to fetch(discover them via fetchEvents())')
-        # batch-resolve the uncached outcomes(one gamma request per 50 token ids)
+        # batch-resolve the uncached outcomes (one gamma request per 50 token ids)
         await self.load_outcomes(outcomes)
         targets = []
         for oi in range(0, len(outcomes)):
@@ -1063,7 +1062,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
         #             ],
         #             "min_order_size": "5",
         #             "tick_size": "0.001",
-        #             "neg_risk": False,
+        #             "neg_risk": false,
         #             "last_trade_price": "0.998"
         #         },
         #         "lastTrade": {
@@ -1079,7 +1078,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
         asks = self.safe_list(bookData, 'asks', [])
         bidsLength = len(bids)
         asksLength = len(asks)
-        # the CLOB book endpoint returns levels sorted away from the touch(bids ascending, asks descending), so the best level is the last entry
+        # the CLOB book endpoint returns levels sorted away from the touch (bids ascending, asks descending), so the best level is the last entry
         bestBid = bids[bidsLength - 1] if (bidsLength > 0) else None
         bestAsk = asks[asksLength - 1] if (asksLength > 0) else None
         # book.last_trade_price is market-level and denominated in whichever token traded last —
@@ -1111,7 +1110,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
             'vwap': None,
             'open': None,
             # close must be the last TRADE price, not the midpoint — base safeTicker derives `last`
-            # from `close`(safeString2('close','last')), so close:mid would clobber last with the mid.
+            # from `close` (safeString2('close','last')), so close:mid would clobber last with the mid.
             # the midpoint lives in `average`
             'close': last,
             'last': last,
@@ -1148,16 +1147,16 @@ class polymarket(PredictionExchange, ImplicitAPI):
         #         "timestamp": "1777541385018",
         #         "hash": "bfb61f58dab4055d956eb5e758dbc9101c9a4e6c",
         #         "bids": [
-        #             {"price": "0.001", "size": "3147.19"},
-        #             {"price": "0.002", "size": "1432.11"}
+        #             { "price": "0.001", "size": "3147.19" },
+        #             { "price": "0.002", "size": "1432.11" }
         #         ],
         #         "asks": [
-        #             {"price": "0.999", "size": "73.68"},
-        #             {"price": "0.998", "size": "7"}
+        #             { "price": "0.999", "size": "73.68" },
+        #             { "price": "0.998", "size": "7" }
         #         ],
         #         "min_order_size": "5",
         #         "tick_size": "0.001",
-        #         "neg_risk": False,
+        #         "neg_risk": false,
         #         "last_trade_price": "0.002"
         #     }
         #
@@ -1165,7 +1164,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
         orderbook = self.parse_order_book(response, self.safe_outcome_symbol(outcome, outcomeObj), timestamp, 'bids', 'asks', 'price', 'size')
         return self.safe_prediction_order_book(orderbook, outcomeObj)
 
-    async def fetch_ohlcv(self, outcome: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def fetch_ohlcv(self, outcome: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> list[list]:
         """
         fetches price history ticks for a single outcome token and buckets them client-side into OHLCV candles, snapping tick timestamps to the candle boundary
 
@@ -1176,7 +1175,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum number of candles to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: a list of candles ordered, open, high, low, close, volume
+        :returns int[][]: a list of candles ordered as timestamp, open, high, low, close, volume
         """
         if not (timeframe in self.timeframes):
             # hoisted keys list: chaining join onto Object.keys breaks the python transpiler
@@ -1196,9 +1195,9 @@ class polymarket(PredictionExchange, ImplicitAPI):
         else:
             barCount = limit if (limit is not None) else 100
             startS = nowS - (barCount * fidelityMin * 60)
-        # the venue rejects startTs/endTs spans over 15 days("interval is too long")
+        # the venue rejects startTs/endTs spans over 15 days ("interval is too long")
         # regardless of fidelity, so clamp the window to the cap: keep the requested
-        # `since` anchor(oldest chunk first, consistent with since/limit paging),
+        # `since` anchor (oldest chunk first, consistent with since/limit paging),
         # or the most recent window when no `since` was given
         maxWindow = self.safe_integer(self.options, 'maxPricesHistoryWindow', 1296000)
         if (endS - startS) > maxWindow:
@@ -1216,7 +1215,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
         #
         #     {
         #         "history": [
-        #             {"t": "1776043119", "p": "0.265"},
+        #             { "t": "1776043119", "p": "0.265" },
         #         ]
         #     }
         #
@@ -1233,7 +1232,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
                 continue
             rawMs = t * 1000
             snappedMs = int(math.floor(rawMs / resolutionMs)) * resolutionMs
-            # the venue supplies no candle volume({t, p} ticks only) — leave it None
+            # the venue supplies no candle volume ({t, p} ticks only) — leave it undefined
             # rather than fabricating a 0, probing s/v in case the field ever appears
             vol = self.safe_number(item, 's')
             if vol is None:
@@ -1245,7 +1244,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
                 candle = buckets[bucketKey]
                 candle[2] = max(candle[2], price)  # high
                 candle[3] = min(candle[3], price)  # low
-                candle[4] = price                                  # close(last tick wins)
+                candle[4] = price                                  # close (last tick wins)
                 if vol is not None:
                     prevVol = candle[5]
                     candle[5] = vol if (prevVol is None) else self.sum(prevVol, vol)  # volume
@@ -1260,7 +1259,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
             return self.array_slice(candles, -limit)
         return candles
 
-    def parse_ohlcv(self, ohlcv: Any, market: Market = None) -> list:
+    def parse_ohlcv(self, ohlcv: object, market: Market = None) -> list:
         # Unused: fetchOHLCV performs client-side bucket aggregation directly.
         #
         #     {
@@ -1286,7 +1285,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
         #
         return self.parse_to_int(response) * 1000
 
-    async def fetch_status(self, params={}) -> Any:
+    async def fetch_status(self, params={}) -> object:
         """
         fetches the gamma API health status
 
@@ -1326,14 +1325,14 @@ class polymarket(PredictionExchange, ImplicitAPI):
         request = {'market': conditionId}
         response = await self.dataPublicGetOi(self.extend(request, params))
         #
-        #     [{"market": "0x7976b8...92", "value": 4925662.470476}]
+        #     [ { "market": "0x7976b8...92", "value": 4925662.470476 } ]
         #
         first = self.safe_dict(response, 0, {})
         return self.parse_prediction_open_interest(first, outcomeObj)
 
     def parse_prediction_open_interest(self, interest: dict, market: Market = None) -> PredictionOpenInterest:
         #
-        #     {"market": "0x7976b8...92", "value": 4925662.470476}
+        #     { "market": "0x7976b8...92", "value": 4925662.470476 }
         #
         timestamp = self.milliseconds()
         openInterest = self.safe_open_interest({
@@ -1367,7 +1366,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
         request = {'token_id': tokenId}
         response = await self.clobPublicGetFeeRate(self.extend(request, params))
         #
-        #     {"base_fee": 30}   # base fee in basis points
+        #     { "base_fee": 30 }   // base fee in basis points
         #
         baseFeeBps = self.safe_string(response, 'base_fee')
         rate = self.parse_number(Precise.string_div(baseFeeBps, '10000')) if (baseFeeBps is not None) else None
@@ -1382,7 +1381,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
             'tierBased': False,
         }
 
-    async def fetch_trades(self, outcome: str, since: Int = None, limit: Int = None, params={}) -> List[PredictionTrade]:
+    async def fetch_trades(self, outcome: str, since: Int = None, limit: Int = None, params={}) -> list[PredictionTrade]:
         """
         fetches public trade history for a single outcome token from the data API
 
@@ -1400,9 +1399,9 @@ class polymarket(PredictionExchange, ImplicitAPI):
         conditionId = self.safe_string(outcomeInfo, 'conditionId')
         if conditionId is None:
             raise BadRequest(self.id + ' fetchTrades() requires outcome.info.conditionId for an outcome ' + tokenId)
-        # the endpoint filters by market conditionId(which spans BOTH outcome tokens), then we narrow
-        # to the requested token client-side below. applying the user's `limit` to self request and
-        # THEN filtering can return 0 rows on an active outcome(if the top `limit` market trades are
+        # the endpoint filters by market conditionId (which spans BOTH outcome tokens), then we narrow
+        # to the requested token client-side below. applying the user's `limit` to this request and
+        # THEN filtering can return 0 rows on an active outcome (if the top `limit` market trades are
         # all the other token). over-fetch a large page here; the user's `limit` is applied AFTER the
         # token filter by parsePredictionTrades
         request = {'market': conditionId}
@@ -1415,11 +1414,11 @@ class polymarket(PredictionExchange, ImplicitAPI):
             tradeAsset = self.safe_string(trade, 'asset')
             if tradeAsset == tokenId:
                 filteredTrades.append(trade)
-        # the trades are already narrowed to self outcome by asset id above
+        # the trades are already narrowed to this outcome by asset id above;
         # parsePredictionTrade resolves the outcome from each trade's asset id
         return self.parse_prediction_trades(filteredTrades, None, since, limit)
 
-    async def fetch_my_trades(self, outcome: Str = None, since: Int = None, limit: Int = None, params={}) -> List[PredictionTrade]:
+    async def fetch_my_trades(self, outcome: Str = None, since: Int = None, limit: Int = None, params={}) -> list[PredictionTrade]:
         """
         fetches the authenticated user's trade history from the CLOB, optionally filtered by outcome token
 
@@ -1441,7 +1440,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
         rawTrades = response if isinstance(response, list) else self.safe_list(response, 'data', [])
         return self.parse_prediction_trades(rawTrades, outcomeObj, since, limit)
 
-    async def fetch_order_trades(self, id: str, outcome: Str = None, since: Int = None, limit: Int = None, params={}) -> List[PredictionTrade]:
+    async def fetch_order_trades(self, id: str, outcome: Str = None, since: Int = None, limit: Int = None, params={}) -> list[PredictionTrade]:
         """
         fetches all the trades made from a single order
 
@@ -1455,7 +1454,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
         :returns dict[]: a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
         """
         # the /data/trades endpoint has no order filter, so fetch the user's trades and keep
-        # the ones where self order was the taker or one of the matched makers
+        # the ones where this order was the taker or one of the matched makers
         trades = await self.fetch_my_trades(outcome, None, None, params)
         result = []
         for i in range(0, len(trades)):
@@ -1478,7 +1477,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
         :param dict [market]: the outcome object the trade belongs to
         :returns dict: a [prediction trade structure](https://docs.ccxt.com/#/?id=prediction-trade-structure)
         """
-        # public data-api trades use 'asset'/'orderId'/'transactionHash'/'timestamp'
+        # public data-api trades use 'asset'/'orderId'/'transactionHash'/'timestamp';
         # the private CLOB /data/trades use 'asset_id'/'taker_order_id'/'transaction_hash'/'match_time'
         id = self.safe_string_n(trade, ['transactionHash', 'transaction_hash', 'id'])
         timestamp = self.safe_integer_product(trade, 'timestamp', 1000)
@@ -1540,7 +1539,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
         response = await self.clobPrivateGetBalanceAllowance(self.extend(request, rest))
         return self.parse_balance(response)
 
-    def parse_balance(self, response: Any) -> Balances:
+    def parse_balance(self, response: object) -> Balances:
         """
  @ignore
         parses a balance-allowance response into a balances object with a USDC entry
@@ -1548,7 +1547,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
         :returns dict: a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
         """
         result = {'info': response}
-        # 'balance' is the raw USDC collateral in 6-decimal units(e.g. "8992211" = 8.992211 USDC)
+        # 'balance' is the raw USDC collateral in 6-decimal units (e.g. "8992211" = 8.992211 USDC)
         raw = self.safe_string(response, 'balance')
         total = None
         if raw is not None:
@@ -1560,7 +1559,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
         }
         return self.safe_balance(result)
 
-    async def fetch_positions(self, outcomes: Strings = None, params={}) -> List[PredictionPosition]:
+    async def fetch_positions(self, outcomes: Strings = None, params={}) -> list[PredictionPosition]:
         """
         fetches open outcome token positions for the wallet from the data API
 
@@ -1575,7 +1574,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
             outcomesLength = len(outcomes)
             await self.load_outcomes(outcomes)
         # no bulk warm-up on the unfiltered path: the positions request is self-contained and
-        # labels resolve cache-only via safeOutcome(raw token ids when the cache is cold)
+        # labels resolve cache-only via safeOutcome (raw token ids when the cache is cold)
         if self.walletAddress is None:
             raise ArgumentsRequired(self.id + ' walletAddress is required to fetchPositions')
         request = {
@@ -1583,7 +1582,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
         }
         response = await self.dataPublicGetPositions(self.extend(request, params))
         positions = self.safe_list(response, 'data', [])
-        # parse without the base outcome filter(it resolves standard markets, not outcome tokens),
+        # parse without the base outcome filter (it resolves standard markets, not outcome tokens),
         # then filter by the requested outcomes' token ids ourselves
         parsed = self.parse_prediction_positions(positions)
         if outcomesLength == 0:
@@ -1634,7 +1633,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
             notional = size * curPrice
         return self.safe_prediction_position({
             'id': self.safe_string(position, 'id'),
-            # safe access: safeOutcome stubs(unknown assets) carry no 'event' key, and raw
+            # safe access: safeOutcome stubs (unknown assets) carry no 'event' key, and raw
             # bracket access on a missing key raises in Python/PHP
             'outcome': self.safe_string(marketData, 'outcome'),
             'outcomeId': self.safe_string(marketData, 'outcomeId'),
@@ -1666,7 +1665,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
             'info': position,
         })
 
-    async def fetch_open_orders(self, outcome: Str = None, since: Int = None, limit: Int = None, params={}) -> List[PredictionOrder]:
+    async def fetch_open_orders(self, outcome: Str = None, since: Int = None, limit: Int = None, params={}) -> list[PredictionOrder]:
         """
         fetches open resting orders for the authenticated user, optionally filtered by outcome token
 
@@ -1700,7 +1699,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
         :returns dict: a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
         """
         # the request only needs the order id; the outcome is a labelling hint, so resolve it from
-        # cache(no network) — fetchOrder stays a single request even on a cold cache.
+        # cache (no network) — fetchOrder stays a single request even on a cold cache.
         await self.load_api_credentials()
         request = {'id': id}
         response = await self.clobPrivateGetDataOrderId(self.extend(request, params))
@@ -1746,7 +1745,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
             'outcomeId': self.safe_string(mkt, 'outcomeId'),
             'label': self.safe_string(mkt, 'label'),
             'market': self.safe_string(mkt, 'market'),
-            'type': 'limit',  # polymarket CLOB orders are limit orders(the user-ws 'type' field is the lifecycle, used for status)
+            'type': 'limit',  # polymarket CLOB orders are limit orders (the user-ws 'type' field is the lifecycle, used for status)
             'timeInForce': self.safe_string(order, 'time_in_force', 'GTC'),
             'postOnly': self.safe_bool(order, 'postOnly'),
             'side': side,
@@ -1774,12 +1773,12 @@ class polymarket(PredictionExchange, ImplicitAPI):
             'matched': 'closed',
             'cancelled': 'canceled',
             'delayed': 'open',
-            # user-websocket order lifecycle('type' field)
+            # user-websocket order lifecycle ('type' field)
             'placement': 'open',
             'update': 'open',
             'cancellation': 'canceled',
         }
-        # the REST data endpoints return upper-case statuses(LIVE, MATCHED, CANCELLED) while the
+        # the REST data endpoints return upper-case statuses (LIVE, MATCHED, CANCELLED) while the
         # user websocket sends lower-case lifecycle types — lower-case before the lookup so both map
         normalized = self.safe_string_lower({'status': status}, 'status')
         return self.safe_string(statuses, normalized, normalized)
@@ -1791,7 +1790,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
         https://docs.polymarket.com/api-reference/trade/post-a-new-order
 
         :param str outcome: unified outcome or outcome token id
-        :param str type: 'market' or 'limit'; market orders default to FOK and, when no price is given, use the outcome's current price marketable reference
+        :param str type: 'market' or 'limit'; market orders default to FOK and, when no price is given, use the outcome's current price as the marketable reference
         :param str side: 'buy' or 'sell'
         :param float amount: how many outcome tokens to trade
         :param float [price]: the price per outcome token between 0 and 1; required for limit orders, defaults to the outcome's current price for market orders
@@ -1817,19 +1816,19 @@ class polymarket(PredictionExchange, ImplicitAPI):
         order['info'] = response   # keep info the raw exchange response, not the request echo
         return order
 
-    async def create_orders(self, orders: List[PredictionOrderRequest], params={}) -> List[PredictionOrder]:
+    async def create_orders(self, orders: list[PredictionOrderRequest], params={}) -> list[PredictionOrder]:
         """
         places multiple orders on the CLOB in a single batched request
 
         https://docs.polymarket.com/api-reference/trade/post-orders
 
-        :param dict[] orders: a list of order requests, each an object with outcome, type, side, amount, price and optional params(same params)
+        :param dict[] orders: a list of order requests, each an object with outcome, type, side, amount, price and optional params(same params as createOrder)
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
         """
         await self.load_api_credentials()
         # buildClobOrderBody resolves outcomes synchronously from the cache, so batch-warm the
-        # requested outcomes first(one gamma request for all uncached token ids)
+        # requested outcomes first (one gamma request for all uncached token ids)
         orderOutcomes = []
         for i in range(0, len(orders)):
             o = orders[i]
@@ -1873,13 +1872,13 @@ class polymarket(PredictionExchange, ImplicitAPI):
         # pure builder, no network I/O — intentionally synchronous. a no-op async method
         # transpiles in php to a promise-typed wrapper around a body that returns a plain
         # dict, which throws a TypeError
-        # outcome() validates the outcome against the loaded outcomes(built from events or markets)
+        # outcome () validates the outcome against the loaded outcomes (built from events or markets)
         outcomeObj = self.outcome(outcome)
         tokenId = outcomeObj['outcomeId']
         sideStr = side.upper()
         isMarket = (type == 'market')
-        # CCXT type(limit/market) maps to a polymarket time-in-force: limit -> GTC, market -> FOK.
-        # native override: params.orderType(GTC, GTD, FOK or FAK)
+        # CCXT type (limit/market) maps to a polymarket time-in-force: limit -> GTC, market -> FOK.
+        # native override: params.orderType (GTC, GTD, FOK or FAK)
         orderTypeStr = self.safe_string_upper(params, 'orderType')
         if orderTypeStr is None:
             # otherwise map the unified `timeInForce` onto polymarket's orderType vocabulary
@@ -1897,28 +1896,28 @@ class polymarket(PredictionExchange, ImplicitAPI):
         if price is None:
             if not isMarket:
                 raise ArgumentsRequired(self.id + ' createOrder() requires a price for limit orders')
-            # market order without an explicit price: use the outcome's current price marketable reference
+            # market order without an explicit price: use the outcome's current price as the marketable reference
             price = self.safe_number(outcomeObj, 'price')
             if price is None:
                 raise ArgumentsRequired(self.id + ' createOrder() could not determine a price from the outcome, pass an explicit price')
         # tick size + neg-risk flag drive the rounding and the verifying contract; both are read from the
-        # outcome object(set in parseMarket) and can be overridden via params to keep requests deterministic
+        # outcome object (set in parseMarket) and can be overridden via params to keep requests deterministic
         outcomePrecision = self.safe_dict(outcomeObj, 'precision', {})
         tickSize = self.safe_string(params, 'tickSize', self.number_to_string(self.safe_number(outcomePrecision, 'price', 0.01)))
         negRisk = self.safe_bool(params, 'negRisk', self.safe_bool(outcomeObj, 'negRisk', False))
         # maker-only: the CLOB rejects the order if it would immediately take
         postOnly = self.safe_bool(params, 'postOnly', False)
-        # 0=EOA, 1=POLY_PROXY, 2=GNOSIS_SAFE, 3=POLY_1271(deposit wallet, default); funder/maker holds the USDC
+        # 0=EOA, 1=POLY_PROXY, 2=GNOSIS_SAFE, 3=POLY_1271 (deposit wallet, default); funder/maker holds the USDC
         signatureType = self.safe_integer_2(params, 'signatureType', 'signature_type', self.safe_integer(self.options, 'signatureType', 3))
-        # the signer/owner is the EOA behind the privateKey; the funder/maker is the proxy or deposit wallet(walletAddress)
+        # the signer/owner is the EOA behind the privateKey; the funder/maker is the proxy or deposit wallet (walletAddress)
         eoa = self.eth_checksum_address(self.eth_get_address_from_private_key(self.privateKey))
         funder = self.eth_checksum_address(self.safe_string_2(params, 'funder', 'maker', self.safe_string(self.options, 'funder', self.walletAddress)))
         # salt and timestamp default to the current time but can be pinned via params for idempotency
         salt = self.safe_string(params, 'salt', self.number_to_string(self.milliseconds()))
         timestamp = self.safe_string(params, 'timestamp', self.number_to_string(self.milliseconds()))
-        # GTD(good-til-date) orders need a unix-seconds expiration; 0 means no expiry
+        # GTD (good-til-date) orders need a unix-seconds expiration; 0 means no expiry
         expiration = self.safe_string(params, 'expiration', '0')
-        # a market buy can be sized by USDC cost instead of shares(see createMarketBuyOrderWithCost)
+        # a market buy can be sized by USDC cost instead of shares (see createMarketBuyOrderWithCost)
         cost = self.safe_number(params, 'cost')
         rest = self.omit(params, ['signatureType', 'signature_type', 'funder', 'maker', 'orderType', 'timeInForce', 'postOnly', 'tickSize', 'negRisk', 'salt', 'timestamp', 'expiration', 'cost', 'builder', 'builderCode'])
         amounts = self.polymarket_order_raw_amounts(sideStr, amount, price, tickSize, cost)
@@ -1926,9 +1925,9 @@ class polymarket(PredictionExchange, ImplicitAPI):
         takerAmount = self.safe_string(amounts, 'takerAmount')
         sideInt = 0 if (sideStr == 'BUY') else 1
         bytes32Zero = '0x0000000000000000000000000000000000000000000000000000000000000000'
-        # builder attribution: the order's bytes32 builder field packs the builder fee(bps,
-        # upper 12 bytes) and the builder wallet(lower 20 bytes); when options.builderFee is
-        # False the fee bytes stay zeroed, so orders are attributed for statistics only and
+        # builder attribution: the order's bytes32 builder field packs the builder fee (bps,
+        # upper 12 bytes) and the builder wallet (lower 20 bytes); when options.builderFee is
+        # false the fee bytes stay zeroed, so orders are attributed for statistics only and
         # the user is not charged; a full 32-byte builder code is passed through unchanged
         builderRaw = self.safe_string_lower_2(params, 'builder', 'builderCode', self.safe_string_lower(self.options, 'builder'))
         builderBytes32 = bytes32Zero
@@ -1937,7 +1936,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
             if len(builderHex) <= 40:
                 builderFeeEnabled = self.safe_bool(self.options, 'builderFee', True)
                 feeRate = 0
-                if builderFeeEnabled:
+                if builderFeeEnabled is True:
                     feeRate = self.safe_integer(self.options, 'feeRate', 0)
                 feeHex = self.int_to_base16(feeRate)
                 feeHex = feeHex.rjust(24, '0')
@@ -1947,9 +1946,9 @@ class polymarket(PredictionExchange, ImplicitAPI):
             else:
                 builderHex = builderHex.rjust(64, '0')
             builderBytes32 = '0x' + builderHex
-        # POLY_1271(type 3): the order signer is the deposit wallet itself — the exchange calls
-        # wallet.isValidSignature and the inner ERC-7739 domain's verifyingContract is the wallet(the EOA
-        # still produces the signature and is checked on-chain wallet owner). Otherwise signer = EOA.
+        # POLY_1271 (type 3): the order signer is the deposit wallet itself — the exchange calls
+        # wallet.isValidSignature and the inner ERC-7739 domain's verifyingContract is the wallet (the EOA
+        # still produces the signature and is checked on-chain as the wallet owner). Otherwise signer = EOA.
         maker = funder
         signer = funder if (signatureType == 3) else eoa
         message = {
@@ -1967,7 +1966,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
         }
         exchangeV2 = self.safe_string(self.options, 'exchangeAddress', '0xE111180000d2663C0091e4f400237545B87B996B')
         negRiskExchangeV2 = self.safe_string(self.options, 'negRiskExchangeAddress', '0xe2222d279d744050d28e00520010520000310F59')
-        exchangeAddress = negRiskExchangeV2 if negRisk else exchangeV2
+        exchangeAddress = negRiskExchangeV2 if (negRisk is True) else exchangeV2
         domainVersion = self.safe_string(self.options, 'ctfExchangeVersion', '2')
         signature = self.sign_clob_order(message, exchangeAddress, domainVersion, signatureType)
         owner = self.safe_string(self.options, 'l2ApiKey', self.apiKey)
@@ -1994,8 +1993,8 @@ class polymarket(PredictionExchange, ImplicitAPI):
             'orderType': orderTypeStr,
         }
         # the CLOB create response only echoes {orderID, status}; carry the submitted terms
-        # keyed fetchOrder response fields parsePredictionOrder reads, so createOrder can merge
-        # them and return a fully-populated order instead of None side/price/amount
+        # keyed as the fetchOrder response fields parsePredictionOrder reads, so createOrder can merge
+        # them and return a fully-populated order instead of undefined side/price/amount
         requestEcho = {
             'side': sideStr,
             'price': price,
@@ -2007,7 +2006,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
             # a cost-sized market buy specifies spend, not shares — leave size to the fill
             requestEcho['original_size'] = amount
         return {
-            # orderBody LAST so its authoritative fields(order/owner/orderType/postOnly/deferExec)
+            # orderBody LAST so its authoritative fields (order/owner/orderType/postOnly/deferExec)
             # can't be clobbered by leftover params — a stray postOnly/orderType would otherwise
             # silently override the signed intent
             'body': self.extend(rest, orderBody),
@@ -2046,7 +2045,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
         takerRaw = None
         if (cost is not None) and (side == 'BUY'):
             # cost-sized market buy: maker pays `cost` USDC, taker receives cost/price shares.
-            # truncate the shares so the implied price(cost/shares) stays >= the limit, otherwise
+            # truncate the shares so the implied price (cost/shares) stays >= the limit, otherwise
             # a marketable FOK would round just under the ask and fail to cross
             costStr = self.number_to_string(cost)
             makerRaw = self.decimal_to_precision(costStr, TRUNCATE, sizeDecimals, DECIMAL_PLACES)
@@ -2059,7 +2058,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
             sizeStr = self.number_to_string(size)
             makerRaw = self.decimal_to_precision(sizeStr, TRUNCATE, sizeDecimals, DECIMAL_PLACES)
             takerRaw = self.decimal_to_precision(Precise.string_mul(makerRaw, rawPrice), ROUND, amountDecimals, DECIMAL_PLACES)
-        # scale to collateral units(USDC has 6 decimals; shares are also scaled by 1e6)
+        # scale to collateral units (USDC has 6 decimals; shares are also scaled by 1e6)
         makerAmount = self.decimal_to_precision(Precise.string_mul(makerRaw, '1000000'), TRUNCATE, 0, DECIMAL_PLACES)
         takerAmount = self.decimal_to_precision(Precise.string_mul(takerRaw, '1000000'), TRUNCATE, 0, DECIMAL_PLACES)
         return {
@@ -2070,9 +2069,9 @@ class polymarket(PredictionExchange, ImplicitAPI):
     def sign_clob_order(self, message: dict, exchangeAddress: str, domainVersion: str, sigType: float) -> str:
         # param is sigType, not signatureType: the php regex transpiler would rewrite the
         # substring "signatureType" inside the orderTypeString literal below into the local
-        # '$signatureType', corrupting the EIP-712 type hash
+        # var '$signatureType', corrupting the EIP-712 type hash
         # chainIdValue, not chainId: the php regex transpiler would rewrite the substring "chainId"
-        # inside the 'EIP712Domain(...uint256 chainId,...)' literal below to the local '$chainId',
+        # inside the 'EIP712Domain(...uint256 chainId,...)' literal below to the local var '$chainId',
         # corrupting the domain type hash
         chainIdValue = self.safe_integer(self.options, 'chainId', 137)
         domainName = self.safe_string(self.options, 'ctfExchangeName', 'Polymarket CTF Exchange')
@@ -2091,7 +2090,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
             {'name': 'builder', 'type': 'bytes32'},
         ]
         orderDomain = {'name': domainName, 'version': domainVersion, 'chainId': chainIdValue, 'verifyingContract': exchangeAddress}
-        # parseToInt: php types the number param, and 3.0 != 3(int) is True under
+        # parseToInt: php types the number param as float, and 3.0 !== 3 (int) is true under
         # strict comparison, which would always wrongly select the EOA path
         if self.parse_to_int(sigType) != 3:
             # standard EOA EIP-712 order signature
@@ -2102,8 +2101,8 @@ class polymarket(PredictionExchange, ImplicitAPI):
             eoaSignature = '0x' + self.remove0x_prefix(eoaSig['r']) + self.remove0x_prefix(eoaSig['s']) + self.int_to_base16(eoaSig['v'])
             return eoaSignature.lower()
         # POLY_1271 — ERC-7739 wrapped signature validated on-chain by the deposit wallet.
-        # ethAbiEncode needs portable value types: bytes32, uint256
-        # raw hex/decimal strings encode in ethers/JS but raise in the python/php codecs
+        # ethAbiEncode needs portable value types: bytes32 as binary, uint256 as bigint
+        # raw hex/decimal strings encode in ethers/JS but throw in the python/php codecs
         orderTypeHash = self.hash(self.encode(orderTypeString), 'keccak', 'binary')
         contentsData = self.eth_abi_encode(
             ['bytes32', 'uint256', 'address', 'address', 'uint256', 'uint256', 'uint256', 'uint8', 'uint8', 'uint256', 'bytes32', 'bytes32'],
@@ -2138,16 +2137,16 @@ class polymarket(PredictionExchange, ImplicitAPI):
         innerEncoded = self.eth_encode_structured_data(orderDomain, {'TypedDataSign': typedDataSignStruct, 'Order': orderStruct}, innerValue)
         innerSigObj = self.sign_message(innerEncoded, self.privateKey)
         innerSig = self.remove0x_prefix(innerSigObj['r']) + self.remove0x_prefix(innerSigObj['s']) + self.int_to_base16(innerSigObj['v'])
-        # innerSig(65) or appDomainSep(32) or contentsHash(32) or contentsType or uint16_BE(len)
-        # len(orderTypeString) is used inline(not via a `n = len(str);` statement) so the
-        # php transpiler emits strlen() — the standalone statement form wrongly becomes count()(array)
+        # innerSig(65) || appDomainSep(32) || contentsHash(32) || contentsType || uint16_BE(len)
+        # orderTypeString.length is used inline (not via a `const n = str.length;` statement) so the
+        # php transpiler emits strlen() — the standalone statement form wrongly becomes count() (array)
         ctLenHex = self.int_to_base16(len(orderTypeString))
-        # assign before padStart so the PHP transpiler's str_pad regex(which only matches a
+        # assign before padStart so the PHP transpiler's str_pad regex (which only matches a
         # simple identifier) picks it up instead of leaking a padStart() function call
         lenHex = ctLenHex.rjust(4, '0')
         orderTypeStringHex = self.binary_to_base16(self.encode(orderTypeString))
         wrappedSignature = '0x' + innerSig + self.remove0x_prefix(appDomainSep) + self.remove0x_prefix(contentsHash) + orderTypeStringHex + lenHex
-        # lowercase for byte-stable output across languages(intToBase16/binaryToBase16 emit
+        # lowercase for byte-stable output across languages (intToBase16/binaryToBase16 emit
         # uppercase hex in some targets); the signature is case-insensitive bytes
         return wrappedSignature.lower()
 
@@ -2166,14 +2165,14 @@ class polymarket(PredictionExchange, ImplicitAPI):
         # cancelling by id needs no market data, so events do not have to be loaded first
         request = {'orderID': id}
         response = await self.clobPrivateDeleteOrder(self.extend(request, params))
-        # the DELETE endpoint returns {canceled: [id], not_canceled: {id: reason}} with no order
+        # the DELETE endpoint returns { canceled: [id], not_canceled: { id: reason } } with no order
         # fields, so report the cancellation outcome explicitly rather than parsing an empty order
         notCanceled = self.safe_dict(response, 'not_canceled', {})
         failureReason = self.safe_string(notCanceled, id)
         status = 'canceled' if (failureReason is None) else 'open'
         return self.safe_prediction_order({'id': id, 'status': status, 'info': response})
 
-    async def cancel_orders(self, ids: List[str], outcome: Str = None, params={}) -> List[PredictionOrder]:
+    async def cancel_orders(self, ids: list[str], outcome: Str = None, params={}) -> list[PredictionOrder]:
         """
         cancels multiple open orders by id on the CLOB in a single request
 
@@ -2185,7 +2184,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
         :returns dict[]: a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
         """
         await self.load_api_credentials()
-        # the request body is the bare array of order ids(DELETE /orders), so params are not merged
+        # the request body is the bare array of order ids (DELETE /orders), so params are not merged
         response = await self.clobPrivateDeleteOrders(ids)
         canceled = self.safe_list(response, 'canceled', [])
         orders = []
@@ -2193,7 +2192,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
             orders.append(self.safe_prediction_order({'id': self.safe_string(canceled, i), 'status': 'canceled', 'info': response}))
         return orders
 
-    async def cancel_all_orders(self, outcome: Str = None, params={}) -> List[PredictionOrder]:
+    async def cancel_all_orders(self, outcome: Str = None, params={}) -> list[PredictionOrder]:
         """
         cancels all open orders on the CLOB, optionally scoped to one outcome token
 
@@ -2207,12 +2206,12 @@ class polymarket(PredictionExchange, ImplicitAPI):
         await self.load_api_credentials()
         response = None
         if outcome is not None:
-            # scope to a single outcome token via DELETE /cancel-market-orders {asset_id}
+            # scope to a single outcome token via DELETE /cancel-market-orders { asset_id }
             outcomeObj = await self.load_outcome(outcome)
             request = {'asset_id': outcomeObj['outcomeId']}
             response = await self.clobPrivateDeleteCancelMarketOrders(self.extend(request, params))
         else:
-            # cancel every open order via DELETE /cancel-all(no body, no market data needed)
+            # cancel every open order via DELETE /cancel-all (no body, no market data needed)
             response = await self.clobPrivateDeleteCancelAll(params)
         canceled = self.safe_list(response, 'canceled', [])
         orders = []
@@ -2220,7 +2219,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
             orders.append(self.safe_prediction_order({'id': self.safe_string(canceled, i), 'status': 'canceled', 'info': response}))
         return orders
 
-    async def fetch_events(self, params: fetchEventsParams = {}) -> List[PredictionEvent]:
+    async def fetch_events(self, params: fetchEventsParams = {}) -> list[PredictionEvent]:
         """
         fetches prediction-market events matching the given scope(query/queries/tags/eventId/slug — required) and caches their markets and outcomes on the instance; for an unscoped top-volume browse use fetchMarkets()
 
@@ -2251,7 +2250,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
         queriesLength = len(queries)
         rawEvents = []
         if (requestedEventId is not None) or (requestedSlug is not None):
-            # direct lookup by event id or slug via the events endpoint(returns a list)
+            # direct lookup by event id or slug via the events endpoint (returns a list)
             lookup = {}
             if requestedEventId is not None:
                 lookup['id'] = requestedEventId
@@ -2265,9 +2264,9 @@ class polymarket(PredictionExchange, ImplicitAPI):
         else:
             rawEvents = await self.fetch_raw_events_list(rest)
         # Parse and merge into class-level caches
-        if not self.events:
+        if self.events is None:
             self.events = {}
-        if not self.markets:
+        if self.markets is None:
             self.markets = self.create_safe_dictionary()
         result = []
         for rei in range(0, len(rawEvents)):
@@ -2295,14 +2294,14 @@ class polymarket(PredictionExchange, ImplicitAPI):
             parsedEvent = self.parse_event(eventForParsing)
             result.append(parsedEvent)
         # populateOutcomes rebuilds the outcome cache from the markets registered above; the
-        # shared applyEventFetchParams then caches(setEvents) and applies the unified
+        # shared applyEventFetchParams then caches (setEvents) and applies the unified
         # eventId/slug/status/tags/searchIn/sort/limit filters, so all five venues behave the same
         self.populate_outcomes()
         effectiveParams = params
         if queriesLength > 0:
             # the gamma search endpoint is fuzzy, so default to refining by active status and a
-            # title match(the caller can override); the other venues search exactly and need no
-            # such default. inject the defaults params so the shared pipeline stays
+            # title match (the caller can override); the other venues search exactly and need no
+            # such default. inject the defaults as explicit params so the shared pipeline stays
             # the single behaviour definition
             effectiveParams = self.extend({}, params)
             effectiveParams['status'] = self.safe_string(params, 'status', 'active')
@@ -2338,25 +2337,25 @@ class polymarket(PredictionExchange, ImplicitAPI):
         #     "ticker": "ukraine-agrees-not-to-join-nato-before-2027",
         #     "slug": "ukraine-agrees-not-to-join-nato-before-2027",
         #     "title": "Ukraine agrees not to join NATO before 2027? ",
-        #     "description": "This market will resolve to \\"Yes\\" if Ukraine publicly agrees not to join NATO by December 31, 2026, 11:59 PM ET. Otherwise, self market will resolve to “No”.\\n\\nAn official pledge by Ukraine not to join NATO will qualify for a “Yes” resolution whether unilateral announcement or part of an agreement with the Russian Federation.\\n\\nAny agreement or pledge made before the resolution date of self market will qualify, regardless of if/when the agreement goes into effect.\\n\\nAn agreement by Ukraine not to join NATO for any amount of time will count(e.g. If Ukraine not to join NATO for 10 years self will qualify).\\n\\nAn agreement by Ukraine not to join NATO precondition of a more comprehensive peace process or deal will qualify, even if the agreement is not finalized or part of a formalized peace deal. The September 8, 1995 “Agreed Basic Principles” between Bosnia and Yugoslavia which recognized the borders and sovereignty of Bosnia and Herzegovina, and was later formalized through the Dayton Peace Agreement is an example of a qualifying agreement. \\n\\nThe primary resolution source for self market will be an official announcement by the Ukraine, however an overwhelming consensus of credible reporting confirming a qualifying agreement has been reached will also count.",
+        #     "description": "This market will resolve to \\"Yes\\" if Ukraine publicly agrees not to join NATO by December 31, 2026, 11:59 PM ET. Otherwise, this market will resolve to “No”.\\n\\nAn official pledge by Ukraine not to join NATO will qualify for a “Yes” resolution whether as a unilateral announcement or part of an agreement with the Russian Federation.\\n\\nAny agreement or pledge made before the resolution date of this market will qualify, regardless of if/when the agreement goes into effect.\\n\\nAn agreement by Ukraine not to join NATO for any amount of time will count (e.g. If Ukraine not to join NATO for 10 years this will qualify).\\n\\nAn agreement by Ukraine not to join NATO as a precondition of a more comprehensive peace process or deal will qualify, even if the agreement is not finalized or part of a formalized peace deal. The September 8, 1995 “Agreed Basic Principles” between Bosnia and Yugoslavia which recognized the borders and sovereignty of Bosnia and Herzegovina, and was later formalized through the Dayton Peace Agreement is an example of a qualifying agreement. \\n\\nThe primary resolution source for this market will be an official announcement by the Ukraine, however an overwhelming consensus of credible reporting confirming a qualifying agreement has been reached will also count.",
         #     "resolutionSource": "",
         #     "startDate": "2025-11-05T17:00:57.200353Z",
         #     "creationDate": "2025-11-05T17:00:57.20035Z",
         #     "endDate": "2026-12-31T00:00:00Z",
         #     "image": "https://polymarket-upload.s3.us-east-2.amazonaws.com/ukraine-agrees-not-to-join-nato-before-july-vKEDpScXuAtt.jpg",
         #     "icon": "https://polymarket-upload.s3.us-east-2.amazonaws.com/ukraine-agrees-not-to-join-nato-before-july-vKEDpScXuAtt.jpg",
-        #     "active": True,
-        #     "closed": False,
-        #     "archived": False,
-        #     "new": False,
-        #     "featured": False,
-        #     "restricted": True,
+        #     "active": true,
+        #     "closed": false,
+        #     "archived": false,
+        #     "new": false,
+        #     "featured": false,
+        #     "restricted": true,
         #     "liquidity": "22010.6659",
         #     "openInterest": "0",
         #     "createdAt": "2025-11-04T19:27:23.246129Z",
         #     "updatedAt": "2026-03-14T14:38:21.25643Z",
         #     "competitive": "0.9538344143456696",
-        #     "enableOrderBook": True,
+        #     "enableOrderBook": true,
         #     "liquidityClob": "22010.6659",
         #     "commentCount": "0",
         #     "markets": [],
@@ -2365,10 +2364,10 @@ class polymarket(PredictionExchange, ImplicitAPI):
         #             "id": "101970",
         #             "label": "World",
         #             "slug": "world",
-        #             "forceShow": False,
+        #             "forceShow": false,
         #             "createdAt": "2025-03-19T23:36:08.498099Z",
         #             "updatedAt": "2026-03-09T22:25:02.420693Z",
-        #             "requiresTranslation": False
+        #             "requiresTranslation": false
         #         },
         #         {
         #             "id": "270",
@@ -2377,24 +2376,24 @@ class polymarket(PredictionExchange, ImplicitAPI):
         #             "publishedAt": "2023-11-02 21:46:19.507+00",
         #             "createdAt": "2023-11-02T21:46:19.528Z",
         #             "updatedAt": "2026-03-09T22:29:44.08742Z",
-        #             "requiresTranslation": False
+        #             "requiresTranslation": false
         #         }
         #     ],
-        #     "cyom": False,
-        #     "showAllOutcomes": True,
-        #     "showMarketImages": True,
-        #     "enableNegRisk": False,
-        #     "automaticallyActive": True,
+        #     "cyom": false,
+        #     "showAllOutcomes": true,
+        #     "showMarketImages": true,
+        #     "enableNegRisk": false,
+        #     "automaticallyActive": true,
         #     "seriesSlug": "ukraine-not-nato",
-        #     "negRiskAugmented": False,
-        #     "cumulativeMarkets": False,
-        #     "pendingDeployment": False,
-        #     "deploying": False,
-        #     "requiresTranslation": False
+        #     "negRiskAugmented": false,
+        #     "cumulativeMarkets": false,
+        #     "pendingDeployment": false,
+        #     "deploying": false,
+        #     "requiresTranslation": false
         # }
         marketsList = self.parse_event_to_markets(rawEvent)
         slug = self.safe_string(rawEvent, 'slug')
-        # gamma events use camelCase keys(createdAt/endDate/image/updatedAt/closed)
+        # gamma events use camelCase keys (createdAt/endDate/image/updatedAt/closed);
         # the snake_case fallbacks cover older payload shapes
         createdAt = self.safe_string_2(rawEvent, 'createdAt', 'created_date_iso')
         endDate = self.safe_string_2(rawEvent, 'endDate', 'end_date_iso')
@@ -2403,11 +2402,11 @@ class polymarket(PredictionExchange, ImplicitAPI):
         closed = self.safe_bool(rawEvent, 'closed', False)
         active = None
         if rawActive is not None:
-            active = rawActive and not closed
-        # surface gamma's tag objects top-level string[] so the unified `tags` filter
+            active = (rawActive is True) and (closed is not True)
+        # surface gamma's tag objects as a top-level string[] so the unified `tags` filter
         # — filterEventsByTags reads event['tags'], not event.info.tags — can actually match.
-        # prefer the human-readable label("Fed Rates") over the slug — matching is
-        # normalized(normalizeTagKey), so the display form is free to be the friendly one
+        # prefer the human-readable label ("Fed Rates") over the slug — matching is
+        # normalized (normalizeTagKey), so the display form is free to be the friendly one
         rawTags = self.safe_list(rawEvent, 'tags', [])
         rawTagsLength = len(rawTags)
         parsedTags = []
@@ -2418,7 +2417,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
         return self.extend({
             'id': self.safe_string(rawEvent, 'id'),
             'slug': slug,
-            'event': self.shorten_slug(slug) if slug else None,
+            'event': self.shorten_slug(slug) if (slug is not None and slug != '') else None,
             'title': self.safe_string(rawEvent, 'title'),
             'tags': parsedTags,
             'markets': marketsList,
@@ -2437,7 +2436,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
             'info': rawEvent,
         })
 
-    def parse_events(self, rawEvents: List[Any]) -> List[Any]:
+    def parse_events(self, rawEvents: list[object]) -> list[object]:
         """
  @ignore
         parses an array of raw gamma event objects into unified event objects
@@ -2450,11 +2449,11 @@ class polymarket(PredictionExchange, ImplicitAPI):
             result.append(self.parse_event(rawEvent))
         return result
 
-    def handle_errors(self, code: Int, reason: str, url: str, method: str, headers: dict, body: str, response: Any, requestHeaders: Any, requestBody: Any):
-        # the CLOB api returns {"error": "..."}(and createOrder variants use "errorMsg")
+    def handle_errors(self, code: Int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
+        # the CLOB api returns { "error": "..." } (and createOrder variants use "errorMsg");
         # map the known messages so callers can distinguish a dead book or a rejected order
-        # from a transport outage(the base otherwise maps a bare 404 to a retryable error)
-        if not response:
+        # from a transport outage (the base otherwise maps a bare 404 to a retryable error)
+        if response is None:
             return None
         errorMessage = self.safe_string_2(response, 'error', 'errorMsg')
         if errorMessage is not None:
@@ -2463,7 +2462,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
             self.throw_broadly_matched_exception(self.exceptions['broad'], errorMessage, feedback)
         return None
 
-    def sign(self, path: Any, api: Any = 'gamma', method='GET', params={}, headers: Any = None, body: Any = None):
+    def sign(self, path: object, api: object = 'gamma', method='GET', params={}, headers: object = None, body: object = None):
         """
  @ignore
         builds the request url and attaches HMAC-SHA256 authentication headers for private endpoints
@@ -2475,7 +2474,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
         :param str [body]: the request body
         :returns dict: a dict with url, method, body and headers
         """
-        # api is either a string('gamma') or array(['gamma', 'public'])
+        # api is either a string ('gamma') or array (['gamma', 'public'])
         apiGroup = api if isinstance(api, str) else api[0]
         access = 'public' if isinstance(api, str) else api[1]
         baseUrls = self.urls['api']
@@ -2492,16 +2491,16 @@ class polymarket(PredictionExchange, ImplicitAPI):
         if not isArrayBody:
             query = self.omit(params, self.extract_params(path))
         if method == 'GET':
-            # array-valued params must repeat the key(gamma's clob_token_ids rejects
+            # array-valued params must repeat the key (gamma's clob_token_ids rejects
             # comma-joined ids); scalar-only queries keep the plain encoder — the repeat
-            # encoder capitalizes booleans("False") under the C# base
+            # encoder capitalizes booleans ("False") under the C# base
             hasArrayParam = False
             queryKeys = list(query.keys())
             for i in range(0, len(queryKeys)):
                 if isinstance(query[queryKeys[i]], list):
                     hasArrayParam = True
             querystring = self.urlencode_with_array_repeat(query) if hasArrayParam else self.urlencode(query)
-            if querystring:
+            if querystring != '':
                 url += '?' + querystring
         elif isArrayBody:
             body = self.json(params)
@@ -2518,15 +2517,15 @@ class polymarket(PredictionExchange, ImplicitAPI):
         if access == 'private':
             # 'auth/derive-api-key' is built by concatenation so the substring "api" sits at a
             # string-literal boundary: the php regex transpiler rewrites a bare "api" flanked by
-            # '-' into the local '$api'(it only skips quote/slash-adjacent matches), which
-            # would corrupt the literal to 'auth/derive-$api-key' and break self check
+            # '-' into the local var '$api' (it only skips quote/slash-adjacent matches), which
+            # would corrupt the literal to 'auth/derive-$api-key' and break this check
             deriveApiKeyPath = 'auth/derive-' + 'api-key'
             isL1Auth = (path == 'auth/api-key') or (path == deriveApiKeyPath) or (path == 'auth/api-keys')
             if isL1Auth:
-                # L1(private-key / EIP-712) auth used to create or derive the L2 api credentials
+                # L1 (private-key / EIP-712) auth used to create or derive the L2 api credentials
                 if self.privateKey is None:
                     raise ArgumentsRequired(self.id + ' ' + path + ' requires a privateKey')
-                # the L1 signer/owner is the EOA behind the privateKey(walletAddress is the proxy/deposit wallet, not the signer)
+                # the L1 signer/owner is the EOA behind the privateKey (walletAddress is the proxy/deposit wallet, not the signer)
                 address = self.eth_checksum_address(self.eth_get_address_from_private_key(self.privateKey))
                 timestamp = str(self.seconds())
                 nonce = self.safe_integer(params, 'nonce', 0)
@@ -2538,29 +2537,30 @@ class polymarket(PredictionExchange, ImplicitAPI):
                     'POLY_NONCE': self.number_to_string(nonce),
                 })
             else:
-                # L2 credentials: provided directly(apiKey/secret/password) or derived from
-                # the privateKey and cached in options(see setApiCredentials/loadApiCredentials)
-                # prefer the derived creds(owned by the privateKey's EOA) over any externally supplied ones
+                # L2 credentials: provided directly (apiKey/secret/password) or derived from
+                # the privateKey and cached in options (see setApiCredentials/loadApiCredentials)
+                # prefer the derived creds (owned by the privateKey's EOA) over any externally supplied ones
                 apiKey = self.safe_string(self.options, 'l2ApiKey', self.apiKey)
                 secret = self.safe_string(self.options, 'l2Secret', self.secret)
                 passphrase = self.safe_string(self.options, 'l2Passphrase', self.password)
-                # POLY_ADDRESS is the api-key owner = the signer EOA(derived from the privateKey when present)
+                # POLY_ADDRESS is the api-key owner = the signer EOA (derived from the privateKey when present)
                 address = self.eth_checksum_address(self.eth_get_address_from_private_key(self.privateKey)) if (self.privateKey is not None) else self.walletAddress
                 timestamp = str(self.seconds())
-                # the L2 HMAC signs only the request path(no query string), matching
+                # the L2 HMAC signs only the request path (no query string), matching
                 # @polymarket/clob-client — query params are sent separately, not signed
                 requestPath = '/' + self.implode_params(path, params)
                 auth = timestamp + method + requestPath
                 if body is not None:
                     auth = auth + body
                 # the L2 api secret is base64url-encoded; decode it to raw bytes for the HMAC key.
-                # unchained replace: the php transpiler only converts the outermost .replace// in a chain, leaving the inner call(invalid) method call
+                # unchained replaceAll: the php transpiler only converts the outermost .replaceAll
+                # in a chain, leaving the inner call as an (invalid) method call
                 normalizedSecret = secret
                 normalizedSecret = normalizedSecret.replace('-', '+')
                 normalizedSecret = normalizedSecret.replace('_', '/')
                 secretBytes = self.base64_to_binary(normalizedSecret)
                 signature = self.hmac(self.encode(auth), secretBytes, hashlib.sha256, 'base64')
-                # url-safe base64, preserving '=' padding(matches the reference client)
+                # url-safe base64, preserving '=' padding (matches the reference client)
                 signature = signature.replace('+', '-')
                 signature = signature.replace('/', '_')
                 headers = self.extend(headers, {
@@ -2572,7 +2572,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
                 })
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def hash_message(self, message: Any) -> str:
+    def hash_message(self, message: object) -> str:
         return '0x' + self.hash(message, 'keccak', 'hex')
 
     def eth_checksum_address(self, address: str) -> str:
@@ -2594,7 +2594,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
 
     def sign_hash(self, hash: str, privateKey: str) -> dict:
         signature = self.ecdsa(hash[-64:], privateKey[-64:], 'secp256k1', None)
-        # assign before padStart so the PHP str_pad regex matches(it only handles a bare identifier)
+        # assign before padStart so the PHP str_pad regex matches (it only handles a bare identifier)
         rRaw = signature['r']
         sRaw = signature['s']
         r = rRaw.rjust(64, '0')
@@ -2602,14 +2602,14 @@ class polymarket(PredictionExchange, ImplicitAPI):
         return {
             'r': '0x' + r,
             's': '0x' + s,
-            'v': self.sum(27, signature['v']),  # ecrecover needs v in {27,28}, self.ecdsareturns the raw {0,1} recovery id
+            'v': self.sum(27, signature['v']),  # ecrecover needs v in {27,28}, ecdsa returns the raw {0,1} recovery id
         }
 
-    def sign_message(self, message: Any, privateKey: str) -> dict:
+    def sign_message(self, message: object, privateKey: str) -> dict:
         return self.sign_hash(self.hash_message(message), privateKey[-64:])
 
     def sign_clob_auth(self, address: str, timestamp: str, nonce: float) -> str:
-        # EIP-712 ClobAuth signature used for L1 auth(creating/deriving L2 api credentials)
+        # EIP-712 ClobAuth signature used for L1 auth (creating/deriving L2 api credentials)
         domain = {
             'name': 'ClobAuthDomain',
             'version': '1',
@@ -2679,7 +2679,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
 
     def set_api_credentials(self, response: dict) -> dict:
         #
-        #     {"apiKey": "...", "secret": "...", "passphrase": "..."}
+        #     { "apiKey": "...", "secret": "...", "passphrase": "..." }
         #
         creds = {
             'apiKey': self.safe_string_2(response, 'apiKey', 'key'),
@@ -2687,7 +2687,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
             'passphrase': self.safe_string(response, 'passphrase'),
         }
         # cache in options rather than the typed apiKey/secret/password fields so the
-        # assignment is valid in the struct-based languages(C#/Go/Java)
+        # assignment is valid in the struct-based languages (C#/Go/Java)
         self.options['l2ApiKey'] = creds['apiKey']
         self.options['l2Secret'] = creds['secret']
         self.options['l2Passphrase'] = creds['passphrase']
@@ -2714,22 +2714,22 @@ class polymarket(PredictionExchange, ImplicitAPI):
             return
         raise AuthenticationError(self.id + ' requires L2 api credentials(apiKey, secret, password) or a privateKey to derive them')
 
-    def ping(self, client: Any):
-        # Polymarket keeps the ws alive with a plain-text "PING"(the server replies "PONG"); the
+    def ping(self, client: object):
+        # Polymarket keeps the ws alive with a plain-text "PING" (the server replies "PONG"); the
         # keepAlive interval set in describe.streaming sends it on both the market and user channels
         return 'PING'
 
-    def handle_message(self, client: Any, message: Any):
-        # Polymarket keeps the ws alive with text PING/PONG(not protocol ping-pong frames), so the
+    def handle_message(self, client: object, message: object):
+        # Polymarket keeps the ws alive with text PING/PONG (not protocol ping-pong frames), so the
         # client's onPong never fires; refresh client.lastPong here on the "PONG" reply, otherwise the
-        # base keepalive treats the connection and times it out after maxPingPongMisses.
+        # base keepalive treats the connection as stale and times it out after maxPingPongMisses.
         if isinstance(message, str):
             client.lastPong = self.milliseconds()
             return
         events = message if isinstance(message, list) else [message]
         for i in range(0, len(events)):
             event = events[i]
-            if not event or not isinstance(event, dict):
+            if (event is None) or (event is None) or (not isinstance(event, dict)):
                 continue
             eventType = self.safe_string(event, 'event_type')
             if eventType == 'book':
@@ -2744,7 +2744,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
                 self.handle_my_trade(client, event)
             # tick_size_change events are silently ignored for now
 
-    def handle_order_book_snapshot(self, client: Any, event: Any):
+    def handle_order_book_snapshot(self, client: object, event: object):
         tokenId = self.safe_string(event, 'asset_id')
         outcome = self.token_id_to_symbol(tokenId)
         if outcome is None:
@@ -2777,7 +2777,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
         client.resolve(orderbook, 'orderbook::' + outcome)
         client.resolve(orderbook, 'ticker::' + outcome)
 
-    def handle_order_book_delta(self, client: Any, event: Any):
+    def handle_order_book_delta(self, client: object, event: object):
         timestamp = self.parse_poly_timestamp(self.safe_string(event, 'timestamp'))
         changes = self.safe_list(event, 'price_changes', [])
         updated = {}
@@ -2792,7 +2792,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
             size = self.safe_number(change, 'size')
             isBuy = self.safe_string_upper(change, 'side', '') == 'BUY'
             side = orderbook['bids'] if isBuy else orderbook['asks']
-            # storeArray([price, size]) inserts/updates or removes(size=0) the level
+            # storeArray([price, size]) inserts/updates or removes (size=0) the level
             sideRef = side
             sideRef.storeArray([price, size])
             orderbook['timestamp'] = timestamp
@@ -2805,7 +2805,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
             client.resolve(orderbook, 'orderbook::' + outcome)
             client.resolve(orderbook, 'ticker::' + outcome)
 
-    def handle_trade(self, client: Any, event: Any):
+    def handle_trade(self, client: object, event: object):
         tokenId = self.safe_string(event, 'asset_id')
         outcome = self.token_id_to_symbol(tokenId)
         if outcome is None:
@@ -2832,7 +2832,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
             'cost': None,
             'fee': None,
         }, market)
-        if not self.trades:
+        if self.trades is None:
             self.trades = {}
         stored = self.safe_value(self.trades, outcome)
         if stored is None:
@@ -2860,7 +2860,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
         orderbook = await self.watch(url, messageHash, subscribeMsg, subscribeHash)
         return orderbook.limit()
 
-    async def watch_trades(self, outcome: Str, since: Int = None, limit: Int = None, params={}) -> List[PredictionTrade]:
+    async def watch_trades(self, outcome: Str, since: Int = None, limit: Int = None, params={}) -> list[PredictionTrade]:
         """
         streams live fills for a single Polymarket outcome token
         :param str outcome: unified outcome
@@ -2953,7 +2953,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
             'info': orderbook,
         }, market)
 
-    async def watch_orders(self, outcome: Str = None, since: Int = None, limit: Int = None, params={}) -> List[PredictionOrder]:
+    async def watch_orders(self, outcome: Str = None, since: Int = None, limit: Int = None, params={}) -> list[PredictionOrder]:
         """
         watches the authenticated user's order updates over the CLOB user websocket channel
 
@@ -2976,7 +2976,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
             limit = orders.getLimit(outcome, limit)
         return self.filter_by_outcome_since_limit(orders, outcome, since, limit, True)
 
-    async def watch_my_trades(self, outcome: Str = None, since: Int = None, limit: Int = None, params={}) -> List[PredictionTrade]:
+    async def watch_my_trades(self, outcome: Str = None, since: Int = None, limit: Int = None, params={}) -> list[PredictionTrade]:
         """
         watches the authenticated user's trade fills over the CLOB user websocket channel
 
@@ -3011,7 +3011,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
         subscribeHash = 'user'
         return await self.watch(url, messageHash, self.extend(subscribeMsg, params), subscribeHash)
 
-    def handle_order(self, client: Any, event: Any):
+    def handle_order(self, client: object, event: object):
         if self.orders is None:
             limit = self.safe_integer(self.options, 'ordersLimit', 1000)
             self.orders = ArrayCacheByOutcomeById(limit)
@@ -3023,7 +3023,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
         if outcome is not None:
             client.resolve(stored, 'orders::' + outcome)
 
-    def handle_my_trade(self, client: Any, event: Any):
+    def handle_my_trade(self, client: object, event: object):
         if self.myTrades is None:
             limit = self.safe_integer(self.options, 'tradesLimit', 1000)
             self.myTrades = ArrayCacheByOutcomeById(limit)
@@ -3036,15 +3036,15 @@ class polymarket(PredictionExchange, ImplicitAPI):
             client.resolve(stored, 'myTrades::' + outcome)
 
     def token_id_to_symbol(self, tokenId: Str) -> Str:
-        if not tokenId:
+        if (tokenId is None) or (tokenId == ''):
             return None
-        # outcome tokens are keyed in outcomes_by_id(populated by fetchEvents/loadMarkets)
+        # outcome tokens are keyed in outcomes_by_id (populated by fetchEvents/loadMarkets);
         # fall back to markets_by_id for the standard market lookup
         outcomeObj = self.safe_dict(self.outcomes_by_id, tokenId)
         if outcomeObj is not None:
             return self.safe_string(outcomeObj, 'outcome')
-        # safe dict/string access: a bare marketsById[tokenId] / market['market'] is None in JS
-        # but raises KeyError in Python when the token isn't a market id(the ws trade path hits self)
+        # safe dict/string access: a bare marketsById[tokenId] / market['market'] is undefined in JS
+        # but raises KeyError in Python when the token isn't a market id (the ws trade path hits this)
         market = self.safe_dict(self.markets_by_id, tokenId)
         return self.safe_string_2(market, 'market', 'symbol')
 

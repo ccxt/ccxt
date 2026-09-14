@@ -6,8 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.pacifica import ImplicitAPI
 import math
-from ccxt.base.types import Any, Balances, Currency, Int, LedgerEntry, Leverage, MarginMode, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, Transaction, TransferEntry
-from typing import List
+from ccxt.base.types import Balances, Currency, Int, LedgerEntry, Leverage, MarginMode, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, Transaction, TransferEntry
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -26,14 +25,14 @@ from ccxt.base.precise import Precise
 
 class pacifica(Exchange, ImplicitAPI):
 
-    def describe(self) -> Any:
+    def describe(self) -> object:
         return self.deep_extend(super(pacifica, self).describe(), {
             'id': 'pacifica',
             'name': 'Pacifica',
             'countries': [],
             'version': 'v1',
             'isSandboxModeEnabled': False,  # is testnet api
-            'rateLimit': 600,  # 100 credits per minute without an API Config Key(300 with a key)
+            'rateLimit': 600,  # 100 credits per minute without an API Config Key (300 with a key)
             'certified': False,
             'pro': True,
             'dex': True,
@@ -191,11 +190,17 @@ class pacifica(Exchange, ImplicitAPI):
                         'orders': {'cost': 1},
                         'orders/history': {'cost': 12},
                         'orders/history_by_id': {'cost': 1},
+                        'orders/twap': {'cost': 1},
+                        'orders/twap/history': {'cost': 12},
+                        'orders/twap/history_by_id': {'cost': 1},
                         'spot_assets': {'cost': 1},
                         'spot_assets/bridge/info': {'cost': 1},
                         'spot_assets/bridge/parameters/{symbol}': {'cost': 1},
                         'lake/list': {'cost': 1},
                         'account/builder_codes/approvals': {'cost': 1},
+                        'builder/overview': {'cost': 1},
+                        'builder/trades': {'cost': 1},
+                        'leaderboard/builder_code': {'cost': 1},
                     },
                 },
                 'private': {
@@ -220,9 +225,20 @@ class pacifica(Exchange, ImplicitAPI):
                         'orders/stop/cancel': {'cost': 0.5},
                         'orders/edit': {'cost': 1},
                         'orders/batch': {'cost': 1},
+                        'orders/twap/create': {'cost': 1},
+                        'orders/twap/cancel': {'cost': 0.5},
                         'account/builder_codes/approve': {'cost': 1},
                         'account/builder_codes/revoke': {'cost': 1},
+                        'builder/update_fee_rate': {'cost': 1},
+                        'referral/user/code/claim': {'cost': 1},
                         'agent/bind': {'cost': 1},
+                        'agent/list': {'cost': 1},
+                        'agent/revoke': {'cost': 1},
+                        'agent/revoke_all': {'cost': 1},
+                        'agent/ip_whitelist/list': {'cost': 1},
+                        'agent/ip_whitelist/add': {'cost': 1},
+                        'agent/ip_whitelist/remove': {'cost': 1},
+                        'agent/ip_whitelist/toggle': {'cost': 1},
                         'account/api_keys/create': {'cost': 1},
                         'account/api_keys/revoke': {'cost': 1},
                         'account/api_keys': {'cost': 1},
@@ -556,13 +572,13 @@ class pacifica(Exchange, ImplicitAPI):
         return True
 
     def handle_builder_fee_approval(self):
-        if self.isSandboxModeEnabled:  # At self stage, building codes are mostly only on the mainnet.
+        if self.isSandboxModeEnabled:  # At this stage, building codes are mostly only on the mainnet.
             return False
         buildFee = self.safe_bool(self.options, 'builderFee', True)
-        if not buildFee:
+        if buildFee is not True:
             return False  # skip if builder fee is not enabled
         approvedBuilderFee = self.safe_bool(self.options, 'approvedBuilderFee', False)
-        if approvedBuilderFee:
+        if approvedBuilderFee is True:
             return True  # skip if builder fee is already approved
         try:
             builder = self.safe_string(self.options, 'builderCode', 'CCXT')  # case sensitive
@@ -573,7 +589,7 @@ class pacifica(Exchange, ImplicitAPI):
             self.options['builderFee'] = False  # disable builder fee if an error occurs
         return True
 
-    def fetch_markets(self, params={}) -> List[Market]:
+    def fetch_markets(self, params={}) -> list[Market]:
         """
         retrieves data on all markets for pacifica
 
@@ -584,7 +600,7 @@ class pacifica(Exchange, ImplicitAPI):
         """
         response = self.publicGetInfo(params)  # meta
         # {
-        #   "success": True,
+        #   "success": true,
         #   "data": [
         #     {
         #       "symbol": "BTC",
@@ -593,7 +609,7 @@ class pacifica(Exchange, ImplicitAPI):
         #       "max_tick": "1000000",
         #       "lot_size": "0.00001",
         #       "max_leverage": 50,
-        #       "isolated_only": False,
+        #       "isolated_only": false,
         #       "min_order_size": "10",
         #       "max_order_size": "5000000",
         #       "funding_rate": "0.0000125",
@@ -609,7 +625,7 @@ class pacifica(Exchange, ImplicitAPI):
         #       "max_tick": "1000000",
         #       "lot_size": "0.001",
         #       "max_leverage": 1,
-        #       "isolated_only": False,
+        #       "isolated_only": false,
         #       "min_order_size": "10",
         #       "max_order_size": "1000000",
         #       "funding_rate": "0",
@@ -625,7 +641,7 @@ class pacifica(Exchange, ImplicitAPI):
         markets = self.safe_list(response, 'data', [])
         return self.parse_markets(markets)
 
-    def fetch_swap_markets(self, params: Any = {}) -> List[Market]:
+    def fetch_swap_markets(self, params: object = {}) -> list[Market]:
         """
         retrieves data on all swap markets for pacifica
 
@@ -645,7 +661,7 @@ class pacifica(Exchange, ImplicitAPI):
         #       "max_tick": "1000000",
         #       "lot_size": "0.00001",
         #       "max_leverage": 50,
-        #       "isolated_only": False,
+        #       "isolated_only": false,
         #       "min_order_size": "10",
         #       "max_order_size": "5000000",
         #       "funding_rate": "0.0000125",
@@ -661,7 +677,7 @@ class pacifica(Exchange, ImplicitAPI):
         #       "max_tick": "1000000",
         #       "lot_size": "0.001",
         #       "max_leverage": 1,
-        #       "isolated_only": False,
+        #       "isolated_only": false,
         #       "min_order_size": "10",
         #       "max_order_size": "1000000",
         #       "funding_rate": "0",
@@ -699,7 +715,7 @@ class pacifica(Exchange, ImplicitAPI):
             contractSize = self.parse_number('1')
             minLeverage = 1
             maxLeverage = self.safe_integer(market, 'max_leverage')
-            crossMargin = not isolatedOnly
+            crossMargin = isolatedOnly is not True
             isolatedMargin = True
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
@@ -786,7 +802,7 @@ class pacifica(Exchange, ImplicitAPI):
         }
         response = self.publicGetAccount(self.extend(request, params))
         # {
-        #   "success": True,
+        #   "success": true,
         #   "data": {
         #     "balance": "2000.000000",
         #     "fee_level": 0,
@@ -802,7 +818,7 @@ class pacifica(Exchange, ImplicitAPI):
         #     "orders_count": 3,
         #     "stop_orders_count": 1,
         #     "updated_at": 1716200000000,
-        #     "use_ltp_for_stop_orders": False
+        #     "use_ltp_for_stop_orders": false
         #   },
         #   "error": null,
         #   "code": null
@@ -854,7 +870,7 @@ class pacifica(Exchange, ImplicitAPI):
         setting = self.safe_dict(settings, symbol)
         if setting is None:
             # NOTE: Upon account creation, all markets have margin settings default to cross margin and leverage default to max.
-            # When querying self endpoint, all markets with default margin and leverage settings on self account will return blank.
+            # When querying this endpoint, all markets with default margin and leverage settings on this account will return blank.
             return self.parse_leverage_from_market(market)
         else:
             return self.parse_leverage_from_setting(symbol, setting)
@@ -863,7 +879,7 @@ class pacifica(Exchange, ImplicitAPI):
         # {
         #   "WLFI/USDC:USDC": {
         #       "symbol": "WLFI",
-        #       "isolated": False,
+        #       "isolated": false,
         #       "leverage": 5,
         #       "created_at": 1758085929703,
         #       "updated_at": 1758086074002
@@ -871,7 +887,7 @@ class pacifica(Exchange, ImplicitAPI):
         # }
         isIsolated = self.safe_bool(setting, 'isolated', False)
         leverage = self.safe_integer(setting, 'leverage')
-        marginMode = 'isolated' if isIsolated else 'cross'
+        marginMode = 'isolated' if (isIsolated is True) else 'cross'
         return {
             'info': setting,
             'symbol': symbol,
@@ -908,11 +924,11 @@ class pacifica(Exchange, ImplicitAPI):
         }
         response = self.publicGetAccountSettings(self.extend(request, params))
         # {
-        #   "success": True,
+        #   "success": true,
         #   "data": [
         #     {
         #       "symbol": "WLFI",
-        #       "isolated": False,
+        #       "isolated": false,
         #       "leverage": 5,
         #       "created_at": 1758085929703,
         #       "updated_at": 1758086074002
@@ -930,7 +946,7 @@ class pacifica(Exchange, ImplicitAPI):
             settings = self.fetch_account_settings(params)
             self.options['settings'] = settings
 
-    def parse_account_settings(self, settings: List[Any]) -> dict:
+    def parse_account_settings(self, settings: list[object]) -> dict:
         settingsLen = len(settings)
         if settingsLen == 0:
             return {}
@@ -968,7 +984,7 @@ class pacifica(Exchange, ImplicitAPI):
         # {
         #   "WLFI/USDC:USDC": {
         #       "symbol": "WLFI",
-        #       "isolated": False,
+        #       "isolated": false,
         #       "leverage": 5,
         #       "created_at": 1758085929703,
         #       "updated_at": 1758086074002
@@ -977,7 +993,7 @@ class pacifica(Exchange, ImplicitAPI):
         setting = self.safe_dict(settings, symbol)
         if setting is None:
             # NOTE: Upon account creation, all markets have margin settings default to cross margin and leverage default to max.
-            # When querying self endpoint, all markets with default margin and leverage settings on self account will return blank.
+            # When querying this endpoint, all markets with default margin and leverage settings on this account will return blank.
             return {
                 'symbol': symbol,
                 'marginMode': self.handle_option('fetchMarginMode', 'defaultMarginMode', 'cross'),
@@ -988,14 +1004,14 @@ class pacifica(Exchange, ImplicitAPI):
     def parse_margin_mode_from_setting(self, symbol: Str, setting: dict) -> MarginMode:
         # {
         #       "symbol": "WLFI",
-        #       "isolated": False,
+        #       "isolated": false,
         #       "leverage": 5,
         #       "created_at": 1758085929703,
         #       "updated_at": 1758086074002
         #
         # }
         isIsolated = self.safe_bool(setting, 'isolated', False)
-        marginMode = 'isolated' if isIsolated else 'cross'
+        marginMode = 'isolated' if (isIsolated is True) else 'cross'
         return {
             'symbol': symbol,
             'marginMode': marginMode,
@@ -1025,7 +1041,7 @@ class pacifica(Exchange, ImplicitAPI):
         }
         response = self.publicGetBook(self.extend(request, params))
         # {
-        #   "success": True,
+        #   "success": true,
         #   "data": {
         #     "s": "BTC",
         #     "l": [
@@ -1081,7 +1097,7 @@ class pacifica(Exchange, ImplicitAPI):
         response = self.publicGetInfoPrices(params)
         #
         #  {
-        #     "success": True,
+        #     "success": true,
         #     "data": [
         #         {
         #         "funding": "0.00010529",
@@ -1103,7 +1119,7 @@ class pacifica(Exchange, ImplicitAPI):
         result = self.safe_list(response, 'data', [])
         return self.parse_funding_rates(result, symbols)
 
-    def parse_funding_rate(self, info: Any, market: Market = None) -> FundingRate:
+    def parse_funding_rate(self, info: object, market: Market = None) -> FundingRate:
         #
         #      {
         #         "funding": "0.00010529",
@@ -1148,7 +1164,7 @@ class pacifica(Exchange, ImplicitAPI):
             'interval': '1h',
         }
 
-    def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> list[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -1161,7 +1177,7 @@ class pacifica(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: timestamp in ms of the latest candle to fetch. 'limit' is priority
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if since is None:
             raise ArgumentsRequired(self.id + ' fetchOHLCV() requires a "since" argument')
@@ -1195,7 +1211,7 @@ class pacifica(Exchange, ImplicitAPI):
         response = self.publicGetKline(self.extend(request, params))
         #
         # {
-        #   "success": True,
+        #   "success": true,
         #   "data": [
         #     {
         #       "t": 1748954160000,
@@ -1217,7 +1233,7 @@ class pacifica(Exchange, ImplicitAPI):
         candles = self.safe_list(response, 'data', [])
         return self.parse_ohlcvs(candles, market, timeframe, since, limit)
 
-    def parse_ohlcv(self, ohlcv: Any, market: Market = None) -> list:
+    def parse_ohlcv(self, ohlcv: object, market: Market = None) -> list:
         #
         #     {
         #       "t": 1748954160000,
@@ -1262,7 +1278,7 @@ class pacifica(Exchange, ImplicitAPI):
         response = self.publicGetTrades(self.extend(request, params))
         #
         # {
-        #   "success": True,
+        #   "success": true,
         #   "data": [
         #     {
         #       "event_type": "fulfill_taker",
@@ -1281,7 +1297,7 @@ class pacifica(Exchange, ImplicitAPI):
         recentTrades = self.safe_list(response, 'data', [])
         return self.parse_trades(recentTrades, market, since, limit)
 
-    def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
         """
         fetch all trades made by the user
 
@@ -1321,7 +1337,7 @@ class pacifica(Exchange, ImplicitAPI):
         response = self.publicGetTradesHistory(self.extend(request, params))
         #
         # {
-        #   "success": True,
+        #   "success": true,
         #   "data": [
         #     {
         #       "history_id": 19329801,
@@ -1340,8 +1356,8 @@ class pacifica(Exchange, ImplicitAPI):
         #     },
         #     ...
         #   ],
-        #   "next_cursor": "11111Z5RK",  # not included to info!
-        #   "has_more": True   # not included to info!
+        #   "next_cursor": "11111Z5RK", // not included to info!
+        #   "has_more": true   // not included to info!
         # }
         #
         data = self.add_pagination_cursor_to_result(response)
@@ -1379,7 +1395,9 @@ class pacifica(Exchange, ImplicitAPI):
         timestamp = self.safe_integer(trade, 'created_at')
         price = self.safe_string(trade, 'price')
         amount = self.safe_string(trade, 'amount')
-        symbol = self.safe_symbol(None, market)
+        marketId = self.safe_string(trade, 'symbol')
+        market = self.safe_market(marketId, market)
+        symbol = market['symbol']
         id = self.safe_string(trade, 'history_id')
         side = self.safe_string(trade, 'side')
         if side == 'open_long':
@@ -1461,7 +1479,7 @@ class pacifica(Exchange, ImplicitAPI):
             response = self.privatePostOrdersCreate(self.extend(request, params))
         #
         # {
-        #   'success': True,
+        #   'success': true,
         #   'data': {
         #    "order_id": 12345
         #    },
@@ -1469,7 +1487,7 @@ class pacifica(Exchange, ImplicitAPI):
         #
         success = self.safe_bool(response, 'success', False)
         status = None
-        if not success:
+        if success is not True:
             status = 'rejected'
         else:
             status = 'open'
@@ -1493,7 +1511,7 @@ class pacifica(Exchange, ImplicitAPI):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders, but can be used of Trigger Order.
+        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders, but can be used as limit_price of Trigger Order.
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param float [params.triggerPrice]: The price a trigger order is triggered at
         :param float [params.stopLossPrice]: the price that a stop loss order is triggered at(optional provide stopLossCloid)
@@ -1574,7 +1592,7 @@ class pacifica(Exchange, ImplicitAPI):
         request = self.post_action_request(operationType, sigPayload, params)
         return [request, operationType]
 
-    def batch_orders_request(self, actions: List[Any]):
+    def batch_orders_request(self, actions: list[object]):
         #
         # [
         #     {
@@ -1606,8 +1624,8 @@ class pacifica(Exchange, ImplicitAPI):
         #     }
         # ]
         #
-        #  Create(Only Limit or Market, never stop order or tpsl order)
-        #  Cancel(Only common(limit) orders)
+        #  Create (Only Limit or Market, never stop order or tpsl order)
+        #  Cancel (Only common (limit) orders)
         #
         lenActions = len(actions)
         maxLen = self.handle_option('batchOrdersRequest', 'batchOrdersMax')
@@ -1618,7 +1636,7 @@ class pacifica(Exchange, ImplicitAPI):
             'actions': actions,
         }
 
-    def create_orders_request(self, orders: List[OrderRequest], params={}):
+    def create_orders_request(self, orders: list[OrderRequest], params={}):
         actions = []
         timestamp = self.milliseconds()  # unified sequence
         for i in range(0, len(orders)):
@@ -1642,7 +1660,7 @@ class pacifica(Exchange, ImplicitAPI):
             actions.append(action)
         return self.batch_orders_request(actions)
 
-    def create_orders(self, orders: List[OrderRequest], params={}):
+    def create_orders(self, orders: list[OrderRequest], params={}):
         """
         create a list of trade orders. It is supports only limit orders and have a random jitter ~100-300ms!
 
@@ -1658,16 +1676,16 @@ class pacifica(Exchange, ImplicitAPI):
         request = self.create_orders_request(orders)
         response = self.privatePostOrdersBatch(self.extend(request, params))
         # {
-        #   "success": True,
+        #   "success": true,
         #   "data": {
         #     "results": [
         #       {
-        #         "success": True,
+        #         "success": true,
         #         "order_id": 470506,
         #         "error": null
         #       },
         #       {
-        #         "success": True,
+        #         "success": true,
         #       }
         #     ]
         #   },
@@ -1683,7 +1701,7 @@ class pacifica(Exchange, ImplicitAPI):
             error = self.safe_string(order, 'error')
             success = self.safe_bool(order, 'success', False)
             status = None
-            if (error is not None) or (not success):
+            if (error is not None) or (success is not True):
                 status = 'rejected'
             else:
                 status = 'open'
@@ -1691,7 +1709,7 @@ class pacifica(Exchange, ImplicitAPI):
             ordersToReturn.append(self.safe_order({'info': order, 'id': orderId, 'status': status}))
         return ordersToReturn
 
-    def cancel_orders(self, ids: List[str], symbol: Str = None, params={}):
+    def cancel_orders(self, ids: list[str], symbol: Str = None, params={}):
         """
         cancel multiple orders
 
@@ -1714,16 +1732,16 @@ class pacifica(Exchange, ImplicitAPI):
         response = self.privatePostOrdersBatch(self.extend(request, params))
         #
         # {
-        #   "success": True,
+        #   "success": true,
         #   "data": {
         #     "results": [
         #       {
-        #         "success": True,
+        #         "success": true,
         #         "order_id": 470506,
         #         "error": null
         #       },
         #       {
-        #         "success": True,
+        #         "success": true,
         #       }
         #     ]
         #   },
@@ -1739,14 +1757,14 @@ class pacifica(Exchange, ImplicitAPI):
             error = self.safe_string(order, 'error')
             success = self.safe_bool(order, 'success', False)
             status = None
-            if (error is not None) or (not success):
+            if (error is not None) or (success is not True):
                 status = 'closed'
             else:
                 status = 'canceled'
             ordersToReturn.append(self.safe_order({'info': order, 'status': status, 'symbol': symbol}))
         return ordersToReturn
 
-    def cancel_orders_request(self, ids: List[Str], symbol: Str = None, params={}):
+    def cancel_orders_request(self, ids: list[Str], symbol: Str = None, params={}):
         actions = []
         for i in range(0, len(ids)):
             id = ids[i]
@@ -1791,7 +1809,7 @@ class pacifica(Exchange, ImplicitAPI):
         response = self.privatePostOrdersCancelAll(self.extend(request, params))
         #
         # {
-        #   success: True,
+        #   success: true,
         #   data: {
         #     "cancelled_count": 5,
         #   },
@@ -1843,26 +1861,26 @@ class pacifica(Exchange, ImplicitAPI):
         isStopOrder = self.safe_bool_2(params, 'trigger', 'stop', False)
         params = self.omit(params, ['expiryWindow', 'trigger', 'stop', 'clientOrderId'])
         response = None
-        if isStopOrder:
+        if isStopOrder is True:
             response = self.privatePostOrdersStopCancel(self.extend(request, params))
         else:
             response = self.privatePostOrdersCancel(self.extend(request, params))
         #
         # response:
         # {
-        #   "success": True,
+        #   "success": true,
         #   "data": null
         # }
         #
         success = self.safe_bool(response, 'success', False)
-        status = 'canceled' if success else 'closed'
+        status = 'canceled' if (success is True) else 'closed'
         return self.safe_order({'id': id, 'status': status, 'info': response, 'symbol': symbol})
 
     def cancel_order_request(self, id: Str, symbol: Str = None, params={}):
         market = self.market(symbol)
         isStopOrder = self.safe_bool_2(params, 'trigger', 'stop', False)
         operationType = None
-        if isStopOrder:
+        if isStopOrder is True:
             operationType = 'cancel_stop_order'
         else:
             operationType = 'cancel_order'
@@ -1969,7 +1987,7 @@ class pacifica(Exchange, ImplicitAPI):
         response = self.publicGetFundingRateHistory(self.extend(request, params))
         #
         # {
-        #   "success": True,
+        #   "success": true,
         #   "data": [
         #     {
         #       "oracle_price": "117170.410304",
@@ -1982,7 +2000,7 @@ class pacifica(Exchange, ImplicitAPI):
         #     ...
         #   ],
         #   "next_cursor": "11114Lz77",
-        #   "has_more": True
+        #   "has_more": true
         # }
         #
         data = self.add_pagination_cursor_to_result(response)
@@ -2016,7 +2034,7 @@ class pacifica(Exchange, ImplicitAPI):
         response = self.publicGetInfoPrices(params)
         #
         #  {
-        #   "success": True,
+        #   "success": true,
         #   "data": [
         #     {
         #       "funding": "0.00010529",
@@ -2076,7 +2094,7 @@ class pacifica(Exchange, ImplicitAPI):
             'info': ticker,
         }, market)
 
-    def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         fetch all unfilled currently closed orders
 
@@ -2095,7 +2113,7 @@ class pacifica(Exchange, ImplicitAPI):
         closedOrders = self.filter_by_array(orders, 'status', ['closed'], False)
         return self.filter_by_symbol_since_limit(closedOrders, symbol, since, limit)
 
-    def fetch_canceled_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    def fetch_canceled_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         fetch all canceled orders
 
@@ -2114,7 +2132,7 @@ class pacifica(Exchange, ImplicitAPI):
         closedOrders = self.filter_by_array(orders, 'status', ['canceled'], False)
         return self.filter_by_symbol_since_limit(closedOrders, symbol, since, limit)
 
-    def fetch_canceled_and_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    def fetch_canceled_and_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         fetch all closed and canceled orders
 
@@ -2133,7 +2151,7 @@ class pacifica(Exchange, ImplicitAPI):
         closedOrders = self.filter_by_array(orders, 'status', ['canceled', 'closed', 'rejected'], False)
         return self.filter_by_symbol_since_limit(closedOrders, symbol, since, limit)
 
-    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         fetch all unfilled currently open orders
 
@@ -2159,7 +2177,7 @@ class pacifica(Exchange, ImplicitAPI):
         response = self.publicGetOrders(self.extend(request, params))
         #
         # {
-        #   "success": True,
+        #   "success": true,
         #   "data": [
         #     {
         #       "order_id": 315979358,
@@ -2173,7 +2191,7 @@ class pacifica(Exchange, ImplicitAPI):
         #       "stop_price": null,
         #       "order_type": "limit",
         #       "stop_parent_order_id": null,
-        #       "reduce_only": False,
+        #       "reduce_only": false,
         #       "created_at": 1759224706737,
         #       "updated_at": 1759224706737
         #     }
@@ -2186,7 +2204,7 @@ class pacifica(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_orders(data, market, since, limit)
 
-    def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         fetch all orders
 
@@ -2221,7 +2239,7 @@ class pacifica(Exchange, ImplicitAPI):
         response = self.publicGetOrdersHistory(self.extend(request, params))
         #
         # {
-        #   "success": True,
+        #   "success": true,
         #   "data": [
         #     {
         #       "order_id": 315992721,
@@ -2236,7 +2254,7 @@ class pacifica(Exchange, ImplicitAPI):
         #       "order_type": "limit",
         #       "stop_price": null,
         #       "stop_parent_order_id": null,
-        #       "reduce_only": False,
+        #       "reduce_only": false,
         #       "reason": null,
         #       "created_at": 1759224893638,
         #       "updated_at": 1759224893638
@@ -2244,19 +2262,19 @@ class pacifica(Exchange, ImplicitAPI):
         #     ...
         #   ],
         #   "next_cursor": "1111Hyd74",
-        #   "has_more": True
+        #   "has_more": true
         # }
         #
         data = self.add_pagination_cursor_to_result(response)
         orders = self.parse_orders(data, market, since, limit)
         return orders
 
-    def add_pagination_cursor_to_result(self, response: Any):
+    def add_pagination_cursor_to_result(self, response: object):
         data = self.safe_list(response, 'data', [])
         paginationCursor = self.safe_string(response, 'next_cursor')
         hasMore = self.safe_bool(response, 'has_more', False)
         dataLength = len(data)
-        if hasMore:
+        if hasMore is True:
             if (paginationCursor is not None) and (dataLength > 0):
                 first = data[0]
                 first['next_cursor'] = paginationCursor
@@ -2286,7 +2304,7 @@ class pacifica(Exchange, ImplicitAPI):
         response = self.publicGetOrdersHistoryById(self.extend(request, params))
         #
         # {
-        #   "success": True,
+        #   "success": true,
         #   "data": [
         #     {
         #       "history_id": 641452639,
@@ -2303,7 +2321,7 @@ class pacifica(Exchange, ImplicitAPI):
         #       "order_status": "cancelled",
         #       "stop_price": null,
         #       "stop_parent_order_id": null,
-        #       "reduce_only": False,
+        #       "reduce_only": false,
         #       "created_at": 1759224895038
         #     },
         #     {
@@ -2321,7 +2339,7 @@ class pacifica(Exchange, ImplicitAPI):
         #       "order_status": "open",
         #       "stop_price": null,
         #       "stop_parent_order_id": null,
-        #       "reduce_only": False,
+        #       "reduce_only": false,
         #       "created_at": 1759224893638
         #     }
         #   ],
@@ -2331,7 +2349,7 @@ class pacifica(Exchange, ImplicitAPI):
         #
         data = self.safe_list(response, 'data', [])
         # return last state
-        sorted = self.sort_by(data, 'created_at')
+        sorted = self.sort_by(data, 'created_at', True)
         lastIdx = len(sorted)
         lastInfo = {}
         if lastIdx > 0:
@@ -2397,7 +2415,7 @@ class pacifica(Exchange, ImplicitAPI):
         #       "stop_price": null,
         #       "order_type": "limit",
         #       "stop_parent_order_id": null,
-        #       "reduce_only": False,
+        #       "reduce_only": false,
         #       "created_at": 1759224706737,
         #       "updated_at": 1759224706737
         #     }
@@ -2418,7 +2436,7 @@ class pacifica(Exchange, ImplicitAPI):
         #       "order_type": "limit",
         #       "stop_price": null,
         #       "stop_parent_order_id": null,
-        #       "reduce_only": False,
+        #       "reduce_only": false,
         #       "reason": null,
         #       "created_at": 1759224893638,
         #       "updated_at": 1759224893638
@@ -2441,7 +2459,7 @@ class pacifica(Exchange, ImplicitAPI):
         #       "order_status": "cancelled",
         #       "stop_price": null,
         #       "stop_parent_order_id": null,
-        #       "reduce_only": False,
+        #       "reduce_only": false,
         #       "created_at": 1759224895038
         #     }
         #
@@ -2462,17 +2480,15 @@ class pacifica(Exchange, ImplicitAPI):
         #       "ot": "limit",
         #       "sp": null,
         #       "si": null,
-        #       "r": False,
+        #       "r": false,
         #       "ct": 1765017049008,
         #       "ut": 1765017219639,
         #       "li": 1559696133
         #     }
         #
         marketId = self.safe_string_2(order, 'symbol', 's')
-        symbol = None
-        if symbol is not None:
-            market = self.safe_market(marketId, market)
-            symbol = market['symbol']
+        market = self.safe_market(marketId, market)
+        symbol = market['symbol']
         timestamp = self.safe_integer_2(order, 'created_at', 'ct')
         status = self.safe_string_2(order, 'order_status', 'os', 'open')  # open if method is fetchOpenOrders
         side = self.safe_string(order, 'side', 'd')
@@ -2521,7 +2537,7 @@ class pacifica(Exchange, ImplicitAPI):
         positions = self.fetch_positions([symbol], params)
         return self.safe_dict(positions, 0, {})
 
-    def fetch_positions(self, symbols: Strings = None, params={}) -> List[Position]:
+    def fetch_positions(self, symbols: Strings = None, params={}) -> list[Position]:
         """
         fetch all open positions
 
@@ -2542,16 +2558,16 @@ class pacifica(Exchange, ImplicitAPI):
         }
         response = self.publicGetPositions(self.extend(request, params))
         # {
-        #   "success": True,
+        #   "success": true,
         #   "data": [
         #     {
         #       "symbol": "AAVE",
         #       "side": "ask",
         #       "amount": "223.72",
         #       "entry_price": "279.283134",
-        #       "margin": "0",  # only shown for isolated margin
+        #       "margin": "0", // only shown for isolated margin
         #       "funding": "13.159593",
-        #       "isolated": False,
+        #       "isolated": false,
         #       "created_at": 1754928414996,
         #       "updated_at": 1759223365538
         #     }
@@ -2573,9 +2589,9 @@ class pacifica(Exchange, ImplicitAPI):
         #       "side": "ask",
         #       "amount": "223.72",
         #       "entry_price": "279.283134",
-        #       "margin": "0",  # only shown for isolated margin
+        #       "margin": "0", // only shown for isolated margin
         #       "funding": "13.159593",
-        #       "isolated": False,
+        #       "isolated": false,
         #       "created_at": 1754928414996,
         #       "updated_at": 1759223365538
         #     }
@@ -2643,7 +2659,7 @@ class pacifica(Exchange, ImplicitAPI):
         params = self.omit(params, ['expiryWindow'])
         response = self.privatePostAccountMargin(request)
         # {
-        #     "success": True
+        #     "success": true
         # }
         return response
 
@@ -2673,7 +2689,7 @@ class pacifica(Exchange, ImplicitAPI):
         params = self.omit(params, ['expiryWindow'])
         response = self.privatePostAccountLeverage(request)
         # {
-        #     "success": True
+        #     "success": true
         # }
         return response
 
@@ -2724,7 +2740,7 @@ class pacifica(Exchange, ImplicitAPI):
         }
         response = self.publicGetAccount(self.extend(request, params))
         # {
-        #   "success": True,
+        #   "success": true,
         #   "data": {
         #     "balance": "2000.000000",
         #     "fee_level": 0,
@@ -2740,7 +2756,7 @@ class pacifica(Exchange, ImplicitAPI):
         #     "orders_count": 3,
         #     "stop_orders_count": 1,
         #     "updated_at": 1716200000000,
-        #     "use_ltp_for_stop_orders": False
+        #     "use_ltp_for_stop_orders": false
         #   },
         #   "error": null,
         #   "code": null
@@ -2765,7 +2781,7 @@ class pacifica(Exchange, ImplicitAPI):
         #     "orders_count": 3,
         #     "stop_orders_count": 1,
         #     "updated_at": 1716200000000,
-        #     "use_ltp_for_stop_orders": False
+        #     "use_ltp_for_stop_orders": false
         #   }
         #
         #
@@ -2811,7 +2827,7 @@ class pacifica(Exchange, ImplicitAPI):
         ois = self.fetch_open_interests([symbol], params)
         return ois[symbol]
 
-    def parse_open_interest(self, interest: Any, market: Market = None):
+    def parse_open_interest(self, interest: object, market: Market = None):
         #
         #     {
         #       "funding": "0.00010529",
@@ -2846,7 +2862,7 @@ class pacifica(Exchange, ImplicitAPI):
             'info': interest,
         }, market)
 
-    def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[LedgerEntry]:
+    def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[LedgerEntry]:
         """
         fetch the history of changes, actions done by the user or operations that altered the balance of the user
 
@@ -2877,7 +2893,7 @@ class pacifica(Exchange, ImplicitAPI):
             request['limit'] = limit
         response = self.publicGetAccountBalanceHistory(self.extend(request, params))
         # {
-        #   "success": True,
+        #   "success": true,
         #   "data": [
         #     {
         #       "amount": "100.000000",
@@ -2889,7 +2905,7 @@ class pacifica(Exchange, ImplicitAPI):
         #     ...
         #   ],
         #   "next_cursor": "11114Lz77",
-        #   "has_more": True
+        #   "has_more": true
         # }
         data = self.add_pagination_cursor_to_result(response)
         return self.parse_ledger(data, None, since, limit)
@@ -2926,7 +2942,7 @@ class pacifica(Exchange, ImplicitAPI):
             'fee': None,
         }, currency)
 
-    def parse_ledger_entry_type(self, type: Any):
+    def parse_ledger_entry_type(self, type: object):
         ledgerType = {
             'subaccount_transfer': 'transfer',
             'deposit': 'transaction',
@@ -2980,7 +2996,7 @@ class pacifica(Exchange, ImplicitAPI):
             return self.fetch_paginated_call_cursor('fetchFundingHistory', symbol, since, limit, params, 'next_cursor', 'cursor', None, defaultLimit)
         response = self.publicGetFundingHistory(self.extend(request, params))
         # {
-        #   "success": True,
+        #   "success": true,
         #   "data": [
         #     {
         #       "history_id": 2287920,
@@ -2994,12 +3010,12 @@ class pacifica(Exchange, ImplicitAPI):
         #     ...
         #   ],
         #   "next_cursor": "11114Lz77",
-        #   "has_more": True
+        #   "has_more": true
         # }
         data = self.add_pagination_cursor_to_result(response)
         return self.parse_incomes(data, market, since, limit)
 
-    def parse_income(self, income: Any, market: Market = None):
+    def parse_income(self, income: object, market: Market = None):
         #
         #     {
         #       "history_id": 2287920,
@@ -3044,19 +3060,22 @@ class pacifica(Exchange, ImplicitAPI):
         :param int [params.expiryWindow]: time to live in milliseconds
         :returns dict: a `transfer structure <https://docs.ccxt.com/?id=transfer-structure>`
         """
+        if self.markets is None:
+            self.load_markets()
+        currency = self.currency(code)
         operationType = 'transfer_funds'
         sigPayload = {
             'to_account': toAccount,
-            'amount': amount,
+            'amount': self.number_to_string(amount),
         }
         request = self.post_action_request(operationType, sigPayload, params)
         params = self.omit(params, ['expiryWindow'])
         response = self.privatePostAccountSubaccountTransfer(self.extend(request, params))
         #
         # {
-        #   "success": True,
+        #   "success": true,
         #   "data": {
-        #     "success": True,
+        #     "success": true,
         #     "error": null
         #   },
         #   "error": null,
@@ -3064,30 +3083,38 @@ class pacifica(Exchange, ImplicitAPI):
         # }
         #
         data = self.safe_dict(response, 'data', {})
-        return self.parse_transfer(data)
+        return self.extend(self.parse_transfer(data, currency), {
+            'amount': amount,
+            'fromAccount': self.safe_string(request, 'account'),
+            'toAccount': toAccount,
+        })
 
     def parse_transfer(self, transfer: dict, currency: Currency = None) -> TransferEntry:
         #
         # {
-        #   "success": True,
+        #   "success": true,
         #   "data": {
-        #     "success": True,
+        #     "success": true,
         #     "error": null
         #   },
         #   "error": null,
         #   "code": null
         # }
         #
+        success = self.safe_bool(transfer, 'success')
+        status = None
+        if success is not None:
+            status = 'ok' if (success is True) else 'failed'
         return {
             'info': transfer,
             'id': None,
             'timestamp': None,
             'datetime': None,
-            'currency': None,
+            'currency': self.safe_currency_code(None, currency),
             'amount': None,
             'fromAccount': None,
             'toAccount': None,
-            'status': 'ok',
+            'status': status,
         }
 
     def create_sub_account(self, name: str, params={}):
@@ -3105,7 +3132,7 @@ class pacifica(Exchange, ImplicitAPI):
         """
         finalHeaders = {}
         agentAddress = None
-        agentAddress, params = self.handle_option('createSubAccount', 'agentAddress')
+        agentAddress, params = self.handle_option_and_params(params, 'createSubAccount', 'agentAddress')
         originAddress = None
         originAddress, params = self.handle_origin_and_single_address('createSubAccount', params)
         if originAddress is None:
@@ -3120,7 +3147,8 @@ class pacifica(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' createSubAccount() requires a "subAccountAddress"!')
         if subAccountPrivateKey is None:
             raise ArgumentsRequired(self.id + ' createSubAccount() requires a "subAccountPrivateKey"!')
-        timestamp = self.milliseconds()
+        timestamp = None
+        timestamp, params = self.handle_param_integer(params, 'timestamp', self.milliseconds())
         expiryWindow = None
         expiryWindow, params = self.handle_option_and_params_2(params, 'createSubAccount', 'expiryWindow', 'expiry_window', 5000)
         subaccountSignatureHeader = {
@@ -3148,10 +3176,10 @@ class pacifica(Exchange, ImplicitAPI):
         finalHeaders['timestamp'] = timestamp
         finalHeaders['expiry_window'] = expiryWindow
         request = finalHeaders
-        response = self.privatePostAccountSubaccountCreate(request)
+        response = self.privatePostAccountSubaccountCreate(self.extend(request, params))
         #
         # {
-        #   "success": True,
+        #   "success": true,
         #   "data": null,
         #   "error": null,
         #   "code": null,
@@ -3212,15 +3240,15 @@ class pacifica(Exchange, ImplicitAPI):
 
     def handle_origin_and_single_address(self, methodName: str, params: dict) -> list:
         address = None
-        address, params = self.handle_param_string_2(params, 'account', 'address', None)  # self is for get endpoints that accept account or address
+        address, params = self.handle_param_string_2(params, 'account', 'address', None)  # this is for get endpoints that accept account or address
         if address is not None:
             return [address, params]
         address1 = self.walletAddress
         if address1 is not None:
             return [address1, params]
-        raise ArgumentsRequired(self.id + ' ' + methodName + '() requires address either as "exchange.walletAddress = ..." or or "address" in params')
+        raise ArgumentsRequired(self.id + ' ' + methodName + '() requires address either as "exchange.walletAddress = ..." or as parameter or "address" in params')
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: Any, requestHeaders: Any, requestBody: Any):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         if response is None:
             return None  # fallback to default error handler
         #
@@ -3228,7 +3256,7 @@ class pacifica(Exchange, ImplicitAPI):
         #     {"success":false,"data":null,"error":"Agent not authorized for account","code":400}
         #     {"success":false,"data":null,"error":"Internal server error","code":500}
         #
-        inCode = self.safe_integer(response, 'code')  # actually if all ok -> code = None or code = 200
+        inCode = self.safe_integer(response, 'code')  # actually if all ok -> code = undefined or code = 200
         message = self.safe_string(response, 'error')
         error = None
         if inCode is None or inCode == 200:
@@ -3244,17 +3272,17 @@ class pacifica(Exchange, ImplicitAPI):
             raise ExchangeError(feedback)  # unknown message
         return None
 
-    def sign(self, path: Any, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
+    def sign(self, path: object, api: object = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         isTestnet = self.isSandboxModeEnabled
         urlKey = 'test' if (isTestnet) else 'api'
         host = self.implode_hostname(self.urls[urlKey][api])
         url = host + '/api/' + self.version + '/' + self.implode_params(path, params)
         params = self.omit(params, self.extract_params(path))
-        paramsLen = params
+        paramsLen = len(params)
         headers = {
             'Content-Type': 'application/json',
         }
-        if method == 'GET' and paramsLen:
+        if (method == 'GET') and (paramsLen > 0):
             url += '?' + self.urlencode(params)
             headers['Accept'] = '*/*'
         if method == 'POST':
@@ -3263,7 +3291,7 @@ class pacifica(Exchange, ImplicitAPI):
             headers['PF-API-KEY'] = self.options['apiKey']
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def calculate_rate_limiter_cost(self, api: Any, method: Any, path: Any, params: Any, config={}):
+    def calculate_rate_limiter_cost(self, api: object, method: object, path: object, params: object, config={}):
         cost = self.safe_string(config, 'cost', '1')
         costNumber = self.parse_number(cost)
         # 1 is normal POST/GET, 0.5 is cancels, 3-12 is heavy GET
@@ -3277,7 +3305,7 @@ class pacifica(Exchange, ImplicitAPI):
                 return costWithKey
         return costNumber
 
-    def sort_json_keys(self, value: Any) -> Any:
+    def sort_json_keys(self, value: object) -> object:
         if self.is_dictionary(value):
             result = {}
             keys = list(value.keys())
@@ -3315,14 +3343,14 @@ class pacifica(Exchange, ImplicitAPI):
         self.check_required_credentials()  # check credentials every post action
         if operationType == 'None':
             raise ArgumentsRequired(self.id + ' action: ' + operationType + ' postActionRequest() requires "operationType"')
-        if not self.isSandboxModeEnabled:  # At self stage, building codes are mostly only on the mainnet.
+        if not self.isSandboxModeEnabled:  # At this stage, building codes are mostly only on the mainnet.
             useBuilder = self.handle_option('postActionRequest', 'builderFee', True)
             builderCode = None
-            if useBuilder:
+            if useBuilder is True:
                 builderCode = self.handle_option('postActionRequest', 'builderCode')
             if builderCode is not None:
                 isOperationSupportBuilder = self.safe_bool(self.options['builderSupportOperations'], operationType, False)
-                if isOperationSupportBuilder:
+                if isOperationSupportBuilder is True:
                     sigPayload['builder_code'] = builderCode
         expiryWindow = None
         expiryWindow, params = self.handle_option_and_params_2(params, 'postActionRequest', 'expiryWindow', 'expiry_window', 5000)

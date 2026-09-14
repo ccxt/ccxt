@@ -1,8 +1,7 @@
 from ccxt.base.types import Entry
-from typing import Any as PythonAny, Dict, List
+_Dict = dict[str, object]
+_List = list[object]
 
-_Dict = Dict[str, PythonAny]
-_List = List[PythonAny]
 
 class ImplicitAPI:
     binance_get_ping = binanceGetPing = Entry[_Dict]('ping', 'binance', 'GET', {'cost': 1})
@@ -12,10 +11,11 @@ class ImplicitAPI:
     binance_get_aggtrades = binanceGetAggTrades = Entry[_List]('aggTrades', 'binance', 'GET', {'cost': 1})
     binance_get_historicaltrades = binanceGetHistoricalTrades = Entry[_List]('historicalTrades', 'binance', 'GET', {'cost': 5})
     binance_get_klines = binanceGetKlines = Entry[_List]('klines', 'binance', 'GET', {'cost': 1})
-    binance_get_ticker_24hr = binanceGetTicker24hr = Entry[_List]('ticker/24hr', 'binance', 'GET', {'cost': 1, 'noSymbol': 40})
+    binance_get_ticker_24hr = binanceGetTicker24hr = Entry[_Dict | _List]('ticker/24hr', 'binance', 'GET', {'cost': 1, 'noSymbol': 40})
     binance_get_ticker_price = binanceGetTickerPrice = Entry[_Dict]('ticker/price', 'binance', 'GET', {'cost': 1, 'noSymbol': 2})
     binance_get_ticker_bookticker = binanceGetTickerBookTicker = Entry[_List]('ticker/bookTicker', 'binance', 'GET', {'cost': 1, 'noSymbol': 2})
     binance_get_exchangeinfo = binanceGetExchangeInfo = Entry[_Dict]('exchangeInfo', 'binance', 'GET', {'cost': 10})
+    binance_get_executionrules = binanceGetExecutionRules = Entry[_Dict]('executionRules', 'binance', 'GET', {'cost': 2, 'noSymbol': 40})
     binance_put_userdatastream = binancePutUserDataStream = Entry[_Dict]('userDataStream', 'binance', 'PUT', {'cost': 1})
     binance_post_userdatastream = binancePostUserDataStream = Entry[_Dict]('userDataStream', 'binance', 'POST', {'cost': 1})
     binance_delete_userdatastream = binanceDeleteUserDataStream = Entry[_Dict]('userDataStream', 'binance', 'DELETE', {'cost': 1})
@@ -38,3 +38,4 @@ class ImplicitAPI:
     private_post_open_v1_orders_oco = privatePostOpenV1OrdersOco = Entry[_Dict]('open/v1/orders/oco', 'private', 'POST', {'cost': 1})
     private_post_open_v1_withdraws = privatePostOpenV1Withdraws = Entry[_Dict]('open/v1/withdraws', 'private', 'POST', {'cost': 1})
     private_post_open_v1_user_data_stream = privatePostOpenV1UserDataStream = Entry[_Dict]('open/v1/user-data-stream', 'private', 'POST', {'cost': 1})
+    private_post_open_v1_user_listen_token = privatePostOpenV1UserListenToken = Entry[_Dict]('open/v1/user-listen-token', 'private', 'POST', {'cost': 1})

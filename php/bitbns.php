@@ -108,14 +108,19 @@ class bitbns extends Exchange {
                         'withdrawHistory/{symbol}' => array( 'cost' => 1 ),
                         'withdrawHistoryAll/{symbol}' => array( 'cost' => 1 ),
                         'depositHistoryAll/{symbol}' => array( 'cost' => 1 ),
+                        'userHistoryNew' => array( 'cost' => 1 ),
                         'listOpenOrders/{symbol}' => array( 'cost' => 1 ),
+                        'listOpenOrdersOther/{symbol}' => array( 'cost' => 1 ),
                         'listOpenStopOrders/{symbol}' => array( 'cost' => 1 ),
                         'getCoinAddress/{symbol}' => array( 'cost' => 1 ),
                         'placeSellOrder/{symbol}' => array( 'cost' => 1 ),
+                        'placeSellOrderOther/{symbol}' => array( 'cost' => 1 ),
                         'placeBuyOrder/{symbol}' => array( 'cost' => 1 ),
+                        'placeBuyOrderOther/{symbol}' => array( 'cost' => 1 ),
                         'buyStopLoss/{symbol}' => array( 'cost' => 1 ),
                         'sellStopLoss/{symbol}' => array( 'cost' => 1 ),
                         'cancelOrder/{symbol}' => array( 'cost' => 1 ),
+                        'cancelOrderOther/{symbol}' => array( 'cost' => 1 ),
                         'cancelStopLossOrder/{symbol}' => array( 'cost' => 1 ),
                         'listExecutedOrders/{symbol}' => array( 'cost' => 1 ),
                         'placeMarketOrder/{symbol}' => array( 'cost' => 1 ),
@@ -189,12 +194,12 @@ class bitbns extends Exchange {
                     ),
                     'fetchOrders' => null,
                     'fetchClosedOrders' => null,
-                    // todo => implement fetchOHLCV
+                    // todo: implement fetchOHLCV
                     'fetchOHLCV' => array(
                         'limit' => 100,
                     ),
                 ),
-                // todo => implement swap methods
+                // todo: implement swap methods
                 'swap' => array(
                     'linear' => null,
                     'inverse' => null,
@@ -206,10 +211,10 @@ class bitbns extends Exchange {
             ),
             'exceptions' => array(
                 'exact' => array(
-                    '400' => '\\ccxt\\BadRequest', // array("msg":"Invalid Request","status":-1,"code":400)
-                    '409' => '\\ccxt\\BadSymbol', // array("data":"","status":0,"error":"coin name not supplied or not yet supported","code":409)
-                    '416' => '\\ccxt\\InsufficientFunds', // array("data":"Oops ! Not sufficient currency to sell","status":0,"error":null,"code":416)
-                    '417' => '\\ccxt\\OrderNotFound', // array("data":array(),"status":0,"error":"Nothing to show","code":417)
+                    '400' => '\\ccxt\\BadRequest', // {"msg":"Invalid Request","status":-1,"code":400}
+                    '409' => '\\ccxt\\BadSymbol', // {"data":"","status":0,"error":"coin name not supplied or not yet supported","code":409}
+                    '416' => '\\ccxt\\InsufficientFunds', // {"data":"Oops ! Not sufficient currency to sell","status":0,"error":null,"code":416}
+                    '417' => '\\ccxt\\OrderNotFound', // {"data":[],"status":0,"error":"Nothing to show","code":417}
                 ),
                 'broad' => array(),
             ),
@@ -225,11 +230,11 @@ class bitbns extends Exchange {
         $response = $this->v1GetPlatformStatus($params);
         //
         //     {
-        //         "data":array(
-        //             "BTC":array("status":1),
-        //             "ETH":array("status":1),
-        //             "XRP":array("status":1),
-        //         ),
+        //         "data":{
+        //             "BTC":{"status":1},
+        //             "ETH":{"status":1},
+        //             "XRP":{"status":1},
+        //         },
         //         "status":1,
         //         "error":null,
         //         "code":200
@@ -253,8 +258,8 @@ class bitbns extends Exchange {
          */
         $response = $this->wwwGetOrderFetchMarkets($params);
         //
-        //     array(
-        //         array(
+        //     [
+        //         {
         //             "id":"BTC",
         //             "symbol":"BTC/INR",
         //             "base":"BTC",
@@ -262,18 +267,18 @@ class bitbns extends Exchange {
         //             "baseId":"BTC",
         //             "quoteId":"",
         //             "active":true,
-        //             "limits":array(
-        //                 "amount":array("min":"0.00017376","max":20),
-        //                 "price":array("min":2762353.2359999996,"max":6445490.883999999),
-        //                 "cost":array("min":800,"max":128909817.67999998)
-        //             ),
-        //             "precision":array(
+        //             "limits":{
+        //                 "amount":{"min":"0.00017376","max":20},
+        //                 "price":{"min":2762353.2359999996,"max":6445490.883999999},
+        //                 "cost":{"min":800,"max":128909817.67999998}
+        //             },
+        //             "precision":{
         //                 "amount":8,
         //                 "price":2
-        //             ),
-        //             "info":array()
-        //         ),
-        //     )
+        //             },
+        //             "info":{}
+        //         },
+        //     ]
         //
         $result = array();
         $rawMarkets = $this->to_array($response);
@@ -367,16 +372,16 @@ class bitbns extends Exchange {
         $response = $this->wwwGetOrderFetchOrderbook($this->extend($request, $params));
         //
         //     {
-        //         "bids":array(
+        //         "bids":[
         //             [49352.04,0.843948],
         //             [49352.03,0.742048],
         //             [49349.78,0.686239],
-        //         ),
-        //         "asks":array(
+        //         ],
+        //         "asks":[
         //             [49443.59,0.065137],
         //             [49444.63,0.098211],
         //             [49449.01,0.066309],
-        //         ),
+        //         ],
         //         "timestamp":1619172786577,
         //         "datetime":"2021-04-23T10:13:06.577Z",
         //         "nonce":""
@@ -390,13 +395,13 @@ class bitbns extends Exchange {
         //
         //     {
         //         "symbol":"BTC/INR",
-        //         "info":array(
+        //         "info":{
         //             "highest_buy_bid":4368494.31,
         //             "lowest_sell_bid":4374835.09,
         //             "last_traded_price":4374835.09,
         //             "yes_price":4531016.27,
-        //             "volume":array("max":"4569119.23","min":"4254552.13","volume":62.17722344)
-        //         ),
+        //             "volume":{"max":"4569119.23","min":"4254552.13","volume":62.17722344}
+        //         },
         //         "timestamp":1619100020845,
         //         "datetime":1619100020845,
         //         "high":"4569119.23",
@@ -460,13 +465,13 @@ class bitbns extends Exchange {
         //     {
         //         "BTC/INR":{
         //             "symbol":"BTC/INR",
-        //             "info":array(
+        //             "info":{
         //                 "highest_buy_bid":4368494.31,
         //                 "lowest_sell_bid":4374835.09,
         //                 "last_traded_price":4374835.09,
         //                 "yes_price":4531016.27,
-        //                 "volume":array("max":"4569119.23","min":"4254552.13","volume":62.17722344)
-        //             ),
+        //                 "volume":{"max":"4569119.23","min":"4254552.13","volume":62.17722344}
+        //             },
         //             "timestamp":1619100020845,
         //             "datetime":1619100020845,
         //             "high":"4569119.23",
@@ -534,7 +539,7 @@ class bitbns extends Exchange {
         $response = $this->v1PostCurrentCoinBalanceEVERYTHING($params);
         //
         //     {
-        //         "data":array(
+        //         "data":{
         //             "availableorderMoney":12.34, // INR
         //             "availableorderBTC":0,
         //             "availableorderXRP":0,
@@ -542,7 +547,7 @@ class bitbns extends Exchange {
         //             "inorderBTC":0,
         //             "inorderXRP":0,
         //             "inorderNEO":0,
-        //         ),
+        //         },
         //         "status":1,
         //         "error":null,
         //         "code":200
@@ -558,12 +563,12 @@ class bitbns extends Exchange {
             '0' => 'open',
             '1' => 'open',
             '2' => 'done',
-            // 'PARTIALLY_FILLED' => 'open',
-            // 'FILLED' => 'closed',
-            // 'CANCELED' => 'canceled',
-            // 'PENDING_CANCEL' => 'canceling', // currently unused
-            // 'REJECTED' => 'rejected',
-            // 'EXPIRED' => 'expired',
+            // 'PARTIALLY_FILLED': 'open',
+            // 'FILLED': 'closed',
+            // 'CANCELED': 'canceled',
+            // 'PENDING_CANCEL': 'canceling', // currently unused
+            // 'REJECTED': 'rejected',
+            // 'EXPIRED': 'expired',
         );
         return $this->safe_string($statuses, $status, $status);
     }
@@ -573,33 +578,33 @@ class bitbns extends Exchange {
         // createOrder
         //
         //     {
-        //         "data" => "Successfully placed bid to purchase currency",
-        //         "status" => 1,
-        //         "error" => null,
-        //         "id" => 5424475,
-        //         "code" => 200
+        //         "data": "Successfully placed bid to purchase currency",
+        //         "status": 1,
+        //         "error": null,
+        //         "id": 5424475,
+        //         "code": 200
         //     }
         //
         // fetchOpenOrders, fetchOrder
         //
         //    {
-        //        "entry_id" => 5424475,
-        //        "btc" => 0.01,
-        //        "rate" => 2000,
-        //        "time" => "2021-04-25T17:05:42.000Z",
-        //        "type" => 0,
-        //        "status" => 0
-        //        "t_rate" => 0.45,                       // only stop orders
-        //        "trail" => 0                            // only stop orders
+        //        "entry_id": 5424475,
+        //        "btc": 0.01,
+        //        "rate": 2000,
+        //        "time": "2021-04-25T17:05:42.000Z",
+        //        "type": 0,
+        //        "status": 0
+        //        "t_rate": 0.45,                       // only stop orders
+        //        "trail": 0                            // only stop orders
         //    }
         //
         // cancelOrder
         //
         //    {
-        //        "data" => "Successfully cancelled the $order",
-        //        "status" => 1,
-        //        "error" => null,
-        //        "code" => 200
+        //        "data": "Successfully cancelled the order",
+        //        "status": 1,
+        //        "error": null,
+        //        "code": 200
         //    }
         //
         $id = $this->safe_string_2($order, 'id', 'entry_id');
@@ -651,7 +656,7 @@ class bitbns extends Exchange {
          * create a trade order
          *
          * @see https://docs.bitbns.com/bitbns/rest-endpoints/order-apis/version-2/place-orders
-         * @see https://docs.bitbns.com/bitbns/rest-endpoints/order-apis/version-1/market-orders-quantity  // $market orders
+         * @see https://docs.bitbns.com/bitbns/rest-endpoints/order-apis/version-1/market-orders-quantity  // market orders
          *
          * @param {string} $symbol unified $symbol of the $market to create an order in
          * @param {string} $type 'market' or 'limit'
@@ -681,15 +686,13 @@ class bitbns extends Exchange {
             'side' => strtoupper($side),
             'symbol' => $market['uppercaseId'],
             'quantity' => $this->amount_to_precision($symbol, $amount),
-            // 'target_rate' => $this->price_to_precision($symbol, $targetRate),
-            // 't_rate' => $this->price_to_precision($symbol, stopPrice),
-            // 'trail_rate' => $this->price_to_precision($symbol, $trailRate),
+            // 'target_rate': this.priceToPrecision (symbol, targetRate),
+            // 't_rate': this.priceToPrecision (symbol, stopPrice),
+            // 'trail_rate': this.priceToPrecision (symbol, trailRate),
         );
-        $method = 'v2PostOrders';
         if ($type === 'limit') {
             $request['rate'] = $this->price_to_precision($symbol, $price);
         } else {
-            $method = 'v1PostPlaceMarketOrderQntySymbol';
             $request['market'] = $market['quoteId'];
         }
         if ($triggerPrice !== null) {
@@ -701,7 +704,12 @@ class bitbns extends Exchange {
         if ($trailRate !== null) {
             $request['trail_rate'] = $this->price_to_precision($symbol, $trailRate);
         }
-        $response = $this->$method($this->extend($request, $params));
+        $response = null;
+        if ($type === 'limit') {
+            $response = $this->v2PostOrders($this->extend($request, $params));
+        } else {
+            $response = $this->v1PostPlaceMarketOrderQntySymbol($this->extend($request, $params));
+        }
         //
         //     {
         //         "data":"Successfully placed bid to purchase currency",
@@ -742,7 +750,7 @@ class bitbns extends Exchange {
             'symbol' => $market['uppercaseId'],
         );
         $response = null;
-        $tail = $isTrigger ? 'StopLossOrder' : 'Order';
+        $tail = ($isTrigger === true) ? 'StopLossOrder' : 'Order';
         $quoteSide = ($market['quoteId'] === 'USDT') ? 'usdtcancel' : 'cancel';
         $quoteSide .= $tail;
         $request['side'] = $quoteSide;
@@ -774,13 +782,13 @@ class bitbns extends Exchange {
             'entry_id' => $id,
         );
         $trigger = $this->safe_bool_2($params, 'trigger', 'stop');
-        if ($trigger) {
+        if ($trigger === true) {
             throw new BadRequest($this->id . ' fetchOrder cannot fetch stop orders');
         }
         $response = $this->v1PostOrderStatusSymbol($this->extend($request, $params));
         //
         //     {
-        //         "data":array(
+        //         "data":[
         //             {
         //                 "entry_id":5424475,
         //                 "btc":0.01,
@@ -797,7 +805,7 @@ class bitbns extends Exchange {
         //                 "cost":null,
         //                 "fee":0.05
         //             }
-        //         ),
+        //         ],
         //         "status":1,
         //         "error":null,
         //         "code":200
@@ -835,12 +843,12 @@ class bitbns extends Exchange {
         $request = array(
             'symbol' => $market['uppercaseId'],
             'page' => 0,
-            'side' => $isTrigger ? ($quoteSide . 'StopOrders') : ($quoteSide . 'Orders'),
+            'side' => ($isTrigger === true) ? ($quoteSide . 'StopOrders') : ($quoteSide . 'Orders'),
         );
         $response = $this->v2PostGetordersnew($this->extend($request, $params));
         //
         //     {
-        //         "data":array(
+        //         "data":[
         //             {
         //                 "entry_id":5424475,
         //                 "btc":0.01,
@@ -852,7 +860,7 @@ class bitbns extends Exchange {
         //                 "type":1,                            // only stop orders
         //                 "trail":0                            // only stop orders
         //             }
-        //         ),
+        //         ],
         //         "status":1,
         //         "error":null,
         //         "code":200
@@ -867,20 +875,20 @@ class bitbns extends Exchange {
         // fetchMyTrades
         //
         //     {
-        //         "type" => "BTC Sell order executed",
-        //         "typeI" => 6,
-        //         "crypto" => 5000,
-        //         "amount" => 35.4,
-        //         "rate" => 709800,
-        //         "date" => "2020-05-22T15:05:34.000Z",
-        //         "unit" => "INR",
-        //         "factor" => 100000000,
-        //         "fee" => 0.09,
-        //         "delh_btc" => -5000,
-        //         "delh_inr" => 0,
-        //         "del_btc" => 0,
-        //         "del_inr" => 35.4,
-        //         "id" => "2938823"
+        //         "type": "BTC Sell order executed",
+        //         "typeI": 6,
+        //         "crypto": 5000,
+        //         "amount": 35.4,
+        //         "rate": 709800,
+        //         "date": "2020-05-22T15:05:34.000Z",
+        //         "unit": "INR",
+        //         "factor": 100000000,
+        //         "fee": 0.09,
+        //         "delh_btc": -5000,
+        //         "delh_inr": 0,
+        //         "del_btc": 0,
+        //         "del_inr": 35.4,
+        //         "id": "2938823"
         //     }
         //
         // fetchTrades
@@ -969,43 +977,43 @@ class bitbns extends Exchange {
         $response = $this->v1PostListExecutedOrdersSymbol($this->extend($request, $params));
         //
         //     {
-        //         "data" => array(
-        //             array(
-        //                 "type" => "BTC Sell order executed",
-        //                 "typeI" => 6,
-        //                 "crypto" => 5000,
-        //                 "amount" => 35.4,
-        //                 "rate" => 709800,
-        //                 "date" => "2020-05-22T15:05:34.000Z",
-        //                 "unit" => "INR",
-        //                 "factor" => 100000000,
-        //                 "fee" => 0.09,
-        //                 "delh_btc" => -5000,
-        //                 "delh_inr" => 0,
-        //                 "del_btc" => 0,
-        //                 "del_inr" => 35.4,
-        //                 "id" => "2938823"
-        //             ),
+        //         "data": [
         //             {
-        //                 "type" => "BTC Sell order executed",
-        //                 "typeI" => 6,
-        //                 "crypto" => 195000,
-        //                 "amount" => 1380.58,
-        //                 "rate" => 709765.5,
-        //                 "date" => "2020-05-22T15:05:34.000Z",
-        //                 "unit" => "INR",
-        //                 "factor" => 100000000,
-        //                 "fee" => 3.47,
-        //                 "delh_btc" => -195000,
-        //                 "delh_inr" => 0,
-        //                 "del_btc" => 0,
-        //                 "del_inr" => 1380.58,
-        //                 "id" => "2938823"
+        //                 "type": "BTC Sell order executed",
+        //                 "typeI": 6,
+        //                 "crypto": 5000,
+        //                 "amount": 35.4,
+        //                 "rate": 709800,
+        //                 "date": "2020-05-22T15:05:34.000Z",
+        //                 "unit": "INR",
+        //                 "factor": 100000000,
+        //                 "fee": 0.09,
+        //                 "delh_btc": -5000,
+        //                 "delh_inr": 0,
+        //                 "del_btc": 0,
+        //                 "del_inr": 35.4,
+        //                 "id": "2938823"
+        //             },
+        //             {
+        //                 "type": "BTC Sell order executed",
+        //                 "typeI": 6,
+        //                 "crypto": 195000,
+        //                 "amount": 1380.58,
+        //                 "rate": 709765.5,
+        //                 "date": "2020-05-22T15:05:34.000Z",
+        //                 "unit": "INR",
+        //                 "factor": 100000000,
+        //                 "fee": 3.47,
+        //                 "delh_btc": -195000,
+        //                 "delh_inr": 0,
+        //                 "del_btc": 0,
+        //                 "del_inr": 1380.58,
+        //                 "id": "2938823"
         //             }
-        //         ),
-        //         "status" => 1,
-        //         "error" => null,
-        //         "code" => 200
+        //         ],
+        //         "status": 1,
+        //         "error": null,
+        //         "code": 200
         //     }
         //
         $data = $this->safe_list($response, 'data', array());
@@ -1035,9 +1043,9 @@ class bitbns extends Exchange {
         $response = $this->wwwGetExchangeDataTradedetails($this->extend($request, $params));
         //
         //     [
-        //         array("tradeId":"1909151","price":"61904.6300","quote_volume":1618.05,"base_volume":0.02607254,"timestamp":1634548602000,"type":"buy"),
-        //         array("tradeId":"1909153","price":"61893.9000","quote_volume":16384.42,"base_volume":0.26405767,"timestamp":1634548999000,"type":"sell"),
-        //         array("tradeId":"1909155","price":"61853.1100","quote_volume":2304.37,"base_volume":0.03716263,"timestamp":1634549670000,"type":"sell")
+        //         {"tradeId":"1909151","price":"61904.6300","quote_volume":1618.05,"base_volume":0.02607254,"timestamp":1634548602000,"type":"buy"},
+        //         {"tradeId":"1909153","price":"61893.9000","quote_volume":16384.42,"base_volume":0.26405767,"timestamp":1634548999000,"type":"sell"},
+        //         {"tradeId":"1909155","price":"61853.1100","quote_volume":2304.37,"base_volume":0.03716263,"timestamp":1634549670000,"type":"sell"}
         //     }
         //
         return $this->parse_trades($response, $market, $since, $limit);
@@ -1066,7 +1074,7 @@ class bitbns extends Exchange {
         $response = $this->v1PostDepositHistorySymbol($this->extend($request, $params));
         //
         //     {
-        //         "data":array(
+        //         "data":[
         //             {
         //                 "type":"USDT deposited",
         //                 "typeI":1,
@@ -1081,7 +1089,7 @@ class bitbns extends Exchange {
         //                 "del_btc":10000,
         //                 "del_inr":0
         //             }
-        //         ),
+        //         ],
         //         "status":1,
         //         "error":null,
         //         "code":200
@@ -1176,7 +1184,7 @@ class bitbns extends Exchange {
                 $type = 'withdrawal';
             }
         }
-        // $status = $this->parse_transaction_status_by_type($this->safe_string($transaction, 'status'), $type);
+        // const status = this.parseTransactionStatusByType (this.safeString (transaction, 'status'), type);
         $amount = $this->safe_number($transaction, 'amount');
         $feeCost = $this->safe_number($transaction, 'fee');
         $fee = null;
@@ -1224,10 +1232,10 @@ class bitbns extends Exchange {
         $response = $this->v1PostGetCoinAddressSymbol($this->extend($request, $params));
         //
         //     {
-        //         "data":array(
+        //         "data":{
         //             "token":"0x680dee9edfff0c397736e10b017cf6a0aee4ba31",
         //             "expiry":"2022-04-24 22:30:11"
-        //         ),
+        //         },
         //         "status":1,
         //         "error":null
         //     }
@@ -1265,11 +1273,11 @@ class bitbns extends Exchange {
         $query = $this->omit($params, $this->extract_params($path));
         $nonce = (string) $this->nonce();
         if ($method === 'GET') {
-            if ($query) {
+            if (count($query) > 0) {
                 $url .= '?' . $this->urlencode($query);
             }
         } elseif ($method === 'POST') {
-            if ($query) {
+            if (count($query) > 0) {
                 $body = $this->json($query);
             } else {
                 $body = '{}';
@@ -1290,11 +1298,11 @@ class bitbns extends Exchange {
 
     public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         if ($response === null) {
-            return null; // fallback to default $error handler
+            return null; // fallback to default error handler
         }
         //
-        //     array("msg":"Invalid Request","status":-1,"code":400)
-        //     array("data":array(),"status":0,"error":"Nothing to show","code":417)
+        //     {"msg":"Invalid Request","status":-1,"code":400}
+        //     {"data":[],"status":0,"error":"Nothing to show","code":417}
         //
         $code = $this->safe_string($response, 'code');
         $message = $this->safe_string($response, 'msg');
@@ -1304,7 +1312,7 @@ class bitbns extends Exchange {
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $code, $feedback);
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $feedback);
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);
-            throw new ExchangeError($feedback); // unknown $message
+            throw new ExchangeError($feedback); // unknown message
         }
         return null;
     }

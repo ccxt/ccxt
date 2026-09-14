@@ -2,6 +2,7 @@ package ccxt
 
 import (
 	"fmt"
+	"math"
 	"testing"
 )
 
@@ -171,6 +172,70 @@ func TestIndexedBidsLifecycle(t *testing.T) {
 	for i, w := range wantIds {
 		if normalizeId(data[i][2]) != w {
 			t.Fatalf("row %d id=%v, want %s (book=%v)", i, data[i][2], w, data)
+		}
+	}
+}
+
+// Index stays SIZE-long. Insert/delete shift inside the live prefix;
+// the tail is MaxFloat64 seed, so len(Index) is invariant.
+
+func TestIndexedIndexDoesNotGrowOnInsertDeleteCycles(t *testing.T) {
+	asks := NewIndexedOrderBookSide(false, [][]any{}, nil)
+	start := len(*asks.GetIndex())
+	if start != SIZE {
+		t.Fatalf("fresh index len=%d, want %d", start, SIZE)
+	}
+	for i := 0; i < 5000; i++ {
+		asks.StoreArray([]any{100.0 + float64(i%16), 1.0, fmt.Sprintf("x%d", i%16)})
+		asks.StoreArray([]any{100.0 + float64(i%16), 0.0, fmt.Sprintf("x%d", i%16)})
+	}
+	if got := len(*asks.GetIndex()); got != start {
+		t.Fatalf("index grew to %d after 5000 insert/delete cycles, want %d", got, start)
+	}
+	if asks.Len() != 0 || len(asks.Hashmap) != 0 {
+		t.Fatalf("book not empty: Len=%d hashmap=%d", asks.Len(), len(asks.Hashmap))
+	}
+}
+
+// a price move of a live id takes the separate remove-then-reinsert path
+func TestIndexedIndexDoesNotGrowOnPriceMoves(t *testing.T) {
+	bids := NewIndexedOrderBookSide(true, [][]any{}, nil)
+	for i := 0; i < 8; i++ {
+		bids.StoreArray([]any{100.0 + float64(i), 1.0, fmt.Sprintf("m%d", i)})
+	}
+	start := len(*bids.GetIndex())
+	for i := 0; i < 5000; i++ {
+		id := fmt.Sprintf("m%d", i%8)
+		bids.StoreArray([]any{200.0 + float64(i%8), 1.0, id})
+		bids.StoreArray([]any{100.0 + float64(i%8), 1.0, id})
+	}
+	if got := len(*bids.GetIndex()); got != start {
+		t.Fatalf("index grew to %d after 5000 price moves, want %d", got, start)
+	}
+	if bids.Len() != 8 {
+		t.Fatalf("Len=%d, want 8", bids.Len())
+	}
+}
+
+// the live prefix must stay sorted and the tail must stay sentinel-filled after
+// the bounded shifts, on every side type
+func TestOrderBookSideIndexTailStaysSentinel(t *testing.T) {
+	asks := NewOrderBookSide(false, [][]any{}, nil)
+	for i := 0; i < 40; i++ {
+		asks.StoreArray([]float64{100.0 + float64((i*7)%40), 1.0})
+	}
+	for i := 0; i < 40; i += 3 {
+		asks.StoreArray([]float64{100.0 + float64(i), 0.0})
+	}
+	idx := *asks.GetIndex()
+	for i := 1; i < asks.Len(); i++ {
+		if idx[i-1] > idx[i] {
+			t.Fatalf("index not sorted at %d: %v > %v", i, idx[i-1], idx[i])
+		}
+	}
+	for i := asks.Len(); i < len(idx); i++ {
+		if idx[i] != math.MaxFloat64 {
+			t.Fatalf("index slot %d past Length=%d is %v, want MaxFloat64", i, asks.Len(), idx[i])
 		}
 	}
 }

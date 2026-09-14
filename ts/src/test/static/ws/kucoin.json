@@ -1,0 +1,891 @@
+{
+    "exchange": "kucoin",
+    "skipKeys": [
+        "vwap"
+    ],
+    "options": {},
+    "methods": {
+        "watchTicker": [
+            {
+                "description": "spot ticker",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "url": "wss://ws-api-spot.kucoin.com/?token=2neAiuYvAU61ZDXANAGAsiL4-iAExhsBXZxftpOeh_55i3Ysy2q2LEsEWU64mdzUOPusi34M_wGoSf7iNyEWJzoIzZJnjIKiLZ5VZBUNpIpQoAfPzdEMW9iYB9J6i9GjsxUuhPw3Blq6rhZlGykT3Vp1phUafnulOOpts-MEmEFR6Xrkya49OEo_Zh7-a-avJBvJHl5Vs9Y%3D.H7utp2tEFTlUxD7fVkk_vQ%3D%3D&privateChannel=false&connectId=public",
+                "messages": [
+                    {
+                        "id": "public",
+                        "type": "welcome"
+                    },
+                    {
+                        "id": "1",
+                        "type": "ack"
+                    },
+                    {
+                        "topic": "/market/snapshot:BTC-USDT",
+                        "type": "message",
+                        "subject": "trade.snapshot",
+                        "data": {
+                            "sequence": "35487584851",
+                            "data": {
+                                "askSize": 0.03877826,
+                                "averagePrice": 64046.97496029,
+                                "baseCurrency": "BTC",
+                                "bidSize": 0.95478999,
+                                "board": 1,
+                                "buy": 64018.6,
+                                "changePrice": -304.5,
+                                "changeRate": -0.0047,
+                                "close": 64018.7,
+                                "datetime": 1786538851527,
+                                "high": 64473.3,
+                                "lastSize": 0.00212856,
+                                "lastTradedPrice": 64018.7,
+                                "low": 63237.4,
+                                "makerCoefficient": 1,
+                                "makerFeeRate": 0.001,
+                                "marginTrade": true,
+                                "mark": 0,
+                                "market": "USDS",
+                                "marketChange1h": {
+                                    "changePrice": -180.1,
+                                    "changeRate": -0.0028,
+                                    "high": 64473.3,
+                                    "low": 63990,
+                                    "open": 64198.8,
+                                    "vol": 250.43262502,
+                                    "volValue": 16087254.031294078
+                                },
+                                "marketChange24h": {
+                                    "changePrice": -304.5,
+                                    "changeRate": -0.0047,
+                                    "high": 64473.3,
+                                    "low": 63237.4,
+                                    "open": 64323.2,
+                                    "vol": 1959.8542395,
+                                    "volValue": 125097404.47479571
+                                },
+                                "marketChange4h": {
+                                    "changePrice": 223.9,
+                                    "changeRate": 0.0035,
+                                    "high": 64473.3,
+                                    "low": 63764.3,
+                                    "open": 63794.8,
+                                    "vol": 543.28205932,
+                                    "volValue": 34844628.33352767
+                                },
+                                "markets": [
+                                    "USDS",
+                                    "Majors",
+                                    "PoW",
+                                    "Layer1"
+                                ],
+                                "open": 64323.2,
+                                "quoteCurrency": "USDT",
+                                "sell": 64018.7,
+                                "sequence": "35487584851",
+                                "siteTypes": [
+                                    "global"
+                                ],
+                                "sort": 100,
+                                "symbol": "BTC-USDT",
+                                "symbolCode": "BTC-USDT",
+                                "takerCoefficient": 1,
+                                "takerFeeRate": 0.001,
+                                "trading": true,
+                                "vol": 1959.8542395,
+                                "volValue": 125097404.47479571
+                            }
+                        }
+                    },
+                    {
+                        "topic": "/market/snapshot:BTC-USDT",
+                        "type": "message",
+                        "subject": "trade.snapshot",
+                        "data": {
+                            "sequence": "35487585646",
+                            "data": {
+                                "askSize": 0.01084449,
+                                "averagePrice": 64046.97496029,
+                                "baseCurrency": "BTC",
+                                "bidSize": 1.15610712,
+                                "board": 1,
+                                "buy": 64021.9,
+                                "changePrice": -301.3,
+                                "changeRate": -0.0046,
+                                "close": 64021.9,
+                                "datetime": 1786538852774,
+                                "high": 64473.3,
+                                "lastSize": 1.565e-05,
+                                "lastTradedPrice": 64021.9,
+                                "low": 63237.4,
+                                "makerCoefficient": 1,
+                                "makerFeeRate": 0.001,
+                                "marginTrade": true,
+                                "mark": 0,
+                                "market": "USDS",
+                                "marketChange1h": {
+                                    "changePrice": -176.9,
+                                    "changeRate": -0.0027,
+                                    "high": 64473.3,
+                                    "low": 63990,
+                                    "open": 64198.8,
+                                    "vol": 250.43262502,
+                                    "volValue": 16087254.031294078
+                                },
+                                "marketChange24h": {
+                                    "changePrice": -301.3,
+                                    "changeRate": -0.0046,
+                                    "high": 64473.3,
+                                    "low": 63237.4,
+                                    "open": 64323.2,
+                                    "vol": 1959.8542395,
+                                    "volValue": 125097404.47479571
+                                },
+                                "marketChange4h": {
+                                    "changePrice": 227.1,
+                                    "changeRate": 0.0035,
+                                    "high": 64473.3,
+                                    "low": 63764.3,
+                                    "open": 63794.8,
+                                    "vol": 543.28205932,
+                                    "volValue": 34844628.33352767
+                                },
+                                "markets": [
+                                    "USDS",
+                                    "Majors",
+                                    "PoW",
+                                    "Layer1"
+                                ],
+                                "open": 64323.2,
+                                "quoteCurrency": "USDT",
+                                "sell": 64022,
+                                "sequence": "35487585646",
+                                "siteTypes": [
+                                    "global"
+                                ],
+                                "sort": 100,
+                                "symbol": "BTC-USDT",
+                                "symbolCode": "BTC-USDT",
+                                "takerCoefficient": 1,
+                                "takerFeeRate": 0.001,
+                                "trading": true,
+                                "vol": 1959.8542395,
+                                "volValue": 125097404.47479571
+                            }
+                        }
+                    }
+                ],
+                "httpResponse": {
+                    "code": "200000",
+                    "data": {
+                        "token": "2neAiuYvAU61ZDXANAGAsiL4-iAExhsBXZxftpOeh_55i3Ysy2q2LEsEWU64mdzUOPusi34M_wGoSf7iNyEWJzoIzZJnjIKiLZ5VZBUNpIpQoAfPzdEMW9iYB9J6i9GjsxUuhPw3Blq6rhZlGykT3Vp1phUafnulOOpts-MEmEFR6Xrkya49OEo_Zh7-a-avJBvJHl5Vs9Y=.H7utp2tEFTlUxD7fVkk_vQ==",
+                        "instanceServers": [
+                            {
+                                "endpoint": "wss://ws-api-spot.kucoin.com/",
+                                "encrypt": true,
+                                "protocol": "websocket",
+                                "pingInterval": 18000,
+                                "pingTimeout": 10000
+                            }
+                        ]
+                    }
+                },
+                "sentMessages": [
+                    {
+                        "id": "1",
+                        "type": "subscribe",
+                        "topic": "/market/snapshot:BTC-USDT",
+                        "response": true
+                    }
+                ],
+                "parsedResponses": [
+                    {
+                        "symbol": "BTC/USDT",
+                        "timestamp": 1786538851527,
+                        "datetime": "2026-08-12T12:47:31.527Z",
+                        "high": 64473.3,
+                        "low": 63237.4,
+                        "bid": 64018.6,
+                        "bidVolume": null,
+                        "ask": 64018.7,
+                        "askVolume": null,
+                        "vwap": 63829.95324525292,
+                        "open": 64323.2,
+                        "close": 64018.7,
+                        "last": 64018.7,
+                        "previousClose": null,
+                        "change": -304.5,
+                        "percentage": -0.47,
+                        "average": 64046.97496029,
+                        "baseVolume": 1959.8542395,
+                        "quoteVolume": 125097404.47479571,
+                        "markPrice": null,
+                        "indexPrice": null,
+                        "info": {
+                            "askSize": 0.03877826,
+                            "averagePrice": 64046.97496029,
+                            "baseCurrency": "BTC",
+                            "bidSize": 0.95478999,
+                            "board": 1,
+                            "buy": 64018.6,
+                            "changePrice": -304.5,
+                            "changeRate": -0.0047,
+                            "close": 64018.7,
+                            "datetime": 1786538851527,
+                            "high": 64473.3,
+                            "lastSize": 0.00212856,
+                            "lastTradedPrice": 64018.7,
+                            "low": 63237.4,
+                            "makerCoefficient": 1,
+                            "makerFeeRate": 0.001,
+                            "marginTrade": true,
+                            "mark": 0,
+                            "market": "USDS",
+                            "marketChange1h": {
+                                "changePrice": -180.1,
+                                "changeRate": -0.0028,
+                                "high": 64473.3,
+                                "low": 63990,
+                                "open": 64198.8,
+                                "vol": 250.43262502,
+                                "volValue": 16087254.031294078
+                            },
+                            "marketChange24h": {
+                                "changePrice": -304.5,
+                                "changeRate": -0.0047,
+                                "high": 64473.3,
+                                "low": 63237.4,
+                                "open": 64323.2,
+                                "vol": 1959.8542395,
+                                "volValue": 125097404.47479571
+                            },
+                            "marketChange4h": {
+                                "changePrice": 223.9,
+                                "changeRate": 0.0035,
+                                "high": 64473.3,
+                                "low": 63764.3,
+                                "open": 63794.8,
+                                "vol": 543.28205932,
+                                "volValue": 34844628.33352767
+                            },
+                            "markets": [
+                                "USDS",
+                                "Majors",
+                                "PoW",
+                                "Layer1"
+                            ],
+                            "open": 64323.2,
+                            "quoteCurrency": "USDT",
+                            "sell": 64018.7,
+                            "sequence": "35487584851",
+                            "siteTypes": [
+                                "global"
+                            ],
+                            "sort": 100,
+                            "symbol": "BTC-USDT",
+                            "symbolCode": "BTC-USDT",
+                            "takerCoefficient": 1,
+                            "takerFeeRate": 0.001,
+                            "trading": true,
+                            "vol": 1959.8542395,
+                            "volValue": 125097404.47479571
+                        }
+                    },
+                    {
+                        "symbol": "BTC/USDT",
+                        "timestamp": 1786538852774,
+                        "datetime": "2026-08-12T12:47:32.774Z",
+                        "high": 64473.3,
+                        "low": 63237.4,
+                        "bid": 64021.9,
+                        "bidVolume": null,
+                        "ask": 64022,
+                        "askVolume": null,
+                        "vwap": 63829.95324525292,
+                        "open": 64323.2,
+                        "close": 64021.9,
+                        "last": 64021.9,
+                        "previousClose": null,
+                        "change": -301.3,
+                        "percentage": -0.46,
+                        "average": 64046.97496029,
+                        "baseVolume": 1959.8542395,
+                        "quoteVolume": 125097404.47479571,
+                        "markPrice": null,
+                        "indexPrice": null,
+                        "info": {
+                            "askSize": 0.01084449,
+                            "averagePrice": 64046.97496029,
+                            "baseCurrency": "BTC",
+                            "bidSize": 1.15610712,
+                            "board": 1,
+                            "buy": 64021.9,
+                            "changePrice": -301.3,
+                            "changeRate": -0.0046,
+                            "close": 64021.9,
+                            "datetime": 1786538852774,
+                            "high": 64473.3,
+                            "lastSize": 1.565e-05,
+                            "lastTradedPrice": 64021.9,
+                            "low": 63237.4,
+                            "makerCoefficient": 1,
+                            "makerFeeRate": 0.001,
+                            "marginTrade": true,
+                            "mark": 0,
+                            "market": "USDS",
+                            "marketChange1h": {
+                                "changePrice": -176.9,
+                                "changeRate": -0.0027,
+                                "high": 64473.3,
+                                "low": 63990,
+                                "open": 64198.8,
+                                "vol": 250.43262502,
+                                "volValue": 16087254.031294078
+                            },
+                            "marketChange24h": {
+                                "changePrice": -301.3,
+                                "changeRate": -0.0046,
+                                "high": 64473.3,
+                                "low": 63237.4,
+                                "open": 64323.2,
+                                "vol": 1959.8542395,
+                                "volValue": 125097404.47479571
+                            },
+                            "marketChange4h": {
+                                "changePrice": 227.1,
+                                "changeRate": 0.0035,
+                                "high": 64473.3,
+                                "low": 63764.3,
+                                "open": 63794.8,
+                                "vol": 543.28205932,
+                                "volValue": 34844628.33352767
+                            },
+                            "markets": [
+                                "USDS",
+                                "Majors",
+                                "PoW",
+                                "Layer1"
+                            ],
+                            "open": 64323.2,
+                            "quoteCurrency": "USDT",
+                            "sell": 64022,
+                            "sequence": "35487585646",
+                            "siteTypes": [
+                                "global"
+                            ],
+                            "sort": 100,
+                            "symbol": "BTC-USDT",
+                            "symbolCode": "BTC-USDT",
+                            "takerCoefficient": 1,
+                            "takerFeeRate": 0.001,
+                            "trading": true,
+                            "vol": 1959.8542395,
+                            "volValue": 125097404.47479571
+                        }
+                    }
+                ],
+                "disabledGO": "go derives a different ws url than the recorded fixture url so the mock transport is bypassed and the client connects live - go kucoin url negotiation parity, investigate separately",
+                "disabledJava": "java: watchTicker missing on kucoinfutures (falls to base NotSupported) and the kucoin ws url negotiation can bypass the mock and connect live, keeping the jvm alive - investigate separately"
+            }
+        ],
+        "watchOHLCV": [
+            {
+                "description": "spot ohlcv 1m",
+                "input": [
+                    "BTC/USDT",
+                    "1m"
+                ],
+                "url": "wss://ws-api-spot.kucoin.com/?token=2neAiuYvAU61ZDXANAGAsiL4-iAExhsBXZxftpOeh_55i3Ysy2q2LEsEWU64mdzUOPusi34M_wGoSf7iNyEWJ7eD3vHHvMtsSSR1xz0zbtH0f8yZjGWUZtiYB9J6i9GjsxUuhPw3Blq6rhZlGykT3Vp1phUafnulOOpts-MEmEFR6Xrkya49OE1mNxBO7po2JBvJHl5Vs9Y%3D.8Yrcv387DJm3k5NQquwIAA%3D%3D&privateChannel=false&connectId=public",
+                "messages": [
+                    {
+                        "id": "public",
+                        "type": "welcome"
+                    },
+                    {
+                        "id": "1",
+                        "type": "ack"
+                    },
+                    {
+                        "topic": "/market/candles:BTC-USDT_1min",
+                        "type": "message",
+                        "subject": "trade.candles.update",
+                        "data": {
+                            "symbol": "BTC-USDT",
+                            "candles": [
+                                "1786538820",
+                                "64027.7",
+                                "63990",
+                                "64027.7",
+                                "63990",
+                                "0.47979651",
+                                "30713.031723608"
+                            ],
+                            "time": 1786538835995909000
+                        }
+                    },
+                    {
+                        "topic": "/market/candles:BTC-USDT_1min",
+                        "type": "message",
+                        "subject": "trade.candles.update",
+                        "data": {
+                            "symbol": "BTC-USDT",
+                            "candles": [
+                                "1786538820",
+                                "64027.7",
+                                "63990.1",
+                                "64027.7",
+                                "63990",
+                                "0.48029316",
+                                "30744.812406773"
+                            ],
+                            "time": 1786538836088928000
+                        }
+                    }
+                ],
+                "httpResponse": {
+                    "code": "200000",
+                    "data": {
+                        "token": "2neAiuYvAU61ZDXANAGAsiL4-iAExhsBXZxftpOeh_55i3Ysy2q2LEsEWU64mdzUOPusi34M_wGoSf7iNyEWJ7eD3vHHvMtsSSR1xz0zbtH0f8yZjGWUZtiYB9J6i9GjsxUuhPw3Blq6rhZlGykT3Vp1phUafnulOOpts-MEmEFR6Xrkya49OE1mNxBO7po2JBvJHl5Vs9Y=.8Yrcv387DJm3k5NQquwIAA==",
+                        "instanceServers": [
+                            {
+                                "endpoint": "wss://ws-api-spot.kucoin.com/",
+                                "encrypt": true,
+                                "protocol": "websocket",
+                                "pingInterval": 18000,
+                                "pingTimeout": 10000
+                            }
+                        ]
+                    }
+                },
+                "sentMessages": [
+                    {
+                        "id": "1",
+                        "type": "subscribe",
+                        "topic": "/market/candles:BTC-USDT_1min",
+                        "response": true
+                    }
+                ],
+                "parsedResponses": [
+                    [
+                        [
+                            1786538820000,
+                            64027.7,
+                            64027.7,
+                            63990,
+                            63990,
+                            0.47979651
+                        ]
+                    ],
+                    [
+                        [
+                            1786538820000,
+                            64027.7,
+                            64027.7,
+                            63990,
+                            63990.1,
+                            0.48029316
+                        ]
+                    ]
+                ],
+                "disabledGO": "go derives a different ws url than the recorded fixture url so the mock transport is bypassed and the client connects live - go kucoin url negotiation parity, investigate separately",
+                "disabledJava": "java: watchTicker missing on kucoinfutures (falls to base NotSupported) and the kucoin ws url negotiation can bypass the mock and connect live, keeping the jvm alive - investigate separately"
+            }
+        ],
+        "watchTrades": [
+            {
+                "description": "spot trades",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "url": "wss://ws-api-spot.kucoin.com/?token=2neAiuYvAU61ZDXANAGAsiL4-iAExhsBXZxftpOeh_55i3Ysy2q2LEsEWU64mdzUOPusi34M_wGoSf7iNyEWJ_fLF3RQpH5mAF3IPGwCU-UJ3Jz5Qtc3IdiYB9J6i9GjsxUuhPw3Blq6rhZlGykT3Vp1phUafnulOOpts-MEmEFR6Xrkya49ODJoFXS6GR0TJBvJHl5Vs9Y%3D.JkXczmuzKqG39M0Yl40N_Q%3D%3D&privateChannel=false&connectId=public",
+                "messages": [
+                    {
+                        "id": "public",
+                        "type": "welcome"
+                    },
+                    {
+                        "id": "1",
+                        "type": "ack"
+                    },
+                    {
+                        "topic": "/market/match:BTC-USDT",
+                        "type": "message",
+                        "subject": "trade.l3match",
+                        "data": {
+                            "makerOrderId": "476999776659865600",
+                            "price": "64024.4",
+                            "sequence": "23898084682776576",
+                            "side": "sell",
+                            "size": "0.003",
+                            "symbol": "BTC-USDT",
+                            "takerOrderId": "476999819110465538",
+                            "time": "1786538821105000000",
+                            "tradeId": "23898084682776576",
+                            "type": "match"
+                        }
+                    },
+                    {
+                        "topic": "/market/match:BTC-USDT",
+                        "type": "message",
+                        "subject": "trade.l3match",
+                        "data": {
+                            "makerOrderId": "6a7c6b44e1328b00077b8d81",
+                            "price": "64024.4",
+                            "sequence": "23898084682776577",
+                            "side": "sell",
+                            "size": "0.00309956",
+                            "symbol": "BTC-USDT",
+                            "takerOrderId": "476999819110465538",
+                            "time": "1786538821105000000",
+                            "tradeId": "23898084682776577",
+                            "type": "match"
+                        }
+                    }
+                ],
+                "httpResponse": {
+                    "code": "200000",
+                    "data": {
+                        "token": "2neAiuYvAU61ZDXANAGAsiL4-iAExhsBXZxftpOeh_55i3Ysy2q2LEsEWU64mdzUOPusi34M_wGoSf7iNyEWJ_fLF3RQpH5mAF3IPGwCU-UJ3Jz5Qtc3IdiYB9J6i9GjsxUuhPw3Blq6rhZlGykT3Vp1phUafnulOOpts-MEmEFR6Xrkya49ODJoFXS6GR0TJBvJHl5Vs9Y=.JkXczmuzKqG39M0Yl40N_Q==",
+                        "instanceServers": [
+                            {
+                                "endpoint": "wss://ws-api-spot.kucoin.com/",
+                                "encrypt": true,
+                                "protocol": "websocket",
+                                "pingInterval": 18000,
+                                "pingTimeout": 10000
+                            }
+                        ]
+                    }
+                },
+                "sentMessages": [
+                    {
+                        "id": "1",
+                        "type": "subscribe",
+                        "topic": "/market/match:BTC-USDT",
+                        "response": true
+                    }
+                ],
+                "parsedResponses": [
+                    [
+                        {
+                            "info": {
+                                "makerOrderId": "476999776659865600",
+                                "price": "64024.4",
+                                "sequence": "23898084682776576",
+                                "side": "sell",
+                                "size": "0.003",
+                                "symbol": "BTC-USDT",
+                                "takerOrderId": "476999819110465538",
+                                "time": "1786538821105000000",
+                                "tradeId": "23898084682776576",
+                                "type": "match"
+                            },
+                            "id": "23898084682776576",
+                            "order": null,
+                            "timestamp": 1786538821105,
+                            "datetime": "2026-08-12T12:47:01.105Z",
+                            "symbol": "BTC/USDT",
+                            "type": null,
+                            "takerOrMaker": null,
+                            "side": "sell",
+                            "price": 64024.4,
+                            "amount": 0.003,
+                            "cost": 192.0732,
+                            "fee": {
+                                "cost": null,
+                                "currency": null
+                            },
+                            "fees": []
+                        }
+                    ],
+                    [
+                        {
+                            "info": {
+                                "makerOrderId": "6a7c6b44e1328b00077b8d81",
+                                "price": "64024.4",
+                                "sequence": "23898084682776577",
+                                "side": "sell",
+                                "size": "0.00309956",
+                                "symbol": "BTC-USDT",
+                                "takerOrderId": "476999819110465538",
+                                "time": "1786538821105000000",
+                                "tradeId": "23898084682776577",
+                                "type": "match"
+                            },
+                            "id": "23898084682776577",
+                            "order": null,
+                            "timestamp": 1786538821105,
+                            "datetime": "2026-08-12T12:47:01.105Z",
+                            "symbol": "BTC/USDT",
+                            "type": null,
+                            "takerOrMaker": null,
+                            "side": "sell",
+                            "price": 64024.4,
+                            "amount": 0.00309956,
+                            "cost": 198.447469264,
+                            "fee": {
+                                "cost": null,
+                                "currency": null
+                            },
+                            "fees": []
+                        }
+                    ]
+                ],
+                "disabledGO": "go derives a different ws url than the recorded fixture url so the mock transport is bypassed and the client connects live - go kucoin url negotiation parity, investigate separately",
+                "disabledJava": "java: watchTicker missing on kucoinfutures (falls to base NotSupported) and the kucoin ws url negotiation can bypass the mock and connect live, keeping the jvm alive - investigate separately"
+            }
+        ],
+        "watchOrderBook": [
+            {
+                "description": "spot orderbook depth 5",
+                "input": [
+                    "BTC/USDT",
+                    5
+                ],
+                "url": "wss://ws-api-spot.kucoin.com/?token=2neAiuYvAU61ZDXANAGAsiL4-iAExhsBXZxftpOeh_55i3Ysy2q2LEsEWU64mdzUOPusi34M_wGoSf7iNyEWJx6wuOfBCWe_t1RWY4nQoWn2rlFx-VAHA9iYB9J6i9GjsxUuhPw3Blq6rhZlGykT3Vp1phUafnulOOpts-MEmEFR6Xrkya49OKKY5w5SvXqIJBvJHl5Vs9Y%3D.XtuE3erb5g_xLk26lKVakg%3D%3D&privateChannel=false&connectId=public",
+                "messages": [
+                    {
+                        "id": "public",
+                        "type": "welcome"
+                    },
+                    {
+                        "id": "1",
+                        "type": "ack"
+                    },
+                    {
+                        "topic": "/spotMarket/level2Depth5:BTC-USDT",
+                        "type": "message",
+                        "subject": "level2",
+                        "data": {
+                            "asks": [
+                                [
+                                    "64000.5",
+                                    "0.70564944"
+                                ],
+                                [
+                                    "64000.7",
+                                    "0.02430127"
+                                ],
+                                [
+                                    "64000.8",
+                                    "0.07400798"
+                                ],
+                                [
+                                    "64000.9",
+                                    "0.03335195"
+                                ],
+                                [
+                                    "64001",
+                                    "0.12396889"
+                                ]
+                            ],
+                            "bids": [
+                                [
+                                    "64000.4",
+                                    "0.00933991"
+                                ],
+                                [
+                                    "64000",
+                                    "0.09656082"
+                                ],
+                                [
+                                    "63999.8",
+                                    "0.0004279"
+                                ],
+                                [
+                                    "63999.7",
+                                    "0.00001846"
+                                ],
+                                [
+                                    "63999.6",
+                                    "0.00760596"
+                                ]
+                            ],
+                            "timestamp": 1786538806073
+                        }
+                    },
+                    {
+                        "topic": "/spotMarket/level2Depth5:BTC-USDT",
+                        "type": "message",
+                        "subject": "level2",
+                        "data": {
+                            "asks": [
+                                [
+                                    "64000.5",
+                                    "0.70564944"
+                                ],
+                                [
+                                    "64000.7",
+                                    "0.02430127"
+                                ],
+                                [
+                                    "64000.8",
+                                    "0.07400798"
+                                ],
+                                [
+                                    "64000.9",
+                                    "0.03335195"
+                                ],
+                                [
+                                    "64001",
+                                    "0.12396889"
+                                ]
+                            ],
+                            "bids": [
+                                [
+                                    "64000.4",
+                                    "0.00909788"
+                                ],
+                                [
+                                    "64000",
+                                    "0.09656082"
+                                ],
+                                [
+                                    "63999.8",
+                                    "0.0004279"
+                                ],
+                                [
+                                    "63999.7",
+                                    "0.00001846"
+                                ],
+                                [
+                                    "63999.6",
+                                    "0.00760596"
+                                ]
+                            ],
+                            "timestamp": 1786538806180
+                        }
+                    }
+                ],
+                "httpResponse": {
+                    "code": "200000",
+                    "data": {
+                        "token": "2neAiuYvAU61ZDXANAGAsiL4-iAExhsBXZxftpOeh_55i3Ysy2q2LEsEWU64mdzUOPusi34M_wGoSf7iNyEWJx6wuOfBCWe_t1RWY4nQoWn2rlFx-VAHA9iYB9J6i9GjsxUuhPw3Blq6rhZlGykT3Vp1phUafnulOOpts-MEmEFR6Xrkya49OKKY5w5SvXqIJBvJHl5Vs9Y=.XtuE3erb5g_xLk26lKVakg==",
+                        "instanceServers": [
+                            {
+                                "endpoint": "wss://ws-api-spot.kucoin.com/",
+                                "encrypt": true,
+                                "protocol": "websocket",
+                                "pingInterval": 18000,
+                                "pingTimeout": 10000
+                            }
+                        ]
+                    }
+                },
+                "sentMessages": [
+                    {
+                        "id": "1",
+                        "type": "subscribe",
+                        "topic": "/spotMarket/level2Depth5:BTC-USDT",
+                        "response": true
+                    }
+                ],
+                "parsedResponses": [
+                    {
+                        "bids": [
+                            [
+                                64000.4,
+                                0.00933991
+                            ],
+                            [
+                                64000,
+                                0.09656082
+                            ],
+                            [
+                                63999.8,
+                                0.0004279
+                            ],
+                            [
+                                63999.7,
+                                1.846e-05
+                            ],
+                            [
+                                63999.6,
+                                0.00760596
+                            ]
+                        ],
+                        "asks": [
+                            [
+                                64000.5,
+                                0.70564944
+                            ],
+                            [
+                                64000.7,
+                                0.02430127
+                            ],
+                            [
+                                64000.8,
+                                0.07400798
+                            ],
+                            [
+                                64000.9,
+                                0.03335195
+                            ],
+                            [
+                                64001,
+                                0.12396889
+                            ]
+                        ],
+                        "timestamp": 1786538806073,
+                        "datetime": "2026-08-12T12:46:46.073Z",
+                        "nonce": 1786538806073,
+                        "symbol": "BTC/USDT"
+                    },
+                    {
+                        "bids": [
+                            [
+                                64000.4,
+                                0.00909788
+                            ],
+                            [
+                                64000,
+                                0.09656082
+                            ],
+                            [
+                                63999.8,
+                                0.0004279
+                            ],
+                            [
+                                63999.7,
+                                1.846e-05
+                            ],
+                            [
+                                63999.6,
+                                0.00760596
+                            ]
+                        ],
+                        "asks": [
+                            [
+                                64000.5,
+                                0.70564944
+                            ],
+                            [
+                                64000.7,
+                                0.02430127
+                            ],
+                            [
+                                64000.8,
+                                0.07400798
+                            ],
+                            [
+                                64000.9,
+                                0.03335195
+                            ],
+                            [
+                                64001,
+                                0.12396889
+                            ]
+                        ],
+                        "timestamp": 1786538806180,
+                        "datetime": "2026-08-12T12:46:46.180Z",
+                        "nonce": 1786538806180,
+                        "symbol": "BTC/USDT"
+                    }
+                ],
+                "disabledGO": "go derives a different ws url than the recorded fixture url so the mock transport is bypassed and the client connects live - go kucoin url negotiation parity, investigate separately",
+                "disabledJava": "java: watchTicker missing on kucoinfutures (falls to base NotSupported) and the kucoin ws url negotiation can bypass the mock and connect live, keeping the jvm alive - investigate separately"
+            }
+        ]
+    }
+}

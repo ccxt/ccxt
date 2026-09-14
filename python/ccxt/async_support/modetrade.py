@@ -5,8 +5,7 @@
 
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.modetrade import ImplicitAPI
-from ccxt.base.types import Any, Balances, Currencies, Currency, CurrencyInterface, Int, LedgerEntry, Leverage, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Status, Str, Strings, FundingRate, FundingRates, Trade, TradingFees, Transaction
-from typing import List
+from ccxt.base.types import Balances, Currencies, Currency, CurrencyInterface, Int, LedgerEntry, Leverage, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Status, Str, Strings, FundingRate, FundingRates, Trade, TradingFees, Transaction
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
@@ -22,7 +21,7 @@ from ccxt.base.precise import Precise
 
 class modetrade(Exchange, ImplicitAPI):
 
-    def describe(self) -> Any:
+    def describe(self) -> object:
         return self.deep_extend(super(modetrade, self).describe(), {
             'id': 'modetrade',
             'name': 'Mode Trade',
@@ -143,6 +142,9 @@ class modetrade(Exchange, ImplicitAPI):
                     'private': 'https://testnet-api-evm.orderly.org',
                 },
                 'www': 'https://trade.mode.network',
+                'doc': [
+                    'https://orderly.network/docs/build-on-omnichain/building-on-omnichain',
+                ],
                 'referral': {
                     'url': 'https://trade.mode.network?ref=MODETRADE',
                     'discount': 0.2,
@@ -189,6 +191,7 @@ class modetrade(Exchange, ImplicitAPI):
                             'tv/config': {'cost': 1},
                             'tv/history': {'cost': 1},
                             'tv/symbol_info': {'cost': 1},
+                            'tv/kline_history': {'cost': 20},
                             'public/funding_rate_history': {'cost': 1},
                             'public/funding_rate/{symbol}': {'cost': 0.33},
                             'public/funding_rates': {'cost': 1},
@@ -201,6 +204,7 @@ class modetrade(Exchange, ImplicitAPI):
                         },
                         'post': {
                             'register_account': {'cost': 1},
+                            'public/query': {'cost': 1},
                         },
                     },
                     'private': {
@@ -223,6 +227,7 @@ class modetrade(Exchange, ImplicitAPI):
                             'withdraw_nonce': {'cost': 1},
                             'settle_nonce': {'cost': 1},
                             'pnl_settlement/history': {'cost': 1},
+                            'internal_transfer_history': {'cost': 1},
                             'volume/user/daily': {'cost': 60},
                             'volume/user/stats': {'cost': 60},
                             'client/statistics': {'cost': 60},
@@ -236,8 +241,20 @@ class modetrade(Exchange, ImplicitAPI):
                             'volume/broker/daily': {'cost': 60},
                             'broker/fee_rate/default': {'cost': 10},
                             'broker/user_info': {'cost': 10},
+                            'broker/daily_fee_revenue': {'cost': 1},
                             'orderbook/{symbol}': {'cost': 1},
                             'kline': {'cost': 1},
+                            'client/leverages': {'cost': 1},
+                            'client/margin_modes': {'cost': 1},
+                            'referral/multi_level/admin': {'cost': 10},
+                            'referral/multi_level/admin/info': {'cost': 1},
+                            'referral/multi_level/admin/referee_list': {'cost': 1},
+                            'referral/multi_level/admin/summary': {'cost': 1},
+                            'referral/multi_level/max_rebate_rate': {'cost': 10},
+                            'referral/multi_level/rebate_info': {'cost': 10},
+                            'referral/multi_level/referee_list': {'cost': 1},
+                            'referral/multi_level/statistics': {'cost': 1},
+                            'referral/multi_level/volume_prerequisite': {'cost': 1},
                         },
                         'post': {
                             'orderly_key': {'cost': 1},
@@ -250,9 +267,13 @@ class modetrade(Exchange, ImplicitAPI):
                             'claim_insurance_fund': {'cost': 1},
                             'withdraw_request': {'cost': 1},
                             'settle_pnl': {'cost': 1},
+                            'internal_transfer': {'cost': 1},
                             'notification/inbox/mark_read': {'cost': 60},
                             'notification/inbox/mark_read_all': {'cost': 60},
                             'client/leverage': {'cost': 120},
+                            'client/leverages': {'cost': 120},
+                            'client/margin_mode': {'cost': 1},
+                            'position_margin': {'cost': 1},
                             'client/maintenance_config': {'cost': 60},
                             'delegate_signer': {'cost': 10},
                             'delegate_orderly_key': {'cost': 10},
@@ -265,6 +286,15 @@ class modetrade(Exchange, ImplicitAPI):
                             'referral/update': {'cost': 10},
                             'referral/bind': {'cost': 10},
                             'referral/edit_split': {'cost': 10},
+                            'referral/edit_referee_description': {'cost': 1},
+                            'referral/multi_level/admin': {'cost': 10},
+                            'referral/multi_level/admin/update': {'cost': 10},
+                            'referral/multi_level/admin/create/affiliate': {'cost': 1},
+                            'referral/multi_level/admin/reset/affiliate': {'cost': 10},
+                            'referral/multi_level/admin/update/affiliate': {'cost': 10},
+                            'referral/multi_level/claim_code': {'cost': 10},
+                            'referral/multi_level/rebate_rate/set_default': {'cost': 10},
+                            'referral/multi_level/rebate_rate/update': {'cost': 10},
                         },
                         'put': {
                             'order': {'cost': 1},
@@ -320,12 +350,12 @@ class modetrade(Exchange, ImplicitAPI):
                             'GTD': False,
                         },
                         'hedged': False,
-                        'trailing': True,
-                        'leverage': True,  # todo implement
+                        'trailing': False,
+                        'leverage': False,
                         'marketBuyByCost': False,
                         'marketBuyRequiresPrice': False,
                         'selfTradePrevention': False,
-                        'iceberg': True,  # todo implement
+                        'iceberg': False,
                     },
                     'createOrders': {
                         'max': 10,
@@ -350,7 +380,15 @@ class modetrade(Exchange, ImplicitAPI):
                         'trailing': False,
                         'symbolRequired': False,
                     },
-                    'fetchOrders': None,
+                    'fetchOrders': {
+                        'marginMode': False,
+                        'limit': 500,
+                        'daysBack': None,
+                        'untilDays': 100000,
+                        'trigger': True,
+                        'trailing': False,
+                        'symbolRequired': False,
+                    },
                     'fetchClosedOrders': {
                         'marginMode': False,
                         'limit': 500,
@@ -365,9 +403,7 @@ class modetrade(Exchange, ImplicitAPI):
                         'limit': 1000,
                     },
                 },
-                'spot': {
-                    'extends': 'default',
-                },
+                'spot': None,
                 'forDerivatives': {
                     'extends': 'default',
                     'createOrder': {
@@ -400,14 +436,14 @@ class modetrade(Exchange, ImplicitAPI):
                     '-1003': RateLimitExceeded,  # TOO_MANY_REQUEST Rate limit exceed.
                     '-1004': BadRequest,  # UNKNOWN_PARAM An unknown parameter was sent.
                     '-1005': BadRequest,  # INVALID_PARAM Some parameters are in wrong format for api.
-                    '-1006': InvalidOrder,  # RESOURCE_NOT_FOUND The data is not found in server. For example, when client try canceling a CANCELLED order, will raise self error.
+                    '-1006': InvalidOrder,  # RESOURCE_NOT_FOUND The data is not found in server. For example, when client try canceling a CANCELLED order, will raise this error.
                     '-1007': BadRequest,  # DUPLICATE_REQUEST The data is already exists or your request is duplicated.
                     '-1008': InvalidOrder,  # QUANTITY_TOO_HIGH The quantity of settlement is too high than you can request.
                     '-1009': InsufficientFunds,  # CAN_NOT_WITHDRAWAL Can not request withdrawal settlement, you need to deposit other arrears first.
                     '-1011': NetworkError,  # RPC_NOT_CONNECT Can not place/cancel orders, it may because internal network error. Please try again in a few seconds.
                     '-1012': BadRequest,  # RPC_REJECT The place/cancel order request is rejected by internal module, it may because the account is in liquidation or other internal errors. Please try again in a few seconds.
                     '-1101': InsufficientFunds,  # RISK_TOO_HIGH The risk exposure for client is too high, it may cause by sending too big order or the leverage is too low. please refer to client info to check the current exposure.
-                    '-1102': InvalidOrder,  # MIN_NOTIONAL The order value(price * size) is too small.
+                    '-1102': InvalidOrder,  # MIN_NOTIONAL The order value (price * size) is too small.
                     '-1103': InvalidOrder,  # PRICE_FILTER The order price is not following the tick size rule for the symbol.
                     '-1104': InvalidOrder,  # SIZE_FILTER The order quantity is not following the step size rule for the symbol.
                     '-1105': InvalidOrder,  # PERCENTAGE_FILTER Price is X% too high or X% too low from the mid price.
@@ -433,7 +469,7 @@ class modetrade(Exchange, ImplicitAPI):
         """
         the latest known information on the availability of the exchange API
 
-        https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-system-maintenance-status
+        https://orderly.network/docs/build-on-omnichain/restful-api/public/get-system-maintenance-status
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `status structure <https://docs.ccxt.com/?id=exchange-status-structure>`
@@ -441,7 +477,7 @@ class modetrade(Exchange, ImplicitAPI):
         response = await self.v1PublicGetPublicSystemInfo(params)
         #
         #     {
-        #         "success": True,
+        #         "success": true,
         #         "data": {
         #             "status": 0,
         #             "msg": "System is functioning properly."
@@ -469,7 +505,7 @@ class modetrade(Exchange, ImplicitAPI):
         """
         fetches the current integer timestamp in milliseconds from the exchange server
 
-        https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-system-maintenance-status
+        https://orderly.network/docs/build-on-omnichain/restful-api/public/get-system-maintenance-status
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int: the current integer timestamp in milliseconds from the exchange server
@@ -477,7 +513,7 @@ class modetrade(Exchange, ImplicitAPI):
         response = await self.v1PublicGetPublicSystemInfo(params)
         #
         #     {
-        #         "success": True,
+        #         "success": true,
         #         "data": {
         #             "status": 0,
         #             "msg": "System is functioning properly."
@@ -575,11 +611,11 @@ class modetrade(Exchange, ImplicitAPI):
             'info': market,
         })
 
-    async def fetch_markets(self, params={}) -> List[Market]:
+    async def fetch_markets(self, params={}) -> list[Market]:
         """
         retrieves data on all markets for modetrade
 
-        https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-available-symbols
+        https://orderly.network/docs/build-on-omnichain/restful-api/public/get-available-symbols
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
@@ -587,7 +623,7 @@ class modetrade(Exchange, ImplicitAPI):
         response = await self.v1PublicGetPublicInfo(params)
         #
         #   {
-        #     "success": True,
+        #     "success": true,
         #     "timestamp": 1702989203989,
         #     "data": {
         #       "rows": [
@@ -628,7 +664,7 @@ class modetrade(Exchange, ImplicitAPI):
         """
         fetches all available currencies on an exchange
 
-        https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-token-info
+        https://orderly.network/docs/build-on-omnichain/restful-api/public/get-supported-collateral-info
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an associative dictionary of currencies
@@ -636,7 +672,7 @@ class modetrade(Exchange, ImplicitAPI):
         response = await self.v1PublicGetPublicToken(params)
         #
         # {
-        #     "success": True,
+        #     "success": true,
         #     "timestamp": 1702989203989,
         #     "data": {
         #       "rows": [{
@@ -716,7 +752,7 @@ class modetrade(Exchange, ImplicitAPI):
             'info': rawCurrency,
         })
 
-    def parse_token_and_fee_temp(self, item: Any, feeTokenKey: Any, feeAmountKey: Any):
+    def parse_token_and_fee_temp(self, item: object, feeTokenKey: object, feeAmountKey: object):
         feeCost = self.safe_string(item, feeAmountKey)
         fee = None
         if feeCost is not None:
@@ -749,7 +785,7 @@ class modetrade(Exchange, ImplicitAPI):
         #         "side": "BUY",
         #         "executed_timestamp": "1641481113084",
         #         "order_id": "87001234",
-        #         "order_tag": "default", <-- self param only in "fetchOrderTrades"
+        #         "order_tag": "default", <-- this param only in "fetchOrderTrades"
         #         "executed_price": "1",
         #         "executed_quantity": "12",
         #         "fee_asset": "BTC",
@@ -791,11 +827,11 @@ class modetrade(Exchange, ImplicitAPI):
             'info': trade,
         }, market)
 
-    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
         """
         get the list of most recent trades for a particular symbol
 
-        https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-market-trades
+        https://orderly.network/docs/build-on-omnichain/restful-api/public/get-market-trades
 
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
@@ -814,7 +850,7 @@ class modetrade(Exchange, ImplicitAPI):
         response = await self.v1PublicGetPublicMarketTrades(self.extend(request, params))
         #
         # {
-        #     "success": True,
+        #     "success": true,
         #     "timestamp": 1702989203989,
         #     "data": {
         #       "rows": [{
@@ -831,7 +867,7 @@ class modetrade(Exchange, ImplicitAPI):
         rows = self.safe_list(data, 'rows', [])
         return self.parse_trades(rows, market, since, limit)
 
-    def parse_funding_rate(self, fundingRate: Any, market: Market = None) -> FundingRate:
+    def parse_funding_rate(self, fundingRate: object, market: Market = None) -> FundingRate:
         #
         #         {
         #             "symbol":"PERP_AAVE_USDT",
@@ -873,7 +909,7 @@ class modetrade(Exchange, ImplicitAPI):
             'interval': self.parse_funding_interval(millisecondsInterval),
         }
 
-    def parse_funding_interval(self, interval: Any):
+    def parse_funding_interval(self, interval: object):
         intervals = {
             '3600000': '1h',
             '14400000': '4h',
@@ -887,7 +923,7 @@ class modetrade(Exchange, ImplicitAPI):
         """
         fetch the current funding rate interval
 
-        https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-predicted-funding-rate-for-one-market
+        https://orderly.network/docs/build-on-omnichain/restful-api/public/get-predicted-funding-rate-for-one-market
 
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -899,7 +935,7 @@ class modetrade(Exchange, ImplicitAPI):
         """
         fetch the current funding rate
 
-        https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-predicted-funding-rate-for-one-market
+        https://orderly.network/docs/build-on-omnichain/restful-api/public/get-predicted-funding-rate-for-one-market
 
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -914,7 +950,7 @@ class modetrade(Exchange, ImplicitAPI):
         response = await self.v1PublicGetPublicFundingRateSymbol(self.extend(request, params))
         #
         # {
-        #     "success": True,
+        #     "success": true,
         #     "timestamp": 1702989203989,
         #     "data": {
         #         "symbol": "PERP_ETH_USDC",
@@ -934,7 +970,7 @@ class modetrade(Exchange, ImplicitAPI):
         """
         fetch the current funding rate for multiple markets
 
-        https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-predicted-funding-rates-for-all-markets
+        https://orderly.network/docs/build-on-omnichain/restful-api/public/get-predicted-funding-rates-for-all-markets
 
         :param str[] symbols: unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -946,7 +982,7 @@ class modetrade(Exchange, ImplicitAPI):
         response = await self.v1PublicGetPublicFundingRates(params)
         #
         # {
-        #     "success": True,
+        #     "success": true,
         #     "timestamp": 1702989203989,
         #     "data": {
         #       "rows": [{
@@ -969,7 +1005,7 @@ class modetrade(Exchange, ImplicitAPI):
         """
         fetches historical funding rate prices
 
-        https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-funding-rate-history-for-one-market
+        https://orderly.network/docs/build-on-omnichain/restful-api/public/get-funding-rate-history-for-one-market
 
         :param str symbol: unified symbol of the market to fetch the funding rate history for
         :param int [since]: timestamp in ms of the earliest funding rate to fetch
@@ -996,7 +1032,7 @@ class modetrade(Exchange, ImplicitAPI):
         response = await self.v1PublicGetPublicFundingRateHistory(self.extend(request, params))
         #
         # {
-        #     "success": True,
+        #     "success": true,
         #     "timestamp": 1702989203989,
         #     "data": {
         #       "rows": [{
@@ -1030,7 +1066,7 @@ class modetrade(Exchange, ImplicitAPI):
         sorted = self.sort_by(rates, 'timestamp')
         return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
 
-    def parse_income(self, income: Any, market: Market = None):
+    def parse_income(self, income: object, market: Market = None):
         #
         # {
         #         "symbol": "PERP_ETH_USDC",
@@ -1066,7 +1102,7 @@ class modetrade(Exchange, ImplicitAPI):
         """
         fetch the history of funding payments paid and received on self account
 
-        https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-funding-fee-history
+        https://orderly.network/docs/build-on-omnichain/restful-api/private/get-funding-fee-history
 
         :param str [symbol]: unified market symbol
         :param int [since]: the earliest time in ms to fetch funding history for
@@ -1097,7 +1133,7 @@ class modetrade(Exchange, ImplicitAPI):
         response = await self.v1PrivateGetFundingFeeHistory(self.extend(request, params))
         #
         # {
-        #     "success": True,
+        #     "success": true,
         #     "timestamp": 1702989203989,
         #     "data": {
         #         "meta": {
@@ -1126,7 +1162,7 @@ class modetrade(Exchange, ImplicitAPI):
         """
         fetch the trading fees for multiple markets
 
-        https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-account-information
+        https://orderly.network/docs/build-on-omnichain/restful-api/private/get-account-information
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/?id=fee-structure>` indexed by market symbols
@@ -1136,7 +1172,7 @@ class modetrade(Exchange, ImplicitAPI):
         response = await self.v1PrivateGetClientInfo(params)
         #
         # {
-        #     "success": True,
+        #     "success": true,
         #     "timestamp": 1702989203989,
         #     "data": {
         #         "account_id": "<string>",
@@ -1147,7 +1183,7 @@ class modetrade(Exchange, ImplicitAPI):
         #         "maker_fee_rate": 123,
         #         "futures_taker_fee_rate": 123,
         #         "futures_maker_fee_rate": 123,
-        #         "maintenance_cancel_orders": True,
+        #         "maintenance_cancel_orders": true,
         #         "imr_factor": {
         #             "PERP_BTC_USDC": 123,
         #             "PERP_ETH_USDC": 123,
@@ -1183,7 +1219,7 @@ class modetrade(Exchange, ImplicitAPI):
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
-        https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/orderbook-snapshot
+        https://orderly.network/docs/build-on-omnichain/restful-api/private/orderbook-snapshot
 
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
@@ -1202,7 +1238,7 @@ class modetrade(Exchange, ImplicitAPI):
         response = await self.v1PrivateGetOrderbookSymbol(self.extend(request, params))
         #
         # {
-        #     "success": True,
+        #     "success": true,
         #     "timestamp": 1702989203989,
         #     "data": {
         #       "asks": [{
@@ -1221,7 +1257,7 @@ class modetrade(Exchange, ImplicitAPI):
         timestamp = self.safe_integer(data, 'timestamp')
         return self.parse_order_book(data, symbol, timestamp, 'bids', 'asks', 'price', 'quantity')
 
-    def parse_ohlcv(self, ohlcv: Any, market: Market = None) -> list:
+    def parse_ohlcv(self, ohlcv: object, market: Market = None) -> list:
         return [
             self.safe_integer(ohlcv, 'start_timestamp'),
             self.safe_number(ohlcv, 'open'),
@@ -1231,10 +1267,10 @@ class modetrade(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 'volume'),
         ]
 
-    async def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> list[list]:
         """
 
-        https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-kline
+        https://orderly.network/docs/build-on-omnichain/restful-api/public/get-kline
 
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
@@ -1242,7 +1278,7 @@ class modetrade(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: max=1000, max=100 when since is defined and is less than(now - (999 * (timeframe in ms)))
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()
@@ -1257,7 +1293,7 @@ class modetrade(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         #
         # {
-        #     "success": True,
+        #     "success": true,
         #     "timestamp": 1702989203989,
         #     "data": {
         #       "rows": [{
@@ -1286,7 +1322,7 @@ class modetrade(Exchange, ImplicitAPI):
         # * cancelOrder
         # * fetchOrder
         # * fetchOrders
-        # isFromFetchOrder = ('order_tag' in order); TO_DO
+        # const isFromFetchOrder = ('order_tag' in order); TO_DO
         #
         # stop order after creating it:
         #   {
@@ -1306,7 +1342,7 @@ class modetrade(Exchange, ImplicitAPI):
         #       "algoType": "STOP_LOSS",
         #       "side": "BUY",
         #       "quantity": "0.1",
-        #       "isTriggered": False,
+        #       "isTriggered": false,
         #       "triggerPrice": "100",
         #       "triggerStatus": "USELESS",
         #       "type": "LIMIT",
@@ -1319,14 +1355,14 @@ class modetrade(Exchange, ImplicitAPI):
         #       "averageExecutedPrice": "0",
         #       "totalFee": "0",
         #       "feeAsset": '',
-        #       "reduceOnly": False,
+        #       "reduceOnly": false,
         #       "createdTime": "1686149609.744",
         #       "updatedTime": "1686149903.362"
         #   }
         #
         timestamp = self.safe_integer_n(order, ['timestamp', 'created_time', 'createdTime'])
         orderId = self.safe_string_n(order, ['order_id', 'orderId', 'algoOrderId'])
-        clientOrderId = self.omit_zero(self.safe_string_2(order, 'client_order_id', 'clientOrderId'))  # Somehow, self always returns 0 for limit order
+        clientOrderId = self.omit_zero(self.safe_string_2(order, 'client_order_id', 'clientOrderId'))  # Somehow, this always returns 0 for limit order
         marketId = self.safe_string(order, 'symbol')
         market = self.safe_market(marketId, market)
         symbol = market['symbol']
@@ -1351,7 +1387,7 @@ class modetrade(Exchange, ImplicitAPI):
         childOrders = self.safe_value(order, 'childOrders')
         if childOrders is not None:
             first = self.safe_value(childOrders, 0)
-            innerChildOrders = self.safe_value(first, 'childOrders', [])
+            innerChildOrders = self.safe_list(first, 'childOrders', [])
             innerChildOrdersLength = len(innerChildOrders)
             if innerChildOrdersLength > 0:
                 takeProfitOrder = self.safe_value(innerChildOrders, 0)
@@ -1416,7 +1452,7 @@ class modetrade(Exchange, ImplicitAPI):
             if status is None:
                 return None
             return self.safe_string(statuses, status, status)
-        return status
+        return None
 
     def parse_order_type(self, type: Str):
         types = {
@@ -1475,7 +1511,7 @@ class modetrade(Exchange, ImplicitAPI):
                 request['order_type'] = 'FOK'
             elif timeInForce == 'ioc':
                 request['order_type'] = 'IOC'
-        if reduceOnly:
+        if reduceOnly is True:
             request['reduce_only'] = reduceOnly
         if price is not None:
             request[priceKey] = self.price_to_precision(symbol, price)
@@ -1527,8 +1563,8 @@ class modetrade(Exchange, ImplicitAPI):
         """
         create a trade order
 
-        https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/create-order
-        https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/create-algo-order
+        https://orderly.network/docs/build-on-omnichain/restful-api/private/create-order
+        https://orderly.network/docs/build-on-omnichain/restful-api/private/create-algo-order
 
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
@@ -1541,8 +1577,11 @@ class modetrade(Exchange, ImplicitAPI):
         :param float [params.takeProfit.triggerPrice]: take profit trigger price
         :param dict [params.stopLoss]: *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered(perpetual swap markets only)
         :param float [params.stopLoss.triggerPrice]: stop loss trigger price
-        :param float [params.algoType]: 'STOP'or 'TP_SL' or 'POSITIONAL_TP_SL'
-        :param float [params.cost]: *spot market buy only* the quote quantity that can be used alternative for the amount
+        :param str [params.algoType]: 'STOP' or 'TP_SL' or 'POSITIONAL_TP_SL'
+        :param bool [params.reduceOnly]: True or False whether the order is reduce-only
+        :param bool [params.postOnly]: True or False whether the order is post-only
+        :param str [params.timeInForce]: 'IOC', 'FOK' or 'PO'
+        :param dict[] [params.childOrders]: *algo order only* a list of child orders passed through to the exchange
         :param str [params.clientOrderId]: a unique id for the order
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
@@ -1559,7 +1598,7 @@ class modetrade(Exchange, ImplicitAPI):
             response = await self.v1PrivatePostAlgoOrder(request)
             #
             # {
-            #     "success": True,
+            #     "success": true,
             #     "timestamp": 1702989203989,
             #     "data": {
             #       "order_id": 13,
@@ -1573,7 +1612,7 @@ class modetrade(Exchange, ImplicitAPI):
             response = await self.v1PrivatePostOrder(request)
             #
             # {
-            #     "success": True,
+            #     "success": true,
             #     "timestamp": 1702989203989,
             #     "data": {
             #       "order_id": 13,
@@ -1592,11 +1631,11 @@ class modetrade(Exchange, ImplicitAPI):
         order['type'] = type
         return order
 
-    async def create_orders(self, orders: List[OrderRequest], params={}):
+    async def create_orders(self, orders: list[OrderRequest], params={}):
         """
         *contract only* create a list of trade orders
 
-        https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/batch-create-order
+        https://orderly.network/docs/build-on-omnichain/restful-api/private/batch-create-order
 
         :param Array orders: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -1629,7 +1668,7 @@ class modetrade(Exchange, ImplicitAPI):
         response = await self.v1PrivatePostBatchOrder(self.extend(request, params))
         #
         #     {
-        #         "success": True,
+        #         "success": true,
         #         "timestamp": 1702989203988,
         #         "data": {
         #             "rows": [{
@@ -1652,8 +1691,8 @@ class modetrade(Exchange, ImplicitAPI):
         """
         edit a trade order
 
-        https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/edit-order
-        https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/edit-algo-order
+        https://orderly.network/docs/build-on-omnichain/restful-api/private/edit-order
+        https://orderly.network/docs/build-on-omnichain/restful-api/private/edit-algo-order
 
         :param str id: order id
         :param str symbol: unified symbol of the market to create an order in
@@ -1707,12 +1746,12 @@ class modetrade(Exchange, ImplicitAPI):
             params = self.omit(params, ['clOrdID', 'clientOrderId', 'client_order_id', 'postOnly', 'timeInForce'])
             if clientOrderId is not None:
                 request['client_order_id'] = clientOrderId
-            # request['side'] = side.upper()
-            # request['symbol'] = market['id']
+            # request['side'] = side.toUpperCase ();
+            # request['symbol'] = market['id'];
             response = await self.v1PrivatePutOrder(self.extend(request, params))
         #
         # {
-        #     "success": True,
+        #     "success": true,
         #     "timestamp": 1702989203989,
         #     "data": {
         #       "status": "EDIT_SENT"
@@ -1726,10 +1765,10 @@ class modetrade(Exchange, ImplicitAPI):
     async def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
 
-        https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/cancel-order
-        https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/cancel-order-by-client_order_id
-        https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/cancel-algo-order
-        https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/cancel-algo-order-by-client_order_id
+        https://orderly.network/docs/build-on-omnichain/restful-api/private/cancel-order
+        https://orderly.network/docs/build-on-omnichain/restful-api/private/cancel-order-by-client_order_id
+        https://orderly.network/docs/build-on-omnichain/restful-api/private/cancel-algo-order
+        https://orderly.network/docs/build-on-omnichain/restful-api/private/cancel-algo-order-by-client_order_id
 
         cancels an open order
         :param str id: order id
@@ -1741,7 +1780,7 @@ class modetrade(Exchange, ImplicitAPI):
         """
         trigger = self.safe_bool_2(params, 'stop', 'trigger', False)
         params = self.omit(params, ['stop', 'trigger'])
-        if not trigger and (symbol is None):
+        if (trigger is not True) and (symbol is None):
             raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
         if self.markets is None:
             await self.load_markets()
@@ -1755,7 +1794,7 @@ class modetrade(Exchange, ImplicitAPI):
         clientOrderIdExchangeSpecific = self.safe_string(params, 'client_order_id', clientOrderIdUnified)
         isByClientOrder = clientOrderIdExchangeSpecific is not None
         response: dict
-        if trigger:
+        if trigger is True:
             if isByClientOrder:
                 request['client_order_id'] = clientOrderIdExchangeSpecific
                 params = self.omit(params, ['clOrdID', 'clientOrderId', 'client_order_id'])
@@ -1773,7 +1812,7 @@ class modetrade(Exchange, ImplicitAPI):
                 response = await self.v1PrivateDeleteOrder(self.extend(request, params))
         #
         # {
-        #     "success": True,
+        #     "success": true,
         #     "timestamp": 1702989203988,
         #     "data": {
         #       "status": "CANCEL_SENT"
@@ -1781,7 +1820,7 @@ class modetrade(Exchange, ImplicitAPI):
         # }
         #
         # {
-        #     "success": True,
+        #     "success": true,
         #     "timestamp": 1702989203988,
         #     "status": "CANCEL_SENT"
         # }
@@ -1791,17 +1830,17 @@ class modetrade(Exchange, ImplicitAPI):
             extendParams['client_order_id'] = clientOrderIdExchangeSpecific
         else:
             extendParams['id'] = id
-        if trigger:
+        if trigger is True:
             return self.extend(self.parse_order(response), extendParams)
         data = self.safe_dict(response, 'data', {})
         return self.extend(self.parse_order(data), extendParams)
 
-    async def cancel_orders(self, ids: List[str], symbol: Str = None, params={}):
+    async def cancel_orders(self, ids: list[str], symbol: Str = None, params={}):
         """
         cancel multiple orders
 
-        https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/batch-cancel-orders
-        https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/batch-cancel-orders-by-client_order_id
+        https://orderly.network/docs/build-on-omnichain/restful-api/private/batch-cancel-orders
+        https://orderly.network/docs/build-on-omnichain/restful-api/private/batch-cancel-orders-by-client_order_id
 
         :param str[] ids: order ids
         :param str [symbol]: unified market symbol
@@ -1815,7 +1854,7 @@ class modetrade(Exchange, ImplicitAPI):
         params = self.omit(params, ['clOrdIDs', 'clientOrderIds', 'client_order_ids'])
         request = {}
         response = None
-        if clientOrderIds:
+        if clientOrderIds is not None:
             request['client_order_ids'] = ','.join(clientOrderIds)
             response = await self.v1PrivateDeleteClientBatchOrder(self.extend(request, params))
         else:
@@ -1823,7 +1862,7 @@ class modetrade(Exchange, ImplicitAPI):
             response = await self.v1PrivateDeleteBatchOrder(self.extend(request, params))
         #
         # {
-        #     "success": True,
+        #     "success": true,
         #     "timestamp": 1702989203989,
         #     "data": {
         #         "status": "CANCEL_ALL_SENT"
@@ -1837,8 +1876,8 @@ class modetrade(Exchange, ImplicitAPI):
     async def cancel_all_orders(self, symbol: Str = None, params={}):
         """
 
-        https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/cancel-all-pending-algo-orders
-        https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/cancel-orders-in-bulk
+        https://orderly.network/docs/build-on-omnichain/restful-api/private/cancel-all-pending-algo-orders
+        https://orderly.network/docs/build-on-omnichain/restful-api/private/cancel-all-pending-orders
 
         cancel all open orders in a market
         :param str [symbol]: unified market symbol
@@ -1855,19 +1894,19 @@ class modetrade(Exchange, ImplicitAPI):
             market = self.market(symbol)
             request['symbol'] = market['id']
         response = None
-        if trigger:
+        if trigger is True:
             response = await self.v1PrivateDeleteAlgoOrders(self.extend(request, params))
         else:
             response = await self.v1PrivateDeleteOrders(self.extend(request, params))
         # trigger
         # {
-        #     "success": True,
+        #     "success": true,
         #     "timestamp": 1702989203989,
         #      "status": "CANCEL_ALL_SENT"
         # }
         #
         # {
-        #     "success": True,
+        #     "success": true,
         #     "timestamp": 1702989203989,
         #     "data": {
         #       "status": "CANCEL_ALL_SENT"
@@ -1883,10 +1922,10 @@ class modetrade(Exchange, ImplicitAPI):
     async def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
 
-        https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-order-by-order_id
-        https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-order-by-client_order_id
-        https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-algo-order-by-order_id
-        https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-algo-order-by-client_order_id
+        https://orderly.network/docs/build-on-omnichain/restful-api/private/get-order-by-order_id
+        https://orderly.network/docs/build-on-omnichain/restful-api/private/get-order-by-client_order_id
+        https://orderly.network/docs/build-on-omnichain/restful-api/private/get-algo-order-by-order_id
+        https://orderly.network/docs/build-on-omnichain/restful-api/private/get-algo-order-by-client_order_id
 
         fetches information on an order made by the user
         :param str id: the order id
@@ -1906,15 +1945,15 @@ class modetrade(Exchange, ImplicitAPI):
         clientOrderId = self.safe_string_n(params, ['clOrdID', 'clientOrderId', 'client_order_id'])
         params = self.omit(params, ['stop', 'trigger', 'clOrdID', 'clientOrderId', 'client_order_id'])
         response = None
-        if trigger:
-            if clientOrderId:
+        if trigger is True:
+            if clientOrderId is not None and clientOrderId != '':
                 request['client_order_id'] = clientOrderId
                 response = await self.v1PrivateGetAlgoClientOrderClientOrderId(self.extend(request, params))
             else:
                 request['oid'] = id
                 response = await self.v1PrivateGetAlgoOrderOid(self.extend(request, params))
         else:
-            if clientOrderId:
+            if (clientOrderId is not None) and (clientOrderId != ''):
                 request['client_order_id'] = clientOrderId
                 response = await self.v1PrivateGetClientOrderClientOrderId(self.extend(request, params))
             else:
@@ -1922,7 +1961,7 @@ class modetrade(Exchange, ImplicitAPI):
                 response = await self.v1PrivateGetOrderOid(self.extend(request, params))
         #
         # {
-        #     "success": True,
+        #     "success": true,
         #     "timestamp": 1702989203989,
         #     "data": {
         #         "order_id": 78151,
@@ -1950,16 +1989,16 @@ class modetrade(Exchange, ImplicitAPI):
         orders = self.safe_dict(response, 'data', response)
         return self.parse_order(orders, market)
 
-    async def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    async def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         fetches information on multiple orders made by the user
 
-        https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-orders
-        https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-algo-orders
+        https://orderly.network/docs/build-on-omnichain/restful-api/private/get-orders
+        https://orderly.network/docs/build-on-omnichain/restful-api/private/get-algo-orders
 
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
-        :param int [limit]: the maximum number of order structures to retrieve
+        :param int [limit]: the maximum number of order structures to retrieve, max 500, or max 100 when params.trigger(or the legacy params.stop) is True
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.trigger]: whether the order is a stop/algo order
         :param boolean [params.is_triggered]: whether the order has been triggered(False by default)
@@ -1972,7 +2011,7 @@ class modetrade(Exchange, ImplicitAPI):
             await self.load_markets()
         paginate = False
         isTrigger = self.safe_bool_2(params, 'stop', 'trigger', False)
-        maxLimit = 100 if (isTrigger) else 500
+        maxLimit = 100 if (isTrigger is True) else 500
         paginate, params = self.handle_option_and_params(params, 'fetchOrders', 'paginate')
         if paginate:
             return await self.fetch_paginated_call_incremental('fetchOrders', symbol, since, limit, params, 'page', maxLimit)
@@ -1985,20 +2024,20 @@ class modetrade(Exchange, ImplicitAPI):
         if since is not None:
             request['start_t'] = since
         if limit is not None:
-            request['size'] = limit
+            request['size'] = min(limit, maxLimit)
         else:
             request['size'] = maxLimit
-        if isTrigger:
+        if isTrigger is True:
             request['algo_type'] = 'STOP'
         request, params = self.handle_until_option('end_t', request, params)
         response = None
-        if isTrigger:
+        if isTrigger is True:
             response = await self.v1PrivateGetAlgoOrders(self.extend(request, params))
         else:
             response = await self.v1PrivateGetOrders(self.extend(request, params))
         #
         #     {
-        #         "success": True,
+        #         "success": true,
         #         "timestamp": 1702989203989,
         #         "data": {
         #             "meta": {
@@ -2034,16 +2073,16 @@ class modetrade(Exchange, ImplicitAPI):
         orders = self.safe_list(data, 'rows', [])
         return self.parse_orders(orders, market, since, limit)
 
-    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         fetches information on multiple orders made by the user
 
-        https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-orders
-        https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-algo-orders
+        https://orderly.network/docs/build-on-omnichain/restful-api/private/get-orders
+        https://orderly.network/docs/build-on-omnichain/restful-api/private/get-algo-orders
 
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
-        :param int [limit]: the maximum number of order structures to retrieve
+        :param int [limit]: the maximum number of order structures to retrieve, max 500, or max 100 when params.trigger(or the legacy params.stop) is True
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.trigger]: whether the order is a stop/algo order
         :param boolean [params.is_triggered]: whether the order has been triggered(False by default)
@@ -2057,16 +2096,16 @@ class modetrade(Exchange, ImplicitAPI):
         extendedParams = self.extend(params, {'status': 'INCOMPLETE'})
         return await self.fetch_orders(symbol, since, limit, extendedParams)
 
-    async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         fetches information on multiple orders made by the user
 
-        https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-orders
-        https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-algo-orders
+        https://orderly.network/docs/build-on-omnichain/restful-api/private/get-orders
+        https://orderly.network/docs/build-on-omnichain/restful-api/private/get-algo-orders
 
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
-        :param int [limit]: the maximum number of order structures to retrieve
+        :param int [limit]: the maximum number of order structures to retrieve, max 500, or max 100 when params.trigger(or the legacy params.stop) is True
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.trigger]: whether the order is a stop/algo order
         :param boolean [params.is_triggered]: whether the order has been triggered(False by default)
@@ -2084,7 +2123,7 @@ class modetrade(Exchange, ImplicitAPI):
         """
         fetch all the trades made from a single order
 
-        https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-all-trades-of-specific-order
+        https://orderly.network/docs/build-on-omnichain/restful-api/private/get-all-trades-of-specific-order
 
         :param str id: order id
         :param str symbol: unified market symbol
@@ -2104,7 +2143,7 @@ class modetrade(Exchange, ImplicitAPI):
         response = await self.v1PrivateGetOrderOidTrades(self.extend(request, params))
         #
         # {
-        #     "success": True,
+        #     "success": true,
         #     "timestamp": 1702989203989,
         #     "data": {
         #       "rows": [{
@@ -2130,7 +2169,7 @@ class modetrade(Exchange, ImplicitAPI):
     async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
 
-        https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-trades
+        https://orderly.network/docs/build-on-omnichain/restful-api/private/get-trades
 
         fetch all trades made by the user
         :param str symbol: unified market symbol
@@ -2162,7 +2201,7 @@ class modetrade(Exchange, ImplicitAPI):
         response = await self.v1PrivateGetTrades(self.extend(request, params))
         #
         # {
-        #     "success": True,
+        #     "success": true,
         #     "timestamp": 1702989203989,
         #     "data": {
         #       "meta": {
@@ -2190,7 +2229,7 @@ class modetrade(Exchange, ImplicitAPI):
         trades = self.safe_list(data, 'rows', [])
         return self.parse_trades(trades, market, since, limit, params)
 
-    def parse_balance(self, response: Any) -> Balances:
+    def parse_balance(self, response: object) -> Balances:
         result = {
             'info': response,
         }
@@ -2209,7 +2248,7 @@ class modetrade(Exchange, ImplicitAPI):
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
 
-        https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-current-holding
+        https://orderly.network/docs/build-on-omnichain/restful-api/private/get-current-holding
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
@@ -2219,7 +2258,7 @@ class modetrade(Exchange, ImplicitAPI):
         response = await self.v1PrivateGetClientHolding(params)
         #
         # {
-        #     "success": True,
+        #     "success": true,
         #     "timestamp": 1702989203989,
         #     "data": {
         #       "holding": [{
@@ -2235,7 +2274,7 @@ class modetrade(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data')
         return self.parse_balance(data)
 
-    async def get_asset_history_rows(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> Any:
+    async def get_asset_history_rows(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> object:
         if self.markets is None:
             await self.load_markets()
         request = {}
@@ -2254,7 +2293,7 @@ class modetrade(Exchange, ImplicitAPI):
         response = await self.v1PrivateGetAssetHistory(self.extend(request, params))
         #
         # {
-        #     "success": True,
+        #     "success": true,
         #     "timestamp": 1702989203989,
         #     "data": {
         #       "meta": {
@@ -2307,18 +2346,18 @@ class modetrade(Exchange, ImplicitAPI):
             'info': item,
         }, currency)
 
-    def parse_ledger_entry_type(self, type: Any):
+    def parse_ledger_entry_type(self, type: object):
         types = {
             'BALANCE': 'transaction',  # Funds moved in/out wallet
             'COLLATERAL': 'transfer',  # Funds moved between portfolios
         }
         return self.safe_string(types, type, type)
 
-    async def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[LedgerEntry]:
+    async def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[LedgerEntry]:
         """
         fetch the history of changes, actions done by the user or operations that altered the balance of the user
 
-        https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-asset-history
+        https://orderly.network/docs/build-on-omnichain/restful-api/private/get-asset-history
 
         :param str [code]: unified currency code, default is None
         :param int [since]: timestamp in ms of the earliest ledger entry, default is None
@@ -2376,11 +2415,11 @@ class modetrade(Exchange, ImplicitAPI):
             return None
         return self.safe_string(statuses, status, status)
 
-    async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+    async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
         """
         fetch all deposits made to an account
 
-        https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-asset-history
+        https://orderly.network/docs/build-on-omnichain/restful-api/private/get-asset-history
 
         :param str code: unified currency code
         :param int [since]: the earliest time in ms to fetch deposits for
@@ -2393,11 +2432,11 @@ class modetrade(Exchange, ImplicitAPI):
         }
         return await self.fetch_deposits_withdrawals(code, since, limit, self.extend(request, params))
 
-    async def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+    async def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
         """
         fetch all withdrawals made from an account
 
-        https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-asset-history
+        https://orderly.network/docs/build-on-omnichain/restful-api/private/get-asset-history
 
         :param str code: unified currency code
         :param int [since]: the earliest time in ms to fetch withdrawals for
@@ -2410,11 +2449,11 @@ class modetrade(Exchange, ImplicitAPI):
         }
         return await self.fetch_deposits_withdrawals(code, since, limit, self.extend(request, params))
 
-    async def fetch_deposits_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+    async def fetch_deposits_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
         """
         fetch history of deposits and withdrawals
 
-        https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-asset-history
+        https://orderly.network/docs/build-on-omnichain/restful-api/private/get-asset-history
 
         :param str [code]: unified currency code for the currency of the deposit/withdrawals, default is None
         :param int [since]: timestamp in ms of the earliest deposit/withdrawal, default is None
@@ -2443,7 +2482,7 @@ class modetrade(Exchange, ImplicitAPI):
         response = await self.v1PrivateGetWithdrawNonce(params)
         #
         #     {
-        #         "success": True,
+        #         "success": true,
         #         "timestamp": 1702989203989,
         #         "data": {
         #             "withdraw_nonce": 1
@@ -2453,24 +2492,24 @@ class modetrade(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.safe_number(data, 'withdraw_nonce')
 
-    def hash_message(self, message: Any):
+    def hash_message(self, message: object):
         return '0x' + self.hash(message, 'keccak', 'hex')
 
-    def sign_hash(self, hash: Any, privateKey: Any):
+    def sign_hash(self, hash: object, privateKey: object):
         signature = self.ecdsa(hash[-64:], privateKey[-64:], 'secp256k1', None)
         r = signature['r']
         s = signature['s']
         v = self.int_to_base16(self.sum(27, signature['v']))
         return '0x' + r.rjust(64, '0') + s.rjust(64, '0') + v
 
-    def sign_message(self, message: Any, privateKey: Any):
+    def sign_message(self, message: object, privateKey: object):
         return self.sign_hash(self.hash_message(message), privateKey[-64:])
 
     async def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
         """
         make a withdrawal
 
-        https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/create-withdraw-request
+        https://orderly.network/docs/build-on-omnichain/restful-api/private/create-withdraw-request
 
         :param str code: unified currency code
         :param float amount: the amount to withdraw
@@ -2534,7 +2573,7 @@ class modetrade(Exchange, ImplicitAPI):
         response = await self.v1PrivatePostWithdrawRequest(self.extend(request, params))
         #
         #     {
-        #         "success": True,
+        #         "success": true,
         #         "timestamp": 1702989203989,
         #         "data": {
         #             "withdraw_id": 123
@@ -2558,7 +2597,7 @@ class modetrade(Exchange, ImplicitAPI):
         """
         fetch the set leverage for a market
 
-        https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-account-information
+        https://orderly.network/docs/build-on-omnichain/restful-api/private/get-account-information
 
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -2570,7 +2609,7 @@ class modetrade(Exchange, ImplicitAPI):
         response = await self.v1PrivateGetClientInfo(params)
         #
         # {
-        #     "success": True,
+        #     "success": true,
         #     "timestamp": 1702989203989,
         #     "data": {
         #         "account_id": "<string>",
@@ -2581,7 +2620,7 @@ class modetrade(Exchange, ImplicitAPI):
         #         "maker_fee_rate": 123,
         #         "futures_taker_fee_rate": 123,
         #         "futures_maker_fee_rate": 123,
-        #         "maintenance_cancel_orders": True,
+        #         "maintenance_cancel_orders": true,
         #         "imr_factor": {
         #             "PERP_BTC_USDC": 123,
         #             "PERP_ETH_USDC": 123,
@@ -2602,7 +2641,7 @@ class modetrade(Exchange, ImplicitAPI):
         """
         set the level of leverage for a market
 
-        https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/update-leverage-setting
+        https://orderly.network/docs/build-on-omnichain/restful-api/private/update-leverage-setting
 
         :param int [leverage]: the rate of leverage
         :param str [symbol]: unified market symbol
@@ -2692,7 +2731,7 @@ class modetrade(Exchange, ImplicitAPI):
     async def fetch_position(self, symbol: str, params={}):
         """
 
-        https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-one-position-info
+        https://orderly.network/docs/build-on-omnichain/restful-api/private/get-one-position-info
 
         fetch data on an open position
         :param str symbol: unified market symbol of the market the position is held in
@@ -2710,7 +2749,7 @@ class modetrade(Exchange, ImplicitAPI):
         response = await self.v1PrivateGetPositionSymbol(self.extend(request, params))
         #
         # {
-        #     "success": True,
+        #     "success": true,
         #     "timestamp": 1702989203989,
         #     "data": {
         #         "IMR_withdraw_orders": 0.1,
@@ -2737,11 +2776,11 @@ class modetrade(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.parse_position(data, market)
 
-    async def fetch_positions(self, symbols: Strings = None, params={}) -> List[Position]:
+    async def fetch_positions(self, symbols: Strings = None, params={}) -> list[Position]:
         """
         fetch all open positions
 
-        https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-all-positions-info
+        https://orderly.network/docs/build-on-omnichain/restful-api/private/get-all-positions-info
 
         :param str[] [symbols]: list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -2752,7 +2791,7 @@ class modetrade(Exchange, ImplicitAPI):
         response = await self.v1PrivateGetPositions(params)
         #
         # {
-        #     "success": True,
+        #     "success": true,
         #     "timestamp": 1702989203989,
         #     "data": {
         #         "current_margin_ratio_with_orders": 1.2385,
@@ -2795,7 +2834,7 @@ class modetrade(Exchange, ImplicitAPI):
     def nonce(self):
         return self.milliseconds()
 
-    def sign(self, path: Any, section='public', method='GET', params: dict = {}, headers: dict = None, body: Any = None):
+    def sign(self, path: object, section='public', method='GET', params: dict = {}, headers: dict = None, body: object = None):
         version = section[0]
         access = section[1]
         pathWithParams = self.implode_params(path, params)
@@ -2804,7 +2843,7 @@ class modetrade(Exchange, ImplicitAPI):
         params = self.keysort(params)
         if access == 'public':
             url += pathWithParams
-            if params:
+            if len(params) > 0:
                 url += '?' + self.urlencode(params)
         else:
             self.check_required_credentials()
@@ -2812,7 +2851,7 @@ class modetrade(Exchange, ImplicitAPI):
             isOrder = path == 'algo/order' or path == 'order' or path == 'batch-order'
             if isPostOrPut and isOrder:
                 isSandboxMode = self.safe_bool(self.options, 'sandboxMode', False)
-                if not isSandboxMode:
+                if isSandboxMode is not True:
                     brokerId = self.safe_string(self.options, 'brokerId', 'CCXTMODE')
                     if path == 'batch-order':
                         ordersList = self.safe_list(params, 'orders', [])
@@ -2838,7 +2877,7 @@ class modetrade(Exchange, ImplicitAPI):
                 auth += body
                 headers['content-type'] = 'application/json'
             else:
-                if params:
+                if len(params) > 0:
                     url += '?' + self.urlencode(params)
                     auth += '?' + self.rawencode(params)
                 headers['content-type'] = 'application/x-www-form-urlencoded'
@@ -2852,8 +2891,8 @@ class modetrade(Exchange, ImplicitAPI):
             headers['orderly-signature'] = self.urlencode_base64(self.base64_to_binary(signature))
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: Any, requestHeaders: Any, requestBody: Any):
-        if not response:
+    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
+        if (response is None) or (response is None):
             return None  # fallback to default error handler
         #
         #     400 Bad Request {"success":false,"code":-1012,"message":"Amount is required for buy market orders when margin disabled."}
@@ -2861,7 +2900,7 @@ class modetrade(Exchange, ImplicitAPI):
         #
         success = self.safe_bool(response, 'success')
         errorCode = self.safe_string(response, 'code')
-        if not success:
+        if success is not True:
             feedback = self.id + ' ' + self.json(response)
             self.throw_broadly_matched_exception(self.exceptions['broad'], body, feedback)
             self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)

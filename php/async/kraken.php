@@ -29,9 +29,9 @@ class kraken extends Exchange {
             'name' => 'Kraken',
             'countries' => array( 'US' ),
             'version' => '0',
-            // rate-limits => https://support.kraken.com/hc/en-us/articles/206548367-What-are-the-API-rate-limits-#1
-            // for public => 1 req/s
-            // for private => every second 0.33 weight added to your allowed capacity (some private endpoints need 1 weight, some need 2)
+            // rate-limits: https://support.kraken.com/hc/en-us/articles/206548367-What-are-the-API-rate-limits-#1
+            // for public: 1 req/s
+            // for private: every second 0.33 weight added to your allowed capacity (some private endpoints need 1 weight, some need 2)
             'rateLimit' => 1000,
             'certified' => false,
             'pro' => true,
@@ -172,6 +172,7 @@ class kraken extends Exchange {
                         // rate-limits explained in comment in the top of this file
                         'Time' => array( 'cost' => 1 ),
                         'SystemStatus' => array( 'cost' => 1 ),
+                        'MaintenanceSchedule' => array( 'cost' => 1 ),
                         'Assets' => array( 'cost' => 1 ),
                         'AssetPairs' => array( 'cost' => 1 ),
                         'Ticker' => array( 'cost' => 1 ),
@@ -207,6 +208,7 @@ class kraken extends Exchange {
                         'RetrieveExport' => array( 'cost' => 3 ),
                         'RemoveExport' => array( 'cost' => 3 ),
                         'GetApiKeyInfo' => array( 'cost' => 3 ),
+                        'ListWalletAccounts' => array( 'cost' => 3 ),
                         // trading
                         'AddOrder' => array( 'cost' => 0 ),
                         'AmendOrder' => array( 'cost' => 0 ),
@@ -542,14 +544,14 @@ class kraken extends Exchange {
             'rollingWindowSize' => 10000.0,  // https://docs.kraken.com/api/docs/guides/custody-rest-ratelimits
             'exceptions' => array(
                 'exact' => array(
-                    'EQuery:Invalid asset pair' => '\\ccxt\\BadSymbol', // array("error":["EQuery:Invalid asset pair"])
+                    'EQuery:Invalid asset pair' => '\\ccxt\\BadSymbol', // {"error":["EQuery:Invalid asset pair"]}
                     'EAPI:Invalid key' => '\\ccxt\\AuthenticationError',
-                    'EFunding:Unknown withdraw key' => '\\ccxt\\InvalidAddress', // array("error":["EFunding:Unknown withdraw key"])
+                    'EFunding:Unknown withdraw key' => '\\ccxt\\InvalidAddress', // {"error":["EFunding:Unknown withdraw key"]}
                     'EFunding:Invalid amount' => '\\ccxt\\InsufficientFunds',
                     'EService:Unavailable' => '\\ccxt\\ExchangeNotAvailable',
                     'EDatabase:Internal error' => '\\ccxt\\ExchangeNotAvailable',
                     'EService:Busy' => '\\ccxt\\ExchangeNotAvailable',
-                    'EQuery:Unknown asset' => '\\ccxt\\BadSymbol', // array("error":["EQuery:Unknown asset"])
+                    'EQuery:Unknown asset' => '\\ccxt\\BadSymbol', // {"error":["EQuery:Unknown asset"]}
                     'EAPI:Rate limit exceeded' => '\\ccxt\\DDoSProtection',
                     'EOrder:Rate limit exceeded' => '\\ccxt\\DDoSProtection',
                     'EGeneral:Internal error' => '\\ccxt\\ExchangeNotAvailable',
@@ -563,12 +565,12 @@ class kraken extends Exchange {
                     'EGeneral:Invalid arguments' => '\\ccxt\\BadRequest',
                     'ESession:Invalid session' => '\\ccxt\\AuthenticationError',
                     'EAPI:Invalid nonce' => '\\ccxt\\InvalidNonce',
-                    'EFunding:No funding method' => '\\ccxt\\BadRequest', // array("error":"EFunding:No funding method")
-                    'EFunding:Unknown asset' => '\\ccxt\\BadSymbol', // array("error":["EFunding:Unknown asset"])
-                    'EService:Market in post_only mode' => '\\ccxt\\OnMaintenance', // array(is_array(post_only mode"]) && array_key_exists("error":["EService:Market ?? '', post_only mode"]))
-                    'EService:Market in cancel_only mode' => '\\ccxt\\OnMaintenance', // array(is_array(cancel_only mode"]) && array_key_exists("error":["EService:Market ?? '', cancel_only mode"]))
-                    'EGeneral:Too many requests' => '\\ccxt\\DDoSProtection', // array("error":["EGeneral:Too many requests"])
-                    'ETrade:User Locked' => '\\ccxt\\AccountSuspended', // array("error":["ETrade:User Locked"])
+                    'EFunding:No funding method' => '\\ccxt\\BadRequest', // {"error":"EFunding:No funding method"}
+                    'EFunding:Unknown asset' => '\\ccxt\\BadSymbol', // {"error":["EFunding:Unknown asset"]}
+                    'EService:Market in post_only mode' => '\\ccxt\\OnMaintenance', // {"error":["EService:Market in post_only mode"]}
+                    'EService:Market in cancel_only mode' => '\\ccxt\\OnMaintenance', // {"error":["EService:Market in cancel_only mode"]}
+                    'EGeneral:Too many requests' => '\\ccxt\\DDoSProtection', // {"error":["EGeneral:Too many requests"]}
+                    'ETrade:User Locked' => '\\ccxt\\AccountSuspended', // {"error":["ETrade:User Locked"]}
                 ),
                 'broad' => array(
                     ':Invalid order' => '\\ccxt\\InvalidOrder',
@@ -602,29 +604,29 @@ class kraken extends Exchange {
          */
         $promises = array();
         $promises[] = $this->publicGetAssetPairs($params);
-        if ($this->options['adjustForTimeDifference']) {
+        if ($this->options['adjustForTimeDifference'] === true) {
             $promises[] = $this->load_time_difference();
         }
         $responses = Async\await(Promise\all($promises));
         $assetsResponse = $responses[0];
         //
         //     {
-        //         "error" => array(),
-        //         "result" => {
-        //             "ADAETH" => array(
-        //                 "altname" => "ADAETH",
-        //                 "wsname" => "ADA\/ETH",
-        //                 "aclass_base" => "currency",
-        //                 "base" => "ADA",
-        //                 "aclass_quote" => "currency",
-        //                 "quote" => "XETH",
-        //                 "lot" => "unit",
-        //                 "pair_decimals" => 7,
-        //                 "lot_decimals" => 8,
-        //                 "lot_multiplier" => 1,
-        //                 "leverage_buy" => array(),
-        //                 "leverage_sell" => array(),
-        //                 "fees" => array(
+        //         "error": [],
+        //         "result": {
+        //             "ADAETH": {
+        //                 "altname": "ADAETH",
+        //                 "wsname": "ADA\/ETH",
+        //                 "aclass_base": "currency",
+        //                 "base": "ADA",
+        //                 "aclass_quote": "currency",
+        //                 "quote": "XETH",
+        //                 "lot": "unit",
+        //                 "pair_decimals": 7,
+        //                 "lot_decimals": 8,
+        //                 "lot_multiplier": 1,
+        //                 "leverage_buy": [],
+        //                 "leverage_sell": [],
+        //                 "fees": [
         //                     [0, 0.26],
         //                     [50000, 0.24],
         //                     [100000, 0.22],
@@ -634,8 +636,8 @@ class kraken extends Exchange {
         //                     [2500000, 0.14],
         //                     [5000000, 0.12],
         //                     [10000000, 0.1]
-        //                 ),
-        //                 "fees_maker" => array(
+        //                 ],
+        //                 "fees_maker": [
         //                     [0, 0.16],
         //                     [50000, 0.14],
         //                     [100000, 0.12],
@@ -645,12 +647,12 @@ class kraken extends Exchange {
         //                     [2500000, 0.04],
         //                     [5000000, 0.02],
         //                     [10000000, 0]
-        //                 ),
-        //                 "fee_volume_currency" => "ZUSD",
-        //                 "margin_call" => 80,
-        //                 "margin_stop" => 40,
-        //                 "ordermin" => "1"
-        //             ),
+        //                 ],
+        //                 "fee_volume_currency": "ZUSD",
+        //                 "margin_call": 80,
+        //                 "margin_stop": 40,
+        //                 "ordermin": "1"
+        //             },
         //         }
         //     }
         //
@@ -697,7 +699,7 @@ class kraken extends Exchange {
             if ($spot && (is_array($cachedCurrencies) && array_key_exists($base ?? '', $cachedCurrencies))) {
                 $currency = $this->safe_value($cachedCurrencies, $base);
                 $currencyPrecision = $this->safe_number($currency, 'precision');
-                // if $currency precision is greater (e.g. 0.01) than $market precision (e.g. 0.001)
+                // if currency precision is greater (e.g. 0.01) than market precision (e.g. 0.001)
                 if ($currencyPrecision === null) {
                     throw new ExchangeError($this->id . ' method() missing currencyPrecision');
                 }
@@ -782,8 +784,8 @@ class kraken extends Exchange {
         $response = Async\await($this->publicGetSystemStatus($params));
         //
         // {
-        //     error => array(),
-        //     $result => array( status => 'online', timestamp => '2024-07-22T16:34:44Z' )
+        //     error: [],
+        //     result: { status: 'online', timestamp: '2024-07-22T16:34:44Z' }
         // }
         //
         $result = $this->safe_dict($response, 'result');
@@ -813,56 +815,56 @@ class kraken extends Exchange {
         $response = Async\await($this->publicGetAssets($params));
         //
         //     {
-        //         "error" => array(),
-        //         "result" => array(
-        //             "ATOM" => array(
-        //                 "aclass" => "currency",
-        //                 "altname" => "ATOM",
-        //                 "collateral_value" => "0.7",
-        //                 "decimals" => 8,
-        //                 "display_decimals" => 6,
-        //                 "margin_rate" => 0.02,
-        //                 "status" => "enabled",
-        //             ),
-        //             "ATOM.S" => array(
-        //                 "aclass" => "currency",
-        //                 "altname" => "ATOM.S",
-        //                 "decimals" => 8,
-        //                 "display_decimals" => 6,
-        //                 "status" => "enabled",
-        //             ),
-        //             "XXBT" => array(
-        //                 "aclass" => "currency",
-        //                 "altname" => "XBT",
-        //                 "decimals" => 10,
-        //                 "display_decimals" => 5,
-        //                 "margin_rate" => 0.01,
-        //                 "status" => "enabled",
-        //             ),
-        //             "XETH" => array(
-        //                 "aclass" => "currency",
-        //                 "altname" => "ETH",
-        //                 "decimals" => 10,
-        //                 "display_decimals" => 5
-        //                 "margin_rate" => 0.02,
-        //                 "status" => "enabled",
-        //             ),
-        //             "XBT.M" => array(
-        //                 "aclass" => "currency",
-        //                 "altname" => "XBT.M",
-        //                 "decimals" => 10,
-        //                 "display_decimals" => 5
-        //                 "status" => "enabled",
-        //             ),
-        //             "ETH.M" => array(
-        //                 "aclass" => "currency",
-        //                 "altname" => "ETH.M",
-        //                 "decimals" => 10,
-        //                 "display_decimals" => 5
-        //                 "status" => "enabled",
-        //             ),
+        //         "error": [],
+        //         "result": {
+        //             "ATOM": {
+        //                 "aclass": "currency",
+        //                 "altname": "ATOM",
+        //                 "collateral_value": "0.7",
+        //                 "decimals": 8,
+        //                 "display_decimals": 6,
+        //                 "margin_rate": 0.02,
+        //                 "status": "enabled",
+        //             },
+        //             "ATOM.S": {
+        //                 "aclass": "currency",
+        //                 "altname": "ATOM.S",
+        //                 "decimals": 8,
+        //                 "display_decimals": 6,
+        //                 "status": "enabled",
+        //             },
+        //             "XXBT": {
+        //                 "aclass": "currency",
+        //                 "altname": "XBT",
+        //                 "decimals": 10,
+        //                 "display_decimals": 5,
+        //                 "margin_rate": 0.01,
+        //                 "status": "enabled",
+        //             },
+        //             "XETH": {
+        //                 "aclass": "currency",
+        //                 "altname": "ETH",
+        //                 "decimals": 10,
+        //                 "display_decimals": 5
+        //                 "margin_rate": 0.02,
+        //                 "status": "enabled",
+        //             },
+        //             "XBT.M": {
+        //                 "aclass": "currency",
+        //                 "altname": "XBT.M",
+        //                 "decimals": 10,
+        //                 "display_decimals": 5
+        //                 "status": "enabled",
+        //             },
+        //             "ETH.M": {
+        //                 "aclass": "currency",
+        //                 "altname": "ETH.M",
+        //                 "decimals": 10,
+        //                 "display_decimals": 5
+        //                 "status": "enabled",
+        //             },
         //             ...
-        //         ),
+        //         },
         //     }
         //
         $currencies = $this->safe_dict($response, 'result', array());
@@ -871,14 +873,14 @@ class kraken extends Exchange {
     }
 
     public function parse_currency(array $rawCurrency): array {
-        // todo => will need to rethink the fees
-        // see => https://support.kraken.com/hc/en-us/articles/201893608-What-are-the-withdrawal-fees-
+        // todo: will need to rethink the fees
+        // see: https://support.kraken.com/hc/en-us/articles/201893608-What-are-the-withdrawal-fees-
         // to add support for multiple withdrawal/deposit methods and
         // differentiated fees for each particular method
         //
         // Notes about abbreviations:
-        // Z and X prefixes => https://support.kraken.com/hc/en-us/articles/360001206766-Bitcoin-currency-$code-XBT-vs-BTC
-        // S and M suffixes => https://support.kraken.com/hc/en-us/articles/360039879471-What-is-Asset-S-and-Asset-M-
+        // Z and X prefixes: https://support.kraken.com/hc/en-us/articles/360001206766-Bitcoin-currency-code-XBT-vs-BTC
+        // S and M suffixes: https://support.kraken.com/hc/en-us/articles/360039879471-What-is-Asset-S-and-Asset-M-
         //
         $id = $this->safe_string($rawCurrency, '_coin_id');
         $code = $this->safe_currency_code($id);
@@ -890,7 +892,7 @@ class kraken extends Exchange {
             $altName = $this->safe_string($rawCurrency, 'altname');
             // handle cases like below:
             //
-            //  $id   | altname
+            //  id   | altname
             // ---------------
             // XXBT  |  XBT
             // ZUSD  |  USD
@@ -976,28 +978,28 @@ class kraken extends Exchange {
         $response = Async\await($this->privatePostTradeVolume($this->extend($request, $params)));
         //
         //     {
-        //        "error" => array(),
-        //        "result" => {
-        //          "currency" => 'ZUSD',
-        //          "volume" => '0.0000',
-        //          "fees" => {
-        //            "XXBTZUSD" => array(
-        //              "fee" => '0.2600',
-        //              "minfee" => '0.1000',
-        //              "maxfee" => '0.2600',
-        //              "nextfee" => '0.2400',
-        //              "tiervolume" => '0.0000',
-        //              "nextvolume" => '50000.0000'
+        //        "error": [],
+        //        "result": {
+        //          "currency": 'ZUSD',
+        //          "volume": '0.0000',
+        //          "fees": {
+        //            "XXBTZUSD": {
+        //              "fee": '0.2600',
+        //              "minfee": '0.1000',
+        //              "maxfee": '0.2600',
+        //              "nextfee": '0.2400',
+        //              "tiervolume": '0.0000',
+        //              "nextvolume": '50000.0000'
         //            }
-        //          ),
-        //          "fees_maker" => {
-        //            "XXBTZUSD" => {
-        //              "fee" => '0.1600',
-        //              "minfee" => '0.0000',
-        //              "maxfee" => '0.1600',
-        //              "nextfee" => '0.1400',
-        //              "tiervolume" => '0.0000',
-        //              "nextvolume" => '50000.0000'
+        //          },
+        //          "fees_maker": {
+        //            "XXBTZUSD": {
+        //              "fee": '0.1600',
+        //              "minfee": '0.0000',
+        //              "maxfee": '0.1600',
+        //              "nextfee": '0.1400',
+        //              "tiervolume": '0.0000',
+        //              "nextvolume": '50000.0000'
         //            }
         //          }
         //        }
@@ -1057,26 +1059,26 @@ class kraken extends Exchange {
         $response = Async\await($this->publicGetDepth($this->extend($request, $params)));
         //
         //     {
-        //         "error":array(),
+        //         "error":[],
         //         "result":{
         //             "XETHXXBT":{
-        //                 "asks":array(
+        //                 "asks":[
         //                     ["0.023480","4.000",1586321307],
         //                     ["0.023490","50.095",1586321306],
         //                     ["0.023500","28.535",1586321302],
-        //                 ),
-        //                 "bids":array(
+        //                 ],
+        //                 "bids":[
         //                     ["0.023470","59.580",1586321307],
         //                     ["0.023460","20.000",1586321301],
         //                     ["0.023440","67.832",1586321306],
-        //                 )
+        //                 ]
         //             }
         //         }
         //     }
         //
         $result = $this->safe_value($response, 'result', array());
         $orderbook = $this->safe_value($result, $market['id']);
-        // sometimes kraken returns wsname instead of $market id
+        // sometimes kraken returns wsname instead of market id
         // https://github.com/ccxt/ccxt/issues/8662
         $marketInfo = $this->safe_value($market, 'info', array());
         $wsName = $this->safe_value($marketInfo, 'wsname');
@@ -1160,7 +1162,7 @@ class kraken extends Exchange {
             for ($i = 0; $i < count($symbols); $i++) {
                 $symbol = $symbols[$i];
                 $market = $this->market($symbol);
-                if ($market['active']) {
+                if ($market['active'] === true) {
                     $marketIds[] = $market['id'];
                 }
             }
@@ -1209,7 +1211,7 @@ class kraken extends Exchange {
 
     public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
         //
-        //     array(
+        //     [
         //         1591475640,
         //         "0.02500",
         //         "0.02500",
@@ -1218,7 +1220,7 @@ class kraken extends Exchange {
         //         "0.02500",
         //         "9.12201000",
         //         5
-        //     )
+        //     ]
         //
         return array(
             $this->safe_timestamp($ohlcv, 0),
@@ -1246,7 +1248,7 @@ class kraken extends Exchange {
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -1277,14 +1279,14 @@ class kraken extends Exchange {
         $response = Async\await($this->publicGetOHLC($this->extend($request, $params)));
         //
         //     {
-        //         "error":array(),
+        //         "error":[],
         //         "result":{
-        //             "XETHXXBT":array(
+        //             "XETHXXBT":[
         //                 [1591475580,"0.02499","0.02499","0.02499","0.02499","0.00000","0.00000000",0],
         //                 [1591475640,"0.02500","0.02500","0.02500","0.02500","0.02500","9.12201000",5],
         //                 [1591475700,"0.02499","0.02499","0.02499","0.02499","0.02499","1.28681415",2],
         //                 [1591475760,"0.02499","0.02499","0.02499","0.02499","0.02499","0.08800000",1],
-        //             ),
+        //             ],
         //             "last":1591517580
         //         }
         //     }
@@ -1307,16 +1309,16 @@ class kraken extends Exchange {
     public function parse_ledger_entry(array $item, ?array $currency = null): array {
         //
         //     {
-        //         'LTFK7F-N2CUX-PNY4SX' => array(
-        //             "refid" => "TSJTGT-DT7WN-GPPQMJ",
-        //             "time" =>  1520102320.555,
-        //             "type" => "trade",
-        //             "aclass" => "currency",
-        //             "asset" => "XETH",
-        //             "amount" => "0.1087194600",
-        //             "fee" => "0.0000000000",
-        //             "balance" => "0.2855851000"
-        //         ),
+        //         'LTFK7F-N2CUX-PNY4SX': {
+        //             "refid": "TSJTGT-DT7WN-GPPQMJ",
+        //             "time":  1520102320.555,
+        //             "type": "trade",
+        //             "aclass": "currency",
+        //             "asset": "XETH",
+        //             "amount": "0.1087194600",
+        //             "fee": "0.0000000000",
+        //             "balance": "0.2855851000"
+        //         },
         //         ...
         //     }
         //
@@ -1397,17 +1399,17 @@ class kraken extends Exchange {
             $request['end'] = $this->parse_to_int(Precise::string_add($untilDivided, '1'));
         }
         $response = Async\await($this->privatePostLedgers($this->extend($request, $params)));
-        // {  error => array(),
-        //   "result" => { $ledger => { 'LPUAIB-TS774-UKHP7X' => array(   refid => "A2B4HBV-L4MDIE-JU4N3N",
-        //                                                   "time" =>  1520103488.314,
-        //                                                   "type" => "withdrawal",
-        //                                                 "aclass" => "currency",
-        //                                                  "asset" => "XETH",
-        //                                                 "amount" => "-0.2805800000",
-        //                                                    "fee" => "0.0050000000",
-        //                                                "balance" => "0.0000051000"           ),
+        // {  error: [],
+        //   "result": { ledger: { 'LPUAIB-TS774-UKHP7X': {   refid: "A2B4HBV-L4MDIE-JU4N3N",
+        //                                                   "time":  1520103488.314,
+        //                                                   "type": "withdrawal",
+        //                                                 "aclass": "currency",
+        //                                                  "asset": "XETH",
+        //                                                 "amount": "-0.2805800000",
+        //                                                    "fee": "0.0050000000",
+        //                                                "balance": "0.0000051000"           },
         $result = $this->safe_value($response, 'result', array());
-        $ledger = $this->safe_value($result, 'ledger', array());
+        $ledger = $this->safe_dict($result, 'ledger', array());
         $keys = is_array($ledger) ? array_keys($ledger) : array();
         $items = array();
         for ($i = 0; $i < count($keys); $i++) {
@@ -1419,7 +1421,7 @@ class kraken extends Exchange {
         return $this->parse_ledger($items, $currency, $since, $limit);
     }
 
-    public function fetch_ledger_entries_by_ids(mixed $ids, ?string $code = null, $params = array()) {
+    public function fetch_ledger_entries_by_ids(mixed $ids, ?string $code = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_ledger_entries_by_ids(...))($ids, $code, $params);
     }
 
@@ -1433,15 +1435,15 @@ class kraken extends Exchange {
             'id' => $ids,
         ), $params);
         $response = Async\await($this->privatePostQueryLedgers($request));
-        // {  error => array(),
-        //   "result" => { 'LPUAIB-TS774-UKHP7X' => {   refid => "A2B4HBV-L4MDIE-JU4N3N",
-        //                                         "time" =>  1520103488.314,
-        //                                         "type" => "withdrawal",
-        //                                       "aclass" => "currency",
-        //                                        "asset" => "XETH",
-        //                                       "amount" => "-0.2805800000",
-        //                                          "fee" => "0.0050000000",
-        //                                      "balance" => "0.0000051000"           } } }
+        // {  error: [],
+        //   "result": { 'LPUAIB-TS774-UKHP7X': {   refid: "A2B4HBV-L4MDIE-JU4N3N",
+        //                                         "time":  1520103488.314,
+        //                                         "type": "withdrawal",
+        //                                       "aclass": "currency",
+        //                                        "asset": "XETH",
+        //                                       "amount": "-0.2805800000",
+        //                                          "fee": "0.0050000000",
+        //                                      "balance": "0.0000051000"           } } }
         $result = $this->safe_dict($response, 'result', array());
         $keys = is_array($result) ? array_keys($result) : array();
         $items = array();
@@ -1467,63 +1469,63 @@ class kraken extends Exchange {
         //
         // fetchTrades (public)
         //
-        //     array(
-        //         "0.032310", // $price
-        //         "4.28169434", // $amount
-        //         1541390792.763, // $timestamp
+        //     [
+        //         "0.032310", // price
+        //         "4.28169434", // amount
+        //         1541390792.763, // timestamp
         //         "s", // sell or buy
-        //         "l", // limit or $market
+        //         "l", // limit or market
         //         ""
-        //     )
+        //     ]
         //
         // fetchOrderTrades (private)
         //
         //     {
-        //         "id" => 'TIMIRG-WUNNE-RRJ6GT', // injected from outside
-        //         "ordertxid" => 'OQRPN2-LRHFY-HIFA7D',
-        //         "postxid" => 'TKH2SE-M7IF5-CFI7LT',
-        //         "pair" => 'USDCUSDT',
-        //         "time" => 1586340086.457,
-        //         "type" => 'sell',
-        //         "ordertype" => 'market',
-        //         "price" => '0.99860000',
-        //         "cost" => '22.16892001',
-        //         "fee" => '0.04433784',
-        //         "vol" => '22.20000000',
-        //         "margin" => '0.00000000',
-        //         "misc" => ''
+        //         "id": 'TIMIRG-WUNNE-RRJ6GT', // injected from outside
+        //         "ordertxid": 'OQRPN2-LRHFY-HIFA7D',
+        //         "postxid": 'TKH2SE-M7IF5-CFI7LT',
+        //         "pair": 'USDCUSDT',
+        //         "time": 1586340086.457,
+        //         "type": 'sell',
+        //         "ordertype": 'market',
+        //         "price": '0.99860000',
+        //         "cost": '22.16892001',
+        //         "fee": '0.04433784',
+        //         "vol": '22.20000000',
+        //         "margin": '0.00000000',
+        //         "misc": ''
         //     }
         //
         // fetchMyTrades
         //
         //     {
-        //         "ordertxid" => "OSJVN7-A2AE-63WZV",
-        //         "postxid" => "TBP7O6-PNXI-CONU",
-        //         "pair" => "XXBTZUSD",
-        //         "time" => 1710429248.3052235,
-        //         "type" => "sell",
-        //         "ordertype" => "liquidation $market",
-        //         "price" => "72026.50000",
-        //         "cost" => "7.20265",
-        //         "fee" => "0.01873",
-        //         "vol" => "0.00010000",
-        //         "margin" => "1.44053",
-        //         "leverage" => "5",
-        //         "misc" => "closing",
-        //         "trade_id" => 68230622,
-        //         "maker" => false
+        //         "ordertxid": "OSJVN7-A2AE-63WZV",
+        //         "postxid": "TBP7O6-PNXI-CONU",
+        //         "pair": "XXBTZUSD",
+        //         "time": 1710429248.3052235,
+        //         "type": "sell",
+        //         "ordertype": "liquidation market",
+        //         "price": "72026.50000",
+        //         "cost": "7.20265",
+        //         "fee": "0.01873",
+        //         "vol": "0.00010000",
+        //         "margin": "1.44053",
+        //         "leverage": "5",
+        //         "misc": "closing",
+        //         "trade_id": 68230622,
+        //         "maker": false
         //     }
         //
         // watchTrades
         //
         //     {
-        //         "symbol" => "BTC/USD",
-        //         "side" => "buy",
-        //         "price" => 109601.2,
-        //         "qty" => 0.04561994,
-        //         "ord_type" => "market",
-        //         "trade_id" => 83449369,
-        //         "timestamp" => "2025-05-27T11:24:03.847761Z"
+        //         "symbol": "BTC/USD",
+        //         "side": "buy",
+        //         "price": 109601.2,
+        //         "qty": 0.04561994,
+        //         "ord_type": "market",
+        //         "trade_id": 83449369,
+        //         "timestamp": "2025-05-27T11:24:03.847761Z"
         //     }
         //
         $timestamp = null;
@@ -1544,7 +1546,7 @@ class kraken extends Exchange {
             $amount = $this->safe_string($trade, 1);
             $tradeLength = count($trade);
             if ($tradeLength > 6) {
-                $id = $this->safe_string($trade, 6); // artificially added #1794
+                $id = $this->safe_string($trade, 6); // artificially added as per #1794
             }
         } elseif (gettype($trade) === 'string') {
             $id = $trade;
@@ -1554,7 +1556,7 @@ class kraken extends Exchange {
             if ($foundMarket !== null) {
                 $market = $foundMarket;
             } elseif ($marketId !== null) {
-                // delisted $market ids go here
+                // delisted market ids go here
                 $market = $this->get_delisted_market_by_id($marketId);
             }
             $orderId = $this->safe_string($trade, 'ordertxid');
@@ -1649,18 +1651,18 @@ class kraken extends Exchange {
         $response = Async\await($this->publicGetTrades($this->extend($request, $params)));
         //
         //     {
-        //         "error" => array(),
-        //         "result" => {
-        //             "XETHXXBT" => array(
+        //         "error": [],
+        //         "result": {
+        //             "XETHXXBT": [
         //                 ["0.032310","4.28169434",1541390792.763,"s","l",""]
-        //             ),
-        //             "last" => "1541439421200678657"
+        //             ],
+        //             "last": "1541439421200678657"
         //         }
         //     }
         //
         $result = $this->safe_dict($response, 'result', array());
         $trades = $this->safe_value($result, $id);
-        // $trades is a sorted array => last (most recent trade) goes last
+        // trades is a sorted array: last (most recent trade) goes last
         $length = count($trades);
         if ($length <= 0) {
             return array();
@@ -1673,7 +1675,7 @@ class kraken extends Exchange {
     }
 
     public function parse_balance(mixed $response): array {
-        $balances = $this->safe_value($response, 'result', array());
+        $balances = $this->safe_dict($response, 'result', array());
         $result = array(
             'info' => $response,
             'timestamp' => null,
@@ -1713,15 +1715,15 @@ class kraken extends Exchange {
         $response = Async\await($this->privatePostBalanceEx($params));
         //
         //     {
-        //         "error" => array(),
-        //         "result" => {
-        //             "ZUSD" => array(
-        //                 "balance" => 25435.21,
-        //                 "hold_trade" => 8249.76
-        //             ),
-        //             "XXBT" => {
-        //                 "balance" => 1.2435,
-        //                 "hold_trade" => 0.8423
+        //         "error": [],
+        //         "result": {
+        //             "ZUSD": {
+        //                 "balance": 25435.21,
+        //                 "hold_trade": 8249.76
+        //             },
+        //             "XXBT": {
+        //                 "balance": 1.2435,
+        //                 "hold_trade": 0.8423
         //             }
         //         }
         //     }
@@ -1820,17 +1822,17 @@ class kraken extends Exchange {
         $response = Async\await($this->privatePostAddOrder($this->extend($orderRequest[0], $orderRequest[1])));
         //
         //     {
-        //         "error" => array(),
-        //         "result" => {
-        //             "descr" => array( order => 'buy 0.02100000 ETHUSDT @ limit 330.00' ), // see more examples in "parseOrder"
-        //             "txid" => array( 'OEKVV2-IH52O-TPL6GZ' )
+        //         "error": [],
+        //         "result": {
+        //             "descr": { order: 'buy 0.02100000 ETHUSDT @ limit 330.00' }, // see more examples in "parseOrder"
+        //             "txid": [ 'OEKVV2-IH52O-TPL6GZ' ]
         //         }
         //     }
         //
         $result = $this->safe_dict($response, 'result', array());
         $result['usingCost'] = $isUsingCost;
         // it's impossible to know if the order was created using cost or base currency
-        // because kraken only returns something like this => array( order => 'buy 10.00000000 LTCUSD @ market' )
+        // because kraken only returns something like this: { order: 'buy 10.00000000 LTCUSD @ market' }
         // this usingCost flag is used to help the parsing but omitted from the order
         return $this->parse_order($result);
     }
@@ -1892,23 +1894,23 @@ class kraken extends Exchange {
         $response = Async\await($this->privatePostAddOrderBatch($request));
         //
         //         {
-        //    "error":array(
-        //    ),
+        //    "error":[
+        //    ],
         //    "result":{
-        //       "orders":array(
+        //       "orders":[
         //          {
         //             "txid":"OEPPJX-34RMM-OROGZE",
-        //             "descr":array(
+        //             "descr":{
         //                "order":"sell 6.000000 ADAUSDC @ limit 0.400000"
         //             }
-        //          ),
+        //          },
         //          {
         //             "txid":"OLQY7O-OYBXW-W23PGL",
         //             "descr":{
         //                "order":"sell 6.000000 ADAUSDC @ limit 0.400000"
         //             }
         //          }
-        //       )
+        //       ]
         //     }
         //
         $result = $this->safe_dict($response, 'result', array());
@@ -1916,7 +1918,7 @@ class kraken extends Exchange {
     }
 
     public function find_market_by_altname_or_id(mixed $id) {
-        $marketsByAltname = $this->safe_value($this->options, 'marketsByAltname', array());
+        $marketsByAltname = $this->safe_dict($this->options, 'marketsByAltname', array());
         if (is_array($marketsByAltname) && array_key_exists($id ?? '', $marketsByAltname)) {
             return $marketsByAltname[$id];
         } else {
@@ -1993,65 +1995,65 @@ class kraken extends Exchange {
         // createOrder
         //
         //     {
-        //         "descr" => array(
-        //            "order" => "buy 0.02100000 ETHUSDT @ limit 330.00" // limit orders
-        //                     "buy 0.12345678 ETHUSDT @ $market" // $market $order
-        //                     "sell 0.28002676 ETHUSDT @ stop loss 0.0123 -> limit 0.0.1222" // stop $order
+        //         "descr": {
+        //            "order": "buy 0.02100000 ETHUSDT @ limit 330.00" // limit orders
+        //                     "buy 0.12345678 ETHUSDT @ market" // market order
+        //                     "sell 0.28002676 ETHUSDT @ stop loss 0.0123 -> limit 0.0.1222" // stop order
         //                     "sell 0.00100000 ETHUSDT @ stop loss 2677.00 -> limit 2577.00 with 5:1 leverage"
         //                     "buy 0.10000000 LTCUSDT @ take profit 75.00000 -> limit 74.00000"
         //                     "sell 10.00000000 XRPEUR @ trailing stop +50.0000%" // trailing stop
-        //         ),
-        //         "txid" => array( 'OEKVV2-IH52O-TPL6GZ' )
+        //         },
+        //         "txid": [ 'OEKVV2-IH52O-TPL6GZ' ]
         //     }
         //
         // editOrder
         //
         //     {
-        //         "amend_id" => "TJSMEH-AA67V-YUSQ6O"
+        //         "amend_id": "TJSMEH-AA67V-YUSQ6O"
         //     }
         //
         //  ws - createOrder
         //     {
-        //         "order_id" => "OXM2QD-EALR2-YBAVEU"
+        //         "order_id": "OXM2QD-EALR2-YBAVEU"
         //     }
         //
         //  ws - editOrder
         //     {
-        //         "amend_id" => "TJSMEH-AA67V-YUSQ6O",
-        //         "order_id" => "OXM2QD-EALR2-YBAVEU"
+        //         "amend_id": "TJSMEH-AA67V-YUSQ6O",
+        //         "order_id": "OXM2QD-EALR2-YBAVEU"
         //     }
         //
         //  {
-        //      "error" => array(),
-        //      "result" => {
-        //          "open" => {
-        //              "OXVPSU-Q726F-L3SDEP" => {
-        //                  "refid" => null,
-        //                  "userref" => 0,
-        //                  "status" => "open",
-        //                  "opentm" => 1706893367.4656649,
-        //                  "starttm" => 0,
-        //                  "expiretm" => 0,
-        //                  "descr" => array(
-        //                      "pair" => "XRPEUR",
-        //                      "type" => "sell",
-        //                      "ordertype" => "trailing-stop",
-        //                      "price" => "+50.0000%",
-        //                      "price2" => "0",
-        //                      "leverage" => "none",
-        //                      "order" => "sell 10.00000000 XRPEUR @ trailing stop +50.0000%",
-        //                      "close" => ""
-        //                  ),
-        //                  "vol" => "10.00000000",
-        //                  "vol_exec" => "0.00000000",
-        //                  "cost" => "0.00000000",
-        //                  "fee" => "0.00000000",
-        //                  "price" => "0.00000000",
-        //                  "stopprice" => "0.23424000",
-        //                  "limitprice" => "0.46847000",
-        //                  "misc" => "",
-        //                  "oflags" => "fciq",
-        //                  "trigger" => "index"
+        //      "error": [],
+        //      "result": {
+        //          "open": {
+        //              "OXVPSU-Q726F-L3SDEP": {
+        //                  "refid": null,
+        //                  "userref": 0,
+        //                  "status": "open",
+        //                  "opentm": 1706893367.4656649,
+        //                  "starttm": 0,
+        //                  "expiretm": 0,
+        //                  "descr": {
+        //                      "pair": "XRPEUR",
+        //                      "type": "sell",
+        //                      "ordertype": "trailing-stop",
+        //                      "price": "+50.0000%",
+        //                      "price2": "0",
+        //                      "leverage": "none",
+        //                      "order": "sell 10.00000000 XRPEUR @ trailing stop +50.0000%",
+        //                      "close": ""
+        //                  },
+        //                  "vol": "10.00000000",
+        //                  "vol_exec": "0.00000000",
+        //                  "cost": "0.00000000",
+        //                  "fee": "0.00000000",
+        //                  "price": "0.00000000",
+        //                  "stopprice": "0.23424000",
+        //                  "limitprice": "0.46847000",
+        //                  "misc": "",
+        //                  "oflags": "fciq",
+        //                  "trigger": "index"
         //              }
         //      }
         //  }
@@ -2059,32 +2061,32 @@ class kraken extends Exchange {
         // fetchOpenOrders
         //
         //      {
-        //         "refid" => null,
-        //         "userref" => null,
-        //         "cl_ord_id" => "1234",
-        //         "status" => "open",
-        //         "opentm" => 1733815269.370054,
-        //         "starttm" => 0,
-        //         "expiretm" => 0,
-        //         "descr" => array(
-        //             "pair" => "XBTUSD",
-        //             "type" => "buy",
-        //             "ordertype" => "limit",
-        //             "price" => "70000.0",
-        //             "price2" => "0",
-        //             "leverage" => "none",
-        //             "order" => "buy 0.00010000 XBTUSD @ limit 70000.0",
-        //             "close" => ""
-        //         ),
-        //         "vol" => "0.00010000",
-        //         "vol_exec" => "0.00000000",
-        //         "cost" => "0.00000",
-        //         "fee" => "0.00000",
-        //         "price" => "0.00000",
-        //         "stopprice" => "0.00000",
-        //         "limitprice" => "0.00000",
-        //         "misc" => "",
-        //         "oflags" => "fciq"
+        //         "refid": null,
+        //         "userref": null,
+        //         "cl_ord_id": "1234",
+        //         "status": "open",
+        //         "opentm": 1733815269.370054,
+        //         "starttm": 0,
+        //         "expiretm": 0,
+        //         "descr": {
+        //             "pair": "XBTUSD",
+        //             "type": "buy",
+        //             "ordertype": "limit",
+        //             "price": "70000.0",
+        //             "price2": "0",
+        //             "leverage": "none",
+        //             "order": "buy 0.00010000 XBTUSD @ limit 70000.0",
+        //             "close": ""
+        //         },
+        //         "vol": "0.00010000",
+        //         "vol_exec": "0.00000000",
+        //         "cost": "0.00000",
+        //         "fee": "0.00000",
+        //         "price": "0.00000",
+        //         "stopprice": "0.00000",
+        //         "limitprice": "0.00000",
+        //         "misc": "",
+        //         "oflags": "fciq"
         //     }
         //
         $isUsingCost = $this->safe_bool($order, 'usingCost', false);
@@ -2107,7 +2109,7 @@ class kraken extends Exchange {
         if ($orderDescription !== null) {
             $parts = explode(' ', $orderDescription);
             $side = $this->safe_string($parts, 0);
-            if (!$isUsingCost) {
+            if ($isUsingCost !== true) {
                 $amount = $this->safe_string($parts, 1);
             } else {
                 $cost = $this->safe_string($parts, 1);
@@ -2116,7 +2118,7 @@ class kraken extends Exchange {
             $part4 = $this->safe_string($parts, 4);
             $part5 = $this->safe_string($parts, 5);
             if ($part4 === 'limit' || $part4 === 'market') {
-                $rawType = $part4; // eg, limit, $market
+                $rawType = $part4; // eg, limit, market
             } else {
                 $rawType = $part4 . ' ' . $part5; // eg. stop loss, take profit, trailing stop
             }
@@ -2135,19 +2137,19 @@ class kraken extends Exchange {
         if ($foundMarket !== null) {
             $market = $foundMarket;
         } elseif ($marketId !== null) {
-            // delisted $market ids go here
+            // delisted market ids go here
             $market = $this->get_delisted_market_by_id($marketId);
         }
         $timestamp = $this->safe_timestamp($order, 'opentm');
         $amount = $this->safe_string($order, 'vol', $amount);
         $filled = $this->safe_string($order, 'vol_exec');
         $fee = null;
-        // kraken truncates the $cost in the api response so we will ignore it and calculate it from $average & $filled
-        // $cost = $this->safe_string($order, 'cost');
+        // kraken truncates the cost in the api response so we will ignore it and calculate it from average & filled
+        // const cost = this.safeString (order, 'cost');
         $price = $this->safe_string($description, 'price', $price);
-        // when type = trailing stop returns $price = '+50.0000%'
+        // when type = trailing stop returns price = '+50.0000%'
         if (($price !== null) && (str_ends_with($price, '%') || Precise::string_equals($price, '0.00000') || Precise::string_equals($price, '0'))) {
-            $price = null; // this is not the $price we want
+            $price = null; // this is not the price we want
         }
         if ($price === null) {
             $price = $this->safe_string($description, 'price2');
@@ -2179,7 +2181,7 @@ class kraken extends Exchange {
         }
         $userref = $this->safe_string($order, 'userref');
         $clientOrderId = $this->safe_string($order, 'cl_ord_id', $userref);
-        $rawTrades = $this->safe_value($order, 'trades', array());
+        $rawTrades = $this->safe_list($order, 'trades', array());
         $trades = array();
         for ($i = 0; $i < count($rawTrades); $i++) {
             $rawTrade = $rawTrades[$i];
@@ -2189,11 +2191,11 @@ class kraken extends Exchange {
                 $trades[] = $rawTrade;
             }
         }
-        // in #24192 PR, this field is not something consistent/actual
-        // $triggerPrice = $this->omit_zero($this->safe_string($order, 'stopprice', $triggerPrice));
+        // as mentioned in #24192 PR, this field is not something consistent/actual
+        // triggerPrice = this.omitZero (this.safeString (order, 'stopprice', triggerPrice));
         $stopLossPrice = null;
         $takeProfitPrice = null;
-        // the dashed strings are not provided from fields (eg. fetch $order)
+        // the dashed strings are not provided from fields (eg. fetch order)
         // while spaced strings from "order" sentence (when other fields not available)
         if ($rawType !== null) {
             if (str_starts_with($rawType, 'take-profit')) {
@@ -2209,9 +2211,9 @@ class kraken extends Exchange {
             }
         }
         $typeParsed = $this->parse_order_type($rawType);
-        // unlike from endpoints which provide eg => "take-profit-limit"
+        // unlike from endpoints which provide eg: "take-profit-limit"
         // for "space-delimited" orders we dont have market/limit suffixes, their format is
-        // eg => `stop loss > limit 123`, so we need to parse them manually
+        // eg: `stop loss > limit 123`, so we need to parse them manually
         if ($this->in_array($typeParsed, array( 'stop loss', 'take profit' ))) {
             $typeParsed = ($price === null) ? 'market' : 'limit';
         }
@@ -2307,8 +2309,8 @@ class kraken extends Exchange {
             if ($trailingPercent !== null) {
                 $trailingPercentString = (str_ends_with($trailingPercent, '%')) ? ('+' . $trailingPercent) : ('+' . $trailingPercent . '%');
             }
-            $trailingAmountString = ($trailingAmount !== null) ? '+' . $trailingAmount : null; // must use . for this
-            $offset = $this->safe_string($params, 'offset', '-'); // can use . or - for this
+            $trailingAmountString = ($trailingAmount !== null) ? '+' . $trailingAmount : null; // must use + for this
+            $offset = $this->safe_string($params, 'offset', '-'); // can use + or - for this
             $trailingLimitAmountString = ($trailingLimitAmount !== null) ? $offset . $this->number_to_string($trailingLimitAmount) : null;
             $trailingActivationPriceType = $this->safe_string($params, 'trigger', 'last');
             $request['trigger'] = $trailingActivationPriceType;
@@ -2331,11 +2333,11 @@ class kraken extends Exchange {
                 }
             }
         }
-        if ($reduceOnly) {
+        if ($reduceOnly === true) {
             if ($method === 'createOrderWs') {
-                $request['reduce_only'] = true; // ws $request can't have stringified bool
+                $request['reduce_only'] = true; // ws request can't have stringified bool
             } else {
-                $request['reduce_only'] = 'true'; // not using property_exists($this, boolean) case, because the urlencodedNested transforms it into 'True' string
+                $request['reduce_only'] = 'true'; // not using boolean in this case, because the urlencodedNested transforms it into 'True' string
             }
         }
         $close = $this->safe_dict($params, 'close');
@@ -2359,7 +2361,7 @@ class kraken extends Exchange {
         $isMarket = ($type === 'market');
         $postOnly = null;
         list($postOnly, $params) = $this->handle_post_only($isMarket, false, $params);
-        if ($postOnly) {
+        if ($postOnly === true) {
             $extendedPostFlags = ($flags !== null) ? $flags . ',post' : 'post';
             $request['oflags'] = $extendedPostFlags;
         }
@@ -2402,7 +2404,7 @@ class kraken extends Exchange {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        if (!$market['spot']) {
+        if ($market['spot'] !== true) {
             throw new NotSupported($this->id . ' editOrder() does not support ' . $market['type'] . ' orders, only spot orders are accepted');
         }
         $request = array(
@@ -2417,8 +2419,8 @@ class kraken extends Exchange {
         $isMarket = ($type === 'market');
         $postOnly = null;
         list($postOnly, $params) = $this->handle_post_only($isMarket, false, $params);
-        if ($postOnly) {
-            $request['post_only'] = 'true'; // not using property_exists($this, boolean) case, because the urlencodedNested transforms it into 'True' string
+        if ($postOnly === true) {
+            $request['post_only'] = 'true'; // not using boolean in this case, because the urlencodedNested transforms it into 'True' string
         }
         if ($amount !== null) {
             $request['order_qty'] = $this->amount_to_precision($symbol, $amount);
@@ -2440,9 +2442,9 @@ class kraken extends Exchange {
         $response = Async\await($this->privatePostAmendOrder($this->extend($request, $params)));
         //
         //     {
-        //         "error" => array(),
-        //         "result" => {
-        //             "amend_id" => "TJSMEH-AA67V-YUSQ6O"
+        //         "error": [],
+        //         "result": {
+        //             "amend_id": "TJSMEH-AA67V-YUSQ6O"
         //         }
         //     }
         //
@@ -2472,7 +2474,7 @@ class kraken extends Exchange {
         $request = array(
             'trades' => true, // whether or not to include trades in output (optional, default false)
             'txid' => $id, // do not comma separate a list of ids - use fetchOrdersByIds instead
-            // 'userref' => 'optional', // restrict results to given user reference $id (optional)
+            // 'userref': 'optional', // restrict results to given user reference id (optional)
         );
         $query = $params;
         if ($clientOrderId !== null) {
@@ -2482,7 +2484,7 @@ class kraken extends Exchange {
         $response = Async\await($this->privatePostQueryOrders($this->extend($request, $query)));
         //
         //     {
-        //         "error":array(),
+        //         "error":[],
         //         "result":{
         //             "OTLAS3-RRHUF-NDWH5A":{
         //                 "refid":null,
@@ -2493,7 +2495,7 @@ class kraken extends Exchange {
         //                 "closetm":1586822919.365,
         //                 "starttm":0,
         //                 "expiretm":0,
-        //                 "descr":array(
+        //                 "descr":{
         //                     "pair":"XBTUSDT",
         //                     "type":"sell",
         //                     "ordertype":"market",
@@ -2502,7 +2504,7 @@ class kraken extends Exchange {
         //                     "leverage":"none",
         //                     "order":"sell 0.21804000 XBTUSDT @ market",
         //                     "close":""
-        //                 ),
+        //                 },
         //                 "vol":"0.21804000",
         //                 "vol_exec":"0.21804000",
         //                 "cost":"1493.9",
@@ -2581,21 +2583,21 @@ class kraken extends Exchange {
             $response = Async\await($this->privatePostQueryTrades($request));
             //
             //     {
-            //         "error" => array(),
-            //         "result" => {
-            //             'TIMIRG-WUNNE-RRJ6GT' => {
-            //                 "ordertxid" => 'OQRPN2-LRHFY-HIFA7D',
-            //                 "postxid" => 'TKH2SE-M7IF5-CFI7LT',
-            //                 "pair" => 'USDCUSDT',
-            //                 "time" => 1586340086.457,
-            //                 "type" => 'sell',
-            //                 "ordertype" => 'market',
-            //                 "price" => '0.99860000',
-            //                 "cost" => '22.16892001',
-            //                 "fee" => '0.04433784',
-            //                 "vol" => '22.20000000',
-            //                 "margin" => '0.00000000',
-            //                 "misc" => ''
+            //         "error": [],
+            //         "result": {
+            //             'TIMIRG-WUNNE-RRJ6GT': {
+            //                 "ordertxid": 'OQRPN2-LRHFY-HIFA7D',
+            //                 "postxid": 'TKH2SE-M7IF5-CFI7LT',
+            //                 "pair": 'USDCUSDT',
+            //                 "time": 1586340086.457,
+            //                 "type": 'sell',
+            //                 "ordertype": 'market',
+            //                 "price": '0.99860000',
+            //                 "cost": '22.16892001',
+            //                 "fee": '0.04433784',
+            //                 "vol": '22.20000000',
+            //                 "margin": '0.00000000',
+            //                 "misc": ''
             //             }
             //         }
             //     }
@@ -2632,9 +2634,9 @@ class kraken extends Exchange {
         }
         $response = Async\await($this->privatePostQueryOrders($this->extend(array(
             'trades' => true, // whether or not to include trades in output (optional, default false)
-            'txid' => implode(',', $ids), // comma delimited list of transaction $ids to query info about (20 maximum)
+            'txid' => implode(',', $ids), // comma delimited list of transaction ids to query info about (20 maximum)
         ), $params)));
-        $result = $this->safe_value($response, 'result', array());
+        $result = $this->safe_dict($response, 'result', array());
         $orders = array();
         $orderIds = is_array($result) ? array_keys($result) : array();
         for ($i = 0; $i < count($orderIds); $i++) {
@@ -2668,10 +2670,10 @@ class kraken extends Exchange {
             Async\await($this->load_markets());
         }
         $request = array(
-            // 'type' => 'all', // any position, closed position, closing position, no position
-            // 'trades' => false, // whether or not to include $trades related to position in output
-            // 'start' => 1234567890, // starting unix timestamp or trade tx id of results (exclusive)
-            // 'end' => 1234567890, // ending unix timestamp or trade tx id of results (inclusive)
+            // 'type': 'all', // any position, closed position, closing position, no position
+            // 'trades': false, // whether or not to include trades related to position in output
+            // 'start': 1234567890, // starting unix timestamp or trade tx id of results (exclusive)
+            // 'end': 1234567890, // ending unix timestamp or trade tx id of results (inclusive)
             // 'ofs' = result offset
         );
         if ($since !== null) {
@@ -2686,30 +2688,30 @@ class kraken extends Exchange {
         $response = Async\await($this->privatePostTradesHistory($this->extend($request, $params)));
         //
         //     {
-        //         "error" => array(),
-        //         "result" => array(
-        //             "trades" => array(
-        //                 "GJ3NYQ-XJRTF-THZABF" => array(
-        //                     "ordertxid" => "TKH2SE-ZIF5E-CFI7LT",
-        //                     "postxid" => "OEN3VX-M7IF5-JNBJAM",
-        //                     "pair" => "XICNXETH",
-        //                     "time" => 1527213229.4491,
-        //                     "type" => "sell",
-        //                     "ordertype" => "limit",
-        //                     "price" => "0.001612",
-        //                     "cost" => "0.025792",
-        //                     "fee" => "0.000026",
-        //                     "vol" => "16.00000000",
-        //                     "margin" => "0.000000",
-        //                     "leverage" => "5",
-        //                     "misc" => ""
-        //                     "trade_id" => 68230622,
-        //                     "maker" => false
-        //                 ),
+        //         "error": [],
+        //         "result": {
+        //             "trades": {
+        //                 "GJ3NYQ-XJRTF-THZABF": {
+        //                     "ordertxid": "TKH2SE-ZIF5E-CFI7LT",
+        //                     "postxid": "OEN3VX-M7IF5-JNBJAM",
+        //                     "pair": "XICNXETH",
+        //                     "time": 1527213229.4491,
+        //                     "type": "sell",
+        //                     "ordertype": "limit",
+        //                     "price": "0.001612",
+        //                     "cost": "0.025792",
+        //                     "fee": "0.000026",
+        //                     "vol": "16.00000000",
+        //                     "margin": "0.000000",
+        //                     "leverage": "5",
+        //                     "misc": ""
+        //                     "trade_id": 68230622,
+        //                     "maker": false
+        //                 },
         //                 ...
-        //             ),
-        //             "count" => 9760,
-        //         ),
+        //             },
+        //             "count": 9760,
+        //         },
         //     }
         //
         $tradesResult = $this->safe_dict($response, 'result', array());
@@ -2750,7 +2752,7 @@ class kraken extends Exchange {
         $requestId = $this->safe_value($params, 'userref', $id); // string or integer
         $params = $this->omit($params, 'userref');
         $request = array(
-            'txid' => $requestId, // order $id or userref
+            'txid' => $requestId, // order id or userref
         );
         $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'cl_ord_id');
         if ($clientOrderId !== null) {
@@ -2762,14 +2764,14 @@ class kraken extends Exchange {
             $response = Async\await($this->privatePostCancelOrder($this->extend($request, $params)));
             //
             //    {
-            //        error => array(),
-            //        result => {
-            //            count => '1'
+            //        error: [],
+            //        result: {
+            //            count: '1'
             //        }
             //    }
             //
         } catch (Exception $e) {
-            if ($this->last_http_response) {
+            if (($this->last_http_response !== null) && ($this->last_http_response !== '')) {
                 if (mb_strpos($this->last_http_response, 'EOrder:Unknown order') !== false) {
                     throw new OrderNotFound($this->id . ' cancelOrder() error ' . $this->last_http_response);
                 }
@@ -2802,9 +2804,9 @@ class kraken extends Exchange {
         $response = Async\await($this->privatePostCancelOrderBatch($this->extend($request, $params)));
         //
         //     {
-        //         "error" => array(),
-        //         "result" => {
-        //           "count" => 2
+        //         "error": [],
+        //         "result": {
+        //           "count": 2
         //         }
         //     }
         //
@@ -2835,9 +2837,9 @@ class kraken extends Exchange {
         $response = Async\await($this->privatePostCancelAll($params));
         //
         //    {
-        //        error => array(),
-        //        result => {
-        //            count => '1'
+        //        error: [],
+        //        result: {
+        //            count: '1'
         //        }
         //    }
         //
@@ -2880,10 +2882,10 @@ class kraken extends Exchange {
         $response = Async\await($this->privatePostCancelAllOrdersAfter($this->extend($request, $params)));
         //
         //     {
-        //         "error" => array(),
-        //         "result" => {
-        //             "currentTime" => "2023-03-24T17:41:56Z",
-        //             "triggerTime" => "2023-03-24T17:42:56Z"
+        //         "error": [ ],
+        //         "result": {
+        //             "currentTime": "2023-03-24T17:41:56Z",
+        //             "triggerTime": "2023-03-24T17:42:56Z"
         //         }
         //     }
         //
@@ -2928,36 +2930,36 @@ class kraken extends Exchange {
         $response = Async\await($this->privatePostOpenOrders($this->extend($request, $params)));
         //
         //     {
-        //         "error" => array(),
-        //         "result" => {
-        //             "open" => {
-        //                 "O45M52-BFD5S-YXKQOU" => {
-        //                     "refid" => null,
-        //                     "userref" => null,
-        //                     "cl_ord_id" => "1234",
-        //                     "status" => "open",
-        //                     "opentm" => 1733815269.370054,
-        //                     "starttm" => 0,
-        //                     "expiretm" => 0,
-        //                     "descr" => array(
-        //                         "pair" => "XBTUSD",
-        //                         "type" => "buy",
-        //                         "ordertype" => "limit",
-        //                         "price" => "70000.0",
-        //                         "price2" => "0",
-        //                         "leverage" => "none",
-        //                         "order" => "buy 0.00010000 XBTUSD @ $limit 70000.0",
-        //                         "close" => ""
-        //                     ),
-        //                     "vol" => "0.00010000",
-        //                     "vol_exec" => "0.00000000",
-        //                     "cost" => "0.00000",
-        //                     "fee" => "0.00000",
-        //                     "price" => "0.00000",
-        //                     "stopprice" => "0.00000",
-        //                     "limitprice" => "0.00000",
-        //                     "misc" => "",
-        //                     "oflags" => "fciq"
+        //         "error": [],
+        //         "result": {
+        //             "open": {
+        //                 "O45M52-BFD5S-YXKQOU": {
+        //                     "refid": null,
+        //                     "userref": null,
+        //                     "cl_ord_id": "1234",
+        //                     "status": "open",
+        //                     "opentm": 1733815269.370054,
+        //                     "starttm": 0,
+        //                     "expiretm": 0,
+        //                     "descr": {
+        //                         "pair": "XBTUSD",
+        //                         "type": "buy",
+        //                         "ordertype": "limit",
+        //                         "price": "70000.0",
+        //                         "price2": "0",
+        //                         "leverage": "none",
+        //                         "order": "buy 0.00010000 XBTUSD @ limit 70000.0",
+        //                         "close": ""
+        //                     },
+        //                     "vol": "0.00010000",
+        //                     "vol_exec": "0.00000000",
+        //                     "cost": "0.00000",
+        //                     "fee": "0.00000",
+        //                     "price": "0.00000",
+        //                     "stopprice": "0.00000",
+        //                     "limitprice": "0.00000",
+        //                     "misc": "",
+        //                     "oflags": "fciq"
         //                 }
         //             }
         //         }
@@ -3019,10 +3021,10 @@ class kraken extends Exchange {
         $response = Async\await($this->privatePostClosedOrders($this->extend($request, $params)));
         //
         //     {
-        //         "error":array(),
+        //         "error":[],
         //         "result":{
-        //             "closed":array(
-        //                 "OETZYO-UL524-QJMXCT":array(
+        //             "closed":{
+        //                 "OETZYO-UL524-QJMXCT":{
         //                     "refid":null,
         //                     "userref":null,
         //                     "status":"canceled",
@@ -3031,16 +3033,16 @@ class kraken extends Exchange {
         //                     "closetm":1601489346.5507,
         //                     "starttm":0,
         //                     "expiretm":0,
-        //                     "descr":array(
+        //                     "descr":{
         //                         "pair":"ETHUSDT",
         //                         "type":"buy",
         //                         "ordertype":"limit",
         //                         "price":"330.00",
         //                         "price2":"0",
         //                         "leverage":"none",
-        //                         "order":"buy 0.02100000 ETHUSDT @ $limit 330.00",
+        //                         "order":"buy 0.02100000 ETHUSDT @ limit 330.00",
         //                         "close":""
-        //                     ),
+        //                     },
         //                     "vol":"0.02100000",
         //                     "vol_exec":"0.00000000",
         //                     "cost":"0.00000",
@@ -3050,8 +3052,8 @@ class kraken extends Exchange {
         //                     "limitprice":"0.00000",
         //                     "misc":"",
         //                     "oflags":"fciq"
-        //                 ),
-        //             ),
+        //                 },
+        //             },
         //             "count":16
         //         }
         //     }
@@ -3095,16 +3097,16 @@ class kraken extends Exchange {
         // fetchDeposits
         //
         //     {
-        //         "method" => "Ether (Hex)",
-        //         "aclass" => "currency",
-        //         "asset" => "XETH",
-        //         "refid" => "Q2CANKL-LBFVEE-U4Y2WQ",
-        //         "txid" => "0x57fd704dab1a73c20e24c8696099b695d596924b401b261513cfdab23…",
-        //         "info" => "0x615f9ba7a9575b0ab4d571b2b36b1b324bd83290",
-        //         "amount" => "7.9999257900",
-        //         "fee" => "0.0000000000",
-        //         "time" =>  1529223212,
-        //         "status" => "Success"
+        //         "method": "Ether (Hex)",
+        //         "aclass": "currency",
+        //         "asset": "XETH",
+        //         "refid": "Q2CANKL-LBFVEE-U4Y2WQ",
+        //         "txid": "0x57fd704dab1a73c20e24c8696099b695d596924b401b261513cfdab23…",
+        //         "info": "0x615f9ba7a9575b0ab4d571b2b36b1b324bd83290",
+        //         "amount": "7.9999257900",
+        //         "fee": "0.0000000000",
+        //         "time":  1529223212,
+        //         "status": "Success"
         //     }
         //
         // there can be an additional 'status-prop' field present
@@ -3112,43 +3114,43 @@ class kraken extends Exchange {
         // the deposit is initiated by the exchange => 'return'
         //
         //      {
-        //          "type" => 'deposit',
-        //          "method" => 'Fidor Bank AG (Wire Transfer)',
-        //          "aclass" => 'currency',
-        //          "asset" => 'ZEUR',
-        //          "refid" => 'xxx-xxx-xxx',
-        //          "txid" => '12341234',
-        //          "info" => 'BANKCODEXXX',
-        //          "amount" => '38769.08',
-        //          "fee" => '0.0000',
-        //          "time" => 1644306552,
-        //          "status" => 'Success',
-        //          $status-prop => 'on-hold'
+        //          "type": 'deposit',
+        //          "method": 'Fidor Bank AG (Wire Transfer)',
+        //          "aclass": 'currency',
+        //          "asset": 'ZEUR',
+        //          "refid": 'xxx-xxx-xxx',
+        //          "txid": '12341234',
+        //          "info": 'BANKCODEXXX',
+        //          "amount": '38769.08',
+        //          "fee": '0.0000',
+        //          "time": 1644306552,
+        //          "status": 'Success',
+        //          status-prop: 'on-hold'
         //      }
         //
         //
         // fetchWithdrawals
         //
         //     {
-        //         "method" => "Ether",
-        //         "aclass" => "currency",
-        //         "asset" => "XETH",
-        //         "refid" => "A2BF34S-O7LBNQ-UE4Y4O",
-        //         "txid" => "0x288b83c6b0904d8400ef44e1c9e2187b5c8f7ea3d838222d53f701a15b5c274d",
-        //         "info" => "0x7cb275a5e07ba943fee972e165d80daa67cb2dd0",
-        //         "amount" => "9.9950000000",
-        //         "fee" => "0.0050000000",
-        //         "time" =>  1530481750,
-        //         "status" => "Success"
+        //         "method": "Ether",
+        //         "aclass": "currency",
+        //         "asset": "XETH",
+        //         "refid": "A2BF34S-O7LBNQ-UE4Y4O",
+        //         "txid": "0x288b83c6b0904d8400ef44e1c9e2187b5c8f7ea3d838222d53f701a15b5c274d",
+        //         "info": "0x7cb275a5e07ba943fee972e165d80daa67cb2dd0",
+        //         "amount": "9.9950000000",
+        //         "fee": "0.0050000000",
+        //         "time":  1530481750,
+        //         "status": "Success"
         //         "key":"Huobi wallet",
         //         "network":"Tron"
-        //         $status-prop => 'on-hold' // this field might not be present in some cases
+        //         status-prop: 'on-hold' // this field might not be present in some cases
         //     }
         //
         // withdraw
         //
         //     {
-        //         "refid" => "AGBSO6T-UFMTTQ-I7KGS6"
+        //         "refid": "AGBSO6T-UFMTTQ-I7KGS6"
         //     }
         //
         $id = $this->safe_string($transaction, 'refid');
@@ -3250,17 +3252,17 @@ class kraken extends Exchange {
         }
         $response = Async\await($this->privatePostDepositStatus($this->extend($request, $params)));
         //
-        //     {  error => array(),
-        //       "result" => array( { "method" => "Ether (Hex)",
-        //                     "aclass" => "currency",
-        //                      "asset" => "XETH",
-        //                      "refid" => "Q2CANKL-LBFVEE-U4Y2WQ",
-        //                       "txid" => "0x57fd704dab1a73c20e24c8696099b695d596924b401b261513cfdab23…",
-        //                       "info" => "0x615f9ba7a9575b0ab4d571b2b36b1b324bd83290",
-        //                     "amount" => "7.9999257900",
-        //                        "fee" => "0.0000000000",
-        //                       "time" =>  1529223212,
-        //                     "status" => "Success"                                                       } ) }
+        //     {  error: [],
+        //       "result": [ { "method": "Ether (Hex)",
+        //                     "aclass": "currency",
+        //                      "asset": "XETH",
+        //                      "refid": "Q2CANKL-LBFVEE-U4Y2WQ",
+        //                       "txid": "0x57fd704dab1a73c20e24c8696099b695d596924b401b261513cfdab23…",
+        //                       "info": "0x615f9ba7a9575b0ab4d571b2b36b1b324bd83290",
+        //                     "amount": "7.9999257900",
+        //                        "fee": "0.0000000000",
+        //                       "time":  1529223212,
+        //                     "status": "Success"                                                       } ] }
         //
         $depositResult = $this->safe_list($response, 'result', array());
         return $this->parse_transactions_by_type('deposit', $depositResult, $code, $since, $limit);
@@ -3283,10 +3285,10 @@ class kraken extends Exchange {
         $response = Async\await($this->publicGetTime($params));
         //
         //    {
-        //        "error" => array(),
-        //        "result" => {
-        //            "unixtime" => 1591502873,
-        //            "rfc1123" => "Sun,  7 Jun 20 04:07:53 +0000"
+        //        "error": [],
+        //        "result": {
+        //            "unixtime": 1591502873,
+        //            "rfc1123": "Sun,  7 Jun 20 04:07:53 +0000"
         //        }
         //    }
         //
@@ -3340,23 +3342,23 @@ class kraken extends Exchange {
         $response = Async\await($this->privatePostWithdrawStatus($this->extend($request, $params)));
         //
         // with no pagination
-        //     {  error => array(),
-        //       "result" => array( { "method" => "Ether",
-        //                     "aclass" => "currency",
-        //                      "asset" => "XETH",
-        //                      "refid" => "A2BF34S-O7LBNQ-UE4Y4O",
-        //                       "txid" => "0x298c83c7b0904d8400ef43e1c9e2287b518f7ea3d838822d53f704a1565c274d",
-        //                       "info" => "0x7cb275a5e07ba943fee972e165d80daa67cb2dd0",
-        //                     "amount" => "9.9950000000",
-        //                        "fee" => "0.0050000000",
-        //                       "time" =>  1530481750,
-        //                     "status" => "Success"                                                             } ) }
+        //     {  error: [],
+        //       "result": [ { "method": "Ether",
+        //                     "aclass": "currency",
+        //                      "asset": "XETH",
+        //                      "refid": "A2BF34S-O7LBNQ-UE4Y4O",
+        //                       "txid": "0x298c83c7b0904d8400ef43e1c9e2287b518f7ea3d838822d53f704a1565c274d",
+        //                       "info": "0x7cb275a5e07ba943fee972e165d80daa67cb2dd0",
+        //                     "amount": "9.9950000000",
+        //                        "fee": "0.0050000000",
+        //                       "time":  1530481750,
+        //                     "status": "Success"                                                             } ] }
         // with pagination
         //    {
-        //        "error":array(),
+        //        "error":[],
         //        "result":{
-        //           "withdrawals":array(
-        //              array(
+        //           "withdrawals":[
+        //              {
         //                 "method":"Tether USD (TRC20)",
         //                 "aclass":"currency",
         //                 "asset":"USDT",
@@ -3369,9 +3371,9 @@ class kraken extends Exchange {
         //                 "status":"Success",
         //                 "key":"poloniex",
         //                 "network":"Tron"
-        //              ),
+        //              },
         //             ...
-        //           ),
+        //           ],
         //           "next_cursor":"HgAAAAAAAABGVFRSd3k1LVF4Y0JQY05Gd0xRY0NxenFndHpybkwBAQH2AwEBAAAAAQAAAAAAAAABAAAAAAAZAAAAAAAAAA=="
         //        }
         //     }
@@ -3418,7 +3420,7 @@ class kraken extends Exchange {
         return Async\await($this->fetch_deposit_address($code, $this->extend($request, $params)));
     }
 
-    public function fetch_deposit_methods(string $code, $params = array()) {
+    public function fetch_deposit_methods(string $code, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_deposit_methods(...))($code, $params);
     }
 
@@ -3442,25 +3444,25 @@ class kraken extends Exchange {
         $response = Async\await($this->privatePostDepositMethods($this->extend($request, $params)));
         //
         //     {
-        //         "error":array(),
-        //         "result":array(
-        //             array("method":"Ether (Hex)","limit":false,"gen-address":true)
-        //         )
+        //         "error":[],
+        //         "result":[
+        //             {"method":"Ether (Hex)","limit":false,"gen-address":true}
+        //         ]
         //     }
         //
         //     {
-        //         "error":array(),
-        //         "result":array(
-        //             array("method":"Tether USD (ERC20)","limit":false,"address-setup-fee":"0.00000000","gen-address":true),
-        //             array("method":"Tether USD (TRC20)","limit":false,"address-setup-fee":"0.00000000","gen-address":true)
-        //         )
+        //         "error":[],
+        //         "result":[
+        //             {"method":"Tether USD (ERC20)","limit":false,"address-setup-fee":"0.00000000","gen-address":true},
+        //             {"method":"Tether USD (TRC20)","limit":false,"address-setup-fee":"0.00000000","gen-address":true}
+        //         ]
         //     }
         //
         //     {
-        //         "error":array(),
-        //         "result":array(
-        //             array("method":"Bitcoin","limit":false,"fee":"0.0000000000","gen-address":true)
-        //         )
+        //         "error":[],
+        //         "result":[
+        //             {"method":"Bitcoin","limit":false,"fee":"0.0000000000","gen-address":true}
+        //         ]
         //     }
         //
         return $this->safe_value($response, 'result');
@@ -3494,8 +3496,8 @@ class kraken extends Exchange {
         $defaultDepositMethods = $this->safe_value($this->options, 'depositMethods', array());
         $defaultDepositMethod = $this->safe_string($defaultDepositMethods, $code);
         $depositMethod = $this->safe_string($params, 'method', $defaultDepositMethod);
-        // if the user has specified an exchange-specific method in $params
-        // we pass it, otherwise we take the 'network' unified param
+        // if the user has specified an exchange-specific method in params
+        // we pass it as is, otherwise we take the 'network' unified param
         if ($depositMethod === null) {
             $depositMethods = Async\await($this->fetch_deposit_methods($code));
             if ($network !== null) {
@@ -3511,7 +3513,7 @@ class kraken extends Exchange {
                     }
                 }
             }
-            // if $depositMethod was not specified, fallback to the first available deposit method
+            // if depositMethod was not specified, fallback to the first available deposit method
             if ($depositMethod === null) {
                 $firstDepositMethod = $this->safe_value($depositMethods, 0, array());
                 $depositMethod = $this->safe_string($firstDepositMethod, 'method');
@@ -3524,10 +3526,10 @@ class kraken extends Exchange {
         $response = Async\await($this->privatePostDepositAddresses($this->extend($request, $params)));
         //
         //     {
-        //         "error":array(),
-        //         "result":array(
-        //             array("address":"0x77b5051f97efa9cc52c9ad5b023a53fc15c200d3","expiretm":"0")
-        //         )
+        //         "error":[],
+        //         "result":[
+        //             {"address":"0x77b5051f97efa9cc52c9ad5b023a53fc15c200d3","expiretm":"0"}
+        //         ]
         //     }
         //
         $result = $this->safe_value($response, 'result', array());
@@ -3583,7 +3585,7 @@ class kraken extends Exchange {
             $request = array(
                 'asset' => $currency['id'],
                 'amount' => $amount,
-                // 'address' => $address,
+                // 'address': address,
             );
             if ($address !== null && $address !== '') {
                 $request['address'] = $address;
@@ -3592,16 +3594,16 @@ class kraken extends Exchange {
             $response = Async\await($this->privatePostWithdraw($this->extend($request, $params)));
             //
             //     {
-            //         "error" => array(),
-            //         "result" => {
-            //             "refid" => "AGBSO6T-UFMTTQ-I7KGS6"
+            //         "error": [],
+            //         "result": {
+            //             "refid": "AGBSO6T-UFMTTQ-I7KGS6"
             //         }
             //     }
             //
             $result = $this->safe_dict($response, 'result', array());
             return $this->parse_transaction($result, $currency);
         }
-        throw new ExchangeError($this->id . " withdraw() requires a 'key' parameter (withdrawal key name, up on your account)");
+        throw new ExchangeError($this->id . " withdraw() requires a 'key' parameter (withdrawal key name, as set up on your account)");
     }
 
     public function fetch_positions(?array $symbols = null, $params = array()): PromiseInterface {
@@ -3622,7 +3624,7 @@ class kraken extends Exchange {
             Async\await($this->load_markets());
         }
         $request = array(
-            // 'txid' => 'comma delimited list of transaction ids to restrict output to',
+            // 'txid': 'comma delimited list of transaction ids to restrict output to',
             'docalcs' => 'true', // whether or not to include profit/loss calculations
             'consolidation' => 'market', // what to consolidate the positions data around, market will consolidate positions based on market pair
         );
@@ -3631,24 +3633,24 @@ class kraken extends Exchange {
         // no consolidation
         //
         //     {
-        //         "error" => array(),
-        //         "result" => {
-        //             'TGUFMY-FLESJ-VYIX3J' => {
-        //                 "ordertxid" => "O3LRNU-ZKDG5-XNCDFR",
-        //                 "posstatus" => "open",
-        //                 "pair" => "ETHUSDT",
-        //                 "time" =>  1611557231.4584,
-        //                 "type" => "buy",
-        //                 "ordertype" => "market",
-        //                 "cost" => "28.49800",
-        //                 "fee" => "0.07979",
-        //                 "vol" => "0.02000000",
-        //                 "vol_closed" => "0.00000000",
-        //                 "margin" => "14.24900",
-        //                 "terms" => "0.0200% per 4 hours",
-        //                 "rollovertm" => "1611571631",
-        //                 "misc" => "",
-        //                 "oflags" => ""
+        //         "error": [],
+        //         "result": {
+        //             'TGUFMY-FLESJ-VYIX3J': {
+        //                 "ordertxid": "O3LRNU-ZKDG5-XNCDFR",
+        //                 "posstatus": "open",
+        //                 "pair": "ETHUSDT",
+        //                 "time":  1611557231.4584,
+        //                 "type": "buy",
+        //                 "ordertype": "market",
+        //                 "cost": "28.49800",
+        //                 "fee": "0.07979",
+        //                 "vol": "0.02000000",
+        //                 "vol_closed": "0.00000000",
+        //                 "margin": "14.24900",
+        //                 "terms": "0.0200% per 4 hours",
+        //                 "rollovertm": "1611571631",
+        //                 "misc": "",
+        //                 "oflags": ""
         //             }
         //         }
         //     }
@@ -3656,20 +3658,20 @@ class kraken extends Exchange {
         // consolidation by market
         //
         //     {
-        //         "error" => array(),
-        //         "result" => array(
+        //         "error": [],
+        //         "result": [
         //             {
-        //                 "pair" => "ETHUSDT",
-        //                 "positions" => "1",
-        //                 "type" => "buy",
-        //                 "leverage" => "2.00000",
-        //                 "cost" => "28.49800",
-        //                 "fee" => "0.07979",
-        //                 "vol" => "0.02000000",
-        //                 "vol_closed" => "0.00000000",
-        //                 "margin" => "14.24900"
+        //                 "pair": "ETHUSDT",
+        //                 "positions": "1",
+        //                 "type": "buy",
+        //                 "leverage": "2.00000",
+        //                 "cost": "28.49800",
+        //                 "fee": "0.07979",
+        //                 "vol": "0.02000000",
+        //                 "vol_closed": "0.00000000",
+        //                 "margin": "14.24900"
         //             }
-        //         )
+        //         ]
         //     }
         //
         $symbols = $this->market_symbols($symbols);
@@ -3681,15 +3683,15 @@ class kraken extends Exchange {
     public function parse_position(array $position, ?array $market = null) {
         //
         //             {
-        //                 "pair" => "ETHUSDT",
-        //                 "positions" => "1",
-        //                 "type" => "buy",
-        //                 "leverage" => "2.00000",
-        //                 "cost" => "28.49800",
-        //                 "fee" => "0.07979",
-        //                 "vol" => "0.02000000",
-        //                 "vol_closed" => "0.00000000",
-        //                 "margin" => "14.24900"
+        //                 "pair": "ETHUSDT",
+        //                 "positions": "1",
+        //                 "type": "buy",
+        //                 "leverage": "2.00000",
+        //                 "cost": "28.49800",
+        //                 "fee": "0.07979",
+        //                 "vol": "0.02000000",
+        //                 "vol_closed": "0.00000000",
+        //                 "margin": "14.24900"
         //             }
         //
         $marketId = $this->safe_string($position, 'pair');
@@ -3789,8 +3791,8 @@ class kraken extends Exchange {
         $response = Async\await($this->privatePostWalletTransfer($this->extend($request, $params)));
         //
         //   {
-        //       "error":array(
-        //       ),
+        //       "error":[
+        //       ],
         //       "result":{
         //          "refid":"BOIUSIF-M7DLMN-UXZ3P5"
         //       }
@@ -3806,11 +3808,11 @@ class kraken extends Exchange {
 
     public function parse_transfer(array $transfer, ?array $currency = null): array {
         //
-        // $transfer
+        // transfer
         //
         //    {
-        //        "error":array(
-        //        ),
+        //        "error":[
+        //        ],
         //        "result":{
         //           "refid":"BOIUSIF-M7DLMN-UXZ3P5"
         //        }
@@ -3834,7 +3836,7 @@ class kraken extends Exchange {
     public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         $url = '/' . $this->version . '/' . $api . '/' . $path;
         if ($api === 'public') {
-            if ($params) {
+            if (count($params) > 0) {
                 // rawencode is used to address https://github.com/ccxt/ccxt/issues/12872
                 $url .= '?' . $this->urlencode_nested($params);
             }
@@ -3892,7 +3894,7 @@ class kraken extends Exchange {
                 $message = $this->id . ' ' . $body;
                 if (is_array($response) && array_key_exists('error' ?? '', $response)) {
                     $numErrors = count($response['error']);
-                    if ($numErrors) {
+                    if ($numErrors > 0) {
                         for ($i = 0; $i < count($response['error']); $i++) {
                             $error = $response['error'][$i];
                             $this->throw_exactly_matched_exception($this->exceptions['exact'], $error, $message);

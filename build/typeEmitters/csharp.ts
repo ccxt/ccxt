@@ -110,6 +110,12 @@ export interface StructSpec {
     o?: Record<string, FieldOverride>;
     /** TS fields deliberately not surfaced in C# */
     skip?: string[];
+    /**
+     * capture source keys that map to no struct field into an `extra` bag, so the
+     * struct round-trips venue-only keys (market['baseName'], market['priceScale'], …)
+     * instead of silently dropping them. Reverse helpers write the bag back out.
+     */
+    extra?: boolean;
     w?: WrapperSpec;
 }
 
@@ -353,6 +359,9 @@ export function csExprOf (idiom: string, recv: string, key: string, elem: string
     if (idiom === 'info') {
         return 'Helper.GetInfo(' + recv + ')';
     }
+    if (idiom === 'fees') {
+        return 'Helper.GetFees(' + recv + ')';
+    }
     if (idiom === 'safeBool') {
         return 'Exchange.SafeBool(' + recv + ', ' + k + ')';
     }
@@ -551,7 +560,10 @@ function renderWrapper (ir: TypesIR, spec: StructSpec): string {
         }
     }
     const bind = spec.b === undefined ? spec.p : spec.b;
-    const cast = spec.bc === undefined ? 'Dictionary<string, object>' : spec.bc;
+    // IDictionary, not Dictionary: ws venues resolve the live `this.tickers` /
+    // `this.bidsasks` cache (a ccxt.pro.CustomConcurrentDictionary) straight into the
+    // struct, and a concrete Dictionary cast throws InvalidCastException on it
+    const cast = spec.bc === undefined ? 'IDictionary<string, object>' : spec.bc;
     const lines: string[] = [];
     lines.push ('public struct ' + spec.n);
     lines.push ('{');
@@ -626,6 +638,30 @@ function renderStruct (ir: TypesIR, spec: StructSpec): string {
         }
         lines.push (INDENT + 'public ' + field.type + ' ' + field.cs + ';');
     }
+    if (spec.extra === true) {
+        lines.push ('');
+        lines.push (INDENT + '// venue-only source keys with no struct field; kept so the struct round-trips losslessly');
+        lines.push (INDENT + 'public Dictionary<string, object>? extra;');
+        lines.push ('');
+        lines.push (INDENT + 'private static readonly HashSet<string> ' + spec.n + 'Keys = new HashSet<string> {');
+        const keyTokens: string[] = [];
+        // only keys a real struct field stores. A TS field in `skip` is carried nowhere,
+        // so it has to fall into the bag rather than be treated as already-covered.
+        const declared = spec.d === undefined ? [] : spec.d;
+        for (let i = 0; i < declared.length; i++) {
+            const token = declared[i];
+            if (token === '' || literal (token) !== undefined) {
+                continue;
+            }
+            const declaredField = fields[token];
+            if (declaredField !== undefined) {
+                keyTokens.push ('"' + declaredField.key + '"');
+            }
+        }
+        lines.push (INDENT.repeat (2) + keyTokens.join (', ') + ',');
+        lines.push (INDENT + '};');
+        lines.push ('');
+    }
     lines.push (INDENT + 'public ' + spec.n + '(object ' + spec.p + ')');
     lines.push (INDENT + '{');
     if (spec.b !== undefined) {
@@ -649,6 +685,9 @@ function renderStruct (ir: TypesIR, spec: StructSpec): string {
         }
         const lhs = (field.cs === spec.p || field.cs === spec.b) ? 'this.' + field.cs : field.cs;
         lines.push (INDENT.repeat (2) + lhs + ' = ' + csExprOf (field.idiom, recv, field.key, field.elem) + ';');
+    }
+    if (spec.extra === true) {
+        lines.push (INDENT.repeat (2) + 'extra = Helper.GetExtra(' + recv + ', ' + spec.n + 'Keys);');
     }
     lines.push (INDENT + '}');
     const tail = spec.t === undefined ? [] : spec.t;
@@ -732,7 +771,10 @@ export function emit (ir: TypesIR, repoRoot: string): EmitterOutput[] {
                 'source': renderStruct (ir, effective),
             });
         }
-        const result: SpliceResult = spliceBlocks (before, blocks, findBraceBlockEnd);
+        // a spec with no existing anchor is a NEW struct: append it rather than
+        // silently skipping, which is how added types went missing from the port
+        const appendStruct = (block: EmittedBlock): string => '\n' + block.source + '\n';
+        const result: SpliceResult = spliceBlocks (before, blocks, findBraceBlockEnd, appendStruct);
         const contents = ensureGeneratedBanner (result.text, '//');
         const changed = result.replaced.concat (result.appended);
         if (contents !== result.text) {

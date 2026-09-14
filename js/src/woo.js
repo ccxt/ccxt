@@ -104,8 +104,8 @@ export default class woo extends Exchange {
                 'fetchPositionsHistory': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchStatus': true,
-                'fetchTicker': false,
-                'fetchTickers': false,
+                'fetchTicker': true,
+                'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': true,
                 'fetchTradingFee': true,
@@ -148,7 +148,8 @@ export default class woo extends Exchange {
                 },
                 'www': 'https://woox.io/',
                 'doc': [
-                    'https://docs.woox.io/',
+                    'https://developer.woox.io/',
+                    'https://docs.woox.io/', // legacy v1 api reference
                 ],
                 'fees': [
                     'https://support.woox.io/hc/en-001/articles/4404611795353--Trading-Fees',
@@ -228,14 +229,7 @@ export default class woo extends Exchange {
                             'order': { 'cost': 1 },
                             'client/order': { 'cost': 1 },
                             'orders': { 'cost': 1 },
-                            'asset/withdraw': { 'cost': 120 }, // implemented in ccxt, disabled on the exchange side https://docx.woo.io/wootrade-documents/#cancel-withdraw-request
-                        },
-                    },
-                },
-                'v2': {
-                    'private': {
-                        'get': {
-                            'client/holding': { 'cost': 1 },
+                            'asset/withdraw': { 'cost': 120 }, // cancel a pending withdrawal, undocumented but alive as of 2026-08
                         },
                     },
                 },
@@ -307,6 +301,8 @@ export default class woo extends Exchange {
                             'asset/wallet/withdraw': { 'cost': 60 }, // 10/60s
                             'spotMargin/leverage': { 'cost': 120 }, // 5/60s
                             'spotMargin/interestRepay': { 'cost': 60 }, // 10/60s
+                            'futures/defaultMarginMode/reset': { 'cost': 60 },
+                            'isolatedMargin/margin': { 'cost': 60 },
                             'algo/order': { 'cost': 5 },
                             'convert/rft': { 'cost': 60 },
                         },
@@ -315,6 +311,8 @@ export default class woo extends Exchange {
                             'trade/algoOrder': { 'cost': 2 }, // 5/1s
                             'futures/leverage': { 'cost': 60 }, // 10/60s
                             'futures/positionMode': { 'cost': 120 }, // 5/60s
+                            'futures/defaultMarginMode': { 'cost': 60 },
+                            'futures/defaultMarginMode/{symbol}': { 'cost': 60 },
                             'order/{oid}': { 'cost': 2 },
                             'order/client/{client_order_id}': { 'cost': 2 },
                             'algo/order/{oid}': { 'cost': 2 },
@@ -330,6 +328,7 @@ export default class woo extends Exchange {
                             'algo/orders/pending': { 'cost': 1 },
                             'algo/orders/pending/{symbol}': { 'cost': 1 },
                             'orders/pending': { 'cost': 1 },
+                            'asset/wallet/withdraw/{withdrawId}': { 'cost': 60 },
                         },
                     },
                 },
@@ -347,23 +346,24 @@ export default class woo extends Exchange {
                 'adjustForTimeDifference': false, // controls the adjustment logic upon instantiation
                 'sandboxMode': false,
                 'createMarketBuyOrderRequiresPrice': true,
-                // these network aliases require manual mapping here
-                'network-aliases-for-tokens': {
-                    'HT': 'ERC20',
-                    'OMG': 'ERC20',
-                    'UATOM': 'ATOM',
-                    'ZRX': 'ZRX',
-                },
                 'networks': {
                     'TRX': 'TRX', // WOO X renamed the network id from TRON to TRX
                     'TRC20': 'TRX',
                     'ERC20': 'ETH',
                     'BEP20': 'BSC',
                     'ARBITRUM': 'Arbitrum',
+                    'BASE': 'BASE',
+                    'AVAXC': 'AVAXC',
+                    'OP': 'OP',
+                    'OPTIMISM': 'OP',
+                    'MATIC': 'MATIC',
+                    'SONIC': 'S',
+                    'HYPEREVM': 'HyperEVM',
                 },
                 'networksById': {
                     'TRX': 'TRC20',
                     'TRON': 'TRC20',
+                    'OP': 'OP',
                 },
                 // override defaultNetworkCodePriorities for a specific currency
                 'defaultNetworkCodeForCurrencies': {
@@ -717,7 +717,7 @@ export default class woo extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets(params = {}) {
-        if (this.options['adjustForTimeDifference']) {
+        if (this.options['adjustForTimeDifference'] === true) {
             await this.loadTimeDifference();
         }
         const response = await this.v3PublicGetInstruments(params);
@@ -1271,7 +1271,7 @@ export default class woo extends Exchange {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (!market['spot']) {
+        if (market['spot'] !== true) {
             throw new NotSupported(this.id + ' createMarketBuyOrderWithCost() supports spot orders only');
         }
         return await this.createOrder(symbol, 'market', 'buy', cost, 1, params);
@@ -1291,7 +1291,7 @@ export default class woo extends Exchange {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (!market['spot']) {
+        if (market['spot'] !== true) {
             throw new NotSupported(this.id + ' createMarketSellOrderWithCost() supports spot orders only');
         }
         return await this.createOrder(symbol, 'market', 'sell', cost, 1, params);
@@ -1421,7 +1421,7 @@ export default class woo extends Exchange {
                 request['type'] = 'IOC';
             }
         }
-        if (reduceOnly) {
+        if (reduceOnly === true) {
             request['reduceOnly'] = reduceOnly;
         }
         if (!isMarket && price !== undefined) {
@@ -1432,7 +1432,7 @@ export default class woo extends Exchange {
             const cost = this.safeStringN(params, ['cost', 'order_amount', 'orderAmount']);
             params = this.omit(params, ['cost', 'order_amount', 'orderAmount']);
             const isPriceProvided = price !== undefined;
-            if (market['spot'] && (isPriceProvided || (cost !== undefined))) {
+            if ((market['spot'] === true) && (isPriceProvided || (cost !== undefined))) {
                 let quoteAmount = undefined;
                 if (cost !== undefined) {
                     quoteAmount = this.costToPrecision(symbol, cost);
@@ -1626,7 +1626,7 @@ export default class woo extends Exchange {
         }
         const isTrigger = this.safeBool2(params, 'trigger', 'stop', false);
         params = this.omit(params, ['clOrdID', 'clientOrderId', 'client_order_id', 'stopPrice', 'triggerPrice', 'takeProfitPrice', 'stopLossPrice', 'trailingTriggerPrice', 'trailingAmount', 'trailingPercent', 'trigger', 'stop']);
-        const isConditional = isTrigger || isTrailing || (triggerPrice !== undefined) || (this.safeValue(params, 'childOrders') !== undefined);
+        const isConditional = (isTrigger === true) || isTrailing || (triggerPrice !== undefined) || (this.safeValue(params, 'childOrders') !== undefined);
         let response = undefined;
         if (isConditional) {
             if (isByClientOrder) {
@@ -1680,7 +1680,7 @@ export default class woo extends Exchange {
     async cancelOrder(id, symbol = undefined, params = {}) {
         const isTrigger = this.safeBool2(params, 'trigger', 'stop', false);
         params = this.omit(params, ['trigger', 'stop']);
-        if (!isTrigger && (symbol === undefined)) {
+        if ((isTrigger !== true) && (symbol === undefined)) {
             throw new ArgumentsRequired(this.id + ' cancelOrder() requires a symbol argument');
         }
         if (this.markets === undefined) {
@@ -1696,7 +1696,7 @@ export default class woo extends Exchange {
         params = this.omit(params, ['clOrdID', 'clientOrderId', 'client_order_id']);
         const isByClientOrder = clientOrderIdExchangeSpecific !== undefined;
         let response = undefined;
-        if (isTrigger) {
+        if (isTrigger === true) {
             if (isByClientOrder) {
                 request['clientAlgoOrderId'] = clientOrderIdExchangeSpecific;
             }
@@ -1737,12 +1737,12 @@ export default class woo extends Exchange {
     /**
      * @method
      * @name woo#cancelAllOrders
-     * @see https://developer.woox.io/api-reference/endpoint/trading/cancel_all_order
+     * @see https://developer.woox.io/api-reference/endpoint/trading/cancel_orders_by_symbol
      * @see https://developer.woox.io/api-reference/endpoint/trading/cancel_algo_orders
      * @description cancel all open orders in a market
-     * @param {string} [symbol] unified market symbol
+     * @param {string} [symbol] unified market symbol, cancels orders in all markets when omitted
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.trigger] whether the order is a trigger/algo order
+     * @param {boolean} [params.trigger] set to true to cancel only trigger/algo orders
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelAllOrders(symbol = undefined, params = {}) {
@@ -1757,11 +1757,12 @@ export default class woo extends Exchange {
             request['symbol'] = market['id'];
         }
         let response = undefined;
-        if (trigger) {
+        if (trigger === true) {
             response = await this.v3PrivateDeleteTradeAlgoOrders(params);
         }
         else {
-            response = await this.v3PrivateDeleteTradeOrders(this.extend(request, params));
+            // cancels both regular and algo orders
+            response = await this.v3PrivateDeleteTradeAllOrders(this.extend(request, params));
         }
         //
         //     {
@@ -1828,7 +1829,7 @@ export default class woo extends Exchange {
         const request = {};
         const clientOrderId = this.safeString2(params, 'clOrdID', 'clientOrderId');
         let response = undefined;
-        if (trigger) {
+        if (trigger === true) {
             if (clientOrderId !== undefined) {
                 request['clientAlgoOrderId'] = id;
             }
@@ -1961,7 +1962,7 @@ export default class woo extends Exchange {
             request['size'] = Math.min(limit, 500);
         }
         let response = undefined;
-        if (trigger) {
+        if (trigger === true) {
             response = await this.v3PrivateGetTradeAlgoOrders(this.extend(request, params));
             //
             //     {
@@ -2285,7 +2286,7 @@ export default class woo extends Exchange {
             };
             return this.safeString(statuses, status, status);
         }
-        return status;
+        return undefined;
     }
     /**
      * @method
@@ -2333,6 +2334,164 @@ export default class woo extends Exchange {
         const data = this.safeDict(response, 'data', {});
         const timestamp = this.safeInteger(response, 'timestamp');
         return this.parseOrderBook(data, symbol, timestamp, 'bids', 'asks', 'price', 'quantity');
+    }
+    parseTicker(ticker, market = undefined) {
+        //
+        //     {
+        //         "symbol": "PERP_BTC_USDT",
+        //         "indexPrice": "63049",
+        //         "markPrice": "63028",
+        //         "estFundingRate": "0.00008868",
+        //         "lastFundingRate": "0.00008545",
+        //         "openInterest": "221.3498",
+        //         "24hOpen": "63880",
+        //         "24hClose": "63020",
+        //         "24hHigh": "64000",
+        //         "24hLow": "62800",
+        //         "24hVolume": "12000",
+        //         "24hAmount": "756000000",
+        //         "nextFundingTime": 1786694400000
+        //     }
+        //
+        const marketId = this.safeString(ticker, 'symbol');
+        market = this.safeMarket(marketId, market);
+        const timestamp = this.safeInteger(ticker, 'timestamp');
+        return this.safeTicker({
+            'symbol': market['symbol'],
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
+            'high': this.safeString(ticker, '24hHigh'),
+            'low': this.safeString(ticker, '24hLow'),
+            'bid': undefined,
+            'bidVolume': undefined,
+            'ask': undefined,
+            'askVolume': undefined,
+            'vwap': undefined,
+            'open': this.safeString(ticker, '24hOpen'),
+            'close': this.safeString(ticker, '24hClose'),
+            'last': this.safeString(ticker, '24hClose'),
+            'previousClose': undefined,
+            'change': undefined,
+            'percentage': undefined,
+            'average': undefined,
+            'baseVolume': this.safeString(ticker, '24hVolume'),
+            'quoteVolume': this.safeString(ticker, '24hAmount'),
+            'indexPrice': this.safeString(ticker, 'indexPrice'),
+            'markPrice': this.safeString(ticker, 'markPrice'),
+            'info': ticker,
+        }, market);
+    }
+    /**
+     * @method
+     * @name woo#fetchTicker
+     * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market, swap markets only
+     * @see https://developer.woox.io/api-reference/endpoint/public_data/futures
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    async fetchTicker(symbol, params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        const market = this.market(symbol);
+        if (market['swap'] !== true) {
+            throw new NotSupported(this.id + ' fetchTicker() supports swap markets only, there is no spot ticker endpoint');
+        }
+        const request = {
+            'symbol': market['id'],
+        };
+        const response = await this.v3PublicGetFutures(this.extend(request, params));
+        //
+        //     {
+        //         "success": true,
+        //         "data": {
+        //             "rows": [
+        //                 {
+        //                     "symbol": "PERP_BTC_USDT",
+        //                     "indexPrice": "63049",
+        //                     "markPrice": "63028",
+        //                     "estFundingRate": "0.00008868",
+        //                     "lastFundingRate": "0.00008545",
+        //                     "openInterest": "221.3498",
+        //                     "24hOpen": "63880",
+        //                     "24hClose": "63020",
+        //                     "24hHigh": "64000",
+        //                     "24hLow": "62800",
+        //                     "24hVolume": "12000",
+        //                     "24hAmount": "756000000",
+        //                     "nextFundingTime": 1786694400000
+        //                 }
+        //             ]
+        //         },
+        //         "timestamp": 1786690534921
+        //     }
+        //
+        const data = this.safeDict(response, 'data', {});
+        const rows = this.safeList(data, 'rows', []);
+        const first = this.safeDict(rows, 0);
+        if (first === undefined) {
+            throw new BadSymbol(this.id + ' fetchTicker() could not find ticker data for ' + symbol);
+        }
+        const ticker = this.extend({ 'timestamp': this.safeInteger(response, 'timestamp') }, first);
+        return this.parseTicker(ticker, market);
+    }
+    /**
+     * @method
+     * @name woo#fetchTickers
+     * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market, only swap markets are supported
+     * @see https://developer.woox.io/api-reference/endpoint/public_data/futures
+     * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, swap markets only, all swap tickers are returned when not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.type] market type, must be 'swap' when no symbols are provided
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    async fetchTickers(symbols = undefined, params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        if (symbols !== undefined) {
+            const symbolsLength = symbols.length;
+            if (symbolsLength > 0) {
+                // the type gate throws NotSupported rather than letting marketSymbols raise
+                // BadRequest, so callers (and the live test harness) can tell "wrong market
+                // type" apart from a malformed request, marketSymbols still enforces that the
+                // rest of the list matches
+                const firstMarket = this.market(symbols[0]);
+                if (firstMarket['swap'] !== true) {
+                    throw new NotSupported(this.id + ' fetchTickers() supports swap markets only');
+                }
+            }
+        }
+        symbols = this.marketSymbols(symbols, 'swap', true, true);
+        if (symbols === undefined) {
+            let marketType = undefined;
+            [marketType, params] = this.handleMarketTypeAndParams('fetchTickers', undefined, params, 'swap');
+            if (marketType !== 'swap') {
+                throw new NotSupported(this.id + ' fetchTickers() supports swap markets only');
+            }
+        }
+        const response = await this.v3PublicGetFutures(params);
+        //
+        // same as fetchTicker, with multiple rows
+        //
+        const data = this.safeDict(response, 'data', {});
+        const rows = this.safeList(data, 'rows', []);
+        const timestamp = this.safeInteger(response, 'timestamp');
+        const result = [];
+        for (let i = 0; i < rows.length; i++) {
+            const row = rows[i];
+            const marketId = this.safeString(row, 'symbol');
+            if (marketId === undefined) {
+                continue;
+            }
+            if ((this.markets_by_id === undefined) || !(marketId in this.markets_by_id)) {
+                continue; // the endpoint can return newly listed contracts before they appear in the instruments
+            }
+            const ticker = this.extend({ 'timestamp': timestamp }, row);
+            result.push(this.parseTicker(ticker));
+        }
+        return this.filterByArrayTickers(result, 'symbol', symbols);
     }
     /**
      * @method
@@ -3056,7 +3215,7 @@ export default class woo extends Exchange {
         const transfer = this.parseTransfer(data, currency);
         const transferOptions = this.safeDict(this.options, 'transfer', {});
         const fillResponseFromRequest = this.safeBool(transferOptions, 'fillResponseFromRequest', true);
-        if (fillResponseFromRequest) {
+        if (fillResponseFromRequest === true) {
             transfer['amount'] = amount;
             transfer['fromAccount'] = fromAccount;
             transfer['toAccount'] = toAccount;
@@ -3183,19 +3342,9 @@ export default class woo extends Exchange {
             'amount': this.safeNumber(transfer, 'amount'),
             'fromAccount': this.safeString(fromAccount, 'applicationId'),
             'toAccount': this.safeString(toAccount, 'applicationId'),
-            'status': this.parseTransferStatus(this.safeString(transfer, 'status', status)),
+            'status': this.parseTransactionStatus(this.safeString(transfer, 'status', status)),
             'info': transfer,
         };
-    }
-    parseTransferStatus(status) {
-        const statuses = {
-            'NEW': 'pending',
-            'CONFIRMING': 'pending',
-            'PROCESSING': 'pending',
-            'COMPLETED': 'ok',
-            'CANCELED': 'canceled',
-        };
-        return this.safeString(statuses, status, status);
     }
     /**
      * @method
@@ -3317,13 +3466,13 @@ export default class woo extends Exchange {
         params = this.keysort(params);
         if (access === 'public') {
             url += access + '/' + pathWithParams;
-            if (Object.keys(params).length) {
+            if (Object.keys(params).length > 0) {
                 url += '?' + this.urlencode(params);
             }
         }
         else if (access === 'pub') {
             url += pathWithParams;
-            if (Object.keys(params).length) {
+            if (Object.keys(params).length > 0) {
                 url += '?' + this.urlencode(params);
             }
         }
@@ -3331,7 +3480,7 @@ export default class woo extends Exchange {
             this.checkRequiredCredentials();
             if (method === 'POST' && (path === 'trade/algoOrder' || path === 'trade/order')) {
                 const isSandboxMode = this.safeBool(this.options, 'sandboxMode', false);
-                if (!isSandboxMode) {
+                if (isSandboxMode !== true) {
                     const applicationId = 'bc830de7-50f3-460b-9ee0-f430f83f9dad';
                     const brokerId = this.safeString(this.options, 'brokerId', applicationId);
                     const isTrigger = path.indexOf('algo') > -1;
@@ -3359,7 +3508,7 @@ export default class woo extends Exchange {
                     headers['content-type'] = 'application/json';
                 }
                 else {
-                    if (Object.keys(params).length) {
+                    if (Object.keys(params).length > 0) {
                         const query = this.urlencode(params);
                         url += '?' + query;
                         auth += '?' + query;
@@ -3372,7 +3521,7 @@ export default class woo extends Exchange {
                     body = auth;
                 }
                 else {
-                    if (Object.keys(params).length) {
+                    if (Object.keys(params).length > 0) {
                         url += '?' + auth;
                     }
                 }
@@ -3384,7 +3533,7 @@ export default class woo extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
-        if (!response) {
+        if (response === undefined) {
             return undefined; // fallback to default error handler
         }
         //
@@ -3393,7 +3542,7 @@ export default class woo extends Exchange {
         //
         const success = this.safeBool(response, 'success');
         const errorCode = this.safeString(response, 'code');
-        if (!success) {
+        if (success !== true) {
             const feedback = this.id + ' ' + this.json(response);
             this.throwBroadlyMatchedException(this.exceptions['broad'], body, feedback);
             this.throwExactlyMatchedException(this.exceptions['exact'], errorCode, feedback);
@@ -3774,7 +3923,7 @@ export default class woo extends Exchange {
         }
         const market = this.market(symbol);
         let response = undefined;
-        if (market['spot']) {
+        if (market['spot'] === true) {
             response = await this.v3PrivateGetAccountInfo(params);
             //
             //     {
@@ -3806,7 +3955,7 @@ export default class woo extends Exchange {
             //     }
             //
         }
-        else if (market['swap']) {
+        else if (market['swap'] === true) {
             const request = {
                 'symbol': market['id'],
             };
@@ -3919,10 +4068,10 @@ export default class woo extends Exchange {
         if (symbol !== undefined) {
             market = this.market(symbol);
         }
-        if ((symbol === undefined) || this.safeBool(market, 'spot')) {
+        if ((symbol === undefined) || (this.safeBool(market, 'spot') === true)) {
             return await this.v3PrivatePostSpotMarginLeverage(this.extend(request, params));
         }
-        else if (this.safeBool(market, 'swap')) {
+        else if (this.safeBool(market, 'swap') === true) {
             request['symbol'] = this.safeString(market, 'id');
             let marginMode = undefined;
             [marginMode, params] = this.handleMarginModeAndParams('setLeverage', params, 'cross');

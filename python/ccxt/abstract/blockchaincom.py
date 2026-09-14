@@ -1,8 +1,7 @@
 from ccxt.base.types import Entry
-from typing import Any as PythonAny, Dict, List
+_List = list[object]
+_Dict = dict[str, object]
 
-_List = List[PythonAny]
-_Dict = Dict[str, PythonAny]
 
 class ImplicitAPI:
     public_get_tickers = publicGetTickers = Entry[_List]('tickers', 'public', 'GET', {'cost': 1})
@@ -12,6 +11,7 @@ class ImplicitAPI:
     public_get_l2_symbol = publicGetL2Symbol = Entry[_Dict]('l2/{symbol}', 'public', 'GET', {'cost': 1})
     public_get_l3_symbol = publicGetL3Symbol = Entry[_Dict]('l3/{symbol}', 'public', 'GET', {'cost': 1})
     private_get_fees = privateGetFees = Entry[_Dict]('fees', 'private', 'GET', {'cost': 1})
+    private_get_internal_orders = privateGetInternalOrders = Entry[_Dict]('internal/orders', 'private', 'GET', {'cost': 1})
     private_get_orders = privateGetOrders = Entry[_List]('orders', 'private', 'GET', {'cost': 1})
     private_get_orders_orderid = privateGetOrdersOrderId = Entry[_Dict]('orders/{orderId}', 'private', 'GET', {'cost': 1})
     private_get_trades = privateGetTrades = Entry[_List]('trades', 'private', 'GET', {'cost': 1})

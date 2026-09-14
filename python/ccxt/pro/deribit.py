@@ -6,9 +6,8 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
 import hashlib
-from ccxt.base.types import Any, Balances, Int, Market, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Balances, Int, Market, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
-from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import NotSupported
@@ -16,7 +15,7 @@ from ccxt.base.errors import NotSupported
 
 class deribit(ccxt.async_support.deribit):
 
-    def describe(self) -> Any:
+    def describe(self) -> object:
         return self.deep_extend(super(deribit, self).describe(), {
             'has': {
                 'ws': True,
@@ -63,7 +62,7 @@ class deribit(ccxt.async_support.deribit):
                     # watchOrderBook replacement
                     'watchOrderBookForSymbols': {
                         'interval': '100ms',  # 100ms, agg2, raw
-                        'useDepthEndpoint': False,  # if True, it will use the {books.group.depth.interval} endpoint instead of the {books.interval} endpoint
+                        'useDepthEndpoint': False,  # if true, it will use the {books.group.depth.interval} endpoint instead of the {books.interval} endpoint
                         'depth': '20',  # 1, 10, 20
                         'group': 'none',  # none, 1, 2, 5, 10, 25, 100, 250
                     },
@@ -93,7 +92,7 @@ class deribit(ccxt.async_support.deribit):
         await self.authenticate(params)
         messageHash = 'balance'
         url = self.urls['api']['ws']
-        currencies = self.safe_value(self.options, 'currencies', [])
+        currencies = self.safe_list(self.options, 'currencies', [])
         channels = []
         for i in range(0, len(currencies)):
             currencyCode = currencies[i]
@@ -109,7 +108,7 @@ class deribit(ccxt.async_support.deribit):
         request = self.deep_extend(subscribe, params)
         return await self.watch(url, messageHash, request, messageHash, request)
 
-    def handle_balance(self, client: Client, message: Any):
+    def handle_balance(self, client: Client, message: object):
         #
         # subscription
         #     {
@@ -124,7 +123,7 @@ class deribit(ccxt.async_support.deribit):
         #                 "projected_maintenance_margin": 0,
         #                 "projected_initial_margin": 0,
         #                 "projected_delta_total": 0,
-        #                 "portfolio_margining_enabled": False,
+        #                 "portfolio_margining_enabled": false,
         #                 "options_vega": 0,
         #                 "options_value": 0,
         #                 "options_theta": 0,
@@ -238,7 +237,7 @@ class deribit(ccxt.async_support.deribit):
             return tickers
         return self.filter_by_array(self.tickers, 'symbol', symbols)
 
-    def handle_ticker(self, client: Client, message: Any):
+    def handle_ticker(self, client: Client, message: object):
         #
         #     {
         #         "jsonrpc": "2.0",
@@ -311,7 +310,7 @@ class deribit(ccxt.async_support.deribit):
             return tickers
         return self.filter_by_array(self.bidsasks, 'symbol', symbols)
 
-    def handle_bid_ask(self, client: Client, message: Any):
+    def handle_bid_ask(self, client: Client, message: object):
         #
         #     {
         #         "jsonrpc": "2.0",
@@ -337,7 +336,7 @@ class deribit(ccxt.async_support.deribit):
         messageHash = self.safe_string(params, 'channel')
         client.resolve(ticker, messageHash)
 
-    def parse_ws_bid_ask(self, ticker: Any, market: Market = None):
+    def parse_ws_bid_ask(self, ticker: object, market: Market = None):
         marketId = self.safe_string(ticker, 'instrument_name')
         market = self.safe_market(marketId, market)
         symbol = self.safe_string(market, 'symbol')
@@ -353,7 +352,7 @@ class deribit(ccxt.async_support.deribit):
             'info': ticker,
         }, market)
 
-    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> List[Trade]:
+    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         get the list of most recent trades for a particular symbol
 
@@ -369,7 +368,7 @@ class deribit(ccxt.async_support.deribit):
         params['callerMethodName'] = 'watchTrades'
         return await self.watch_trades_for_symbols([symbol], since, limit, params)
 
-    async def watch_trades_for_symbols(self, symbols: List[str], since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    async def watch_trades_for_symbols(self, symbols: list[str], since: Int = None, limit: Int = None, params={}) -> list[Trade]:
         """
         get the list of most recent trades for a list of symbols
 
@@ -392,7 +391,7 @@ class deribit(ccxt.async_support.deribit):
             limit = trades.getLimit(tradeSymbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    def handle_trades(self, client: Client, message: Any):
+    def handle_trades(self, client: Client, message: object):
         #
         #     {
         #         "jsonrpc": "2.0",
@@ -434,7 +433,7 @@ class deribit(ccxt.async_support.deribit):
         messageHash = 'trades|' + symbol + '|' + interval
         client.resolve(self.trades[symbol], messageHash)
 
-    async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
         """
         get the list of trades associated with the user
 
@@ -467,7 +466,7 @@ class deribit(ccxt.async_support.deribit):
         trades = await self.watch(url, channel, request, channel, request)
         return self.filter_by_symbol_since_limit(trades, symbol, since, limit, True)
 
-    def handle_my_trades(self, client: Client, message: Any):
+    def handle_my_trades(self, client: Client, message: object):
         #
         #     {
         #         "jsonrpc": "2.0",
@@ -480,11 +479,11 @@ class deribit(ccxt.async_support.deribit):
         #                 "timestamp": 1655421193564,
         #                 "tick_direction": 0,
         #                 "state": "filled",
-        #                 "self_trade": False,
-        #                 "reduce_only": False,
+        #                 "self_trade": false,
+        #                 "reduce_only": false,
         #                 "profit_loss": 0,
         #                 "price": 20236.5,
-        #                 "post_only": False,
+        #                 "post_only": false,
         #                 "order_type": "market",
         #                 "order_id": "46108941243",
         #                 "matching_id": null,
@@ -531,7 +530,7 @@ class deribit(ccxt.async_support.deribit):
         params['callerMethodName'] = 'watchOrderBook'
         return await self.watch_order_book_for_symbols([symbol], limit, params)
 
-    async def watch_order_book_for_symbols(self, symbols: List[str], limit: Int = None, params={}) -> OrderBook:
+    async def watch_order_book_for_symbols(self, symbols: list[str], limit: Int = None, params={}) -> OrderBook:
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
@@ -560,7 +559,7 @@ class deribit(ccxt.async_support.deribit):
         orderbook = await self.watch_multiple_wrapper('book', descriptor, symbols, params)
         return orderbook.limit()
 
-    def handle_order_book(self, client: Client, message: Any):
+    def handle_order_book(self, client: Client, message: object):
         #
         #  snapshot
         #     {
@@ -639,7 +638,7 @@ class deribit(ccxt.async_support.deribit):
         messageHash = 'book|' + symbol + '|' + descriptor
         client.resolve(storedOrderBook, messageHash)
 
-    def clean_order_book(self, data: Any):
+    def clean_order_book(self, data: object):
         bids = self.safe_list(data, 'bids', [])
         asks = self.safe_list(data, 'asks', [])
         cleanedBids = []
@@ -652,7 +651,7 @@ class deribit(ccxt.async_support.deribit):
         data['asks'] = cleanedAsks
         return data
 
-    def handle_delta(self, bookside: Any, delta: Any):
+    def handle_delta(self, bookside: object, delta: object):
         price = delta[1]
         amount = delta[2]
         if delta[0] == 'new' or delta[0] == 'change':
@@ -660,11 +659,11 @@ class deribit(ccxt.async_support.deribit):
         elif delta[0] == 'delete':
             bookside.storeArray([price, amount, 0])
 
-    def handle_deltas(self, bookside: Any, deltas: Any):
+    def handle_deltas(self, bookside: object, deltas: object):
         for i in range(0, len(deltas)):
             self.handle_delta(bookside, deltas[i])
 
-    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
 
         https://docs.deribit.com/#user-orders-instrument_name-raw
@@ -701,7 +700,7 @@ class deribit(ccxt.async_support.deribit):
             limit = orders.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
 
-    def handle_orders(self, client: Client, message: Any):
+    def handle_orders(self, client: Client, message: object):
         # Does not return a snapshot of current orders
         #
         #     {
@@ -710,27 +709,27 @@ class deribit(ccxt.async_support.deribit):
         #         "params": {
         #             "channel": "user.orders.any.any.raw",
         #             "data": {
-        #                 "web": True,
+        #                 "web": true,
         #                 "time_in_force": "good_til_cancelled",
-        #                 "replaced": False,
-        #                 "reduce_only": False,
+        #                 "replaced": false,
+        #                 "reduce_only": false,
         #                 "profit_loss": 0,
         #                 "price": 50000,
-        #                 "post_only": False,
+        #                 "post_only": false,
         #                 "order_type": "limit",
         #                 "order_state": "open",
         #                 "order_id": "46094375191",
         #                 "max_show": 10,
         #                 "last_update_timestamp": 1655401625037,
         #                 "label": '',
-        #                 "is_liquidation": False,
+        #                 "is_liquidation": false,
         #                 "instrument_name": "BTC-PERPETUAL",
         #                 "filled_amount": 0,
         #                 "direction": "sell",
         #                 "creation_timestamp": 1655401625037,
         #                 "commission": 0,
         #                 "average_price": 0,
-        #                 "api": False,
+        #                 "api": false,
         #                 "amount": 10
         #             }
         #         }
@@ -753,7 +752,7 @@ class deribit(ccxt.async_support.deribit):
             cachedOrders.append(orders[i])
         client.resolve(self.orders, channel)
 
-    async def watch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def watch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> list[list]:
         """
 
         https://docs.deribit.com/#chart-trades-instrument_name-resolution
@@ -764,7 +763,7 @@ class deribit(ccxt.async_support.deribit):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()
@@ -772,7 +771,7 @@ class deribit(ccxt.async_support.deribit):
         ohlcvs = await self.watch_ohlcv_for_symbols([[symbol, timeframe]], since, limit, params)
         return ohlcvs[symbol][timeframe]
 
-    async def watch_ohlcv_for_symbols(self, symbolsAndTimeframes: List[List[str]], since: Int = None, limit: Int = None, params={}):
+    async def watch_ohlcv_for_symbols(self, symbolsAndTimeframes: list[list[str]], since: Int = None, limit: Int = None, params={}):
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -782,7 +781,7 @@ class deribit(ccxt.async_support.deribit):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         symbolsLength = len(symbolsAndTimeframes)
         if symbolsLength == 0 or not isinstance(symbolsAndTimeframes[0], list):
@@ -793,7 +792,7 @@ class deribit(ccxt.async_support.deribit):
         filtered = self.filter_by_since_limit(candles, since, limit, 0, True)
         return self.create_ohlcv_object(symbol, timeframe, filtered)
 
-    def handle_ohlcv(self, client: Client, message: Any):
+    def handle_ohlcv(self, client: Client, message: object):
         #
         #     {
         #         "jsonrpc": "2.0",
@@ -836,7 +835,7 @@ class deribit(ccxt.async_support.deribit):
         messageHash = 'chart.trades|' + symbol + '|' + rawTimeframe
         client.resolve(resolveData, messageHash)
 
-    def parse_ws_ohlcv(self, ohlcv: Any, market: Market = None) -> list:
+    def parse_ws_ohlcv(self, ohlcv: object, market: Market = None) -> list:
         #
         #    {
         #        "c": "28909.0",
@@ -857,7 +856,7 @@ class deribit(ccxt.async_support.deribit):
             self.safe_number(ohlcv, 'volume'),
         ]
 
-    async def watch_multiple_wrapper(self, channelName: str, channelDescriptor: Str, symbolsArray: Any = None, params={}):
+    async def watch_multiple_wrapper(self, channelName: str, channelDescriptor: Str, symbolsArray: object = None, params={}):
         if self.markets is None:
             await self.load_markets()
         url = self.urls['api']['ws']
@@ -898,7 +897,7 @@ class deribit(ccxt.async_support.deribit):
             raise ExchangeError(self.id + ' requested subscription length over limit, try to reduce symbols amount')
         return await self.watch_multiple(url, messageHashes, extendedRequest, rawSubscriptions)
 
-    def handle_message(self, client: Client, message: Any):
+    def handle_message(self, client: Client, message: object):
         #
         # error
         #     {
@@ -915,7 +914,7 @@ class deribit(ccxt.async_support.deribit):
         #         "usIn": "1655391709417993",
         #         "usOut": "1655391709418049",
         #         "usDiff": 56,
-        #         "testnet": False
+        #         "testnet": false
         #     }
         #
         # subscribe
@@ -926,7 +925,7 @@ class deribit(ccxt.async_support.deribit):
         #         "usIn": "1655393625889396",
         #         "usOut": "1655393625889518",
         #         "usDiff": 122,
-        #         "testnet": False
+        #         "testnet": false
         #     }
         #
         # notification
@@ -989,7 +988,7 @@ class deribit(ccxt.async_support.deribit):
         if accessToken is not None:
             self.handle_authentication_message(client, message)
 
-    def handle_authentication_message(self, client: Client, message: Any):
+    def handle_authentication_message(self, client: Client, message: object):
         #
         #     {
         #         "jsonrpc": "2.0",
@@ -1004,7 +1003,7 @@ class deribit(ccxt.async_support.deribit):
         #         "usIn": "1655391872327712",
         #         "usOut": "1655391872328515",
         #         "usDiff": 803,
-        #         "testnet": False
+        #         "testnet": false
         #     }
         #
         messageHash = 'authenticated'

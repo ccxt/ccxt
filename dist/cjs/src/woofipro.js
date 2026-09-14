@@ -35,7 +35,7 @@ class woofipro extends woofipro$1["default"] {
                 'swap': true,
                 'future': false,
                 'option': false,
-                'addMargin': false,
+                'addMargin': true,
                 'borrowCrossMargin': false,
                 'borrowIsolatedMargin': false,
                 'borrowMargin': false,
@@ -97,12 +97,15 @@ class woofipro extends woofipro$1["default"] {
                 'fetchLedger': true,
                 'fetchLeverage': true,
                 'fetchMarginAdjustmentHistory': false,
-                'fetchMarginMode': false,
+                'fetchMarginMode': true,
+                'fetchMarginModes': true,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
+                'fetchOpenInterest': true,
                 'fetchOpenInterestHistory': false,
+                'fetchOpenInterests': true,
                 'fetchOpenOrder': false,
                 'fetchOpenOrders': true,
                 'fetchOption': false,
@@ -126,11 +129,12 @@ class woofipro extends woofipro$1["default"] {
                 'fetchTransfers': false,
                 'fetchVolatilityHistory': false,
                 'fetchWithdrawals': true,
-                'reduceMargin': false,
+                'reduceMargin': true,
                 'repayCrossMargin': false,
                 'repayIsolatedMargin': false,
                 'setLeverage': true,
                 'setMargin': false,
+                'setMarginMode': true,
                 'setPositionMode': false,
                 'transfer': false,
                 'withdraw': true, // exchange have that endpoint disabled atm, but was once implemented in ccxt per old docs: https://kronosresearch.github.io/wootrade-documents/#token-withdraw
@@ -198,6 +202,8 @@ class woofipro extends woofipro$1["default"] {
                             'client/points': { 'cost': 1 },
                             'public/points/epoch': { 'cost': 1 },
                             'public/points/epoch_dates': { 'cost': 1 },
+                            'public/points/rankings': { 'cost': 1 },
+                            'public/points/stages': { 'cost': 1 },
                             'public/referral/check_ref_code': { 'cost': 1 },
                             'public/referral/verify_ref_code': { 'cost': 1 },
                             'referral/admin_info': { 'cost': 1 },
@@ -211,6 +217,7 @@ class woofipro extends woofipro$1["default"] {
                             'tv/config': { 'cost': 1 },
                             'tv/history': { 'cost': 1 },
                             'tv/symbol_info': { 'cost': 1 },
+                            'tv/kline_history': { 'cost': 1 },
                             'public/funding_rate_history': { 'cost': 1 },
                             'public/funding_rate/{symbol}': { 'cost': 0.33 },
                             'public/funding_rates': { 'cost': 1 },
@@ -220,6 +227,9 @@ class woofipro extends woofipro$1["default"] {
                             'public/token': { 'cost': 1 },
                             'public/futures': { 'cost': 1 },
                             'public/futures/{symbol}': { 'cost': 1 },
+                            'staking/valor2/batch_info': { 'cost': 1 },
+                            'staking/valor2/pool_info': { 'cost': 1 },
+                            'staking/valor2/revenue_buyback': { 'cost': 1 },
                         },
                         'post': {
                             'register_account': { 'cost': 1 },
@@ -244,6 +254,7 @@ class woofipro extends woofipro$1["default"] {
                             'client/holding': { 'cost': 1 },
                             'withdraw_nonce': { 'cost': 1 },
                             'settle_nonce': { 'cost': 1 },
+                            'transfer_nonce': { 'cost': 1 },
                             'pnl_settlement/history': { 'cost': 1 },
                             'volume/user/daily': { 'cost': 60 },
                             'volume/user/stats': { 'cost': 60 },
@@ -258,8 +269,22 @@ class woofipro extends woofipro$1["default"] {
                             'volume/broker/daily': { 'cost': 60 },
                             'broker/fee_rate/default': { 'cost': 10 },
                             'broker/user_info': { 'cost': 10 },
+                            'broker/daily_fee_revenue': { 'cost': 10 },
                             'orderbook/{symbol}': { 'cost': 1 },
                             'kline': { 'cost': 1 },
+                            'client/margin_modes': { 'cost': 1 },
+                            'client/leverages': { 'cost': 1 },
+                            'client/points/user_statistics': { 'cost': 1 },
+                            'staking/valor2/redeem': { 'cost': 1 },
+                            'referral/multi_level/admin': { 'cost': 1 },
+                            'referral/multi_level/admin/info': { 'cost': 1 },
+                            'referral/multi_level/admin/referee_list': { 'cost': 1 },
+                            'referral/multi_level/admin/summary': { 'cost': 1 },
+                            'referral/multi_level/max_rebate_rate': { 'cost': 1 },
+                            'referral/multi_level/rebate_info': { 'cost': 1 },
+                            'referral/multi_level/referee_list': { 'cost': 1 },
+                            'referral/multi_level/statistics': { 'cost': 1 },
+                            'referral/multi_level/volume_prerequisite': { 'cost': 1 },
                         },
                         'post': {
                             'orderly_key': { 'cost': 1 },
@@ -275,6 +300,9 @@ class woofipro extends woofipro$1["default"] {
                             'notification/inbox/mark_read': { 'cost': 60 },
                             'notification/inbox/mark_read_all': { 'cost': 60 },
                             'client/leverage': { 'cost': 120 },
+                            'client/leverages': { 'cost': 120 },
+                            'client/margin_mode': { 'cost': 1 },
+                            'position_margin': { 'cost': 1 },
                             'client/maintenance_config': { 'cost': 60 },
                             'delegate_signer': { 'cost': 10 },
                             'delegate_orderly_key': { 'cost': 10 },
@@ -287,6 +315,15 @@ class woofipro extends woofipro$1["default"] {
                             'referral/update': { 'cost': 10 },
                             'referral/bind': { 'cost': 10 },
                             'referral/edit_split': { 'cost': 10 },
+                            'referral/edit_referee_description': { 'cost': 10 },
+                            'referral/multi_level/admin': { 'cost': 10 },
+                            'referral/multi_level/admin/create/affiliate': { 'cost': 10 },
+                            'referral/multi_level/admin/reset/affiliate': { 'cost': 10 },
+                            'referral/multi_level/admin/update': { 'cost': 10 },
+                            'referral/multi_level/admin/update/affiliate': { 'cost': 10 },
+                            'referral/multi_level/claim_code': { 'cost': 10 },
+                            'referral/multi_level/rebate_rate/set_default': { 'cost': 10 },
+                            'referral/multi_level/rebate_rate/update': { 'cost': 10 },
                         },
                         'put': {
                             'order': { 'cost': 1 },
@@ -301,6 +338,13 @@ class woofipro extends woofipro$1["default"] {
                             'orders': { 'cost': 1 },
                             'batch-order': { 'cost': 1 },
                             'client/batch-order': { 'cost': 1 },
+                        },
+                    },
+                },
+                'v2': {
+                    'private': {
+                        'post': {
+                            'internal_transfer': { 'cost': 1 },
                         },
                     },
                 },
@@ -1161,6 +1205,116 @@ class woofipro extends woofipro$1["default"] {
         }
         return this.filterByArrayTickers(result, 'symbol', symbols);
     }
+    parseOpenInterest(interest, market = undefined) {
+        //
+        //     {
+        //         "symbol": "PERP_BTC_USDC",
+        //         "index_price": 64185.4,
+        //         "mark_price": 64171.0,
+        //         "open_interest": 110.64612,
+        //         "24h_open": 64105.6,
+        //         "24h_close": 64180.0,
+        //         "24h_high": 64941.0,
+        //         "24h_low": 63837.6,
+        //         "24h_volume": 102.2817,
+        //         "24h_amount": 6595662.199482
+        //     }
+        //
+        const marketId = this.safeString(interest, 'symbol');
+        market = this.safeMarket(marketId, market);
+        const timestamp = this.safeInteger(interest, 'timestamp');
+        const amount = this.safeNumber2(interest, 'open_interest', 'openInterest');
+        return this.safeOpenInterest({
+            'symbol': market['symbol'],
+            'openInterestAmount': amount,
+            'openInterestValue': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
+            'info': interest,
+        }, market);
+    }
+    /**
+     * @method
+     * @name woofipro#fetchOpenInterest
+     * @description retrieves the open interest of a contract trading pair
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-market-info-for-one-symbol
+     * @param {string} symbol unified CCXT market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [open interest structure]{@link https://docs.ccxt.com/?id=open-interest-structure}
+     */
+    async fetchOpenInterest(symbol, params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        const market = this.market(symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        const response = await this.v1PublicGetPublicFuturesSymbol(this.extend(request, params));
+        //
+        // {
+        //     "success": true,
+        //     "timestamp": 1786022130191,
+        //     "data": {
+        //         "symbol": "PERP_BTC_USDC",
+        //         "index_price": 64185.4,
+        //         "mark_price": 64171.0,
+        //         "open_interest": 110.64612,
+        //         "24h_volume": 102.2817,
+        //         "24h_amount": 6595662.199482
+        //     }
+        // }
+        //
+        const data = this.safeDict(response, 'data', {});
+        data['timestamp'] = this.safeInteger(response, 'timestamp');
+        return this.parseOpenInterest(data, market);
+    }
+    /**
+     * @method
+     * @name woofipro#fetchOpenInterests
+     * @description retrieves the open interest for a list of contract trading pairs
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-market-info-for-all-symbols
+     * @param {string[]} [symbols] a list of unified CCXT market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}
+     */
+    async fetchOpenInterests(symbols = undefined, params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        symbols = this.marketSymbols(symbols);
+        const response = await this.v1PublicGetPublicFutures(params);
+        //
+        // {
+        //     "success": true,
+        //     "timestamp": 1786022130191,
+        //     "data": {
+        //         "rows": [{
+        //             "symbol": "PERP_BTC_USDC",
+        //             "index_price": 64185.4,
+        //             "mark_price": 64171.0,
+        //             "open_interest": 110.64612,
+        //             "24h_volume": 102.2817,
+        //             "24h_amount": 6595662.199482
+        //         }]
+        //     }
+        // }
+        //
+        const data = this.safeDict(response, 'data', {});
+        const rows = this.safeList(data, 'rows', []);
+        const timestamp = this.safeInteger(response, 'timestamp');
+        const result = [];
+        for (let i = 0; i < rows.length; i++) {
+            const row = rows[i];
+            const marketId = this.safeString(row, 'symbol', '');
+            if ((this.markets_by_id === undefined) || !(marketId in this.markets_by_id)) {
+                continue; // the endpoint returns entries for markets missing from public/info, e.g. pre-TGE symbols
+            }
+            const interest = this.extend({ 'timestamp': timestamp }, row);
+            result.push(this.parseOpenInterest(interest));
+        }
+        return this.filterByArray(result, 'symbol', symbols);
+    }
     /**
      * @method
      * @name woofipro#fetchFundingRateHistory
@@ -1564,7 +1718,7 @@ class woofipro extends woofipro$1["default"] {
         const childOrders = this.safeValue(order, 'childOrders');
         if (childOrders !== undefined) {
             const first = this.safeValue(childOrders, 0);
-            const innerChildOrders = this.safeValue(first, 'childOrders', []);
+            const innerChildOrders = this.safeList(first, 'childOrders', []);
             const innerChildOrdersLength = innerChildOrders.length;
             if (innerChildOrdersLength > 0) {
                 const takeProfitOrder = this.safeValue(innerChildOrders, 0);
@@ -1628,7 +1782,7 @@ class woofipro extends woofipro$1["default"] {
             };
             return this.safeString(statuses, status, status);
         }
-        return status;
+        return undefined;
     }
     parseOrderType(type) {
         const types = {
@@ -1694,7 +1848,7 @@ class woofipro extends woofipro$1["default"] {
                 request['order_type'] = 'IOC';
             }
         }
-        if (reduceOnly) {
+        if (reduceOnly === true) {
             request['reduce_only'] = reduceOnly;
         }
         if (price !== undefined) {
@@ -1986,7 +2140,7 @@ class woofipro extends woofipro$1["default"] {
     async cancelOrder(id, symbol = undefined, params = {}) {
         const trigger = this.safeBool2(params, 'stop', 'trigger', false);
         params = this.omit(params, ['stop', 'trigger']);
-        if (!trigger && (symbol === undefined)) {
+        if ((trigger !== true) && (symbol === undefined)) {
             throw new errors.ArgumentsRequired(this.id + ' cancelOrder() requires a symbol argument');
         }
         if (this.markets === undefined) {
@@ -2003,7 +2157,7 @@ class woofipro extends woofipro$1["default"] {
         const clientOrderIdExchangeSpecific = this.safeString(params, 'client_order_id', clientOrderIdUnified);
         const isByClientOrder = clientOrderIdExchangeSpecific !== undefined;
         let response = undefined;
-        if (trigger) {
+        if (trigger === true) {
             if (isByClientOrder) {
                 request['client_order_id'] = clientOrderIdExchangeSpecific;
                 params = this.omit(params, ['clOrdID', 'clientOrderId', 'client_order_id']);
@@ -2047,7 +2201,7 @@ class woofipro extends woofipro$1["default"] {
         else {
             extendParams['id'] = id;
         }
-        if (trigger) {
+        if (trigger === true) {
             const parsedResponse = (response === undefined) ? {} : response;
             return this.extend(this.parseOrder(parsedResponse), extendParams);
         }
@@ -2074,7 +2228,7 @@ class woofipro extends woofipro$1["default"] {
         params = this.omit(params, ['clOrdIDs', 'clientOrderIds', 'client_order_ids']);
         const request = {};
         let response = undefined;
-        if (clientOrderIds) {
+        if (clientOrderIds !== undefined) {
             request['client_order_ids'] = clientOrderIds.join(',');
             response = await this.v1PrivateDeleteClientBatchOrder(this.extend(request, params));
         }
@@ -2118,7 +2272,7 @@ class woofipro extends woofipro$1["default"] {
             request['symbol'] = market['id'];
         }
         let response = undefined;
-        if (trigger) {
+        if (trigger === true) {
             response = await this.v1PrivateDeleteAlgoOrders(this.extend(request, params));
         }
         else {
@@ -2173,8 +2327,8 @@ class woofipro extends woofipro$1["default"] {
         const clientOrderId = this.safeStringN(params, ['clOrdID', 'clientOrderId', 'client_order_id']);
         params = this.omit(params, ['stop', 'trigger', 'clOrdID', 'clientOrderId', 'client_order_id']);
         let response = undefined;
-        if (trigger) {
-            if (clientOrderId) {
+        if (trigger === true) {
+            if (clientOrderId !== undefined && clientOrderId !== '') {
                 request['client_order_id'] = clientOrderId;
                 response = await this.v1PrivateGetAlgoClientOrderClientOrderId(this.extend(request, params));
             }
@@ -2184,7 +2338,7 @@ class woofipro extends woofipro$1["default"] {
             }
         }
         else {
-            if (clientOrderId) {
+            if ((clientOrderId !== undefined) && (clientOrderId !== '')) {
                 request['client_order_id'] = clientOrderId;
                 response = await this.v1PrivateGetClientOrderClientOrderId(this.extend(request, params));
             }
@@ -2247,7 +2401,7 @@ class woofipro extends woofipro$1["default"] {
         }
         let paginate = false;
         const isTrigger = this.safeBool2(params, 'stop', 'trigger', false);
-        const maxLimit = (isTrigger) ? 100 : 500;
+        const maxLimit = (isTrigger === true) ? 100 : 500;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchOrders', 'paginate');
         if (paginate) {
             return await this.fetchPaginatedCallIncremental('fetchOrders', symbol, since, limit, params, 'page', maxLimit);
@@ -2268,12 +2422,12 @@ class woofipro extends woofipro$1["default"] {
         else {
             request['size'] = maxLimit;
         }
-        if (isTrigger) {
+        if (isTrigger === true) {
             request['algo_type'] = 'STOP';
         }
         [request, params] = this.handleUntilOption('end_t', request, params);
         let response = undefined;
-        if (isTrigger) {
+        if (isTrigger === true) {
             response = await this.v1PrivateGetAlgoOrders(this.extend(request, params));
         }
         else {
@@ -2852,6 +3006,189 @@ class woofipro extends woofipro$1["default"] {
         const data = this.safeDict(response, 'data', {});
         return this.parseTransaction(data, currency);
     }
+    parseMarginMode(marginMode, market = undefined) {
+        //
+        //     {
+        //         "symbol": "PERP_BTC_USDC",
+        //         "default_margin_mode": "CROSS"
+        //     }
+        //
+        const marketId = this.safeString(marginMode, 'symbol');
+        market = this.safeMarket(marketId, market);
+        return {
+            'info': marginMode,
+            'symbol': market['symbol'],
+            'marginMode': this.safeStringLower(marginMode, 'default_margin_mode'),
+        };
+    }
+    /**
+     * @method
+     * @name woofipro#fetchMarginModes
+     * @description fetches the set margin mode of every contract market
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-margin-modes
+     * @param {string[]} [symbols] a list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a list of [margin mode structures]{@link https://docs.ccxt.com/?id=margin-mode-structure}
+     */
+    async fetchMarginModes(symbols = undefined, params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        symbols = this.marketSymbols(symbols);
+        const response = await this.v1PrivateGetClientMarginModes(params);
+        //
+        // {
+        //     "success": true,
+        //     "timestamp": 1702989203989,
+        //     "data": {
+        //         "rows": [{
+        //             "symbol": "PERP_BTC_USDC",
+        //             "default_margin_mode": "CROSS"
+        //         }]
+        //     }
+        // }
+        //
+        const data = this.safeDict(response, 'data', {});
+        const rows = this.safeList(data, 'rows', []);
+        return this.parseMarginModes(rows, symbols, 'symbol');
+    }
+    /**
+     * @method
+     * @name woofipro#fetchMarginMode
+     * @description fetches the set margin mode of a contract market
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-margin-modes
+     * @param {string} symbol unified symbol of the market
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/?id=margin-mode-structure}
+     */
+    async fetchMarginMode(symbol, params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        const market = this.market(symbol);
+        const marginModes = await this.fetchMarginModes([market['symbol']], params);
+        const marginMode = this.safeDict(marginModes, market['symbol']);
+        if (marginMode === undefined) {
+            throw new errors.BadSymbol(this.id + ' fetchMarginMode() did not return a margin mode for ' + market['symbol']);
+        }
+        return marginMode;
+    }
+    /**
+     * @method
+     * @name woofipro#setMarginMode
+     * @description set margin mode to 'cross' or 'isolated' for a market
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/update-margin-mode
+     * @param {string} marginMode 'cross' or 'isolated'
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} response from the exchange
+     */
+    async setMarginMode(marginMode, symbol = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' setMarginMode() requires a symbol argument');
+        }
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        marginMode = marginMode.toLowerCase();
+        if (marginMode !== 'cross' && marginMode !== 'isolated') {
+            throw new errors.BadRequest(this.id + ' setMarginMode() marginMode must be either cross or isolated');
+        }
+        const market = this.market(symbol);
+        const request = {
+            'symbol': market['id'],
+            'default_margin_mode': marginMode.toUpperCase(),
+        };
+        //
+        // {
+        //     "success": true,
+        //     "timestamp": 1702989203989
+        // }
+        //
+        return await this.v1PrivatePostClientMarginMode(this.extend(request, params));
+    }
+    parseMarginModification(data, market = undefined) {
+        //
+        //     {
+        //         "success": true,
+        //         "timestamp": 1702989203989
+        //     }
+        //
+        const timestamp = this.safeInteger(data, 'timestamp');
+        const success = this.safeBool(data, 'success', false);
+        return {
+            'info': data,
+            'symbol': this.safeString(market, 'symbol'),
+            'type': undefined,
+            'marginMode': 'isolated',
+            'amount': undefined,
+            'total': undefined,
+            'code': this.safeString(market, 'settle'),
+            'status': (success === true) ? 'ok' : 'failed',
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
+        };
+    }
+    /**
+     * @method
+     * @ignore
+     * @name woofipro#modifyMarginHelper
+     * @description add or reduce isolated position margin
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/add-or-reduce-position-margin
+     * @param {string} symbol unified market symbol
+     * @param {float} amount amount of margin to add or reduce
+     * @param {string} type 'ADD' or 'REDUCE'
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=add-margin-structure}
+     */
+    async modifyMarginHelper(symbol, amount, type, params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        const market = this.market(symbol);
+        const request = {
+            'symbol': market['id'],
+            'amount': this.numberToString(amount),
+            'type': type,
+        };
+        const response = await this.v1PrivatePostPositionMargin(this.extend(request, params));
+        //
+        // {
+        //     "success": true,
+        //     "timestamp": 1702989203989
+        // }
+        //
+        const modification = this.parseMarginModification(response, market);
+        modification['type'] = (type === 'ADD') ? 'add' : 'reduce';
+        modification['amount'] = this.parseNumber(this.numberToString(amount));
+        return modification;
+    }
+    /**
+     * @method
+     * @name woofipro#addMargin
+     * @description add margin to an isolated position
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/add-or-reduce-position-margin
+     * @param {string} symbol unified market symbol
+     * @param {float} amount amount of margin to add
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=add-margin-structure}
+     */
+    async addMargin(symbol, amount, params = {}) {
+        return await this.modifyMarginHelper(symbol, amount, 'ADD', params);
+    }
+    /**
+     * @method
+     * @name woofipro#reduceMargin
+     * @description remove margin from an isolated position
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/add-or-reduce-position-margin
+     * @param {string} symbol unified market symbol
+     * @param {float} amount amount of margin to remove
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=reduce-margin-structure}
+     */
+    async reduceMargin(symbol, amount, params = {}) {
+        return await this.modifyMarginHelper(symbol, amount, 'REDUCE', params);
+    }
     parseLeverage(leverage, market = undefined) {
         const leverageValue = this.safeInteger(leverage, 'max_leverage');
         return {
@@ -3115,7 +3452,7 @@ class woofipro extends woofipro$1["default"] {
         params = this.keysort(params);
         if (access === 'public') {
             url += pathWithParams;
-            if (Object.keys(params).length) {
+            if (Object.keys(params).length > 0) {
                 url += '?' + this.urlencode(params);
             }
         }
@@ -3123,7 +3460,7 @@ class woofipro extends woofipro$1["default"] {
             this.checkRequiredCredentials();
             if ((method === 'POST' || method === 'PUT') && (path === 'algo/order' || path === 'order' || path === 'batch-order')) {
                 const isSandboxMode = this.safeBool(this.options, 'sandboxMode', false);
-                if (!isSandboxMode) {
+                if (isSandboxMode !== true) {
                     const brokerId = this.safeString(this.options, 'brokerId', 'CCXT');
                     if (path === 'batch-order') {
                         const ordersList = this.safeList(params, 'orders', []);
@@ -3156,7 +3493,7 @@ class woofipro extends woofipro$1["default"] {
                 headers['content-type'] = 'application/json';
             }
             else {
-                if (Object.keys(params).length) {
+                if (Object.keys(params).length > 0) {
                     url += '?' + this.urlencode(params);
                     auth += '?' + this.rawencode(params);
                 }
@@ -3176,7 +3513,7 @@ class woofipro extends woofipro$1["default"] {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
-        if (!response) {
+        if (response === undefined) {
             return undefined; // fallback to default error handler
         }
         //
@@ -3185,7 +3522,7 @@ class woofipro extends woofipro$1["default"] {
         //
         const success = this.safeBool(response, 'success');
         const errorCode = this.safeString(response, 'code');
-        if (!success) {
+        if (success !== true) {
             const feedback = this.id + ' ' + this.json(response);
             this.throwBroadlyMatchedException(this.exceptions['broad'], body, feedback);
             this.throwExactlyMatchedException(this.exceptions['exact'], errorCode, feedback);

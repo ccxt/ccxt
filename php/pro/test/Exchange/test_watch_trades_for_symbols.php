@@ -16,21 +16,24 @@ function test_watch_trades_for_symbols($exchange, $skipped_properties, $symbols)
         $method = 'watchTradesForSymbols';
         $now = $exchange->milliseconds();
         $ends = $now + 15000;
+        $max_idle_time = 5000;
+        $idle = false;
         $returned_symbols = [];
-        while ($now < $ends || count($returned_symbols) < count($symbols)) {
+        while (($now < $ends) && !$idle) {
             $response = null;
             $success = true;
+            $start_time = $exchange->milliseconds();
             try {
                 $response = \React\Async\await($exchange->watch_trades_for_symbols($symbols));
             } catch(\Throwable $e) {
                 if (!is_temporary_failure($e)) {
                     throw $e;
                 }
-                $now = $exchange->milliseconds();
+                $success = false;
             }
+            $now = $exchange->milliseconds();
             if (($success === true) && ($response !== null)) {
                 assert(gettype($response) === 'array' && array_is_list($response), $exchange->id . ' ' . $method . ' ' . $exchange->json($symbols) . ' must return an array. ' . $exchange->json($response));
-                $now = $exchange->milliseconds();
                 $symbol = null;
                 for ($i = 0; $i < count($response); $i++) {
                     $trade = $response[$i];
@@ -43,6 +46,9 @@ function test_watch_trades_for_symbols($exchange, $skipped_properties, $symbols)
                     if (!$exchange->in_array($symbol, $returned_symbols)) {
                         $returned_symbols[] = $symbol;
                     }
+                }
+                if (($now - $start_time) > $max_idle_time) {
+                    $idle = true;
                 }
             }
         }

@@ -24,7 +24,7 @@
                     5,
                     0.5
                 ],
-                "output": "{\"type\":\"limit\",\"side\":\"buy\",\"product_id\":\"XRP-USDT\",\"price\":\"0.5\",\"size\":\"5\"}"
+                "output": { "type": "limit", "side": "buy", "product_id": "XRP-USDT", "price": "0.5", "size": "5" }
             },
             {
                 "description": "Spot market buy",
@@ -36,7 +36,7 @@
                     "buy",
                     5
                 ],
-                "output": "{\"type\":\"market\",\"side\":\"buy\",\"product_id\":\"XRP-USDT\",\"size\":\"5\"}"
+                "output": { "type": "market", "side": "buy", "product_id": "XRP-USDT", "size": "5" }
             },
             {
                 "description": "Spot market sell",
@@ -48,7 +48,7 @@
                     "sell",
                     5
                 ],
-                "output": "{\"type\":\"market\",\"side\":\"sell\",\"product_id\":\"XRP-USDT\",\"size\":\"5\"}"
+                "output": { "type": "market", "side": "sell", "product_id": "XRP-USDT", "size": "5" }
             },
             {
                 "description": "Spot limit buy with postOnly",
@@ -64,7 +64,7 @@
                         "postOnly": true
                     }
                 ],
-                "output": "{\"type\":\"limit\",\"side\":\"buy\",\"product_id\":\"XRP-USDT\",\"post_only\":true,\"price\":\"0.5\",\"size\":\"5\"}"
+                "output": { "type": "limit", "side": "buy", "product_id": "XRP-USDT", "post_only": true, "price": "0.5", "size": "5" }
             },
             {
                 "description": "Spot limit buy with triggerPrice",
@@ -80,7 +80,7 @@
                         "triggerPrice": 90
                     }
                 ],
-                "output": "{\"type\":\"limit\",\"side\":\"buy\",\"product_id\":\"XRP-USDT\",\"stop_price\":\"90\",\"price\":\"0.5\",\"size\":\"5\"}"
+                "output": { "type": "limit", "side": "buy", "product_id": "XRP-USDT", "stop_price": "90", "price": "0.5", "size": "5" }
             }
         ],
         "cancelOrder": [
@@ -92,7 +92,7 @@
                     "81072801-6509-408a-9ed5-e03906040f62",
                     "XRP/USDT"
                 ],
-                "output": "{\"product_id\":\"XRP/USDT\"}"
+                "output": { "product_id": "XRP/USDT" }
             }
         ],
         "fetchOrder": [
@@ -170,7 +170,7 @@
                 "input": [
                     "XRP/USDT"
                 ],
-                "output": "{\"product_id\":\"XRP/USDT\"}"
+                "output": { "product_id": "XRP/USDT" }
             }
         ],
         "fetchTime": [

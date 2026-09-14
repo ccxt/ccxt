@@ -70,6 +70,12 @@ abstract class bitflyer extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<list<mixed>>
      */
+    public function public_get_getfundingratehistory($params = array()) {
+        return $this->request('getfundingratehistory', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<list<mixed>>
+     */
     public function private_get_getpermissions($params = array()) {
         return $this->request('getpermissions', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -276,6 +282,12 @@ abstract class bitflyer extends \ccxt\async\Exchange {
      */
     public function publicGetGetfundingrate($params = array()) {
         return $this->request('getfundingrate', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<list<mixed>>
+     */
+    public function publicGetGetfundingratehistory($params = array()) {
+        return $this->request('getfundingratehistory', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<list<mixed>>

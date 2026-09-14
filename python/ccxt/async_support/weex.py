@@ -7,8 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.weex import ImplicitAPI
 import asyncio
 import hashlib
-from ccxt.base.types import Any, Balances, Currencies, Currency, CurrencyInterface, Int, LastPrice, LastPrices, LedgerEntry, Leverage, Leverages, MarginMode, MarginModes, MarginModification, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, PositionModeInfo, Status, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, TransferEntry
-from typing import List
+from ccxt.base.types import Balances, Currencies, Currency, CurrencyInterface, FundingHistory, Int, LastPrice, LastPrices, LedgerEntry, Leverage, Leverages, MarginMode, MarginModes, MarginModification, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, PositionModeInfo, Status, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, TransferEntry
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -26,7 +25,7 @@ from ccxt.base.precise import Precise
 
 class weex(Exchange, ImplicitAPI):
 
-    def describe(self) -> Any:
+    def describe(self) -> object:
         return self.deep_extend(super(weex, self).describe(), {
             'id': 'weex',
             'name': 'Weex',
@@ -73,7 +72,7 @@ class weex(Exchange, ImplicitAPI):
                 'createTakeProfitOrder': True,
                 'createTrailingAmountOrder': False,
                 'createTrailingPercentOrder': False,
-                'createTriggerOrder': False,
+                'createTriggerOrder': True,
                 'deposit': False,
                 'editOrder': False,
                 'editOrders': False,
@@ -107,7 +106,7 @@ class weex(Exchange, ImplicitAPI):
                 'fetchDepositsWithdrawals': False,
                 'fetchDepositWithdrawFee': False,
                 'fetchDepositWithdrawFees': False,
-                'fetchFundingHistory': False,
+                'fetchFundingHistory': True,
                 'fetchFundingInterval': False,
                 'fetchFundingIntervals': False,
                 'fetchFundingRate': True,
@@ -253,6 +252,13 @@ class weex(Exchange, ImplicitAPI):
                         'api/v3/agency/verifyReferrals': {'cost': 20},  # not unified
                         'api/v3/agency/getAssert': {'cost': 20},  # not unified
                         'api/v3/agency/getDealData': {'cost': 20},  # not unified
+                        'api/v3/apiReferral/checkUserEligibility': {'cost': 5},  # not unified - broker access
+                        'api/v3/apiReferral/rebate/recentRecord': {'cost': 5},  # not unified - broker access
+                        'api/v3/apiReferral/rebateRatio': {'cost': 5},  # not unified - broker access
+                        'api/v3/content/articles/detail': {'cost': 1},  # not unified - partner content
+                        'api/v3/content/articles/list': {'cost': 1},  # not unified - partner content
+                        'api/v3/content/articles/listByCoin': {'cost': 1},  # not unified - partner content
+                        'api/v3/content/banners/latest': {'cost': 1},  # not unified - partner content
                     },
                     'post': {
                         'api/v3/account/bills': {'cost': 5},  # done
@@ -260,6 +266,7 @@ class weex(Exchange, ImplicitAPI):
                         'api/v3/order': {'cost': 5},  # done
                         'api/v3/order/batch': {'cost': 50},  # not supported, returns {"code":-1150,"msg":"Request method 'POST' not supported"}
                         'api/v3/rebate/affiliate/internalWithdrawal': {'cost': 100},  # not unified
+                        'api/v3/tax/income': {'cost': 5},  # not unified - tax reporting
                     },
                     'delete': {
                         'api/v3/order': {'cost': 1},  # done
@@ -304,6 +311,15 @@ class weex(Exchange, ImplicitAPI):
                         'capi/v3/sim/balance': {'cost': 10},  # done - demo trading variant of capi/v3/account/balance
                         'capi/v3/sim/position/allPosition': {'cost': 15},  # done - demo trading variant of capi/v3/account/position/allPosition
                         'capi/v3/sim/order/history': {'cost': 10},  # done - demo trading variant of capi/v3/order/history
+                        'capi/v3/copy/follower/historyOrders': {'cost': 10},  # not unified - copy trading
+                        'capi/v3/copy/follower/myTraders': {'cost': 10},  # not unified - copy trading
+                        'capi/v3/copy/follower/openOrders': {'cost': 10},  # not unified - copy trading
+                        'capi/v3/copy/follower/settings': {'cost': 10},  # not unified - copy trading
+                        'capi/v3/copy/trader/historyOrders': {'cost': 10},  # not unified - copy trading
+                        'capi/v3/copy/trader/openOrders': {'cost': 10},  # not unified - copy trading
+                        'capi/v3/copy/trader/pairs': {'cost': 1},  # not unified - copy trading
+                        'capi/v3/trailing/openOrders': {'cost': 2},  # not unified - trailing orders
+                        'capi/v3/trailing/historyOrders': {'cost': 10},  # not unified - trailing orders
                     },
                     'post': {
                         'capi/v3/account/income': {'cost': 5},  # done
@@ -318,6 +334,9 @@ class weex(Exchange, ImplicitAPI):
                         'capi/v3/placeTpSlOrder': {'cost': 5},  # not unified
                         'capi/v3/modifyTpSlOrder': {'cost': 5},  # not unified
                         'capi/v3/sim/order': {'cost': 5},  # done - demo trading variant of capi/v3/order
+                        'capi/v3/copy/follower/closePos': {'cost': 50},  # not unified - copy trading
+                        'capi/v3/copy/follower/settings': {'cost': 10},  # not unified - copy trading
+                        'capi/v3/copy/follower/stopCopy': {'cost': 10},  # not unified - copy trading
                     },
                     'delete': {
                         'capi/v3/order': {'cost': 3},  # done
@@ -364,12 +383,12 @@ class weex(Exchange, ImplicitAPI):
                     '-1049': AuthenticationError,  # API_KEY_OR_PASSPHRASE_INCORRECT API key or passphrase incorrect.
                     '-1050': PermissionDenied,  # USER_STATUS_FORBIDDEN User status is abnormal.
                     '-1051': PermissionDenied,  # PERMISSION_DENIED Permission denied.
-                    '-1052': PermissionDenied,  # INSUFFICIENT_PERMISSIONS Insufficient permissions for self action.
+                    '-1052': PermissionDenied,  # INSUFFICIENT_PERMISSIONS Insufficient permissions for this action.
                     '-1053': PermissionDenied,  # PERMISSION_VALIDATION_FAILED Permission validation failed.
                     '-1055': PermissionDenied,  # USER_AUTH_NOT_SAFE User must bind phone or Google authenticator.
                     '-1056': PermissionDenied,  # ILLEGAL_IP Invalid IP address.
                     '-1057': PermissionDenied,  # USER_LOCKED User account is locked.
-                    '-1058': PermissionDenied,  # NO_PERMISSION_TRADE_PAIR No permission for self trading pair.
+                    '-1058': PermissionDenied,  # NO_PERMISSION_TRADE_PAIR No permission for this trading pair.
                     '-1115': InvalidOrder,  # INVALID_TIME_IN_FORCE Invalid timeInForce.
                     '-1116': InvalidOrder,  # INVALID_ORDER_TYPE Invalid order type.
                     '-1117': InvalidOrder,  # INVALID_SIDE Invalid side.
@@ -390,8 +409,8 @@ class weex(Exchange, ImplicitAPI):
                     '-3006': InvalidOrder,  # CONTRACT_DOES_NOT_SUPPORT_CONTRACT_UNITS Contract does not support ordering by contract units.
                     '-3007': InvalidOrder,  # CONTRACT_MAX_ORDER_QUANTITY_EXCEEDED Maximum contract order quantity exceeded.
                     '-3200': InvalidOrder,  # CONTRACT_ORDER_NOT_EXIST Order does not exist.
-                    '-3235': PermissionDenied,  # CONTRACT_NO_PERMISSION_TRADE_PAIR No permission for self trading pair.
-                    '-3236': PermissionDenied,  # CONTRACT_NO_PERMISSION_API No permission to access self API.
+                    '-3235': PermissionDenied,  # CONTRACT_NO_PERMISSION_TRADE_PAIR No permission for this trading pair.
+                    '-3236': PermissionDenied,  # CONTRACT_NO_PERMISSION_API No permission to access this API.
                     '-3313': InvalidOrder,  # CONTRACT_LEVERAGE_ERROR Leverage exceeds maximum limit.
                     '-3613': ExchangeError,  # CONTRACT_FATAL_TOKEN_NOT_SUPPORT Fatal: token ID not supported for symbol.
                     'FAILED_ORDER_NOT_FOUND': OrderNotFound,  # {"orderId":121231,"status":"FAILED","errorMsg":"FAILED_ORDER_NOT_FOUND"}
@@ -630,7 +649,7 @@ class weex(Exchange, ImplicitAPI):
                     'sandbox': True,
                     'createOrder': {
                         'marginMode': True,
-                        'triggerPrice': False,
+                        'triggerPrice': True,
                         'triggerPriceType': None,
                         'triggerDirection': False,
                         'stopLossPrice': True,
@@ -765,17 +784,17 @@ class weex(Exchange, ImplicitAPI):
         #     [
         #         {
         #             "coin": "BTC",
-        #             "depositAllEnable": True,
-        #             "withdrawAllEnable": True,
+        #             "depositAllEnable": true,
+        #             "withdrawAllEnable": true,
         #             "name": "BTC",
         #             "networkList": [
         #                 {
         #                     "network": "BTC",
         #                     "coin": "BTC",
         #                     "withdrawIntegerMultiple": 1E-8,
-        #                     "isDefault": True,
-        #                     "depositEnable": True,
-        #                     "withdrawEnable": True,
+        #                     "isDefault": true,
+        #                     "depositEnable": true,
+        #                     "withdrawEnable": true,
         #                     "depositDesc": null,
         #                     "withdrawDesc": null,
         #                     "name": "BTC",
@@ -783,7 +802,7 @@ class weex(Exchange, ImplicitAPI):
         #                     "withdrawMin": "0.002",
         #                     "depositDust": "0.00001",
         #                     "minConfirm": 3,
-        #                     "withdrawTag": False,
+        #                     "withdrawTag": false,
         #                     "contractAddressUrl": "https://www.blockchain.com/explorer/mempool/",
         #                     "contractAddress": "btc"
         #                 },
@@ -791,9 +810,9 @@ class weex(Exchange, ImplicitAPI):
         #                     "network": "BEP20(BSC)",
         #                     "coin": "BTC",
         #                     "withdrawIntegerMultiple": 1E-8,
-        #                     "isDefault": False,
-        #                     "depositEnable": True,
-        #                     "withdrawEnable": False,
+        #                     "isDefault": false,
+        #                     "depositEnable": true,
+        #                     "withdrawEnable": false,
         #                     "depositDesc": null,
         #                     "withdrawDesc": null,
         #                     "name": "BEP20(BSC)",
@@ -801,7 +820,7 @@ class weex(Exchange, ImplicitAPI):
         #                     "withdrawMin": "0.00006",
         #                     "depositDust": "0.00003",
         #                     "minConfirm": 61,
-        #                     "withdrawTag": False,
+        #                     "withdrawTag": false,
         #                     "contractAddressUrl": "",
         #                     "contractAddress": ""
         #                 }
@@ -809,17 +828,17 @@ class weex(Exchange, ImplicitAPI):
         #         },
         #         {
         #             "coin": "USDT",
-        #             "depositAllEnable": True,
-        #             "withdrawAllEnable": True,
+        #             "depositAllEnable": true,
+        #             "withdrawAllEnable": true,
         #             "name": "USDT",
         #             "networkList": [
         #                 {
         #                     "network": "TRC20",
         #                     "coin": "USDT",
         #                     "withdrawIntegerMultiple": 1E-8,
-        #                     "isDefault": True,
-        #                     "depositEnable": True,
-        #                     "withdrawEnable": True,
+        #                     "isDefault": true,
+        #                     "depositEnable": true,
+        #                     "withdrawEnable": true,
         #                     "depositDesc": null,
         #                     "withdrawDesc": null,
         #                     "name": "TRC20",
@@ -827,7 +846,7 @@ class weex(Exchange, ImplicitAPI):
         #                     "withdrawMin": "10",
         #                     "depositDust": "0.1",
         #                     "minConfirm": 20,
-        #                     "withdrawTag": False,
+        #                     "withdrawTag": false,
         #                     "contractAddressUrl": "https://tronscan.org/#/token20/",
         #                     "contractAddress": "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t"
         #                 },
@@ -835,9 +854,9 @@ class weex(Exchange, ImplicitAPI):
         #                     "network": "ERC20",
         #                     "coin": "USDT",
         #                     "withdrawIntegerMultiple": 1E-8,
-        #                     "isDefault": False,
-        #                     "depositEnable": True,
-        #                     "withdrawEnable": True,
+        #                     "isDefault": false,
+        #                     "depositEnable": true,
+        #                     "withdrawEnable": true,
         #                     "depositDesc": null,
         #                     "withdrawDesc": null,
         #                     "name": "ERC20",
@@ -845,7 +864,7 @@ class weex(Exchange, ImplicitAPI):
         #                     "withdrawMin": "20",
         #                     "depositDust": "0.1",
         #                     "minConfirm": 12,
-        #                     "withdrawTag": False,
+        #                     "withdrawTag": false,
         #                     "contractAddressUrl": "https://etherscan.io/token/",
         #                     "contractAddress": "0xdac17f958d2ee523a2206206994597c13d831ec7"
         #                 },
@@ -853,9 +872,9 @@ class weex(Exchange, ImplicitAPI):
         #                     "network": "AVALANCHE_C(AVAX_C)",
         #                     "coin": "USDT",
         #                     "withdrawIntegerMultiple": 1E-8,
-        #                     "isDefault": False,
-        #                     "depositEnable": True,
-        #                     "withdrawEnable": True,
+        #                     "isDefault": false,
+        #                     "depositEnable": true,
+        #                     "withdrawEnable": true,
         #                     "depositDesc": null,
         #                     "withdrawDesc": null,
         #                     "name": "AVALANCHE_C(AVAX_C)",
@@ -863,7 +882,7 @@ class weex(Exchange, ImplicitAPI):
         #                     "withdrawMin": "10",
         #                     "depositDust": "0.1",
         #                     "minConfirm": 35,
-        #                     "withdrawTag": False,
+        #                     "withdrawTag": false,
         #                     "contractAddressUrl": "https://avascan.info/blockchain/c/token/",
         #                     "contractAddress": "0x9702230A8Ea53601f5cD2dc00fDBc13d4dF4A8c7"
         #                 }
@@ -937,7 +956,7 @@ class weex(Exchange, ImplicitAPI):
             'networks': networks,
         })
 
-    async def fetch_markets(self, params={}) -> List[Market]:
+    async def fetch_markets(self, params={}) -> list[Market]:
         """
         retrieves data on all markets for exchagne
 
@@ -947,7 +966,7 @@ class weex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
-        if self.options['adjustForTimeDifference']:
+        if self.options['adjustForTimeDifference'] is True:
             await self.load_time_difference()
         promises = [
             self.publicGetApiV3ExchangeInfo(params),
@@ -980,11 +999,11 @@ class weex(Exchange, ImplicitAPI):
         #         "marketBuyLimitSize": "99999",
         #         "marketSellLimitSize": "99999",
         #         "marketFallbackPriceRatio": "0",
-        #         "enableTrade": True,
-        #         "enableDisplay": True,
+        #         "enableTrade": true,
+        #         "enableDisplay": true,
         #         "displayDigitMerge": "0.01,0.1,0.5,1,5",
-        #         "displayNew": False,
-        #         "displayHot": False
+        #         "displayNew": false,
+        #         "displayHot": false
         #     }
         #
         # contract
@@ -1003,7 +1022,7 @@ class weex(Exchange, ImplicitAPI):
         #             "08:00:00",
         #             "16:00:00"
         #         ],
-        #         "forwardContractFlag": True,
+        #         "forwardContractFlag": true,
         #         "minLeverage": "1",
         #         "maxLeverage": "400",
         #         "buyLimitPriceRatio": "0.01",
@@ -1038,7 +1057,7 @@ class weex(Exchange, ImplicitAPI):
                 isLinear = False
                 isInverse = True
         else:
-            active = self.safe_bool(market, 'enableTrade', False) is True
+            active = self.safe_bool(market, 'enableTrade', False)
         amountPrecision = self.safe_number(market, 'stepSize')
         pricePrecision = self.safe_number(market, 'tickSize')
         if amountPrecision is None:
@@ -1254,7 +1273,7 @@ class weex(Exchange, ImplicitAPI):
         #         "indexPrice": "2082.75"
         #     }
         #
-        # fetchMarkPrice(markPrice or indexPrice is copied from the raw 'price' field by fetchMarkPrice before parsing, depending on the requested priceType)
+        # fetchMarkPrice (markPrice or indexPrice is copied from the raw 'price' field by fetchMarkPrice before parsing, depending on the requested priceType)
         #     {
         #         "symbol": "ETHUSDT",
         #         "price": "1929.18",
@@ -1278,7 +1297,7 @@ class weex(Exchange, ImplicitAPI):
         marketId = self.safe_string(ticker, 'symbol')
         markPrice = self.safe_string(ticker, 'markPrice')
         marketType = 'spot'
-        if (markPrice is not None) or ((market is not None) and market['contract']):
+        if (markPrice is not None) or ((market is not None) and (market['contract'] is True)):
             # 24hr swap tickers carry markPrice, but book tickers do not, so also honor the market resolved by the caller
             marketType = 'swap'
         market = self.safe_market(marketId, market, None, marketType)
@@ -1338,7 +1357,7 @@ class weex(Exchange, ImplicitAPI):
         #
         return self.parse_last_prices(response, symbols)
 
-    def parse_last_price(self, entry: Any, market: Market = None) -> LastPrice:
+    def parse_last_price(self, entry: object, market: Market = None) -> LastPrice:
         #
         #     {
         #         "symbol": "ETHUSDT",
@@ -1364,13 +1383,13 @@ class weex(Exchange, ImplicitAPI):
 
         :param str symbol: unified symbol of the market to fetch the mark price for
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param str [params.priceType]: "MARK"(default) or "INDEX", with "INDEX" the price is returned indexPrice of the ticker
+        :param str [params.priceType]: "MARK"(default) or "INDEX", with "INDEX" the price is returned as the indexPrice of the ticker
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        if not market['contract']:
+        if market['contract'] is not True:
             raise NotSupported(self.id + ' fetchMarkPrice() supports contract markets only')
         priceType = None
         priceType, params = self.handle_option_and_params(params, 'fetchMarkPrice', 'priceType', 'MARK')  # the endpoint defaults to INDEX
@@ -1446,7 +1465,7 @@ class weex(Exchange, ImplicitAPI):
         if (limit is not None) and (limit > 15):
             request['limit'] = 200  # default is 15, max is 200
         response = None
-        if market['spot']:
+        if market['spot'] is True:
             response = await self.publicGetApiV3MarketDepth(self.extend(request, params))
         else:
             response = await self.contractGetCapiV3MarketDepth(self.extend(request, params))
@@ -1471,7 +1490,7 @@ class weex(Exchange, ImplicitAPI):
         orderbook['nonce'] = self.safe_integer(response, 'lastUpdateId')
         return orderbook
 
-    async def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> list[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -1487,17 +1506,17 @@ class weex(Exchange, ImplicitAPI):
         :param int [limit]: the maximum amount of candles to fetch(default 100, max 300)
         :param dict [params]: extra parameters specific to the exchange API endpoint
  Check fetchSpotOHLCV() and fetchContractOHLCV() for more details on the extra parameters that can be used in params
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        if market['spot']:
+        if market['spot'] is True:
             return await self.fetch_spot_ohlcv(symbol, timeframe, since, limit, params)
         else:
             return await self.fetch_contract_ohlcv(symbol, timeframe, since, limit, params)
 
-    async def fetch_spot_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def fetch_spot_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> list[list]:
         """
  @ignore
         helper method for fetchOHLCV
@@ -1509,7 +1528,7 @@ class weex(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()
@@ -1521,7 +1540,7 @@ class weex(Exchange, ImplicitAPI):
         response = await self.publicGetApiV3MarketKlines(self.extend(request, params))
         return self.parse_ohlcvs(self.to_array(response), market, timeframe, since, limit)
 
-    async def fetch_contract_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def fetch_contract_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> list[list]:
         """
  @ignore
         helper method for fetchOHLCV
@@ -1539,7 +1558,7 @@ class weex(Exchange, ImplicitAPI):
         :param int [params.until]: timestamp in ms of the latest candle to fetch
         :param boolean [params.paginate]: whether to automatically paginate requests until the required number of candles is returned
         :param boolean [params.historical]: whether to fetch historical klines(default is False). If False, will fetch last price klines
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()
@@ -1572,7 +1591,7 @@ class weex(Exchange, ImplicitAPI):
             if (since is None) or (until is None):
                 now = self.milliseconds()
                 duration = self.parse_timeframe(timeframe) * 1000
-                numberOfCandles = limit if limit else maxHistoricalLimit
+                numberOfCandles = limit if (limit is not None and limit is not None and limit != 0) else maxHistoricalLimit
                 timeDelta = numberOfCandles * duration
                 if (since is None) and (until is None):
                     endTime = now
@@ -1597,7 +1616,7 @@ class weex(Exchange, ImplicitAPI):
                 response = await self.contractGetCapiV3MarketKlines(self.extend(request, params))
         return self.parse_ohlcvs(self.to_array(response), market, timeframe, since, limit)
 
-    def parse_ohlcv(self, ohlcv: Any, market: Market = None) -> list:
+    def parse_ohlcv(self, ohlcv: object, market: Market = None) -> list:
         return [
             self.safe_integer(ohlcv, 0),
             self.safe_number(ohlcv, 1),
@@ -1607,7 +1626,7 @@ class weex(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 5),
         ]
 
-    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
         """
         get the list of most recent trades for a particular symbol
 
@@ -1629,7 +1648,7 @@ class weex(Exchange, ImplicitAPI):
         if limit is not None:
             request['limit'] = min(limit, 1000)
         response = None
-        if market['spot']:
+        if market['spot'] is True:
             response = await self.publicGetApiV3MarketTrades(self.extend(request, params))
         else:
             response = await self.contractGetCapiV3MarketTrades(self.extend(request, params))
@@ -1641,8 +1660,8 @@ class weex(Exchange, ImplicitAPI):
         #             "qty": "0.01000",
         #             "quoteQty": "21.1477000",
         #             "time": 1775594995485,
-        #             "isBuyerMaker": False,
-        #             "isBestMatch": True
+        #             "isBuyerMaker": false,
+        #             "isBestMatch": true
         #         }
         #     ]
         #
@@ -1660,11 +1679,11 @@ class weex(Exchange, ImplicitAPI):
         #         "qty": "0.01000",
         #         "quoteQty": "21.1477000",
         #         "time": 1775594995485,
-        #         "isBuyerMaker": False,
-        #         "isBestMatch": True
+        #         "isBuyerMaker": false,
+        #         "isBestMatch": true
         #     }
         #
-        # fetchMyTrades(spot)
+        # fetchMyTrades (spot)
         #     {
         #         "symbol": "DOGEUSDT",
         #         "id": 736825748291060702,
@@ -1674,18 +1693,18 @@ class weex(Exchange, ImplicitAPI):
         #         "quoteQty": "23.3725",
         #         "commission": "0.0233725",
         #         "time": 1775672947953,
-        #         "isBuyer": False
+        #         "isBuyer": false
         #     }
         #
-        # fetchMyTrades(contract)
+        # fetchMyTrades (contract)
         #     {
         #         "id": 737074389731770728,
         #         "orderId": 737074043320009064,
         #         "symbol": "DOGEUSDT",
-        #         "buyer": True,
+        #         "buyer": true,
         #         "commission": "0.00183500",
         #         "commissionAsset": "USDT",
-        #         "maker": True,
+        #         "maker": true,
         #         "price": "0.09175",
         #         "qty": "100",
         #         "quoteQty": "9.17500",
@@ -1717,7 +1736,7 @@ class weex(Exchange, ImplicitAPI):
         if commission is not None:
             commissionAsset = self.safe_string(trade, 'commissionAsset')
             feeCurrency = self.safe_currency_code(commissionAsset)
-            if isSpot:
+            if isSpot is True:
                 if side == 'buy':
                     feeCurrency = market['base']
                 else:
@@ -1767,7 +1786,7 @@ class weex(Exchange, ImplicitAPI):
         response = await self.contractGetCapiV3MarketOpenInterest(self.extend(request, params))
         return self.parse_open_interest(response, market)
 
-    def parse_open_interest(self, interest: Any, market: Market = None):
+    def parse_open_interest(self, interest: object, market: Market = None):
         #
         #     {
         #         "symbol": "ETHUSDT",
@@ -1826,7 +1845,7 @@ class weex(Exchange, ImplicitAPI):
         #
         return self.parse_funding_rates(response, symbols)
 
-    def parse_funding_rate(self, contract: Any, market: Market = None) -> FundingRate:
+    def parse_funding_rate(self, contract: object, market: Market = None) -> FundingRate:
         marketId = self.safe_string(contract, 'symbol')
         symbol = self.safe_symbol(marketId, market, None, 'swap')
         timestamp = self.safe_integer(contract, 'time')
@@ -1886,7 +1905,7 @@ class weex(Exchange, ImplicitAPI):
         response = await self.contractGetCapiV3MarketFundingRate(self.extend(request, params))
         return self.parse_funding_rate_histories(response, market, since, limit)
 
-    def parse_funding_rate_history(self, contract: Any, market: Market = None):
+    def parse_funding_rate_history(self, contract: object, market: Market = None):
         #
         #     {
         #         "symbol": "ETHUSDT",
@@ -1922,11 +1941,11 @@ class weex(Exchange, ImplicitAPI):
         type = None
         type, params = self.handle_market_type_and_params('fetchBalance', None, params)
         sandboxMode = self.safe_bool(self.options, 'sandboxMode', False)
-        if sandboxMode and (requestedType is None):
-            type = 'swap'  # the demo trading API only provides the swap account, don't the default spot type break a bare fetchBalance() call
+        if (sandboxMode is True) and (requestedType is None):
+            type = 'swap'  # the demo trading API only provides the swap account, don't let the default spot type break a bare fetchBalance() call
         response = None
         if type == 'spot':
-            if sandboxMode:
+            if sandboxMode is True:
                 raise NotSupported(self.id + ' fetchBalance() only supports the swap account in sandbox mode, use params["type"] = "swap"')
             #
             #     {
@@ -1936,9 +1955,9 @@ class weex(Exchange, ImplicitAPI):
             #             "maker": "0.00000000",
             #             "taker": "0.00000000"
             #         },
-            #         "canTrade": True,
-            #         "canWithdraw": True,
-            #         "canDeposit": True,
+            #         "canTrade": true,
+            #         "canWithdraw": true,
+            #         "canDeposit": true,
             #         "updateTime": 1775601317093,
             #         "accountType": "SPOT",
             #         "balances": [
@@ -1959,7 +1978,7 @@ class weex(Exchange, ImplicitAPI):
             #
             #     [
             #         {
-            #             "asset": "USDT",  # SUSDT in sandbox mode
+            #             "asset": "USDT", // SUSDT in sandbox mode
             #             "balance": "20.00000000",
             #             "availableBalance": "20.00000000",
             #             "frozen": "0",
@@ -1967,13 +1986,13 @@ class weex(Exchange, ImplicitAPI):
             #         }
             #     ]
             #
-            if sandboxMode:
+            if sandboxMode is True:
                 response = await self.contractPrivateGetCapiV3SimBalance(params)
             else:
                 response = await self.contractPrivateGetCapiV3AccountBalance(params)
         return self.parse_balance(response)
 
-    def parse_balance(self, response: Any) -> Balances:
+    def parse_balance(self, response: object) -> Balances:
         result = {
             'info': response,
         }
@@ -1982,7 +2001,7 @@ class weex(Exchange, ImplicitAPI):
         for i in range(0, len(balances)):
             entry = self.safe_dict(balances, i)
             currencyId = self.safe_string(entry, 'asset')
-            if sandboxMode and (currencyId == 'SUSDT'):
+            if (sandboxMode is True) and (currencyId == 'SUSDT'):
                 currencyId = 'USDT'  # demo trading balances are denominated in the demo asset SUSDT
             code = self.safe_currency_code(currencyId)
             account = self.account()
@@ -1993,7 +2012,7 @@ class weex(Exchange, ImplicitAPI):
                 result[code] = account
         return self.safe_balance(result)
 
-    async def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[TransferEntry]:
+    async def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[TransferEntry]:
         """
         fetch a history of internal transfers made on an account
 
@@ -2084,15 +2103,15 @@ class weex(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        if market['contract']:
+        if market['contract'] is True:
             return await self.create_contract_order(symbol, type, side, amount, price, params)
         else:
             sandboxMode = self.safe_bool(self.options, 'sandboxMode', False)
-            if sandboxMode:
+            if sandboxMode is True:
                 raise NotSupported(self.id + ' createOrder() only supports swap markets in sandbox mode')
             return await self.create_spot_order(symbol, type, side, amount, price, params)
 
-    async def create_spot_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
+    async def create_spot_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}) -> Order:
         """
         helper method for creating spot orders
 
@@ -2150,7 +2169,7 @@ class weex(Exchange, ImplicitAPI):
         # timeInForce is passed directly from params
         return self.extend(request, params)
 
-    async def create_contract_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
+    async def create_contract_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}) -> Order:
         """
         helper method for creating contract orders
 
@@ -2166,17 +2185,20 @@ class weex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.clientOrderId]: client order id
         :param dict [params.takeProfit]: *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered and the triggerPriceType
-        :param float [params.takeProfit.triggerPrice]: The price at which the take profit order will be triggered
+        :param float [params.takeProfit.triggerPrice]: The price at which the take profit order will be triggered, takeProfit.stopPrice is supported as an alias
         :param str [params.takeProfit.triggerPriceType]: The type of the trigger price for the take profit order, either 'last' or 'mark'(default is 'last')
+        :param float [params.takeProfit.price]: not supported, the attached take profit always executes at market price
         :param dict [params.stopLoss]: *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered and the triggerPriceType
-        :param float [params.stopLoss.triggerPrice]: The price at which the stop loss order will be triggered
+        :param float [params.stopLoss.triggerPrice]: The price at which the stop loss order will be triggered, stopLoss.stopPrice is supported as an alias
         :param str [params.stopLoss.triggerPriceType]: The type of the trigger price for the stop loss order, either 'last' or 'mark'(default is 'last')
-        :param float [params.stopLossPrice]: price to trigger stop-loss orders
+        :param float [params.stopLoss.price]: not supported, the attached stop loss always executes at market price
+        :param float [params.stopLossPrice]: price to trigger a standalone stop-loss order on an open position, the price argument is used as its execution price for limit orders
         :param str [params.stopLossPriceType]: The type of the trigger price for the stop loss order, either 'last' or 'mark'(default is 'last')
-        :param float [params.takeProfitPrice]: price to trigger take-profit orders
+        :param float [params.takeProfitPrice]: price to trigger a standalone take-profit order on an open position, the price argument is used as its execution price for limit orders
         :param str [params.takeProfitPriceType]: The type of the trigger price for the take profit order, either 'last' or 'mark'(default is 'last')
+        :param float [params.triggerPrice]: the price at which a trigger(entry conditional) order is triggered, cannot be used together with stopLossPrice or takeProfitPrice
         :param bool [params.reduceOnly]: A mark to reduce the position size only. Set to False by default. Need to set the position size when reduceOnly is True.
-        :param str [params.timeInForce]: GTC, IOC, or FOK(default is GTC for limit orders)
+        :param str [params.timeInForce]: GTC, IOC, or FOK(default is GTC for limit orders, not supported for trigger orders)
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         if self.markets is None:
@@ -2187,10 +2209,10 @@ class weex(Exchange, ImplicitAPI):
         sandboxMode = self.safe_bool(self.options, 'sandboxMode', False)
         response = None
         if triggerPrice is not None:
-            if sandboxMode:
+            if sandboxMode is True:
                 raise NotSupported(self.id + ' createOrder() does not support stopLossPrice or takeProfitPrice orders in sandbox mode')
             response = await self.contractPrivatePostCapiV3AlgoOrder(request)
-        elif sandboxMode:
+        elif sandboxMode is True:
             response = await self.contractPrivatePostCapiV3SimOrder(request)
         else:
             response = await self.contractPrivatePostCapiV3Order(request)
@@ -2216,10 +2238,11 @@ class weex(Exchange, ImplicitAPI):
         if not isMarketOrder:
             request['price'] = self.price_to_precision(symbol, price)
         triggerPrice, stopLossPrice, takeProfitPrice, query = self.handle_trigger_prices_and_params(symbol, params)
-        if triggerPrice is not None:
-            raise NotSupported(self.id + ' createOrder() does not support the triggerPrice parameter')
+        isTrigger = (triggerPrice is not None)
         isStopLoss = (stopLossPrice is not None)
         isTakeProfit = (takeProfitPrice is not None)
+        if isTrigger and (isStopLoss or isTakeProfit):
+            raise BadRequest(self.id + ' createOrder() cannot use the triggerPrice parameter together with the stopLossPrice or takeProfitPrice parameters')
         reduceOnly = self.safe_bool(query, 'reduceOnly')
         if isStopLoss or isTakeProfit:
             reduceOnly = True
@@ -2235,13 +2258,43 @@ class weex(Exchange, ImplicitAPI):
         hasTakeProfit = (takeProfit is not None)
         stopLoss = self.safe_dict(params, 'stopLoss')
         hasStopLoss = (stopLoss is not None)
+        # the exchange accepts but silently ignores execution prices for attached take profit / stop loss, they always execute at market price
+        if hasTakeProfit and (self.safe_number(takeProfit, 'price') is not None):
+            raise NotSupported(self.id + ' createOrder() does not support the price field inside the takeProfit params, the attached take profit executes at market price')
+        if hasStopLoss and (self.safe_number(stopLoss, 'price') is not None):
+            raise NotSupported(self.id + ' createOrder() does not support the price field inside the stopLoss params, the attached stop loss executes at market price')
         timeInForce = self.safe_string(params, 'timeInForce')
         clientOrderId = self.safe_string(params, 'clientOrderId')
         if clientOrderId is None:
             partner = self.safe_string(params, 'partner', 'b-WEEX111125')
             clientOrderId = partner + '-' + self.uuid22()
         callerMethodName = self.safe_string(params, 'callerMethodName')
-        if isStopLoss or isTakeProfit:
+        if isTrigger:
+            # entry conditional order, triggers a regular order when the trigger price is reached
+            if callerMethodName == 'createOrders':
+                raise NotSupported(self.id + ' createOrders() does not support trigger orders')
+            if timeInForce is not None:
+                raise BadRequest(self.id + ' createOrder() cannot use the timeInForce parameter with trigger orders')
+            request['clientAlgoId'] = clientOrderId
+            params['triggerPrice'] = self.price_to_precision(symbol, triggerPrice)
+            if isMarketOrder:
+                params['type'] = 'STOP_MARKET'
+            else:
+                params['type'] = 'STOP'
+            # conditional orders attach take profit / stop loss through the preset* fields instead of tpTriggerPrice/slTriggerPrice
+            if hasStopLoss:
+                stopLossTriggerPrice = self.safe_number_2(stopLoss, 'triggerPrice', 'stopPrice')
+                request['presetStopLossPrice'] = self.price_to_precision(symbol, stopLossTriggerPrice)
+                stopLossPriceType = self.safe_string(stopLoss, 'triggerPriceType')
+                if stopLossPriceType is not None:
+                    params['SlWorkingType'] = self.encode_trigger_price_type(stopLossPriceType)
+            if hasTakeProfit:
+                takeProfitTriggerPrice = self.safe_number_2(takeProfit, 'triggerPrice', 'stopPrice')
+                request['presetTakeProfitPrice'] = self.price_to_precision(symbol, takeProfitTriggerPrice)
+                takeProfitPriceType = self.safe_string(takeProfit, 'triggerPriceType')
+                if takeProfitPriceType is not None:
+                    params['TpWorkingType'] = self.encode_trigger_price_type(takeProfitPriceType)
+        elif isStopLoss or isTakeProfit:
             if callerMethodName == 'createOrders':
                 raise NotSupported(self.id + ' createOrders() does not support stop loss and take profit orders')
             if timeInForce is not None:
@@ -2276,13 +2329,13 @@ class weex(Exchange, ImplicitAPI):
                 request['timeInForce'] = 'GTC'
             request['newClientOrderId'] = clientOrderId
             if hasStopLoss:
-                stopLossTriggerPrice = self.safe_number(stopLoss, 'triggerPrice')
+                stopLossTriggerPrice = self.safe_number_2(stopLoss, 'triggerPrice', 'stopPrice')
                 request['slTriggerPrice'] = self.price_to_precision(symbol, stopLossTriggerPrice)
                 stopLossPriceType = self.safe_string(stopLoss, 'triggerPriceType')
                 if stopLossPriceType is not None:
                     params['SlWorkingType'] = self.encode_trigger_price_type(stopLossPriceType)
             if hasTakeProfit:
-                takeProfitTriggerPrice = self.safe_number(takeProfit, 'triggerPrice')
+                takeProfitTriggerPrice = self.safe_number_2(takeProfit, 'triggerPrice', 'stopPrice')
                 request['tpTriggerPrice'] = self.price_to_precision(symbol, takeProfitTriggerPrice)
                 takeProfitPriceType = self.safe_string(takeProfit, 'triggerPriceType')
                 if takeProfitPriceType is not None:
@@ -2320,7 +2373,7 @@ class weex(Exchange, ImplicitAPI):
         type = None
         type, params = self.handle_market_type_and_params('cancelOrder', market, params)
         trigger = self.safe_bool(params, 'trigger', False)
-        if trigger and id is None:
+        if (trigger is True) and id is None:
             raise ArgumentsRequired(self.id + ' cancelOrder() requires an id argument for trigger orders')
         request = {}
         clientOrderId = self.safe_string(params, 'clientOrderId')
@@ -2346,7 +2399,7 @@ class weex(Exchange, ImplicitAPI):
             #     }
             #
             response = await self.privateDeleteApiV3Order(self.extend(request, params))
-        elif trigger:
+        elif trigger is True:
             response = await self.contractPrivateDeleteCapiV3AlgoOrder(self.extend(request, params))
         else:
             response = await self.contractPrivateDeleteCapiV3Order(self.extend(request, params))
@@ -2386,7 +2439,7 @@ class weex(Exchange, ImplicitAPI):
             if symbol is None:
                 raise ArgumentsRequired(self.id + ' cancelAllOrders() requires a symbol argument for spot markets')
             response = await self.privateDeleteApiV3OpenOrders(self.extend(request, params))
-        elif trigger:
+        elif trigger is True:
             response = await self.contractPrivateDeleteCapiV3AlgoOpenOrders(self.extend(request, params))
         else:
             response = await self.contractPrivateDeleteCapiV3AllOpenOrders(self.extend(request, params))
@@ -2395,7 +2448,7 @@ class weex(Exchange, ImplicitAPI):
         }
         return self.parse_orders(response, market, None, None, extendedParams)
 
-    async def cancel_orders(self, ids: List[str], symbol: Str = None, params={}):
+    async def cancel_orders(self, ids: list[str], symbol: Str = None, params={}):
         """
         cancel multiple orders
 
@@ -2493,7 +2546,7 @@ class weex(Exchange, ImplicitAPI):
             #         "side": "BUY",
             #         "time": 1775666888520,
             #         "updateTime": 1775666888536,
-            #         "isWorking": True
+            #         "isWorking": true
             #     }
             #
             response = await self.privateGetApiV3Order(self.extend(request, params))
@@ -2503,7 +2556,7 @@ class weex(Exchange, ImplicitAPI):
             raise NullResponse(self.id + ' parseOrder() returned empty response')
         return self.parse_order(response, market)
 
-    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
 
         https://www.weex.com/api-doc/spot/orderApi/UnfinishedOrders  # spot
@@ -2555,7 +2608,7 @@ class weex(Exchange, ImplicitAPI):
             #             "side": "SELL",
             #             "time": 1775668655796,
             #             "updateTime": 1775668655810,
-            #             "isWorking": True
+            #             "isWorking": true
             #         }
             #     ]
             #
@@ -2567,7 +2620,7 @@ class weex(Exchange, ImplicitAPI):
                 request['limit'] = limit
             request, params = self.handle_until_option('endTime', request, params)
             trigger = self.safe_bool(params, 'trigger', False)
-            if trigger:
+            if trigger is True:
                 params = self.omit(params, 'trigger')
                 #
                 #     [
@@ -2592,8 +2645,8 @@ class weex(Exchange, ImplicitAPI):
                 #             "slPrice": null,
                 #             "tpOrderType": null,
                 #             "workingType": "CONTRACT_PRICE",
-                #             "closePosition": False,
-                #             "reduceOnly": True,
+                #             "closePosition": false,
+                #             "reduceOnly": true,
                 #             "createTime": 1775732228695,
                 #             "updateTime": 1775732228695,
                 #             "triggerTime": 0
@@ -2612,7 +2665,7 @@ class weex(Exchange, ImplicitAPI):
                 #             "orderId": 737185556881998184,
                 #             "origQty": "1400",
                 #             "price": "0.05000",
-                #             "reduceOnly": False,
+                #             "reduceOnly": false,
                 #             "side": "BUY",
                 #             "positionSide": "LONG",
                 #             "status": "NEW",
@@ -2632,7 +2685,7 @@ class weex(Exchange, ImplicitAPI):
         }
         return self.parse_orders(response, market, since, limit, extendedParams)
 
-    async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         fetches information on multiple closed orders made by the user
 
@@ -2664,7 +2717,7 @@ class weex(Exchange, ImplicitAPI):
             orders = await self.fetch_canceled_and_closed_orders(symbol, since, limit, params)
         return self.filter_by(orders, 'status', 'closed')
 
-    async def fetch_canceled_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    async def fetch_canceled_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         fetches information on multiple canceled orders made by the user
 
@@ -2696,7 +2749,7 @@ class weex(Exchange, ImplicitAPI):
             orders = await self.fetch_canceled_and_closed_orders(symbol, since, limit, params)
         return self.filter_by(orders, 'status', 'canceled')
 
-    async def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    async def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         fetches information on multiple spot orders made by the user
 
@@ -2715,7 +2768,7 @@ class weex(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        if not market['spot']:
+        if market['spot'] is not True:
             raise NotSupported(self.id + ' fetchOrders() supports spot markets only')
         maxLimit = 1000
         paginate = False
@@ -2747,13 +2800,13 @@ class weex(Exchange, ImplicitAPI):
         #             "side": "BUY",
         #             "time": 1775668439484,
         #             "updateTime": 1775668439498,
-        #             "isWorking": False
+        #             "isWorking": false
         #         }
         #     ]
         #
         return self.parse_orders(response, market, since, limit)
 
-    async def fetch_canceled_and_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    async def fetch_canceled_and_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         fetches information on multiple closed and canceled orders made by the user
 
@@ -2793,7 +2846,7 @@ class weex(Exchange, ImplicitAPI):
         request, params = self.handle_until_option('endTime', request, params)
         sandboxMode = self.safe_bool(self.options, 'sandboxMode', False)
         response = None
-        if sandboxMode:
+        if sandboxMode is True:
             response = await self.contractPrivateGetCapiV3SimOrderHistory(self.extend(request, params))
         else:
             response = await self.contractPrivateGetCapiV3OrderHistory(self.extend(request, params))
@@ -2807,7 +2860,7 @@ class weex(Exchange, ImplicitAPI):
         #             "orderId": 737074389744353640,
         #             "origQty": "100",
         #             "price": "0.00000",
-        #             "reduceOnly": True,
+        #             "reduceOnly": true,
         #             "side": "SELL",
         #             "positionSide": "LONG",
         #             "status": "CANCELED",
@@ -2825,7 +2878,7 @@ class weex(Exchange, ImplicitAPI):
 
     def parse_order(self, order: dict, market: Market = None) -> Order:
         #
-        # createOrder(spot)
+        # createOrder (spot)
         #     {
         #         "symbol": "DOGEUSDT",
         #         "orderId": 736557215397183592,
@@ -2833,7 +2886,7 @@ class weex(Exchange, ImplicitAPI):
         #         "transactTime": 1775608924724
         #     }
         #
-        # fetchOpenOrders / fetchOrders / fetchOrder(spot)
+        # fetchOpenOrders / fetchOrders / fetchOrder (spot)
         #     {
         #         "symbol": "DOGEUSDT",
         #         "orderId": 736800333186991070,
@@ -2848,10 +2901,10 @@ class weex(Exchange, ImplicitAPI):
         #         "side": "BUY",
         #         "time": 1775666888520,
         #         "updateTime": 1775666888536,
-        #         "isWorking": True
+        #         "isWorking": true
         #     }
         #
-        # fetchOpenOrders(contract)
+        # fetchOpenOrders (contract)
         #     {
         #         "avgPrice": "0.00000",
         #         "clientOrderId": "857e1482-3225-44ce-bc0a-947714c5cabc",
@@ -2860,7 +2913,7 @@ class weex(Exchange, ImplicitAPI):
         #         "orderId": 737185556881998184,
         #         "origQty": "1400",
         #         "price": "0.05000",
-        #         "reduceOnly": False,
+        #         "reduceOnly": false,
         #         "side": "BUY",
         #         "positionSide": "LONG",
         #         "status": "NEW",
@@ -2873,7 +2926,7 @@ class weex(Exchange, ImplicitAPI):
         #         "workingType": "UNKNOWN_PRICE_TYPE"
         #     }
         #
-        # fetchOpenOrders(contract-trigger)
+        # fetchOpenOrders (contract-trigger)
         #     {
         #         "algoId": 737074389748547944,
         #         "clientAlgoId": "d574f517-cea5-433e-b029-415590d3bb80",
@@ -2895,14 +2948,14 @@ class weex(Exchange, ImplicitAPI):
         #         "slPrice": null,
         #         "tpOrderType": null,
         #         "workingType": "CONTRACT_PRICE",
-        #         "closePosition": False,
-        #         "reduceOnly": True,
+        #         "closePosition": false,
+        #         "reduceOnly": true,
         #         "createTime": 1775732228695,
         #         "updateTime": 1775732228695,
         #         "triggerTime": 0
         #     }
         #
-        # fetchCanceledAndClosedOrders(swap only)
+        # fetchCanceledAndClosedOrders (swap only)
         #     {
         #         "avgPrice": "0.00000",
         #         "clientOrderId": "7bd80776-0c3f-4ed9-ab9c-a616d66fac5e",
@@ -2911,7 +2964,7 @@ class weex(Exchange, ImplicitAPI):
         #         "orderId": 737074389744353640,
         #         "origQty": "100",
         #         "price": "0.00000",
-        #         "reduceOnly": True,
+        #         "reduceOnly": true,
         #         "side": "SELL",
         #         "positionSide": "LONG",
         #         "status": "CANCELED",
@@ -2934,15 +2987,24 @@ class weex(Exchange, ImplicitAPI):
             marketType = 'spot' if (positionSide is None) else 'swap'
             market = self.safe_market(marketId, None, None, marketType)
         timestamp = self.safe_integer_n(order, ['transactTime', 'time', 'createTime'])
-        rawStatus = self.safe_string_lower(order, 'status')
+        rawStatus = self.safe_string_lower_2(order, 'status', 'algoStatus')  # algo (trigger) order payloads carry algoStatus instead of status
         triggerPrice = self.omit_zero(self.safe_string_2(order, 'triggerPrice', 'stopPrice'))
         rawType = self.safe_string_upper_2(order, 'type', 'orderType')
+        isReduceOnly = self.safe_bool(order, 'reduceOnly')
+        # entry conditional orders reuse the STOP/TAKE_PROFIT types with reduceOnly set to false, their trigger price is not a stop loss / take profit price
+        # a missing reduceOnly counts as reduce-only to keep the legacy mapping for responses that omit the field
+        isEntryTrigger = not self.safe_bool(order, 'reduceOnly', True)
         takeProfitPrice = None
         stopLossPrice = None
-        if rawType == 'TAKE_PROFIT_MARKET' or rawType == 'TAKE_PROFIT':
-            takeProfitPrice = triggerPrice
-        elif rawType == 'STOP_LOSS' or rawType == 'STOP' or rawType == 'STOP_MARKET':
-            stopLossPrice = triggerPrice
+        if not isEntryTrigger:
+            if rawType == 'TAKE_PROFIT_MARKET' or rawType == 'TAKE_PROFIT':
+                takeProfitPrice = triggerPrice
+            elif rawType == 'STOP_LOSS' or rawType == 'STOP' or rawType == 'STOP_MARKET':
+                stopLossPrice = triggerPrice
+        if takeProfitPrice is None:
+            takeProfitPrice = self.omit_zero(self.safe_string(order, 'tpTriggerPrice'))  # attached take profit of a regular or conditional order
+        if stopLossPrice is None:
+            stopLossPrice = self.omit_zero(self.safe_string(order, 'slTriggerPrice'))  # attached stop loss of a regular or conditional order
         return self.safe_order({
             'id': self.safe_string_n(order, ['orderId', 'algoId', 'successOrderId']),
             'clientOrderId': self.safe_string_n(order, ['clientOrderId', 'origClientOrderId', 'clientAlgoId']),
@@ -2950,7 +3012,7 @@ class weex(Exchange, ImplicitAPI):
             'type': self.parse_order_type(rawType),
             'timeInForce': self.safe_string(order, 'timeInForce'),
             'postOnly': None,
-            'reduceOnly': self.safe_bool(order, 'reduceOnly'),
+            'reduceOnly': isReduceOnly,
             'side': self.safe_string_lower(order, 'side'),
             'amount': self.safe_string_2(order, 'origQty', 'quantity'),
             'price': self.safe_string(order, 'price'),
@@ -3032,7 +3094,7 @@ class weex(Exchange, ImplicitAPI):
         }
         return await self.fetch_my_trades(symbol, since, limit, self.extend(request, params))
 
-    async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
         """
 
         https://www.weex.com/api-doc/spot/orderApi/TransactionDetails  # spot
@@ -3083,7 +3145,7 @@ class weex(Exchange, ImplicitAPI):
             #             "quoteQty": "23.3725",
             #             "commission": "0.0233725",
             #             "time": 1775672947953,
-            #             "isBuyer": False
+            #             "isBuyer": false
             #         }
             #     ]
             #
@@ -3095,10 +3157,10 @@ class weex(Exchange, ImplicitAPI):
             #             "id": 737074389731770728,
             #             "orderId": 737074043320009064,
             #             "symbol": "DOGEUSDT",
-            #             "buyer": True,
+            #             "buyer": true,
             #             "commission": "0.00183500",
             #             "commissionAsset": "USDT",
-            #             "maker": True,
+            #             "maker": true,
             #             "price": "0.09175",
             #             "qty": "100",
             #             "quoteQty": "9.17500",
@@ -3115,7 +3177,7 @@ class weex(Exchange, ImplicitAPI):
             responseList = self.to_array(response)
         return self.parse_trades(responseList, market, since, limit)
 
-    async def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[LedgerEntry]:
+    async def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[LedgerEntry]:
         """
         fetch the history of changes, actions done by the user or operations that altered the balance of the user
 
@@ -3149,9 +3211,7 @@ class weex(Exchange, ImplicitAPI):
         if code is not None:
             currency = self.currency(code)
         if accountType == 'contract':
-            if currency is None:
-                raise ExchangeError(self.id + ' fetchLedger() could not resolve currency')
-            if code is not None:
+            if currency is not None:
                 request['currency'] = currency['id']
             if since is not None:
                 request['startTime'] = since
@@ -3276,7 +3336,98 @@ class weex(Exchange, ImplicitAPI):
         }
         return self.safe_string(types, type, type)
 
-    async def fetch_positions(self, symbols: Strings = None, params={}) -> List[Position]:
+    async def fetch_funding_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[FundingHistory]:
+        """
+        fetch the history of funding payments paid and received on self account
+
+        https://www.weex.com/api-doc/contract/Account_API/GetContractBills
+
+        :param str [symbol]: unified market symbol
+        :param int [since]: the earliest time in ms to fetch funding history for
+        :param int [limit]: the maximum number of funding history structures to retrieve(default 20, max 100)
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.until]: timestamp in ms of the latest funding history entry, requires since to be set, the span may not exceed 100 days
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        :returns dict[]: a list of `funding history structures <https://docs.ccxt.com/?id=funding-history-structure>`
+        """
+        if self.markets is None:
+            await self.load_markets()
+        paginate = False
+        paginate, params = self.handle_option_and_params(params, 'fetchFundingHistory', 'paginate', False)
+        if paginate:
+            return await self.fetch_paginated_call_dynamic('fetchFundingHistory', symbol, since, limit, params, 100)
+        market = None
+        request = {
+            'incomeType': 'position_funding',  # deposit, withdraw, transfer_in, transfer_out, margin_move_in, margin_move_out, position_open_long, position_open_short, position_close_long, position_close_short, position_funding, order_fill_fee_income, order_liquidate_fee_income, start_liquidate, finish_liquidate, order_fix_margin_amount, tracking_follow_pay, tracking_system_pre_receive, tracking_follow_back, tracking_trader_income, tracking_third_party_share
+        }
+        if symbol is not None:
+            market = self.market(symbol)
+            if market['swap'] is not True:
+                raise NotSupported(self.id + ' fetchFundingHistory() supports swap contracts only')
+            request['symbol'] = market['id']
+        if since is not None:
+            request['startTime'] = since
+        if limit is not None:
+            request['limit'] = limit
+        request, params = self.handle_until_option('endTime', request, params)
+        # the exchange rejects startTime and endTime when either is sent alone, they only work as a pair
+        hasSince = ('startTime' in request)
+        hasUntil = ('endTime' in request)
+        if hasSince and not hasUntil:
+            request['endTime'] = self.milliseconds()
+        elif hasUntil and not hasSince:
+            raise ArgumentsRequired(self.id + ' fetchFundingHistory() requires since to be set when until is used')
+        response = await self.contractPrivatePostCapiV3AccountIncome(self.extend(request, params))
+        #
+        #     {
+        #         "hasNextPage": false,
+        #         "nextKey": null,
+        #         "items": [
+        #             {
+        #                 "billId": "793622764958253481",
+        #                 "asset": "USDT",
+        #                 "symbol": "VIRTUALUSDT",
+        #                 "income": "0.00000378",
+        #                 "incomeType": "position_funding",
+        #                 "balance": "29.36239410",
+        #                 "fillFee": "0",
+        #                 "time": "1789214411964",
+        #                 "transferReason": "UNKNOWN_TRANSFER_REASON"
+        #             }
+        #         ]
+        #     }
+        #
+        items = self.safe_list(response, 'items', [])
+        return self.parse_incomes(items, market, since, limit)
+
+    def parse_income(self, income: object, market: Market = None) -> object:
+        #
+        #     {
+        #         "billId": "793622764958253481",
+        #         "asset": "USDT",
+        #         "symbol": "VIRTUALUSDT",
+        #         "income": "0.00000378",
+        #         "incomeType": "position_funding",
+        #         "balance": "29.36239410",
+        #         "fillFee": "0",
+        #         "time": "1789214411964",
+        #         "transferReason": "UNKNOWN_TRANSFER_REASON"
+        #     }
+        #
+        marketId = self.safe_string(income, 'symbol')
+        currencyId = self.safe_string(income, 'asset')
+        timestamp = self.safe_integer(income, 'time')
+        return {
+            'info': income,
+            'symbol': self.safe_symbol(marketId, market, None, 'swap'),
+            'code': self.safe_currency_code(currencyId),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'id': self.safe_string(income, 'billId'),
+            'amount': self.safe_number(income, 'income'),
+        }
+
+    async def fetch_positions(self, symbols: Strings = None, params={}) -> list[Position]:
         """
         fetch all open positions
 
@@ -3292,7 +3443,7 @@ class weex(Exchange, ImplicitAPI):
         symbols = self.market_symbols(symbols)
         sandboxMode = self.safe_bool(self.options, 'sandboxMode', False)
         response = None
-        if sandboxMode:
+        if sandboxMode is True:
             response = await self.contractPrivateGetCapiV3SimPositionAllPosition(params)
         else:
             response = await self.contractPrivateGetCapiV3AccountPositionAllPosition(params)
@@ -3311,7 +3462,7 @@ class weex(Exchange, ImplicitAPI):
         positions = await self.fetch_positions_for_symbol(symbol, params)
         return self.safe_dict(positions, 0)
 
-    async def fetch_positions_for_symbol(self, symbol: str, params={}) -> List[Position]:
+    async def fetch_positions_for_symbol(self, symbol: str, params={}) -> list[Position]:
         """
         fetch open positions for a single market
 
@@ -3326,7 +3477,7 @@ class weex(Exchange, ImplicitAPI):
             await self.load_markets()
         market = self.market(symbol)
         sandboxMode = self.safe_bool(self.options, 'sandboxMode', False)
-        if sandboxMode:
+        if sandboxMode is True:
             # the demo trading API does not provide a single-position endpoint
             return await self.fetch_positions([market['symbol']], params)
         request = {
@@ -3352,7 +3503,7 @@ class weex(Exchange, ImplicitAPI):
         #         "fundingFee": "0",
         #         "marginSize": "100",
         #         "isolatedMargin": "0",
-        #         "isAutoAppendIsolatedMargin": False,
+        #         "isAutoAppendIsolatedMargin": false,
         #         "cumOpenSize": "300",
         #         "cumOpenValue": "27.96900",
         #         "cumOpenFee": "0.02237520",
@@ -3384,7 +3535,7 @@ class weex(Exchange, ImplicitAPI):
         #         "openFee": "0.00744880",
         #         "fundingFee": "0",
         #         "isolatedMargin": "0",
-        #         "autoAppendIsolatedMargin": False,
+        #         "autoAppendIsolatedMargin": false,
         #         "cumOpenSize": "100",
         #         "cumOpenValue": "9.31100",
         #         "cumOpenFee": "0.00744880",
@@ -3450,7 +3601,7 @@ class weex(Exchange, ImplicitAPI):
             'info': position,
         })
 
-    async def close_all_positions(self, params={}) -> List[Position]:
+    async def close_all_positions(self, params={}) -> list[Position]:
         """
         closes all open positions for a market type
 
@@ -3468,7 +3619,7 @@ class weex(Exchange, ImplicitAPI):
         #             "positionId": 737191855967437160,
         #             "successOrderId": 737215340433375592,
         #             "errorMessage": "",
-        #             "success": True
+        #             "success": true
         #         }
         #     ]
         #
@@ -3508,7 +3659,7 @@ class weex(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        if market['spot']:
+        if market['spot'] is True:
             # spot markets return 0 for fees
             raise NotSupported(self.id + ' fetchTradingFee() is not supported for spot markets')
         request = {
@@ -3789,7 +3940,7 @@ class weex(Exchange, ImplicitAPI):
         }
         return await self.contractPrivatePostCapiV3AccountMarginType(self.extend(request, params))
 
-    async def modify_margin_helper(self, symbol: str, amount: Any, type: Any, params={}) -> MarginModification:
+    async def modify_margin_helper(self, symbol: str, amount: object, type: object, params={}) -> MarginModification:
         if self.markets is None:
             await self.load_markets()
         isolatedPositionId = self.safe_string_n(params, ['positionId', 'id', 'isolatedPositionId'])
@@ -3870,8 +4021,8 @@ class weex(Exchange, ImplicitAPI):
         """
         sandboxMode = self.safe_bool(self.options, 'sandboxMode', False)
         baseId = self.safe_string(market, 'baseId')
-        if sandboxMode and (baseId is not None):
-            # demo trading only has USDT-margined linear markets quoted in the demo asset SUSDT(e.g. BTCSUSDT), revisit if weex ever adds a non-USDT settle
+        if (sandboxMode is True) and (baseId is not None):
+            # demo trading only has USDT-margined linear markets quoted in the demo asset SUSDT (e.g. BTCSUSDT), revisit if weex ever adds a non-USDT settle
             return baseId + 'SUSDT'
         return self.safe_string(market, 'id')
 
@@ -3883,7 +4034,7 @@ class weex(Exchange, ImplicitAPI):
         :returns str: the live market id
         """
         sandboxMode = self.safe_bool(self.options, 'sandboxMode', False)
-        if not sandboxMode or (marketId is None):
+        if (sandboxMode is not True) or (marketId is None):
             return marketId
         if (self.markets_by_id is not None) and (marketId in self.markets_by_id):
             return marketId  # a live market id, not a demo one
@@ -3896,16 +4047,16 @@ class weex(Exchange, ImplicitAPI):
         super(weex, self).set_sandbox_mode(enable)
         self.options['sandboxMode'] = enable
 
-    def sign(self, path: Any, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
+    def sign(self, path: object, api: object = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         endpoint = self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         isBatch = (path.find('batch') >= 0)
         if not isBatch and ((method == 'GET') or (method == 'DELETE')):
-            if query:
+            if len(query) > 0:
                 endpoint += '?' + self.urlencode(query)
         if (api == 'private') or (api == 'contractPrivate'):
             sandboxMode = self.safe_bool(self.options, 'sandboxMode', False)
-            if sandboxMode and (path.find('capi/v3/sim/') != 0):
+            if (sandboxMode is True) and (path.find('capi/v3/sim/') != 0):
                 # guard against accidental live private calls with sandbox mode enabled, the demo trading API only provides the capi/v3/sim/ endpoints
                 raise NotSupported(self.id + ' ' + path + ' is not available in sandbox mode, demo trading only supports fetchBalance, createOrder, fetchPositions, fetchClosedOrders and fetchCanceledOrders for swap markets')
             self.check_required_credentials()
@@ -3930,7 +4081,7 @@ class weex(Exchange, ImplicitAPI):
         url = self.urls['api'][api] + '/' + endpoint
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: Any, requestHeaders: Any, requestBody: Any):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         #
         #     {
         #         "code": -1140,

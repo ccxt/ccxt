@@ -139,7 +139,7 @@ function isTranspileNeeded (tsPath: string, outputPaths: string[]) {
 //
 // This MUST run before the worker pool is fed: the per-language drivers hand the
 // whole file list to piscina as the sticky ts.Program `roots` (see
-// build/worker-program-batch.js), so a skipped exchange that stayed in the list
+// build/worker-program-batch.ts), so a skipped exchange that stayed in the list
 // would still be parsed, printed and written — i.e. no saving at all.
 //
 // `resolvePaths` returns the ts source and every file the driver writes for that
@@ -167,7 +167,7 @@ function filterDirtyExchangeFiles (lang: string, files: string[], force: boolean
 // base methods, the error hierarchy, and the test groups. Those stages emit a fixed
 // set of files from a fixed set of sources, and they cannot be filtered file by file
 // — `webworkerTranspile` hands the whole stage list to piscina as the sticky
-// ts.Program `roots` (build/worker-program-batch.js), so printing a subset off a
+// ts.Program `roots` (build/worker-program-batch.ts), so printing a subset off a
 // different root set is not guaranteed to reproduce the full-run output. A stage is
 // therefore skipped all-or-nothing: clean only when every output exists and the
 // newest input is not newer than the oldest output.
@@ -239,7 +239,8 @@ class Transpiler {
     // Naming: `do_<method>` + `private` (not `_impl` / leading underscore). PSR-12 forbids
     // underscore prefixes as a visibility marker; CCXT PHP is snake_case; `do_*` is the
     // usual "public facade, do the work" helper shape in PHP frameworks. `private` keeps
-    // the body non-overridable (stubs and bodies are always emitted as a pair).
+    // the body non-overridable; the phpInnerAsyncLayerMethods collapse targets are `protected`
+    // instead, because a subclass body calls them directly.
     //
     // Async\async() stays on the public edge, so public signatures still return
     // PromiseInterface and Promise\all() still overlaps; only the closure, its `use (...)`
@@ -388,6 +389,16 @@ class Transpiler {
             [ /([^\s]+)\s+\!\=\=?\s+undefined/g, '$1 is not None' ],
             [ /(.+?)\s+\=\=\=?\s+undefined/g, '$1 is None' ],
             [ /(.+?)\s+\!\=\=?\s+undefined/g, '$1 is not None' ],
+
+            // same shapes as the `undefined` rules above, but for JS `null`;
+            // these must run before the blanket `null` -> `None` rule further below,
+            // otherwise they would emit `x == None` / `x != None` (PEP8 E711)
+            [ /([^\s\[]+)(?:\s|\[(.+?)\])\s+\=\=\=?\s+null/g, '$1[$2] is None' ],
+            [ /([^\s\[]+)(?:\s|\[(.+?)\])\s+\!\=\=?\s+null/g, '$1[$2] is not None' ],
+            [ /([^\s]+)\s+\=\=\=?\s+null/g, '$1 is None' ],
+            [ /([^\s]+)\s+\!\=\=?\s+null/g, '$1 is not None' ],
+            [ /(.+?)\s+\=\=\=?\s+null/g, '$1 is None' ],
+            [ /(.+?)\s+\!\=\=?\s+null/g, '$1 is not None' ],
             //
             // too broad, have to rewrite these cause they don't work
             //
@@ -450,12 +461,15 @@ class Transpiler {
             [ /this\./g, 'self.' ],
             [ /([^a-zA-Z\'])this([^a-zA-Z])/g, '$1self$2' ],
             [ /\[\s*([^\]]+)\s\]\s=/g, '$1 =' ],
-            [ /((?:let|const|var) \w+\: )([0-9a-zA-Z]+)\[\]\[\]/g, '$1List[List[$2]]' ],  // typed variables with double list type (must precede the single-list rule)
-            [ /((?:let|const|var) \w+\: )([0-9a-zA-Z]+)\[\]/g, '$1List[$2]' ],  // typed variable with list type
+            [ /((?:let|const|var) \w+\: )([0-9a-zA-Z]+)\[\]\[\]/g, '$1list[list[$2]]' ],  // typed variables with double list type (must precede the single-list rule)
+            [ /((?:let|const|var) \w+\: )([0-9a-zA-Z]+)\[\]/g, '$1list[$2]' ],  // typed variable with list type
             [ /(^|[^a-zA-Z0-9_])(?:let|const|var)\s\[\s*([^\]]+)\s\]/g, '$1$2' ],
             [ /(^|[^a-zA-Z0-9_])(?:let|const|var)\s\{\s*([^\}]+)\s\}\s\=\s([^\;]+)/g, '$1$2 = (lambda $2: ($2))(**$3)' ],
             [ /(^|[^a-zA-Z0-9_])(?:let|const|var)\s/g, '$1' ],
-            [ /Object\.keys\s*\((.*)\)\.length/g, '$1' ],
+            // every `Object.keys (x).length` must become `len(x)` — including the bare
+            // form assigned to a variable and later compared (`queryLength > 0`),
+            // otherwise the emitted code compares a dict to an int at runtime
+            [ /Object\.keys\s*\((.*)\)\.length/g, 'len($1)' ],
             [ /Object\.keys\s*\((.*)\)/g, 'list($1.keys())' ],
             [ /Object\.values\s*\((.*)\)/g, 'list($1.values())' ],
             [ /\[([^\]]+)\]\.join\s*\(([^\)]+)\)/g, "$2.join([$1])" ],
@@ -479,7 +493,7 @@ class Transpiler {
             [ /for\s+\(([a-zA-Z0-9_]+)\s*=\s*([^\;\s]+\s*)\;[^\<\>\=]+(?:\<=|\>=|<|>)\s*(.*)\s*\;[^\)]+\)\s*{/g, 'for $1 in range($2, $3):'],
             [ /\s\|\|\s/g, ' or ' ],
             [ /\s\&\&\s/g, ' and ' ],
-            [ /\!([^\s\='"])/g, 'not $1'],
+            [ /(?<!['"])\!([^\s\='"])/g, 'not $1'],
             [ /\.push\s*\(([\s\S]+?)\);/g, '.append($1);' ],
             [ /^(\s*}\s*$)+/gm, '' ],
             [ /\;(\s+?\/\/.+?)/g, '$1' ],
@@ -533,6 +547,8 @@ class Transpiler {
             [ /([^a-z\_])(elif|if|or|else)\(/g, '$1$2 \(' ], // a correction for PEP8 E225 side-effect for compound and ternary conditionals
             [ /\!\=\sTrue/g, 'is not True' ], // a correction for PEP8 E712, it likes "is not True", not "!= True"
             [ /\=\=\sTrue/g, 'is True' ], // a correction for PEP8 E712, it likes "is True", not "== True"
+            [ /\!\=\sFalse/g, 'is not False' ], // a correction for PEP8 E712, it likes "is not False", not "!= False"
+            [ /\=\=\sFalse/g, 'is False' ], // a correction for PEP8 E712, it likes "is False", not "== False"
             [ /\sdelete\s/g, ' del ' ],
             [ /(?<!#.+)null/, 'None' ],
             [ /.market_or_None/g, '.market_or_null'],
@@ -691,7 +707,8 @@ class Transpiler {
             [ /(^|[^a-zA-Z0-9_])(?:let|const|var)\s\[\s*([^\]]+)\s\]/g, '$1list($2)' ],
             [ /(^|[^a-zA-Z0-9_])(?:let|const|var)\s\{\s*([^\}]+)\s\}/g, '$1array_values(list($2))' ],
             [ /(^|[^a-zA-Z0-9_])(?:let|const|var)\s/g, '$1' ],
-            [ /Object\.keys\s*\((.*)\)\.length/g, '$1' ],
+            // every `Object.keys (x).length` must become `count($x)`, see the python note above
+            [ /Object\.keys\s*\((.*)\)\.length/g, 'count($1)' ],
             [ /Object\.keys\s*\((.*)\)/g, 'is_array($1) ? array_keys($1) : array()' ],
             [ /Object\.values\s*\((.*)\)/g, 'is_array($1) ? array_values($1) : array()' ],
             [ /([^\s]+\s*\(\))\.toString \(\)/g, '(string) $1' ],
@@ -789,7 +806,7 @@ class Transpiler {
     getTypescriptRemovalRegexes() {
         return [
             [ /(?<![a-zA-Z0-9_]\s)(?<![a-zA-Z0-9_])\((\w+)\sas\s\w+\)/g, '$1'], // remove parens around a cast like "(x as any)" -> "x"; but NOT when it's a call arg, in either the spaced "foo (x as string)" or unspaced "foo(x as string)" form (the latter is produced by trimmedUnCamelCase collapsing base-method calls, e.g. capitalize(side as string)) — both keep their parens and let the next rule drop just the " as T"
-            [ /\sas (\w+<[^<>]*(?:<[^<>]*>[^<>]*)*>|(?:Dictionary<)?\w+(?:\[])?>?)/g, ''], // remove any "as any" or "as number" or "as trade[]" or a generic cast such as "as Endpoint<Dict | List>" (the generic arm must run first, otherwise "as Foo" matches and strands "<T>")
+            [ /\sas (\w+<[^<>]*(?:<[^<>]*>[^<>]*)*>|(?:Dictionary<)?(?:[A-Z]\w*|(?:any|number|string|boolean|bigint|unknown|object|never|void|symbol)\b)(?:\[])?>?)/g, ''], // remove any "as any" or "as number" or "as trade[]" or a generic cast such as "as Endpoint<Dict | List>" (the generic arm must run first, otherwise "as Foo" matches and strands "<T>")
             [ /(^|[^a-zA-Z0-9_])((?:let|const)\s+\w+):[^=\n]+(\s+=.*$)/gm, '$1$2$3'], // remove variable type
         ]
     }
@@ -977,9 +994,26 @@ class Transpiler {
         // transpile camelCase base method names to underscore base method names
         const baseMethods = this.getPythonBaseMethods ()
         methods = methods.concat (baseMethods)
+        // the rename can only fire where the body literally contains `.<method>` followed by
+        // a non-identifier char, so index the dotted names once and skip the methods that
+        // cannot possibly occur — that avoids building and running ~1.5k regexes per class.
+        // names that are not plain identifiers (Object.prototype stringifications that reach
+        // getBaseMethods) are interpolated as regex source, so they are never skipped, and
+        // every dotted name a replacement introduces is added back to the index.
+        const dottedNames = new Set<string> ()
+        for (const dotted of bodyAsString.matchAll (/\.([A-Za-z0-9_]+)/g)) {
+            dottedNames.add (dotted[1])
+        }
         for (let method of methods) {
+            if (/^[A-Za-z0-9_]+$/.test (method) && !dottedNames.has (method)) {
+                continue
+            }
             const regex = new RegExp ('(self|super\\([^)]+\\))\\.(' + method + ')([^a-zA-Z0-9_])', 'g')
-            bodyAsString = bodyAsString.replace (regex, (match: any, p1: string, p2: string, p3: string) => (p1 + '.' + unCamelCase (p2) + p3))
+            bodyAsString = bodyAsString.replace (regex, (match: any, p1: string, p2: string, p3: string) => {
+                const renamed = unCamelCase (p2)
+                dottedNames.add (renamed)
+                return p1 + '.' + renamed + p3
+            })
         }
 
         header.push ("\n\n" + this.createPythonClassDeclaration (className, baseClass))
@@ -1035,88 +1069,90 @@ class Transpiler {
             libraries.push ('from ccxt' + wsAsyncString + '.base.ws.order_book_side import ' + uniqueSides.join (', '))
         }
         const matchObject = {
-            'Account': /-> (?:List\[)?Account/,
-            'Any': /(?:->|:) (?:List\[)?Any/,
+            'Account': /-> (?:[Ll]ist\[)?Account/,
+            'Any': /(?:->|:) (?:[Ll]ist\[)?Any/,
             'ADL': /-> ADL:/,
             'BalanceAccount': /-> BalanceAccount:/,
             'Balances': /-> Balances:/,
             'BorrowInterest': /-> BorrowInterest:/,
-            'Bool': /(: (?:List\[)?Bool =)|(-> Bool:)/,
+            'Bool': /(: (?:[Ll]ist\[)?Bool =)|(-> Bool:)/,
             'Conversion': /-> Conversion:/,
             'CrossBorrowRate': /-> CrossBorrowRate:/,
             'CrossBorrowRates': /-> CrossBorrowRates:/,
             'Currencies': /-> Currencies:/,
             'Currency': /(-> Currency:|: Currency)/,
-            'CurrencyInterface': /(?:->|:) (?:List\[)?CurrencyInterface\b/,
-            'DepositAddress': /-> (?:List\[)?DepositAddress/,
+            'CurrencyInterface': /(?:->|:) (?:[Ll]ist\[)?CurrencyInterface\b/,
+            'DepositAddress': /-> (?:[Ll]ist\[)?DepositAddress\b(?!es)/,
+            'DepositAddresses': /-> (?:[Ll]ist\[)?DepositAddresses\b/,
             'FundingHistory': /\[FundingHistory/,
             'Greeks': /-> Greeks:/,
+            'AllGreeks': /-> AllGreeks:/,
             'IndexType': /: IndexType/,
             'NullableIndexType': /: NullableIndexType/,
-            'Int': /(: (?:List\[)?Int\b)|(-> Int:)/,
+            'Int': /(: (?:[Ll]ist\[)?Int\b)|(-> Int:)/,
             'IsolatedBorrowRate': /-> IsolatedBorrowRate:/,
             'IsolatedBorrowRates': /-> IsolatedBorrowRates:/,
             'LastPrice': /-> LastPrice:/,
             'LastPrices': /-> LastPrices:/,
-            'LedgerEntry': /-> LedgerEntry:/,
+            'LedgerEntry': /-> (?:[Ll]ist\[)?LedgerEntry\b/,
             'Leverage': /-> Leverage:/,
             'Leverages': /-> Leverages:/,
-            'LeverageTier': /-> (?:List\[)?LeverageTier/,
+            'LeverageTier': /-> (?:[Ll]ist\[)?LeverageTier/,
             'LeverageTiers': /-> LeverageTiers:/,
-            'Liquidation': /-> (?:List\[)?Liquidation/,
-            'LongShortRatio': /-> (?:List\[)?LongShortRatio/,
+            'Liquidation': /-> (?:[Ll]ist\[)?Liquidation/,
+            'LongShortRatio': /-> (?:[Ll]ist\[)?LongShortRatio/,
             'MarginMode': /-> MarginMode:/,
             'MarginModes': /-> MarginModes:/,
-            'MarginModification': /-> MarginModification:/,
+            'MarginModification': /-> (?:[Ll]ist\[)?MarginModification\b/,
             'MarginLoan': /-> MarginLoan:/,
-            'Market': /(-> Market:|: Market)/,
+            'Market': /(-> (?:[Ll]ist\[)?Market\b|: Market)/,
             // 'MarketInterface': /-> MarketInterface:/,
             'MarketMarginModes': /-> MarketMarginModes:/,
             'MarketType': /: MarketType/,
-            'Num': /(: (?:List\[)?Num\b)|(-> Num:)/,
+            'Num': /(: (?:[Ll]ist\[)?Num\b)|(-> Num:)/,
             'Option': /-> Option:/,
             'OptionChain': /-> OptionChain:/,
-            'Order': /-> (?:List\[)?Order\]?:/,
+            'Order': /-> (?:[Ll]ist\[)?Order\]?:/,
             'OrderBook': /-> OrderBook:/,
-            'OrderRequest': /: (?:List\[)?OrderRequest/,
-            'CancellationRequest': /: (?:List\[)?CancellationRequest/,
+            'OrderRequest': /: (?:[Ll]ist\[)?OrderRequest/,
+            'CancellationRequest': /: (?:[Ll]ist\[)?CancellationRequest/,
             'OrderSide': /: OrderSide/,
             'OrderType': /: OrderType/,
-            'Position': /-> (?:List\[)?Position/,
+            'Position': /-> (?:[Ll]ist\[)?Position/,
             'PositionModeInfo': /-> PositionModeInfo:/,
             'Status': /-> Status:/,
-            'Str': /(: (?:List\[)?Str\b)|(-> Str:)/,
-            'Strings': /: (?:List\[)?Strings =/,
+            'Str': /(: (?:[Ll]ist\[)?Str\b)|(-> Str:)/,
+            'Strings': /: (?:[Ll]ist\[)?Strings =/,
             'SubType': /: SubType/,
             'Ticker': /-> Ticker:/,
             'Tickers': /-> Tickers:/,
             'FundingRate': /-> FundingRate:/,
-            'OpenInterest': /-> OpenInterest:/,
+            'OpenInterest': /-> (?:[Ll]ist\[)?OpenInterest\b/,
             'FundingRates': /-> FundingRates:/,
             'OrderBooks': /-> OrderBooks:/,
             'OpenInterests': /-> OpenInterests:/,
-            'Trade': /-> (?:List\[)?Trade/,
+            'Trade': /-> (?:[Ll]ist\[)?Trade/,
             'TradingFeeInterface': /-> TradingFeeInterface:/,
             'TradingFees': /-> TradingFees:/,
             'DepositWithdrawFee': /-> DepositWithdrawFee:/,
             'DepositWithdrawFees': /-> DepositWithdrawFees:/,
-            'Transaction': /-> (?:List\[)?Transaction/,
-            'FundingRateHistory': /-> (?:List\[)?FundingRateHistory/,
-            'MarketInterface': /-> (?:List\[)?MarketInterface/,
-            'TransferEntry': /-> TransferEntry:/,
-            'PredictionEvent': /-> (?:List\[)?PredictionEvent/,
-            'PredictionOutcome': /: (?:List\[)?PredictionOutcome/,
-            'fetchEventsParams': /: (?:List\[)?fetchEventsParams\b/,
-            'PredictionTicker': /-> (?:List\[)?PredictionTicker\b/,
-            'PredictionTickers': /-> (?:List\[)?PredictionTickers\b/,
-            'PredictionOrder': /-> (?:List\[)?PredictionOrder\b/,
-            'PredictionOrderBook': /-> (?:List\[)?PredictionOrderBook\b/,
-            'PredictionTrade': /-> (?:List\[)?PredictionTrade\b/,
-            'PredictionPosition': /-> (?:List\[)?PredictionPosition\b/,
-            'PredictionOpenInterest': /-> (?:List\[)?PredictionOpenInterest\b/,
-            'PredictionTradingFee': /-> (?:List\[)?PredictionTradingFee\b/,
-            'PredictionSettlement': /-> (?:List\[)?PredictionSettlement\b/,
-            'PredictionOrderRequest': /: (?:List\[)?PredictionOrderRequest\b/,
+            'Transaction': /-> (?:[Ll]ist\[)?Transaction/,
+            'FundingRateHistory': /-> (?:[Ll]ist\[)?FundingRateHistory/,
+            'MarketInterface': /-> (?:[Ll]ist\[)?MarketInterface/,
+            'TransferEntry': /-> (?:[Ll]ist\[)?TransferEntry\b/,
+            'PredictionEvent': /-> (?:[Ll]ist\[)?PredictionEvent/,
+            'PredictionOutcome': /: (?:[Ll]ist\[)?PredictionOutcome/,
+            'fetchEventsParams': /: (?:[Ll]ist\[)?fetchEventsParams\b/,
+            'PredictionTicker': /-> (?:[Ll]ist\[)?PredictionTicker\b/,
+            'PredictionTickers': /-> (?:[Ll]ist\[)?PredictionTickers\b/,
+            'PredictionOrder': /-> (?:[Ll]ist\[)?PredictionOrder\b/,
+            'PredictionOrderBook': /-> (?:[Ll]ist\[)?PredictionOrderBook\b/,
+            'PredictionTrade': /-> (?:[Ll]ist\[)?PredictionTrade\b/,
+            'PredictionPosition': /-> (?:[Ll]ist\[)?PredictionPosition\b/,
+            'PredictionOpenInterest': /-> (?:[Ll]ist\[)?PredictionOpenInterest\b/,
+            'PredictionTradingFee': /-> (?:[Ll]ist\[)?PredictionTradingFee\b/,
+            'PredictionSettlement': /-> (?:[Ll]ist\[)?PredictionSettlement\b/,
+            'PredictionOrderRequest': /: (?:[Ll]ist\[)?PredictionOrderRequest\b/,
         }
         const matches: string[] = []
         let match
@@ -1131,12 +1167,7 @@ class Transpiler {
         if (bodyAsString.match (/: Client/)) {
             libraries.push ('from ccxt.async_support.base.ws.client import Client')
         }
-        if (bodyAsString.match (/[\s(]Optional\[/)) {
-            libraries.push ('from typing import Optional')
-        }
-        if (bodyAsString.match (/[\s\[(]List\[/)) {
-            libraries.push ('from typing import List')
-        }
+        // list[] / X | None are builtins on the Python 3.10 floor; do not import typing
 
         const errorImports: string[] = []
 
@@ -1387,22 +1418,43 @@ class Transpiler {
         const baseMethods = this.getPHPBaseMethods ()
         methods = methods.concat (baseMethods)
 
-        for (let method of methods) {
-            let regex = new RegExp ('\\$this->(' + method + ')\\s?(\\(|[^a-zA-Z0-9_])', 'g')
-            bodyAsString = bodyAsString.replace (regex,
-                (match: any, p1: string, p2: string) => {
-                    return ((p2 === '(') ?
-                        ('$this->' + unCamelCase (p1) + p2) : // support direct php calls
-                        ("array($this, '" + unCamelCase (p1) + "')" + p2)) // as well as passing instance methods as callables
-                })
+        // same index-then-skip gate as createPythonClass: a rename can only fire where the
+        // body literally contains `$this-><method>` / `parent::<method>`, so the methods that
+        // occur in neither form are skipped instead of compiling and running two regexes each
+        const thisNames = new Set<string> ()
+        for (const named of bodyAsString.matchAll (/\$this->([A-Za-z0-9_]+)/g)) {
+            thisNames.add (named[1])
+        }
+        const parentNames = new Set<string> ()
+        for (const named of bodyAsString.matchAll (/parent::([A-Za-z0-9_]+)/g)) {
+            parentNames.add (named[1])
+        }
 
-            regex = new RegExp ('parent::(' + method + ')\\s?(\\(|[^a-zA-Z0-9_])', 'g')
-            bodyAsString = bodyAsString.replace (regex,
-                (match: any, p1: string, p2: string) => {
-                    return ((p2 === '(') ?
-                        ('parent::' + unCamelCase (p1) + p2) : // support direct php calls
-                        ("array($this, '" + unCamelCase (p1) + "')" + p2)) // as well as passing instance methods as callables
-                })
+        for (let method of methods) {
+            const plain = /^[A-Za-z0-9_]+$/.test (method)
+            if (!plain || thisNames.has (method)) {
+                let regex = new RegExp ('\\$this->(' + method + ')\\s?(\\(|[^a-zA-Z0-9_])', 'g')
+                bodyAsString = bodyAsString.replace (regex,
+                    (match: any, p1: string, p2: string) => {
+                        const renamed = unCamelCase (p1)
+                        thisNames.add (renamed)
+                        return ((p2 === '(') ?
+                            ('$this->' + renamed + p2) : // support direct php calls
+                            ("array($this, '" + renamed + "')" + p2)) // as well as passing instance methods as callables
+                    })
+            }
+
+            if (!plain || parentNames.has (method)) {
+                const regex = new RegExp ('parent::(' + method + ')\\s?(\\(|[^a-zA-Z0-9_])', 'g')
+                bodyAsString = bodyAsString.replace (regex,
+                    (match: any, p1: string, p2: string) => {
+                        const renamed = unCamelCase (p1)
+                        parentNames.add (renamed)
+                        return ((p2 === '(') ?
+                            ('parent::' + renamed + p2) : // support direct php calls
+                            ("array($this, '" + renamed + "')" + p2)) // as well as passing instance methods as callables
+                    })
+            }
         }
 
         header.push ("\n" + this.createPHPClassDeclaration (className, baseClass))
@@ -1526,6 +1578,44 @@ class Transpiler {
         }).join (', ')
     }
 
+    // Emitted PHP (CI regen), e.g. do_request / do_fetch2:
+    //   -Async\await($this->fetch2(...)) / Async\await($this->fetch(...))
+    //   +$this->do_fetch2(...) / $this->do_fetch(...)
+    static phpInnerAsyncLayerMethods = [ 'fetch2', 'fetch' ]
+
+    phpCollapseInnerAsyncLayers (phpBody: string) {
+        for (const name of Transpiler.phpInnerAsyncLayerMethods) {
+            const opener = 'Async\\await($this->' + name + '('
+            let index = phpBody.indexOf (opener)
+            while (index > -1) {
+                // walk from the callee's "(" to its matching ")", then require the await's own ")"
+                let depth = 0
+                let cursor = index + opener.length - 1
+                while (cursor < phpBody.length) {
+                    const char = phpBody[cursor]
+                    if (char === '(') {
+                        depth++
+                    } else if (char === ')') {
+                        depth--
+                        if (depth === 0) {
+                            break
+                        }
+                    }
+                    cursor++
+                }
+                if (depth !== 0 || phpBody[cursor + 1] !== ')') {
+                    index = phpBody.indexOf (opener, index + 1)
+                    continue
+                }
+                const args = phpBody.slice (index + opener.length, cursor)
+                const replacement = '$this->do_' + name + '(' + args + ')'
+                phpBody = phpBody.slice (0, index) + replacement + phpBody.slice (cursor + 2)
+                index = phpBody.indexOf (opener, index + replacement.length)
+            }
+        }
+        return phpBody
+    }
+
     transpileJavaScriptToPHP ({ js, variables }: any, async = false) {
 
         // match all local variables (let, const or var)
@@ -1605,6 +1695,9 @@ class Transpiler {
         }
         if (async && js.indexOf (' await ') > -1) {
             this.phpAsyncBodyWasFlattened = true
+            // the flat body runs inside the public stub's fiber already, so sequential awaits
+            // on the base HTTP chain call the sibling do_* directly instead of opening another one
+            phpBody = this.phpCollapseInnerAsyncLayers (phpBody)
         }
         phpBody = phpBody.replaceAll(/parent::\$market/g, 'parent::market')
         return phpBody
@@ -1612,7 +1705,68 @@ class Transpiler {
 
     // ------------------------------------------------------------------------
 
+    findCommentStart (line: string) {
+        // returns the index of the first comment marker sitting outside of any
+        // string literal or minus one, quote state is tracked per line so that
+        // protocol separators and protocol relative joins inside strings like
+        // https:// or a bare '//' never register as comment starts
+        let quote = ''
+        for (let i = 0; i < line.length; i++) {
+            const c = line[i]
+            if (quote !== '') {
+                if (c === '\\') {
+                    i++
+                } else if (c === quote) {
+                    quote = ''
+                }
+            } else if (c === "'" || c === '"' || c === '`') {
+                quote = c
+            } else if (c === '/' && line[i + 1] === '/' && line[i - 1] !== ':') {
+                // the colon guard keeps bare protocol separators inside jsdoc
+                // blocks like https:// out of the match, those lines feed the
+                // docstring and link conversion passes and must stay visible
+                return i
+            }
+        }
+        return -1
+    }
+
+    maskComments (js: string) {
+        // comment text is documentation, not code to translate, so the body of
+        // every comment is replaced by a regex-inert token before any transform
+        // runs and restored verbatim afterwards, the marker itself stays visible
+        // for the language specific marker conversion rules
+        const masks: string[] = []
+        const lines = js.split ('\n')
+        for (let i = 0; i < lines.length; i++) {
+            const line = lines[i]
+            const start = this.findCommentStart (line)
+            if (start < 0) {
+                continue
+            }
+            let textStart = start + 2
+            if (line[textStart] === ' ') {
+                textStart++
+            }
+            const text = line.slice (textStart)
+            if (text.length === 0) {
+                continue
+            }
+            masks.push (text)
+            lines[i] = line.slice (0, textStart) + '\x01' + (masks.length - 1).toString () + '\x01'
+        }
+        return { masked: lines.join ('\n'), masks }
+    }
+
+    unmaskComments (body: string, masks: string[]) {
+        return body.replace (/\x01(\d+)\x01/g, (match: string, index: string) => masks[parseInt (index)])
+    }
+
     transpileJavaScriptToPythonAndPHP (args:any) {
+
+        // protect comment bodies from every code transform below
+        const { masked, masks } = this.maskComments (args.js)
+        args.js = masked
 
         // apply common regexes once before branching to language-specific paths
         args.js = this.regexAll (args.js, this.getCommonRegexes ())
@@ -1639,6 +1793,11 @@ class Transpiler {
             // transpile JS -> Sync PHP
             phpBody = this.transpileAsyncPHPToSyncPHP (this.transpileJavaScriptToPHP (args, false))
         }
+
+        python3Body = this.unmaskComments (python3Body, masks)
+        python2Body = this.unmaskComments (python2Body, masks)
+        phpBody = this.unmaskComments (phpBody, masks)
+        phpAsyncBody = this.unmaskComments (phpAsyncBody, masks)
 
         return { python3Body, python2Body, phpBody, phpAsyncBody, phpAsyncBodyIsFlatAwait }
     }
@@ -1681,9 +1840,6 @@ class Transpiler {
 
         newContents = deleteFunction ('test_tickers_async', newContents)
         newContents = deleteFunction ('test_l2_order_books_async', newContents)
-        if (fs.existsSync (sync)) {
-            fs.truncateSync (sync)
-        }
         fs.writeFileSync (sync, newContents)
     }
 
@@ -1703,9 +1859,6 @@ class Transpiler {
         ]
 
         const newContents = this.regexAll (syncBody, this.getPHPSyncRegexes ().concat (phpTestRegexes));
-        if (fs.existsSync (sync)) {
-            fs.truncateSync (sync)
-        }
         fs.writeFileSync (sync, newContents)
     }
 
@@ -2100,16 +2253,16 @@ class Transpiler {
             const pythonTypes: dict = {
                 'string': 'str',
                 'number': 'float',
-                'any': 'Any',
-                'unknown': 'Any',
+                'any': 'object',
+                'unknown': 'object',
                 'boolean': 'bool',
                 'Int': 'Int',
                 'OHLCV': 'list',
                 'Dictionary<any>': 'dict',
                 'Dict': 'dict',
                 'NullableDict': 'dict',
-                'List': 'List[Any]',
-                'NullableList': 'List[Any]'
+                'List': 'list',
+                'NullableList': 'list'
             }
             const unwrapLists = (type: string) => {
                 // a union like `Dict | Dict[] | undefined` must be mapped member-by-member;
@@ -2123,7 +2276,7 @@ class Transpiler {
                     type = type.slice (0, -2)
                     count++
                 }
-                return 'List['.repeat (count) + (pythonTypes[type] ?? type) + ']'.repeat (count)
+                return 'list['.repeat (count) + (pythonTypes[type] ?? type) + ']'.repeat (count)
             }
 
             if (this.buildPHP) {
@@ -2151,7 +2304,7 @@ class Transpiler {
                     'List': 'array',
                     'NullableList': '?array',
                 }
-                const phpArrayRegex = /^(?:Market|Currency|Account|AccountStructure|BalanceAccount|object|OHLCV|ADL|Order|OrderBooks?|Tickers?|Trade|Transaction|Balances?|MarketInterface|CurrencyInterface|TransferEntry|TransferEntries|Leverages|Leverage|Greeks|MarginModes|MarginMode|MarketMarginModes|MarginModification|MarginLoan|LastPrice|LastPrices|TradingFeeInterface|Currencies|TradingFees|DepositWithdrawFee|DepositWithdrawFees|DepositWithdrawFeeNetwork|CrossBorrowRates?|IsolatedBorrowRates?|FundingRates|FundingRate|FundingRateHistory|LedgerEntry|LeverageTier|LeverageTiers|Conversion|DepositAddress|LongShortRatio|PositionModeInfo|Position|BorrowInterest|PredictionTicker|PredictionTickers|PredictionOrder|PredictionTrade|PredictionPosition|PredictionOrderBook|PredictionEvent|PredictionMarket|PredictionOutcome|PredictionTradingFee|PredictionOpenInterest|PredictionSettlement|fetchEventsParams|OpenInterests?|Options?|OptionChain|Liquidations?|Status)( \| undefined)?$|\w+\[\]/
+                const phpArrayRegex = /^(?:Market|Currency|Account|AccountStructure|BalanceAccount|object|OHLCV|ADL|Order|OrderBooks?|Tickers?|Trade|Transaction|Balances?|MarketInterface|CurrencyInterface|TransferEntry|TransferEntries|Leverages|Leverage|Greeks|AllGreeks|MarginModes|MarginMode|MarketMarginModes|MarginModification|MarginLoan|LastPrice|LastPrices|TradingFeeInterface|Currencies|TradingFees|DepositWithdrawFee|DepositWithdrawFees|DepositWithdrawFeeNetwork|CrossBorrowRates?|IsolatedBorrowRates?|FundingRates|FundingRate|FundingRateHistory|LedgerEntry|LeverageTier|LeverageTiers|Conversion|DepositAddress|DepositAddresses|LongShortRatio|PositionModeInfo|Position|BorrowInterest|PredictionTicker|PredictionTickers|PredictionOrder|PredictionTrade|PredictionPosition|PredictionOrderBook|PredictionEvent|PredictionMarket|PredictionOutcome|PredictionTradingFee|PredictionOpenInterest|PredictionSettlement|fetchEventsParams|OpenInterests?|Options?|OptionChain|Liquidations?|Status)( \| undefined)?$|\w+\[\]/
 
                 phpArgs = argsArray.map (x => {
                     const parts = x.split (':')
@@ -2312,7 +2465,10 @@ class Transpiler {
                     // the body helper is intentionally untyped on the return: after
                     // `Async\await(...)` it yields the resolved value, not a promise, so the
                     // public method's `: PromiseInterface` must not be repeated here.
-                    phpAsync.push ('    ' + 'private function ' + doMethod + '(' + phpArgs + ') {');
+                    // Emitted: `private function do_fetch2(...)` → `protected function do_fetch2(...)`.
+                    // Other do_* stay private so PHP skips the LSP signature check.
+                    const visibility = Transpiler.phpInnerAsyncLayerMethods.includes (method) ? 'protected' : 'private'
+                    phpAsync.push ('    ' + visibility + ' function ' + doMethod + '(' + phpArgs + ') {');
                 } else {
                     phpAsync.push (asyncPhpSignature);
                 }
@@ -2762,6 +2918,18 @@ class Transpiler {
         return unCamelCase (name).replace (/\./g, '_');
     }
 
+    // PEP8 E711/E712: ruff rejects `== None` / `== True` / `== False` and the
+    // negated forms, which strict boolean conditions in TS emit routinely
+    pythonPep8Comparisons (str: string) {
+        return str.
+            replace (/ == True/g, ' is True').
+            replace (/ != True/g, ' is not True').
+            replace (/ == False/g, ' is False').
+            replace (/ != False/g, ' is not False').
+            replace (/ == None/g, ' is None').
+            replace (/ != None/g, ' is not None');
+    }
+
     phpReplaceException (cont: string) {
         return cont.
             replace (/catch\(Exception/g, 'catch\(\\Throwable').
@@ -2978,6 +3146,7 @@ class Transpiler {
             const impHelper = `# -*- coding: utf-8 -*-\n\nimport asyncio\n\n\n` + 'from tests_helpers import ' + pythonImports.join (', ') + '  # noqa: F401' + '\n\n';
             let newPython = impHelper + python3;
             newPython = snakeCaseFunctions (newPython);
+            newPython = this.pythonPep8Comparisons (newPython);
             overwriteSafe (files.pyFileAsync, newPython);
             this.transpilePythonAsyncToSync (files.pyFileAsync, files.pyFileSync);
             // remove 4 extra newlines
@@ -3031,7 +3200,7 @@ class Transpiler {
         // create worker
         const maxThreads = Math.min (Number(process.env.CCXT_TRANSPILE_PROCESSES) || os.availableParallelism ())
         const piscina = new Piscina({
-            filename: resolve(__dirname, './ast-transpiler-worker.js'),
+            filename: resolve(__dirname, './ast-transpiler-worker.ts'),
             maxThreads,
         });
 
@@ -3121,8 +3290,7 @@ class Transpiler {
 
         const pyFixes = (str: string, sync = false) => {
             str = str.replace (/assert\((.*)\)(?!$)/g, 'assert $1');
-            str = str.replace (/ == True/g, ' is True');
-            str = str.replace (/ == False/g, ' is False');
+            str = this.pythonPep8Comparisons (str);
             if (sync) {
                 // str = str.replace (/asyncio\.gather\(\*(\[.+\])\)/g, '$1');
                 str = str.replace (/asyncio\.gather\(\*/g, '(');
@@ -3831,6 +3999,7 @@ if (isMainEntry(metaFileUrl)) {
     const addJsHeaders = process.argv.includes ('--js-headers')
     const multiprocess = process.argv.includes ('--multiprocess') || process.argv.includes ('--multi')
     const baseClassOnly = process.argv.includes ('--baseClass')
+    const baseTestsOnly = process.argv.includes ('--baseTests')
 
     shouldTranspileTests = process.argv.includes ('--noTests') ? false : true
 
@@ -3850,6 +4019,11 @@ if (isMainEntry(metaFileUrl)) {
     if (baseClassOnly) {
         transpiler.transpileBaseMethods ()
         transpiler.transpilePredictionBaseMethods ()
+    } else if (baseTestsOnly) {
+        (async () => {
+            await transpiler.baseFunctionalitiesTests ()
+            transpiler.transpileCryptoTests ()
+        })()
     } else if (test) {
         (async () => {
             await transpiler.transpileTests ()

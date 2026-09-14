@@ -268,7 +268,7 @@ func (this *WSClient) OnPingInterval() {
 				}
 				if message != nil {
 					go func() {
-						future := this.Send(message)
+						future := this.SendAsync(message)
 						if err := <-future; err != nil {
 							if b, ok := err.(bool); ok && b {
 								return // not an error?
@@ -338,8 +338,8 @@ func (this *WSClient) Reject(err any, messageHash ...any) {
 	this.Client.Reject(err, messageHash...)
 }
 
-func (this *WSClient) Send(message any) <-chan any {
-	return this.Client.Send(message)
+func (this *WSClient) SendAsync(message any) <-chan any {
+	return this.Client.SendAsync(message)
 }
 
 func (this *WSClient) Reset(err any) {
@@ -379,4 +379,18 @@ func (this *WSClient) SetKeepAlive(keepAlive any) {
 }
 func (this *WSClient) GetFutures() map[string]any {
 	return this.Client.GetFutures()
+}
+
+// AsClient normalizes the two client implementations to the embedded *Client —
+// generated code passes whichever the transport produced (*Client offline mocks,
+// *WSClient live/ws) into base helpers typed against *Client, and a hard type
+// assertion on the wrong one panics at runtime
+func AsClient(client any) *Client {
+	if typed, ok := client.(*Client); ok {
+		return typed
+	}
+	if typed, ok := client.(*WSClient); ok {
+		return typed.Client
+	}
+	panic("AsClient: unsupported client implementation")
 }

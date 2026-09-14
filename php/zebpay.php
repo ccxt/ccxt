@@ -101,6 +101,7 @@ class zebpay extends Exchange {
                             'v2/system/time' => array( 'cost' => 10 ),
                             'v2/system/status' => array( 'cost' => 10 ),
                             'v2/market/orderbook' => array( 'cost' => 10 ),
+                            'v2/market/orderbook/ticker' => array( 'cost' => 10 ),
                             'v2/market/trades' => array( 'cost' => 10 ),
                             'v2/market/ticker' => array( 'cost' => 10 ),
                             'v2/market/allTickers' => array( 'cost' => 10 ),
@@ -116,9 +117,12 @@ class zebpay extends Exchange {
                             'v1/system/status' => array( 'cost' => 10 ),
                             'v1/exchange/tradefee' => array( 'cost' => 10 ),
                             'v1/exchange/tradefees' => array( 'cost' => 10 ),
+                            'v1/exchange/exchangeInfo' => array( 'cost' => 10 ),
+                            'v1/exchange/pairs' => array( 'cost' => 10 ),
                             'v1/market/orderBook' => array( 'cost' => 10 ),
                             'v1/market/ticker24Hr' => array( 'cost' => 10 ),
                             'v1/market/markets' => array( 'cost' => 10 ),
+                            'v1/market/marketInfo' => array( 'cost' => 10 ),
                             'v1/market/aggTrade' => array( 'cost' => 10 ),
                         ),
                         'post' => array(
@@ -135,6 +139,7 @@ class zebpay extends Exchange {
                             'v2/ex/orders' => array( 'cost' => 10 ),
                             'v2/account/balance' => array( 'cost' => 10 ),
                             'v2/ex/tradefee' => array( 'cost' => 10 ),
+                            'v2/ex/myfee/{symbol}' => array( 'cost' => 10 ),
                             'v2/ex/order' => array( 'cost' => 10 ),
                             'v2/ex/order/fills' => array( 'cost' => 10 ),
                         ),
@@ -149,10 +154,12 @@ class zebpay extends Exchange {
                             'v1/wallet/balance' => array( 'cost' => 10 ),
                             'v1/trade/order' => array( 'cost' => 10 ),
                             'v1/trade/order/open-orders' => array( 'cost' => 10 ),
+                            'v1/trade/order/history' => array( 'cost' => 10 ),
                             'v1/trade/userLeverages' => array( 'cost' => 10 ),
                             'v1/trade/userLeverage' => array( 'cost' => 10 ),
                             'v1/trade/positions' => array( 'cost' => 10 ),
                             'v1/trade/history' => array( 'cost' => 10 ),
+                            'v1/trade/transaction/history' => array( 'cost' => 10 ),
                         ),
                         'post' => array(
                             'v1/trade/order' => array( 'cost' => 10 ),
@@ -163,6 +170,10 @@ class zebpay extends Exchange {
                             'v1/trade/update/userLeverage' => array( 'cost' => 10 ),
                         ),
                         'delete' => array(
+                            'v1/trade/order' => array( 'cost' => 10 ),
+                            'v1/trade/order/all' => array( 'cost' => 10 ),
+                        ),
+                        'patch' => array(
                             'v1/trade/order' => array( 'cost' => 10 ),
                         ),
                     ),
@@ -238,13 +249,13 @@ class zebpay extends Exchange {
         }
         //
         // {
-        //     "statusDescription" => "OK",
+        //     "statusDescription": "OK",
         //     "data":
         //      {
-        //        "systemStatus" => "ok"
+        //        "systemStatus": "ok"
         //       }
-        //     "statusCode" => 200,
-        //     "customMessage" => ["OK"]
+        //     "statusCode": 200,
+        //     "customMessage": ["OK"]
         // }
         //
         $status = $this->safe_string_2($data, 'systemStatus', 'status');
@@ -281,13 +292,13 @@ class zebpay extends Exchange {
         }
         //
         // {
-        //     "statusDescription" => "OK",
+        //     "statusDescription": "OK",
         //     "data":
         //      {
-        //        "timestamp" => 1546837113087
+        //        "timestamp": 1546837113087
         //      }
-        //     "statusCode" => 200,
-        //     "customMessage" => ["OK"]
+        //     "statusCode": 200,
+        //     "customMessage": ["OK"]
         // }
         //
         $time = $this->safe_integer($data, 'timestamp');
@@ -336,33 +347,33 @@ class zebpay extends Exchange {
         $response = $this->publicSpotGetV2ExCurrencies($params);
         //
         //     {
-        //             "data" => array(
+        //             "data": [
         //                 {
-        //                     "currency" => "BTC",
-        //                     "name" => "BTC",
-        //                     "fullName" => "150",
-        //                     "precision" => "0.2",
-        //                     "type" => "fiat",
-        //                     "isDebitEnabled" => false,
-        //                     "chains" => array(
+        //                     "currency": "BTC",
+        //                     "name": "BTC",
+        //                     "fullName": "150",
+        //                     "precision": "0.2",
+        //                     "type": "fiat",
+        //                     "isDebitEnabled": false,
+        //                     "chains": [
         //                         {
-        //                             "chainName" => "Bitcoin",
-        //                             "withdrawalMinSize" => "0.000482",
-        //                             "depositMinSize" => "0.00000001",
-        //                             "withdrawalFee" => "0.00040000",
-        //                             "isWithdrawEnabled" => "true",
-        //                             "isDepositEnabled" => "true",
-        //                             "contractAddress" => "0x095418A82BC2439703b69fbE1210824F2247D77c",
-        //                             "withdrawPrecision" => "8",
-        //                             "maxWithdraw" => "2.43090487000000",
-        //                             "maxDeposit" => "100.00000000",
-        //                             "needTag" => "false",
-        //                             "chainId" => "bitcoin",
-        //                             "AddressRegex" => "^tb1[qpzry9x8gf2tvdw0s3jn54khce6mua7l]array(39,59)|m[a-zA-Z0-9]array(25,34)|n[a-zA-Z0-9]array(25,34)|^2[a-zA-Z0-9]array(25,34)$"
+        //                             "chainName": "Bitcoin",
+        //                             "withdrawalMinSize": "0.000482",
+        //                             "depositMinSize": "0.00000001",
+        //                             "withdrawalFee": "0.00040000",
+        //                             "isWithdrawEnabled": "true",
+        //                             "isDepositEnabled": "true",
+        //                             "contractAddress": "0x095418A82BC2439703b69fbE1210824F2247D77c",
+        //                             "withdrawPrecision": "8",
+        //                             "maxWithdraw": "2.43090487000000",
+        //                             "maxDeposit": "100.00000000",
+        //                             "needTag": "false",
+        //                             "chainId": "bitcoin",
+        //                             "AddressRegex": "^tb1[qpzry9x8gf2tvdw0s3jn54khce6mua7l]{39,59}|m[a-zA-Z0-9]{25,34}|n[a-zA-Z0-9]{25,34}|^2[a-zA-Z0-9]{25,34}$"
         //                          }
-        //                     )
+        //                     ]
         //                 }
-        //             )
+        //             ]
         //     }
         //
         $rows = $this->safe_list($response, 'data', array());
@@ -473,36 +484,36 @@ class zebpay extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
-        if ($market['spot']) {
+        if ($market['spot'] === true) {
             $response = $this->privateSpotGetV2ExTradefee($this->extend($request, $params));
             //
             // {
-            //     "statusDescription" => "Success",
+            //     "statusDescription": "Success",
             //     "data":
             //       {
-            //         "symbol" => "BTCINR",
-            //         "takerFeeRate" => "0.01",
-            //         "makerFeeRate" => "0.05",
-            //         "percentage" => true
+            //         "symbol": "BTCINR",
+            //         "takerFeeRate": "0.01",
+            //         "makerFeeRate": "0.05",
+            //         "percentage": true
             //       } ,
-            //     "statusCode" => 200,
+            //     "statusCode": 200,
             // }
             $data = $this->safe_dict($response, 'data', array());
         } else {
             $response = $this->publicSwapGetV1ExchangeTradefee($this->extend($request, $params));
             //
             // {
-            //     "statusDescription" => "OK",
+            //     "statusDescription": "OK",
             //     "data":
-            //     array(
+            //     [
             //       {
-            //         "symbol" => "BTCINR",
-            //         "takerFee" => "0.01",
-            //         "makerFee" => "0.05"
+            //         "symbol": "BTCINR",
+            //         "takerFee": "0.01",
+            //         "makerFee": "0.05"
             //       }
-            //     ) ,
-            //     "statusCode" => 200,
-            //     "customMessage" => ["OK"]
+            //     ] ,
+            //     "statusCode": 200,
+            //     "customMessage": ["OK"]
             // }
             //
             $responseData = $this->safe_list($response, 'data', array());
@@ -530,16 +541,16 @@ class zebpay extends Exchange {
         }
         //
         // {
-        //     "statusDescription" => "OK",
-        //     "data" => array(
+        //     "statusDescription": "OK",
+        //     "data": [
         //         {
-        //             "symbol" => "BTCINR",
-        //             "takerFee" => "0.01",
-        //             "makerFee" => "0.05"
+        //             "symbol": "BTCINR",
+        //             "takerFee": "0.01",
+        //             "makerFee": "0.05"
         //         }
-        //     ),
-        //     "statusCode" => 200,
-        //     "customMessage" => ["OK"]
+        //     ],
+        //     "statusCode": 200,
+        //     "customMessage": ["OK"]
         // }
         //
         $fees = $this->safe_list($response, 'data', array());
@@ -574,20 +585,20 @@ class zebpay extends Exchange {
             'symbol' => $market['id'],
         );
         $response = null;
-        if ($market['spot']) {
+        if ($market['spot'] === true) {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
             //
             //       {
-            //         "asks" => array(
+            //         "asks": [
             //                 [5000, 1000],           //Price, quantity
             //                 [6000, 1983]            //Price, quantity
-            //         ),
-            //         "bids" => array(
+            //         ],
+            //         "bids": [
             //                 [3200, 800],            //Price, quantity
             //                 [3100, 100]             //Price, quantity
-            //         ),
+            //         ],
             //       }
             // }
             $response = $this->publicSpotGetV2MarketOrderbook($this->extend($request, $params));
@@ -619,25 +630,25 @@ class zebpay extends Exchange {
             'symbol' => $market['id'],
         );
         $response = null;
-        if ($market['spot']) {
+        if ($market['spot'] === true) {
             $response = $this->publicSpotGetV2MarketTicker($this->extend($request, $params));
             //
-            //     array(
+            //     [
             //        {
-            //            "symbol" => "BTC-INR",
-            //            "bestBid" => "4900000",
-            //            "bestBidQty" => "0.00014938",
-            //            "bestAsk" => "",
-            //            "bestAskQty" => "0",
-            //            "priceChange" => "-98134.56",
-            //            "priceChangePercent" => "-1.84",
-            //            "high" => "5433400",
-            //            "low" => "5333400",
-            //            "vol" => "0.0002",
-            //            "volValue" => "1066.68",
-            //            "last" => "5333400"
+            //            "symbol": "BTC-INR",
+            //            "bestBid": "4900000",
+            //            "bestBidQty": "0.00014938",
+            //            "bestAsk": "",
+            //            "bestAskQty": "0",
+            //            "priceChange": "-98134.56",
+            //            "priceChangePercent": "-1.84",
+            //            "high": "5433400",
+            //            "low": "5333400",
+            //            "vol": "0.0002",
+            //            "volValue": "1066.68",
+            //            "last": "5333400"
             //        }
-            //     )
+            //     ]
             //
         } else {
             $response = $this->publicSwapGetV1MarketTicker24Hr($this->extend($request, $params));
@@ -667,22 +678,22 @@ class zebpay extends Exchange {
         $symbols = $this->market_symbols($symbols);
         $response = $this->publicSpotGetV2MarketAllTickers($params);
         //
-        //     array(
+        //     [
         //        {
-        //            "symbol" => "BTC-INR",
-        //            "bestBid" => "4900000",
-        //            "bestBidQty" => "0.00014938",
-        //            "bestAsk" => "",
-        //            "bestAskQty" => "0",
-        //            "priceChange" => "-98134.56",
-        //            "priceChangePercent" => "-1.84",
-        //            "high" => "5433400",
-        //            "low" => "5333400",
-        //            "vol" => "0.0002",
-        //            "volValue" => "1066.68",
-        //            "last" => "5333400"
+        //            "symbol": "BTC-INR",
+        //            "bestBid": "4900000",
+        //            "bestBidQty": "0.00014938",
+        //            "bestAsk": "",
+        //            "bestAskQty": "0",
+        //            "priceChange": "-98134.56",
+        //            "priceChangePercent": "-1.84",
+        //            "high": "5433400",
+        //            "low": "5333400",
+        //            "vol": "0.0002",
+        //            "volValue": "1066.68",
+        //            "last": "5333400"
         //        }
-        //     )
+        //     ]
         //
         $tickerList = $this->safe_list($response, 'data', array());
         return $this->parse_tickers($tickerList, $symbols);
@@ -701,7 +712,7 @@ class zebpay extends Exchange {
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->endtime] the latest time in ms to fetch orders for
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             $this->load_markets();
@@ -713,16 +724,16 @@ class zebpay extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
-        if ($market['spot']) {
+        if ($market['spot'] === true) {
             $request['interval'] = $this->safe_string($this->timeframes, $timeframe, $timeframe);
         } else {
             $request['interval'] = $timeframe;
         }
-        if ($market['contract'] && ($limit !== null)) {
+        if (($market['contract'] === true) && ($limit !== null)) {
             $request['limit'] = $limit;
         }
         if ($since !== null) {
-            if ($market['spot']) {
+            if ($market['spot'] === true) {
                 $request['startTime'] = $since;
             } else {
                 $request['since'] = $since;
@@ -734,7 +745,7 @@ class zebpay extends Exchange {
             $params = $this->omit($params, array( 'endtime', 'until' ));
         }
         $response = null;
-        if ($market['spot']) {
+        if ($market['spot'] === true) {
             if ($until === null || $since === null) {
                 throw new ArgumentsRequired($this->id . ' fetchOHLCV() requires a both a $since and until/endtime parameter for spot markets');
             }
@@ -743,8 +754,8 @@ class zebpay extends Exchange {
             $response = $this->publicSwapPostV1MarketKlines($this->extend($request, $params));
         }
         //
-        //             array(
-        //                 array(
+        //             [
+        //                 [
         //                     "1670608800000",
         //                     "17071",
         //                     "17073",
@@ -752,8 +763,8 @@ class zebpay extends Exchange {
         //                     "17055.5",
         //                     "268611",
         //                     "15.74462667"
-        //                 ),
-        //                 array(
+        //                 ],
+        //                 [
         //                     "1670605200000",
         //                     "17071.5",
         //                     "17071.5",
@@ -761,8 +772,8 @@ class zebpay extends Exchange {
         //                     "17071",
         //                     "4177",
         //                     "0.24469757"
-        //                 ),
-        //                 array(
+        //                 ],
+        //                 [
         //                     "1670601600000",
         //                     "17086.5",
         //                     "17088",
@@ -770,8 +781,8 @@ class zebpay extends Exchange {
         //                     "17071.5",
         //                     "6356",
         //                     "0.37288112"
-        //                 )
-        //             )
+        //                 ]
+        //             ]
         //
         $data = $this->safe_list($response, 'data', array());
         return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
@@ -797,17 +808,17 @@ class zebpay extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
-        if ($market['spot'] && $limit !== null) {
+        if (($market['spot'] === true) && $limit !== null) {
             $request['limit'] = $limit;
         }
         $response = null;
-        if ($market['spot']) {
+        if ($market['spot'] === true) {
             $response = $this->publicSpotGetV2MarketTrades($this->extend($request, $params));
         } else {
             $response = $this->publicSwapGetV1MarketAggTrade($this->extend($request, $params));
         }
         //
-        //     array(
+        //     [
         //         {
         //             "id" : "60014521",
         //             "price" : "23162.94",
@@ -816,7 +827,7 @@ class zebpay extends Exchange {
         //             "time" : 1659684602042,
         //             "isBuyerMaker" : 1659684602036
         //         }
-        //     )
+        //     ]
         //
         $data = $this->safe_list($response, 'data', array());
         return $this->parse_trades($data, $market, $since, $limit);
@@ -881,19 +892,19 @@ class zebpay extends Exchange {
         $response = $this->privateSpotGetV2ExOrderFills($this->extend($request, $params));
         //
         //         {
-        //             "orderId" => "456789",
-        //             "symbol" => "LINK_USDT",
-        //             "origQty" => "1.5",
-        //             "orderId" => "30249408733945856",
-        //             "side" => "BUY",
-        //             "type" => "LIMIT",
-        //             "matchRole" => "MAKER",
-        //             "createTime" => 1648200366864,
-        //             "price" => "3.1",
-        //             "avgExecutedPrice" => "2.3456"
-        //             "openQty" => "1",
-        //             "filledQty" => "0",
-        //             "fees" => "0.00145",
+        //             "orderId": "456789",
+        //             "symbol": "LINK_USDT",
+        //             "origQty": "1.5",
+        //             "orderId": "30249408733945856",
+        //             "side": "BUY",
+        //             "type": "LIMIT",
+        //             "matchRole": "MAKER",
+        //             "createTime": 1648200366864,
+        //             "price": "3.1",
+        //             "avgExecutedPrice": "2.3456"
+        //             "openQty": "1",
+        //             "filledQty": "0",
+        //             "fees": "0.00145",
         //         }
         //
         $data = $this->safe_dict($response, 'data', array());
@@ -906,31 +917,31 @@ class zebpay extends Exchange {
         // fetchMyTrades
         //
         //     {
-        //         "id" => "32164924331503616",
-        //         "symbol" => "LINK_USDT",
-        //         "accountType" => "SPOT",
-        //         "orderId" => "32164923987566592",
-        //         "side" => "SELL",
-        //         "type" => "MARKET",
-        //         "matchRole" => "TAKER",
-        //         "createTime" => 1648635115525,
-        //         "price" => "11",
-        //         "quantity" => "0.5",
-        //         "amount" => "5.5",
-        //         "feeCurrency" => "USDT",
-        //         "feeAmount" => "0.007975",
-        //         "pageId" => "32164924331503616",
-        //         "clientOrderId" => "myOwnId-321"
+        //         "id": "32164924331503616",
+        //         "symbol": "LINK_USDT",
+        //         "accountType": "SPOT",
+        //         "orderId": "32164923987566592",
+        //         "side": "SELL",
+        //         "type": "MARKET",
+        //         "matchRole": "TAKER",
+        //         "createTime": 1648635115525,
+        //         "price": "11",
+        //         "quantity": "0.5",
+        //         "amount": "5.5",
+        //         "feeCurrency": "USDT",
+        //         "feeAmount": "0.007975",
+        //         "pageId": "32164924331503616",
+        //         "clientOrderId": "myOwnId-321"
         //     }
         //   {
-        //     aggregateTradeId => '2659115835',
-        //     $symbol => 'ETHINR',
-        //     price => '292848',
-        //     quantity => '0.147',
-        //     firstTradeId => '7018766077',
-        //     lastTradeId => '7018766081',
-        //     tradeTime => '1765381971447',
-        //     isBuyerMarketMaker => true
+        //     aggregateTradeId: '2659115835',
+        //     symbol: 'ETHINR',
+        //     price: '292848',
+        //     quantity: '0.147',
+        //     firstTradeId: '7018766077',
+        //     lastTradeId: '7018766081',
+        //     tradeTime: '1765381971447',
+        //     isBuyerMarketMaker: true
         //   }
         //
         //
@@ -984,20 +995,20 @@ class zebpay extends Exchange {
         }
         //
         //     {
-        //         "data" => array(
-        //              array(
-        //                 "free" => 200,
-        //                 "used" => 100,
-        //                 "total" => 300,
-        //                 "currency" => "INR"
-        //              ),
+        //         "data": [
         //              {
-        //                 "free" => 0,
-        //                 "used" => 0,
-        //                 "total" => 0,
-        //                 "currency" => "USDT"
+        //                 "free": 200,
+        //                 "used": 100,
+        //                 "total": 300,
+        //                 "currency": "INR"
+        //              },
+        //              {
+        //                 "free": 0,
+        //                 "used": 0,
+        //                 "total": 0,
+        //                 "currency": "USDT"
         //              }
-        //         )
+        //         ]
         //     }
         //
         return $this->parse_balance($response);
@@ -1039,7 +1050,7 @@ class zebpay extends Exchange {
             'side' => strtoupper($side),
         );
         $response = null;
-        if ($market['spot']) {
+        if ($market['spot'] === true) {
             list($request, $params) = $this->order_request($symbol, $type, $amount, $request, $price, $params);
             $response = $this->privateSpotPostV2ExOrders($this->extend($request, $params));
         } else {
@@ -1071,9 +1082,9 @@ class zebpay extends Exchange {
         }
         //
         //    {
-        //        "data" => array(
-        //            "clientOrderId" => "619717484f1d010001510cde",
-        //        ),
+        //        "data": {
+        //            "clientOrderId": "619717484f1d010001510cde",
+        //        },
         //    }
         //
         $data = $this->safe_dict($response, 'data', array());
@@ -1124,7 +1135,7 @@ class zebpay extends Exchange {
         $market = $this->market($symbol);
         $response = null;
         $request = array();
-        if ($market['spot']) {
+        if ($market['spot'] === true) {
             $request['orderId'] = $id;
             $response = $this->privateSpotDeleteV2ExOrder($this->extend($request, $params));
         } else {
@@ -1138,10 +1149,10 @@ class zebpay extends Exchange {
         }
         //
         //    {
-        //        "data" => array(
-        //            "clientOrderId" => "619714b8b6353000014c505a",
-        //            "status" => "canceled"
-        //        ),
+        //        "data": {
+        //            "clientOrderId": "619714b8b6353000014c505a",
+        //            "status": "canceled"
+        //        },
         //    }
         //
         return $this->parse_order($this->safe_dict($response, 'data', array()));
@@ -1169,10 +1180,10 @@ class zebpay extends Exchange {
         $response = $this->privateSpotDeleteV2ExOrdersCancelAll($params);
         //
         //    {
-        //        "data" => array(
-        //            "orderId" => "12345",
-        //            "symbol" => 'BTC-INR
-        //        ),
+        //        "data": {
+        //            "orderId": "12345",
+        //            "symbol": 'BTC-INR
+        //        },
         //    }
         //
         $data = $this->safe_dict($response, 'data', array());
@@ -1202,7 +1213,7 @@ class zebpay extends Exchange {
         );
         $response = null;
         $orders = array();
-        if ($market['spot']) {
+        if ($market['spot'] === true) {
             $request['currentPage'] = 1;
             if ($limit !== null) {
                 $request['pageSize'] = $limit;
@@ -1223,26 +1234,26 @@ class zebpay extends Exchange {
         }
         //
         //     {
-        //         "data" => {
-        //             "nextTimeStamp" => null,
-        //             "totalCount" => 100,
-        //             "data" => array(
+        //         "data": {
+        //             "nextTimeStamp": null,
+        //             "totalCount": 100,
+        //             "data": [
         //                 {
-        //                     "clientOrderId" => "64507d02921f1c0001ff6892-123-zeb",
-        //                     "datetime" => "2025-03-14T14:34:34.4567",
-        //                     "timestamp" => 1741962557553,
-        //                     "status" => "open",
-        //                     "symbol" => "BTCINR",
-        //                     "type" => "market",
-        //                     "timeInForce" => "GTC",
-        //                     "side" => "buy",
-        //                     "price" => 700000,
-        //                     "amount" => 0.002,
-        //                     "filled" => null,
-        //                     "remaining" => 0.002,
-        //                     "trades" => array()
+        //                     "clientOrderId": "64507d02921f1c0001ff6892-123-zeb",
+        //                     "datetime": "2025-03-14T14:34:34.4567",
+        //                     "timestamp": 1741962557553,
+        //                     "status": "open",
+        //                     "symbol": "BTCINR",
+        //                     "type": "market",
+        //                     "timeInForce": "GTC",
+        //                     "side": "buy",
+        //                     "price": 700000,
+        //                     "amount": 0.002,
+        //                     "filled": null,
+        //                     "remaining": 0.002,
+        //                     "trades": []
         //                 }
-        //             )
+        //             ]
         //         }
         //     }
         //
@@ -1269,7 +1280,7 @@ class zebpay extends Exchange {
         $market = $this->market($symbol);
         $request = array();
         $response = null;
-        if ($market['spot']) {
+        if ($market['spot'] === true) {
             $request['orderId'] = $id;
             $response = $this->privateSpotGetV2ExOrder($this->extend($request, $params));
         } else {
@@ -1278,26 +1289,26 @@ class zebpay extends Exchange {
         }
         //
         //     {
-        //         "data" => {
-        //             "nextTimeStamp" => null,
-        //             "totalCount" => 100,
-        //             "data" => array(
+        //         "data": {
+        //             "nextTimeStamp": null,
+        //             "totalCount": 100,
+        //             "data": [
         //                 {
-        //                     "clientOrderId" => "64507d02921f1c0001ff6892-123-zeb",
-        //                     "datetime" => "2025-03-14T14:34:34.4567",
-        //                     "timestamp" => 1741962557553,
-        //                     "status" => "open",
-        //                     "symbol" => "BTCINR",
-        //                     "type" => "market",
-        //                     "timeInForce" => "GTC",
-        //                     "side" => "buy",
-        //                     "price" => 700000,
-        //                     "amount" => 0.002,
-        //                     "filled" => null,
-        //                     "remaining" => 0.002,
-        //                     "trades" => array()
+        //                     "clientOrderId": "64507d02921f1c0001ff6892-123-zeb",
+        //                     "datetime": "2025-03-14T14:34:34.4567",
+        //                     "timestamp": 1741962557553,
+        //                     "status": "open",
+        //                     "symbol": "BTCINR",
+        //                     "type": "market",
+        //                     "timeInForce": "GTC",
+        //                     "side": "buy",
+        //                     "price": 700000,
+        //                     "amount": 0.002,
+        //                     "filled": null,
+        //                     "remaining": 0.002,
+        //                     "trades": []
         //                 }
-        //             )
+        //             ]
         //         }
         //     }
         //
@@ -1308,19 +1319,19 @@ class zebpay extends Exchange {
     public function parse_order(array $order, ?array $market = null): array {
         //
         //      {
-        //          "clientOrderId" => "64507d02921f1c0001ff6892-123-zeb",
-        //          "datetime" => "2025-03-14T14:34:34.4567",
-        //          "timestamp" => 1741962557553,
-        //          "status" => "open",
-        //          "symbol" => "BTCINR",
-        //          "type" => "market",
-        //          "timeInForce" => "GTC",
-        //          "side" => "buy",
-        //          "price" => 700000,
-        //          "amount" => 0.002,
-        //          "filled" => null,
-        //          "remaining" => 0.002,
-        //          "trades" => array()
+        //          "clientOrderId": "64507d02921f1c0001ff6892-123-zeb",
+        //          "datetime": "2025-03-14T14:34:34.4567",
+        //          "timestamp": 1741962557553,
+        //          "status": "open",
+        //          "symbol": "BTCINR",
+        //          "type": "market",
+        //          "timeInForce": "GTC",
+        //          "side": "buy",
+        //          "price": 700000,
+        //          "amount": 0.002,
+        //          "filled": null,
+        //          "remaining": 0.002,
+        //          "trades": []
         //      }
         //
         $marketId = $this->safe_string($order, 'symbol');
@@ -1404,14 +1415,14 @@ class zebpay extends Exchange {
         $response = $this->privateSwapGetV1TradeUserLeverages($params);
         //
         //     {
-        //         "leveragePreferences" => array(
-        //             array(
-        //                 "symbol" => "ETHINR",
-        //                 "shortLeverage" => 1,
-        //                 "longLeverage" => 10,
-        //                 "marginMode" => "isolated"
-        //             ),
-        //         )
+        //         "leveragePreferences": [
+        //             {
+        //                 "symbol": "ETHINR",
+        //                 "shortLeverage": 1,
+        //                 "longLeverage": 10,
+        //                 "marginMode": "isolated"
+        //             },
+        //         ]
         //     }
         //
         $leveragePreferences = $this->safe_list($response, 'data', array());
@@ -1438,7 +1449,7 @@ class zebpay extends Exchange {
         $response = $this->privateSwapGetV1TradeUserLeverage($this->extend($request, $params));
         //
         //     {
-        //         "data" => array( $symbol => "ETHINR", longLeverage => 1, shortLeverage => 1, marginMode => "isolated" )
+        //         "data": { symbol: "ETHINR", longLeverage: 1, shortLeverage: 1, marginMode: "isolated" }
         //     }
         //
         $data = $this->safe_dict($response, 'data', array());
@@ -1468,7 +1479,7 @@ class zebpay extends Exchange {
             'symbol' => $market['id'],
         );
         //
-        // array( data => { "symbol", "longLeverage" => 10, "shortLeverage" => 1, "marginMode" => "isolated" )
+        // { data: { "symbol", "longLeverage": 10, "shortLeverage": 1, "marginMode": "isolated" }
         //
         $response = $this->privateSwapPostV1TradeUpdateUserLeverage($this->extend($request, $params));
         return $response;
@@ -1494,15 +1505,15 @@ class zebpay extends Exchange {
         $response = $this->privateSwapGetV1TradePositions($this->extend($request, $params));
         //
         //    {
-        //        "data" => array(
+        //        "data": [
         //            {
-        //                "id" => "31998678-6056-413f-9d0d-fc3678641650",
-        //                "symbol" => "ETHINR",
-        //                "entryPrice" => "0.7533",
-        //                "datetime" => "2022-03-03T22:51:16.566Z",
-        //                "contractSize" => "230"
+        //                "id": "31998678-6056-413f-9d0d-fc3678641650",
+        //                "symbol": "ETHINR",
+        //                "entryPrice": "0.7533",
+        //                "datetime": "2022-03-03T22:51:16.566Z",
+        //                "contractSize": "230"
         //            }
-        //        ),
+        //        ],
         //    }
         //
         $positions = $this->safe_list($response, 'data', array());
@@ -1534,13 +1545,13 @@ class zebpay extends Exchange {
         $response = $this->privateSwapPostV1TradeAddMargin($this->extend($request, $params));
         //
         //    {
-        //        "code" => "200000",
-        //        "data" => {
-        //            "symbol" => "BTCINR",
-        //            "type" => "add",
-        //            "amount" => 1000,
-        //            "code" => "INR",
-        //            "status" => "ok"
+        //        "code": "200000",
+        //        "data": {
+        //            "symbol": "BTCINR",
+        //            "type": "add",
+        //            "amount": 1000,
+        //            "code": "INR",
+        //            "status": "ok"
         //        }
         //    }
         //
@@ -1581,13 +1592,13 @@ class zebpay extends Exchange {
         $response = $this->privateSwapPostV1TradeReduceMargin($this->extend($request, $params));
         //
         //    {
-        //        "code" => "200000",
-        //        "data" => {
-        //            "symbol" => "BTCINR",
-        //            "type" => "reduce",
-        //            "amount" => 1000,
-        //            "code" => "INR",
-        //            "status" => "ok"
+        //        "code": "200000",
+        //        "data": {
+        //            "symbol": "BTCINR",
+        //            "type": "reduce",
+        //            "amount": 1000,
+        //            "code": "INR",
+        //            "status": "ok"
         //        }
         //    }
         //
@@ -1602,19 +1613,19 @@ class zebpay extends Exchange {
         $response = $this->publicSpotGetV2ExExchangeInfo($params);
         //
         //    {
-        //        "data" => {
-        //            "symbol" => "ETH-INR",
-        //            "name" => "ETH-INR",
-        //            "baseCurrency" => "ETH",
-        //            "quoteCurrency" => "INR",
-        //            "feeCurrency" => "INR",
-        //            "baseMinSize" => "",
-        //            "quoteMinSize" => "100",
-        //            "baseMaxSize" => "",
-        //            "quoteMaxSize" => "2000",
-        //            "baseIncrement" => "0.00001"
-        //            "quoteIncrement" => "0.00001",
-        //            "enableTrading" => true
+        //        "data": {
+        //            "symbol": "ETH-INR",
+        //            "name": "ETH-INR",
+        //            "baseCurrency": "ETH",
+        //            "quoteCurrency": "INR",
+        //            "feeCurrency": "INR",
+        //            "baseMinSize": "",
+        //            "quoteMinSize": "100",
+        //            "baseMaxSize": "",
+        //            "quoteMaxSize": "2000",
+        //            "baseIncrement": "0.00001"
+        //            "quoteIncrement": "0.00001",
+        //            "enableTrading": true
         //        }
         //    }
         //
@@ -1676,24 +1687,24 @@ class zebpay extends Exchange {
         $response = $this->publicSwapGetV1MarketMarkets($params);
         //
         //    {
-        //        "data" => {
-        //            "symbol" => "ETHUSDT",
-        //            "status" => "TRADING",
-        //            "mainMarginPercent" => "10",
-        //            "baseAsset" => "ETH",
-        //            "quoteAsset" => "USDT",
-        //            "pricePrecision" => 1,
-        //            "quantityPrecision" => 0.05,
-        //            "baseAssetPrecision" => 0,
-        //            "quotePrecision" => 0,
-        //            "orderType" => ["LIMIT", "MARKET" ]
-        //            "timeInForce" => ["GTC"],
-        //            "makerFee" => "0.01",
-        //            "takerFee" => "0.01",
-        //            "minLeverage" => "1",
-        //            "maxLeverage" => "20"
-        //            "tickSz" => "0.1",
-        //            "lotSz" => "0.1"
+        //        "data": {
+        //            "symbol": "ETHUSDT",
+        //            "status": "TRADING",
+        //            "mainMarginPercent": "10",
+        //            "baseAsset": "ETH",
+        //            "quoteAsset": "USDT",
+        //            "pricePrecision": 1,
+        //            "quantityPrecision": 0.05,
+        //            "baseAssetPrecision": 0,
+        //            "quotePrecision": 0,
+        //            "orderType": ["LIMIT", "MARKET" ]
+        //            "timeInForce": ["GTC"],
+        //            "makerFee": "0.01",
+        //            "takerFee": "0.01",
+        //            "minLeverage": "1",
+        //            "maxLeverage": "20"
+        //            "tickSz": "0.1",
+        //            "lotSz": "0.1"
         //        }
         //    }
         //
@@ -1838,22 +1849,22 @@ class zebpay extends Exchange {
 
     public function parse_ticker(array $ticker, ?array $market = null): array {
         //
-        //     array(
+        //     [
         //        {
-        //            "symbol" => "BTC-INR",
-        //            "bestBid" => "4900000",
-        //            "bestBidQty" => "0.00014938",
-        //            "bestAsk" => "",
-        //            "bestAskQty" => "0",
-        //            "priceChange" => "-98134.56",
-        //            "priceChangePercent" => "-1.84",
-        //            "high" => "5433400",
-        //            "low" => "5333400",
-        //            "vol" => "0.0002",
-        //            "volValue" => "1066.68",
-        //            "last" => "5333400"
+        //            "symbol": "BTC-INR",
+        //            "bestBid": "4900000",
+        //            "bestBidQty": "0.00014938",
+        //            "bestAsk": "",
+        //            "bestAskQty": "0",
+        //            "priceChange": "-98134.56",
+        //            "priceChangePercent": "-1.84",
+        //            "high": "5433400",
+        //            "low": "5333400",
+        //            "vol": "0.0002",
+        //            "volValue": "1066.68",
+        //            "last": "5333400"
         //        }
-        //     )
+        //     ]
         //
         $timestamp = $this->safe_integer_2($ticker, 'timestamp', 'ts');
         $marketId = $this->safe_string($ticker, 'symbol');
@@ -1892,11 +1903,11 @@ class zebpay extends Exchange {
     public function parse_margin_modification(mixed $info, ?array $market = null): array {
         //
         //    {
-        //         "symbol" => "BTCINR",
-        //         "type" => "reduce",
-        //         "amount" => 1000,
-        //         "code" => "INR",
-        //         "status" => "ok"
+        //         "symbol": "BTCINR",
+        //         "type": "reduce",
+        //         "amount": 1000,
+        //         "code": "INR",
+        //         "status": "ok"
         //    }
         //
         $timestamp = $this->milliseconds();
@@ -1924,11 +1935,11 @@ class zebpay extends Exchange {
         $timestamp = (string) $this->milliseconds();
         $signature = '';
         $query = $this->omit($params, $this->extract_params($path));
-        $queryLength = $query;
+        $queryLength = count($query);
         $access = $this->safe_string($api, 0, 'public');
         if ($access === 'public') {
             if ($method === 'GET' || $method === 'DELETE') {
-                if ($queryLength) {
+                if (($queryLength !== null) && ($queryLength !== 0)) {
                     $url .= '?' . $this->urlencode($query);
                 }
             } else {
@@ -1943,12 +1954,12 @@ class zebpay extends Exchange {
             $isSpot = $marketType === 'spot';
             $params['timestamp'] = $timestamp;
             if ($method === 'GET' || ($method === 'DELETE' && $isSpot)) {
-                // For GET/DELETE => Append $params to URL and sign the $query string
+                // For GET/DELETE: Append params to URL and sign the query string
                 $queryString = $this->urlencode($params);
                 $signature = $this->hmac($this->encode($queryString), $this->encode($this->secret), 'sha256', 'hex');
                 $url .= '?' . $queryString;
             } else {
-                // For POST/PUT => Convert $body to JSON and sign the stringified payload
+                // For POST/PUT: Convert body to JSON and sign the stringified payload
                 $body = $this->json($params);
                 $signature = $this->hmac($this->encode($body), $this->encode($this->secret), 'sha256', 'hex');
             }
@@ -1963,16 +1974,16 @@ class zebpay extends Exchange {
     }
 
     public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
-        if (!$response) {
+        if ($response === null) {
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $body, $body);
             return null;
         }
         //
         // bad
-        //     array( "code" => "400100", "msg" => "validation.createOrder.clientOidIsRequired" )
+        //     { "code": "400100", "msg": "validation.createOrder.clientOidIsRequired" }
         // good
-        //     array( $code => "200000", data => array( ... ))
-        // array("statusDescription":"Order quantity is out of range","data":array(),"statusCode":400,"customMessage":["Order quantity is out of range"])
+        //     { code: "200000", data: { ... }}
+        // {"statusDescription":"Order quantity is out of range","data":{},"statusCode":400,"customMessage":["Order quantity is out of range"]}
         //
         $errorCode = $this->safe_string_2($response, 'code', 'statusCode');
         $message = $this->safe_string_2($response, 'msg', 'statusDescription');

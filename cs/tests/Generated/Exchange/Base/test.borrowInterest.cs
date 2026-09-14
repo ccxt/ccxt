@@ -9,7 +9,7 @@ public partial class testMainClass : BaseTest
 {
     public static void testBorrowInterest(BaseExchange exchange, object skippedProperties, object method, object entry, object requestedCode, object requestedSymbol)
     {
-        object format = new Dictionary<string, object>() {
+        Dictionary<string, object> format = new Dictionary<string, object>() {
             { "info", new Dictionary<string, object>() {} },
             { "account", "BTC/USDT" },
             { "currency", "USDT" },
@@ -19,7 +19,7 @@ public partial class testMainClass : BaseTest
             { "timestamp", 1638230400000 },
             { "datetime", "2021-11-30T00:00:00.000Z" },
         };
-        object emptyAllowedFor = new List<object>() {"account"};
+        List<object> emptyAllowedFor = new List<object>() {"account"};
         testSharedMethods.assertStructure(exchange, skippedProperties, method, entry, format, emptyAllowedFor);
         testSharedMethods.assertTimestampAndDatetime(exchange, skippedProperties, method, entry);
         testSharedMethods.assertCurrencyCode(exchange, skippedProperties, method, entry, getValue(entry, "currency"), requestedCode);

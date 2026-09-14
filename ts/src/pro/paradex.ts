@@ -615,7 +615,7 @@ export default class paradex extends paradexRest {
     }
 
     override handleMessage (client: Client, message: any) {
-        if (!this.handleErrorMessage (client, message)) {
+        if (this.handleErrorMessage (client, message) !== true) {
             return;
         }
         //

@@ -163,6 +163,7 @@ export default class cex extends Exchange {
                         'do_cancel_my_order': { 'cost': 1 } as Endpoint<Dict>,
                         'do_cancel_all_orders': { 'cost': 5 } as Endpoint<Dict>,
                         'get_order_book': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_ticker': { 'cost': 1 } as Endpoint<Dict>,
                         'get_candles': { 'cost': 1 } as Endpoint<Dict>,
                         'get_trade_history': { 'cost': 1 } as Endpoint<Dict>,
                         'get_my_transaction_history': { 'cost': 1 } as Endpoint<Dict>,
@@ -368,7 +369,8 @@ export default class cex extends Exchange {
     override parseCurrency (rawCurrency: Dict): CurrencyInterface {
         const id = this.safeString (rawCurrency, 'currency');
         const code = this.safeCurrencyCode (id);
-        const type = this.safeBool (rawCurrency, 'fiat') ? 'fiat' : 'crypto';
+        const isFiat = (this.safeBool (rawCurrency, 'fiat') === true);
+        const type = isFiat ? 'fiat' : 'crypto';
         const currencyPrecision = this.parseNumber (this.parsePrecision (this.safeString (rawCurrency, 'precision')));
         const networks: Dict = {};
         const rawNetworks = this.safeDict (rawCurrency, 'blockchains', {});
@@ -1652,7 +1654,7 @@ export default class cex extends Exchange {
             transfer = await this.transferBetweenMainAndSubAccount (code, amount, fromAccount, toAccount, params);
         }
         const fillResponseFromRequest = this.handleOption ('transfer', 'fillResponseFromRequest', true);
-        if (fillResponseFromRequest) {
+        if (fillResponseFromRequest === true) {
             transfer['fromAccount'] = fromAccount;
             transfer['toAccount'] = toAccount;
         }
@@ -1820,7 +1822,7 @@ export default class cex extends Exchange {
         const query = this.omit (params, this.extractParams (path));
         if (api === 'public') {
             if (method === 'GET') {
-                if (Object.keys (query).length) {
+                if (Object.keys (query).length > 0) {
                     url += '?' + this.urlencode (query);
                 }
             } else {

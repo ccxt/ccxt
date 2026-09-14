@@ -33,5 +33,8 @@ public class Main {
         }
         var testsClass = new TestMain();
         testsClass.init(exchangeId, symbol, methodName).join();
+        // lingering non-daemon threads (ws clients, executors) must not keep
+        // the jvm alive after the tests are done — the ci step would hang
+        System.exit(0);
     }
 }

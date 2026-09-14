@@ -151,6 +151,13 @@ public partial class kucoinfutures : kucoin
         return await this.callAsync<Dictionary<string, object>> ("publicGetMarginCollateralRatio",parameters);
     }
 
+    /// <summary>Calls the publicGetMarginAvailableInventory endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetMarginAvailableInventory (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("publicGetMarginAvailableInventory",parameters);
+    }
+
     /// <summary>Calls the publicGetConvertSymbol endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> publicGetConvertSymbol (object parameters = null)
@@ -669,6 +676,13 @@ public partial class kucoinfutures : kucoin
         return await this.callAsync<Dictionary<string, object>> ("privateGetMarginInterest",parameters);
     }
 
+    /// <summary>Calls the privateGetMarginBorrowRate endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetMarginBorrowRate (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateGetMarginBorrowRate",parameters);
+    }
+
     /// <summary>Calls the privateGetProjectList endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> privateGetProjectList (object parameters = null)
@@ -779,6 +793,41 @@ public partial class kucoinfutures : kucoin
     public async Task<Dictionary<string, object>> privateGetAffiliateInviterStatistics (object parameters = null)
     {
         return await this.callAsync<Dictionary<string, object>> ("privateGetAffiliateInviterStatistics",parameters);
+    }
+
+    /// <summary>Calls the privateGetAffiliateQueryInvitees endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetAffiliateQueryInvitees (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateGetAffiliateQueryInvitees",parameters);
+    }
+
+    /// <summary>Calls the privateGetAffiliateQueryMyCommission endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetAffiliateQueryMyCommission (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateGetAffiliateQueryMyCommission",parameters);
+    }
+
+    /// <summary>Calls the privateGetAffiliateQueryTransactionByUid endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetAffiliateQueryTransactionByUid (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateGetAffiliateQueryTransactionByUid",parameters);
+    }
+
+    /// <summary>Calls the privateGetAffiliateQueryTransactionByTime endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetAffiliateQueryTransactionByTime (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateGetAffiliateQueryTransactionByTime",parameters);
+    }
+
+    /// <summary>Calls the privateGetAffiliateQueryKumining endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetAffiliateQueryKumining (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateGetAffiliateQueryKumining",parameters);
     }
 
     /// <summary>Calls the privatePostSubUserCreated endpoint.</summary>
@@ -1929,6 +1978,13 @@ public partial class kucoinfutures : kucoin
         return await this.callAsync<Dictionary<string, object>> ("brokerGetBrokerNdRebaseDownload",parameters);
     }
 
+    /// <summary>Calls the brokerGetBrokerNdMarkUp endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> brokerGetBrokerNdMarkUp (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("brokerGetBrokerNdMarkUp",parameters);
+    }
+
     /// <summary>Calls the brokerGetAssetNdbrokerDepositList endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> brokerGetAssetNdbrokerDepositList (object parameters = null)
@@ -1983,6 +2039,13 @@ public partial class kucoinfutures : kucoin
     public async Task<Dictionary<string, object>> brokerPostBrokerNdAccountUpdateApikey (object parameters = null)
     {
         return await this.callAsync<Dictionary<string, object>> ("brokerPostBrokerNdAccountUpdateApikey",parameters);
+    }
+
+    /// <summary>Calls the brokerPostBrokerNdMarkUp endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> brokerPostBrokerNdMarkUp (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("brokerPostBrokerNdMarkUp",parameters);
     }
 
     /// <summary>Calls the brokerDeleteBrokerNdAccountApikey endpoint.</summary>

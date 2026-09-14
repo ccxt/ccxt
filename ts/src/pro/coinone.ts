@@ -344,7 +344,7 @@ export default class coinone extends coinoneRest {
         const isSellerMaker = this.safeValue (trade, 'is_seller_maker');
         let side: Str = undefined;
         if (isSellerMaker !== undefined) {
-            side = isSellerMaker ? 'sell' : 'buy';
+            side = (isSellerMaker === true) ? 'sell' : 'buy';
         }
         const priceString = this.safeString (trade, 'price');
         const amountString = this.safeString (trade, 'qty');
@@ -381,7 +381,7 @@ export default class coinone extends coinoneRest {
     }
 
     override handleMessage (client: Client, message: any) {
-        if (this.handleErrorMessage (client, message)) {
+        if (this.handleErrorMessage (client, message) === true) {
             return;
         }
         const type = this.safeString (message, 'response_type');

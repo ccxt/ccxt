@@ -947,7 +947,7 @@ class apex extends apex$1["default"] {
                 throw new errors.ExchangeError(feedback);
             }
             const success = this.safeValue(message, 'success');
-            if (success !== undefined && !success) {
+            if ((success !== undefined) && (success !== true)) {
                 const ret_msg = this.safeString(message, 'ret_msg');
                 const request = this.safeValue(message, 'request', {});
                 const op = this.safeString(request, 'op');
@@ -985,7 +985,13 @@ class apex extends apex$1["default"] {
         }
     }
     handleMessage(client, message) {
-        if (this.handleErrorMessage(client, message)) {
+        if (this.handleErrorMessage(client, message) === true) {
+            return;
+        }
+        const ret_msg = this.safeString(message, 'ret_msg');
+        const pong = this.safeInteger(message, 'pong');
+        if (ret_msg === 'pong' || pong !== undefined) {
+            this.handlePong(client, message);
             return;
         }
         const topic = this.safeString2(message, 'topic', 'op', '');
@@ -1059,6 +1065,7 @@ class apex extends apex$1["default"] {
         return message;
     }
     handlePing(client, message) {
+        client.lastPong = this.milliseconds();
         this.spawn(this.pong, client, message);
     }
     handleAccount(client, message) {
@@ -1088,7 +1095,7 @@ class apex extends apex$1["default"] {
         const success = this.safeValue(message, 'success');
         const code = this.safeInteger(message, 'retCode');
         const messageHash = 'authenticated';
-        if (success || code === 0) {
+        if ((success === true) || (code === 0)) {
             const future = this.safeValue(client.futures, messageHash);
             future.resolve(true);
         }

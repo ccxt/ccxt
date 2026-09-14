@@ -1,7 +1,6 @@
 from ccxt.base.types import Entry
-from typing import Any as PythonAny, Dict
+_Dict = dict[str, object]
 
-_Dict = Dict[str, PythonAny]
 
 class ImplicitAPI:
     v2public_get_reference_currencies = v2PublicGetReferenceCurrencies = Entry[_Dict]('reference/currencies', 'v2Public', 'GET', {'cost': 1})
@@ -106,11 +105,6 @@ class ImplicitAPI:
     private_post_cross_margin_orders_id_repay = privatePostCrossMarginOrdersIdRepay = Entry[_Dict]('cross-margin/orders/{id}/repay', 'private', 'POST', {'cost': 1})
     private_post_stable_coin_exchange = privatePostStableCoinExchange = Entry[_Dict]('stable-coin/exchange', 'private', 'POST', {'cost': 1})
     private_post_subuser_transfer = privatePostSubuserTransfer = Entry[_Dict]('subuser/transfer', 'private', 'POST', {'cost': 10})
-    status_public_spot_get_api_v2_summary_json = statusPublicSpotGetApiV2SummaryJson = Entry[_Dict]('api/v2/summary.json', ['status', 'public', 'spot'], 'GET', {'cost': 1})
-    status_public_future_inverse_get_api_v2_summary_json = statusPublicFutureInverseGetApiV2SummaryJson = Entry[_Dict]('api/v2/summary.json', ['status', 'public', 'future', 'inverse'], 'GET', {'cost': 1})
-    status_public_future_linear_get_api_v2_summary_json = statusPublicFutureLinearGetApiV2SummaryJson = Entry[_Dict]('api/v2/summary.json', ['status', 'public', 'future', 'linear'], 'GET', {'cost': 1})
-    status_public_swap_inverse_get_api_v2_summary_json = statusPublicSwapInverseGetApiV2SummaryJson = Entry[_Dict]('api/v2/summary.json', ['status', 'public', 'swap', 'inverse'], 'GET', {'cost': 1})
-    status_public_swap_linear_get_api_v2_summary_json = statusPublicSwapLinearGetApiV2SummaryJson = Entry[_Dict]('api/v2/summary.json', ['status', 'public', 'swap', 'linear'], 'GET', {'cost': 1})
     spot_public_get_v2_market_status = spotPublicGetV2MarketStatus = Entry[_Dict]('v2/market-status', ['spot', 'public'], 'GET', {'cost': 1})
     spot_public_get_v1_common_symbols = spotPublicGetV1CommonSymbols = Entry[_Dict]('v1/common/symbols', ['spot', 'public'], 'GET', {'cost': 1})
     spot_public_get_v1_common_currencys = spotPublicGetV1CommonCurrencys = Entry[_Dict]('v1/common/currencys', ['spot', 'public'], 'GET', {'cost': 1})
@@ -181,6 +175,11 @@ class ImplicitAPI:
     spot_private_get_v2_etp_transactions = spotPrivateGetV2EtpTransactions = Entry[_Dict]('v2/etp/transactions', ['spot', 'private'], 'GET', {'cost': 5})
     spot_private_get_v2_etp_transaction = spotPrivateGetV2EtpTransaction = Entry[_Dict]('v2/etp/transaction', ['spot', 'private'], 'GET', {'cost': 5})
     spot_private_get_v2_etp_limit = spotPrivateGetV2EtpLimit = Entry[_Dict]('v2/etp/limit', ['spot', 'private'], 'GET', {'cost': 1})
+    spot_private_get_v2_invitee_rebate_referrals = spotPrivateGetV2InviteeRebateReferrals = Entry[_Dict]('v2/invitee/rebate/referrals', ['spot', 'private'], 'GET', {'cost': 10})
+    spot_private_get_v2_invitee_rebate_detail = spotPrivateGetV2InviteeRebateDetail = Entry[_Dict]('v2/invitee/rebate/detail', ['spot', 'private'], 'GET', {'cost': 1})
+    spot_private_get_v2_invitee_rebate_history = spotPrivateGetV2InviteeRebateHistory = Entry[_Dict]('v2/invitee/rebate/history', ['spot', 'private'], 'GET', {'cost': 1})
+    spot_private_get_v2_invitee_rebate_all_rebate_detail = spotPrivateGetV2InviteeRebateAllRebateDetail = Entry[_Dict]('v2/invitee/rebate/all_rebate/detail', ['spot', 'private'], 'GET', {'cost': 1})
+    spot_private_get_v2_invitee_rebate_batcher_rebate_detail = spotPrivateGetV2InviteeRebateBatcherRebateDetail = Entry[_Dict]('v2/invitee/rebate/batcher_rebate/detail', ['spot', 'private'], 'GET', {'cost': 1})
     spot_private_post_v1_account_transfer = spotPrivatePostV1AccountTransfer = Entry[_Dict]('v1/account/transfer', ['spot', 'private'], 'POST', {'cost': 1})
     spot_private_post_v1_futures_transfer = spotPrivatePostV1FuturesTransfer = Entry[_Dict]('v1/futures/transfer', ['spot', 'private'], 'POST', {'cost': 1})
     spot_private_post_v2_point_transfer = spotPrivatePostV2PointTransfer = Entry[_Dict]('v2/point/transfer', ['spot', 'private'], 'POST', {'cost': 5})
@@ -221,6 +220,7 @@ class ImplicitAPI:
     spot_private_post_v2_etp_redemption = spotPrivatePostV2EtpRedemption = Entry[_Dict]('v2/etp/redemption', ['spot', 'private'], 'POST', {'cost': 5})
     spot_private_post_v2_etp_transactid_cancel = spotPrivatePostV2EtpTransactIdCancel = Entry[_Dict]('v2/etp/{transactId}/cancel', ['spot', 'private'], 'POST', {'cost': 10})
     spot_private_post_v2_etp_batch_cancel = spotPrivatePostV2EtpBatchCancel = Entry[_Dict]('v2/etp/batch-cancel', ['spot', 'private'], 'POST', {'cost': 50})
+    spot_private_post_v5_account_universal_transfer = spotPrivatePostV5AccountUniversalTransfer = Entry[_Dict]('v5/account/universal_transfer', ['spot', 'private'], 'POST', {'cost': 4})
     contract_public_get_api_v1_timestamp = contractPublicGetApiV1Timestamp = Entry[_Dict]('api/v1/timestamp', ['contract', 'public'], 'GET', {'cost': 1})
     contract_public_get_heartbeat = contractPublicGetHeartbeat = Entry[_Dict]('heartbeat/', ['contract', 'public'], 'GET', {'cost': 1})
     contract_public_get_api_v1_contract_contract_info = contractPublicGetApiV1ContractContractInfo = Entry[_Dict]('api/v1/contract_contract_info', ['contract', 'public'], 'GET', {'cost': 1})
@@ -344,6 +344,12 @@ class ImplicitAPI:
     contract_private_get_v5_algo_order_opens = contractPrivateGetV5AlgoOrderOpens = Entry[_Dict]('v5/algo/order/opens', ['contract', 'private'], 'GET', {'cost': 0.41679})
     contract_private_get_v5_algo_order = contractPrivateGetV5AlgoOrder = Entry[_Dict]('v5/algo/order', ['contract', 'private'], 'GET', {'cost': 0.41679})
     contract_private_get_v5_algo_order_history = contractPrivateGetV5AlgoOrderHistory = Entry[_Dict]('v5/algo/order/history', ['contract', 'private'], 'GET', {'cost': 0.41679})
+    contract_private_get_api_v6_copytrading_trader_instruments = contractPrivateGetApiV6CopyTradingTraderInstruments = Entry[_Dict]('api/v6/copyTrading/trader/instruments', ['contract', 'private'], 'GET', {'cost': 2})
+    contract_private_get_api_v6_copytrading_trader_statistics = contractPrivateGetApiV6CopyTradingTraderStatistics = Entry[_Dict]('api/v6/copyTrading/trader/statistics', ['contract', 'private'], 'GET', {'cost': 2})
+    contract_private_get_api_v6_copytrading_trader_profit_sharing_history = contractPrivateGetApiV6CopyTradingTraderProfitSharingHistory = Entry[_Dict]('api/v6/copyTrading/trader/profit-sharing-history', ['contract', 'private'], 'GET', {'cost': 2})
+    contract_private_get_api_v6_copytrading_trader_profit_sharing_history_summary = contractPrivateGetApiV6CopyTradingTraderProfitSharingHistorySummary = Entry[_Dict]('api/v6/copyTrading/trader/profit-sharing-history-summary', ['contract', 'private'], 'GET', {'cost': 2})
+    contract_private_get_api_v6_copytrading_trader_unrealized_profit_sharing_summary = contractPrivateGetApiV6CopyTradingTraderUnrealizedProfitSharingSummary = Entry[_Dict]('api/v6/copyTrading/trader/unrealized-profit-sharing-summary', ['contract', 'private'], 'GET', {'cost': 2})
+    contract_private_get_api_v6_copytrading_trader_followers = contractPrivateGetApiV6CopyTradingTraderFollowers = Entry[_Dict]('api/v6/copyTrading/trader/followers', ['contract', 'private'], 'GET', {'cost': 2})
     contract_private_post_api_v1_contract_balance_valuation = contractPrivatePostApiV1ContractBalanceValuation = Entry[_Dict]('api/v1/contract_balance_valuation', ['contract', 'private'], 'POST', {'cost': 1})
     contract_private_post_api_v1_contract_account_info = contractPrivatePostApiV1ContractAccountInfo = Entry[_Dict]('api/v1/contract_account_info', ['contract', 'private'], 'POST', {'cost': 1})
     contract_private_post_api_v1_contract_position_info = contractPrivatePostApiV1ContractPositionInfo = Entry[_Dict]('api/v1/contract_position_info', ['contract', 'private'], 'POST', {'cost': 1})
@@ -469,3 +475,8 @@ class ImplicitAPI:
     contract_private_post_v5_account_fee_deduction_currency = contractPrivatePostV5AccountFeeDeductionCurrency = Entry[_Dict]('v5/account/fee_deduction_currency', ['contract', 'private'], 'POST', {'cost': 0.20834})
     contract_private_post_v5_algo_order = contractPrivatePostV5AlgoOrder = Entry[_Dict]('v5/algo/order', ['contract', 'private'], 'POST', {'cost': 0.41679})
     contract_private_post_v5_algo_cancel_orders = contractPrivatePostV5AlgoCancelOrders = Entry[_Dict]('v5/algo/cancel_orders', ['contract', 'private'], 'POST', {'cost': 0.41679})
+    contract_private_post_api_v6_copytrading_trader_follower = contractPrivatePostApiV6CopyTradingTraderFollower = Entry[_Dict]('api/v6/copyTrading/trader/follower', ['contract', 'private'], 'POST', {'cost': 2})
+    contract_private_post_api_v6_copytrading_trader_transfer = contractPrivatePostApiV6CopyTradingTraderTransfer = Entry[_Dict]('api/v6/copyTrading/trader/transfer', ['contract', 'private'], 'POST', {'cost': 2})
+    contract_private_post_api_v6_copytrading_trader_follower_settings = contractPrivatePostApiV6CopyTradingTraderFollowerSettings = Entry[_Dict]('api/v6/copyTrading/trader/follower-settings', ['contract', 'private'], 'POST', {'cost': 2})
+    contract_private_post_api_v6_copytrading_trader_config = contractPrivatePostApiV6CopyTradingTraderConfig = Entry[_Dict]('api/v6/copyTrading/trader/config', ['contract', 'private'], 'POST', {'cost': 2})
+    contract_private_post_api_v6_copytrading_trader_apikey = contractPrivatePostApiV6CopyTradingTraderApikey = Entry[_Dict]('api/v6/copyTrading/trader/apikey', ['contract', 'private'], 'POST', {'cost': 2})

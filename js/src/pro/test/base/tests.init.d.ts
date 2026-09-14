@@ -1,2 +1,2 @@
-declare function testBaseWs(): void;
+declare function testBaseWs(): Promise<void>;
 export default testBaseWs;

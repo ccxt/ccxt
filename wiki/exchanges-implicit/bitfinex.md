@@ -55,7 +55,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 📚 **Official bitfinex API documentation:** [docs.bitfinex.com](https://docs.bitfinex.com/v2/docs/) · [github.com](https://github.com/bitfinexcom/bitfinex-api-node)
 
-> 136 implicit endpoints across 2 access groups.
+> 144 implicit endpoints across 2 access groups.
 
 ## public
 
@@ -145,6 +145,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privatePostAuthWOrderCancelMulti` | POST | `auth/w/order/cancel/multi` | 2.7 |
 | `privatePostAuthROrdersSymbolHist` | POST | `auth/r/orders/{symbol}/hist` | 2.7 |
 | `privatePostAuthROrdersHist` | POST | `auth/r/orders/hist` | 2.7 |
+| `privatePostAuthROrdersOtcSymbolHist` | POST | `auth/r/orders/otc/{symbol}/hist` | 2.7 |
 | `privatePostAuthROrderSymbolIdTrades` | POST | `auth/r/order/{symbol}:{id}/trades` | 2.7 |
 | `privatePostAuthRTradesSymbolHist` | POST | `auth/r/trades/{symbol}/hist` | 2.7 |
 | `privatePostAuthRTradesHist` | POST | `auth/r/trades/hist` | 2.7 |
@@ -160,6 +161,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privatePostAuthRPositionsHist` | POST | `auth/r/positions/hist` | 2.7 |
 | `privatePostAuthRPositionsAudit` | POST | `auth/r/positions/audit` | 2.7 |
 | `privatePostAuthRPositionsSnap` | POST | `auth/r/positions/snap` | 2.7 |
+| `privatePostAuthWPositionUpdateFundingType` | POST | `auth/w/position/update/funding/type` | 2.7 |
 | `privatePostAuthWDerivCollateralSet` | POST | `auth/w/deriv/collateral/set` | 2.7 |
 | `privatePostAuthWDerivCollateralLimits` | POST | `auth/w/deriv/collateral/limits` | 2.7 |
 | `privatePostAuthRFundingOffers` | POST | `auth/r/funding/offers` | 2.7 |
@@ -191,10 +193,13 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privatePostAuthRAuditHist` | POST | `auth/r/audit/hist` | 2.7 |
 | `privatePostAuthWTransfer` | POST | `auth/w/transfer` | 2.7 |
 | `privatePostAuthWDepositAddress` | POST | `auth/w/deposit/address` | 24 |
+| `privatePostAuthRDepositAddressAll` | POST | `auth/r/deposit/address/all` | 24 |
 | `privatePostAuthWDepositInvoice` | POST | `auth/w/deposit/invoice` | 24 |
+| `privatePostAuthRExtInvoicePayments` | POST | `auth/r/ext/invoice/payments` | 2.7 |
 | `privatePostAuthWWithdraw` | POST | `auth/w/withdraw` | 24 |
 | `privatePostAuthRMovementsCurrencyHist` | POST | `auth/r/movements/{currency}/hist` | 2.7 |
 | `privatePostAuthRMovementsHist` | POST | `auth/r/movements/hist` | 2.7 |
+| `privatePostAuthRMovementsInfo` | POST | `auth/r/movements/info` | 2.7 |
 | `privatePostAuthRAlerts` | POST | `auth/r/alerts` | 5.34 |
 | `privatePostAuthWAlertSet` | POST | `auth/w/alert/set` | 2.7 |
 | `privatePostAuthWAlertPriceSymbolPriceDel` | POST | `auth/w/alert/price:{symbol}:{price}/del` | 2.7 |
@@ -206,4 +211,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privatePostAuthRPulseHist` | POST | `auth/r/pulse/hist` | 2.7 |
 | `privatePostAuthWPulseAdd` | POST | `auth/w/pulse/add` | 16 |
 | `privatePostAuthWPulseDel` | POST | `auth/w/pulse/del` | 2.7 |
+| `privatePostAuthWExtWalletsDepositsRequest` | POST | `auth/w/ext/wallets/deposits/request` | 2.7 |
+| `privatePostAuthWExtWalletsWithdrawalsRequest` | POST | `auth/w/ext/wallets/withdrawals/request` | 2.7 |
+| `privatePostAuthRExtWalletsTransfersFreeCount` | POST | `auth/r/ext/wallets/transfers/free/count` | 2.7 |
 

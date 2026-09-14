@@ -5,12 +5,11 @@
 
 from ccxt.async_support.binance import binance
 from ccxt.abstract.binanceus import ImplicitAPI
-from ccxt.base.types import Any
 
 
 class binanceus(binance, ImplicitAPI):
 
-    def describe(self) -> Any:
+    def describe(self) -> object:
         return self.deep_extend(super(binanceus, self).describe(), {
             'id': 'binanceus',
             'name': 'Binance US',
@@ -135,16 +134,19 @@ class binanceus(binance, ImplicitAPI):
                         'ticker/bookTicker': {'cost': 1, 'noSymbol': 2},
                         'ticker/24hr': {'cost': 1, 'noSymbol': 40},
                         'ticker': {'cost': 2, 'noSymbol': 100},
+                        'ticker/tradingDay': {'cost': 4},
                     },
                 },
                 'private': {
                     'get': {
                         'account': {'cost': 10},
+                        'account/commission': {'cost': 20},
                         'rateLimit/order': {'cost': 20},
                         'order': {'cost': 2},
                         'openOrders': {'cost': 3, 'noSymbol': 40},
                         'myTrades': {'cost': 10},
                         'myPreventedMatches': {'cost': 10},  # with ID it has weight 1, but we don't have that complex handling yet
+                        'myFilters': {'cost': 40},
                         'allOrders': {'cost': 10},
                         'orderList': {'cost': 2},
                         'allOrderList': {'cost': 10},

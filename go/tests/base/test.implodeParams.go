@@ -11,13 +11,13 @@ func TestImplodeParams() {
 	exchange.InitParent(map[string]any{
 		"id": "sampleexchange",
 	}, map[string]any{}, exchange)
-	var path any = "v2/watchlists/{timeframe_id}/{symbol_id}"
+	var path string = "v2/watchlists/{timeframe_id}/{symbol_id}"
 	var params map[string]any = map[string]any{
 		"timeframe_id": "1m",
 		"symbol_id":    "BTC/USDT",
 		"extra_param":  "should_be_ignored",
 	}
-	var expected any = "v2/watchlists/1m/BTC/USDT"
+	var expected string = "v2/watchlists/1m/BTC/USDT"
 	var result any = exchange.ImplodeParams(path, params)
 	assert(ccxt.IsEqual(result, expected), ccxt.Add(ccxt.Add(ccxt.Add("implodeParams did not produce the expected result: ", result), " != "), expected))
 }

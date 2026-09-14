@@ -149,7 +149,7 @@ class ndax extends ndax$1["default"] {
         return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
     }
     handleTrades(client, message) {
-        const payload = this.safeValue(message, 'o', []);
+        const payload = this.safeList(message, 'o', []);
         //
         // initial snapshot
         //
@@ -247,7 +247,7 @@ class ndax extends ndax$1["default"] {
         //         "o": [[1608284160000,23113.52,23070.88,23075.76,23075.39,162.44964300,23075.38,23075.39,8,1608284100000]],
         //     }
         //
-        const payload = this.safeValue(message, 'o', []);
+        const payload = this.safeList(message, 'o', []);
         //
         //     [
         //         [
@@ -293,7 +293,7 @@ class ndax extends ndax$1["default"] {
                 ];
                 const stored = this.safeValue(this.ohlcvs[symbol], timeframe, []);
                 const length = stored.length;
-                if (length && (parsed[0] === stored[length - 1][0])) {
+                if ((length > 0) && (parsed[0] === stored[length - 1][0])) {
                     const previous = stored[length - 1];
                     let high = parsed[1];
                     if (parsed[1] === undefined) {
@@ -322,7 +322,7 @@ class ndax extends ndax$1["default"] {
                     }
                 }
                 else {
-                    if (length && (this.parseToInt(parsed[0]) < this.parseToInt(stored[length - 1][0]))) {
+                    if ((length > 0) && (this.parseToInt(parsed[0]) < this.parseToInt(stored[length - 1][0]))) {
                         continue;
                     }
                     else {
@@ -411,7 +411,7 @@ class ndax extends ndax$1["default"] {
         //         "o": [[2,1,1608208308265,0,20782.49,1,25000,8,1,1]]
         //     }
         //
-        const payload = this.safeValue(message, 'o', []);
+        const payload = this.safeList(message, 'o', []);
         //
         //     [
         //         0,   // 0 MDUpdateId

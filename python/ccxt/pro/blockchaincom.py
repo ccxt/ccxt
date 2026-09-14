@@ -5,9 +5,8 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
-from ccxt.base.types import Any, Balances, Int, Market, Order, OrderBook, Str, Ticker, Trade
+from ccxt.base.types import Balances, Int, Market, Order, OrderBook, Str, Ticker, Trade
 from ccxt.async_support.base.ws.client import Client
-from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import NotSupported
@@ -15,7 +14,7 @@ from ccxt.base.errors import NotSupported
 
 class blockchaincom(ccxt.async_support.blockchaincom):
 
-    def describe(self) -> Any:
+    def describe(self) -> object:
         return self.deep_extend(super(blockchaincom, self).describe(), {
             'has': {
                 'ws': True,
@@ -77,7 +76,7 @@ class blockchaincom(ccxt.async_support.blockchaincom):
         request = self.deep_extend(subscribe, params)
         return await self.watch(url, messageHash, request, messageHash, request)
 
-    def handle_balance(self, client: Client, message: Any):
+    def handle_balance(self, client: Client, message: object):
         #
         #  subscribed
         #     {
@@ -85,7 +84,7 @@ class blockchaincom(ccxt.async_support.blockchaincom):
         #         "event": "subscribed",
         #         "channel": "balances",
         #         "local_currency": "USD",
-        #         "batching": False
+        #         "batching": false
         #     }
         #  snapshot
         #     {
@@ -111,7 +110,7 @@ class blockchaincom(ccxt.async_support.blockchaincom):
         if event == 'subscribed':
             return
         result = {'info': message}
-        balances = self.safe_value(message, 'balances', [])
+        balances = self.safe_list(message, 'balances', [])
         for i in range(0, len(balances)):
             entry = balances[i]
             currencyId = self.safe_string(entry, 'currency')
@@ -125,7 +124,7 @@ class blockchaincom(ccxt.async_support.blockchaincom):
         self.balance = self.safe_balance(result)
         client.resolve(self.balance, messageHash)
 
-    async def watch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def watch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> list[list]:
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market.
 
@@ -136,7 +135,7 @@ class blockchaincom(ccxt.async_support.blockchaincom):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()
@@ -157,7 +156,7 @@ class blockchaincom(ccxt.async_support.blockchaincom):
             limit = ohlcv.getLimit(symbol, limit)
         return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
 
-    def handle_ohlcv(self, client: Client, message: Any):
+    def handle_ohlcv(self, client: Client, message: object):
         #
         #  subscribed
         #     {
@@ -174,7 +173,7 @@ class blockchaincom(ccxt.async_support.blockchaincom):
         #         "event": "updated",
         #         "channel": "prices",
         #         "symbol": "BTC-USD",
-        #         "price": [1660085580000, 23185.215, 23185.935, 23164.79, 23169.97, 0]
+        #         "price": [ 1660085580000, 23185.215, 23185.935, 23164.79, 23169.97, 0 ]
         #     }
         #
         event = self.safe_string(message, 'event')
@@ -224,7 +223,7 @@ class blockchaincom(ccxt.async_support.blockchaincom):
         request = self.deep_extend(request, params)
         return await self.watch(url, messageHash, request, messageHash)
 
-    def handle_ticker(self, client: Client, message: Any):
+    def handle_ticker(self, client: Client, message: object):
         #
         #  subscribed
         #     {
@@ -269,7 +268,7 @@ class blockchaincom(ccxt.async_support.blockchaincom):
         self.tickers[symbol] = ticker
         client.resolve(ticker, messageHash)
 
-    def parse_ws_updated_ticker(self, ticker: Any, lastTicker=None, market: Market = None):
+    def parse_ws_updated_ticker(self, ticker: object, lastTicker=None, market: Market = None):
         #
         #     {
         #         "seqnum": 2,
@@ -305,7 +304,7 @@ class blockchaincom(ccxt.async_support.blockchaincom):
             'info': self.extend(self.safe_value(lastTicker, 'info', {}), ticker),
         }, market)
 
-    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
         """
         get the list of most recent trades for a particular symbol
 
@@ -332,7 +331,7 @@ class blockchaincom(ccxt.async_support.blockchaincom):
         trades = await self.watch(url, messageHash, request, messageHash, request)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    def handle_trades(self, client: Client, message: Any):
+    def handle_trades(self, client: Client, message: object):
         #
         #  subscribed
         #     {
@@ -371,7 +370,7 @@ class blockchaincom(ccxt.async_support.blockchaincom):
         self.trades[symbol] = stored
         client.resolve(self.trades[symbol], messageHash)
 
-    def parse_ws_trade(self, trade: Any, market: Market = None):
+    def parse_ws_trade(self, trade: object, market: Market = None):
         #
         #     {
         #         "seqnum": 1,
@@ -403,7 +402,7 @@ class blockchaincom(ccxt.async_support.blockchaincom):
             'info': trade,
         }, market)
 
-    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         watches information on multiple orders made by the user
 
@@ -433,7 +432,7 @@ class blockchaincom(ccxt.async_support.blockchaincom):
             limit = orders.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
 
-    def handle_orders(self, client: Client, message: Any):
+    def handle_orders(self, client: Client, message: object):
         #
         #     {
         #         "seqnum": 1,
@@ -470,8 +469,8 @@ class blockchaincom(ccxt.async_support.blockchaincom):
         #             "tradeId": "0",
         #             "fee": 0,
         #             "price": 30000,
-        #             "marginOrder": False,
-        #             "closePositionOrder": False
+        #             "marginOrder": false,
+        #             "closePositionOrder": false
         #           }
         #         ],
         #         "positions": []
@@ -503,8 +502,8 @@ class blockchaincom(ccxt.async_support.blockchaincom):
         #         "tradeId": "0",
         #         "fee": 0,
         #         "price": 30000,
-        #         "marginOrder": False,
-        #         "closePositionOrder": False
+        #         "marginOrder": false,
+        #         "closePositionOrder": false
         #     }
         #
         event = self.safe_string(message, 'event')
@@ -519,7 +518,7 @@ class blockchaincom(ccxt.async_support.blockchaincom):
         elif event == 'rejected':
             raise ExchangeError(self.id + ' ' + self.json(message))
         elif event == 'snapshot':
-            orders = self.safe_value(message, 'orders', [])
+            orders = self.safe_list(message, 'orders', [])
             for i in range(0, len(orders)):
                 order = orders[i]
                 parsedOrder = self.parse_ws_order(order)
@@ -530,7 +529,7 @@ class blockchaincom(ccxt.async_support.blockchaincom):
         self.orders = cachedOrders
         client.resolve(self.orders, messageHash)
 
-    def parse_ws_order(self, order: Any, market: Market = None):
+    def parse_ws_order(self, order: object, market: Market = None):
         #
         #     {
         #         "seqnum": 3,
@@ -558,8 +557,8 @@ class blockchaincom(ccxt.async_support.blockchaincom):
         #         "tradeId": "0",
         #         "fee": 0,
         #         "price": 30000,
-        #         "marginOrder": False,
-        #         "closePositionOrder": False
+        #         "marginOrder": false,
+        #         "closePositionOrder": false
         #     }
         #
         datetime = self.safe_string(order, 'transactTime')
@@ -598,7 +597,7 @@ class blockchaincom(ccxt.async_support.blockchaincom):
             'average': self.safe_string(order, 'avgPx'),
         }, market)
 
-    def parse_ws_order_status(self, status: Any):
+    def parse_ws_order_status(self, status: object):
         statuses = {
             'pending': 'open',
             'open': 'open',
@@ -638,7 +637,7 @@ class blockchaincom(ccxt.async_support.blockchaincom):
         orderbook = await self.watch(url, messageHash, request, messageHash)
         return orderbook.limit()
 
-    def handle_order_book(self, client: Client, message: Any):
+    def handle_order_book(self, client: Client, message: object):
         #
         #  subscribe
         #     {
@@ -646,7 +645,7 @@ class blockchaincom(ccxt.async_support.blockchaincom):
         #         "event": "subscribed",
         #         "channel": "l2",
         #         "symbol": "BTC-USDT",
-        #         "batching": False
+        #         "batching": false
         #     }
         #  snapshot
         #     {
@@ -655,10 +654,10 @@ class blockchaincom(ccxt.async_support.blockchaincom):
         #         "channel": "l2",
         #         "symbol": "BTC-USDT",
         #         "bids": [
-        #           {num: 1, px: 0.01, qty: 22},
+        #           { num: 1, px: 0.01, qty: 22 },
         #         ],
         #         "asks": [
-        #           {num: 1, px: 23840.26, qty: 0.25},
+        #           { num: 1, px: 23840.26, qty: 0.25 },
         #         ],
         #         "timestamp": "2022-08-08T22:03:19.071870Z"
         #     }
@@ -669,7 +668,7 @@ class blockchaincom(ccxt.async_support.blockchaincom):
         #         "channel": "l2",
         #         "symbol": "BTC-USDT",
         #         "bids": [],
-        #         "asks": [{num: 1, px: 23855.06, qty: 1.04786347}],
+        #         "asks": [ { num: 1, px: 23855.06, qty: 1.04786347 } ],
         #         "timestamp": "2022-08-08T22:03:19.014680Z"
         #     }
         #
@@ -699,15 +698,15 @@ class blockchaincom(ccxt.async_support.blockchaincom):
             raise NotSupported(self.id + ' watchOrderBook() does not support ' + event + ' yet')
         client.resolve(orderbook, messageHash)
 
-    def handle_delta(self, bookside: Any, delta: Any):
+    def handle_delta(self, bookside: object, delta: object):
         bookArray = self.parse_order_book_bid_ask(delta, 'px', 'qty', 'num')
         bookside.storeArray(bookArray)
 
-    def handle_deltas(self, bookside: Any, deltas: Any):
+    def handle_deltas(self, bookside: object, deltas: object):
         for i in range(0, len(deltas)):
             self.handle_delta(bookside, deltas[i])
 
-    def handle_message(self, client: Client, message: Any):
+    def handle_message(self, client: Client, message: object):
         channel = self.safe_string(message, 'channel')
         handlers = {
             'ticker': self.handle_ticker,
@@ -725,13 +724,13 @@ class blockchaincom(ccxt.async_support.blockchaincom):
             return
         raise NotSupported(self.id + ' received an unsupported message: ' + self.json(message))
 
-    def handle_authentication_message(self, client: Client, message: Any):
+    def handle_authentication_message(self, client: Client, message: object):
         #
         #     {
         #         "seqnum": 0,
         #         "event": "subscribed",
         #         "channel": "auth",
-        #         "readOnly": False
+        #         "readOnly": false
         #     }
         #
         event = self.safe_string(message, 'event')

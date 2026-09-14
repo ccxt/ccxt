@@ -45,7 +45,7 @@ interface Exchange {
     privateGetApiV1SubAccount (params?: {}): Promise<List>;
     privateGetApiV1AccountSubAccount (params?: {}): Promise<List>;
     privateGetApiV1SubAccountList (params?: {}): Promise<List>;
-    privateGetApiV1FuturesAccountLeverage (params?: {}): Promise<Dict>;
+    privateGetApiV1FuturesAccountLeverage (params?: {}): Promise<List>;
     privateGetApiV1FuturesOrder (params?: {}): Promise<Dict>;
     privateGetApiV1FuturesPositions (params?: {}): Promise<List>;
     privateGetApiV1FuturesHistoryPositions (params?: {}): Promise<List>;
@@ -68,6 +68,15 @@ interface Exchange {
     privateGetApiV1AgentUserExport (params?: {}): Promise<Dict>;
     privateGetApiV1AgentExportList (params?: {}): Promise<Dict>;
     privateGetApiV1AgentExportUrl (params?: {}): Promise<Dict>;
+    privateGetApiV2AccountBalanceFlow (params?: {}): Promise<List>;
+    privateGetApiV2FuturesOrder (params?: {}): Promise<Dict>;
+    privateGetApiV2FuturesOpenOrders (params?: {}): Promise<List>;
+    privateGetApiV2FuturesHistoryOrders (params?: {}): Promise<List>;
+    privateGetApiV2FuturesUserTrades (params?: {}): Promise<List>;
+    privateGetApiV2FuturesAlgoOrder (params?: {}): Promise<Dict>;
+    privateGetApiV2FuturesOpenAlgoOrders (params?: {}): Promise<List>;
+    privateGetApiV2FuturesHistoryAlgoOrders (params?: {}): Promise<List>;
+    privateGetApiV2FuturesVoucherList (params?: {}): Promise<Dict>;
     privatePostApiV1SpotOrderTest (params?: {}): Promise<Dict>;
     privatePostApiV1SpotOrder (params?: {}): Promise<Dict>;
     privatePostApiV1FuturesOrder (params?: {}): Promise<Dict>;

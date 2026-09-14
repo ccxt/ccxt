@@ -1,7 +1,8 @@
 //  ---------------------------------------------------------------------------
 
 import Precise from '../base/Precise.js';
-import type { Balances, Dict, FeeString, Int, Liquidation, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade, Market } from '../base/types.js';
+import { ExchangeError } from '../base/errors.js';
+import type { Balances, Dict, FeeString, Int, Liquidation, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade, Market, OrderType, OrderSide, Num } from '../base/types.js';
 import { ArrayCache } from '../base/ws/Cache.js';
 import Client from '../base/ws/Client.js';
 import lighterRest from '../lighter.js';
@@ -42,6 +43,9 @@ export default class lighter extends lighterRest {
                 'unWatchMarkPrice': true,
                 'unWatchMarkPrices': true,
                 'unWatchOrders': true,
+                'createOrderWs': true,
+                'cancelOrderWs': true,
+                'cancelAllOrdersWs': true,
             },
             'urls': {
                 'api': {
@@ -51,7 +55,9 @@ export default class lighter extends lighterRest {
                     'ws': 'wss://testnet.zklighter.elliot.ai/stream',
                 },
             },
-            'options': {},
+            'options': {
+                'requestId': this.createSafeDictionary (),
+            },
         });
     }
 
@@ -489,7 +495,7 @@ export default class lighter extends lighterRest {
         const priceString = this.safeString (trade, 'price');
         const amountString = this.safeString (trade, 'size');
         const isMakerAsk = this.safeBool (trade, 'is_maker_ask');
-        const side = isMakerAsk ? 'buy' : 'sell';
+        const side = (isMakerAsk === true) ? 'buy' : 'sell';
         return this.safeTrade ({
             'info': trade,
             'id': tradeId,
@@ -662,16 +668,16 @@ export default class lighter extends lighterRest {
                 // Own trades should use the account's order side
                 side = 'buy';
                 order = this.safeString (trade, 'bid_id');
-                takerOrMaker = isMakerAsk ? 'taker' : 'maker';
+                takerOrMaker = (isMakerAsk === true) ? 'taker' : 'maker';
             } else if (askAccountId === accountIndex) {
                 side = 'sell';
                 order = this.safeString (trade, 'ask_id');
-                takerOrMaker = isMakerAsk ? 'maker' : 'taker';
+                takerOrMaker = (isMakerAsk === true) ? 'maker' : 'taker';
             }
         }
         // public trades use Lighter's taker-side convention
         if (side === undefined) {
-            side = isMakerAsk ? 'buy' : 'sell';
+            side = (isMakerAsk === true) ? 'buy' : 'sell';
         }
         let fee: FeeString = undefined;
         if (takerOrMaker !== undefined) {
@@ -701,7 +707,7 @@ export default class lighter extends lighterRest {
         }, market);
     }
 
-    handleMyTrades (client: Client, message: any) {
+    handleMyTrades (client: Client, message: any): boolean {
         //
         //     {
         //         "channel": "account_all_trades:723310",
@@ -862,7 +868,7 @@ export default class lighter extends lighterRest {
         //
         const timestamp = this.safeInteger (liquidation, 'timestamp');
         const isMakerAsk = this.safeBool (liquidation, 'is_maker_ask');
-        const side = isMakerAsk ? 'buy' : 'sell';
+        const side = (isMakerAsk === true) ? 'buy' : 'sell';
         const contracts = this.safeString (liquidation, 'size');
         const contractSize = this.safeString (market, 'contractSize');
         const price = this.safeString (liquidation, 'price');
@@ -996,7 +1002,7 @@ export default class lighter extends lighterRest {
         }
     }
 
-    handleBalance (client: Client, message: any) {
+    handleBalance (client: Client, message: any): boolean {
         //
         //    spot balance
         //    {
@@ -1150,7 +1156,130 @@ export default class lighter extends lighterRest {
         return await this.unsubscribe (messageHash, this.extend (request, params));
     }
 
-    handleOrders (client: Client, message: any) {
+    requestId (url: string): string {
+        const options = this.safeDict (this.options, 'requestId', this.createSafeDictionary ());
+        const previousValue = this.safeInteger (options, url, 0);
+        const newValue = this.sum (previousValue, 1);
+        this.options['requestId'][url] = newValue;
+        return this.numberToString (newValue) as string;
+    }
+
+    /**
+     * @method
+     * @name lighter#createOrderWs
+     * @description create a trade order
+     * @see https://apidocs.lighter.xyz/docs/websocket-reference#send-tx
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of currency you want to trade in units of base currency
+     * @param {float|undefined} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.timeInForce] 'GTT' or 'IOC', default is 'GTT'
+     * @param {int} [params.clientOrderId] client order id, should be unique for each order, default is a random number
+     * @param {string} [params.triggerPrice] trigger price for stop loss or take profit orders, in units of the quote currency
+     * @param {boolean} [params.reduceOnly] whether the order is reduce only, default false
+     * @param {int} [params.nonce] nonce for the account
+     * @param {int} [params.apiKeyIndex] apiKeyIndex
+     * @param {int} [params.accountIndex] accountIndex
+     * @param {int} [params.orderExpiry] orderExpiry
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    override async createOrderWs (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params: Dict = {}): Promise<Order> {
+        const url = this.urls['api']['ws'];
+        const requestId = this.requestId (url);
+        const messageHash = 'jsonapi/sendtx:' + requestId;
+        const [ txType, txInfo, order, market ] = await this.signAndCreateOrder ('createOrderWs', symbol, type, side, amount, price, params);
+        const parsedTx = this.parseJson (txInfo);
+        const message: Dict = {
+            'type': 'jsonapi/sendtx',
+            'data': {
+                'id': requestId,
+                'tx_type': txType,
+                'tx_info': parsedTx,
+            },
+        };
+        const subscription: Dict = {
+            'id': requestId,
+        };
+        const rawMessage = await this.watch (url, messageHash, message, messageHash, subscription);
+        return this.parseOrder (this.deepExtend (rawMessage, order), market);
+    }
+
+    /**
+     * @method
+     * @name lighter#cancelOrderWs
+     * @description cancel multiple orders
+     * @see https://apidocs.lighter.xyz/docs/websocket-reference#send-tx
+     * @param {string} id order id
+     * @param {string} [symbol] unified market symbol, default is undefined
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.accountIndex] account index
+     * @param {string} [params.apiKeyIndex] api key index
+     * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    override async cancelOrderWs (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
+        const url = this.urls['api']['ws'];
+        const requestId = this.requestId (url);
+        const messageHash = 'jsonapi/sendtx:' + requestId;
+        const [ txType, txInfo, market ] = await this.signAndCancelOrder ('cancelOrderWs', id, symbol, params);
+        const parsedTx = this.parseJson (txInfo);
+        const message: Dict = {
+            'type': 'jsonapi/sendtx',
+            'data': {
+                'id': requestId,
+                'tx_type': txType,
+                'tx_info': parsedTx,
+            },
+        };
+        const subscription: Dict = {
+            'id': requestId,
+        };
+        const rawMessage = await this.watch (url, messageHash, message, messageHash, subscription);
+        return this.parseOrder (rawMessage, market);
+    }
+
+    /**
+     * @method
+     * @name lighter#cancelAllOrdersWs
+     * @description cancel all open orders in a market
+     * @see https://apidocs.lighter.xyz/docs/websocket-reference#send-tx
+     * @param {string} [symbol] unified market symbol of the market to cancel orders in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.accountIndex] account index
+     * @param {string} [params.apiKeyIndex] api key index
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    override async cancelAllOrdersWs (symbol: Str = undefined, params = {}): Promise<Order[]> {
+        const url = this.urls['api']['ws'];
+        const requestId = this.requestId (url);
+        const messageHash = 'jsonapi/sendtx:' + requestId;
+        const [ txType, txInfo ] = await this.signAndCancelAllOrders ('cancelAllOrdersWs', symbol, params);
+        const parsedTx = this.parseJson (txInfo);
+        const message: Dict = {
+            'type': 'jsonapi/sendtx',
+            'data': {
+                'id': requestId,
+                'tx_type': txType,
+                'tx_info': parsedTx,
+            },
+        };
+        const subscription: Dict = {
+            'id': requestId,
+        };
+        const rawMessage = await this.watch (url, messageHash, message, messageHash, subscription);
+        return this.parseOrders ([ rawMessage ]);
+    }
+
+    handleWsSendtxApi (client: Client, message: any) {
+        //
+        //     {"code":200,"id":"1786459718284","predicted_execution_time_ms":1786459719662,"tx_hash":"9959d3feb30d0a89fcfd4532f071ac99a98ee1202aa2a7f2c1299932b1e540b6ecdabd2b92616a14","type":"jsonapi/sendtx"}
+        //
+        const id = this.safeString (message, 'id');
+        client.resolve (message, 'jsonapi/sendtx:' + id);
+    }
+
+    handleOrders (client: Client, message: any): boolean {
         //
         //    {
         //        "account": {ACCOUNT_INDEX},
@@ -1200,7 +1329,7 @@ export default class lighter extends lighterRest {
         return true;
     }
 
-    handleErrorMessage (client: Client, message: any) {
+    handleErrorMessage (client: Client, message: any): boolean {
         //
         //     {
         //         "error": {
@@ -1213,13 +1342,36 @@ export default class lighter extends lighterRest {
         try {
             if (error !== undefined) {
                 const code = this.safeString (error, 'code');
-                if (code !== undefined) {
-                    const feedback = this.id + ' ' + this.json (message);
-                    this.throwExactlyMatchedException (this.exceptions['exact'], code, feedback);
-                }
+                const errorMessage = this.safeString (error, 'message');
+                const feedback = this.id + ' ' + this.json (message);
+                this.throwExactlyMatchedException (this.exceptions['exact'], code, feedback);
+                this.throwBroadlyMatchedException (this.exceptions['broad'], errorMessage, feedback);
+                // the rest handler ends with the same unconditional throw. without it an
+                // unmapped code raises nothing and is dropped by the routing below,
+                // leaving the request that caused it awaiting a response that never comes
+                throw new ExchangeError (feedback);
             }
         } catch (e) {
-            client.reject (e);
+            const id = this.safeString (message, 'id');
+            let handled = false;
+            if (id !== undefined) {
+                const subscriptionKeys = Object.keys (client.subscriptions);
+                for (let i = 0; i < subscriptionKeys.length; i++) {
+                    const subscriptionHash = subscriptionKeys[i];
+                    const subscriptionId = this.safeString (client.subscriptions[subscriptionHash], 'id');
+                    const subscription = this.safeString (client.subscriptions[subscriptionHash], 'subscription');
+                    if (id === subscriptionId) {
+                        client.reject (e, subscriptionHash);
+                        handled = true;
+                        if (subscription !== undefined) {
+                            delete client.subscriptions[subscription];
+                        }
+                    }
+                }
+            }
+            if (!handled) {
+                client.reject (e);
+            }
         }
         return true;
     }
@@ -1231,6 +1383,10 @@ export default class lighter extends lighterRest {
         const type = this.safeString (message, 'type', '');
         if (type === 'ping') {
             this.handlePing (client, message);
+            return;
+        }
+        if (type === 'jsonapi/sendtx') {
+            this.handleWsSendtxApi (client, message);
             return;
         }
         const channel = this.safeString (message, 'channel', '');

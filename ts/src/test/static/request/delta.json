@@ -77,7 +77,7 @@
                         "subaccount_user_id": "30084879"
                     }
                 ],
-                "output": "{\"margin_mode\":\"isolated\",\"subaccount_user_id\":\"30084879\"}"
+                "output": { "margin_mode": "isolated", "subaccount_user_id": "30084879" }
             }
         ],
         "fetchTime": [

@@ -611,4 +611,359 @@ function test_ws_cache() {
     assert($cache_symbol_side_4[2]['contracts'] === 4 && $cache_symbol_side_4[2]['symbol'] === $symbol2);
     $array_length = count($cache_symbol_side_4);
     assert($array_length === 3);
+    // ----------------------------------------------------------------------------
+    // test clear () really resets ArrayCacheBySymbolById - the hashmap used to keep
+    // claiming the cleared ids, so re-appending them merged into orphaned references
+    // and findIndex returned -1, making splice (-1, 1) drop an unrelated row
+    $cache_clear_by_id = new ArrayCacheBySymbolById();
+    $cache_clear_by_id->append(array(
+        'symbol' => 'BTC/USDT',
+        'id' => 'a',
+        'i' => 1,
+    ));
+    $cache_clear_by_id->append(array(
+        'symbol' => 'BTC/USDT',
+        'id' => 'b',
+        'i' => 2,
+    ));
+    $cache_clear_by_id->clear();
+    assert(count($cache_clear_by_id) === 0);
+    assert($cache_clear_by_id->get_limit(null, 10) === 0); // no phantom updates
+    $cache_clear_by_id->append(array(
+        'symbol' => 'BTC/USDT',
+        'id' => 'a',
+        'i' => 3,
+    ));
+    $cache_clear_by_id->append(array(
+        'symbol' => 'BTC/USDT',
+        'id' => 'b',
+        'i' => 4,
+    ));
+    assert(equals($cache_clear_by_id, [array(
+    'symbol' => 'BTC/USDT',
+    'id' => 'a',
+    'i' => 3,
+), array(
+    'symbol' => 'BTC/USDT',
+    'id' => 'b',
+    'i' => 4,
+)]));
+    // ----------------------------------------------------------------------------
+    // test clear () really resets ArrayCacheByTimestamp - a re-appended timestamp
+    // used to merge into a reference that was no longer in the array, so the candle
+    // was silently dropped and the cache stayed empty
+    $cache_clear_timestamp = new ArrayCacheByTimestamp();
+    $cache_clear_timestamp->append([100, 1, 2, 3]);
+    $cache_clear_timestamp->append([200, 4, 5, 6]);
+    $cache_clear_timestamp->clear();
+    assert(count($cache_clear_timestamp) === 0);
+    assert($cache_clear_timestamp->get_limit(null, 10) === 0); // no phantom updates
+    $cache_clear_timestamp->append([100, 7, 8, 9]);
+    assert(equals($cache_clear_timestamp, [[100, 7, 8, 9]]));
+    // ----------------------------------------------------------------------------
+    // test clear () really resets ArrayCacheBySymbolBySide
+    $cache_clear_by_side = new ArrayCacheBySymbolBySide();
+    $cache_clear_by_side->append(array(
+        'symbol' => 'BTC/USDT',
+        'side' => 'long',
+        'contracts' => 1,
+    ));
+    $cache_clear_by_side->append(array(
+        'symbol' => 'ETH/USDT',
+        'side' => 'long',
+        'contracts' => 2,
+    ));
+    $cache_clear_by_side->clear();
+    $cleared_by_side_length = count($cache_clear_by_side);
+    assert($cleared_by_side_length === 0);
+    $cache_clear_by_side->append(array(
+        'symbol' => 'BTC/USDT',
+        'side' => 'long',
+        'contracts' => 3,
+    ));
+    $cache_clear_by_side->append(array(
+        'symbol' => 'ETH/USDT',
+        'side' => 'long',
+        'contracts' => 4,
+    ));
+    $reappended_by_side_length = count($cache_clear_by_side);
+    assert($reappended_by_side_length === 2);
+    assert($cache_clear_by_side[0]['contracts'] === 3);
+    assert($cache_clear_by_side[1]['contracts'] === 4);
+    // ----------------------------------------------------------------------------
+    // test a falsy maxSize means unbounded, it must not swallow rows
+    $cache_unbounded = new ArrayCache(0);
+    $cache_unbounded->append(array(
+        'symbol' => 'BTC/USDT',
+        'data' => 1,
+    ));
+    $cache_unbounded->append(array(
+        'symbol' => 'BTC/USDT',
+        'data' => 2,
+    ));
+    $cache_unbounded->append(array(
+        'symbol' => 'BTC/USDT',
+        'data' => 3,
+    ));
+    assert(count($cache_unbounded) === 3);
+    // ----------------------------------------------------------------------------
+    // test a keyed update MERGES fields instead of replacing the row - a partial
+    // order delta must not drop the fields it does not mention
+    $cache_partial = new ArrayCacheBySymbolById();
+    $cache_partial->append(array(
+        'symbol' => 'BTC/USDT',
+        'id' => 'a1',
+        'status' => 'open',
+        'amount' => 5,
+        'fee' => 7,
+    ));
+    $cache_partial->append(array(
+        'symbol' => 'BTC/USDT',
+        'id' => 'a1',
+        'status' => 'closed',
+    ));
+    assert(count($cache_partial) === 1);
+    assert($cache_partial[0]['status'] === 'closed');
+    assert($cache_partial[0]['amount'] === 5);
+    assert($cache_partial[0]['fee'] === 7);
+    // ----------------------------------------------------------------------------
+    // test the symbol and the id are matched as two separate fields - concatenating
+    // them makes ('BTC/USDT1', '2') collide with ('BTC/USDT', '12')
+    $cache_colliding = new ArrayCacheBySymbolById();
+    $cache_colliding->append(array(
+        'symbol' => 'BTC/USDT1',
+        'id' => '2',
+        'i' => 1,
+    ));
+    $cache_colliding->append(array(
+        'symbol' => 'BTC/USDT',
+        'id' => '12',
+        'i' => 2,
+    ));
+    assert(count($cache_colliding) === 2);
+    assert($cache_colliding[0]['i'] === 1);
+    assert($cache_colliding[1]['i'] === 2);
+    // ----------------------------------------------------------------------------
+    // test two symbols may share one order id - matching on the id alone splices
+    // out the wrong row, so assert the positional contents and not just the count
+    $cache_shared_id = new ArrayCacheBySymbolById();
+    $cache_shared_id->append(array(
+        'symbol' => 'BTC/USDT',
+        'id' => 'shared',
+        'i' => 1,
+    ));
+    $cache_shared_id->append(array(
+        'symbol' => 'ETH/USDT',
+        'id' => 'shared',
+        'i' => 2,
+    ));
+    $cache_shared_id->append(array(
+        'symbol' => 'BTC/USDT',
+        'id' => 'shared',
+        'i' => 3,
+    ));
+    assert(equals($cache_shared_id, [array(
+    'symbol' => 'ETH/USDT',
+    'id' => 'shared',
+    'i' => 2,
+), array(
+    'symbol' => 'BTC/USDT',
+    'id' => 'shared',
+    'i' => 3,
+)]));
+    // ----------------------------------------------------------------------------
+    // test ArrayCacheByTimestamp eviction. Re-appending an evicted timestamp must
+    // create a fresh row at the end, which proves the hashmap entry went away with
+    // the evicted candle instead of leaking
+    $cache_timestamp_limited = new ArrayCacheByTimestamp(3);
+    for ($i = 1; $i < 7; $i++) {
+        $cache_timestamp_limited->append([$i * 100, $i, $i, $i]);
+    }
+    assert(equals($cache_timestamp_limited, [[400, 4, 4, 4], [500, 5, 5, 5], [600, 6, 6, 6]]));
+    $cache_timestamp_limited->append([100, 9, 9, 9]);
+    assert(equals($cache_timestamp_limited, [[500, 5, 5, 5], [600, 6, 6, 6], [100, 9, 9, 9]]));
+    // ----------------------------------------------------------------------------
+    // test a shorter OHLCV update does not leave a stale tail behind - merging
+    // [ 100, 9, 9 ] onto [ 100, 1, 2, 3, 4, 5 ] used to [ 100, 9, 9, 3, 4, 5 ]
+    $cache_short_ohlcv = new ArrayCacheByTimestamp();
+    $cache_short_ohlcv->append([100, 1, 2, 3, 4, 5]);
+    $cache_short_ohlcv->append([100, 9, 9]);
+    assert(count($cache_short_ohlcv) === 1);
+    assert(equals($cache_short_ohlcv, [[100, 9, 9]]));
+    // ----------------------------------------------------------------------------
+    // test ArrayCacheByOutcomeById keys the first nesting level on the outcome and
+    // not on the symbol - prediction markets stream several outcomes of the same
+    // market, so a symbol-keyed lookup would merge two distinct outcomes that
+    // happen to share one order id into a single row
+    $cache_by_outcome = new ArrayCacheByOutcomeById();
+    $cache_by_outcome->append(array(
+        'symbol' => 'TRUMP-2024',
+        'outcome' => 'yes',
+        'id' => 'o1',
+        'i' => 1,
+    ));
+    $cache_by_outcome->append(array(
+        'symbol' => 'TRUMP-2024',
+        'outcome' => 'no',
+        'id' => 'o1',
+        'i' => 2,
+    ));
+    $cache_by_outcome->append(array(
+        'symbol' => 'TRUMP-2024',
+        'outcome' => 'yes',
+        'id' => 'o1',
+        'i' => 3,
+    ));
+    assert(equals($cache_by_outcome, [array(
+    'symbol' => 'TRUMP-2024',
+    'outcome' => 'no',
+    'id' => 'o1',
+    'i' => 2,
+), array(
+    'symbol' => 'TRUMP-2024',
+    'outcome' => 'yes',
+    'id' => 'o1',
+    'i' => 3,
+)]));
+    // ----------------------------------------------------------------------------
+    // test a numeric id is matched the same way a string one is - exchanges do send
+    // integer order ids, and the lookup must neither throw nor miss and append a
+    // duplicate row instead of merging the update in
+    $cache_numeric_id = new ArrayCacheBySymbolById();
+    $cache_numeric_id->append(array(
+        'symbol' => 'BTC/USDT',
+        'id' => 1,
+        'status' => 'open',
+        'amount' => 5,
+    ));
+    $cache_numeric_id->append(array(
+        'symbol' => 'BTC/USDT',
+        'id' => 1,
+        'status' => 'closed',
+    ));
+    assert(count($cache_numeric_id) === 1);
+    assert($cache_numeric_id[0]['status'] === 'closed');
+    assert($cache_numeric_id[0]['amount'] === 5);
+    // ----------------------------------------------------------------------------
+    // test eviction removes the emptied outer bucket too - a stream of short-lived
+    // symbols used to leak one empty object per symbol into the hashmap forever,
+    // so the map grew without bound even though the array stayed at maxSize
+    $cache_evict_buckets = new ArrayCacheBySymbolById(3);
+    for ($i = 0; $i < 10; $i++) {
+        $cache_evict_buckets->append(array(
+            'symbol' => 'S' . ((string) $i) . '/USDT',
+            'id' => 'x',
+            'i' => $i,
+        ));
+    }
+    $evicted_length = count($cache_evict_buckets);
+    assert($evicted_length === 3);
+    $bucket_keys = is_array($cache_evict_buckets->hashmap) ? array_keys($cache_evict_buckets->hashmap) : array();
+    $bucket_count = count($bucket_keys);
+    assert($bucket_count === 3); // no empty leftover buckets
+    // ----------------------------------------------------------------------------
+    // test the symbol-scoped and the global getLimit scopes count independently -
+    // deriving the global count from the symbol-scoped seen set double-counts an
+    // id that updates again after a symbol poll
+    $cache_two_scopes = new ArrayCacheBySymbolById();
+    $cache_two_scopes->append(array(
+        'symbol' => 'BTC/USDT',
+        'id' => 'a',
+        'i' => 1,
+    ));
+    $cache_two_scopes->append(array(
+        'symbol' => 'BTC/USDT',
+        'id' => 'b',
+        'i' => 2,
+    ));
+    $symbol_scope_first = $cache_two_scopes->get_limit('BTC/USDT', 100);
+    assert($symbol_scope_first === 2);
+    $cache_two_scopes->append(array(
+        'symbol' => 'BTC/USDT',
+        'id' => 'a',
+        'i' => 3,
+    ));
+    $global_scope = $cache_two_scopes->get_limit(null, 100);
+    assert($global_scope === 2); // distinct ids a and b since no global poll happened - id a must not double-count
+    $symbol_scope_second = $cache_two_scopes->get_limit('BTC/USDT', 100);
+    assert($symbol_scope_second === 1); // id a since the last symbol-scoped poll
+    // the inverse direction: a global poll (and the append that fires its
+    // deferred reset) must not erase the symbol scope's window
+    $cache_two_scopes->append(array(
+        'symbol' => 'BTC/USDT',
+        'id' => 'd',
+        'i' => 4,
+    ));
+    $cache_two_scopes->append(array(
+        'symbol' => 'BTC/USDT',
+        'id' => 'e',
+        'i' => 5,
+    ));
+    $global_scope_second = $cache_two_scopes->get_limit(null, 100);
+    assert($global_scope_second === 2); // ids d and e since the first global poll - id a was consumed by it
+    $cache_two_scopes->append(array(
+        'symbol' => 'BTC/USDT',
+        'id' => 'd',
+        'i' => 6,
+    ));
+    $symbol_scope_third = $cache_two_scopes->get_limit('BTC/USDT', 100);
+    assert($symbol_scope_third === 2); // ids d, e since the last symbol poll - the global poll in between must not reset this window
+    // ----------------------------------------------------------------------------
+    // the BySide twin of the two-scope case, covering both directions
+    $side_two_scopes = new ArrayCacheBySymbolBySide();
+    $side_two_scopes->append(array(
+        'symbol' => 'BTC/USDT:USDT',
+        'side' => 'long',
+        'contracts' => 1,
+    ));
+    $side_two_scopes->append(array(
+        'symbol' => 'BTC/USDT:USDT',
+        'side' => 'short',
+        'contracts' => 1,
+    ));
+    $side_symbol_first = $side_two_scopes->get_limit('BTC/USDT:USDT', 100);
+    assert($side_symbol_first === 2);
+    $side_two_scopes->append(array(
+        'symbol' => 'BTC/USDT:USDT',
+        'side' => 'long',
+        'contracts' => 2,
+    ));
+    $side_global = $side_two_scopes->get_limit(null, 100);
+    assert($side_global === 2); // long and short distinct since no global poll - the re-updated long must not double-count
+    $side_two_scopes->append(array(
+        'symbol' => 'BTC/USDT:USDT',
+        'side' => 'short',
+        'contracts' => 2,
+    ));
+    $side_symbol_second = $side_two_scopes->get_limit('BTC/USDT:USDT', 100);
+    assert($side_symbol_second === 2); // long and short since the last symbol poll - the global poll must not reset this window
+    // ----------------------------------------------------------------------------
+    // eviction bounds the seen scopes: an id evicted by maxSize leaves both seen
+    // sets, so the counts mean distinct ids within the retained window - exactly
+    // what a consumer can slice - and single-scope pollers stay bounded
+    $cache_evict_seen = new ArrayCacheBySymbolById(2);
+    $cache_evict_seen->append(array(
+        'symbol' => 'BTC/USDT',
+        'id' => 'a',
+        'i' => 1,
+    ));
+    $cache_evict_seen->append(array(
+        'symbol' => 'BTC/USDT',
+        'id' => 'b',
+        'i' => 2,
+    ));
+    $cache_evict_seen->append(array(
+        'symbol' => 'BTC/USDT',
+        'id' => 'c',
+        'i' => 3,
+    )); // evicts id a
+    $evict_symbol_count = $cache_evict_seen->get_limit('BTC/USDT', 100);
+    assert($evict_symbol_count === 2); // ids b and c - the evicted id a no longer counts
+    $cache_evict_seen->append(array(
+        'symbol' => 'BTC/USDT',
+        'id' => 'd',
+        'i' => 4,
+    )); // evicts id b
+    $evict_global_count = $cache_evict_seen->get_limit(null, 100);
+    assert($evict_global_count === 2); // ids c and d - the counts track distinct ids within the retained window in both scopes
 }

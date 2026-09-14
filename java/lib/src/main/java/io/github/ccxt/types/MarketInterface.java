@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-public final class MarketInterface {
+public final class MarketInterface extends TypedMap {
     public String id;
     public Double numericId;
     public String uppercaseId;
@@ -25,6 +25,7 @@ public final class MarketInterface {
     public Boolean swap;
     public Boolean future;
     public Boolean option;
+    public Boolean index;
     public Boolean stock;
     public Boolean prediction;
     public Boolean contract;
@@ -52,6 +53,7 @@ public final class MarketInterface {
 
     @SuppressWarnings("unchecked")
     public MarketInterface(Object raw) {
+        super(raw);
         Map<String, Object> data = TypeHelper.toMap(raw);
         this.id = TypeHelper.safeString(data, "id");
         this.numericId = TypeHelper.safeFloat(data, "numericId");
@@ -70,6 +72,7 @@ public final class MarketInterface {
         this.swap = TypeHelper.safeBool(data, "swap");
         this.future = TypeHelper.safeBool(data, "future");
         this.option = TypeHelper.safeBool(data, "option");
+        this.index = TypeHelper.safeBool(data, "index");
         this.stock = TypeHelper.safeBool(data, "stock");
         this.prediction = TypeHelper.safeBool(data, "prediction");
         this.contract = TypeHelper.safeBool(data, "contract");

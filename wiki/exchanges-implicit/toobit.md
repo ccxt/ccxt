@@ -55,7 +55,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 📚 **Official toobit API documentation:** [api-docs.toobit.com](https://api-docs.toobit.com/)
 
-> 87 implicit endpoints across 2 access groups.
+> 96 implicit endpoints across 2 access groups.
 
 ## common
 
@@ -129,6 +129,15 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privateGetApiV1AgentUserExport` | GET | `api/v1/agent/user/export` | 1 |
 | `privateGetApiV1AgentExportList` | GET | `api/v1/agent/export-list` | 1 |
 | `privateGetApiV1AgentExportUrl` | GET | `api/v1/agent/export-url` | 1 |
+| `privateGetApiV2AccountBalanceFlow` | GET | `api/v2/account/balance-flow` | 5 |
+| `privateGetApiV2FuturesOrder` | GET | `api/v2/futures/order` | 1.67 |
+| `privateGetApiV2FuturesOpenOrders` | GET | `api/v2/futures/open-orders` | 1.67 |
+| `privateGetApiV2FuturesHistoryOrders` | GET | `api/v2/futures/history-orders` | 8.35 |
+| `privateGetApiV2FuturesUserTrades` | GET | `api/v2/futures/user-trades` | 8.35 |
+| `privateGetApiV2FuturesAlgoOrder` | GET | `api/v2/futures/algo-order` | 1.67 |
+| `privateGetApiV2FuturesOpenAlgoOrders` | GET | `api/v2/futures/open-algo-orders` | 1.67 |
+| `privateGetApiV2FuturesHistoryAlgoOrders` | GET | `api/v2/futures/history-algo-orders` | 8.35 |
+| `privateGetApiV2FuturesVoucherList` | GET | `api/v2/futures/voucher/list` | 5 |
 | `privatePostApiV1SpotOrderTest` | POST | `api/v1/spot/orderTest` | 1.67 |
 | `privatePostApiV1SpotOrder` | POST | `api/v1/spot/order` | 1.67 |
 | `privatePostApiV1FuturesOrder` | POST | `api/v1/futures/order` | 1.67 |

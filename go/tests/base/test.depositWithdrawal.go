@@ -6,7 +6,7 @@ import "github.com/ccxt/ccxt/go/v4"
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 func TestDepositWithdrawal(exchange ccxt.ICoreExchange, skippedProperties any, method any, entry any, requestedCode any, now any) {
-	var format any = map[string]any{
+	var format map[string]any = map[string]any{
 		"info":        map[string]any{},
 		"id":          "1234",
 		"txid":        "0x1345FEG45EAEF7",
@@ -26,7 +26,7 @@ func TestDepositWithdrawal(exchange ccxt.ICoreExchange, skippedProperties any, m
 		"updated":     1502962946233,
 		"fee":         map[string]any{},
 	}
-	var emptyAllowedFor any = []any{"address", "addressTo", "addressFrom", "tag", "tagTo", "tagFrom"} // below we still do Assertion for to/from
+	var emptyAllowedFor []any = []any{"address", "addressTo", "addressFrom", "tag", "tagTo", "tagFrom"} // below we still do Assertion for to/from
 	AssertStructure(exchange, skippedProperties, method, entry, format, emptyAllowedFor)
 	AssertTimestampAndDatetime(exchange, skippedProperties, method, entry, now)
 	AssertCurrencyCode(exchange, skippedProperties, method, entry, GetValue(entry, "currency"), requestedCode)

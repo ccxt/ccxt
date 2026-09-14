@@ -83,7 +83,7 @@ class PredictionExchange extends Exchange.BaseExchange {
         });
     }
     isPrediction() {
-        return this.safeBool(this.has, 'prediction', false) === true;
+        return this.safeBool(this.has, 'prediction', false);
     }
     parseSearchQueries(params = {}) {
         // accepts either `query` (a single search string) or `queries` (a list of strings)
@@ -374,7 +374,7 @@ class PredictionExchange extends Exchange.BaseExchange {
         // note: the cache-hit shortcut ignores params, so events fetched under one scope are
         // returned for a later differently-scoped call. events are scoped (unlike global
         // markets), so prefer fetchEvents (params) directly when you need a specific scope
-        if (!reload && this.events) {
+        if (!reload && (this.events !== undefined && this.events !== null)) {
             return this.events;
         }
         const events = await this.fetchEvents(params);
@@ -694,7 +694,7 @@ class PredictionExchange extends Exchange.BaseExchange {
             let missingLength = missing.length;
             const wasWarm = (this.outcomes !== undefined) && !this.isEmpty(this.outcomes);
             const loadAll = this.safeBool(this.options, 'loadAllOutcomes', false);
-            if ((missingLength > 0) && loadAll && !wasWarm && !reload) {
+            if ((missingLength > 0) && (loadAll === true) && !wasWarm && !reload) {
                 // same trade-off as loadOutcome: on venues where the whole universe is one cheap
                 // request (hyperliquid), a cold miss bulk-warms once instead of fetching per outcome
                 await this.loadOutcomes();
@@ -759,7 +759,7 @@ class PredictionExchange extends Exchange.BaseExchange {
                 }
             }
             const loadAll = this.safeBool(this.options, 'loadAllOutcomes', false);
-            if (loadAll && !wasWarm) {
+            if ((loadAll === true) && !wasWarm) {
                 // a miss on a cold cache: bulk-load once so later lookups are 0-network hits.
                 // a miss on an already-warm cache is authoritative — the outcome genuinely isn't
                 // listed, so fall through to fetchOutcome (a real BadSymbol) rather than refetching
@@ -1293,7 +1293,7 @@ class PredictionExchange extends Exchange.BaseExchange {
             if (orderType === 'market') {
                 timeInForce = 'IOC';
             }
-            if (postOnly) {
+            if (postOnly === true) {
                 timeInForce = 'PO';
             }
         }
@@ -1709,7 +1709,7 @@ class PredictionExchange extends Exchange.BaseExchange {
         const start = this.milliseconds();
         while ((this.milliseconds() - start) < timeout) {
             const receipt = await this.ethRpc(rpcUrl, 'eth_getTransactionReceipt', [txHash]);
-            if (receipt) {
+            if ((receipt !== undefined) && (receipt !== null)) {
                 return receipt;
             }
             await this.sleep(2000);

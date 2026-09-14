@@ -6,8 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.latoken import ImplicitAPI
 import hashlib
-from ccxt.base.types import Any, Balances, Currencies, Currency, CurrencyInterface, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry
-from typing import List
+from ccxt.base.types import Balances, Currencies, Currency, CurrencyInterface, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -22,11 +21,12 @@ from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import InvalidNonce
 from ccxt.base.decimal_to_precision import TICK_SIZE
+from ccxt.base.precise import Precise
 
 
 class latoken(Exchange, ImplicitAPI):
 
-    def describe(self) -> Any:
+    def describe(self) -> object:
         return self.deep_extend(super(latoken, self).describe(), {
             'id': 'latoken',
             'name': 'Latoken',
@@ -172,7 +172,9 @@ class latoken(Exchange, ImplicitAPI):
                     'get': {
                         'auth/account': {'cost': 1},
                         'auth/account/currency/{currency}/{type}': {'cost': 1},
+                        'auth/account/filtered': {'cost': 1},
                         'auth/order': {'cost': 1},
+                        'auth/order/active': {'cost': 1},
                         'auth/order/getOrder/{id}': {'cost': 1},
                         'auth/order/pair/{currency}/{quote}': {'cost': 1},
                         'auth/order/pair/{currency}/{quote}/active': {'cost': 1},
@@ -193,7 +195,9 @@ class latoken(Exchange, ImplicitAPI):
                         'auth/order/cancel': {'cost': 1},
                         'auth/order/cancelAll': {'cost': 1},
                         'auth/order/cancelAll/{currency}/{quote}': {'cost': 1},
+                        'auth/order/cancelBulk': {'cost': 1},
                         'auth/order/place': {'cost': 1},
+                        'auth/order/placeBulk': {'cost': 1},
                         'auth/spot/deposit': {'cost': 1},
                         'auth/spot/withdraw': {'cost': 1},
                         'auth/stopOrder/cancel': {'cost': 1},
@@ -241,8 +245,8 @@ class latoken(Exchange, ImplicitAPI):
             },
             'exceptions': {
                 'exact': {
-                    'INTERNAL_ERROR': ExchangeError,  # internal server error. You can contact our support to solve self problem. {"message":"Internal Server Error","error":"INTERNAL_ERROR","status":"FAILURE"}
-                    'SERVICE_UNAVAILABLE': ExchangeNotAvailable,  # requested information currently not available. You can contact our support to solve self problem or retry later.
+                    'INTERNAL_ERROR': ExchangeError,  # internal server error. You can contact our support to solve this problem. {"message":"Internal Server Error","error":"INTERNAL_ERROR","status":"FAILURE"}
+                    'SERVICE_UNAVAILABLE': ExchangeNotAvailable,  # requested information currently not available. You can contact our support to solve this problem or retry later.
                     'NOT_AUTHORIZED': AuthenticationError,  # user's query not authorized. Check if you are logged in.
                     'FORBIDDEN': PermissionDenied,  # you don't have enough access rights.
                     'BAD_REQUEST': BadRequest,  # some bad request, for example bad fields values or something else. Read response message for more information.
@@ -260,18 +264,18 @@ class latoken(Exchange, ImplicitAPI):
                     'INSUFFICIENT_AUTHENTICATION': AuthenticationError,  # for example, 2FA required.
                     'UNKNOWN_LOCATION': AuthenticationError,  # user logged from unusual location, email confirmation required.
                     'TOO_MANY_REQUESTS': RateLimitExceeded,  # too many requests at the time. A response header X-Rate-Limit-Remaining indicates the number of allowed request per a period.
-                    'INSUFFICIENT_FUNDS': InsufficientFunds,  # {"message":"not enough balance on the spot account for currency(USDT), need(20.000)","error":"INSUFFICIENT_FUNDS","status":"FAILURE"}
-                    'ORDER_VALIDATION': InvalidOrder,  # {"message":"Quantity(0) is not positive","error":"ORDER_VALIDATION","status":"FAILURE"}
-                    'BAD_TICKS': InvalidOrder,  # {"status":"FAILURE","message":"Quantity(1.4) does not match quantity tick(10)","error":"BAD_TICKS","errors":null,"result":false}
+                    'INSUFFICIENT_FUNDS': InsufficientFunds,  # {"message":"not enough balance on the spot account for currency (USDT), need (20.000)","error":"INSUFFICIENT_FUNDS","status":"FAILURE"}
+                    'ORDER_VALIDATION': InvalidOrder,  # {"message":"Quantity (0) is not positive","error":"ORDER_VALIDATION","status":"FAILURE"}
+                    'BAD_TICKS': InvalidOrder,  # {"status":"FAILURE","message":"Quantity (1.4) does not match quantity tick (10)","error":"BAD_TICKS","errors":null,"result":false}
                 },
                 'broad': {
                     'invalid API key, signature or digest': AuthenticationError,  # {"result":false,"message":"invalid API key, signature or digest","error":"BAD_REQUEST","status":"FAILURE"}
                     'The API key was revoked': AuthenticationError,  # {"result":false,"message":"The API key was revoked","error":"BAD_REQUEST","status":"FAILURE"}
                     'request expired or bad': InvalidNonce,  # {"result":false,"message":"request expired or bad <timeAlive>/<timestamp> format","error":"BAD_REQUEST","status":"FAILURE"}
                     'For input string': BadRequest,  # {"result":false,"message":"Internal error","error":"For input string: \"NaN\"","status":"FAILURE"}
-                    'Unable to resolve currency by tag': BadSymbol,  # {"message":"Unable to resolve currency by tag(None)","error":"NOT_FOUND","status":"FAILURE"}
-                    "Can't find currency with tag": BadSymbol,  # {"status":"FAILURE","message":"Can't find currency with tag = None","error":"NOT_FOUND","errors":null,"result":false}
-                    'Unable to place order because pair is in inactive state': BadSymbol,  # {"message":"Unable to place order because pair is in inactive state(PAIR_STATUS_INACTIVE)","error":"ORDER_VALIDATION","status":"FAILURE"}
+                    'Unable to resolve currency by tag': BadSymbol,  # {"message":"Unable to resolve currency by tag (undefined)","error":"NOT_FOUND","status":"FAILURE"}
+                    "Can't find currency with tag": BadSymbol,  # {"status":"FAILURE","message":"Can't find currency with tag = undefined","error":"NOT_FOUND","errors":null,"result":false}
+                    'Unable to place order because pair is in inactive state': BadSymbol,  # {"message":"Unable to place order because pair is in inactive state (PAIR_STATUS_INACTIVE)","error":"ORDER_VALIDATION","status":"FAILURE"}
                     'API keys are not available for': AccountSuspended,  # {"result":false,"message":"API keys are not available for FROZEN user","error":"BAD_REQUEST","status":"FAILURE"}
                 },
             },
@@ -382,7 +386,7 @@ class latoken(Exchange, ImplicitAPI):
         #
         return self.safe_integer(response, 'serverTime')
 
-    def fetch_markets(self, params={}) -> List[Market]:
+    def fetch_markets(self, params={}) -> list[Market]:
         """
         retrieves data on all markets for latoken
 
@@ -396,7 +400,7 @@ class latoken(Exchange, ImplicitAPI):
         #     [
         #         {
         #             "id":"dba4289b-6b46-4d94-bf55-49eec9a163ad",
-        #             "status":"PAIR_STATUS_ACTIVE",  # CURRENCY_STATUS_INACTIVE
+        #             "status":"PAIR_STATUS_ACTIVE", // CURRENCY_STATUS_INACTIVE
         #             "baseCurrency":"fb9b53d6-bbf6-472f-b6ba-73cc0d606c9b",
         #             "quoteCurrency":"620f2019-33c0-423b-8a9d-cde4d7f8ef7f",
         #             "priceTick":"0.000000100000000000",
@@ -451,7 +455,7 @@ class latoken(Exchange, ImplicitAPI):
                     'swap': False,
                     'future': False,
                     'option': False,
-                    'active': (status == 'PAIR_STATUS_ACTIVE'),  # assuming True
+                    'active': (status == 'PAIR_STATUS_ACTIVE'),  # assuming true
                     'contract': False,
                     'linear': None,
                     'inverse': None,
@@ -499,7 +503,7 @@ class latoken(Exchange, ImplicitAPI):
         #         {
         #             "id":"1a075819-9e0b-48fc-8784-4dab1d186d6d",
         #             "status":"CURRENCY_STATUS_ACTIVE",
-        #             "type":"CURRENCY_TYPE_ALTERNATIVE",  # CURRENCY_TYPE_CRYPTO, CURRENCY_TYPE_IEO
+        #             "type":"CURRENCY_TYPE_ALTERNATIVE", // CURRENCY_TYPE_CRYPTO, CURRENCY_TYPE_IEO
         #             "name":"MyCryptoBank",
         #             "tag":"MCB",
         #             "description":"",
@@ -603,7 +607,7 @@ class latoken(Exchange, ImplicitAPI):
         types = self.safe_value(self.options, 'types', {})
         accountType = self.safe_string(types, type, type)
         balancesByType = self.group_by(response, 'type')
-        balances = self.safe_value(balancesByType, accountType, [])
+        balances = self.safe_list(balancesByType, accountType, [])
         for i in range(0, len(balances)):
             balance = balances[i]
             currencyId = self.safe_string(balance, 'currency')
@@ -660,7 +664,30 @@ class latoken(Exchange, ImplicitAPI):
         #         "totalBid":"112216.9029791"
         #     }
         #
-        return self.parse_order_book(response, symbol, None, 'bid', 'ask', 'price', 'quantity')
+        # latoken's rest book is an absolute snapshot - price, quantity, cost,
+        # accumulated - with no signed fields, unlike their websocket stream
+        # which carries signed quantityChange deltas. during venue incidents a
+        # signed internal aggregate leaks into the rest quantity and a deleted
+        # level shows up with a zero or negative quantity for long stretches,
+        # observed live on 2026-08-17 with bestAskQuantity -0.1791852 served
+        # for over half an hour - such a level is a deleted level their
+        # aggregation failed to drop, so it is removed here
+        rawAsks = self.safe_list(response, 'ask', [])
+        rawBids = self.safe_list(response, 'bid', [])
+        asks = []
+        bids = []
+        for i in range(0, len(rawAsks)):
+            askEntry = rawAsks[i]
+            askQuantity = self.safe_string(askEntry, 'quantity')
+            if Precise.string_gt(askQuantity, '0'):
+                asks.append(askEntry)
+        for i in range(0, len(rawBids)):
+            bidEntry = rawBids[i]
+            bidQuantity = self.safe_string(bidEntry, 'quantity')
+            if Precise.string_gt(bidQuantity, '0'):
+                bids.append(bidEntry)
+        filtered = {'ask': asks, 'bid': bids}
+        return self.parse_order_book(filtered, symbol, None, 'bid', 'ask', 'price', 'quantity')
 
     def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
@@ -788,7 +815,7 @@ class latoken(Exchange, ImplicitAPI):
 
     def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #
-        # fetchTrades(public)
+        # fetchTrades (public)
         #
         #     {
         #         "id":"c152f814-8eeb-44f0-8f3f-e5c568f2ffcf",
@@ -802,7 +829,7 @@ class latoken(Exchange, ImplicitAPI):
         #         "makerBuyer":false
         #     }
         #
-        # fetchMyTrades(private)
+        # fetchMyTrades (private)
         #
         #     {
         #         "id":"02e02533-b4bf-4ba9-9271-24e2108dfbf7",
@@ -827,14 +854,15 @@ class latoken(Exchange, ImplicitAPI):
         makerBuyer = self.safe_value(trade, 'makerBuyer')
         side = self.safe_string(trade, 'direction')
         if side is None:
-            side = 'sell' if makerBuyer else 'buy'
+            side = 'sell' if (makerBuyer is True) else 'buy'
         else:
             if side == 'TRADE_DIRECTION_BUY':
                 side = 'buy'
             elif side == 'TRADE_DIRECTION_SELL':
                 side = 'sell'
         isBuy = (side == 'buy')
-        takerOrMaker = 'maker' if (makerBuyer and isBuy) else 'taker'
+        isMaker = (makerBuyer is True) and isBuy
+        takerOrMaker = 'maker' if isMaker else 'taker'
         baseId = self.safe_string(trade, 'baseCurrency')
         quoteId = self.safe_string(trade, 'quoteCurrency')
         base = self.safe_currency_code(baseId)
@@ -867,7 +895,7 @@ class latoken(Exchange, ImplicitAPI):
             'fee': fee,
         }, market)
 
-    def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
         """
         get the list of most recent trades for a particular symbol
 
@@ -885,8 +913,8 @@ class latoken(Exchange, ImplicitAPI):
         request = {
             'currency': market['baseId'],
             'quote': market['quoteId'],
-            # 'from': str(since),  # milliseconds
-            # 'limit': limit,  # default 100, limit 100
+            # 'from': since.toString (), // milliseconds
+            # 'limit': limit, // default 100, limit 100
         }
         if limit is not None:
             request['limit'] = min(limit, 100)  # default 100, limit 100
@@ -922,7 +950,7 @@ class latoken(Exchange, ImplicitAPI):
         else:
             raise NotSupported(self.id + ' not support self method')
 
-    def fetch_public_trading_fee(self, symbol: str, params={}):
+    def fetch_public_trading_fee(self, symbol: str, params={}) -> TradingFeeInterface:
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
@@ -948,7 +976,7 @@ class latoken(Exchange, ImplicitAPI):
             'tierBased': None,
         }
 
-    def fetch_private_trading_fee(self, symbol: str, params={}):
+    def fetch_private_trading_fee(self, symbol: str, params={}) -> TradingFeeInterface:
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
@@ -992,8 +1020,8 @@ class latoken(Exchange, ImplicitAPI):
         request = {
             # 'currency': market['baseId'],
             # 'quote': market['quoteId'],
-            # 'from': self.milliseconds(),
-            # 'limit': limit,  # default '100'
+            # 'from': this.milliseconds (),
+            # 'limit': limit, // default '100'
         }
         market = None
         if limit is not None:
@@ -1034,7 +1062,7 @@ class latoken(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order_type(self, status: Any):
+    def parse_order_type(self, status: object):
         statuses = {
             'ORDER_TYPE_MARKET': 'market',
             'ORDER_TYPE_LIMIT': 'limit',
@@ -1148,7 +1176,7 @@ class latoken(Exchange, ImplicitAPI):
             'trades': None,
         }, market)
 
-    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         fetch all unfilled currently open orders
 
@@ -1175,7 +1203,7 @@ class latoken(Exchange, ImplicitAPI):
             'currency': market['baseId'],
             'quote': market['quoteId'],
         }
-        if isTrigger:
+        if isTrigger is True:
             response = self.privateGetAuthStopOrderPairCurrencyQuoteActive(self.extend(request, params))
         else:
             response = self.privateGetAuthOrderPairCurrencyQuoteActive(self.extend(request, params))
@@ -1203,7 +1231,7 @@ class latoken(Exchange, ImplicitAPI):
         #
         return self.parse_orders(response, market, since, limit)
 
-    def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         fetches information on multiple orders made by the user
 
@@ -1224,8 +1252,8 @@ class latoken(Exchange, ImplicitAPI):
         request = {
             # 'currency': market['baseId'],
             # 'quote': market['quoteId'],
-            # 'from': self.milliseconds(),
-            # 'limit': limit,  # default '100'
+            # 'from': this.milliseconds (),
+            # 'limit': limit, // default '100'
         }
         market = None
         isTrigger = self.safe_value_2(params, 'trigger', 'stop')
@@ -1237,12 +1265,12 @@ class latoken(Exchange, ImplicitAPI):
             market = self.market(symbol)
             request['currency'] = market['baseId']
             request['quote'] = market['quoteId']
-            if isTrigger:
+            if isTrigger is True:
                 response = self.privateGetAuthStopOrderPairCurrencyQuote(self.extend(request, params))
             else:
                 response = self.privateGetAuthOrderPairCurrencyQuote(self.extend(request, params))
         else:
-            if isTrigger:
+            if isTrigger is True:
                 response = self.privateGetAuthStopOrder(self.extend(request, params))
             else:
                 response = self.privateGetAuthOrder(self.extend(request, params))
@@ -1291,7 +1319,7 @@ class latoken(Exchange, ImplicitAPI):
         isTrigger = self.safe_value_2(params, 'trigger', 'stop')
         params = self.omit(params, ['stop', 'trigger'])
         response: dict
-        if isTrigger:
+        if isTrigger is True:
             response = self.privateGetAuthStopOrderGetOrderId(self.extend(request, params))
         else:
             response = self.privateGetAuthOrderGetOrderId(self.extend(request, params))
@@ -1350,8 +1378,8 @@ class latoken(Exchange, ImplicitAPI):
             'condition': 'GTC',  # "GTC", "GOOD_TILL_CANCELLED", "IOC", "IMMEDIATE_OR_CANCEL", "FOK", "FILL_OR_KILL"
             'type': uppercaseType,  # "LIMIT", "MARKET"
             'clientOrderId': self.uuid(),  # 50 characters max
-            # 'price': self.price_to_precision(symbol, price),
-            # 'quantity': self.amount_to_precision(symbol, amount),
+            # 'price': this.priceToPrecision (symbol, price),
+            # 'quantity': this.amountToPrecision (symbol, amount),
             'quantity': self.amount_to_precision(symbol, amount),
             'timestamp': self.seconds(),
         }
@@ -1400,7 +1428,7 @@ class latoken(Exchange, ImplicitAPI):
         isTrigger = self.safe_value_2(params, 'trigger', 'stop')
         params = self.omit(params, ['stop', 'trigger'])
         response: dict
-        if isTrigger:
+        if isTrigger is True:
             response = self.privatePostAuthStopOrderCancel(self.extend(request, params))
         else:
             response = self.privatePostAuthOrderCancel(self.extend(request, params))
@@ -1410,7 +1438,7 @@ class latoken(Exchange, ImplicitAPI):
         #         "message": "cancellation request successfully submitted",
         #         "status": "SUCCESS",
         #         "error": "",
-        #         "errors": {}
+        #         "errors": { }
         #     }
         #
         return self.parse_order(response)
@@ -1441,12 +1469,12 @@ class latoken(Exchange, ImplicitAPI):
             market = self.market(symbol)
             request['currency'] = market['baseId']
             request['quote'] = market['quoteId']
-            if isTrigger:
+            if isTrigger is True:
                 response = self.privatePostAuthStopOrderCancelAllCurrencyQuote(self.extend(request, params))
             else:
                 response = self.privatePostAuthOrderCancelAllCurrencyQuote(self.extend(request, params))
         else:
-            if isTrigger:
+            if isTrigger is True:
                 response = self.privatePostAuthStopOrderCancelAll(self.extend(request, params))
             else:
                 response = self.privatePostAuthOrderCancelAll(self.extend(request, params))
@@ -1587,14 +1615,14 @@ class latoken(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_transaction_type(self, type: Any):
+    def parse_transaction_type(self, type: object):
         types = {
             'TRANSACTION_TYPE_DEPOSIT': 'deposit',
             'TRANSACTION_TYPE_WITHDRAWAL': 'withdrawal',
         }
         return self.safe_string(types, type, type)
 
-    def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[TransferEntry]:
+    def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[TransferEntry]:
         """
         fetch a history of internal transfers made on an account
 
@@ -1612,7 +1640,7 @@ class latoken(Exchange, ImplicitAPI):
         response = self.privateGetAuthTransfer(params)
         #
         #     {
-        #         "hasNext": True,
+        #         "hasNext": true,
         #         "content": [
         #             {
         #             "id": "ebd6312f-cb4f-45d1-9409-4b0b3027f21e",
@@ -1629,16 +1657,16 @@ class latoken(Exchange, ImplicitAPI):
         #             "recipient": null,
         #             "sender": null,
         #             "currency": "0c3a106d-bde3-4c13-a26e-3fd2394529e5",
-        #             "codeRequired": False,
+        #             "codeRequired": false,
         #             "fromUser": "ce555f3f-585d-46fb-9ae6-487f66738073",
         #             "toUser": "ce555f3f-585d-46fb-9ae6-487f66738073",
         #             "fee": 0
         #             },
         #             ...
         #         ],
-        #         "first": True,
+        #         "first": true,
         #         "pageSize": 20,
-        #         "hasContent": True
+        #         "hasContent": true
         #     }
         #
         transfers = self.safe_list(response, 'content', [])
@@ -1690,7 +1718,7 @@ class latoken(Exchange, ImplicitAPI):
         #         "recipient": "",
         #         "sender": "",
         #         "currency": "40af7879-a8cc-4576-a42d-7d2749821b58",
-        #         "codeRequired": False,
+        #         "codeRequired": false,
         #         "fromUser": "cd555555-666d-46fb-9ae6-487f66738073",
         #         "toUser": "cd555555-666d-46fb-9ae6-487f66738073",
         #         "fee": 0
@@ -1715,7 +1743,7 @@ class latoken(Exchange, ImplicitAPI):
         #         "recipient": "",
         #         "sender": "",
         #         "currency": "40af7879-a8cc-4576-a42d-7d2749821b58",
-        #         "codeRequired": False,
+        #         "codeRequired": false,
         #         "fromUser": "cd555555-666d-46fb-9ae6-487f66738073",
         #         "toUser": "cd555555-666d-46fb-9ae6-487f66738073",
         #         "fee": 0
@@ -1746,13 +1774,13 @@ class latoken(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def sign(self, path: Any, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Any = None):
+    def sign(self, path: object, api: object = 'public', method='GET', params={}, headers: dict = None, body: object = None):
         request = '/' + self.version + '/' + self.implode_params(path, params)
         requestString = request
         query = self.omit(params, self.extract_params(path))
         urlencodedQuery = self.urlencode(query)
         if method == 'GET':
-            if query:
+            if len(query) > 0:
                 requestString += '?' + urlencodedQuery
         if api == 'private':
             self.check_required_credentials()
@@ -1769,8 +1797,8 @@ class latoken(Exchange, ImplicitAPI):
         url = self.urls['api']['rest'] + requestString
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: Any, requestHeaders: Any, requestBody: Any):
-        if not response:
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
+        if response is None:
             return None
         #
         # {"result":false,"message":"invalid API key, signature or digest","error":"BAD_REQUEST","status":"FAILURE"}

@@ -1,8 +1,7 @@
 from ccxt.base.types import Entry
-from typing import Any as PythonAny, Dict, List
+_Dict = dict[str, object]
+_List = list[object]
 
-_Dict = Dict[str, PythonAny]
-_List = List[PythonAny]
 
 class ImplicitAPI:
     public_get_assets = publicGetAssets = Entry[_Dict]('assets', 'public', 'GET', {'cost': 1})
@@ -54,6 +53,7 @@ class ImplicitAPI:
     private_put_users_update_mmp = privatePutUsersUpdateMmp = Entry[_Dict]('users/update_mmp', 'private', 'PUT', {'cost': 1})
     private_put_users_reset_mmp = privatePutUsersResetMmp = Entry[_Dict]('users/reset_mmp', 'private', 'PUT', {'cost': 1})
     private_put_users_margin_mode = privatePutUsersMarginMode = Entry[_Dict]('users/margin_mode', 'private', 'PUT', {'cost': 1})
+    private_put_users_trading_preferences = privatePutUsersTradingPreferences = Entry[_Dict]('users/trading_preferences', 'private', 'PUT', {'cost': 1})
     private_delete_orders = privateDeleteOrders = Entry[_Dict]('orders', 'private', 'DELETE', {'cost': 1})
     private_delete_orders_all = privateDeleteOrdersAll = Entry[_Dict]('orders/all', 'private', 'DELETE', {'cost': 1})
     private_delete_orders_batch = privateDeleteOrdersBatch = Entry[_Dict]('orders/batch', 'private', 'DELETE', {'cost': 1})

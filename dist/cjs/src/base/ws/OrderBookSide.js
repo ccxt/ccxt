@@ -33,6 +33,37 @@ function bisectLeft(array, x) {
     }
     return low;
 }
+/**
+ * Shift rows one slot up from `index` to make room, then the caller writes the
+ * new row at `index`. Deliberately a plain loop rather than copyWithin: these
+ * classes extend Array, and copyWithin on a subclass runs the generic spec
+ * algorithm instead of V8's fast element path, which costs ~4.6x here. push()
+ * grows the array without leaving the hole that `this.length++` would.
+ *
+ * @param self the order book side
+ * @param index slot to free up
+ */
+function shiftRowsUp(self, index) {
+    const length = self.length;
+    self.push(self[length - 1]);
+    for (let i = length - 1; i > index; i--) {
+        self[i] = self[i - 1];
+    }
+}
+/**
+ * Shift rows one slot down over `index`, dropping it. Counterpart of
+ * shiftRowsUp, same reasoning.
+ *
+ * @param self the order book side
+ * @param index slot to remove
+ */
+function shiftRowsDown(self, index) {
+    const length = self.length;
+    for (let i = index; i < length - 1; i++) {
+        self[i] = self[i + 1];
+    }
+    self.pop();
+}
 const SIZE = 1024;
 const SEED = new Float64Array(new Array(SIZE).fill(Number.MAX_VALUE));
 class OrderBookSide extends Array {
@@ -65,10 +96,9 @@ class OrderBookSide extends Array {
                 this[index][1] = size;
             }
             else {
-                this.length++;
                 this.index.copyWithin(index + 1, index, this.index.length);
                 this.index[index] = index_price;
-                this.copyWithin(index + 1, index, this.length);
+                shiftRowsUp(this, index);
                 this[index] = delta;
                 // in the rare case of very large orderbooks being sent
                 if (this.length > this.index.length - 1) {
@@ -82,8 +112,7 @@ class OrderBookSide extends Array {
         else if (this.index[index] === index_price) {
             this.index.copyWithin(index, index + 1, this.index.length);
             this.index[this.length - 1] = Number.MAX_VALUE;
-            this.copyWithin(index, index + 1, this.length);
-            this.length--;
+            shiftRowsDown(this, index);
         }
     }
     // index an incoming delta in the string-price-keyed dictionary
@@ -128,10 +157,9 @@ class CountedOrderBookSide extends OrderBookSide {
                 entry[2] = count;
             }
             else {
-                this.length++;
                 this.index.copyWithin(index + 1, index, this.index.length);
                 this.index[index] = index_price;
-                this.copyWithin(index + 1, index, this.length);
+                shiftRowsUp(this, index);
                 this[index] = delta;
                 // in the rare case of very large orderbooks being sent
                 if (this.length > this.index.length - 1) {
@@ -145,8 +173,7 @@ class CountedOrderBookSide extends OrderBookSide {
         else if (this.index[index] === index_price) {
             this.index.copyWithin(index, index + 1, this.index.length);
             this.index[this.length - 1] = Number.MAX_VALUE;
-            this.copyWithin(index, index + 1, this.length);
-            this.length--;
+            shiftRowsDown(this, index);
         }
     }
 }
@@ -154,7 +181,7 @@ class CountedOrderBookSide extends OrderBookSide {
 // stores vector arrays indexed by id (3rd value in a bidask delta array)
 class IndexedOrderBookSide extends Array {
     constructor(deltas = [], depth = Number.MAX_SAFE_INTEGER) {
-        super(deltas.length);
+        super();
         // a string-keyed dictionary of price levels / ids / indices
         Object.defineProperty(this, 'hashmap', {
             __proto__: null, // make it invisible
@@ -171,9 +198,12 @@ class IndexedOrderBookSide extends Array {
             value: depth || Number.MAX_SAFE_INTEGER,
             writable: true,
         });
-        // sort upon initiation
+        // sort upon initiation. storeArray maintains length itself; assigning
+        // the loop counter to it instead let a no-op delta (a zero size for an
+        // id that is not in the book) advance the length past the number of
+        // rows actually stored, leaving a hole that limit() then dereferenced
+        this.length = 0;
         for (let i = 0; i < deltas.length; i++) {
-            this.length = i;
             this.storeArray(deltas[i].slice()); // slice is muy importante
         }
     }
@@ -222,8 +252,7 @@ class IndexedOrderBookSide extends Array {
                     if (old_index < this.length) {
                         this.index.copyWithin(old_index, old_index + 1, this.index.length);
                         this.index[this.length - 1] = Number.MAX_VALUE;
-                        this.copyWithin(old_index, old_index + 1, this.length);
-                        this.length--;
+                        shiftRowsDown(this, old_index);
                     }
                 }
             }
@@ -236,10 +265,9 @@ class IndexedOrderBookSide extends Array {
                 index++;
             }
             // insert new price level into index
-            this.length++;
             this.index.copyWithin(index + 1, index, this.index.length);
             this.index[index] = index_price;
-            this.copyWithin(index + 1, index, this.length);
+            shiftRowsUp(this, index);
             this[index] = delta;
             // in the rare case of very large orderbooks being sent
             if (this.length > this.index.length - 1) {
@@ -258,8 +286,7 @@ class IndexedOrderBookSide extends Array {
             if (index < this.length) {
                 this.index.copyWithin(index, index + 1, this.index.length);
                 this.index[this.length - 1] = Number.MAX_VALUE;
-                this.copyWithin(index, index + 1, this.length);
-                this.length--;
+                shiftRowsDown(this, index);
             }
             this.hashmap.delete(id);
         }

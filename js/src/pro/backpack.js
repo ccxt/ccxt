@@ -1329,7 +1329,7 @@ export default class backpack extends backpackRest {
         });
     }
     handleMessage(client, message) {
-        if (!this.handleErrorMessage(client, message)) {
+        if (this.handleErrorMessage(client, message) !== true) {
             return;
         }
         const data = this.safeDict(message, 'data');

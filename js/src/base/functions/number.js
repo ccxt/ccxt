@@ -4,18 +4,10 @@
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
-// ------------------------------------------------------------------------
-//
-//  NB: initially, I used objects for options passing:
-//
-//          decimalToPrecision ('123.456', { digits: 2, round: true, afterPoint: true })
-//
-//  ...but it turns out it's hard to port that across different languages and it is also
-//     probably has a performance penalty -- while it's a performance critical code! So
-//     I switched to using named constants instead, as it is actually more readable and
-//     succinct, and surely doesn't come with any inherent performance downside:
-//
-//          decimalToPrecision ('123.456', ROUND, 2, DECIMAL_PLACES)
+import { Precise } from '../Precise.js';
+// NB: options are passed as named constants, not an options object:
+//         decimalToPrecision ('123.456', ROUND, 2, DECIMAL_PLACES)
+// object options are hard to port across languages and cost performance in this hot path
 const TRUNCATE = 0; // rounding mode
 const ROUND = 1;
 const ROUND_UP = 2;
@@ -74,6 +66,33 @@ function numberToString(x) {
 //-----------------------------------------------------------------------------
 // expects non-scientific notation
 const truncate_regExpCache = [];
+// Enough places for the quotient to reach the last tick exactly: a tick is at
+// most 18 decimals and the widest amount the exchanges quote is 18 more.
+const TICK_QUOTIENT_DIGITS = 36;
+const stripDecimals = (value) => {
+    if (value.indexOf('.') < 0) {
+        return value;
+    }
+    let end = value.length;
+    while ((end > 0) && (value[end - 1] === '0')) {
+        end--;
+    }
+    if ((end > 0) && (value[end - 1] === '.')) {
+        end--;
+    }
+    const stripped = value.slice(0, end);
+    return (stripped === '') ? '0' : stripped;
+};
+const padDecimals = (value, places) => {
+    if (places <= 0) {
+        const point = value.indexOf('.');
+        return (point < 0) ? value : value.slice(0, point);
+    }
+    const point = value.indexOf('.');
+    const whole = (point < 0) ? value : value.slice(0, point);
+    const fraction = (point < 0) ? '' : value.slice(point + 1);
+    return whole + '.' + (fraction + '0'.repeat(places)).slice(0, places);
+};
 const truncate_to_string = (num, precision = 0) => {
     num = numberToString(num);
     if (precision > 0) {
@@ -156,19 +175,30 @@ const _decimalToPrecision = (x, roundingMode, numPrecisionDigits, countingMode =
         const precisionDigitsString = _decimalToPrecision(numPrecisionDigits, ROUND, 22, DECIMAL_PLACES, NO_PADDING);
         const newNumPrecisionDigits = precisionFromString(precisionDigitsString);
         if (roundingMode === TRUNCATE) {
-            // First, truncate the string to avoid floating-point precision issues
-            const xStr = numberToString(x);
-            const truncatedX = truncate_to_string((xStr === undefined) ? '' : xStr, Math.max(0, newNumPrecisionDigits));
-            const xNum = Number(truncatedX);
-            const scale = Math.pow(10, newNumPrecisionDigits);
-            const xScaled = Math.round(xNum * scale);
-            const tickScaled = Math.round(numPrecisionDigits * scale);
-            const ticks = Math.trunc(xScaled / tickScaled);
-            x = (ticks * tickScaled) / scale;
-            if (paddingMode === NO_PADDING) {
-                return String(Number(x.toFixed(newNumPrecisionDigits)));
+            // The tick step stays in decimal strings. A float64 round trip prints a
+            // result under 1e-6 as '1e-8', which decimalToPrecision itself then
+            // rejects, and drops digits above 2^53.
+            const tickString = numberToString(numPrecisionDigits);
+            const xString = numberToString(x);
+            // stringDiv answers undefined on a zero tick, which the caller reaches
+            // through a market whose precision is missing rather than through a price.
+            const quotient = Precise.stringDiv(xString, tickString, TICK_QUOTIENT_DIGITS);
+            if (quotient === undefined) {
+                return '0';
             }
-            return _decimalToPrecision(x, ROUND, newNumPrecisionDigits, DECIMAL_PLACES, paddingMode);
+            const point = quotient.indexOf('.');
+            let ticks = (point < 0) ? quotient : quotient.slice(0, point);
+            if ((ticks === '') || (ticks === '-')) {
+                ticks = '0';
+            }
+            let result = Precise.stringMul(ticks, tickString);
+            if (paddingMode === PAD_WITH_ZERO) {
+                result = padDecimals(result, newNumPrecisionDigits);
+            }
+            else {
+                result = stripDecimals(result);
+            }
+            return (result === '-0') ? '0' : result;
         }
         let missing = x % numPrecisionDigits;
         // See: https://github.com/ccxt/ccxt/pull/6486

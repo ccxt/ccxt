@@ -88,11 +88,39 @@ public partial class coinbaseexchange : Exchange
         return await this.callAsync<List<object>> ("publicGetProductsVolumeSummary",parameters);
     }
 
+    /// <summary>Calls the publicGetWrappedAssets endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetWrappedAssets (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("publicGetWrappedAssets",parameters);
+    }
+
+    /// <summary>Calls the publicGetWrappedAssetsWrappedAssetId endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetWrappedAssetsWrappedAssetId (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("publicGetWrappedAssetsWrappedAssetId",parameters);
+    }
+
+    /// <summary>Calls the publicGetWrappedAssetsWrappedAssetIdConversionRate endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetWrappedAssetsWrappedAssetIdConversionRate (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("publicGetWrappedAssetsWrappedAssetIdConversionRate",parameters);
+    }
+
     /// <summary>Calls the privateGetAddressBook endpoint.</summary>
     /// <returns>a JSON array</returns>
     public async Task<List<object>> privateGetAddressBook (object parameters = null)
     {
         return await this.callAsync<List<object>> ("privateGetAddressBook",parameters);
+    }
+
+    /// <summary>Calls the privateGetAddressBookCounterparty endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> privateGetAddressBookCounterparty (object parameters = null)
+    {
+        return await this.callAsync<List<object>> ("privateGetAddressBookCounterparty",parameters);
     }
 
     /// <summary>Calls the privateGetAccounts endpoint.</summary>
@@ -298,6 +326,13 @@ public partial class coinbaseexchange : Exchange
         return await this.callAsync<Dictionary<string, object>> ("privateGetTransfersTransferId",parameters);
     }
 
+    /// <summary>Calls the privateGetTravelRules endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> privateGetTravelRules (object parameters = null)
+    {
+        return await this.callAsync<List<object>> ("privateGetTravelRules",parameters);
+    }
+
     /// <summary>Calls the privateGetUsersSelfExchangeLimits endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> privateGetUsersSelfExchangeLimits (object parameters = null)
@@ -317,6 +352,13 @@ public partial class coinbaseexchange : Exchange
     public async Task<Dictionary<string, object>> privateGetUsersSelfTrailingVolume (object parameters = null)
     {
         return await this.callAsync<Dictionary<string, object>> ("privateGetUsersSelfTrailingVolume",parameters);
+    }
+
+    /// <summary>Calls the privateGetUsersUserIdTradingVolumes endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetUsersUserIdTradingVolumes (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateGetUsersUserIdTradingVolumes",parameters);
     }
 
     /// <summary>Calls the privateGetWithdrawalsFeeEstimate endpoint.</summary>
@@ -424,6 +466,41 @@ public partial class coinbaseexchange : Exchange
         return await this.callAsync<List<object>> ("privateGetLoans",parameters);
     }
 
+    /// <summary>Calls the privateGetLoansOptions endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> privateGetLoansOptions (object parameters = null)
+    {
+        return await this.callAsync<List<object>> ("privateGetLoansOptions",parameters);
+    }
+
+    /// <summary>Calls the privateGetWrappedAssetsRedeem endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> privateGetWrappedAssetsRedeem (object parameters = null)
+    {
+        return await this.callAsync<List<object>> ("privateGetWrappedAssetsRedeem",parameters);
+    }
+
+    /// <summary>Calls the privateGetWrappedAssetsRedeemRedeemId endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetWrappedAssetsRedeemRedeemId (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateGetWrappedAssetsRedeemRedeemId",parameters);
+    }
+
+    /// <summary>Calls the privateGetWrappedAssetsStakeWrap endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> privateGetWrappedAssetsStakeWrap (object parameters = null)
+    {
+        return await this.callAsync<List<object>> ("privateGetWrappedAssetsStakeWrap",parameters);
+    }
+
+    /// <summary>Calls the privateGetWrappedAssetsStakeWrapStakeWrapId endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetWrappedAssetsStakeWrapStakeWrapId (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateGetWrappedAssetsStakeWrapStakeWrapId",parameters);
+    }
+
     /// <summary>Calls the privatePostConversions endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> privatePostConversions (object parameters = null)
@@ -450,6 +527,13 @@ public partial class coinbaseexchange : Exchange
     public async Task<Dictionary<string, object>> privatePostCoinbaseAccountsIdAddresses (object parameters = null)
     {
         return await this.callAsync<Dictionary<string, object>> ("privatePostCoinbaseAccountsIdAddresses",parameters);
+    }
+
+    /// <summary>Calls the privatePostAddressBook endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostAddressBook (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostAddressBook",parameters);
     }
 
     /// <summary>Calls the privatePostFundingRepay endpoint.</summary>
@@ -515,6 +599,13 @@ public partial class coinbaseexchange : Exchange
         return await this.callAsync<Dictionary<string, object>> ("privatePostWithdrawalsCoinbaseAccount",parameters);
     }
 
+    /// <summary>Calls the privatePostWithdrawalsCounterparty endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostWithdrawalsCounterparty (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostWithdrawalsCounterparty",parameters);
+    }
+
     /// <summary>Calls the privatePostWithdrawalsCrypto endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> privatePostWithdrawalsCrypto (object parameters = null)
@@ -527,6 +618,41 @@ public partial class coinbaseexchange : Exchange
     public async Task<Dictionary<string, object>> privatePostWithdrawalsPaymentMethod (object parameters = null)
     {
         return await this.callAsync<Dictionary<string, object>> ("privatePostWithdrawalsPaymentMethod",parameters);
+    }
+
+    /// <summary>Calls the privatePostTransfersTransferIdTravelRules endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostTransfersTransferIdTravelRules (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostTransfersTransferIdTravelRules",parameters);
+    }
+
+    /// <summary>Calls the privatePostTravelRules endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostTravelRules (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostTravelRules",parameters);
+    }
+
+    /// <summary>Calls the privatePostUsersUserIdSettlementPreferences endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostUsersUserIdSettlementPreferences (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostUsersUserIdSettlementPreferences",parameters);
+    }
+
+    /// <summary>Calls the privatePostWrappedAssetsRedeem endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostWrappedAssetsRedeem (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostWrappedAssetsRedeem",parameters);
+    }
+
+    /// <summary>Calls the privatePostWrappedAssetsStakeWrap endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostWrappedAssetsStakeWrap (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostWrappedAssetsStakeWrap",parameters);
     }
 
     /// <summary>Calls the privatePostLoansOpen endpoint.</summary>
@@ -571,6 +697,20 @@ public partial class coinbaseexchange : Exchange
         return await this.callAsync<Dictionary<string, object>> ("privateDeleteOrdersId",parameters);
     }
 
+    /// <summary>Calls the privateDeleteAddressBookId endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateDeleteAddressBookId (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateDeleteAddressBookId",parameters);
+    }
+
+    /// <summary>Calls the privateDeleteTravelRulesId endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateDeleteTravelRulesId (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateDeleteTravelRulesId",parameters);
+    }
+
     /// <summary>Calls the privatePutProfilesIdDeactivate endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> privatePutProfilesIdDeactivate (object parameters = null)
@@ -583,6 +723,13 @@ public partial class coinbaseexchange : Exchange
     public async Task<Dictionary<string, object>> privatePutProfilesId (object parameters = null)
     {
         return await this.callAsync<Dictionary<string, object>> ("privatePutProfilesId",parameters);
+    }
+
+    /// <summary>Calls the privatePutAddressBookId endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePutAddressBookId (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePutAddressBookId",parameters);
     }
 
 }

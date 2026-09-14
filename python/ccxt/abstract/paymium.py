@@ -1,8 +1,7 @@
 from ccxt.base.types import Entry
-from typing import Any as PythonAny, Dict, List
+_List = list[object]
+_Dict = dict[str, object]
 
-_List = List[PythonAny]
-_Dict = Dict[str, PythonAny]
 
 class ImplicitAPI:
     public_get_countries = publicGetCountries = Entry[_List]('countries', 'public', 'GET', {'cost': 1})
@@ -18,6 +17,7 @@ class ImplicitAPI:
     private_get_user_orders = privateGetUserOrders = Entry[_List]('user/orders', 'private', 'GET', {'cost': 1})
     private_get_user_orders_uuid = privateGetUserOrdersUuid = Entry[_Dict]('user/orders/{uuid}', 'private', 'GET', {'cost': 1})
     private_get_user_price_alerts = privateGetUserPriceAlerts = Entry[_List]('user/price_alerts', 'private', 'GET', {'cost': 1})
+    private_get_user_withdrawals = privateGetUserWithdrawals = Entry[_List]('user/withdrawals', 'private', 'GET', {'cost': 1})
     private_get_merchant_get_payment_uuid = privateGetMerchantGetPaymentUuid = Entry[_Dict]('merchant/get_payment/{uuid}', 'private', 'GET', {'cost': 1})
     private_post_user_addresses = privatePostUserAddresses = Entry[_Dict]('user/addresses', 'private', 'POST', {'cost': 1})
     private_post_user_orders = privatePostUserOrders = Entry[_Dict]('user/orders', 'private', 'POST', {'cost': 1})

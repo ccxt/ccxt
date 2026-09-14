@@ -142,8 +142,14 @@ func TestDecimalToPrecision() {
 	Assert(ccxt.IsEqual(exchange.DecimalToPrecision("0.000123456789", ccxt.TRUNCATE, 1.2e-7, ccxt.TICK_SIZE), "0.00012336"))
 	Assert(ccxt.IsEqual(exchange.DecimalToPrecision("0.000273398", ccxt.ROUND, 1e-7, ccxt.TICK_SIZE), "0.0002734"))
 	Assert(ccxt.IsEqual(exchange.DecimalToPrecision("0.00005714", ccxt.TRUNCATE, 1e-8, ccxt.TICK_SIZE), "0.00005714"))
-	// this line causes problems in JS, fix with ccxt.Precise
-	// assert (exchange.decimalToPrecision ('0.0000571495257361', ccxt.TRUNCATE, 0.00000001, ccxt.TICK_SIZE) === '0.00005714');
+	Assert(ccxt.IsEqual(exchange.DecimalToPrecision("0.0000571495257361", ccxt.TRUNCATE, 1e-8, ccxt.TICK_SIZE), "0.00005714"))
+	// A result under 1e-6 is a decimal, not an exponent: '1e-8' is not a number
+	// decimalToPrecision accepts back, and it is what reaches an order body.
+	Assert(ccxt.IsEqual(exchange.DecimalToPrecision("0.00000001", ccxt.TRUNCATE, 1e-8, ccxt.TICK_SIZE), "0.00000001"))
+	Assert(ccxt.IsEqual(exchange.DecimalToPrecision("0.000000123", ccxt.TRUNCATE, 1e-8, ccxt.TICK_SIZE), "0.00000012"))
+	Assert(ccxt.IsEqual(exchange.DecimalToPrecision("0.0000009", ccxt.TRUNCATE, 1e-7, ccxt.TICK_SIZE), "0.0000009"))
+	Assert(ccxt.IsEqual(exchange.DecimalToPrecision("0.0000005", ccxt.TRUNCATE, 1e-7, ccxt.TICK_SIZE), "0.0000005"))
+	Assert(ccxt.IsEqual(exchange.DecimalToPrecision("0.00000001", ccxt.TRUNCATE, 1e-8, ccxt.TICK_SIZE, ccxt.PAD_WITH_ZERO), "0.00000001"))
 	Assert(ccxt.IsEqual(exchange.DecimalToPrecision("0.01", ccxt.ROUND, 0.0001, ccxt.TICK_SIZE, ccxt.PAD_WITH_ZERO), "0.0100"))
 	Assert(ccxt.IsEqual(exchange.DecimalToPrecision("0.01", ccxt.TRUNCATE, 0.0001, ccxt.TICK_SIZE, ccxt.PAD_WITH_ZERO), "0.0100"))
 	Assert(ccxt.IsEqual(exchange.DecimalToPrecision("-0.000123456789", ccxt.ROUND, 1.2e-7, ccxt.TICK_SIZE), "-0.00012348"))
@@ -208,19 +214,8 @@ func TestDecimalToPrecision() {
 	Assert(ccxt.IsEqual(exchange.DecimalToPrecision("-165", ccxt.TRUNCATE, "110", ccxt.TICK_SIZE), "-110"))
 	Assert(ccxt.IsEqual(exchange.DecimalToPrecision("-165", ccxt.ROUND, "110", ccxt.TICK_SIZE), "-220"))
 	// ----------------------------------------------------------------------------
-	// testDecimalToPrecisionErrorHandling (todo)
-	//
-	// throws (() =>
-	//     decimalToPrecision ('123456.789', ccxt.TRUNCATE, -2, ccxt.DECIMAL_PLACES),
-	//         'negative precision is not yet supported')
-	//
-	// throws (() =>
-	//     decimalToPrecision ('foo'),
-	//         "invalid number (contains an illegal character 'f')")
-	//
-	// throws (() =>
-	//     decimalToPrecision ('0.01', ccxt.TRUNCATE, -1, ccxt.TICK_SIZE),
-	//         "TICK_SIZE cant be used with negative numPrecisionDigits")
+	// testDecimalToPrecisionErrorHandling (todo): negative precision (ccxt.TRUNCATE, -2, ccxt.DECIMAL_PLACES),
+	// illegal characters ('foo') and ccxt.TICK_SIZE with negative numPrecisionDigits must all throw
 	// ----------------------------------------------------------------------------
 	// Additional Edge Cases
 	// Zero handling variations

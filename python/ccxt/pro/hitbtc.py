@@ -6,9 +6,8 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
 import hashlib
-from ccxt.base.types import Any, Balances, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Balances, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
-from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import NotSupported
@@ -16,10 +15,10 @@ from ccxt.base.errors import NotSupported
 
 class hitbtc(ccxt.async_support.hitbtc):
 
-    def describe(self) -> Any:
+    def describe(self) -> object:
         return self.deep_extend(super(hitbtc, self).describe(), self.describe_data())
 
-    def describe_data(self) -> Any:
+    def describe_data(self) -> object:
         return {
             'has': {
                 'ws': True,
@@ -117,7 +116,7 @@ class hitbtc(ccxt.async_support.hitbtc):
             #
             #    {
             #        "jsonrpc": "2.0",
-            #        "result": True
+            #        "result": true
             #    }
             #
             #    # Failure to return results
@@ -236,21 +235,21 @@ class hitbtc(ccxt.async_support.hitbtc):
         orderbook = await self.subscribe_public(name, 'orderbooks', [symbol], self.deep_extend(request, params))
         return orderbook.limit()
 
-    def handle_order_book(self, client: Client, message: Any):
+    def handle_order_book(self, client: Client, message: object):
         #
         #    {
-        #        "ch": "orderbook/full",                 # Channel
+        #        "ch": "orderbook/full",                 // Channel
         #        "snapshot": {
         #            "ETHBTC": {
-        #                "t": 1626866578796,             # Timestamp in milliseconds
-        #                "s": 27617207,                  # Sequence number
-        #                "a": [                         # Asks
+        #                "t": 1626866578796,             // Timestamp in milliseconds
+        #                "s": 27617207,                  // Sequence number
+        #                "a": [                          // Asks
         #                    ["0.060506", "0"],
         #                    ["0.060549", "12.6431"],
         #                    ["0.060570", "0"],
         #                    ["0.060612", "0"]
         #                ],
-        #                "b": [                         # Bids
+        #                "b": [                          // Bids
         #                    ["0.060439", "4.4095"],
         #                    ["0.060414", "0"],
         #                    ["0.060407", "7.3349"],
@@ -262,7 +261,7 @@ class hitbtc(ccxt.async_support.hitbtc):
         #
         snapshot = self.safe_dict(message, 'snapshot')
         data = self.safe_dict_2(message, 'snapshot', 'update', {})
-        type = 'snapshot' if snapshot else 'update'
+        type = 'snapshot' if (snapshot is not None and snapshot is not None) else 'update'
         marketIds = list(data.keys())
         for i in range(0, len(marketIds)):
             marketId = marketIds[i]
@@ -292,12 +291,12 @@ class hitbtc(ccxt.async_support.hitbtc):
             self.orderbooks[symbol] = orderbook
             client.resolve(orderbook, messageHash)
 
-    def handle_delta(self, bookside: Any, delta: Any):
+    def handle_delta(self, bookside: object, delta: object):
         price = self.safe_number(delta, 0)
         amount = self.safe_number(delta, 1)
         bookside.store(price, amount)
 
-    def handle_deltas(self, bookside: Any, deltas: Any):
+    def handle_deltas(self, bookside: object, deltas: object):
         for i in range(0, len(deltas)):
             self.handle_delta(bookside, deltas[i])
 
@@ -358,26 +357,26 @@ class hitbtc(ccxt.async_support.hitbtc):
                 return tickers
         return self.filter_by_array(newTickers, 'symbol', symbols)
 
-    def handle_ticker(self, client: Client, message: Any):
+    def handle_ticker(self, client: Client, message: object):
         #
         #    {
         #        "ch": "ticker/1s",
         #        "data": {
         #            "ETHBTC": {
-        #                "t": 1614815872000,             # Timestamp in milliseconds
-        #                "a": "0.031175",                # Best ask
-        #                "A": "0.03329",                 # Best ask quantity
-        #                "b": "0.031148",                # Best bid
-        #                "B": "0.10565",                 # Best bid quantity
-        #                "c": "0.031210",                # Last price
-        #                "o": "0.030781",                # Open price
-        #                "h": "0.031788",                # High price
-        #                "l": "0.030733",                # Low price
-        #                "v": "62.587",                  # Base asset volume
-        #                "q": "1.951420577",             # Quote asset volume
-        #                "p": "0.000429",                # Price change
-        #                "P": "1.39",                    # Price change percent
-        #                "L": 1182694927                 # Last trade identifier
+        #                "t": 1614815872000,             // Timestamp in milliseconds
+        #                "a": "0.031175",                // Best ask
+        #                "A": "0.03329",                 // Best ask quantity
+        #                "b": "0.031148",                // Best bid
+        #                "B": "0.10565",                 // Best bid quantity
+        #                "c": "0.031210",                // Last price
+        #                "o": "0.030781",                // Open price
+        #                "h": "0.031788",                // High price
+        #                "l": "0.030733",                // Low price
+        #                "v": "62.587",                  // Base asset volume
+        #                "q": "1.951420577",             // Quote asset volume
+        #                "p": "0.000429",                // Price change
+        #                "P": "1.39",                    // Price change percent
+        #                "L": 1182694927                 // Last trade identifier
         #            }
         #        }
         #    }
@@ -397,7 +396,7 @@ class hitbtc(ccxt.async_support.hitbtc):
         #        }
         #    }
         #
-        data = self.safe_value(message, 'data', {})
+        data = self.safe_dict(message, 'data', {})
         marketIds = list(data.keys())
         result = []
         topic = 'tickers'
@@ -415,20 +414,20 @@ class hitbtc(ccxt.async_support.hitbtc):
     def parse_ws_ticker(self, ticker: dict, market: Market = None):
         #
         #    {
-        #        "t": 1614815872000,             # Timestamp in milliseconds
-        #        "a": "0.031175",                # Best ask
-        #        "A": "0.03329",                 # Best ask quantity
-        #        "b": "0.031148",                # Best bid
-        #        "B": "0.10565",                 # Best bid quantity
-        #        "c": "0.031210",                # Last price
-        #        "o": "0.030781",                # Open price
-        #        "h": "0.031788",                # High price
-        #        "l": "0.030733",                # Low price
-        #        "v": "62.587",                  # Base asset volume
-        #        "q": "1.951420577",             # Quote asset volume
-        #        "p": "0.000429",                # Price change
-        #        "P": "1.39",                    # Price change percent
-        #        "L": 1182694927                 # Last trade identifier
+        #        "t": 1614815872000,             // Timestamp in milliseconds
+        #        "a": "0.031175",                // Best ask
+        #        "A": "0.03329",                 // Best ask quantity
+        #        "b": "0.031148",                // Best bid
+        #        "B": "0.10565",                 // Best bid quantity
+        #        "c": "0.031210",                // Last price
+        #        "o": "0.030781",                // Open price
+        #        "h": "0.031788",                // High price
+        #        "l": "0.030733",                // Low price
+        #        "v": "62.587",                  // Base asset volume
+        #        "q": "1.951420577",             // Quote asset volume
+        #        "p": "0.000429",                // Price change
+        #        "P": "1.39",                    // Price change percent
+        #        "L": 1182694927                 // Last trade identifier
         #    }
         #
         #    {
@@ -502,10 +501,10 @@ class hitbtc(ccxt.async_support.hitbtc):
                 return tickers
         return self.filter_by_array(newTickers, 'symbol', symbols)
 
-    def handle_bid_ask(self, client: Client, message: Any):
+    def handle_bid_ask(self, client: Client, message: object):
         #
         #     {
-        #         "ch": "orderbook/top/100ms",  # or 'orderbook/top/100ms/batch'
+        #         "ch": "orderbook/top/100ms", // or 'orderbook/top/100ms/batch'
         #         "data": {
         #             "BTCUSDT": {
         #                 "t": 1727276919771,
@@ -532,7 +531,7 @@ class hitbtc(ccxt.async_support.hitbtc):
             client.resolve(ticker, messageHash)
         client.resolve(result, topic)
 
-    def parse_ws_bid_ask(self, ticker: Any, market: Market = None):
+    def parse_ws_bid_ask(self, ticker: object, market: Market = None):
         timestamp = self.safe_integer(ticker, 't')
         bidAskSymbol = market['symbol'] if (market is not None) else None
         return self.safe_ticker({
@@ -546,7 +545,7 @@ class hitbtc(ccxt.async_support.hitbtc):
             'info': ticker,
         }, market)
 
-    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
         """
         get the list of most recent trades for a particular symbol
 
@@ -574,11 +573,11 @@ class hitbtc(ccxt.async_support.hitbtc):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp')
 
-    def handle_trades(self, client: Client, message: Any):
+    def handle_trades(self, client: Client, message: object):
         #
         #    {
         #        "result": {
-        #            "ch": "trades",                           # Channel
+        #            "ch": "trades",                           // Channel
         #            "subscriptions": ["ETHBTC", "BTCUSDT"]
         #        },
         #        "id": 123
@@ -587,14 +586,14 @@ class hitbtc(ccxt.async_support.hitbtc):
         # Notification snapshot
         #
         #    {
-        #        "ch": "trades",                               # Channel
+        #        "ch": "trades",                               // Channel
         #        "snapshot": {
         #            "BTCUSDT": [{
-        #                "t": 1626861109494,                   # Timestamp in milliseconds
-        #                "i": 1555634969,                      # Trade identifier
-        #                "p": "30881.96",                      # Price
-        #                "q": "12.66828",                      # Quantity
-        #                "s": "buy"                            # Side
+        #                "t": 1626861109494,                   // Timestamp in milliseconds
+        #                "i": 1555634969,                      // Trade identifier
+        #                "p": "30881.96",                      // Price
+        #                "q": "12.66828",                      // Quantity
+        #                "s": "buy"                            // Side
         #            }]
         #        }
         #    }
@@ -614,7 +613,7 @@ class hitbtc(ccxt.async_support.hitbtc):
         #        }
         #    }
         #
-        data = self.safe_value_2(message, 'snapshot', 'update', {})
+        data = self.safe_dict_2(message, 'snapshot', 'update', {})
         marketIds = list(data.keys())
         for i in range(0, len(marketIds)):
             marketId = marketIds[i]
@@ -632,7 +631,7 @@ class hitbtc(ccxt.async_support.hitbtc):
             client.resolve(stored, messageHash)
         return message
 
-    def parse_ws_trades(self, trades: List[Any], market: Market = None, since: Int = None, limit: Int = None, params={}):
+    def parse_ws_trades(self, trades: list, market: Market = None, since: Int = None, limit: Int = None, params={}):
         tradesArray = self.to_array(trades)
         result = []
         for i in range(0, len(tradesArray)):
@@ -642,14 +641,14 @@ class hitbtc(ccxt.async_support.hitbtc):
         symbol = self.safe_string(market, 'symbol')
         return self.filter_by_symbol_since_limit(result, symbol, since, limit)
 
-    def parse_ws_trade(self, trade: Any, market: Market = None):
+    def parse_ws_trade(self, trade: object, market: Market = None):
         #
         #    {
-        #        "t": 1626861123552,       # Timestamp in milliseconds
-        #        "i": 1555634969,          # Trade identifier
-        #        "p": "30877.68",          # Price
-        #        "q": "0.00006",           # Quantity
-        #        "s": "sell"               # Side
+        #        "t": 1626861123552,       // Timestamp in milliseconds
+        #        "i": 1555634969,          // Trade identifier
+        #        "p": "30877.68",          // Price
+        #        "q": "0.00006",           // Quantity
+        #        "s": "sell"               // Side
         #    }
         #
         timestamp = self.safe_integer(trade, 't')
@@ -669,7 +668,7 @@ class hitbtc(ccxt.async_support.hitbtc):
             'fee': None,
         }, market)
 
-    async def watch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def watch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> list[list]:
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -680,7 +679,7 @@ class hitbtc(ccxt.async_support.hitbtc):
         :param int [since]: not used by hitbtc watchOHLCV
         :param int [limit]: 0 – 1000, default value = 0(no history returned)
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         period = self.safe_string(self.timeframes, timeframe, timeframe)
         name = 'candles/' + period
@@ -697,19 +696,19 @@ class hitbtc(ccxt.async_support.hitbtc):
             limit = ohlcv.getLimit(symbol, limit)
         return self.filter_by_since_limit(ohlcv, since, limit, 0)
 
-    def handle_ohlcv(self, client: Client, message: Any):
+    def handle_ohlcv(self, client: Client, message: object):
         #
         #    {
-        #        "ch": "candles/M1",                     # Channel
+        #        "ch": "candles/M1",                     // Channel
         #        "snapshot": {
         #            "BTCUSDT": [{
-        #                "t": 1626860340000,             # Message timestamp
-        #                "o": "30881.95",                # Open price
-        #                "c": "30890.96",                # Last price
-        #                "h": "30900.8",                 # High price
-        #                "l": "30861.27",                # Low price
-        #                "v": "1.27852",                 # Base asset volume
-        #                "q": "39493.9021811"            # Quote asset volume
+        #                "t": 1626860340000,             // Message timestamp
+        #                "o": "30881.95",                // Open price
+        #                "c": "30890.96",                // Last price
+        #                "h": "30900.8",                 // High price
+        #                "l": "30861.27",                // Low price
+        #                "v": "1.27852",                 // Base asset volume
+        #                "q": "39493.9021811"            // Quote asset volume
         #            }
         #            ...
         #            ]
@@ -731,7 +730,7 @@ class hitbtc(ccxt.async_support.hitbtc):
         #        }
         #    }
         #
-        data = self.safe_value_2(message, 'snapshot', 'update', {})
+        data = self.safe_dict_2(message, 'snapshot', 'update', {})
         marketIds = list(data.keys())
         channel = self.safe_string(message, 'ch', '')
         splitChannel = channel.split('/')
@@ -756,16 +755,16 @@ class hitbtc(ccxt.async_support.hitbtc):
             client.resolve(stored, messageHash)
         return message
 
-    def parse_ws_ohlcv(self, ohlcv: Any, market: Market = None) -> list:
+    def parse_ws_ohlcv(self, ohlcv: object, market: Market = None) -> list:
         #
         #    {
-        #        "t": 1626860340000,             # Message timestamp
-        #        "o": "30881.95",                # Open price
-        #        "c": "30890.96",                # Last price
-        #        "h": "30900.8",                 # High price
-        #        "l": "30861.27",                # Low price
-        #        "v": "1.27852",                 # Base asset volume
-        #        "q": "39493.9021811"            # Quote asset volume
+        #        "t": 1626860340000,             // Message timestamp
+        #        "o": "30881.95",                // Open price
+        #        "c": "30890.96",                // Last price
+        #        "h": "30900.8",                 // High price
+        #        "l": "30861.27",                // Low price
+        #        "v": "1.27852",                 // Base asset volume
+        #        "q": "39493.9021811"            // Quote asset volume
         #    }
         #
         return [
@@ -777,7 +776,7 @@ class hitbtc(ccxt.async_support.hitbtc):
             self.safe_number(ohlcv, 'v'),
         ]
 
-    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         watches information on multiple orders made by the user
 
@@ -809,11 +808,11 @@ class hitbtc(ccxt.async_support.hitbtc):
             limit = orders.getLimit(symbol, limit)
         return self.filter_by_since_limit(orders, since, limit, 'timestamp')
 
-    def handle_order(self, client: Client, message: Any):
+    def handle_order(self, client: Client, message: object):
         #
         #    {
         #        "jsonrpc": "2.0",
-        #        "method": "spot_order",                            # "margin_order", "future_order"
+        #        "method": "spot_order",                            // "margin_order", "future_order"
         #        "params": {
         #            "id": 584244931496,
         #            "client_order_id": "b5acd79c0a854b01b558665bcf379456",
@@ -824,25 +823,25 @@ class hitbtc(ccxt.async_support.hitbtc):
         #            "time_in_force": "GTC",
         #            "quantity": "0.01000",
         #            "quantity_cumulative": "0",
-        #            "price": "0.01",                              # only updates and snapshots
-        #            "post_only": False,
-        #            "reduce_only": False,                         # only margin and contract
-        #            "display_quantity": "0",                      # only updates and snapshot
+        #            "price": "0.01",                              // only updates and snapshots
+        #            "post_only": false,
+        #            "reduce_only": false,                         // only margin and contract
+        #            "display_quantity": "0",                      // only updates and snapshot
         #            "created_at": "2021-07-02T22:52:32.864Z",
         #            "updated_at": "2021-07-02T22:52:32.864Z",
-        #            "trade_id": 1361977606,                       # only trades
-        #            "trade_quantity": "0.00001",                  # only trades
-        #            "trade_price": "49595.04",                    # only trades
-        #            "trade_fee": "0.001239876000",                # only trades
-        #            "trade_taker": True,                          # only trades, only spot
-        #            "trade_position_id": 485308,                  # only trades, only margin
-        #            "report_type": "new"                          # "trade", "status"(snapshot)
+        #            "trade_id": 1361977606,                       // only trades
+        #            "trade_quantity": "0.00001",                  // only trades
+        #            "trade_price": "49595.04",                    // only trades
+        #            "trade_fee": "0.001239876000",                // only trades
+        #            "trade_taker": true,                          // only trades, only spot
+        #            "trade_position_id": 485308,                  // only trades, only margin
+        #            "report_type": "new"                          // "trade", "status" (snapshot)
         #        }
         #    }
         #
         #    {
         #       "jsonrpc": "2.0",
-        #       "method": "spot_orders",                            # "margin_orders", "future_orders"
+        #       "method": "spot_orders",                            // "margin_orders", "future_orders"
         #       "params": [
         #            {
         #                "id": 584244931496,
@@ -854,19 +853,19 @@ class hitbtc(ccxt.async_support.hitbtc):
         #                "time_in_force": "GTC",
         #                "quantity": "0.01000",
         #                "quantity_cumulative": "0",
-        #                "price": "0.01",                              # only updates and snapshots
-        #                "post_only": False,
-        #                "reduce_only": False,                         # only margin and contract
-        #                "display_quantity": "0",                      # only updates and snapshot
+        #                "price": "0.01",                              // only updates and snapshots
+        #                "post_only": false,
+        #                "reduce_only": false,                         // only margin and contract
+        #                "display_quantity": "0",                      // only updates and snapshot
         #                "created_at": "2021-07-02T22:52:32.864Z",
         #                "updated_at": "2021-07-02T22:52:32.864Z",
-        #                "trade_id": 1361977606,                       # only trades
-        #                "trade_quantity": "0.00001",                  # only trades
-        #                "trade_price": "49595.04",                    # only trades
-        #                "trade_fee": "0.001239876000",                # only trades
-        #                "trade_taker": True,                          # only trades, only spot
-        #                "trade_position_id": 485308,                  # only trades, only margin
-        #                "report_type": "new"                          # "trade", "status"(snapshot)
+        #                "trade_id": 1361977606,                       // only trades
+        #                "trade_quantity": "0.00001",                  // only trades
+        #                "trade_price": "49595.04",                    // only trades
+        #                "trade_fee": "0.001239876000",                // only trades
+        #                "trade_taker": true,                          // only trades, only spot
+        #                "trade_position_id": 485308,                  // only trades, only margin
+        #                "report_type": "new"                          // "trade", "status" (snapshot)
         #            }
         #        ]
         #    }
@@ -883,7 +882,7 @@ class hitbtc(ccxt.async_support.hitbtc):
             self.handle_order_helper(client, message, data)
         return message
 
-    def handle_order_helper(self, client: Client, message: Any, order: Any):
+    def handle_order_helper(self, client: Client, message: object, order: object):
         orders = self.orders
         if orders is None:
             return
@@ -909,19 +908,19 @@ class hitbtc(ccxt.async_support.hitbtc):
         #        "time_in_force": "GTC",
         #        "quantity": "0.01000",
         #        "quantity_cumulative": "0",
-        #        "price": "0.01",                              # only updates and snapshots
-        #        "post_only": False,
-        #        "reduce_only": False,                         # only margin and contract
-        #        "display_quantity": "0",                      # only updates and snapshot
+        #        "price": "0.01",                              // only updates and snapshots
+        #        "post_only": false,
+        #        "reduce_only": false,                         // only margin and contract
+        #        "display_quantity": "0",                      // only updates and snapshot
         #        "created_at": "2021-07-02T22:52:32.864Z",
         #        "updated_at": "2021-07-02T22:52:32.864Z",
-        #        "trade_id": 1361977606,                       # only trades
-        #        "trade_quantity": "0.00001",                  # only trades
-        #        "trade_price": "49595.04",                    # only trades
-        #        "trade_fee": "0.001239876000",                # only trades
-        #        "trade_taker": True,                          # only trades, only spot
-        #        "trade_position_id": 485308,                  # only trades, only margin
-        #        "report_type": "new"                          # "trade", "status"(snapshot)
+        #        "trade_id": 1361977606,                       // only trades
+        #        "trade_quantity": "0.00001",                  // only trades
+        #        "trade_price": "49595.04",                    // only trades
+        #        "trade_fee": "0.001239876000",                // only trades
+        #        "trade_taker": true,                          // only trades, only spot
+        #        "trade_position_id": 485308,                  // only trades, only margin
+        #        "report_type": "new"                          // "trade", "status" (snapshot)
         #    }
         #
         timestamp = self.safe_integer(trade, 'created_at')
@@ -946,7 +945,7 @@ class hitbtc(ccxt.async_support.hitbtc):
             },
         }, market)
 
-    def parse_ws_order(self, order: Any, market: Market = None):
+    def parse_ws_order(self, order: object, market: Market = None):
         #
         #    {
         #        "id": 584244931496,
@@ -958,19 +957,19 @@ class hitbtc(ccxt.async_support.hitbtc):
         #        "time_in_force": "GTC",
         #        "quantity": "0.01000",
         #        "quantity_cumulative": "0",
-        #        "price": "0.01",                              # only updates and snapshots
-        #        "post_only": False,
-        #        "reduce_only": False,                         # only margin and contract
-        #        "display_quantity": "0",                      # only updates and snapshot
+        #        "price": "0.01",                              // only updates and snapshots
+        #        "post_only": false,
+        #        "reduce_only": false,                         // only margin and contract
+        #        "display_quantity": "0",                      // only updates and snapshot
         #        "created_at": "2021-07-02T22:52:32.864Z",
         #        "updated_at": "2021-07-02T22:52:32.864Z",
-        #        "trade_id": 1361977606,                       # only trades
-        #        "trade_quantity": "0.00001",                  # only trades
-        #        "trade_price": "49595.04",                    # only trades
-        #        "trade_fee": "0.001239876000",                # only trades
-        #        "trade_taker": True,                          # only trades, only spot
-        #        "trade_position_id": 485308,                  # only trades, only margin
-        #        "report_type": "new"                          # "trade", "status"(snapshot)
+        #        "trade_id": 1361977606,                       // only trades
+        #        "trade_quantity": "0.00001",                  // only trades
+        #        "trade_price": "49595.04",                    // only trades
+        #        "trade_fee": "0.001239876000",                // only trades
+        #        "trade_taker": true,                          // only trades, only spot
+        #        "trade_position_id": 485308,                  // only trades, only margin
+        #        "report_type": "new"                          // "trade", "status" (snapshot)
         #    }
         #
         timestamp = self.safe_string(order, 'created_at')
@@ -1114,7 +1113,7 @@ class hitbtc(ccxt.async_support.hitbtc):
         else:
             return await self.trade_request('spot_cancel_order', request)
 
-    async def cancel_all_orders_ws(self, symbol: Str = None, params={}) -> List[Order]:
+    async def cancel_all_orders_ws(self, symbol: Str = None, params={}) -> list[Order]:
         """
 
         https://api.hitbtc.com/#cancel-spot-orders
@@ -1143,7 +1142,7 @@ class hitbtc(ccxt.async_support.hitbtc):
         else:
             return await self.trade_request('spot_cancel_orders', params)
 
-    async def fetch_open_orders_ws(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    async def fetch_open_orders_ws(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
 
         https://api.hitbtc.com/#get-active-futures-orders-2
@@ -1177,7 +1176,7 @@ class hitbtc(ccxt.async_support.hitbtc):
         else:
             return await self.trade_request('spot_get_orders', request)
 
-    def handle_balance(self, client: Client, message: Any):
+    def handle_balance(self, client: Client, message: object):
         #
         #    {
         #        "jsonrpc": "2.0",
@@ -1199,13 +1198,13 @@ class hitbtc(ccxt.async_support.hitbtc):
         self.balance = self.deep_extend(self.balance, balance)
         client.resolve(self.balance, messageHash)
 
-    def handle_notification(self, client: Client, message: Any):
+    def handle_notification(self, client: Client, message: object):
         #
-        #     {jsonrpc: "2.0", result: True, id: null}
+        #     { jsonrpc: "2.0", result: true, id: null }
         #
         return message
 
-    def handle_order_request(self, client: Client, message: Any):
+    def handle_order_request(self, client: Client, message: object):
         #
         # createOrderWs, cancelOrderWs
         #
@@ -1222,13 +1221,13 @@ class hitbtc(ccxt.async_support.hitbtc):
         #            "quantity": "4",
         #            "quantity_cumulative": "0",
         #            "price": "0.3300000",
-        #            "post_only": False,
+        #            "post_only": false,
         #            "created_at": "2023-11-17T14:58:15.903Z",
         #            "updated_at": "2023-11-17T14:58:15.903Z",
-        #            "original_client_order_id": "d6b645556af740b1bd1683400fd9cbce",       # spot_replace_order only
+        #            "original_client_order_id": "d6b645556af740b1bd1683400fd9cbce",       // spot_replace_order only
         #            "report_type": "new"
-        #            "margin_mode": "isolated",                                            # margin and future only
-        #            "reduce_only": False,                                                 # margin and future only
+        #            "margin_mode": "isolated",                                            // margin and future only
+        #            "reduce_only": false,                                                 // margin and future only
         #        },
         #        "id": 1700233093414
         #    }
@@ -1246,7 +1245,7 @@ class hitbtc(ccxt.async_support.hitbtc):
             client.resolve(parsedOrder, messageHash)
         return message
 
-    def handle_message(self, client: Client, message: Any):
+    def handle_message(self, client: Client, message: object):
         if self.handle_error(client, message):
             return
         channel = self.safe_string_2(message, 'ch', 'method')
@@ -1283,22 +1282,22 @@ class hitbtc(ccxt.async_support.hitbtc):
             if (result is True) and not ('id' in message):
                 self.handle_authenticate(client, message)
             if isinstance(result, list):
-                # to do improve self, not very reliable right now
-                first = self.safe_value(result, 0, {})
+                # to do improve this, not very reliable right now
+                first = self.safe_dict(result, 0, {})
                 arrayLength = len(result)
                 if (arrayLength == 0) or ('client_order_id' in first):
                     self.handle_order_request(client, message)
 
-    def handle_authenticate(self, client: Client, message: Any):
+    def handle_authenticate(self, client: Client, message: object):
         #
         #    {
         #        "jsonrpc": "2.0",
-        #        "result": True
+        #        "result": true
         #    }
         #
         success = self.safe_value(message, 'result')
         messageHash = 'authenticated'
-        if success:
+        if success is True:
             future = self.safe_value(client.futures, messageHash)
             future.resolve(True)
         else:
@@ -1308,7 +1307,7 @@ class hitbtc(ccxt.async_support.hitbtc):
                 del client.subscriptions[messageHash]
         return message
 
-    def handle_error(self, client: Client, message: Any):
+    def handle_error(self, client: Client, message: object) -> bool:
         #
         #    {
         #        jsonrpc: '2.0',
@@ -1340,4 +1339,4 @@ class hitbtc(ccxt.async_support.hitbtc):
                     id = self.safe_string(message, 'id')
                     client.reject(e, id)
                 return True
-        return None
+        return False

@@ -50,7 +50,7 @@ abstract class tokocrypto extends \ccxt\Exchange {
         return $this->request('klines', 'binance', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return list<mixed>
+     * @return array<string, mixed>|list<mixed>
      */
     public function binance_get_ticker_24hr($params = array()) {
         return $this->request('ticker/24hr', 'binance', 'GET', $params, null, null, array("cost" => 1, "noSymbol" => 40));
@@ -72,6 +72,12 @@ abstract class tokocrypto extends \ccxt\Exchange {
      */
     public function binance_get_exchangeinfo($params = array()) {
         return $this->request('exchangeInfo', 'binance', 'GET', $params, null, null, array("cost" => 10));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function binance_get_executionrules($params = array()) {
+        return $this->request('executionRules', 'binance', 'GET', $params, null, null, array("cost" => 2, "noSymbol" => 40));
     }
     /**
      * @return array<string, mixed>
@@ -208,6 +214,12 @@ abstract class tokocrypto extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function private_post_open_v1_user_listen_token($params = array()) {
+        return $this->request('open/v1/user-listen-token', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function binanceGetPing($params = array()) {
         return $this->request('ping', 'binance', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -248,7 +260,7 @@ abstract class tokocrypto extends \ccxt\Exchange {
         return $this->request('klines', 'binance', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return list<mixed>
+     * @return array<string, mixed>|list<mixed>
      */
     public function binanceGetTicker24hr($params = array()) {
         return $this->request('ticker/24hr', 'binance', 'GET', $params, null, null, array("cost" => 1, "noSymbol" => 40));
@@ -270,6 +282,12 @@ abstract class tokocrypto extends \ccxt\Exchange {
      */
     public function binanceGetExchangeInfo($params = array()) {
         return $this->request('exchangeInfo', 'binance', 'GET', $params, null, null, array("cost" => 10));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function binanceGetExecutionRules($params = array()) {
+        return $this->request('executionRules', 'binance', 'GET', $params, null, null, array("cost" => 2, "noSymbol" => 40));
     }
     /**
      * @return array<string, mixed>
@@ -402,5 +420,11 @@ abstract class tokocrypto extends \ccxt\Exchange {
      */
     public function privatePostOpenV1UserDataStream($params = array()) {
         return $this->request('open/v1/user-data-stream', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privatePostOpenV1UserListenToken($params = array()) {
+        return $this->request('open/v1/user-listen-token', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
 }

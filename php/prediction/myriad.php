@@ -311,8 +311,8 @@ class myriad extends Exchange {
          * @return {array[]} an array of raw myriad market objects
          */
         $limit = $this->safe_integer($this->options, 'defaultFetchMarketsLimit', 50);
-        // scope the listing => without a search query loadMarkets would otherwise $page through
-        // every open myriad market. Cap the total number of markets $collected->
+        // scope the listing: without a search query loadMarkets would otherwise page through
+        // every open myriad market. Cap the total number of markets collected.
         $maxMarkets = $this->safe_integer($params, 'limit', $this->safe_integer($this->options, 'fetchMarketsLimit', 1000));
         $state = $this->safe_string_2($params, 'state', 'status', $this->safe_string($this->options, 'defaultMarketStatus', 'open'));
         // include both AMM and order-book markets so order-book trading methods can resolve their markets
@@ -390,7 +390,7 @@ class myriad extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} the raw myriad market object
          */
-        // the unified event $id is a composite networkId:marketId
+        // the unified event id is a composite networkId:marketId
         $parts = explode(':', $id);
         $partsLength = count($parts);
         $request = array();
@@ -568,44 +568,44 @@ class myriad extends Exchange {
         $response = Async\await($this->myriadPublicGetUsersAddressPortfolio($this->extend(array( 'address' => $address ), $rest)));
         //
         //     {
-        //         "data" => array(
+        //         "data": [
         //             {
-        //                 "marketId" => 170145,
-        //                 "marketTitle" => "Will Base TGE in 2026?",
-        //                 "marketSlug" => "will-base-tge-in-2026",
-        //                 "imageUrl" => "https://cdn.polkamarkets.com/Qmacfs1qiiUW5cnMRUyzji393Vn2DcvNdydGukf1Xk82b6",
-        //                 "outcomeId" => 0,
-        //                 "outcomeTitle" => "Yes",
-        //                 "networkId" => 56,
-        //                 "token" => "0x8d0D000Ee44948FC98c9B98A4FA4921476f08B0d",
-        //                 "tokenId" => null,
-        //                 "shares" => 8.23666644,
-        //                 "price" => 0.1214083400468503,
-        //                 "value" => 0.9823048396344001,
-        //                 "profit" => -0.017695160365599896,
-        //                 "roi" => -0.017695160365599896,
-        //                 "totalProfit" => -0.017695160365599927,
-        //                 "totalRoi" => -0.017695160365599927,
-        //                 "positionFees" => 0.02,
-        //                 "totalFees" => 0.02,
-        //                 "winningsToClaim" => false,
-        //                 "winningsClaimed" => false,
-        //                 "voidedWinningsToClaim" => false,
-        //                 "voidedWinningsClaimed" => false,
-        //                 "status" => "ongoing",
-        //                 "claimed" => false,
-        //                 "executionMode" => 0,
-        //                 "expiresAt" => "2026-12-31 23:59:00",
-        //                 "eventId" => null
+        //                 "marketId": 170145,
+        //                 "marketTitle": "Will Base TGE in 2026?",
+        //                 "marketSlug": "will-base-tge-in-2026",
+        //                 "imageUrl": "https://cdn.polkamarkets.com/Qmacfs1qiiUW5cnMRUyzji393Vn2DcvNdydGukf1Xk82b6",
+        //                 "outcomeId": 0,
+        //                 "outcomeTitle": "Yes",
+        //                 "networkId": 56,
+        //                 "token": "0x8d0D000Ee44948FC98c9B98A4FA4921476f08B0d",
+        //                 "tokenId": null,
+        //                 "shares": 8.23666644,
+        //                 "price": 0.1214083400468503,
+        //                 "value": 0.9823048396344001,
+        //                 "profit": -0.017695160365599896,
+        //                 "roi": -0.017695160365599896,
+        //                 "totalProfit": -0.017695160365599927,
+        //                 "totalRoi": -0.017695160365599927,
+        //                 "positionFees": 0.02,
+        //                 "totalFees": 0.02,
+        //                 "winningsToClaim": false,
+        //                 "winningsClaimed": false,
+        //                 "voidedWinningsToClaim": false,
+        //                 "voidedWinningsClaimed": false,
+        //                 "status": "ongoing",
+        //                 "claimed": false,
+        //                 "executionMode": 0,
+        //                 "expiresAt": "2026-12-31 23:59:00",
+        //                 "eventId": null
         //             }
-        //         ),
-        //         "pagination" => {
-        //             "page" => 1,
-        //             "limit" => 20,
-        //             "total" => 1,
-        //             "totalPages" => 1,
-        //             "hasNext" => false,
-        //             "hasPrev" => false
+        //         ],
+        //         "pagination": {
+        //             "page": 1,
+        //             "limit": 20,
+        //             "total": 1,
+        //             "totalPages": 1,
+        //             "hasNext": false,
+        //             "hasPrev": false
         //         }
         //     }
         //
@@ -699,18 +699,18 @@ class myriad extends Exchange {
         $response = Async\await($this->myriadPublicPostMarketsQuote($this->extend($request, $rest)));
         //
         //     {
-        //         "value" => 10,
-        //         "shares" => 21.566766528674936,
-        //         "shares_threshold" => 21.45893269603156,
-        //         "price_average" => 0.4636763692278168,
-        //         "price_before" => 0.46100295,
-        //         "price_after" => 0.46635187379825593,
-        //         "calldata" => "0x1...680",
-        //         "net_amount" => 10,
-        //         "fees" => {
-        //             "treasury" => 0,
-        //             "distributor" => 0,
-        //             "fee" => 0
+        //         "value": 10,
+        //         "shares": 21.566766528674936,
+        //         "shares_threshold": 21.45893269603156,
+        //         "price_average": 0.4636763692278168,
+        //         "price_before": 0.46100295,
+        //         "price_after": 0.46635187379825593,
+        //         "calldata": "0x1...680",
+        //         "net_amount": 10,
+        //         "fees": {
+        //             "treasury": 0,
+        //             "distributor": 0,
+        //             "fee": 0
         //         }
         //     }
         //
@@ -727,18 +727,18 @@ class myriad extends Exchange {
          */
         //
         //     {
-        //         "value" => 10,
-        //         "shares" => 21.566766528674936,
-        //         "shares_threshold" => 21.45893269603156,
-        //         "price_average" => 0.4636763692278168,
-        //         "price_before" => 0.46100295,
-        //         "price_after" => 0.46635187379825593,
-        //         "calldata" => "0x1...680",
-        //         "net_amount" => 10,
-        //         "fees" => {
-        //             "treasury" => 0,
-        //             "distributor" => 0,
-        //             "fee" => 0
+        //         "value": 10,
+        //         "shares": 21.566766528674936,
+        //         "shares_threshold": 21.45893269603156,
+        //         "price_average": 0.4636763692278168,
+        //         "price_before": 0.46100295,
+        //         "price_after": 0.46635187379825593,
+        //         "calldata": "0x1...680",
+        //         "net_amount": 10,
+        //         "fees": {
+        //             "treasury": 0,
+        //             "distributor": 0,
+        //             "fee": 0
         //         }
         //     }
         //
@@ -759,8 +759,8 @@ class myriad extends Exchange {
     }
 
     public function sign_evm_transaction(array $tx, string $privateKey): string {
-        // builds and signs an EIP-1559 (type 0x02) transaction, returning the signed raw $tx hex.
-        // $tx $fields (nonce/gas/fees/value) are hex strings; chainId is an int. Verified
+        // builds and signs an EIP-1559 (type 0x02) transaction, returning the signed raw tx hex.
+        // tx fields (nonce/gas/fees/value) are hex strings; chainId is an int. Verified
         // byte-identical to ethers' serialization
         $accessList = $this->rlp_encode_list(array());
         $fields = array(
@@ -811,7 +811,7 @@ class myriad extends Exchange {
     private function do_eth_rpc(?string $rpcUrl, string $method, array $rpcParams) {
         $payload = array( 'jsonrpc' => '2.0', 'id' => 1, 'method' => $method, 'params' => $rpcParams );
         $headers = array( 'Content-Type' => 'application/json' );
-        $response = Async\await($this->fetch($rpcUrl, 'POST', $headers, $this->json($payload)));
+        $response = $this->do_fetch($rpcUrl, 'POST', $headers, $this->json($payload));
         $rpcError = $this->safe_value($response, 'error');
         if ($rpcError !== null) {
             throw new ExchangeError($this->id . ' rpc ' . $method . ' error => ' . $this->json($rpcError));
@@ -826,7 +826,7 @@ class myriad extends Exchange {
     }
 
     private function do_ensure_erc20_allowance(?string $rpcUrl, ?string $networkId, ?string $token, ?string $owner, ?string $spender) {
-        // allowance($owner, $spender)
+        // allowance(owner, spender)
         $allowanceData = '0xdd62ed3e' . $this->pad_hex_address($owner) . $this->pad_hex_address($spender);
         $current = Async\await($this->eth_rpc($rpcUrl, 'eth_call', array( array( 'to' => $token, 'data' => $allowanceData ), 'latest' )));
         $trimmed = $this->hex_to_rlp_bytes($current);
@@ -834,7 +834,7 @@ class myriad extends Exchange {
         if (strlen($trimmed) >= 50) {
             return null;
         }
-        // approve($spender, maxUint256)
+        // approve(spender, maxUint256)
         $maxUint = 'ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff';
         $approveData = '0x095ea7b3' . $this->pad_hex_address($spender) . $maxUint;
         $approveHash = Async\await($this->send_evm_transaction($rpcUrl, $this->parse_to_int($networkId), $owner, $token, '0x0', $approveData, '0x186a0'));
@@ -855,8 +855,8 @@ class myriad extends Exchange {
          * @param {string} $outcome unified $outcome or $outcome id
          * @param {string} $type 'limit' or 'market' (order book); ignored by the AMM path
          * @param {string} $side 'buy' or 'sell'
-         * @param {float} $amount number of $outcome shares to trade (AMM 'buy' spends this value instead)
-         * @param {float} [$price] $price per share fraction in [0, 1] (required for order-book limit orders)
+         * @param {float} $amount number of $outcome shares to trade (AMM 'buy' spends this as collateral value instead)
+         * @param {float} [$price] $price per share as a fraction in [0, 1] (required for order-book limit orders)
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->tradingModel] 'ob' to force the order book, 'amm' to force the on-chain AMM; defaults to the market's model
          * @param {string} [$params->timeInForce] order-book time in force => 'GTC', 'GTD', 'FOK', 'FAK' or 'PO'
@@ -874,7 +874,7 @@ class myriad extends Exchange {
         // the on-chain AMM path requires native gas and has not been verified end to end; keep it behind
         // an explicit opt-in so callers do not silently hit an untested signing/broadcast path
         $enableAmm = $this->safe_bool_2($params, 'enableAmm', 'enableAmmOrders', $this->safe_bool($this->options, 'enableAmmOrders', false));
-        if (!$enableAmm) {
+        if ($enableAmm !== true) {
             throw new NotSupported($this->id . ' createOrder() only supports the gasless order book; this market uses the on-chain AMM (needs native gas and is unverified) — pass $params->enableAmm=true to opt in');
         }
         return Async\await($this->create_amm_order($outcome, $type, $side, $amount, $price, $this->omit($rest, array( 'enableAmm', 'enableAmmOrders' ))));
@@ -903,9 +903,9 @@ class myriad extends Exchange {
         $response = Async\await($this->myriadPublicPostOrders($request));
         //
         //     {
-        //         "orderHash" => "0x758a1763c59bbe61c314f3c0c9b5bae0ad942120500eb39e3e8349bbe13990e0",
-        //         "status" => "open",
-        //         "timeInForce" => "GTC"
+        //         "orderHash": "0x758a1763c59bbe61c314f3c0c9b5bae0ad942120500eb39e3e8349bbe13990e0",
+        //         "status": "open",
+        //         "timeInForce": "GTC"
         //     }
         //
         $orderForResponse = array(
@@ -922,7 +922,7 @@ class myriad extends Exchange {
         $wrapper = $this->extend($response, array( 'order' => $orderForResponse, 'networkId' => $networkId, 'timeInForce' => $timeInForce ));
         $outcomeObj = $this->outcome($outcome);
         $parsed = $this->parse_prediction_order($wrapper, $outcomeObj);
-        // the POST /orders $response is minimal (hash . status), so backfill the known $request values
+        // the POST /orders response is minimal (hash + status), so backfill the known request values
         // side/type/price/amount/timeInForce and a creation timestamp - when parsePredictionOrder left them empty
         $sideStr = ($side === null) ? null : strtolower($side);
         $typeStr = ($type === null) ? 'limit' : strtolower($type);
@@ -985,12 +985,12 @@ class myriad extends Exchange {
         if (Precise::string_lt($priceWei, '1')) {
             $priceWei = '1';
         }
-        // $price is a fraction in (0, 1] encoded..1e18 wei (tick is 1 wei); reject out-of-range early
+        // price is a fraction in (0, 1] encoded as 1..1e18 wei (tick is 1 wei); reject out-of-range early
         if (Precise::string_gt($priceWei, '1000000000000000000')) {
             throw new InvalidOrder($this->id . ' createOrder() $price must be a fraction between 0 and 1');
         }
         $amountWei = $this->to_orderbook_wei($amount);
-        // shares are integer wei (1e18 = 1 share); a sub-wei $amount that rounds to zero is invalid
+        // shares are integer wei (1e18 = 1 share); a sub-wei amount that rounds to zero is invalid
         if (Precise::string_lt($amountWei, '1')) {
             throw new InvalidOrder($this->id . ' createOrder() $amount is too small (rounds to zero shares)');
         }
@@ -1072,10 +1072,10 @@ class myriad extends Exchange {
          * @param {string} $type 'limit' or 'market'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount number of $outcome shares for the new order
-         * @param {float} [$price] $price per share fraction in [0, 1]
+         * @param {float} [$price] $price per share as a fraction in [0, 1]
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {array} [$params->orderResponse] a pre-fetched fetchOrder-style response for the order being replaced; avoids the internal lookup when already available, call fetchOrder to retrieve this data
-         * @param {array} [$params->rawOrder] the raw order payload to cancel alternative to $params->orderResponse, call fetchOrder to retrieve this data
+         * @param {array} [$params->rawOrder] the raw order payload to cancel as an alternative to $params->orderResponse, call fetchOrder to retrieve this data
          * @param {string} [$params->networkId] the order-book network $id, required when using $params->rawOrder without an embedded network $id
          * @return {array} a [prediction order structure](https://docs.ccxt.com/#/?$id=prediction-order-structure)
          */
@@ -1091,7 +1091,7 @@ class myriad extends Exchange {
     private function do_create_amm_order(string $outcome, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()) {
         /**
          * @ignore
-         * buys or sells $outcome shares by submitting the quote's $calldata on-chain AMM transaction. Requires a privateKey with gas . collateral on the market's network
+         * buys or sells $outcome shares by submitting the quote's $calldata as an on-chain AMM transaction. Requires a privateKey with gas . collateral on the market's network
          * @param {string} $outcome unified $outcome or $outcome id
          * @param {string} [$type] not used by the AMM path
          * @param {string} $side 'buy' or 'sell'
@@ -1105,12 +1105,12 @@ class myriad extends Exchange {
          * @return {array} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
          */
         // the AMM buy endpoint is priced in COLLATERAL, not shares — so a bare createOrder market buy
-        // would silently size `$amount` (inconsistent with every other venue and the wiki).
+        // would silently size `amount` as dollars (inconsistent with every other venue and the wiki).
         // route dollar-sizing through createMarketBuyOrderWithCost (which sets costDenominated); a
-        // plain createOrder buy on the AMM is rejected so it can't misinterpret shares
+        // plain createOrder buy on the AMM is rejected so it can't misinterpret shares as collateral
         $sideLower = ($side !== null) ? strtolower($side) : null;
         $isCostDenominated = $this->safe_bool($params, 'costDenominated', false);
-        if (($sideLower === 'buy') && !$isCostDenominated) {
+        if (($sideLower === 'buy') && ($isCostDenominated !== true)) {
             throw new NotSupported($this->id . ' createOrder() market buy on the AMM sizes by collateral, not shares — use createMarketBuyOrderWithCost($outcome, collateral) for a dollar buy, or the default order book (omit enableAmm) for a share-denominated order');
         }
         if ($this->privateKey === null) {
@@ -1143,7 +1143,7 @@ class myriad extends Exchange {
         $txHashParam = $this->safe_string_2($params, 'transactionHash', 'txHash');
         $hasPreBroadcastTxHash = ($txHashParam !== null);
         $skipAllowance = $this->safe_bool($params, 'skipAllowance', $hasPreBroadcastTxHash);
-        if (($sideStr === 'buy') && ($tokenAddress !== null) && !$skipAllowance) {
+        if (($sideStr === 'buy') && ($tokenAddress !== null) && ($skipAllowance !== true)) {
             Async\await($this->ensure_erc20_allowance($rpcUrl, $networkId, $tokenAddress, $fromAddress, $predictionMarket));
         }
         $skipWaitForReceipt = $this->safe_bool($params, 'skipWaitForReceipt', $hasPreBroadcastTxHash);
@@ -1151,7 +1151,7 @@ class myriad extends Exchange {
         if ($txHash === null) {
             $txHash = Async\await($this->send_evm_transaction($rpcUrl, $this->parse_to_int($networkId), $fromAddress, $predictionMarket, '0x0', $calldata, $gasLimit));
         }
-        if (!$skipWaitForReceipt) {
+        if ($skipWaitForReceipt !== true) {
             Async\await($this->wait_for_transaction_receipt($rpcUrl, $txHash));
         }
         return $this->parse_trade_tx($txHash, $quote, $outcomeObj, $sideStr);
@@ -1172,8 +1172,8 @@ class myriad extends Exchange {
          * @param {array} [$params] extra parameters passed through to createAmmOrder
          * @return {array} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
          */
-        // myriad's AMM prices buys in COLLATERAL, so `$cost` maps directly onto the AMM value input.
-        // mark the order $cost-denominated so createAmmOrder spends exactly `$cost` (not `$cost` shares)
+        // myriad's AMM prices buys in COLLATERAL, so `cost` maps directly onto the AMM value input.
+        // mark the order cost-denominated so createAmmOrder spends exactly `cost` (not `cost` shares)
         $request = $this->extend($params, array( 'enableAmm' => true, 'costDenominated' => true ));
         return Async\await($this->create_order($outcome, 'market', 'buy', $cost, null, $request));
     }
@@ -1247,7 +1247,7 @@ class myriad extends Exchange {
     public function clob_order_message(array $rawOrder): array {
         /**
          * @ignore
-         * normalises a fetched order-book order into a typed-data message (uint256 fields, uint8 fields)
+         * normalises a fetched order-book order into a typed-data message (uint256 fields as strings, uint8 fields as ints)
          * @return {array} the typed-data message
          */
         $signer = $this->safe_string_2($rawOrder, 'trader', 'user');
@@ -1316,7 +1316,7 @@ class myriad extends Exchange {
          */
         $valueStr = $this->number_to_string($value);
         $scaled = Precise::string_mul($valueStr, '1000000000000000000');
-        // use > -1 (not >= 0) => when '.' is absent PHP's mb_strpos returns false, and false >= 0
+        // use > -1 (not >= 0): when '.' is absent PHP's mb_strpos returns false, and false >= 0
         // coerces to true (wrongly truncating to empty), whereas false > -1 correctly coerces to false
         if ($scaled === null) {
             throw new ExchangeError($this->id . ' toOrderbookWei() missing scaled');
@@ -1360,11 +1360,11 @@ class myriad extends Exchange {
         $timestamp = $this->parse8601($this->safe_string($order, 'createdAt'));
         $tif = $this->safe_string_upper($order, 'timeInForce');
         $isMarketTif = ($tif === 'FOK') || ($tif === 'FAK');
-        // resolve the $outcome from market/outcome ids when no $market was passed (e.g. fetchOrders without a $outcome)
+        // resolve the outcome from market/outcome ids when no market was passed (e.g. fetchOrders without a outcome)
         $outcome = ($market === null) ? null : $this->safe_string($market, 'outcome');
         $outcomeObj = $market;
         if ($outcome === null) {
-            // the REST $order has no top-level $networkId; $order book lives on the default network
+            // the REST order has no top-level networkId; order book lives on the default network
             $networkId = $this->safe_string_2($order, 'networkId', 'network_id', $this->safe_string($this->options, 'defaultNetworkId', '56'));
             $marketId = $this->safe_string($inner, 'marketId');
             $outcomeId = $this->safe_string($inner, 'outcomeId');
@@ -1478,7 +1478,7 @@ class myriad extends Exchange {
     private function do_fetch_amm_orders(?string $outcome = null, ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          * @ignore
-         * fetches executed AMM trades for a wallet from the user events feed and exposes them prediction orders
+         * fetches executed AMM trades for a wallet from the user events feed and exposes them as closed prediction orders
          * @param {string} [$outcome] unified $outcome to filter by
          * @param {int} [$since] timestamp in ms of the earliest order
          * @param {int} [$limit] the maximum number of orders to return
@@ -1520,32 +1520,32 @@ class myriad extends Exchange {
         $response = Async\await($this->myriadPublicGetUsersAddressEvents($this->extend($request, $params)));
         //
         //     {
-        //         "data" => array(
-        //             array(
-        //                 "user" => "0xd282B1436BC99A86eC24A164f7BEeed42CFE8511",
-        //                 "action" => "sell",
-        //                 "marketTitle" => "Will Base TGE in 2026?",
-        //                 "marketSlug" => "will-base-tge-in-2026",
-        //                 "marketId" => 170145,
-        //                 "networkId" => 56,
-        //                 "outcomeTitle" => "Yes",
-        //                 "outcomeId" => 0,
-        //                 "imageUrl" => "https://cdn.polkamarkets.com/Qmacfs1qiiUW5cnMRUyzji393Vn2DcvNdydGukf1Xk82b6",
-        //                 "shares" => 8.22739948,
-        //                 "value" => 0.9789,
-        //                 "timestamp" => 1784708801,
-        //                 "blockNumber" => 111442601,
-        //                 "token" => "0x8d0D000Ee44948FC98c9B98A4FA4921476f08B0d",
-        //                 "txId" => "0x93842cbb56b852436f53f7bd5d03580a550c0ac08d49fa80cafaed316d7590d7"
-        //             ),
-        //         ),
-        //         "pagination" => {
-        //             "page" => 1,
-        //             "limit" => 20,
-        //             "total" => 2,
-        //             "totalPages" => 1,
-        //             "hasNext" => false,
-        //             "hasPrev" => false
+        //         "data": [
+        //             {
+        //                 "user": "0xd282B1436BC99A86eC24A164f7BEeed42CFE8511",
+        //                 "action": "sell",
+        //                 "marketTitle": "Will Base TGE in 2026?",
+        //                 "marketSlug": "will-base-tge-in-2026",
+        //                 "marketId": 170145,
+        //                 "networkId": 56,
+        //                 "outcomeTitle": "Yes",
+        //                 "outcomeId": 0,
+        //                 "imageUrl": "https://cdn.polkamarkets.com/Qmacfs1qiiUW5cnMRUyzji393Vn2DcvNdydGukf1Xk82b6",
+        //                 "shares": 8.22739948,
+        //                 "value": 0.9789,
+        //                 "timestamp": 1784708801,
+        //                 "blockNumber": 111442601,
+        //                 "token": "0x8d0D000Ee44948FC98c9B98A4FA4921476f08B0d",
+        //                 "txId": "0x93842cbb56b852436f53f7bd5d03580a550c0ac08d49fa80cafaed316d7590d7"
+        //             },
+        //         ],
+        //         "pagination": {
+        //             "page": 1,
+        //             "limit": 20,
+        //             "total": 2,
+        //             "totalPages": 1,
+        //             "hasNext": false,
+        //             "hasPrev": false
         //         }
         //     }
         //
@@ -1582,7 +1582,7 @@ class myriad extends Exchange {
          * @param {string} [$outcome] unified $outcome the order belongs to
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {array} [$params->orderResponse] a pre-$fetched fetchOrder-style $response for the target order; avoids the internal order lookup when already available, call fetchOrder to retrieve this data
-         * @param {array} [$params->rawOrder] the raw order payload to sign alternative to $params->orderResponse, call fetchOrder to retrieve this data
+         * @param {array} [$params->rawOrder] the raw order payload to sign as an alternative to $params->orderResponse, call fetchOrder to retrieve this data
          * @param {string} [$params->networkId] the order-book network $id, required when using $params->rawOrder without an embedded network $id
          * @return {array} a [prediction order structure](https://docs.ccxt.com/#/?$id=prediction-order-structure)
          */
@@ -1623,8 +1623,8 @@ class myriad extends Exchange {
         $response = Async\await($this->myriadPublicDeleteOrdersHash($this->extend($request, $params)));
         //
         //     {
-        //         "orderHash" => "0x758a1763c59bbe61c314f3c0c9b5bae0ad942120500eb39e3e8349bbe13990e0",
-        //         "status" => "cancelled"
+        //         "orderHash": "0x758a1763c59bbe61c314f3c0c9b5bae0ad942120500eb39e3e8349bbe13990e0",
+        //         "status": "cancelled"
         //     }
         //
         $status = $this->safe_string($response, 'status', 'canceled');
@@ -1648,7 +1648,7 @@ class myriad extends Exchange {
          *
          * @param {string} [$outcome] unified $outcome; when omitted cancels across all markets
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} the raw response with the count of cancelled orders
+         * @return {array[]} a list with one [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure) whose `$info` carries the cancelled count
          */
         if ($this->privateKey === null) {
             throw new ArgumentsRequired($this->id . ' cancelAllOrders() requires a privateKey to sign the cancellation');
@@ -1662,7 +1662,7 @@ class myriad extends Exchange {
             $marketId = $this->safe_string($info, 'marketId', $marketId);
             $networkId = $this->safe_string($info, 'networkId', $networkId);
         }
-        // $timestamp defaults to now (unix seconds) but can be pinned via $params for idempotent retries
+        // timestamp defaults to now (unix seconds) but can be pinned via params for idempotent retries
         $timestamp = $this->safe_string($params, 'timestamp', $this->number_to_string($this->seconds()));
         $message = array(
             'trader' => $trader,
@@ -1677,13 +1677,16 @@ class myriad extends Exchange {
             'signature' => $signature,
             'network_id' => $this->parse_to_int($networkId),
         );
-        return Async\await($this->myriadPublicPostOrdersCancelAll($request));
+        $response = Async\await($this->myriadPublicPostOrdersCancelAll($request));
         //
         //     {
-        //         "cancelled_count" => 2,
-        //         "market_ids_affected" => array( "2cfe87e8-12df-4671-b9a9-0758898fd54b" )
+        //         "cancelled_count": 2,
+        //         "market_ids_affected": [ "2cfe87e8-12df-4671-b9a9-0758898fd54b" ]
         //     }
         //
+        // the endpoint returns a count, not the orders: hand back one canceled order
+        // structure carrying the raw response, like limitless does
+        return array( $this->safe_prediction_order(array( 'info' => $response, 'status' => 'canceled' )) );
     }
 
     public function cancel_orders(array $ids, ?string $outcome = null, $params = array()): PromiseInterface {
@@ -1748,11 +1751,11 @@ class myriad extends Exchange {
         Async\await($this->myriadPublicPostOrdersCancelBatch($this->extend($request, $params)));
         //
         //     {
-        //         "cancelled" => array(
+        //         "cancelled": [
         //             "0x5d9d278f049c6e159f3028ec9f174e47fdab5a66665306454e6700a2b310736b",
         //             "0x0ad92bb0ec7571ca806cf630b1b78dbd2492015570342ff23c1fa0ea3fcaacff"
-        //         ),
-        //         "errors" => array()
+        //         ],
+        //         "errors": []
         //     }
         //
         return $this->parse_prediction_orders($wrappers);
@@ -1776,28 +1779,28 @@ class myriad extends Exchange {
         $response = Async\await($this->myriadPublicGetOrdersHash($this->extend(array( 'hash' => $id ), $params)));
         //
         //     {
-        //         "orderHash" => "0x758a1763c59bbe61c314f3c0c9b5bae0ad942120500eb39e3e8349bbe13990e0",
-        //         "clientOrderId" => null,
-        //         "order" => array(
-        //             "trader" => "0xd282B1436BC99A86eC24A164f7BEeed42CFE8511",
-        //             "marketId" => 827,
-        //             "outcomeId" => 0,
-        //             "side" => 0,
-        //             "amount" => "1000000000000000000",
-        //             "price" => "10000000000000000",
-        //             "minFillAmount" => "0",
-        //             "nonce" => "1784793980668",
-        //             "expiration" => "0"
-        //         ),
-        //         "status" => "cancelled",
-        //         "signatureType" => 0,
-        //         "filledAmount" => "0",
-        //         "timeInForce" => "GTC",
-        //         "createdAt" => "2026-07-23T08:06:21.279Z",
-        //         "filledAt" => null,
-        //         "networkId" => 56,
-        //         "updatedAt" => "2026-07-23T08:22:23.987Z",
-        //         "cancelledAt" => "2026-07-23T08:22:23.987Z"
+        //         "orderHash": "0x758a1763c59bbe61c314f3c0c9b5bae0ad942120500eb39e3e8349bbe13990e0",
+        //         "clientOrderId": null,
+        //         "order": {
+        //             "trader": "0xd282B1436BC99A86eC24A164f7BEeed42CFE8511",
+        //             "marketId": 827,
+        //             "outcomeId": 0,
+        //             "side": 0,
+        //             "amount": "1000000000000000000",
+        //             "price": "10000000000000000",
+        //             "minFillAmount": "0",
+        //             "nonce": "1784793980668",
+        //             "expiration": "0"
+        //         },
+        //         "status": "cancelled",
+        //         "signatureType": 0,
+        //         "filledAmount": "0",
+        //         "timeInForce": "GTC",
+        //         "createdAt": "2026-07-23T08:06:21.279Z",
+        //         "filledAt": null,
+        //         "networkId": 56,
+        //         "updatedAt": "2026-07-23T08:22:23.987Z",
+        //         "cancelledAt": "2026-07-23T08:22:23.987Z"
         //     }
         //
         $market = null;
@@ -1852,43 +1855,43 @@ class myriad extends Exchange {
         $response = Async\await($this->myriadPublicGetOrders($this->extend($request, $params)));
         //
         //     {
-        //         "data" => array(
+        //         "data": [
         //             {
-        //                 "orderHash" => "0x88e5c348bedc7336037bf9a2dc3e074431d386a01a2be07763373c794d28ffc2",
-        //                 "clientOrderId" => null,
-        //                 "order" => array(
-        //                     "trader" => "0xd282B1436BC99A86eC24A164f7BEeed42CFE8511",
-        //                     "marketId" => 827,
-        //                     "outcomeId" => 0,
-        //                     "side" => 0,
-        //                     "amount" => "1000000000000000000",
-        //                     "price" => "10000000000000000",
-        //                     "minFillAmount" => "0",
-        //                     "nonce" => "1784713298605",
-        //                     "expiration" => "0"
-        //                 ),
-        //                 "status" => "open",
-        //                 "signatureType" => 0,
-        //                 "filledAmount" => "0",
-        //                 "timeInForce" => "GTC",
-        //                 "createdAt" => "2026-07-22T09:41:39.035Z",
-        //                 "filledAt" => null
+        //                 "orderHash": "0x88e5c348bedc7336037bf9a2dc3e074431d386a01a2be07763373c794d28ffc2",
+        //                 "clientOrderId": null,
+        //                 "order": {
+        //                     "trader": "0xd282B1436BC99A86eC24A164f7BEeed42CFE8511",
+        //                     "marketId": 827,
+        //                     "outcomeId": 0,
+        //                     "side": 0,
+        //                     "amount": "1000000000000000000",
+        //                     "price": "10000000000000000",
+        //                     "minFillAmount": "0",
+        //                     "nonce": "1784713298605",
+        //                     "expiration": "0"
+        //                 },
+        //                 "status": "open",
+        //                 "signatureType": 0,
+        //                 "filledAmount": "0",
+        //                 "timeInForce": "GTC",
+        //                 "createdAt": "2026-07-22T09:41:39.035Z",
+        //                 "filledAt": null
         //             }
-        //         ),
-        //         "pagination" => {
-        //             "page" => 1,
-        //             "limit" => 5000,
-        //             "total" => 1,
-        //             "totalPages" => 1,
-        //             "hasNext" => false,
-        //             "hasPrev" => false
+        //         ],
+        //         "pagination": {
+        //             "page": 1,
+        //             "limit": 5000,
+        //             "total": 1,
+        //             "totalPages": 1,
+        //             "hasNext": false,
+        //             "hasPrev": false
         //         }
         //     }
         //
         $data = $this->safe_list($response, 'data', array());
         // the /orders endpoint ignores a market_id filter server-side (it returns nothing even for a
-        // valid market), so parse every order — each self-resolves its $outcome from the network/market/
-        // $outcome ids — and filter by the requested $outcome client-side
+        // valid market), so parse every order — each self-resolves its outcome from the network/market/
+        // outcome ids — and filter by the requested outcome client-side
         $orders = $this->parse_prediction_orders($data);
         return $this->filter_by_outcome_since_limit($orders, $outcomeSymbol, $since, $limit);
     }
@@ -1965,7 +1968,7 @@ class myriad extends Exchange {
 
     private function do_fetch_my_trades(?string $outcome = null, ?int $since = null, ?int $limit = null, $params = array()) {
         /**
-         * fetches the wallet's filled $order book $orders-> Note => Myriad's REST exposes the order's
+         * fetches the wallet's filled $order book $orders as $trades-> Note => Myriad's REST exposes the order's
          * $limit price, not the per-fill execution price, so the price reflects the order's $limit (exact for resting/limit
          * fills, an upper/lower bound for market $orders) — use watchTrades for live execution prices
          *
@@ -1993,8 +1996,8 @@ class myriad extends Exchange {
     public function order_to_trade(array $order): array {
         $timestamp = $this->safe_integer($order, 'timestamp');
         $orderType = $this->safe_string($order, 'type');
-        // the REST filled-$order response carries the order's limit $price (= the fill $price for limit
-        // orders, but only the protective bound for market orders), so omit the $price for market orders
+        // the REST filled-order response carries the order's limit price (= the fill price for limit
+        // orders, but only the protective bound for market orders), so omit the price for market orders
         $price = null;
         if ($orderType !== 'market') {
             $price = $this->safe_number($order, 'price');
@@ -2047,7 +2050,7 @@ class myriad extends Exchange {
         $currency = $this->safe_string($params, 'currency', $this->safe_string($chainConfig, 'collateralCurrency', 'USD1'));
         $decimals = $this->safe_integer($params, 'decimals', $this->safe_integer($chainConfig, 'collateralDecimals', 18));
         $owner = $this->wallet_address_from_keys();
-        // ERC20 balanceOf($owner) = selector 0x70a08231 . the 32-byte left-padded $owner address
+        // ERC20 balanceOf(owner) = selector 0x70a08231 + the 32-byte left-padded owner address
         $callData = '0x70a08231' . $this->pad_hex_address($owner);
         $callParams = array( array( 'to' => $token, 'data' => $callData ), 'latest' );
         $raw = Async\await($this->eth_rpc($rpcUrl, 'eth_call', $callParams));
@@ -2168,23 +2171,23 @@ class myriad extends Exchange {
         $endDate = $this->safe_string($raw, 'expiresAt');
         $state = $this->safe_string($raw, 'state', 'open');
         $active = $state === 'open';
-        // resolution => $resolvedOutcomeId is "-1" until the market resolves, then the winning $outcome id
+        // resolution: resolvedOutcomeId is "-1" until the market resolves, then the winning outcome id
         $resolvedOutcomeId = $this->safe_string($raw, 'resolvedOutcomeId', '-1');
         $voided = $this->safe_bool($raw, 'voided', false);
         $hasResolution = ($resolvedOutcomeId !== '-1') && ($resolvedOutcomeId !== null) && ($resolvedOutcomeId !== '');
         $marketResolved = $hasResolution || $voided;
         $resolvedOutcome = null;
         $volume24h = $this->safe_number($raw, 'volume24h');
-        // qualify the handle only with a real event $slug (when passed); myriad market slugs are
-        // globally unique, so do NOT fall back to $networkId — that would prefix every handle.
-        // $eventSlug may be null (single-market load) — slugToMarketSymbol accepts a nullable $slug->
+        // qualify the handle only with a real event slug (when passed); myriad market slugs are
+        // globally unique, so do NOT fall back to networkId — that would prefix every handle.
+        // eventSlug may be undefined (single-market load) — slugToMarketSymbol accepts a nullable slug.
         $marketSymbol = $this->slug_to_market_symbol($eventSlug, $slug);
-        // the collateral token ($outcome . address . decimals) is per-market; carry it for on-chain trading
+        // the collateral token (outcome + address + decimals) is per-market; carry it for on-chain trading
         $tokenObj = $this->safe_dict($raw, 'token', array());
         $tokenAddress = $this->safe_string($tokenObj, 'address');
         $tokenDecimals = $this->safe_integer($tokenObj, 'decimals', 18);
         $quoteCurrency = $this->safe_string($tokenObj, 'symbol', 'USDC');
-        // per-side fees => buys are charged the taker fee, sells the maker fee (mirrors fetchTradingFee)
+        // per-side fees: buys are charged the taker fee, sells the maker fee (mirrors fetchTradingFee)
         $feesObj = $this->safe_dict($raw, 'fees', array());
         $buyFees = $this->safe_dict($feesObj, 'buy', array());
         $sellFees = $this->safe_dict($feesObj, 'sell', array());
@@ -2206,7 +2209,7 @@ class myriad extends Exchange {
                 if ($winnerRaw) {
                     $resolvedOutcome = $outcomeHandle;
                 }
-            } elseif ($voided) {
+            } elseif ($voided === true) {
                 $winnerRaw = false;
             }
             // effectively-final copies for the object literal below (Java cannot capture a
@@ -2244,7 +2247,7 @@ class myriad extends Exchange {
         $marketTradingModel = $this->safe_string($raw, 'tradingModel', 'amm');
         $marketExecutionModel = ($marketTradingModel === 'amm') ? 'amm' : 'clob';
         $outcomesLength = count($outcomes);
-        // effectively-final copy for the market object literal below (is_array(the loop) && array_key_exists(reassigned ?? '', the loop))
+        // effectively-final copy for the market object literal below (reassigned in the loop)
         $marketResolvedOutcome = $resolvedOutcome;
         return array(
             'id' => $networkId . ':' . $marketId,
@@ -2271,7 +2274,7 @@ class myriad extends Exchange {
             'linear' => null,
             'inverse' => null,
             'contractSize' => null,
-            'expiry' => $endDate ? $this->parse8601($endDate) : null,
+            'expiry' => ($endDate !== null && $endDate !== '') ? $this->parse8601($endDate) : null,
             'expiryDatetime' => $endDate,
             'strike' => null,
             'optionType' => null,
@@ -2326,75 +2329,75 @@ class myriad extends Exchange {
         $response = Async\await($this->myriadPublicGetMarketsId($this->extend($request, $params)));
         //
         //     {
-        //         "id" => "756",
-        //         "networkId" => "2741",
-        //         "slug" => "will-trump-capture-another-president-before-his-birthday",
-        //         "title" => "Will Trump capture another president before his birthday?",
-        //         "description" => "string"
-        //         "publishedAt" => "2026-01-16T18:05:36.000Z",
-        //         "expiresAt" => "2026-06-14T04:59:00.000Z",
-        //         "resolvesAt" => null,
-        //         "fees" => array(
-        //             "buy" => array( "fee" => "0.01", "treasury_fee" => "0.01", "distributor_fee" => "0.01" ),
-        //             "sell" => array( "fee" => "0", "treasury_fee" => "0", "distributor_fee" => "0" ),
-        //             "treasury" => "0x5E3EbEc100e2294C0EB2264FC96225dF067AAaa3",
-        //             "distributor" => "0xE44984C586FeBB31605D23b6316cA11B6f4D86b2"
-        //         ),
-        //         "state" => "open",
-        //         "voided" => false,
-        //         "resolvedOutcomeId" => "-1",
-        //         "topics" => array( "Politics" ),
-        //         "resolutionSource" => "https://www.whitehouse.gov/",
-        //         "resolutionTitle" => "White House",
-        //         "token" => array(
-        //             "name" => "Bridged USDC (Stargate)",
-        //             "address" => "0x84A71ccD554Cc1b02749b35d22F684CC8ec987e1",
-        //             "symbol" => "USDC.e",
-        //             "decimals" => "6"
-        //         ),
-        //         "imageUrl" => "https://cdn.polkamarkets.com/Qma9FAX15kHewT8vm61vykGA9bqQhNdDLvEbQWSp72i3PQ",
-        //         "bannerImageUrl" => "https://imagedelivery.net/YN1-rdnufJQJCgu3i1CbVw/255d431f-1bb4-4d90-032b-d1f7032e8000/public",
-        //         "ogImageUrl" => "https://imagedelivery.net/YN1-rdnufJQJCgu3i1CbVw/cf1af79c-07b9-40f0-283b-ed59865b3c00/public",
-        //         "liquidity" => "2000",
-        //         "liquidityPrice" => "0.32532445",
-        //         "volume" => "10891.236893",
-        //         "volume24h" => "0.939",
-        //         "volumeNotional" => "13570.426814",
-        //         "volumeNotional24h" => "1.028382",
-        //         "users" => "122",
-        //         "shares" => "4098.474144",
-        //         "featured" => false,
-        //         "featuredAt" => null,
-        //         "inPlay" => false,
-        //         "inPlayStartsAt" => null,
-        //         "perpetual" => false,
-        //         "moneyline" => false,
-        //         "executionMode" => "0",
-        //         "tradingModel" => "amm",
-        //         "topHolders" => array(
+        //         "id": "756",
+        //         "networkId": "2741",
+        //         "slug": "will-trump-capture-another-president-before-his-birthday",
+        //         "title": "Will Trump capture another president before his birthday?",
+        //         "description": "string"
+        //         "publishedAt": "2026-01-16T18:05:36.000Z",
+        //         "expiresAt": "2026-06-14T04:59:00.000Z",
+        //         "resolvesAt": null,
+        //         "fees": {
+        //             "buy": { "fee": "0.01", "treasury_fee": "0.01", "distributor_fee": "0.01" },
+        //             "sell": { "fee": "0", "treasury_fee": "0", "distributor_fee": "0" },
+        //             "treasury": "0x5E3EbEc100e2294C0EB2264FC96225dF067AAaa3",
+        //             "distributor": "0xE44984C586FeBB31605D23b6316cA11B6f4D86b2"
+        //         },
+        //         "state": "open",
+        //         "voided": false,
+        //         "resolvedOutcomeId": "-1",
+        //         "topics": [ "Politics" ],
+        //         "resolutionSource": "https://www.whitehouse.gov/",
+        //         "resolutionTitle": "White House",
+        //         "token": {
+        //             "name": "Bridged USDC (Stargate)",
+        //             "address": "0x84A71ccD554Cc1b02749b35d22F684CC8ec987e1",
+        //             "symbol": "USDC.e",
+        //             "decimals": "6"
+        //         },
+        //         "imageUrl": "https://cdn.polkamarkets.com/Qma9FAX15kHewT8vm61vykGA9bqQhNdDLvEbQWSp72i3PQ",
+        //         "bannerImageUrl": "https://imagedelivery.net/YN1-rdnufJQJCgu3i1CbVw/255d431f-1bb4-4d90-032b-d1f7032e8000/public",
+        //         "ogImageUrl": "https://imagedelivery.net/YN1-rdnufJQJCgu3i1CbVw/cf1af79c-07b9-40f0-283b-ed59865b3c00/public",
+        //         "liquidity": "2000",
+        //         "liquidityPrice": "0.32532445",
+        //         "volume": "10891.236893",
+        //         "volume24h": "0.939",
+        //         "volumeNotional": "13570.426814",
+        //         "volumeNotional24h": "1.028382",
+        //         "users": "122",
+        //         "shares": "4098.474144",
+        //         "featured": false,
+        //         "featuredAt": null,
+        //         "inPlay": false,
+        //         "inPlayStartsAt": null,
+        //         "perpetual": false,
+        //         "moneyline": false,
+        //         "executionMode": "0",
+        //         "tradingModel": "amm",
+        //         "topHolders": [
         //             "0x8A611AEE71b6448a6F99B6001D1234d020f7d546",
         //             "0x2993249A3D107B759c886a4BD4e02B70d471eA9B",
         //             "0x82a5b3BD2A9216369537583f63fa576a1D57c7E7"
-        //         ),
-        //         "outcomes" => array(
-        //             array(
-        //                 "id" => "0",
-        //                 "title" => "Yes",
-        //                 "shares" => "3742.174971",
-        //                 "sharesHeld" => "138.741271",
-        //                 "price" => "0.08693459",
-        //                 "closingPrice" => null,
-        //                 "priceChange24h" => "0.00045828",
-        //                 "imageUrl" => "https://cdn.polkamarkets.com/Qma9FAX15kHewT8vm61vykGA9bqQhNdDLvEbQWSp72i3PQ",
-        //                 "holders" => "7",
-        //                 "tokenId" => "1512",
-        //                 "price_charts" => [Array]
-        //             ),
-        //         ),
-        //         "eventId" => null,
-        //         "outcomeIndex" => null,
-        //         "negRisk" => false,
-        //         "externalSources" => array()
+        //         ],
+        //         "outcomes": [
+        //             {
+        //                 "id": "0",
+        //                 "title": "Yes",
+        //                 "shares": "3742.174971",
+        //                 "sharesHeld": "138.741271",
+        //                 "price": "0.08693459",
+        //                 "closingPrice": null,
+        //                 "priceChange24h": "0.00045828",
+        //                 "imageUrl": "https://cdn.polkamarkets.com/Qma9FAX15kHewT8vm61vykGA9bqQhNdDLvEbQWSp72i3PQ",
+        //                 "holders": "7",
+        //                 "tokenId": "1512",
+        //                 "price_charts": [Array]
+        //             },
+        //         ],
+        //         "eventId": null,
+        //         "outcomeIndex": null,
+        //         "negRisk": false,
+        //         "externalSources": []
         //     }
         //
         return $this->parse_prediction_ticker($response, $outcomeObj);
@@ -2423,9 +2426,9 @@ class myriad extends Exchange {
         $response = Async\await($this->myriadPublicGetMarketsId($this->extend($request, $params)));
         //
         //     {
-        //         "fees" => {
-        //             "buy" => array( "fee" => "0.02", "treasury_fee" => "0.01", "distributor_fee" => "0.01" ),
-        //             "sell" => array( "fee" => "0", "treasury_fee" => "0", "distributor_fee" => "0" )
+        //         "fees": {
+        //             "buy": { "fee": "0.02", "treasury_fee": "0.01", "distributor_fee": "0.01" },
+        //             "sell": { "fee": "0", "treasury_fee": "0", "distributor_fee": "0" }
         //         }
         //     }
         //
@@ -2453,78 +2456,78 @@ class myriad extends Exchange {
          */
         //
         //     {
-        //         "id" => "756",
-        //         "networkId" => "2741",
-        //         "slug" => "will-trump-capture-another-president-before-his-birthday",
-        //         "title" => "Will Trump capture another president before his birthday?",
-        //         "description" => "string"
-        //         "publishedAt" => "2026-01-16T18:05:36.000Z",
-        //         "expiresAt" => "2026-06-14T04:59:00.000Z",
-        //         "resolvesAt" => null,
-        //         "fees" => array(
-        //             "buy" => array( "fee" => "0.01", "treasury_fee" => "0.01", "distributor_fee" => "0.01" ),
-        //             "sell" => array( "fee" => "0", "treasury_fee" => "0", "distributor_fee" => "0" ),
-        //             "treasury" => "0x5E3EbEc100e2294C0EB2264FC96225dF067AAaa3",
-        //             "distributor" => "0xE44984C586FeBB31605D23b6316cA11B6f4D86b2"
-        //         ),
-        //         "state" => "open",
-        //         "voided" => false,
-        //         "resolvedOutcomeId" => "-1",
-        //         "topics" => array( "Politics" ),
-        //         "resolutionSource" => "https://www.whitehouse.gov/",
-        //         "resolutionTitle" => "White House",
-        //         "token" => array(
-        //             "name" => "Bridged USDC (Stargate)",
-        //             "address" => "0x84A71ccD554Cc1b02749b35d22F684CC8ec987e1",
-        //             "symbol" => "USDC.e",
-        //             "decimals" => "6"
-        //         ),
-        //         "imageUrl" => "https://cdn.polkamarkets.com/Qma9FAX15kHewT8vm61vykGA9bqQhNdDLvEbQWSp72i3PQ",
-        //         "bannerImageUrl" => "https://imagedelivery.net/YN1-rdnufJQJCgu3i1CbVw/255d431f-1bb4-4d90-032b-d1f7032e8000/public",
-        //         "ogImageUrl" => "https://imagedelivery.net/YN1-rdnufJQJCgu3i1CbVw/cf1af79c-07b9-40f0-283b-ed59865b3c00/public",
-        //         "liquidity" => "2000",
-        //         "liquidityPrice" => "0.32532445",
-        //         "volume" => "10891.236893",
-        //         "volume24h" => "0.939",
-        //         "volumeNotional" => "13570.426814",
-        //         "volumeNotional24h" => "1.028382",
-        //         "users" => "122",
-        //         "shares" => "4098.474144",
-        //         "featured" => false,
-        //         "featuredAt" => null,
-        //         "inPlay" => false,
-        //         "inPlayStartsAt" => null,
-        //         "perpetual" => false,
-        //         "moneyline" => false,
-        //         "executionMode" => "0",
-        //         "tradingModel" => "amm",
-        //         "topHolders" => array(
+        //         "id": "756",
+        //         "networkId": "2741",
+        //         "slug": "will-trump-capture-another-president-before-his-birthday",
+        //         "title": "Will Trump capture another president before his birthday?",
+        //         "description": "string"
+        //         "publishedAt": "2026-01-16T18:05:36.000Z",
+        //         "expiresAt": "2026-06-14T04:59:00.000Z",
+        //         "resolvesAt": null,
+        //         "fees": {
+        //             "buy": { "fee": "0.01", "treasury_fee": "0.01", "distributor_fee": "0.01" },
+        //             "sell": { "fee": "0", "treasury_fee": "0", "distributor_fee": "0" },
+        //             "treasury": "0x5E3EbEc100e2294C0EB2264FC96225dF067AAaa3",
+        //             "distributor": "0xE44984C586FeBB31605D23b6316cA11B6f4D86b2"
+        //         },
+        //         "state": "open",
+        //         "voided": false,
+        //         "resolvedOutcomeId": "-1",
+        //         "topics": [ "Politics" ],
+        //         "resolutionSource": "https://www.whitehouse.gov/",
+        //         "resolutionTitle": "White House",
+        //         "token": {
+        //             "name": "Bridged USDC (Stargate)",
+        //             "address": "0x84A71ccD554Cc1b02749b35d22F684CC8ec987e1",
+        //             "symbol": "USDC.e",
+        //             "decimals": "6"
+        //         },
+        //         "imageUrl": "https://cdn.polkamarkets.com/Qma9FAX15kHewT8vm61vykGA9bqQhNdDLvEbQWSp72i3PQ",
+        //         "bannerImageUrl": "https://imagedelivery.net/YN1-rdnufJQJCgu3i1CbVw/255d431f-1bb4-4d90-032b-d1f7032e8000/public",
+        //         "ogImageUrl": "https://imagedelivery.net/YN1-rdnufJQJCgu3i1CbVw/cf1af79c-07b9-40f0-283b-ed59865b3c00/public",
+        //         "liquidity": "2000",
+        //         "liquidityPrice": "0.32532445",
+        //         "volume": "10891.236893",
+        //         "volume24h": "0.939",
+        //         "volumeNotional": "13570.426814",
+        //         "volumeNotional24h": "1.028382",
+        //         "users": "122",
+        //         "shares": "4098.474144",
+        //         "featured": false,
+        //         "featuredAt": null,
+        //         "inPlay": false,
+        //         "inPlayStartsAt": null,
+        //         "perpetual": false,
+        //         "moneyline": false,
+        //         "executionMode": "0",
+        //         "tradingModel": "amm",
+        //         "topHolders": [
         //             "0x8A611AEE71b6448a6F99B6001D1234d020f7d546",
         //             "0x2993249A3D107B759c886a4BD4e02B70d471eA9B",
         //             "0x82a5b3BD2A9216369537583f63fa576a1D57c7E7"
-        //         ),
-        //         "outcomes" => array(
-        //             array(
-        //                 "id" => "0",
-        //                 "title" => "Yes",
-        //                 "shares" => "3742.174971",
-        //                 "sharesHeld" => "138.741271",
-        //                 "price" => "0.08693459",
-        //                 "closingPrice" => null,
-        //                 "priceChange24h" => "0.00045828",
-        //                 "imageUrl" => "https://cdn.polkamarkets.com/Qma9FAX15kHewT8vm61vykGA9bqQhNdDLvEbQWSp72i3PQ",
-        //                 "holders" => "7",
-        //                 "tokenId" => "1512",
-        //                 "price_charts" => [Array]
-        //             ),
-        //         ),
-        //         "eventId" => null,
-        //         "outcomeIndex" => null,
-        //         "negRisk" => false,
-        //         "externalSources" => array()
+        //         ],
+        //         "outcomes": [
+        //             {
+        //                 "id": "0",
+        //                 "title": "Yes",
+        //                 "shares": "3742.174971",
+        //                 "sharesHeld": "138.741271",
+        //                 "price": "0.08693459",
+        //                 "closingPrice": null,
+        //                 "priceChange24h": "0.00045828",
+        //                 "imageUrl": "https://cdn.polkamarkets.com/Qma9FAX15kHewT8vm61vykGA9bqQhNdDLvEbQWSp72i3PQ",
+        //                 "holders": "7",
+        //                 "tokenId": "1512",
+        //                 "price_charts": [Array]
+        //             },
+        //         ],
+        //         "eventId": null,
+        //         "outcomeIndex": null,
+        //         "negRisk": false,
+        //         "externalSources": []
         //     }
         //
-        $outcomeId = $market ? $this->safe_string($market['info'], 'outcomeId') : null;
+        $outcomeId = ($market !== null && $market !== null) ? $this->safe_string($market['info'], 'outcomeId') : null;
         $outcomes = $this->safe_list($raw, 'outcomes', array());
         $price = null;
         $change = null;
@@ -2537,8 +2540,8 @@ class myriad extends Exchange {
             }
         }
         $now = $this->milliseconds();
-        // priceChange24h is an ABSOLUTE $price delta; derive the previous close and the TRUE
-        // $percentage from it — setting $percentage = the absolute $change (as before) was wrong
+        // priceChange24h is an ABSOLUTE price delta; derive the previous close and the TRUE
+        // percentage from it — setting percentage = the absolute change (as before) was wrong
         $previousClose = null;
         $percentage = null;
         if (($price !== null) && ($change !== null)) {
@@ -2573,7 +2576,7 @@ class myriad extends Exchange {
             'average' => $price,
             // myriad's `volume*` fields are collateral (USDC); `volumeNotional*` is the share count —
             // so baseVolume (shares) = volumeNotional24h and quoteVolume (USDC) = volume24h. These were
-            // swapped, producing vwap > 1 on a 0..1 $market
+            // swapped, producing vwap > 1 on a 0..1 market
             'baseVolume' => $this->safe_number($raw, 'volumeNotional24h'),
             'quoteVolume' => $this->safe_number($raw, 'volume24h'),
             'info' => $raw,
@@ -2609,8 +2612,8 @@ class myriad extends Exchange {
             $obResponse = Async\await($this->myriadPublicGetMarketsIdOrderbook($this->extend($obRequest, $params)));
             //
             //     {
-            //         "bids" => array( array( "980000000000000000", "258412594752186597376" ) ),
-            //         "asks" => array( array( "990000000000000000", "151975683890577539072" ) )
+            //         "bids": [ [ "980000000000000000", "258412594752186597376" ] ],
+            //         "asks": [ [ "990000000000000000", "151975683890577539072" ] ]
             //     }
             //
             return $this->safe_prediction_order_book($this->parse_wei_order_book($obResponse, $this->safe_outcome_symbol($outcome, $outcomeObj)), $outcomeObj);
@@ -2622,75 +2625,75 @@ class myriad extends Exchange {
         $response = Async\await($this->myriadPublicGetMarketsId($this->extend($request, $params)));
         //
         //     {
-        //         "id" => "756",
-        //         "networkId" => "2741",
-        //         "slug" => "will-trump-capture-another-president-before-his-birthday",
-        //         "title" => "Will Trump capture another president before his birthday?",
-        //         "shortName" => null,
-        //         "description" => "### **Market Dates:**"
-        //         "publishedAt" => "2026-01-16T18:05:36.000Z",
-        //         "expiresAt" => "2026-06-14T04:59:00.000Z",
-        //         "resolvesAt" => null,
-        //         "fees" => array(
-        //             "buy" => array( "fee" => "0.01", "treasury_fee" => "0.01", "distributor_fee" => "0.01" ),
-        //             "sell" => array( "fee" => "0", "treasury_fee" => "0", "distributor_fee" => "0" ),
-        //             "treasury" => "0x5E3EbEc100e2294C0EB2264FC96225dF067AAaa3",
-        //             "distributor" => "0xE44984C586FeBB31605D23b6316cA11B6f4D86b2"
-        //         ),
-        //         "state" => "open",
-        //         "voided" => false,
-        //         "resolvedOutcomeId" => "-1",
-        //         "topics" => array( "Politics" ),
-        //         "resolutionSource" => "https://www.whitehouse.gov/",
-        //         "resolutionTitle" => "White House",
-        //         "token" => array(
-        //             "name" => "Bridged USDC (Stargate)",
-        //             "address" => "0x84A71ccD554Cc1b02749b35d22F684CC8ec987e1",
-        //             "symbol" => "USDC.e",
-        //             "decimals" => "6"
-        //         ),
-        //         "imageUrl" => "https://cdn.polkamarkets.com/Qma9FAX15kHewT8vm61vykGA9bqQhNdDLvEbQWSp72i3PQ",
-        //         "bannerImageUrl" => "https://imagedelivery.net/YN1-rdnufJQJCgu3i1CbVw/255d431f-1bb4-4d90-032b-d1f7032e8000/public",
-        //         "ogImageUrl" => "https://imagedelivery.net/YN1-rdnufJQJCgu3i1CbVw/d3d60089-3d08-45ac-aa9d-139156e3f900/public",
-        //         "liquidity" => "2000",
-        //         "liquidityPrice" => "0.29322839",
-        //         "volume" => "11396.236893",
-        //         "volume24h" => "500",
-        //         "volumeNotional" => "14101.517862",
-        //         "volumeNotional24h" => "525.779869",
-        //         "users" => "124",
-        //         "shares" => "4547.083096",
-        //         "featured" => false,
-        //         "featuredAt" => null,
-        //         "inPlay" => false,
-        //         "inPlayStartsAt" => null,
-        //         "perpetual" => false,
-        //         "moneyline" => false,
-        //         "executionMode" => "0",
-        //         "tradingModel" => "amm",
-        //         "topHolders" => array(
+        //         "id": "756",
+        //         "networkId": "2741",
+        //         "slug": "will-trump-capture-another-president-before-his-birthday",
+        //         "title": "Will Trump capture another president before his birthday?",
+        //         "shortName": null,
+        //         "description": "### **Market Dates:**"
+        //         "publishedAt": "2026-01-16T18:05:36.000Z",
+        //         "expiresAt": "2026-06-14T04:59:00.000Z",
+        //         "resolvesAt": null,
+        //         "fees": {
+        //             "buy": { "fee": "0.01", "treasury_fee": "0.01", "distributor_fee": "0.01" },
+        //             "sell": { "fee": "0", "treasury_fee": "0", "distributor_fee": "0" },
+        //             "treasury": "0x5E3EbEc100e2294C0EB2264FC96225dF067AAaa3",
+        //             "distributor": "0xE44984C586FeBB31605D23b6316cA11B6f4D86b2"
+        //         },
+        //         "state": "open",
+        //         "voided": false,
+        //         "resolvedOutcomeId": "-1",
+        //         "topics": [ "Politics" ],
+        //         "resolutionSource": "https://www.whitehouse.gov/",
+        //         "resolutionTitle": "White House",
+        //         "token": {
+        //             "name": "Bridged USDC (Stargate)",
+        //             "address": "0x84A71ccD554Cc1b02749b35d22F684CC8ec987e1",
+        //             "symbol": "USDC.e",
+        //             "decimals": "6"
+        //         },
+        //         "imageUrl": "https://cdn.polkamarkets.com/Qma9FAX15kHewT8vm61vykGA9bqQhNdDLvEbQWSp72i3PQ",
+        //         "bannerImageUrl": "https://imagedelivery.net/YN1-rdnufJQJCgu3i1CbVw/255d431f-1bb4-4d90-032b-d1f7032e8000/public",
+        //         "ogImageUrl": "https://imagedelivery.net/YN1-rdnufJQJCgu3i1CbVw/d3d60089-3d08-45ac-aa9d-139156e3f900/public",
+        //         "liquidity": "2000",
+        //         "liquidityPrice": "0.29322839",
+        //         "volume": "11396.236893",
+        //         "volume24h": "500",
+        //         "volumeNotional": "14101.517862",
+        //         "volumeNotional24h": "525.779869",
+        //         "users": "124",
+        //         "shares": "4547.083096",
+        //         "featured": false,
+        //         "featuredAt": null,
+        //         "inPlay": false,
+        //         "inPlayStartsAt": null,
+        //         "perpetual": false,
+        //         "moneyline": false,
+        //         "executionMode": "0",
+        //         "tradingModel": "amm",
+        //         "topHolders": [
         //             "0x8A611AEE71b6448a6F99B6001D1234d020f7d546",
         //             "0x2993249A3D107B759c886a4BD4e02B70d471eA9B"
-        //         ),
-        //         "outcomes" => array(
+        //         ],
+        //         "outcomes": [
         //             {
-        //                 "id" => "0",
-        //                 "title" => "Yes",
-        //                 "shares" => "4232.024971",
-        //                 "sharesHeld" => "138.741271",
-        //                 "price" => "0.06928796",
-        //                 "closingPrice" => null,
-        //                 "priceChange24h" => "-0.20109988",
-        //                 "imageUrl" => "https://cdn.polkamarkets.com/Qma9FAX15kHewT8vm61vykGA9bqQhNdDLvEbQWSp72i3PQ",
-        //                 "holders" => "7",
-        //                 "tokenId" => "1512",
-        //                 "price_charts" => [Array]
+        //                 "id": "0",
+        //                 "title": "Yes",
+        //                 "shares": "4232.024971",
+        //                 "sharesHeld": "138.741271",
+        //                 "price": "0.06928796",
+        //                 "closingPrice": null,
+        //                 "priceChange24h": "-0.20109988",
+        //                 "imageUrl": "https://cdn.polkamarkets.com/Qma9FAX15kHewT8vm61vykGA9bqQhNdDLvEbQWSp72i3PQ",
+        //                 "holders": "7",
+        //                 "tokenId": "1512",
+        //                 "price_charts": [Array]
         //             }
-        //         ),
-        //         "eventId" => null,
-        //         "outcomeIndex" => null,
-        //         "negRisk" => false,
-        //         "externalSources" => array()
+        //         ],
+        //         "eventId": null,
+        //         "outcomeIndex": null,
+        //         "negRisk": false,
+        //         "externalSources": []
         //     }
         //
         $outcomes = $this->safe_list($response, 'outcomes', array());
@@ -2703,7 +2706,7 @@ class myriad extends Exchange {
             }
         }
         $timestamp = $this->milliseconds();
-        // AMM => synthesize a single bid/ask pair around the current implied $price, clamped into the valid (0, 1) range
+        // AMM: synthesize a single bid/ask pair around the current implied price, clamped into the valid (0, 1) range
         $bid = null;
         $ask = null;
         if ($price !== null) {
@@ -2785,7 +2788,7 @@ class myriad extends Exchange {
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum number of candles to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {int[][]} a list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} a list of candles ordered as timestamp, open, high, low, close, volume
          */
         $outcomeObj = Async\await($this->load_outcome($outcome));
         $outcomeInfo = $this->safe_dict($outcomeObj, 'info', array());
@@ -2800,38 +2803,38 @@ class myriad extends Exchange {
         ), $params)));
         //
         //     {
-        //         "id" => "164",
-        //         "networkId" => "2741",
-        //         "slug" => "trump-out-as-president-2027",
-        //         "title" => "Will Trump cease to be President before 2027?",
-        //         "state" => "open",
-        //         "outcomes" => array(
+        //         "id": "164",
+        //         "networkId": "2741",
+        //         "slug": "trump-out-as-president-2027",
+        //         "title": "Will Trump cease to be President before 2027?",
+        //         "state": "open",
+        //         "outcomes": [
         //             {
-        //                 "id" => "0",
-        //                 "outcomeId" => "0",
-        //                 "title" => "YES",
-        //                 "label" => "YES",
-        //                 "price" => 0.42,
-        //                 "priceChange24h" => -0.02
+        //                 "id": "0",
+        //                 "outcomeId": "0",
+        //                 "title": "YES",
+        //                 "label": "YES",
+        //                 "price": 0.42,
+        //                 "priceChange24h": -0.02
         //             }
-        //         ),
-        //         "price_charts" => {
-        //             "24h" => {
-        //                 "timeframe" => "24h",
-        //                 "prices" => array(
-        //                     array(
-        //                         "timestamp" => 1705318200,
-        //                         "open" => 0.40,
-        //                         "high" => 0.45,
-        //                         "low" => 0.39,
-        //                         "close" => 0.42,
-        //                         "price" => 0.42,
-        //                         "value" => 0.42
+        //         ],
+        //         "price_charts": {
+        //             "24h": {
+        //                 "timeframe": "24h",
+        //                 "prices": [
+        //                     {
+        //                         "timestamp": 1705318200,
+        //                         "open": 0.40,
+        //                         "high": 0.45,
+        //                         "low": 0.39,
+        //                         "close": 0.42,
+        //                         "price": 0.42,
+        //                         "value": 0.42
         //                     }
-        //                 )
-        //             ),
-        //             "7d" => array(...),
-        //             "30d" => array(...)
+        //                 ]
+        //             },
+        //             "7d": {...},
+        //             "30d": {...}
         //         }
         //     }
         //
@@ -2849,7 +2852,7 @@ class myriad extends Exchange {
                 $selectedOutcome = $oc;
             }
         }
-        // price_charts is a list of array( $timeframe, prices ) buckets, with a dict variant on some deployments
+        // price_charts is a list of { timeframe, prices } buckets, with a dict variant on some deployments
         $chart = null;
         $chartsList = $this->safe_list($selectedOutcome, 'price_charts');
         if ($chartsList !== null) {
@@ -2891,17 +2894,17 @@ class myriad extends Exchange {
          * parses a single myriad $price chart data point into an $ohlcv tuple
          * @param {array} $ohlcv the raw $price chart data point
          * @param {array} [$market] the outcome object the candle belongs to
-         * @return {int[]} a candle ordered, $open, $high, $low, $close, volume
+         * @return {int[]} a candle ordered as timestamp, $open, $high, $low, $close, volume
          */
         //
         //     {
-        //         "timestamp" => 1705318200,
-        //         "open" => 0.40,
-        //         "high" => 0.45,
-        //         "low" => 0.39,
-        //         "close" => 0.42,
-        //         "price" => 0.42,
-        //         "value" => 0.42
+        //         "timestamp": 1705318200,
+        //         "open": 0.40,
+        //         "high": 0.45,
+        //         "low": 0.39,
+        //         "close": 0.42,
+        //         "price": 0.42,
+        //         "value": 0.42
         //     }
         //
         $open = $this->safe_number($ohlcv, 'open');
@@ -2937,7 +2940,7 @@ class myriad extends Exchange {
             throw new ArgumentsRequired($this->id . ' fetchTickers() requires an $outcomes argument — the venue has no all-tickers endpoint; pass the outcome handles to fetch (discover them via fetchEvents ())');
         }
         $result = array();
-        // resolve the uncached $outcomes first, then group by parent market to fetch each market only once
+        // resolve the uncached outcomes first, then group by parent market to fetch each market only once
         Async\await($this->load_outcomes($outcomes));
         $outcomesByMarket = array();
         $marketKeys = array();
@@ -3015,24 +3018,24 @@ class myriad extends Exchange {
         $response = Async\await($this->myriadPublicGetMarketsIdEvents($this->extend($request, $params)));
         //
         //     {
-        //         "data" => array(
+        //         "data": [
         //             {
-        //                 "user" => "0xAE7Bfff784EeEe7812D6527B72c77A7Ed773Ed9D",
-        //                 "action" => "buy",
-        //                 "marketTitle" => "BNB candles from 10:00 to 10:05 UTC",
-        //                 "marketSlug" => "bnb-candles-from-10-00-to-10-05-utc",
-        //                 "marketId" => 218,
-        //                 "networkId" => 56,
-        //                 "outcomeTitle" => "More Green",
-        //                 "outcomeId" => 0,
-        //                 "shares" => 500,
-        //                 "value" => 500,
-        //                 "timestamp" => 1761645928,
-        //                 "blockNumber" => 66193433,
-        //                 "token" => "0x55d398326f99059fF775485246999027B3197955",
-        //                 "txId" => "0x3c81447bd6e5c4c80a6e1425383c0b044ddcb1525d09027c2b371ff84f9b9fa0"
+        //                 "user": "0xAE7Bfff784EeEe7812D6527B72c77A7Ed773Ed9D",
+        //                 "action": "buy",
+        //                 "marketTitle": "BNB candles from 10:00 to 10:05 UTC",
+        //                 "marketSlug": "bnb-candles-from-10-00-to-10-05-utc",
+        //                 "marketId": 218,
+        //                 "networkId": 56,
+        //                 "outcomeTitle": "More Green",
+        //                 "outcomeId": 0,
+        //                 "shares": 500,
+        //                 "value": 500,
+        //                 "timestamp": 1761645928,
+        //                 "blockNumber": 66193433,
+        //                 "token": "0x55d398326f99059fF775485246999027B3197955",
+        //                 "txId": "0x3c81447bd6e5c4c80a6e1425383c0b044ddcb1525d09027c2b371ff84f9b9fa0"
         //             }
-        //         )
+        //         ]
         //     }
         //
         $responseIsArray = (gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response)));
@@ -3102,14 +3105,14 @@ class myriad extends Exchange {
          * @param {array} [$params] extra exchange-specific parameters
          * @param {string} [$params->query] a single search term; an $eventId does a direct lookup and tags map to server-side keyword searches
          * @param {string[]} [$params->queries] multiple search terms (alternative to query)
-         * @param {string[]} [$params->tags] tag slugs to scope by (searched, e.g. ['bitcoin', 'world-cup'])
+         * @param {string[]} [$params->tags] tag slugs to scope by (searched as keywords, e.g. ['bitcoin', 'world-cup'])
          * @param {string} [$params->eventId] direct lookup by unified event id (composite networkId:marketId) like '56:170145' or questions path like '793bfc47-ddcd-47d2-aad5-52c7002fc823'
          * @param {int} [$params->limit] maximum number of markets per query, defaults to 50
          * @param {string} [$params->state] 'open', 'closed' or 'resolved', defaults to 'open'
          * @return {array[]} an array of event structures
          */
         $allowUnscopedFetchEvents = $this->safe_bool($this->options, 'allowUnscopedFetchEvents', false);
-        if (!$allowUnscopedFetchEvents) {
+        if ($allowUnscopedFetchEvents !== true) {
             $this->require_event_query($params);
         }
         $queries = $this->parse_search_queries($params);
@@ -3119,9 +3122,9 @@ class myriad extends Exchange {
         }
         $queriesLength = count($queries);
         $eventId = $this->safe_string($params, 'eventId');
-        // always fetch fresh from the API (never serve the possibly-cold cache) => a query searches,
-        // an $eventId does a direct lookup, and tags map to server-side keyword searches (the
-        // markets listing ignores tag filter $params, but tag slugs match through keyword=)
+        // always fetch fresh from the API (never serve the possibly-cold cache): a query searches,
+        // an eventId does a direct lookup, and tags map to server-side keyword searches (the
+        // markets listing ignores tag filter params, but tag slugs match through keyword=)
         $rawMarkets = array();
         $rawQuestions = array();
         if ($queriesLength > 0) {
@@ -3144,7 +3147,7 @@ class myriad extends Exchange {
             $requestedTags = $this->safe_list($params, 'tags', array());
             $requestedTagsLength = count($requestedTags);
             if ($requestedTagsLength === 0) {
-                // unscoped mode => fetch bounded open lists from both sources and merge
+                // unscoped mode: fetch bounded open lists from both sources and merge
                 $listResponses = Async\await(Promise\all(array(
                     $this->fetch_raw_markets_list($rest),
                     $this->fetch_raw_questions_list($rest),
@@ -3168,7 +3171,7 @@ class myriad extends Exchange {
                 $rawQuestions = $this->safe_list($responses, 1, array());
             }
         }
-        if (!$this->markets) {
+        if ($this->markets === null) {
             $this->markets = $this->create_safe_dictionary();
         }
         $seenMarketHandles = array();
@@ -3220,7 +3223,7 @@ class myriad extends Exchange {
         $this->set_events($result);
         $this->populate_outcomes();
         // tags were already applied server-side (mapped to keyword searches); strip them before
-        // the client-side pass — $raw markets don't carry a matching event-level tags field
+        // the client-side pass — raw markets don't carry a matching event-level tags field
         $postParams = $this->omit($params, array( 'tags' ));
         return $this->apply_event_fetch_params($result, $postParams, $queries);
     }
@@ -3243,7 +3246,7 @@ class myriad extends Exchange {
         return $this->extend($rawEvent, array(
             'id' => $this->safe_string($rawEvent, 'id'),
             'slug' => $questionSlug,
-            'event' => $questionSlug ? $this->shorten_slug($questionSlug) : null,
+            'event' => ($questionSlug !== null && $questionSlug !== '') ? $this->shorten_slug($questionSlug) : null,
             'title' => $this->safe_string($rawEvent, 'title'),
             'description' => $this->safe_string($rawEvent, 'description'),
             'markets' => $marketsList,
@@ -3257,7 +3260,7 @@ class myriad extends Exchange {
             'tags' => $this->safe_list($rawEvent, 'tags'),
             'created' => $this->parse8601($this->safe_string($rawEvent, 'createdAt')),
             'createdDatetime' => $this->safe_string($rawEvent, 'createdAt'),
-            'end' => $endDate ? $this->parse8601($endDate) : null,
+            'end' => ($endDate !== null && $endDate !== '') ? $this->parse8601($endDate) : null,
             'endDatetime' => $endDate,
             'lastUpdatedAt' => $this->parse8601($this->safe_string($rawEvent, 'updatedAt')),
             'resolutionSource' => $this->safe_string($rawEvent, 'resolutionSource'),
@@ -3287,7 +3290,7 @@ class myriad extends Exchange {
     }
 
     public function market_outcome_to_symbol(?string $networkId, ?string $marketId, ?string $outcomeId): ?string {
-        // guard the ids before concatenating => a missing id would crash on string . None in Python/PHP
+        // guard the ids before concatenating: a missing id would crash on string + None in Python/PHP
         if (($networkId === null) || ($marketId === null) || ($outcomeId === null)) {
             return null;
         }
@@ -3303,14 +3306,14 @@ class myriad extends Exchange {
     private function do_connect_centrifugo(?string $url) {
         // Centrifugo requires an anonymous connect command before any subscribe. This sends it once per
         // connection and resolves when the connect reply arrives (see handleCentrifugoFrame). The base
-        // clears $client->subscriptions on reconnect, so an absent 'connect' marker means a fresh handshake.
+        // clears client.subscriptions on reconnect, so an absent 'connect' marker means a fresh handshake.
         $client = $this->client($url);
         $connectSent = $this->safe_value($client->subscriptions, 'connect');
         if ($connectSent === null) {
             $this->options['wsConnected'] = false;
             $requestId = $this->request_id($url);
             // give the anonymous connect a name so the params object is non-empty (PHP serialises an
-            // empty array JSON array, which Centrifugo rejects)
+            // empty array as a JSON array, which Centrifugo rejects)
             $connectMsg = array( 'connect' => array( 'name' => 'ccxt' ), 'id' => $requestId );
             return Async\await($this->watch($url, 'centrifugoConnected', $connectMsg, 'connect'));
         }
@@ -3346,7 +3349,7 @@ class myriad extends Exchange {
 
     public function handle_message(mixed $client, mixed $message) {
         // Centrifugo packs several commands per frame joined by \n; a multi-command frame fails the
-        // base JSON.parse and arrives here raw string, a single command arrives already $parsed
+        // base JSON.parse and arrives here as a raw string, a single command arrives already parsed
         if (gettype($message) === 'string') {
             $lines = explode('\n', $message);
             $linesLength = count($lines);
@@ -3371,7 +3374,7 @@ class myriad extends Exchange {
         }
         $connectReply = $this->safe_dict($msg, 'connect');
         if ($connectReply !== null) {
-            // connect acknowledged — unblock connectCentrifugo so $channel subscribes can be sent
+            // connect acknowledged — unblock connectCentrifugo so channel subscribes can be sent
             $this->options['wsConnected'] = true;
             $client->resolve(true, 'centrifugoConnected');
             return;
@@ -3424,13 +3427,13 @@ class myriad extends Exchange {
         $channel = 'orderbook:' . $networkId . ':' . $marketId;
         $messageHash = 'orderbook::' . $sym;
         $url = $this->safe_string($this->urls['api'], 'ws');
-        // finish the connect handshake first so the $client exists and the subscribe follows the connect reply
+        // finish the connect handshake first so the client exists and the subscribe follows the connect reply
         Async\await($this->connect_centrifugo($url));
         $client = $this->client($url);
         $isNewSubscription = $this->safe_value($client->subscriptions, $channel) === null;
         if ($isNewSubscription) {
-            // the $channel only streams deltas, so (re)seed the live book from the REST snapshot on a
-            // fresh subscription (first call or after a reconnect that cleared $client->subscriptions)
+            // the channel only streams deltas, so (re)seed the live book from the REST snapshot on a
+            // fresh subscription (first call or after a reconnect that cleared client.subscriptions)
             Async\await($this->seed_order_book($outcome, $sym, $limit));
         }
         $requestId = $this->request_id($url);
@@ -3449,7 +3452,7 @@ class myriad extends Exchange {
     }
 
     private function do_seed_order_book(?string $outcome, ?string $sym, ?int $limit = null) {
-        // the order book channel streams deltas only, so seed the live book from the REST $snapshot
+        // the order book channel streams deltas only, so seed the live book from the REST snapshot
         $snapshot = Async\await($this->fetch_order_book($outcome, $limit));
         $orderbook = $this->order_book(array());
         $orderbook->reset($snapshot);
@@ -3550,7 +3553,7 @@ class myriad extends Exchange {
     }
 
     public function wallet_address_or_undefined(): ?string {
-        // like walletAddressFromKeys but returns null instead of throwing when no wallet is configured
+        // like walletAddressFromKeys but returns undefined instead of throwing when no wallet is configured
         if (($this->walletAddress !== null) && (strlen($this->walletAddress) > 0)) {
             return strtolower($this->walletAddress);
         }
@@ -3607,7 +3610,7 @@ class myriad extends Exchange {
         $stored = $this->trades[$sym];
         $stored->append($trade);
         $client->resolve($stored, 'trades::' . $sym);
-        // also surface the wallet's own fills ($taker or $maker leg) with their real execution prices
+        // also surface the wallet's own fills (taker or maker leg) with their real execution prices
         $myWallet = $this->wallet_address_or_undefined();
         if ($myWallet !== null) {
             $myLegs = array();
@@ -3915,7 +3918,7 @@ class myriad extends Exchange {
         $client = $this->client($url);
         $isNewSubscription = $this->safe_value($client->subscriptions, $channel) === null;
         if ($isNewSubscription) {
-            // the $channel pushes only signed deltas; seed absolute share balances from REST so
+            // the channel pushes only signed deltas; seed absolute share balances from REST so
             // handlePosition can maintain a running contracts figure
             Async\await($this->seed_position_balances($trader));
         }
@@ -3958,7 +3961,7 @@ class myriad extends Exchange {
         $outcomeObj = $this->safe_outcome($sym);
         $ts = $this->safe_integer($data, 'ts');
         // the channel pushes a signed share delta per fill/redeem/split/merge (no absolute balance);
-        // apply it to the REST-seeded balance keyed by outcome id to maintain a running $contracts figure
+        // apply it to the REST-seeded balance keyed by outcome id to maintain a running contracts figure
         $deltaStr = $this->safe_string($data, 'delta', '0');
         $firstChar = mb_substr($deltaStr, 0, 1 - 0);
         if ($firstChar === '+') {
@@ -4001,9 +4004,9 @@ class myriad extends Exchange {
     }
 
     public function wallet_address_from_keys(): string {
-        // the orders/positions channels are keyed by the lowercase trader $address (Centrifugo channels
-        // are case-sensitive); lowercase here so the channel matches regardless of the $address checksum.
-        // check length too => an unset walletAddress is an empty string (not null) in some languages
+        // the orders/positions channels are keyed by the lowercase trader address (Centrifugo channels
+        // are case-sensitive); lowercase here so the channel matches regardless of the address checksum.
+        // check length too: an unset walletAddress is an empty string (not undefined) in some languages
         $address = $this->walletAddress;
         $hasWallet = ($address !== null) && (strlen($this->walletAddress) > 0);
         if (!$hasWallet) {
@@ -4016,7 +4019,7 @@ class myriad extends Exchange {
     }
 
     public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
-        // Myriad $error responses are array( "error" => "<message>", "details" => [...] ) with a 4xx status
+        // Myriad error responses are { "error": "<message>", "details": [...] } with a 4xx status
         if ($response === null) {
             return null;
         }
@@ -4033,7 +4036,7 @@ class myriad extends Exchange {
     public function sign(mixed $path, mixed $api = 'myriad', $method = 'GET', $params = array(), mixed $headers = null, mixed $body = null) {
         /**
          * @ignore
-         * builds the request $url and attaches the x-$api-key header for private endpoints
+         * builds the request $url and attaches the apiKey header for private endpoints
          * @param {string} $path the endpoint $path
          * @param {string|string[]} $api the $api group and access level
          * @param {string} $method the http $method
@@ -4049,7 +4052,7 @@ class myriad extends Exchange {
         $query = $this->omit($params, $this->extract_params($path));
         if ($method === 'GET') {
             $querystring = $this->urlencode($query);
-            if ($querystring) {
+            if ($querystring !== '') {
                 $url .= '?' . $querystring;
             }
         }
@@ -4058,8 +4061,8 @@ class myriad extends Exchange {
             'Accept' => 'application/json',
             'Content-Type' => 'application/json',
         ), $existingHeaders);
-        // non-GET requests carry the $params JSON $body (public POSTs like markets/quote
-        // included — the previous logic only sent a $body for authenticated requests)
+        // non-GET requests carry the params as a JSON body (public POSTs like markets/quote
+        // included — the previous logic only sent a body for authenticated requests)
         if ($method !== 'GET') {
             $queryKeys = is_array($query) ? array_keys($query) : array();
             $queryKeysLength = count($queryKeys);
@@ -4067,8 +4070,18 @@ class myriad extends Exchange {
                 $body = $this->json($query);
             }
         }
-        if ($this->apiKey) {
-            $headers = $this->extend($headers, array( 'x-$api-key' => $this->apiKey ));
+        if (($this->apiKey !== null) && ($this->apiKey !== '')) {
+            // keep this literal split. the php transpiler prefixes every occurrence of a local or
+            // parameter name with '$' at the text level, including occurrences inside single-quoted
+            // string literals, and this method's second parameter is named after the middle segment
+            // of the header below. collapsing the two halves back into one literal therefore emits a
+            // corrupted header name in php only - every other language stays green, so the
+            // regression would ship silently. pinned by the fixture in
+            // ts/src/test/static/request/prediction/myriad.json
+            $headerKey = 'x-api' . '-key';
+            $headersKey = array();
+            $headersKey[$headerKey] = $this->apiKey;
+            $headers = $this->extend($headers, $headersKey);
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }

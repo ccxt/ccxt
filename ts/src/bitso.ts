@@ -216,6 +216,10 @@ export default class bitso extends Exchange {
                         'orders/{oid}': { 'cost': 1 } as Endpoint<Dict>,
                         'orders/all': { 'cost': 1 } as Endpoint<Dict>,
                     },
+                    'patch': {
+                        'orders': { 'cost': 1 } as Endpoint<Dict>,
+                        'orders/{oid}': { 'cost': 1 } as Endpoint<Dict>,
+                    },
                 },
             },
             'features': {
@@ -488,7 +492,7 @@ export default class bitso extends Exchange {
         //             },
         //         ]
         //     }
-        const markets = this.safeValue (response, 'payload', []);
+        const markets = this.safeList (response, 'payload', []);
         const currencies = this.safeDict (this.options, 'cachedCurrencies');
         const result: Market[] = [];
         for (let i = 0; i < markets.length; i++) {
@@ -505,7 +509,7 @@ export default class bitso extends Exchange {
             const makerString = this.safeString (flatRate, 'maker');
             const taker = this.parseNumber (Precise.stringDiv (takerString, '100'));
             const maker = this.parseNumber (Precise.stringDiv (makerString, '100'));
-            const feeTiers = this.safeValue (fees, 'structure', []);
+            const feeTiers = this.safeList (fees, 'structure', []);
             const fee: Dict = {
                 'taker': taker,
                 'maker': maker,
@@ -660,7 +664,7 @@ export default class bitso extends Exchange {
 
     override parseBalance (response: any): Balances {
         const payload = this.safeValue (response, 'payload', {});
-        const balances = this.safeValue (payload, 'balances', []);
+        const balances = this.safeList (payload, 'balances', []);
         const result: Dict = {
             'info': response,
             'timestamp': undefined,
@@ -1097,7 +1101,7 @@ export default class bitso extends Exchange {
         //    }
         //
         const payload = this.safeValue (response, 'payload', {});
-        const fees = this.safeValue (payload, 'fees', []);
+        const fees = this.safeList (payload, 'fees', []);
         const result: Dict = {};
         for (let i = 0; i < fees.length; i++) {
             const fee = fees[i];
@@ -1255,7 +1259,7 @@ export default class bitso extends Exchange {
         //         "payload": ["yWTQGxDMZ0VimZgZ"]
         //     }
         //
-        const payload = this.safeValue (response, 'payload', []);
+        const payload = this.safeList (response, 'payload', []);
         const orders: Order[] = [];
         for (let i = 0; i < payload.length; i++) {
             const id = payload[i];
@@ -1284,7 +1288,7 @@ export default class bitso extends Exchange {
         //         "payload": ["NWUZUYNT12ljwzDT", "kZUkZmQ2TTjkkYTY"]
         //     }
         //
-        const payload = this.safeValue (response, 'payload', []);
+        const payload = this.safeList (response, 'payload', []);
         const canceledOrders: Order[] = [];
         for (let i = 0; i < payload.length; i++) {
             const order = this.parseOrder (payload[i]);
@@ -1456,7 +1460,7 @@ export default class bitso extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async fetchDeposit (id: string, code: Str = undefined, params = {}) {
+    async fetchDeposit (id: string, code: Str = undefined, params = {}): Promise<Transaction> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1634,7 +1638,7 @@ export default class bitso extends Exchange {
         //
         const result: Dict = {};
         const payload = this.safeValue (response, 'payload', {});
-        const depositFees = this.safeValue (payload, 'deposit_fees', []);
+        const depositFees = this.safeList (payload, 'deposit_fees', []);
         for (let i = 0; i < depositFees.length; i++) {
             const depositFee = depositFees[i];
             const currencyId = this.safeString (depositFee, 'currency');
@@ -1778,7 +1782,7 @@ export default class bitso extends Exchange {
         //    }
         //
         const result: Dict = {};
-        const depositResponse = this.safeValue (response, 'deposit_fees', []);
+        const depositResponse = this.safeList (response, 'deposit_fees', []);
         const withdrawalResponse = this.safeValue (response, 'withdrawal_fees', []);
         for (let i = 0; i < depositResponse.length; i++) {
             const entry = depositResponse[i];
@@ -1789,7 +1793,7 @@ export default class bitso extends Exchange {
                     result[code] = {
                         'deposit': {
                             'fee': this.safeNumber (entry, 'fee'),
-                            'percentage': !this.safeValue (entry, 'is_fixed'),
+                            'percentage': (this.safeValue (entry, 'is_fixed') !== true),
                         },
                         'withdraw': {
                             'fee': undefined,
@@ -1968,7 +1972,7 @@ export default class bitso extends Exchange {
         let endpoint = '/' + this.version + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
         if (method === 'GET' || method === 'DELETE') {
-            if (Object.keys (query).length) {
+            if (Object.keys (query).length > 0) {
                 endpoint += '?' + this.urlencode (query);
             }
         }
@@ -1980,7 +1984,7 @@ export default class bitso extends Exchange {
             const content = [ nonce, method, endpoint ];
             let request = content.join ('');
             if (method !== 'GET' && method !== 'DELETE') {
-                if (Object.keys (query).length) {
+                if (Object.keys (query).length > 0) {
                     body = this.json (query);
                     request += body;
                 }
@@ -2011,7 +2015,7 @@ export default class bitso extends Exchange {
                     success = false;
                 }
             }
-            if (!success) {
+            if (success !== true) {
                 const feedback = this.id + ' ' + this.json (response);
                 const error = this.safeValue (response, 'error');
                 if (error === undefined) {

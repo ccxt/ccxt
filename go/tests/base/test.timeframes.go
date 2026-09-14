@@ -24,6 +24,26 @@ func TestRoundTimeframe() {
 	Assert(ccxt.IsEqual(exchange.RoundTimeframe("30m", testDate, ccxt.ROUND_UP), exchange.Parse8601("2019-08-12 13:30:00")))
 	Assert(ccxt.IsEqual(exchange.RoundTimeframe("1h", testDate, ccxt.ROUND_UP), exchange.Parse8601("2019-08-12 14:00:00")))
 	Assert(ccxt.IsEqual(exchange.RoundTimeframe("1d", testDate, ccxt.ROUND_UP), exchange.Parse8601("2019-08-13 00:00:00")))
+	var calendarDate any = exchange.Parse8601("2026-09-02T00:00:00Z")
+	if ccxt.IsTrue(ccxt.IsEqual(calendarDate, nil)) {
+		return
+	}
+	Assert(ccxt.IsEqual(exchange.RoundTimeframe("1w", calendarDate, ccxt.ROUND_DOWN), exchange.Parse8601("2026-08-31T00:00:00Z")))
+	Assert(ccxt.IsEqual(exchange.RoundTimeframe("1M", calendarDate, ccxt.ROUND_DOWN), exchange.Parse8601("2026-09-01T00:00:00Z")))
+	Assert(ccxt.IsEqual(exchange.RoundTimeframe("1y", calendarDate, ccxt.ROUND_DOWN), exchange.Parse8601("2026-01-01T00:00:00Z")))
+	Assert(ccxt.IsEqual(exchange.RoundTimeframe("1w", calendarDate, ccxt.ROUND_UP), exchange.Parse8601("2026-09-07T00:00:00Z")))
+	Assert(ccxt.IsEqual(exchange.RoundTimeframe("1M", calendarDate, ccxt.ROUND_UP), exchange.Parse8601("2026-10-01T00:00:00Z")))
+	Assert(ccxt.IsEqual(exchange.RoundTimeframe("1y", calendarDate, ccxt.ROUND_UP), exchange.Parse8601("2027-01-01T00:00:00Z")))
+	Assert(ccxt.IsEqual(exchange.RoundTimeframe("2w", calendarDate, ccxt.ROUND_DOWN), exchange.Parse8601("2026-08-31T00:00:00Z")))
+	Assert(ccxt.IsEqual(exchange.RoundTimeframe("3M", calendarDate, ccxt.ROUND_DOWN), exchange.Parse8601("2026-07-01T00:00:00Z")))
+	Assert(ccxt.IsEqual(exchange.RoundTimeframe("2w", calendarDate, ccxt.ROUND_UP), exchange.Parse8601("2026-09-14T00:00:00Z")))
+	Assert(ccxt.IsEqual(exchange.RoundTimeframe("3M", calendarDate, ccxt.ROUND_UP), exchange.Parse8601("2026-10-01T00:00:00Z")))
+	var preEpochDate any = exchange.Parse8601("1960-06-15T00:00:00Z")
+	if ccxt.IsTrue(ccxt.IsEqual(preEpochDate, nil)) {
+		return
+	}
+	Assert(ccxt.IsEqual(exchange.RoundTimeframe("2w", preEpochDate, ccxt.ROUND_DOWN), exchange.Parse8601("1960-06-06T00:00:00Z")))
+	Assert(ccxt.IsEqual(exchange.RoundTimeframe("2w", preEpochDate, ccxt.ROUND_UP), exchange.Parse8601("1960-06-20T00:00:00Z")))
 }
 func TestParseTimeframe() {
 	exchange := ccxt.NewExchange().(*ccxt.Exchange)

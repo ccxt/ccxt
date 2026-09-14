@@ -28,6 +28,7 @@ interface Exchange {
     privatePostDoCancelMyOrder (params?: {}): Promise<Dict>;
     privatePostDoCancelAllOrders (params?: {}): Promise<Dict>;
     privatePostGetOrderBook (params?: {}): Promise<Dict>;
+    privatePostGetTicker (params?: {}): Promise<Dict>;
     privatePostGetCandles (params?: {}): Promise<Dict>;
     privatePostGetTradeHistory (params?: {}): Promise<Dict>;
     privatePostGetMyTransactionHistory (params?: {}): Promise<Dict>;

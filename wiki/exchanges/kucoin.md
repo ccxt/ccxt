@@ -526,7 +526,7 @@ kucoin.fetchContractDepositAddress (code, params?)
 fetch the deposit address for a currency associated with this account
 
 **Kind**: instance method of [<code>kucoin</code>](#kucoin)  
-**Returns**: <code>object</code> - an array of [address structures](https://docs.ccxt.com/?id=address-structure)
+**Returns**: <code>object</code> - a dictionary of [address structures](https://docs.ccxt.com/?id=address-structure) indexed by the network
 
 **See**
 

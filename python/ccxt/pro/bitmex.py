@@ -6,9 +6,8 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp
 import hashlib
-from ccxt.base.types import Any, Balances, Bool, Int, Liquidation, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Balances, Bool, Int, Liquidation, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
-from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import RateLimitExceeded
@@ -16,7 +15,7 @@ from ccxt.base.errors import RateLimitExceeded
 
 class bitmex(ccxt.async_support.bitmex):
 
-    def describe(self) -> Any:
+    def describe(self) -> object:
         return self.deep_extend(super(bitmex, self).describe(), {
             'has': {
                 'ws': True,
@@ -30,7 +29,7 @@ class bitmex(ccxt.async_support.bitmex):
                 'watchOrderBook': True,
                 'watchOrderBookForSymbols': True,
                 'watchOrders': True,
-                'watchPostions': True,
+                'watchPositions': True,
                 'watchTicker': True,
                 'watchTickers': True,
                 'watchTrades': True,
@@ -118,12 +117,12 @@ class bitmex(ccxt.async_support.bitmex):
             return result
         return self.filter_by_array(self.tickers, 'symbol', symbols)
 
-    def handle_ticker(self, client: Client, message: Any):
+    def handle_ticker(self, client: Client, message: object):
         #
         #     {
         #         "table": "instrument",
         #         "action": "partial",
-        #         "keys": ["symbol"],
+        #         "keys": [ "symbol" ],
         #         "types": {
         #             "symbol": "symbol",
         #             "rootSymbol": "symbol",
@@ -234,8 +233,8 @@ class bitmex(ccxt.async_support.bitmex):
         #             "sellLeg": "instrument",
         #             "buyLeg": "instrument"
         #         },
-        #         "attributes": {symbol: "unique"},
-        #         "filter": {symbol: "XBTUSD"},
+        #         "attributes": { symbol: "unique" },
+        #         "filter": { symbol: "XBTUSD" },
         #         "data": [
         #             {
         #                 "symbol": "XBTUSD",
@@ -272,16 +271,16 @@ class bitmex(ccxt.async_support.bitmex):
         #                 "underlyingToPositionMultiplier": null,
         #                 "underlyingToSettleMultiplier": -100000000,
         #                 "quoteToSettleMultiplier": null,
-        #                 "isQuanto": False,
-        #                 "isInverse": True,
+        #                 "isQuanto": false,
+        #                 "isInverse": true,
         #                 "initMargin": 0.01,
         #                 "maintMargin": 0.005,
         #                 "riskLimit": 20000000000,
         #                 "riskStep": 10000000000,
         #                 "limit": null,
-        #                 "capped": False,
-        #                 "taxed": True,
-        #                 "deleverage": True,
+        #                 "capped": false,
+        #                 "taxed": true,
+        #                 "deleverage": true,
         #                 "makerFee": -0.00025,
         #                 "takerFee": 0.00075,
         #                 "settlementFee": 0,
@@ -327,7 +326,7 @@ class bitmex(ccxt.async_support.bitmex):
         #                 "impactBidPrice": 9285.9133,
         #                 "impactMidPrice": 9286.75,
         #                 "impactAskPrice": 9287.6382,
-        #                 "hasLiquidity": True,
+        #                 "hasLiquidity": true,
         #                 "openInterest": 967826984,
         #                 "openValue": 10432207060536,
         #                 "fairMethod": "FundingRate",
@@ -362,7 +361,7 @@ class bitmex(ccxt.async_support.bitmex):
             client.resolve(fullParsedTicker, 'alltickers')
         return message
 
-    def watch_liquidations(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Liquidation]:
+    def watch_liquidations(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Liquidation]:
         """
         watch the public liquidations of a trading pair
 
@@ -376,7 +375,7 @@ class bitmex(ccxt.async_support.bitmex):
         """
         return self.watch_liquidations_for_symbols([symbol], since, limit, params)
 
-    async def watch_liquidations_for_symbols(self, symbols: List[str], since: Int = None, limit: Int = None, params={}) -> List[Liquidation]:
+    async def watch_liquidations_for_symbols(self, symbols: list[str], since: Int = None, limit: Int = None, params={}) -> list[Liquidation]:
         """
         watch the public liquidations of a trading pair
 
@@ -412,7 +411,7 @@ class bitmex(ccxt.async_support.bitmex):
             return newLiquidations
         return self.filter_by_symbols_since_limit(self.liquidations, symbols, since, limit, True)
 
-    def handle_liquidation(self, client: Client, message: Any):
+    def handle_liquidation(self, client: Client, message: object):
         #
         #    {
         #        "table":"liquidation",
@@ -439,7 +438,7 @@ class bitmex(ccxt.async_support.bitmex):
         #        ]
         #    }
         #
-        rawLiquidations = self.safe_value(message, 'data', [])
+        rawLiquidations = self.safe_list(message, 'data', [])
         newLiquidations = []
         if self.liquidations is None:
             limit = self.safe_integer(self.options, 'liquidationsLimit', 1000)
@@ -479,12 +478,12 @@ class bitmex(ccxt.async_support.bitmex):
         }
         return await self.watch(url, messageHash, self.extend(request, params), messageHash)
 
-    def handle_balance(self, client: Client, message: Any):
+    def handle_balance(self, client: Client, message: object):
         #
         #     {
         #         "table": "margin",
         #         "action": "partial",
-        #         "keys": ["account"],
+        #         "keys": [ "account" ],
         #         "types": {
         #             "account": "long",
         #             "currency": "symbol",
@@ -529,8 +528,8 @@ class bitmex(ccxt.async_support.bitmex):
         #             "commission": "float"
         #         },
         #         "foreignKeys": {},
-        #         "attributes": {account: "sorted"},
-        #         "filter": {account: 1455728},
+        #         "attributes": { account: "sorted" },
+        #         "filter": { account: 1455728 },
         #         "data": [
         #             {
         #                 "account": 1455728,
@@ -584,7 +583,7 @@ class bitmex(ccxt.async_support.bitmex):
         messageHash = self.safe_string(message, 'table')
         client.resolve(self.balance, messageHash)
 
-    def handle_trades(self, client: Client, message: Any):
+    def handle_trades(self, client: Client, message: object):
         #
         # initial snapshot
         #
@@ -604,9 +603,9 @@ class bitmex(ccxt.async_support.bitmex):
         #             "homeNotional": "float",
         #             "foreignNotional": "float"
         #         },
-        #         "foreignKeys": {symbol: "instrument", side: "side"},
-        #         "attributes": {timestamp: "sorted", symbol: "grouped"},
-        #         "filter": {symbol: "XBTUSD"},
+        #         "foreignKeys": { symbol: "instrument", side: "side" },
+        #         "attributes": { timestamp: "sorted", symbol: "grouped" },
+        #         "filter": { symbol: "XBTUSD" },
         #         "data": [
         #             {
         #                 "timestamp": "2020-01-30T17:03:07.854Z",
@@ -663,7 +662,7 @@ class bitmex(ccxt.async_support.bitmex):
                 stored.append(trades[j])
             client.resolve(stored, messageHash)
 
-    def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
         """
         get the list of most recent trades for a particular symbol
 
@@ -700,10 +699,10 @@ class bitmex(ccxt.async_support.bitmex):
             self.watch(url, messageHash, message, messageHash)
         return await future
 
-    def handle_authentication_message(self, client: Client, message: Any):
+    def handle_authentication_message(self, client: Client, message: object):
         authenticated = self.safe_bool(message, 'success', False)
         messageHash = 'authenticated'
-        if authenticated:
+        if authenticated is True:
             # we resolve the future here permanently so authentication only happens once
             future = self.safe_value(client.futures, messageHash)
             future.resolve(True)
@@ -713,7 +712,7 @@ class bitmex(ccxt.async_support.bitmex):
             if messageHash in client.subscriptions:
                 del client.subscriptions[messageHash]
 
-    async def watch_positions(self, symbols: Strings = None, since: Int = None, limit: Int = None, params={}) -> List[Position]:
+    async def watch_positions(self, symbols: Strings = None, since: Int = None, limit: Int = None, params={}) -> list[Position]:
         """
         watch all open positions
 
@@ -731,7 +730,8 @@ class bitmex(ccxt.async_support.bitmex):
         subscriptionHash = 'position'
         messageHash = 'positions'
         if not self.is_empty(symbols):
-            messageHash = '::' + ','.join((symbols))
+            symbols = self.market_symbols(symbols)
+            messageHash = 'positions::' + ','.join((symbols))
         url = self.urls['api']['ws']
         request = {
             'op': 'subscribe',
@@ -744,13 +744,13 @@ class bitmex(ccxt.async_support.bitmex):
             return newPositions
         return self.filter_by_symbols_since_limit(self.positions, symbols, since, limit, True)
 
-    def handle_positions(self, client: Any, message: Any):
+    def handle_positions(self, client: object, message: object):
         #
         # partial
         #    {
         #        table: 'position',
         #        action: 'partial',
-        #        keys: ['account', 'symbol'],
+        #        keys: [ 'account', 'symbol' ],
         #        types: {
         #            account: 'long',
         #            symbol: 'symbol',
@@ -807,7 +807,7 @@ class bitmex(ccxt.async_support.bitmex):
         #            bankruptPrice: 'float',
         #            timestamp: 'timestamp'
         #        },
-        #        filter: {account: 412475},
+        #        filter: { account: 412475 },
         #        data: [
         #            {
         #                account: 412475,
@@ -820,7 +820,7 @@ class bitmex(ccxt.async_support.bitmex):
         #                maintMarginReq: 0.0035,
         #                riskLimit: 20000000000,
         #                leverage: 100,
-        #                crossMargin: True,
+        #                crossMargin: true,
         #                deleveragePercentile: 1,
         #                rebalancedPnl: 0,
         #                prevRealisedPnl: 0,
@@ -838,7 +838,7 @@ class bitmex(ccxt.async_support.bitmex):
         #                realisedCost: 0,
         #                unrealisedCost: -912269,
         #                grossOpenPremium: 0,
-        #                isOpen: True,
+        #                isOpen: true,
         #                markPrice: 43772,
         #                markValue: -913828,
         #                riskValue: 913828,
@@ -896,7 +896,7 @@ class bitmex(ccxt.async_support.bitmex):
         if self.positions is None:
             self.positions = ArrayCacheBySymbolBySide()
         cache = self.positions
-        rawPositions = self.safe_value(message, 'data', [])
+        rawPositions = self.safe_list(message, 'data', [])
         newPositions = []
         for i in range(0, len(rawPositions)):
             rawPosition = rawPositions[i]
@@ -904,9 +904,9 @@ class bitmex(ccxt.async_support.bitmex):
             side = self.safe_string(position, 'side')
             if side is None:
                 # BitMEX 'update' rows are deltas and may omit homeNotional, so
-                # parsePosition returns side = None. Carry the side forward from
-                # the cached position for self symbol, otherwise appending would break
-                # the ArrayCacheBySymbolBySide index(see issue  #29001).
+                # parsePosition returns side = undefined. Carry the side forward from
+                # the cached position for this symbol, otherwise appending would break
+                # the ArrayCacheBySymbolBySide index (see issue #29001).
                 symbol = self.safe_string(position, 'symbol')
                 cachedBySide = self.safe_dict(cache.hashmap, symbol, {})
                 cachedSides = list(cachedBySide.keys())
@@ -915,8 +915,8 @@ class bitmex(ccxt.async_support.bitmex):
                     side = cachedSides[0]
                     position['side'] = side
             if side is None:
-                # still unresolved(e.g. the very first message is a partial without
-                # homeNotional); skip self row rather than corrupt the cache
+                # still unresolved (e.g. the very first message is a partial without
+                # homeNotional); skip this row rather than corrupt the cache
                 continue
             newPositions.append(position)
             cache.append(position)
@@ -931,7 +931,7 @@ class bitmex(ccxt.async_support.bitmex):
                 client.resolve(positions, messageHash)
         client.resolve(newPositions, 'positions')
 
-    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         watches information on multiple orders made by the user
 
@@ -964,12 +964,12 @@ class bitmex(ccxt.async_support.bitmex):
             limit = orders.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
 
-    def handle_orders(self, client: Client, message: Any):
+    def handle_orders(self, client: Client, message: object):
         #
         #     {
         #         "table": "order",
         #         "action": "partial",
-        #         "keys": ["orderID"],
+        #         "keys": [ "orderID" ],
         #         "types": {
         #             "orderID": "guid",
         #             "clOrdID": "string",
@@ -1005,14 +1005,14 @@ class bitmex(ccxt.async_support.bitmex):
         #             "transactTime": "timestamp",
         #             "timestamp": "timestamp"
         #         },
-        #         "foreignKeys": {symbol: 'instrument', side: "side", ordStatus: "ordStatus"},
+        #         "foreignKeys": { symbol: 'instrument', side: "side", ordStatus: "ordStatus" },
         #         "attributes": {
         #             "orderID": "grouped",
         #             "account": "grouped",
         #             "ordStatus": "grouped",
         #             "workingIndicator": "grouped"
         #         },
-        #         "filter": {account: 1455728},
+        #         "filter": { account: 1455728 },
         #         "data": [
         #             {
         #                 "orderID": "56222c7a-9956-413a-82cf-99f4812c214b",
@@ -1037,7 +1037,7 @@ class bitmex(ccxt.async_support.bitmex):
         #                 "exDestination": "XBME",
         #                 "ordStatus": "New",
         #                 "triggered": '',
-        #                 "workingIndicator": True,
+        #                 "workingIndicator": true,
         #                 "ordRejReason": '',
         #                 "simpleLeavesQty": null,
         #                 "leavesQty": 1,
@@ -1079,7 +1079,7 @@ class bitmex(ccxt.async_support.bitmex):
         #                 "exDestination": "XBME",
         #                 "ordStatus": "New",
         #                 "triggered": '',
-        #                 "workingIndicator": True,
+        #                 "workingIndicator": true,
         #                 "ordRejReason": '',
         #                 "simpleLeavesQty": null,
         #                 "leavesQty": 1,
@@ -1103,7 +1103,7 @@ class bitmex(ccxt.async_support.bitmex):
         #             {
         #                 "orderID": "fa993d8e-f7e4-46ed-8097-04f8e9393585",
         #                 "ordStatus": "Canceled",
-        #                 "workingIndicator": False,
+        #                 "workingIndicator": false,
         #                 "leavesQty": 0,
         #                 "text": "Canceled: Canceled via API.\nSubmitted via API.",
         #                 "timestamp": "2021-01-02T23:50:51.272Z",
@@ -1114,7 +1114,7 @@ class bitmex(ccxt.async_support.bitmex):
         #         ]
         #     }
         #
-        data = self.safe_value(message, 'data', [])
+        data = self.safe_list(message, 'data', [])
         messageHash = 'order'
         # initial subscription response with multiple orders
         dataLength = len(data)
@@ -1141,7 +1141,7 @@ class bitmex(ccxt.async_support.bitmex):
                 symbol = keys[i]
                 client.resolve(self.orders, messageHash + ':' + symbol)
 
-    async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
         """
         watches information on multiple trades made by the user
 
@@ -1174,7 +1174,7 @@ class bitmex(ccxt.async_support.bitmex):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(trades, symbol, since, limit, True)
 
-    def handle_my_trades(self, client: Client, message: Any):
+    def handle_my_trades(self, client: Client, message: object):
         #
         #     {
         #         "table":"execution",
@@ -1267,7 +1267,7 @@ class bitmex(ccxt.async_support.bitmex):
         """
         return self.watch_order_book_for_symbols([symbol], limit, params)
 
-    async def watch_order_book_for_symbols(self, symbols: List[str], limit: Int = None, params={}) -> OrderBook:
+    async def watch_order_book_for_symbols(self, symbols: list[str], limit: Int = None, params={}) -> OrderBook:
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
@@ -1307,7 +1307,7 @@ class bitmex(ccxt.async_support.bitmex):
         orderbook = await self.watch_multiple(url, messageHashes, self.deep_extend(request, params), topics)
         return orderbook.limit()
 
-    async def watch_trades_for_symbols(self, symbols: List[str], since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    async def watch_trades_for_symbols(self, symbols: list[str], since: Int = None, limit: Int = None, params={}) -> list[Trade]:
         """
         get the list of most recent trades for a list of symbols
 
@@ -1344,7 +1344,7 @@ class bitmex(ccxt.async_support.bitmex):
             limit = trades.getLimit(tradeSymbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    async def watch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def watch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> list[list]:
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -1355,7 +1355,7 @@ class bitmex(ccxt.async_support.bitmex):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()
@@ -1375,7 +1375,7 @@ class bitmex(ccxt.async_support.bitmex):
             limit = ohlcv.getLimit(symbol, limit)
         return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
 
-    def handle_ohlcv(self, client: Client, message: Any):
+    def handle_ohlcv(self, client: Client, message: object):
         #
         #     {
         #         "table": "tradeBin1m",
@@ -1396,9 +1396,9 @@ class bitmex(ccxt.async_support.bitmex):
         #             "homeNotional": "float",
         #             "foreignNotional": "float"
         #         },
-        #         "foreignKeys": {symbol: "instrument"},
-        #         "attributes": {timestamp: "sorted", symbol: "grouped"},
-        #         "filter": {symbol: "XBTUSD"},
+        #         "foreignKeys": { symbol: "instrument" },
+        #         "attributes": { timestamp: "sorted", symbol: "grouped" },
+        #         "filter": { symbol: "XBTUSD" },
         #         "data": [
         #             {
         #                 "timestamp": "2020-02-03T01:13:00.000Z",
@@ -1445,7 +1445,7 @@ class bitmex(ccxt.async_support.bitmex):
         interval = table.replace('tradeBin', '')
         timeframe = self.find_timeframe(interval)
         duration = self.parse_timeframe(timeframe)
-        candles = self.safe_value(message, 'data', [])
+        candles = self.safe_list(message, 'data', [])
         results = {}
         for i in range(0, len(candles)):
             candle = candles[i]
@@ -1455,7 +1455,7 @@ class bitmex(ccxt.async_support.bitmex):
             messageHash = table + ':' + market['id']
             result = [
                 self.parse_to_int(self.parse8601(self.safe_string(candle, 'timestamp'))) - duration * 1000,
-                None,  # set open price to None, see: https://github.com/ccxt/ccxt/pull/21356#issuecomment-1969565862
+                None,  # set open price to undefined, see: https://github.com/ccxt/ccxt/pull/21356#issuecomment-1969565862
                 self.safe_float(candle, 'high'),
                 self.safe_float(candle, 'low'),
                 self.safe_float(candle, 'close'),
@@ -1481,14 +1481,14 @@ class bitmex(ccxt.async_support.bitmex):
         url = self.urls['api']['ws']
         return await self.watch(url, event)
 
-    def handle_order_book(self, client: Client, message: Any):
+    def handle_order_book(self, client: Client, message: object):
         #
         # first snapshot
         #
         #     {
         #         "table": "orderBookL2",
         #         "action": "partial",
-        #         "keys": ['symbol', "id", "side"],
+        #         "keys": [ 'symbol', "id", "side" ],
         #         "types": {
         #             "symbol": "symbol",
         #             "id": "long",
@@ -1496,14 +1496,14 @@ class bitmex(ccxt.async_support.bitmex):
         #             "size": "long",
         #             "price": "float"
         #         },
-        #         "foreignKeys": {symbol: "instrument", side: "side"},
-        #         "attributes": {symbol: "parted", id: "sorted"},
-        #         "filter": {symbol: "XBTUSD"},
+        #         "foreignKeys": { symbol: "instrument", side: "side" },
+        #         "attributes": { symbol: "parted", id: "sorted" },
+        #         "filter": { symbol: "XBTUSD" },
         #         "data": [
-        #             {symbol: "XBTUSD", id: 8700000100, side: "Sell", size: 1, price: 999999},
-        #             {symbol: "XBTUSD", id: 8700000200, side: "Sell", size: 3, price: 999998},
-        #             {symbol: "XBTUSD", id: 8716991250, side: "Sell", size: 26, price: 830087.5},
-        #             {symbol: "XBTUSD", id: 8728701950, side: "Sell", size: 1720, price: 712980.5},
+        #             { symbol: "XBTUSD", id: 8700000100, side: "Sell", size: 1, price: 999999 },
+        #             { symbol: "XBTUSD", id: 8700000200, side: "Sell", size: 3, price: 999998 },
+        #             { symbol: "XBTUSD", id: 8716991250, side: "Sell", size: 26, price: 830087.5 },
+        #             { symbol: "XBTUSD", id: 8728701950, side: "Sell", size: 1720, price: 712980.5 },
         #         ]
         #     }
         #
@@ -1535,7 +1535,7 @@ class bitmex(ccxt.async_support.bitmex):
         table = self.safe_string(message, 'table')
         if table is None:
             return  # protecting from weird updates
-        data = self.safe_value(message, 'data', [])
+        data = self.safe_list(message, 'data', [])
         # if it's an initial snapshot
         if action == 'partial':
             filter = self.safe_dict(message, 'filter', {})
@@ -1596,10 +1596,10 @@ class bitmex(ccxt.async_support.bitmex):
                 orderbook = self.orderbooks[symbol]
                 client.resolve(orderbook, messageHash)
 
-    def handle_system_status(self, client: Client, message: Any):
+    def handle_system_status(self, client: Client, message: object):
         #
         # todo answer the question whether handleSystemStatus should be renamed
-        # and unified for any usage pattern that
+        # and unified as handleStatus for any usage pattern that
         # involves system status and maintenance updates
         #
         #     {
@@ -1607,42 +1607,42 @@ class bitmex(ccxt.async_support.bitmex):
         #         "version": "2019-11-22T00:24:37.000Z",
         #         "timestamp": "2019-11-23T09:02:27.771Z",
         #         "docs": "https://www.bitmex.com/app/wsAPI",
-        #         "limit": {remaining: 39}
+        #         "limit": { remaining: 39 }
         #     }
         #
         return message
 
-    def handle_subscription_status(self, client: Client, message: Any):
+    def handle_subscription_status(self, client: Client, message: object):
         #
         #     {
-        #         "success": True,
+        #         "success": true,
         #         "subscribe": "orderBookL2:XBTUSD",
-        #         "request": {op: "subscribe", args: ["orderBookL2:XBTUSD"]}
+        #         "request": { op: "subscribe", args: [ "orderBookL2:XBTUSD" ] }
         #     }
         #
         return message
 
-    def handle_error_message(self, client: Client, message: Any) -> Bool:
+    def handle_error_message(self, client: Client, message: object) -> Bool:
         #
         # generic error format
         #
-        #     {"error": errorMessage}
+        #     { "error": errorMessage }
         #
         # examples
         #
         #     {
         #         "status": 429,
         #         "error": "Rate limit exceeded, retry in 1 seconds.",
-        #         "meta": {"retryAfter": 1},
-        #         "request": {"op": "subscribe", "args": "orderBook"},
+        #         "meta": { "retryAfter": 1 },
+        #         "request": { "op": "subscribe", "args": "orderBook" },
         #     }
         #
-        #     {"error": "Rate limit exceeded, retry in 29 seconds."}
+        #     { "error": "Rate limit exceeded, retry in 29 seconds." }
         #
         error = self.safe_string(message, 'error')
         if error is not None:
             request = self.safe_value(message, 'request', {})
-            args = self.safe_value(request, 'args', [])
+            args = self.safe_list(request, 'args', [])
             numArgs = len(args)
             if numArgs > 0:
                 messageHash = args[0]
@@ -1657,42 +1657,42 @@ class bitmex(ccxt.async_support.bitmex):
                 return False
         return True
 
-    def handle_message(self, client: Client, message: Any):
+    def handle_message(self, client: Client, message: object):
         #
         #     {
         #         "info": "Welcome to the BitMEX Realtime API.",
         #         "version": "2019-11-22T00:24:37.000Z",
         #         "timestamp": "2019-11-23T09:04:42.569Z",
         #         "docs": "https://www.bitmex.com/app/wsAPI",
-        #         "limit": {remaining: 38}
+        #         "limit": { remaining: 38 }
         #     }
         #
         #     {
-        #         "success": True,
+        #         "success": true,
         #         "subscribe": "orderBookL2:XBTUSD",
-        #         "request": {op: "subscribe", args: ["orderBookL2:XBTUSD"]}
+        #         "request": { op: "subscribe", args: [ "orderBookL2:XBTUSD" ] }
         #     }
         #
         #     {
         #         "table": "orderBookL2",
         #         "action": "update",
         #         "data": [
-        #             {symbol: "XBTUSD", id: 8799284800, side: "Sell", size: 721000},
-        #             {symbol: "XBTUSD", id: 8799285100, side: "Sell", size: 70590},
-        #             {symbol: "XBTUSD", id: 8799285550, side: "Sell", size: 217652},
-        #             {symbol: "XBTUSD", id: 8799285850, side: "Sell", size: 105578},
-        #             {symbol: "XBTUSD", id: 8799286350, side: "Sell", size: 172093},
-        #             {symbol: "XBTUSD", id: 8799286650, side: "Sell", size: 201125},
-        #             {symbol: "XBTUSD", id: 8799288950, side: "Buy", size: 47552},
-        #             {symbol: "XBTUSD", id: 8799289250, side: "Buy", size: 78217},
-        #             {symbol: "XBTUSD", id: 8799289700, side: "Buy", size: 193677},
-        #             {symbol: "XBTUSD", id: 8799290000, side: "Buy", size: 818161},
-        #             {symbol: "XBTUSD", id: 8799290500, side: "Buy", size: 218806},
-        #             {symbol: "XBTUSD", id: 8799290800, side: "Buy", size: 102946}
+        #             { symbol: "XBTUSD", id: 8799284800, side: "Sell", size: 721000 },
+        #             { symbol: "XBTUSD", id: 8799285100, side: "Sell", size: 70590 },
+        #             { symbol: "XBTUSD", id: 8799285550, side: "Sell", size: 217652 },
+        #             { symbol: "XBTUSD", id: 8799285850, side: "Sell", size: 105578 },
+        #             { symbol: "XBTUSD", id: 8799286350, side: "Sell", size: 172093 },
+        #             { symbol: "XBTUSD", id: 8799286650, side: "Sell", size: 201125 },
+        #             { symbol: "XBTUSD", id: 8799288950, side: "Buy", size: 47552 },
+        #             { symbol: "XBTUSD", id: 8799289250, side: "Buy", size: 78217 },
+        #             { symbol: "XBTUSD", id: 8799289700, side: "Buy", size: 193677 },
+        #             { symbol: "XBTUSD", id: 8799290000, side: "Buy", size: 818161 },
+        #             { symbol: "XBTUSD", id: 8799290500, side: "Buy", size: 218806 },
+        #             { symbol: "XBTUSD", id: 8799290800, side: "Buy", size: 102946 }
         #         ]
         #     }
         #
-        if self.handle_error_message(client, message):
+        if self.handle_error_message(client, message) is True:
             table = self.safe_string(message, 'table')
             methods = {
                 'orderBookL2': self.handle_order_book,

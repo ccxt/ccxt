@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import sys
-import bisect
+from bisect import bisect_left
 
 """Author: Carlo Revelli"""
 """Fast bisect bindings"""
@@ -27,15 +27,16 @@ class OrderBookSide(list):
         price = delta[0]
         size = delta[1]
         index_price = -price if self.side else price
-        index = bisect.bisect_left(self._index, index_price)
+        keys = self._index
+        index = bisect_left(keys, index_price)
         if size:
-            if index < len(self._index) and self._index[index] == index_price:
+            if index < len(keys) and keys[index] == index_price:
                 self[index][1] = size
             else:
-                self._index.insert(index, index_price)
+                keys.insert(index, index_price)
                 self.insert(index, delta)
-        elif index < len(self._index) and self._index[index] == index_price:
-            del self._index[index]
+        elif index < len(keys) and keys[index] == index_price:
+            del keys[index]
             del self[index]
 
     def store(self, price, size):
@@ -50,12 +51,8 @@ class OrderBookSide(list):
     def remove_index(self, order):
         pass
 
-    def __getitem__(self, item):
-        if isinstance(item, slice):
-            start, stop, step = item.indices(len(self))
-            return [self[i] for i in range(start, stop, step)]
-        else:
-            return super(OrderBookSide, self).__getitem__(item)
+    # no __getitem__ override: list.__getitem__ already returns a plain list
+    # when slicing a subclass, and overriding it made every access ~3x slower
 
     def __eq__(self, other):
         if isinstance(other, list):
@@ -83,16 +80,18 @@ class CountedOrderBookSide(OrderBookSide):
         size = delta[1]
         count = delta[2]
         index_price = -price if self.side else price
-        index = bisect.bisect_left(self._index, index_price)
+        keys = self._index
+        index = bisect_left(keys, index_price)
         if size and count:
-            if index < len(self._index) and self._index[index] == index_price:
-                self[index][1] = size
-                self[index][2] = count
+            if index < len(keys) and keys[index] == index_price:
+                order = self[index]
+                order[1] = size
+                order[2] = count
             else:
-                self._index.insert(index, index_price)
+                keys.insert(index, index_price)
                 self.insert(index, delta)
-        elif index < len(self._index) and self._index[index] == index_price:
-            del self._index[index]
+        elif index < len(keys) and keys[index] == index_price:
+            del keys[index]
             del self[index]
 
     def store(self, price, size, count):
@@ -115,43 +114,46 @@ class IndexedOrderBookSide(OrderBookSide):
             index_price = None
         size = delta[1]
         order_id = delta[2]
+        hashmap = self._hashmap
+        keys = self._index
         if size:
-            if order_id in self._hashmap:
-                old_price = self._hashmap[order_id]
+            if order_id in hashmap:
+                old_price = hashmap[order_id]
                 index_price = index_price or old_price
                 # in case the price is not defined
                 delta[0] = abs(index_price)
                 # matches if price is not defined or if price matches
                 if index_price == old_price:
                     # just overwrite the old index
-                    index = bisect.bisect_left(self._index, index_price)
+                    index = bisect_left(keys, index_price)
                     while self[index][2] != order_id:
                         index += 1
-                    self._index[index] = index_price
+                    keys[index] = index_price
                     self[index] = delta
                     return
                 else:
                     # remove old price level
-                    old_index = bisect.bisect_left(self._index, old_price)
+                    old_index = bisect_left(keys, old_price)
                     while self[old_index][2] != order_id:
                         old_index += 1
-                    del self._index[old_index]
+                    del keys[old_index]
                     del self[old_index]
             # insert new price level
-            self._hashmap[order_id] = index_price
-            index = bisect.bisect_left(self._index, index_price)
-            while index < len (self._index) and self._index[index] == index_price and self[index][2] < order_id:
+            hashmap[order_id] = index_price
+            index = bisect_left(keys, index_price)
+            length = len(keys)
+            while index < length and keys[index] == index_price and self[index][2] < order_id:
                 index += 1
-            self._index.insert(index, index_price)
+            keys.insert(index, index_price)
             self.insert(index, delta)
-        elif order_id in self._hashmap:
-            old_price = self._hashmap[order_id]
-            index = bisect.bisect_left(self._index, old_price)
+        elif order_id in hashmap:
+            old_price = hashmap[order_id]
+            index = bisect_left(keys, old_price)
             while self[index][2] != order_id:
                 index += 1
-            del self._index[index]
+            del keys[index]
             del self[index]
-            del self._hashmap[order_id]
+            del hashmap[order_id]
 
     def remove_index(self, order):
         order_id = order[2]

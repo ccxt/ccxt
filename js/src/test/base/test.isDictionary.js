@@ -23,7 +23,8 @@ function testIsDictionary() {
     assert(exchange.isDictionary('str') === false);
     assert(exchange.isDictionary(5) === false);
     assert(exchange.isDictionary(true) === false);
-    // the empty container is intentionally not asserted here: php has a
+    assert(exchange.isDictionary({}) === true);
+    // the empty container [] is intentionally not asserted here: php has a
     // single array type, an empty array is indistinguishable from an
     // empty dict and returns true there while other languages can tell
     // them apart and return false, see the discussion on

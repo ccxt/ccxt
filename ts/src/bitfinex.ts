@@ -237,6 +237,7 @@ export default class bitfinex extends Exchange {
                         'auth/w/order/cancel/multi': { 'cost': 2.7 } as Endpoint<List>,
                         'auth/r/orders/{symbol}/hist': { 'cost': 2.7 } as Endpoint<List>,
                         'auth/r/orders/hist': { 'cost': 2.7 } as Endpoint<List>,
+                        'auth/r/orders/otc/{symbol}/hist': { 'cost': 2.7 } as Endpoint<List>,
                         'auth/r/order/{symbol}:{id}/trades': { 'cost': 2.7 } as Endpoint<List>,
                         'auth/r/trades/{symbol}/hist': { 'cost': 2.7 } as Endpoint<List>,
                         'auth/r/trades/hist': { 'cost': 2.7 } as Endpoint<List>,
@@ -252,6 +253,7 @@ export default class bitfinex extends Exchange {
                         'auth/r/positions/hist': { 'cost': 2.7 } as Endpoint<List>,
                         'auth/r/positions/audit': { 'cost': 2.7 } as Endpoint<List>,
                         'auth/r/positions/snap': { 'cost': 2.7 } as Endpoint<List>,
+                        'auth/w/position/update/funding/type': { 'cost': 2.7 } as Endpoint<List>,
                         'auth/w/deriv/collateral/set': { 'cost': 2.7 } as Endpoint<List>,
                         'auth/w/deriv/collateral/limits': { 'cost': 2.7 } as Endpoint<List>,
                         'auth/r/funding/offers': { 'cost': 2.7 } as Endpoint<List>,
@@ -283,10 +285,13 @@ export default class bitfinex extends Exchange {
                         'auth/r/audit/hist': { 'cost': 2.7 } as Endpoint<List>,
                         'auth/w/transfer': { 'cost': 2.7 } as Endpoint<List>, // ratelimit not in docs...
                         'auth/w/deposit/address': { 'cost': 24 } as Endpoint<List>, // 10 requests a minute = 0.166 requests per second => ( 1000ms / rateLimit ) / 0.166 = 24
+                        'auth/r/deposit/address/all': { 'cost': 24 } as Endpoint<List>, // 10 requests a minute = 0.166 requests per second => ( 1000ms / rateLimit ) / 0.166 = 24
                         'auth/w/deposit/invoice': { 'cost': 24 } as Endpoint<List>, // ratelimit not in docs
+                        'auth/r/ext/invoice/payments': { 'cost': 2.7 } as Endpoint<List>,
                         'auth/w/withdraw': { 'cost': 24 } as Endpoint<List>, // ratelimit not in docs
                         'auth/r/movements/{currency}/hist': { 'cost': 2.7 } as Endpoint<List>,
                         'auth/r/movements/hist': { 'cost': 2.7 } as Endpoint<List>,
+                        'auth/r/movements/info': { 'cost': 2.7 } as Endpoint<List>,
                         'auth/r/alerts': { 'cost': 5.34 } as Endpoint<List>, // 45 requests a minute = 0.75 requests per second => ( 1000ms / rateLimit ) / 0.749 => 5.34
                         'auth/w/alert/set': { 'cost': 2.7 } as Endpoint<List>,
                         'auth/w/alert/price:{symbol}:{price}/del': { 'cost': 2.7 } as Endpoint<List>,
@@ -298,6 +303,9 @@ export default class bitfinex extends Exchange {
                         'auth/r/pulse/hist': { 'cost': 2.7 } as Endpoint<List>,
                         'auth/w/pulse/add': { 'cost': 16 } as Endpoint<List>, // 15 requests a minute = 0.25 requests per second => ( 1000ms / rateLimit ) / 0.25 => 16
                         'auth/w/pulse/del': { 'cost': 2.7 } as Endpoint<List>,
+                        'auth/w/ext/wallets/deposits/request': { 'cost': 2.7 } as Endpoint<List>,
+                        'auth/w/ext/wallets/withdrawals/request': { 'cost': 2.7 } as Endpoint<List>,
+                        'auth/r/ext/wallets/transfers/free/count': { 'cost': 2.7 } as Endpoint<List>,
                     },
                 },
             },
@@ -553,7 +561,7 @@ export default class bitfinex extends Exchange {
         });
     }
 
-    isFiat (code: any) {
+    isFiat (code: any): boolean {
         return (code in this.options['fiat']);
     }
 
@@ -874,7 +882,7 @@ export default class bitfinex extends Exchange {
     parseCurrenciesCustom (ids: any, indexed: any, indexedNetworks: any) {
         const allowedIds: Str[] = [];
         for (let i = 0; i < ids.length; i++) {
-            const id = ids[i];
+            const id: string = ids[i];
             if (id.endsWith ('F0')) {
                 // we get a lot of F0 currencies, skip those
                 continue;
@@ -979,7 +987,7 @@ export default class bitfinex extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const accountsByType = this.safeValue (this.options, 'v2AccountsByType', {});
+        const accountsByType = this.safeDict (this.options, 'v2AccountsByType', {});
         const requestedType = this.safeString (params, 'type', 'exchange');
         const accountType = this.safeString (accountsByType, requestedType, requestedType);
         if (accountType === undefined) {
@@ -1034,7 +1042,7 @@ export default class bitfinex extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const accountsByType = this.safeValue (this.options, 'v2AccountsByType', {});
+        const accountsByType = this.safeDict (this.options, 'v2AccountsByType', {});
         const fromId = this.safeString (accountsByType, fromAccount);
         if (fromId === undefined) {
             const keys = Object.keys (accountsByType);
@@ -1258,8 +1266,13 @@ export default class bitfinex extends Exchange {
         //     ]
         //
         const length = (ticker as List).length;
-        const firstValue = this.safeNumber (ticker, 0);
-        const isFetchTicker = firstValue !== undefined; // if it's Nan, then it's string (symbol)
+        // the list shapes (fetchTickers) carry the market id in slot 0, the singular
+        // shapes (fetchTicker) do not. safeNumber is not a portable discriminator here:
+        // in PHP a non numeric string casts to 0.0 instead of undefined, so 'fUSD' would
+        // look like a number and the whole array would be read off by one.
+        const firstValue = this.safeString (ticker, 0);
+        const hasMarketId = (firstValue !== undefined) && (firstValue.startsWith ('t') || firstValue.startsWith ('f'));
+        const isFetchTicker = !hasMarketId;
         let symbol: Str = undefined;
         let minusIndex = 0;
         if (isFetchTicker) {
@@ -1284,7 +1297,9 @@ export default class bitfinex extends Exchange {
             bid = this.safeString (ticker, 2 - minusIndex);
             ask = this.safeString (ticker, 5 - minusIndex);
             change = this.safeString (ticker, 8 - minusIndex);
-            percentage = this.safeString (ticker, 9 - minusIndex);
+            // DAILY_CHANGE_RELATIVE, per the array above: the same field the trading
+            // branch reads at index 6 and scales
+            percentage = Precise.stringMul (this.safeString (ticker, 9 - minusIndex), '100');
             volume = this.safeString (ticker, 11 - minusIndex);
             high = this.safeString (ticker, 12 - minusIndex);
             low = this.safeString (ticker, 13 - minusIndex);
@@ -1622,7 +1637,7 @@ export default class bitfinex extends Exchange {
 
     parseOrderStatus (status: Str) {
         if (status === undefined) {
-            return status;
+            return undefined;
         }
         const parts = status.split (' ');
         const state = this.safeString (parts, 0);
@@ -1790,7 +1805,7 @@ export default class bitfinex extends Exchange {
         }
         const ioc = (timeInForce === 'IOC');
         const fok = (timeInForce === 'FOK');
-        const postOnly = (postOnlyParam || (timeInForce === 'PO'));
+        const postOnly = ((postOnlyParam === true) || (timeInForce === 'PO'));
         if ((ioc || fok) && (price === undefined)) {
             throw new InvalidOrder (this.id + ' createOrder() requires a price argument with IOC and FOK orders');
         }
@@ -1807,7 +1822,7 @@ export default class bitfinex extends Exchange {
         }
         let marginMode: Str = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('createOrder', params);
-        if (market['spot'] && (marginMode === undefined)) {
+        if ((market['spot'] === true) && (marginMode === undefined)) {
             // The EXCHANGE prefix is only required for non margin spot markets
             orderType = 'EXCHANGE ' + orderType;
         }
@@ -1817,7 +1832,7 @@ export default class bitfinex extends Exchange {
         if (postOnly) {
             flags = this.sum (flags, 4096);
         }
-        if (reduceOnly) {
+        if (reduceOnly === true) {
             flags = this.sum (flags, 1024);
         }
         if (flags !== 0) {
@@ -2733,7 +2748,7 @@ export default class bitfinex extends Exchange {
         //     ]
         //
         const result: Dict = {};
-        const fiat = this.safeValue (this.options, 'fiat', {});
+        const fiat = this.safeDict (this.options, 'fiat', {});
         const feeData = this.safeValue (response, 4, []);
         const makerData = this.safeValue (feeData, 0, []);
         const takerData = this.safeValue (feeData, 1, []);
@@ -2755,7 +2770,7 @@ export default class bitfinex extends Exchange {
             if (market['quote'] in fiat) {
                 fee['maker'] = makerFeeFiat;
                 fee['taker'] = takerFeeFiat;
-            } else if (market['contract']) {
+            } else if (market['contract'] === true) {
                 fee['maker'] = makerFeeDeriv;
                 fee['taker'] = takerFeeDeriv;
             } else { // TODO check if stable coin
@@ -2872,7 +2887,7 @@ export default class bitfinex extends Exchange {
         }
         const withdrawOptions = this.safeValue (this.options, 'withdraw', {});
         const includeFee = this.safeBool (withdrawOptions, 'includeFee', false);
-        if (includeFee) {
+        if (includeFee === true) {
             request['fee_deduct'] = 1;
         }
         const response = await this.privatePostAuthWWithdraw (this.extend (request, params));
@@ -3064,7 +3079,7 @@ export default class bitfinex extends Exchange {
         }
         let url = this.urls['api'][api] + '/' + request;
         if (api === 'public') {
-            if (Object.keys (query).length) {
+            if (Object.keys (query).length > 0) {
                 url += '?' + this.urlencode (query);
             }
         }
@@ -3845,7 +3860,7 @@ export default class bitfinex extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        if (!market['swap']) {
+        if (market['swap'] !== true) {
             throw new NotSupported (this.id + ' setMargin() only support swap markets');
         }
         const request: Dict = {
@@ -4009,7 +4024,7 @@ export default class bitfinex extends Exchange {
                 request['price_aux_limit'] = this.priceToPrecision (symbol, price);
             }
         }
-        const postOnly = (postOnlyParam || (timeInForce === 'PO'));
+        const postOnly = ((postOnlyParam === true) || (timeInForce === 'PO'));
         if ((type !== 'market') && (triggerPrice === undefined)) {
             request['price'] = this.priceToPrecision (symbol, price);
         }
@@ -4018,7 +4033,7 @@ export default class bitfinex extends Exchange {
         if (postOnly) {
             flags = this.sum (flags, 4096);
         }
-        if (reduceOnly) {
+        if (reduceOnly === true) {
             flags = this.sum (flags, 1024);
         }
         if (flags !== 0) {

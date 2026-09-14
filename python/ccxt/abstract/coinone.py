@@ -1,7 +1,6 @@
 from ccxt.base.types import Entry
-from typing import Any as PythonAny, Dict
+_Dict = dict[str, object]
 
-_Dict = Dict[str, PythonAny]
 
 class ImplicitAPI:
     public_get_orderbook = publicGetOrderbook = Entry[_Dict]('orderbook', 'public', 'GET', {'cost': 1})
@@ -67,3 +66,5 @@ class ImplicitAPI:
     v2_1private_post_transaction_krw_history = v2_1PrivatePostTransactionKrwHistory = Entry[_Dict]('transaction/krw/history', 'v2_1Private', 'POST', {'cost': 1})
     v2_1private_post_transaction_coin_history = v2_1PrivatePostTransactionCoinHistory = Entry[_Dict]('transaction/coin/history', 'v2_1Private', 'POST', {'cost': 1})
     v2_1private_post_transaction_coin_withdrawal_limit = v2_1PrivatePostTransactionCoinWithdrawalLimit = Entry[_Dict]('transaction/coin/withdrawal/limit', 'v2_1Private', 'POST', {'cost': 1})
+    v2_1private_post_event_order_reward_programs = v2_1PrivatePostEventOrderRewardPrograms = Entry[_Dict]('event/order-reward/programs', 'v2_1Private', 'POST', {'cost': 1})
+    v2_1private_post_event_order_reward_history = v2_1PrivatePostEventOrderRewardHistory = Entry[_Dict]('event/order-reward/history', 'v2_1Private', 'POST', {'cost': 1})

@@ -5,9 +5,8 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCacheByTimestamp
-from ccxt.base.types import Any, Int, Strings, Ticker, Tickers
+from ccxt.base.types import Int, Strings, Ticker, Tickers
 from ccxt.async_support.base.ws.client import Client
-from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import RateLimitExceeded
@@ -15,7 +14,7 @@ from ccxt.base.errors import RateLimitExceeded
 
 class mudrex(ccxt.async_support.mudrex):
 
-    def describe(self) -> Any:
+    def describe(self) -> object:
         return self.deep_extend(super(mudrex, self).describe(), {
             'has': {
                 'ws': True,
@@ -113,7 +112,7 @@ class mudrex(ccxt.async_support.mudrex):
             return result
         return self.filter_by_array_tickers(self.tickers, 'symbol', symbols)
 
-    async def watch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def watch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> list[list]:
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
@@ -143,7 +142,7 @@ class mudrex(ccxt.async_support.mudrex):
             limit = ohlcv.getLimit(symbol, limit)
         return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
 
-    def handle_message(self, client: Any, message: Any):
+    def handle_message(self, client: object, message: object):
         if self.safe_string(message, 'method') == 'PONG':
             return
         error = self.safe_dict(message, 'error')
@@ -157,7 +156,7 @@ class mudrex(ccxt.async_support.mudrex):
             elif stream.find('ticker') >= 0:
                 self.handle_ticker(client, message)
 
-    def handle_error_message(self, client: Client, message: Any):
+    def handle_error_message(self, client: Client, message: object):
         error = self.safe_dict(message, 'error', {})
         code = self.safe_string(error, 'code')
         msg = self.safe_string(error, 'msg')
@@ -166,7 +165,7 @@ class mudrex(ccxt.async_support.mudrex):
             raise RateLimitExceeded(feedback)
         raise ExchangeError(feedback)
 
-    def handle_ohlcv(self, client: Any, message: Any):
+    def handle_ohlcv(self, client: object, message: object):
         stream = self.safe_string(message, 'stream')
         if stream is None:
             return
@@ -198,7 +197,7 @@ class mudrex(ccxt.async_support.mudrex):
         messageHash = stream
         client.resolve(stored, messageHash)
 
-    def handle_ticker(self, client: Any, message: Any):
+    def handle_ticker(self, client: object, message: object):
         data = self.safe_list(message, 'data', [])
         for i in range(0, len(data)):
             t = data[i]

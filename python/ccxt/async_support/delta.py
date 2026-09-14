@@ -6,8 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.delta import ImplicitAPI
 import hashlib
-from ccxt.base.types import Any, ADL, Balances, Currencies, Currency, CurrencyInterface, DepositAddress, Greeks, Int, LedgerEntry, Leverage, MarginMode, MarginModification, Market, Num, Option, Order, OrderBook, OrderSide, OrderType, Position, Status, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, MarketInterface
-from typing import List
+from ccxt.base.types import ADL, Balances, Currencies, Currency, CurrencyInterface, DepositAddress, Greeks, Int, LedgerEntry, Leverage, MarginMode, MarginModification, Market, Num, Option, Order, OrderBook, OrderSide, OrderType, Position, Status, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, MarketInterface
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
@@ -23,7 +22,7 @@ from ccxt.base.precise import Precise
 
 class delta(Exchange, ImplicitAPI):
 
-    def describe(self) -> Any:
+    def describe(self) -> object:
         return self.deep_extend(super(delta, self).describe(), {
             'id': 'delta',
             'name': 'Delta Exchange',
@@ -196,6 +195,7 @@ class delta(Exchange, ImplicitAPI):
                         'users/update_mmp': {'cost': 1},
                         'users/reset_mmp': {'cost': 1},
                         'users/margin_mode': {'cost': 1},
+                        'users/trading_preferences': {'cost': 1},
                     },
                     'delete': {
                         'orders': {'cost': 1},
@@ -334,12 +334,12 @@ class delta(Exchange, ImplicitAPI):
                     # Margin required to place order with selected leverage and quantity is insufficient.
                     'insufficient_margin': InsufficientFunds,  # {"error":{"code":"insufficient_margin","context":{"available_balance":"0.000000000000000000","required_additional_balance":"1.618626000000000000000000000"}},"success":false}
                     'order_size_exceed_available': InvalidOrder,  # The order book doesn't have sufficient liquidity, hence the order couldnt be filled, for example, ioc orders
-                    'risk_limits_breached': BadRequest,  # orders couldn't be placed will breach allowed risk limits.
+                    'risk_limits_breached': BadRequest,  # orders couldn't be placed as it will breach allowed risk limits.
                     'invalid_contract': BadSymbol,  # The contract/product is either doesn't exist or has already expired.
                     'immediate_liquidation': InvalidOrder,  # Order will cause immediate liquidation.
                     'out_of_bankruptcy': InvalidOrder,  # Order prices are out of position bankruptcy limits.
                     'self_matching_disrupted_post_only': InvalidOrder,  # Self matching is not allowed during auction.
-                    'immediate_execution_post_only': InvalidOrder,  # orders couldn't be placed includes post only orders which will be immediately executed
+                    'immediate_execution_post_only': InvalidOrder,  # orders couldn't be placed as it includes post only orders which will be immediately executed
                     'bad_schema': BadRequest,  # {"error":{"code":"bad_schema","context":{"schema_errors":[{"code":"validation_error","message":"id is required","param":""}]}},"success":false}
                     'invalid_api_key': AuthenticationError,  # {"success":false,"error":{"code":"invalid_api_key"}}
                     'invalid_signature': AuthenticationError,  # {"success":false,"error":{"code":"invalid_signature"}}
@@ -494,7 +494,7 @@ class delta(Exchange, ImplicitAPI):
         #           "msp_deto_commission_percent": "25",
         #           "under_maintenance": "false"
         #         },
-        #         "success": True
+        #         "success": true
         #     }
         #
         result = self.safe_dict(response, 'result', {})
@@ -525,7 +525,7 @@ class delta(Exchange, ImplicitAPI):
         #            {
         #                "base_withdrawal_fee": "0.005000000000000000",
         #                "id": "1",
-        #                "interest_credit": False,
+        #                "interest_credit": false,
         #                "interest_slabs": null,
         #                "kyc_deposit_limit": "0.000000000000000000",
         #                "kyc_withdrawal_limit": "0.000000000000000000",
@@ -537,7 +537,7 @@ class delta(Exchange, ImplicitAPI):
         #                        "allowed_deposit_groups": null,
         #                        "base_withdrawal_fee": "0.0025",
         #                        "deposit_status": "enabled",
-        #                        "memo_required": False,
+        #                        "memo_required": false,
         #                        "min_deposit_amount": "0.000050000000000000",
         #                        "min_withdrawal_amount": "0.010000000000000000",
         #                        "minimum_deposit_confirmations": "12",
@@ -549,7 +549,7 @@ class delta(Exchange, ImplicitAPI):
         #                        "allowed_deposit_groups": null,
         #                        "base_withdrawal_fee": "0.0001",
         #                        "deposit_status": "enabled",
-        #                        "memo_required": False,
+        #                        "memo_required": false,
         #                        "min_deposit_amount": "0.000050000000000000",
         #                        "min_withdrawal_amount": "0.000300000000000000",
         #                        "minimum_deposit_confirmations": "15",
@@ -633,7 +633,7 @@ class delta(Exchange, ImplicitAPI):
             self.options['marketsByNumericId'] = self.index_by_stringified_numeric_id(self.markets)
         return markets
 
-    def index_by_stringified_numeric_id(self, input: Any):
+    def index_by_stringified_numeric_id(self, input: object):
         result = {}
         if input is None:
             return None
@@ -647,7 +647,7 @@ class delta(Exchange, ImplicitAPI):
             result[numericIdString] = item
         return result
 
-    async def fetch_markets(self, params={}) -> List[Market]:
+    async def fetch_markets(self, params={}) -> list[Market]:
         """
         retrieves data on all markets for delta
 
@@ -659,9 +659,9 @@ class delta(Exchange, ImplicitAPI):
         response = await self.publicGetProducts(params)
         #
         #     {
-        #         "meta":{"after":null, "before":null, "limit":100, "total_count":81},
+        #         "meta":{ "after":null, "before":null, "limit":100, "total_count":81 },
         #         "result":[
-        #             # the below response represents item from perpetual market
+        #             // the below response represents item from perpetual market
         #             {
         #                 "annualized_funding":"5.475000000000000000",
         #                 "is_quanto":false,
@@ -681,38 +681,38 @@ class delta(Exchange, ImplicitAPI):
         #                 "contract_unit_currency":"LINK",
         #                 "strike_price":"12.507948",
         #                 "settling_asset":{
-        #                     # asset structure
+        #                     // asset structure
         #                 },
         #                 "auction_start_time":null,
         #                 "auction_finish_time":null,
         #                 "settlement_time":"2020-11-15T12:00:00Z",
         #                 "launch_time":"2020-11-14T11:55:05Z",
         #                 "spot_index":{
-        #                     # index structure
+        #                     // index structure
         #                 },
         #                 "trading_status":"operational",
         #                 "tick_size":"0.001",
         #                 "position_size_limit":100000,
-        #                 "notional_type":"vanilla",  # vanilla, inverse
+        #                 "notional_type":"vanilla", // vanilla, inverse
         #                 "price_band":"0.4",
         #                 "barrier_price":null,
         #                 "description":"Daily LINK PUT options quoted in USDT and settled in USDT",
         #                 "insurance_fund_margin_contribution":"1",
         #                 "quoting_asset":{
-        #                     # asset structure
+        #                     // asset structure
         #                 },
         #                 "liquidation_penalty_factor":"0.2",
         #                 "product_specs":{"max_volatility":3,"min_volatility":0.3,"spot_price_band":"0.40"},
         #                 "initial_margin_scaling_factor":"0.0001",
         #                 "underlying_asset":{
-        #                     # asset structure
+        #                     // asset structure
         #                 },
         #                 "state":"live",
         #                 "contract_value":"1",
         #                 "initial_margin":"2",
         #                 "impact_size":5000,
         #                 "settlement_price":null,
-        #                 "contract_type":"put_options",  # put_options, call_options, move_options, perpetual_futures, interest_rate_swaps, futures, spreads
+        #                 "contract_type":"put_options", // put_options, call_options, move_options, perpetual_futures, interest_rate_swaps, futures, spreads
         #                 "taker_commission_rate":"0.0005",
         #                 "maintenance_margin":"1",
         #                 "short_description":"LINK Daily PUT Options",
@@ -720,7 +720,7 @@ class delta(Exchange, ImplicitAPI):
         #                 "funding_method":"mark_price",
         #                 "max_leverage_notional":"20000"
         #             },
-        #             # the below response represents item from spot market
+        #             // the below response represents item from spot market
         #             {
         #                 "position_size_limit": 10000000,
         #                 "settlement_price": null,
@@ -734,10 +734,10 @@ class delta(Exchange, ImplicitAPI):
         #                 "tick_size": "0.01",
         #                 "liquidation_penalty_factor": "1",
         #                 "spot_index": {
-        #                     "config": {"quoting_asset": "USDT", "service_id": 8, "underlying_asset": "SOL"},
+        #                     "config": { "quoting_asset": "USDT", "service_id": 8, "underlying_asset": "SOL" },
         #                     "constituent_exchanges": [
-        #                         {"exchange": "binance", "health_interval": 60, "health_priority": 1, "weight": 1},
-        #                         {"exchange": "huobi", "health_interval": 60, "health_priority": 2, "weight": 1}
+        #                         { "exchange": "binance", "health_interval": 60, "health_priority": 1, "weight": 1 },
+        #                         { "exchange": "huobi", "health_interval": 60, "health_priority": 2, "weight": 1 }
         #                     ],
         #                     "constituent_indices": null,
         #                     "description": "Solana index from binance and huobi",
@@ -745,7 +745,7 @@ class delta(Exchange, ImplicitAPI):
         #                     "id": 105,
         #                     "impact_size": "40.000000000000000000",
         #                     "index_type": "spot_pair",
-        #                     "is_composite": False,
+        #                     "is_composite": false,
         #                     "price_method": "ltp",
         #                     "quoting_asset_id": 5,
         #                     "symbol": ".DESOLUSDT",
@@ -758,7 +758,7 @@ class delta(Exchange, ImplicitAPI):
         #                 "disruption_reason": null,
         #                 "settlement_time": null,
         #                 "insurance_fund_margin_contribution": "1",
-        #                 "is_quanto": False,
+        #                 "is_quanto": false,
         #                 "maintenance_margin": "5",
         #                 "taker_commission_rate": "0.0005",
         #                 "auction_start_time": null,
@@ -767,15 +767,15 @@ class delta(Exchange, ImplicitAPI):
         #                 "annualized_funding": "0",
         #                 "notional_type": "vanilla",
         #                 "price_band": "100",
-        #                 "product_specs": {"kyc_required": False, "max_order_size": 2000, "min_order_size": 0.01, "quoting_precision": 4, "underlying_precision": 2},
+        #                 "product_specs": { "kyc_required": false, "max_order_size": 2000, "min_order_size": 0.01, "quoting_precision": 4, "underlying_precision": 2 },
         #                 "default_leverage": "1.000000000000000000",
         #                 "initial_margin": "10",
         #                 "maintenance_margin_scaling_factor": "1",
         #                 "ui_config": {
         #                     "default_trading_view_candle": "1d",
         #                     "leverage_slider_values": [],
-        #                     "price_clubbing_values": [0.01, 0.05, 0.1, 0.5, 1, 2.5, 5],
-        #                     "show_bracket_orders": False,
+        #                     "price_clubbing_values": [ 0.01, 0.05, 0.1, 0.5, 1, 2.5, 5 ],
+        #                     "show_bracket_orders": false,
         #                     "sort_priority": 2,
         #                     "tags": []
         #                 },
@@ -786,7 +786,7 @@ class delta(Exchange, ImplicitAPI):
         #                     "base_withdrawal_fee": "10.000000000000000000",
         #                     "deposit_status": "enabled",
         #                     "id": 5,
-        #                     "interest_credit": False,
+        #                     "interest_credit": false,
         #                     "interest_slabs": null,
         #                     "kyc_deposit_limit": "100000.000000000000000000",
         #                     "kyc_withdrawal_limit": "10000.000000000000000000",
@@ -794,9 +794,9 @@ class delta(Exchange, ImplicitAPI):
         #                     "minimum_precision": 2,
         #                     "name": "Tether",
         #                     "networks": [
-        #                         {"base_withdrawal_fee": "25", "deposit_status": "enabled", "memo_required": False, "network": "ERC20", "variable_withdrawal_fee": "0", "withdrawal_status": "enabled"},
-        #                         {"base_withdrawal_fee": "1", "deposit_status": "enabled", "memo_required": False, "network": "BEP20(BSC)", "variable_withdrawal_fee": "0", "withdrawal_status": "enabled"},
-        #                         {"base_withdrawal_fee": "1", "deposit_status": "disabled", "memo_required": False, "network": "TRC20(TRON)", "variable_withdrawal_fee": "0", "withdrawal_status": "disabled"}
+        #                         { "base_withdrawal_fee": "25", "deposit_status": "enabled", "memo_required": false, "network": "ERC20", "variable_withdrawal_fee": "0", "withdrawal_status": "enabled" },
+        #                         { "base_withdrawal_fee": "1", "deposit_status": "enabled", "memo_required": false, "network": "BEP20(BSC)", "variable_withdrawal_fee": "0", "withdrawal_status": "enabled" },
+        #                         { "base_withdrawal_fee": "1", "deposit_status": "disabled", "memo_required": false, "network": "TRC20(TRON)", "variable_withdrawal_fee": "0", "withdrawal_status": "disabled" }
         #                     ],
         #                     "precision": 8,
         #                     "sort_priority": 1,
@@ -810,7 +810,7 @@ class delta(Exchange, ImplicitAPI):
         #                     "base_withdrawal_fee": "0.000000000000000000",
         #                     "deposit_status": "enabled",
         #                     "id": 66,
-        #                     "interest_credit": False,
+        #                     "interest_credit": false,
         #                     "interest_slabs": null,
         #                     "kyc_deposit_limit": "0.000000000000000000",
         #                     "kyc_withdrawal_limit": "0.000000000000000000",
@@ -818,8 +818,8 @@ class delta(Exchange, ImplicitAPI):
         #                     "minimum_precision": 4,
         #                     "name": "Solana",
         #                     "networks": [
-        #                         {"base_withdrawal_fee": "0.01", "deposit_status": "enabled", "memo_required": False, "network": "SOLANA", "variable_withdrawal_fee": "0", "withdrawal_status": "enabled"},
-        #                         {"base_withdrawal_fee": "0.01", "deposit_status": "enabled", "memo_required": False, "network": "BEP20(BSC)", "variable_withdrawal_fee": "0", "withdrawal_status": "enabled"}
+        #                         { "base_withdrawal_fee": "0.01", "deposit_status": "enabled", "memo_required": false, "network": "SOLANA", "variable_withdrawal_fee": "0", "withdrawal_status": "enabled" },
+        #                         { "base_withdrawal_fee": "0.01", "deposit_status": "enabled", "memo_required": false, "network": "BEP20(BSC)", "variable_withdrawal_fee": "0", "withdrawal_status": "enabled" }
         #                     ],
         #                     "precision": 8,
         #                     "sort_priority": 7,
@@ -844,7 +844,7 @@ class delta(Exchange, ImplicitAPI):
                 # binary options can not be represented in the unified market
                 # structure, their symbols would collide with vanilla options
                 continue
-            # settlingAsset = self.safe_value(market, 'settling_asset', {})
+            # const settlingAsset = this.safeValue (market, 'settling_asset', {});
             quotingAsset = self.safe_dict(market, 'quoting_asset', {})
             underlyingAsset = self.safe_dict(market, 'underlying_asset', {})
             settlingAsset = self.safe_dict(market, 'settling_asset')
@@ -872,7 +872,7 @@ class delta(Exchange, ImplicitAPI):
             if spot:
                 amountPrecision = self.parse_number(self.parse_precision(self.safe_string(productSpecs, 'underlying_precision')))  # seems inverse of 'impact_size'
             else:
-                # other markets(swap, futures, move, spread, irs) seem to use the step of '1' contract
+                # other markets (swap, futures, move, spread, irs) seem to use the step of '1' contract
                 amountPrecision = self.parse_number('1')
             linear = (settle == quote)
             optionType = None
@@ -1069,9 +1069,16 @@ class delta(Exchange, ImplicitAPI):
         #
         timestamp = self.safe_integer_product(ticker, 'timestamp', 0.001)
         marketId = self.safe_string(ticker, 'symbol')
-        symbol = self.safe_symbol(marketId, market)
+        market = self.safe_market(marketId, market)
+        symbol = market['symbol']
         last = self.safe_string(ticker, 'close')
         quotes = self.safe_dict(ticker, 'quotes', {})
+        # turnover_symbol names the currency turnover is denominated in, and on
+        # spot markets that is the base currency rather than the quote
+        turnoverSymbol = self.safe_string_upper(ticker, 'turnover_symbol')
+        quoteId = self.safe_string_upper(market, 'quoteId')
+        baseDenominated = (turnoverSymbol is not None) and (quoteId is not None) and (turnoverSymbol != quoteId)
+        quoteVolume = self.safe_number(ticker, 'turnover_usd') if baseDenominated else self.safe_number(ticker, 'turnover')
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -1091,7 +1098,7 @@ class delta(Exchange, ImplicitAPI):
             'percentage': None,
             'average': None,
             'baseVolume': self.safe_number(ticker, 'volume'),
-            'quoteVolume': self.safe_number(ticker, 'turnover'),
+            'quoteVolume': quoteVolume,
             'markPrice': self.safe_number(ticker, 'mark_price'),
             'indexPrice': self.safe_number(ticker, 'spot_price'),
             'info': ticker,
@@ -1143,7 +1150,7 @@ class delta(Exchange, ImplicitAPI):
         #             "turnover_usd": 81896.45613400004,
         #             "volume": 2.6816639999999996
         #         },
-        #         "success": True
+        #         "success": true
         #     }
         #
         # swap
@@ -1189,7 +1196,7 @@ class delta(Exchange, ImplicitAPI):
         #             "turnover_usd": 37392218.45999999,
         #             "volume": 1226.3029999999485
         #         },
-        #         "success": True
+        #         "success": true
         #     }
         #
         # option
@@ -1234,7 +1241,7 @@ class delta(Exchange, ImplicitAPI):
         #             "timestamp": 1689136932893181,
         #             "turnover_symbol": "USDT"
         #         },
-        #         "success": True
+        #         "success": true
         #     }
         #
         result = self.safe_dict(response, 'result', {})
@@ -1532,7 +1539,7 @@ class delta(Exchange, ImplicitAPI):
             'info': trade,
         }, market)
 
-    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
         """
         get the list of most recent trades for a particular symbol
 
@@ -1568,7 +1575,7 @@ class delta(Exchange, ImplicitAPI):
         result = self.safe_list(response, 'result', [])
         return self.parse_trades(result, market, since, limit)
 
-    def parse_ohlcv(self, ohlcv: Any, market: Market = None) -> list:
+    def parse_ohlcv(self, ohlcv: object, market: Market = None) -> list:
         #
         #     {
         #         "time":1605393120,
@@ -1588,7 +1595,7 @@ class delta(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 'volume'),
         ]
 
-    async def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> list[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -1600,7 +1607,7 @@ class delta(Exchange, ImplicitAPI):
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.until]: timestamp in ms of the latest candle to fetch
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -1608,7 +1615,7 @@ class delta(Exchange, ImplicitAPI):
             'resolution': self.safe_string(self.timeframes, timeframe, timeframe),
         }
         duration = self.parse_timeframe(timeframe)
-        limit = limit if limit else 2000  # max 2000
+        limit = limit if (limit is not None and limit is not None and limit != 0) else 2000  # max 2000
         until = self.safe_integer_product(params, 'until', 0.001)
         untilIsDefined = (until is not None)
         if untilIsDefined:
@@ -1645,7 +1652,7 @@ class delta(Exchange, ImplicitAPI):
         result = self.safe_list(response, 'result', [])
         return self.parse_ohlcvs(result, market, timeframe, since, limit)
 
-    def parse_balance(self, response: Any) -> Balances:
+    def parse_balance(self, response: object) -> Balances:
         balances = self.safe_list(response, 'result', [])
         result = {'info': response}
         currenciesByNumericId = self.safe_dict(self.options, 'currenciesByNumericId', {})
@@ -1723,7 +1730,7 @@ class delta(Exchange, ImplicitAPI):
         result = self.safe_dict(response, 'result', {})
         return self.parse_position(result, market)
 
-    async def fetch_positions(self, symbols: Strings = None, params={}) -> List[Position]:
+    async def fetch_positions(self, symbols: Strings = None, params={}) -> list[Position]:
         """
         fetch all open positions
 
@@ -1737,7 +1744,7 @@ class delta(Exchange, ImplicitAPI):
         response = await self.privateGetPositionsMargined(params)
         #
         #     {
-        #         "success": True,
+        #         "success": true,
         #         "result": [
         #           {
         #             "user_id": 0,
@@ -1885,7 +1892,7 @@ class delta(Exchange, ImplicitAPI):
         #         "stop_price": "55000",
         #         "paid_commission": "0.5432",
         #         "commission": "0.5432",
-        #         "reduce_only": False,
+        #         "reduce_only": false,
         #         "client_order_id": "my_signal_34521712",
         #         "state": "open",
         #         "created_at": "1725865012000000",
@@ -1968,14 +1975,14 @@ class delta(Exchange, ImplicitAPI):
         market = self.market(symbol)
         request = {
             'product_id': market['numericId'],
-            # 'limit_price': self.price_to_precision(market['symbol'], price),
+            # 'limit_price': this.priceToPrecision (market['symbol'], price),
             'size': self.amount_to_precision(market['symbol'], amount),
             'side': side,
             'order_type': orderType,
             # 'client_order_id': 'string',
-            # 'time_in_force': 'gtc',  # gtc, ioc, fok
-            # 'post_only': 'false',  # 'true',
-            # 'reduce_only': 'false',  # 'true',
+            # 'time_in_force': 'gtc', // gtc, ioc, fok
+            # 'post_only': 'false', // 'true',
+            # 'reduce_only': 'false', // 'true',
         }
         if type == 'limit':
             request['limit_price'] = self.price_to_precision(market['symbol'], price)
@@ -1984,7 +1991,7 @@ class delta(Exchange, ImplicitAPI):
         if clientOrderId is not None:
             request['client_order_id'] = clientOrderId
         reduceOnly = self.safe_bool(params, 'reduceOnly')
-        if reduceOnly:
+        if reduceOnly is True:
             request['reduce_only'] = reduceOnly
             params = self.omit(params, 'reduceOnly')
         response = await self.privatePostOrders(self.extend(request, params))
@@ -2047,8 +2054,8 @@ class delta(Exchange, ImplicitAPI):
         request = {
             'id': int(id),
             'product_id': market['numericId'],
-            # "limit_price": self.price_to_precision(symbol, price),
-            # "size": self.amount_to_precision(symbol, amount),
+            # "limit_price": this.priceToPrecision (symbol, price),
+            # "size": this.amountToPrecision (symbol, amount),
         }
         if amount is not None:
             sizeString = self.amount_to_precision(symbol, amount)
@@ -2060,7 +2067,7 @@ class delta(Exchange, ImplicitAPI):
         response = await self.privatePutOrders(self.extend(request, params))
         #
         #     {
-        #         "success": True,
+        #         "success": true,
         #         "result": {
         #             "id": "ashb1212",
         #             "product_id": 27,
@@ -2198,7 +2205,7 @@ class delta(Exchange, ImplicitAPI):
             response = await self.privateGetOrdersOrderId(self.extend(request, params))
         #
         #     {
-        #         "success": True,
+        #         "success": true,
         #         "result": {
         #             "id": 123,
         #             "user_id": 453671,
@@ -2211,7 +2218,7 @@ class delta(Exchange, ImplicitAPI):
         #             "stop_price": "55000",
         #             "paid_commission": "0.5432",
         #             "commission": "0.5432",
-        #             "reduce_only": False,
+        #             "reduce_only": false,
         #             "client_order_id": "my_signal_34521712",
         #             "state": "open",
         #             "created_at": "1725865012000000",
@@ -2223,7 +2230,7 @@ class delta(Exchange, ImplicitAPI):
         result = self.safe_dict(response, 'result', {})
         return self.parse_order(result, market)
 
-    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         fetch all unfilled currently open orders
 
@@ -2237,7 +2244,7 @@ class delta(Exchange, ImplicitAPI):
         """
         return await self.fetch_orders_with_method('privateGetOrders', symbol, since, limit, params)
 
-    async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         fetches information on multiple closed orders made by the user
 
@@ -2251,17 +2258,17 @@ class delta(Exchange, ImplicitAPI):
         """
         return await self.fetch_orders_with_method('privateGetOrdersHistory', symbol, since, limit, params)
 
-    async def fetch_orders_with_method(self, method: Any, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_orders_with_method(self, method: object, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         await self.load_markets()
         request = {
-            # 'product_ids': market['id'],  # comma-separated
-            # 'contract_types': types,  # comma-separated, futures, perpetual_futures, call_options, put_options, interest_rate_swaps, move_options, spreads
-            # 'order_types': types,  # comma-separated, market, limit, stop_market, stop_limit, all_stop
+            # 'product_ids': market['id'], // comma-separated
+            # 'contract_types': types, // comma-separated, futures, perpetual_futures, call_options, put_options, interest_rate_swaps, move_options, spreads
+            # 'order_types': types, // comma-separated, market, limit, stop_market, stop_limit, all_stop
             # 'start_time': since * 1000,
-            # 'end_time': self.microseconds(),
-            # 'after',  # after cursor for pagination
-            # 'before',  # before cursor for pagination
-            # 'page_size': limit,  # number of records per page
+            # 'end_time': this.microseconds (),
+            # 'after', // after cursor for pagination
+            # 'before', // before cursor for pagination
+            # 'page_size': limit, // number of records per page
         }
         market = None
         if symbol is not None:
@@ -2278,7 +2285,7 @@ class delta(Exchange, ImplicitAPI):
             response = await self.privateGetOrdersHistory(self.extend(request, params))
         #
         #     {
-        #         "success": True,
+        #         "success": true,
         #         "result": [
         #             {
         #                 "id": "ashb1212",
@@ -2316,13 +2323,13 @@ class delta(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         request = {
-            # 'product_ids': market['id'],  # comma-separated
-            # 'contract_types': types,  # comma-separated, futures, perpetual_futures, call_options, put_options, interest_rate_swaps, move_options, spreads
+            # 'product_ids': market['id'], // comma-separated
+            # 'contract_types': types, // comma-separated, futures, perpetual_futures, call_options, put_options, interest_rate_swaps, move_options, spreads
             # 'start_time': since * 1000,
-            # 'end_time': self.microseconds(),
-            # 'after',  # after cursor for pagination
-            # 'before',  # before cursor for pagination
-            # 'page_size': limit,  # number of records per page
+            # 'end_time': this.microseconds (),
+            # 'after', // after cursor for pagination
+            # 'before', // before cursor for pagination
+            # 'page_size': limit, // number of records per page
         }
         market = None
         if symbol is not None:
@@ -2381,7 +2388,7 @@ class delta(Exchange, ImplicitAPI):
         result = self.safe_list(response, 'result', [])
         return self.parse_trades(result, market, since, limit)
 
-    async def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[LedgerEntry]:
+    async def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[LedgerEntry]:
         """
         fetch the history of changes, actions done by the user or operations that altered the balance of the user
 
@@ -2396,9 +2403,9 @@ class delta(Exchange, ImplicitAPI):
         await self.load_markets()
         request = {
             # 'asset_id': currency['numericId'],
-            # 'end_time': self.seconds(),
-            # 'after': 'string',  # after cursor for pagination
-            # 'before': 'string',  # before cursor for pagination
+            # 'end_time': this.seconds (),
+            # 'after': 'string', // after cursor for pagination
+            # 'before': 'string', // before cursor for pagination
             # 'page_size': limit,
         }
         currency = None
@@ -2432,7 +2439,7 @@ class delta(Exchange, ImplicitAPI):
         result = self.safe_list(response, 'result', [])
         return self.parse_ledger(result, currency, since, limit)
 
-    def parse_ledger_entry_type(self, type: Any):
+    def parse_ledger_entry_type(self, type: object):
         types = {
             'pnl': 'pnl',
             'deposit': 'transaction',
@@ -2522,7 +2529,7 @@ class delta(Exchange, ImplicitAPI):
         response = await self.privateGetDepositsAddress(self.extend(request, params))
         #
         #    {
-        #        "success": True,
+        #        "success": true,
         #        "result": {
         #            "id": 1915615,
         #            "user_id": 27854758,
@@ -2540,7 +2547,7 @@ class delta(Exchange, ImplicitAPI):
         result = self.safe_dict(response, 'result', {})
         return self.parse_deposit_address(result, currency)
 
-    def parse_deposit_address(self, depositAddress: Any, currency: Currency = None) -> DepositAddress:
+    def parse_deposit_address(self, depositAddress: object, currency: Currency = None) -> DepositAddress:
         #
         #    {
         #        "id": 1915615,
@@ -2580,7 +2587,7 @@ class delta(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        if not market['swap']:
+        if market['swap'] is not True:
             raise BadSymbol(self.id + ' fetchFundingRate() supports swap contracts only')
         request = {
             'symbol': market['id'],
@@ -2628,7 +2635,7 @@ class delta(Exchange, ImplicitAPI):
         #             "turnover_usd": 37392218.45999999,
         #             "volume": 1226.3029999999485
         #         },
-        #         "success": True
+        #         "success": true
         #     }
         #
         result = self.safe_dict(response, 'result', {})
@@ -2700,7 +2707,7 @@ class delta(Exchange, ImplicitAPI):
         rates = self.safe_list(response, 'result', [])
         return self.parse_funding_rates(rates, symbols)
 
-    def parse_funding_rate(self, contract: Any, market: Market = None) -> FundingRate:
+    def parse_funding_rate(self, contract: object, market: Market = None) -> FundingRate:
         #
         #     {
         #         "close": 30600.5,
@@ -2794,7 +2801,7 @@ class delta(Exchange, ImplicitAPI):
         """
         return await self.modify_margin_helper(symbol, amount, 'reduce', params)
 
-    async def modify_margin_helper(self, symbol: str, amount: Any, type: Any, params={}) -> MarginModification:
+    async def modify_margin_helper(self, symbol: str, amount: object, type: object, params={}) -> MarginModification:
         await self.load_markets()
         market = self.market(symbol)
         amount = str(amount)
@@ -2808,7 +2815,7 @@ class delta(Exchange, ImplicitAPI):
         #
         #     {
         #         "result": {
-        #             "auto_topup": False,
+        #             "auto_topup": false,
         #             "bankruptcy_price": "24934.12",
         #             "commission": "0.01197072",
         #             "created_at": "2023-07-20T03:49:09.159401Z",
@@ -2825,7 +2832,7 @@ class delta(Exchange, ImplicitAPI):
         #             "updated_at": "2023-07-20T03:49:09.159401Z",
         #             "user_id": 30084879
         #         },
-        #         "success": True
+        #         "success": true
         #     }
         #
         result = self.safe_dict(response, 'result', {})
@@ -2834,7 +2841,7 @@ class delta(Exchange, ImplicitAPI):
     def parse_margin_modification(self, data: dict, market: Market = None) -> MarginModification:
         #
         #     {
-        #         "auto_topup": False,
+        #         "auto_topup": false,
         #         "bankruptcy_price": "24934.12",
         #         "commission": "0.01197072",
         #         "created_at": "2023-07-20T03:49:09.159401Z",
@@ -2879,7 +2886,7 @@ class delta(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        if not market['contract']:
+        if market['contract'] is not True:
             raise BadRequest(self.id + ' fetchOpenInterest() supports contract markets only')
         request = {
             'symbol': market['id'],
@@ -2934,13 +2941,13 @@ class delta(Exchange, ImplicitAPI):
         #             "turnover_usd": 4546.601744940001,
         #             "volume": 0.15200000000000002
         #         },
-        #         "success": True
+        #         "success": true
         #     }
         #
         result = self.safe_dict(response, 'result', {})
         return self.parse_open_interest(result, market)
 
-    def parse_open_interest(self, interest: Any, market: Market = None):
+    def parse_open_interest(self, interest: object, market: Market = None):
         #
         #     {
         #         "close": 894.0,
@@ -3029,7 +3036,7 @@ class delta(Exchange, ImplicitAPI):
         #             "product_id": 84,
         #             "user_id": 30084879
         #         },
-        #         "success": True
+        #         "success": true
         #     }
         #
         result = self.safe_dict(response, 'result', {})
@@ -3073,12 +3080,12 @@ class delta(Exchange, ImplicitAPI):
         #             "order_margin": "0",
         #             "product_id": 84
         #         },
-        #         "success": True
+        #         "success": true
         #     }
         #
         return await self.privatePostProductsProductIdOrdersLeverage(self.extend(request, params))
 
-    async def fetch_settlement_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[dict]:
+    async def fetch_settlement_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[dict]:
         """
         fetches historical settlement records
 
@@ -3142,7 +3149,7 @@ class delta(Exchange, ImplicitAPI):
         #                 "max_leverage_notional": "200000",
         #                 "initial_margin_scaling_factor": "0.000002",
         #                 "strike_price": "30900",
-        #                 "is_quanto": False,
+        #                 "is_quanto": false,
         #                 "settlement_time": "2023-07-19T12:00:00Z",
         #                 "liquidation_penalty_factor": "0.5",
         #                 "funding_method": "mark_price",
@@ -3155,7 +3162,7 @@ class delta(Exchange, ImplicitAPI):
         #                 "maintenance_margin_scaling_factor":"0.000002"
         #             }
         #         ],
-        #         "success": True
+        #         "success": true
         #     }
         #
         result = self.safe_list(response, 'result', [])
@@ -3163,7 +3170,7 @@ class delta(Exchange, ImplicitAPI):
         sorted = self.sort_by(settlements, 'timestamp')
         return self.filter_by_symbol_since_limit(sorted, self.safe_string(market, 'symbol'), since, limit)
 
-    def parse_settlement(self, settlement: Any, market: Any):
+    def parse_settlement(self, settlement: object, market: object):
         #
         #     {
         #         "contract_value": "0.001",
@@ -3204,7 +3211,7 @@ class delta(Exchange, ImplicitAPI):
         #         "max_leverage_notional": "200000",
         #         "initial_margin_scaling_factor": "0.000002",
         #         "strike_price": "30900",
-        #         "is_quanto": False,
+        #         "is_quanto": false,
         #         "settlement_time": "2023-07-19T12:00:00Z",
         #         "liquidation_penalty_factor": "0.5",
         #         "funding_method": "mark_price",
@@ -3227,7 +3234,7 @@ class delta(Exchange, ImplicitAPI):
             'datetime': datetime,
         }
 
-    def parse_settlements(self, settlements: Any, market: Any):
+    def parse_settlements(self, settlements: object, market: object):
         result = []
         for i in range(0, len(settlements)):
             result.append(self.parse_settlement(settlements[i], market))
@@ -3298,7 +3305,7 @@ class delta(Exchange, ImplicitAPI):
         #             "turnover_usd": 184.41206804,
         #             "volume": 0.005
         #         },
-        #         "success": True
+        #         "success": true
         #     }
         #
         result = self.safe_dict(response, 'result', {})
@@ -3381,7 +3388,7 @@ class delta(Exchange, ImplicitAPI):
             'info': greeks,
         }
 
-    async def close_all_positions(self, params={}) -> List[Position]:
+    async def close_all_positions(self, params={}) -> list[Position]:
         """
         closes all open positions for a market type
 
@@ -3422,45 +3429,45 @@ class delta(Exchange, ImplicitAPI):
         #
         #     {
         #         "result": {
-        #             "is_password_set": True,
+        #             "is_password_set": true,
         #             "kyc_expiry_date": null,
         #             "phishing_code": "12345",
         #             "preferences": {
         #                 "favorites": []
         #             },
-        #             "is_kyc_provisioned": False,
+        #             "is_kyc_provisioned": false,
         #             "country": "Canada",
         #             "margin_mode": "isolated",
         #             "mfa_updated_at": "2023-07-19T01:04:43Z",
         #             "last_name": "",
-        #             "oauth_apple_active": False,
+        #             "oauth_apple_active": false,
         #             "pf_index_symbol": null,
         #             "proof_of_identity_status": "approved",
         #             "dob": null,
         #             "email": "abc_123@gmail.com",
-        #             "force_change_password": False,
+        #             "force_change_password": false,
         #             "nick_name": "still-breeze-123",
-        #             "oauth_google_active": False,
+        #             "oauth_google_active": false,
         #             "phone_verification_status": "verified",
         #             "id": 12345678,
         #             "last_seen": null,
-        #             "is_withdrawal_enabled": True,
-        #             "force_change_mfa": False,
-        #             "enable_bots": False,
+        #             "is_withdrawal_enabled": true,
+        #             "force_change_mfa": false,
+        #             "enable_bots": false,
         #             "kyc_verified_on": null,
         #             "created_at": "2023-07-19T01:02:32Z",
         #             "withdrawal_blocked_till": null,
         #             "proof_of_address_status": "approved",
-        #             "is_password_change_blocked": False,
-        #             "is_mfa_enabled": True,
-        #             "is_kyc_done": True,
+        #             "is_password_change_blocked": false,
+        #             "is_mfa_enabled": true,
+        #             "is_kyc_done": true,
         #             "oauth": null,
         #             "account_name": "Main",
         #             "sub_account_permissions": null,
         #             "phone_number": null,
         #             "tracking_info": {
         #                 "ga_cid": "1234.4321",
-        #                 "is_kyc_gtm_tracked": True,
+        #                 "is_kyc_gtm_tracked": true,
         #                 "sub_account_config": {
         #                     "cross": 2,
         #                     "isolated": 2,
@@ -3469,17 +3476,17 @@ class delta(Exchange, ImplicitAPI):
         #             },
         #             "first_name": "",
         #             "phone_verified_on": null,
-        #             "seen_intro": False,
+        #             "seen_intro": false,
         #             "password_updated_at": null,
-        #             "is_login_enabled": True,
+        #             "is_login_enabled": true,
         #             "registration_date": "2023-07-19T01:02:32Z",
         #             "permissions": {},
         #             "max_sub_accounts_limit": 2,
         #             "country_calling_code": null,
-        #             "is_sub_account": False,
-        #             "is_kyc_refresh_required": False
+        #             "is_sub_account": false,
+        #             "is_kyc_refresh_required": false
         #         },
-        #         "success": True
+        #         "success": true
         #     }
         #
         result = self.safe_dict(response, 'result', {})
@@ -3580,7 +3587,7 @@ class delta(Exchange, ImplicitAPI):
         #             "turnover_usd": 184.41206804,
         #             "volume": 0.005
         #         },
-        #         "success": True
+        #         "success": true
         #     }
         #
         result = self.safe_dict(response, 'result', {})
@@ -3660,7 +3667,7 @@ class delta(Exchange, ImplicitAPI):
             'quoteVolume': self.safe_number(chain, 'quote_volume'),
         }
 
-    async def fetch_positions_adl_rank(self, symbols: Strings = None, params={}) -> List[ADL]:
+    async def fetch_positions_adl_rank(self, symbols: Strings = None, params={}) -> list[ADL]:
         """
         fetches the auto deleveraging rank and risk percentage for a list of symbols
 
@@ -3679,7 +3686,7 @@ class delta(Exchange, ImplicitAPI):
         #             [
         #                 {
         #                     "adl_level": null,
-        #                     "auto_topup": False,
+        #                     "auto_topup": false,
         #                     "bankruptcy_price": "88618.22667",
         #                     "commission": "0.03797924",
         #                     "created_at": "2026-01-14T11:24:35.801586Z",
@@ -3694,7 +3701,7 @@ class delta(Exchange, ImplicitAPI):
         #                         "quoting_asset": {
         #                             "base_withdrawal_fee": "0.000000000000000000",
         #                             "id": 4,
-        #                             "interest_credit": False,
+        #                             "interest_credit": false,
         #                             "interest_slabs": null,
         #                             "kyc_deposit_limit": "0.000000000000000000",
         #                             "kyc_withdrawal_limit": "0.000000000000000000",
@@ -3747,7 +3754,7 @@ class delta(Exchange, ImplicitAPI):
         #                             "id": 2,
         #                             "impact_size": "1.000000000000000000",
         #                             "index_type": "spot_pair",
-        #                             "is_composite": False,
+        #                             "is_composite": false,
         #                             "price_method": "ltp",
         #                             "quoting_asset_id": 4,
         #                             "symbol": ".DEXBTUSDT",
@@ -3756,13 +3763,13 @@ class delta(Exchange, ImplicitAPI):
         #                         },
         #                         "liquidation_penalty_factor": "1",
         #                         "auction_start_time": "2025-12-22T12:18:52Z",
-        #                         "is_quanto": False,
+        #                         "is_quanto": false,
         #                         "state": "live",
         #                         "id": 84,
         #                         "settling_asset": {
         #                             "base_withdrawal_fee": "0.000000000000000000",
         #                             "id": 4,
-        #                             "interest_credit": False,
+        #                             "interest_credit": false,
         #                             "interest_slabs": null,
         #                             "kyc_deposit_limit": "0.000000000000000000",
         #                             "kyc_withdrawal_limit": "0.000000000000000000",
@@ -3783,7 +3790,7 @@ class delta(Exchange, ImplicitAPI):
         #                             "default_trading_view_candle": "15",
         #                             "leverage_slider_values": [1,2,3,5,10,50,100],
         #                             "price_clubbing_values": [0.1,1,10,50],
-        #                             "show_bracket_orders": False,
+        #                             "show_bracket_orders": false,
         #                             "sort_priority": 1
         #                         },
         #                         "annualized_funding": "0",
@@ -3804,7 +3811,7 @@ class delta(Exchange, ImplicitAPI):
         #                         "underlying_asset": {
         #                             "base_withdrawal_fee": "0.000000000000000000",
         #                             "id": 2,
-        #                             "interest_credit": False,
+        #                             "interest_credit": false,
         #                             "interest_slabs": null,
         #                             "kyc_deposit_limit": "0.000000000000000000",
         #                             "kyc_withdrawal_limit": "0.000000000000000000",
@@ -3840,7 +3847,7 @@ class delta(Exchange, ImplicitAPI):
         #                     "user_id": 30084879
         #                 }
         #             ],
-        #         "success": True
+        #         "success": true
         #     }
         #
         result = self.safe_list(response, 'result', [])
@@ -3852,7 +3859,7 @@ class delta(Exchange, ImplicitAPI):
         #
         #     {
         #         "adl_level": null,
-        #         "auto_topup": False,
+        #         "auto_topup": false,
         #         "bankruptcy_price": "88618.22667",
         #         "commission": "0.03797924",
         #         "created_at": "2026-01-14T11:24:35.801586Z",
@@ -3867,7 +3874,7 @@ class delta(Exchange, ImplicitAPI):
         #             "quoting_asset": {
         #                 "base_withdrawal_fee": "0.000000000000000000",
         #                 "id": 4,
-        #                 "interest_credit": False,
+        #                 "interest_credit": false,
         #                 "interest_slabs": null,
         #                 "kyc_deposit_limit": "0.000000000000000000",
         #                 "kyc_withdrawal_limit": "0.000000000000000000",
@@ -3920,7 +3927,7 @@ class delta(Exchange, ImplicitAPI):
         #                 "id": 2,
         #                 "impact_size": "1.000000000000000000",
         #                 "index_type": "spot_pair",
-        #                 "is_composite": False,
+        #                 "is_composite": false,
         #                 "price_method": "ltp",
         #                 "quoting_asset_id": 4,
         #                 "symbol": ".DEXBTUSDT",
@@ -3929,13 +3936,13 @@ class delta(Exchange, ImplicitAPI):
         #             },
         #             "liquidation_penalty_factor": "1",
         #             "auction_start_time": "2025-12-22T12:18:52Z",
-        #             "is_quanto": False,
+        #             "is_quanto": false,
         #             "state": "live",
         #             "id": 84,
         #             "settling_asset": {
         #                 "base_withdrawal_fee": "0.000000000000000000",
         #                 "id": 4,
-        #                 "interest_credit": False,
+        #                 "interest_credit": false,
         #                 "interest_slabs": null,
         #                 "kyc_deposit_limit": "0.000000000000000000",
         #                 "kyc_withdrawal_limit": "0.000000000000000000",
@@ -3956,7 +3963,7 @@ class delta(Exchange, ImplicitAPI):
         #                 "default_trading_view_candle": "15",
         #                 "leverage_slider_values": [1,2,3,5,10,50,100],
         #                 "price_clubbing_values": [0.1,1,10,50],
-        #                 "show_bracket_orders": False,
+        #                 "show_bracket_orders": false,
         #                 "sort_priority": 1
         #             },
         #             "annualized_funding": "0",
@@ -3977,7 +3984,7 @@ class delta(Exchange, ImplicitAPI):
         #             "underlying_asset": {
         #                 "base_withdrawal_fee": "0.000000000000000000",
         #                 "id": 2,
-        #                 "interest_credit": False,
+        #                 "interest_credit": false,
         #                 "interest_slabs": null,
         #                 "kyc_deposit_limit": "0.000000000000000000",
         #                 "kyc_withdrawal_limit": "0.000000000000000000",
@@ -4025,12 +4032,12 @@ class delta(Exchange, ImplicitAPI):
             'datetime': datetime,
         }
 
-    def sign(self, path: Any, api: Any = 'public', method='GET', params={}, headers: dict = {}, body: Any = None):
+    def sign(self, path: object, api: object = 'public', method='GET', params={}, headers: dict = {}, body: object = None):
         requestPath = '/' + self.version + '/' + self.implode_params(path, params)
         url = self.urls['api'][api] + requestPath
         query = self.omit(params, self.extract_params(path))
         if api == 'public':
-            if query:
+            if len(query) > 0:
                 url += '?' + self.urlencode(query)
         elif api == 'private':
             self.check_required_credentials()
@@ -4041,7 +4048,7 @@ class delta(Exchange, ImplicitAPI):
             }
             auth = method + timestamp + requestPath
             if method == 'GET':
-                if query:
+                if len(query) > 0:
                     queryString = '?' + self.urlencode(query)
                     auth += queryString
                     url += queryString
@@ -4053,7 +4060,7 @@ class delta(Exchange, ImplicitAPI):
             headers['signature'] = signature
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: Any, requestHeaders: Any, requestBody: Any):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         if response is None:
             return None
         #

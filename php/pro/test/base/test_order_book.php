@@ -257,6 +257,23 @@ function test_ws_order_book() {
     $indexed_order_book->limit();
     assert(equals($indexed_order_book, $overwrite1244));
     // --------------------------------------------------------------------------------------------------------------------
+    // a zero size delta for an id that is not in the book stores nothing, so the
+    // constructor must not advance the length on its account. it used to, which
+    // left the side with trailing holes and a length that overcounted the rows,
+    // and limit() then dereferenced one of those holes
+    $noop_deltas = new IndexedOrderBook(array(
+        'bids' => [[100, 1, 'a'], [101, 0, 'ghost'], [102, 1, 'c']],
+        'asks' => [[200, 0, 'ghost'], [201, 1, 'd']],
+    ), 2);
+    assert(count($noop_deltas['bids']) === 2);
+    assert(count($noop_deltas['asks']) === 1);
+    assert($noop_deltas['bids'][0] !== null);
+    assert($noop_deltas['bids'][1] !== null);
+    assert($noop_deltas['asks'][0] !== null);
+    $noop_deltas->limit();
+    assert(count($noop_deltas['bids']) === 2);
+    assert(count($noop_deltas['asks']) === 1);
+    // --------------------------------------------------------------------------------------------------------------------
     $counted_order_book = new CountedOrderBook($counted_order_book_input);
     $limited_counted_order_book = new CountedOrderBook($counted_order_book_input, 5);
     $counted_order_book->limit();

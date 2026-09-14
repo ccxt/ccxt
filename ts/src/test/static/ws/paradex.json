@@ -1,0 +1,163 @@
+{
+    "exchange": "paradex",
+    "skipKeys": [],
+    "options": {},
+    "methods": {
+        "watchOrderBook": [
+            {
+                "description": "linear swap orderbook",
+                "input": [
+                    "BTC/USD:USDC"
+                ],
+                "url": "wss://ws.api.prod.paradex.trade/v1",
+                "messages": [
+                    {
+                        "jsonrpc": "2.0",
+                        "id": 0,
+                        "result": {
+                            "channel": "order_book.BTC-USD-PERP.snapshot@15@100ms"
+                        },
+                        "usIn": "1786614476117254",
+                        "usDiff": 124,
+                        "usOut": 1786614476117378
+                    },
+                    {
+                        "jsonrpc": "2.0",
+                        "method": "subscription",
+                        "params": {
+                            "channel": "order_book.BTC-USD-PERP.snapshot@15@100ms",
+                            "data": {
+                                "seq_no": 7613251297,
+                                "market": "BTC-USD-PERP",
+                                "last_updated_at": 1786614474487,
+                                "update_type": "s",
+                                "inserts": [
+                                    {
+                                        "side": "BUY",
+                                        "price": "63659.6",
+                                        "size": "0.03139"
+                                    },
+                                    {
+                                        "side": "BUY",
+                                        "price": "63653.8",
+                                        "size": "0.03139"
+                                    },
+                                    {
+                                        "side": "BUY",
+                                        "price": "63652.9",
+                                        "size": "0.00817"
+                                    },
+                                    {
+                                        "side": "BUY",
+                                        "price": "63650",
+                                        "size": "0.04469"
+                                    },
+                                    {
+                                        "side": "BUY",
+                                        "price": "63648.7",
+                                        "size": "0.03139"
+                                    }
+                                ],
+                                "updates": [],
+                                "deletes": [],
+                                "best_ask_interactive": {
+                                    "side": "SELL",
+                                    "price": "63676.7",
+                                    "size": "0.0002"
+                                }
+                            }
+                        }
+                    },
+                    {
+                        "jsonrpc": "2.0",
+                        "method": "subscription",
+                        "params": {
+                            "channel": "order_book.BTC-USD-PERP.snapshot@15@100ms",
+                            "data": {
+                                "seq_no": 7613251298,
+                                "market": "BTC-USD-PERP",
+                                "last_updated_at": 1786614477987,
+                                "update_type": "s",
+                                "inserts": [
+                                    {
+                                        "side": "BUY",
+                                        "price": "63659.6",
+                                        "size": "0.03139"
+                                    },
+                                    {
+                                        "side": "BUY",
+                                        "price": "63653.8",
+                                        "size": "0.03139"
+                                    },
+                                    {
+                                        "side": "BUY",
+                                        "price": "63652.9",
+                                        "size": "0.00817"
+                                    },
+                                    {
+                                        "side": "BUY",
+                                        "price": "63650",
+                                        "size": "0.04469"
+                                    },
+                                    {
+                                        "side": "BUY",
+                                        "price": "63648.7",
+                                        "size": "0.03139"
+                                    }
+                                ],
+                                "updates": [],
+                                "deletes": [],
+                                "best_ask_interactive": {
+                                    "side": "SELL",
+                                    "price": "63676.7",
+                                    "size": "0.0002"
+                                }
+                            }
+                        }
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "jsonrpc": "2.0",
+                        "method": "subscribe",
+                        "params": {
+                            "channel": "order_book.BTC-USD-PERP.snapshot@15@100ms"
+                        }
+                    }
+                ],
+                "parsedResponses": [
+                    {
+                        "bids": [
+                            [
+                                63659.6,
+                                0.03139
+                            ],
+                            [
+                                63653.8,
+                                0.03139
+                            ],
+                            [
+                                63652.9,
+                                0.00817
+                            ],
+                            [
+                                63650,
+                                0.04469
+                            ],
+                            [
+                                63648.7,
+                                0.03139
+                            ]
+                        ],
+                        "asks": [],
+                        "timestamp": 1786614474487,
+                        "datetime": "2026-08-13T09:47:54.487Z",
+                        "nonce": 7613251297,
+                        "symbol": "BTC/USD:USDC"
+                    }
+                ],
+                "disabledGO": "go orderbook state diverges on replay - investigate with the other disabledGO orderbook entries"
+            }
+        ]
+    }
+}

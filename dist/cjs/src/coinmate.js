@@ -196,10 +196,15 @@ class coinmate extends coinmate$1["default"] {
                         'adaWithdrawal': { 'cost': 1 },
                         'adaDepositAddresses': { 'cost': 1 },
                         'unconfirmedAdaDeposits': { 'cost': 1 },
+                        'daiWithdrawal': { 'cost': 1 },
+                        'daiDepositAddresses': { 'cost': 1 },
+                        'unconfirmedDaiDeposits': { 'cost': 1 },
                         'solWithdrawal': { 'cost': 1 },
                         'solDepositAddresses': { 'cost': 1 },
                         'unconfirmedSolDeposits': { 'cost': 1 },
                         'bankWireWithdrawal': { 'cost': 1 },
+                        'lightningDeposit': { 'cost': 1 },
+                        'lightningWithdraw': { 'cost': 1 },
                     },
                 },
             },
@@ -378,7 +383,7 @@ class coinmate extends coinmate$1["default"] {
         //         ]
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         const result = [];
         for (let i = 0; i < data.length; i++) {
             const market = data[i];
@@ -441,7 +446,7 @@ class coinmate extends coinmate$1["default"] {
         return result;
     }
     parseBalance(response) {
-        const balances = this.safeValue(response, 'data', {});
+        const balances = this.safeDict(response, 'data', {});
         const result = { 'info': response };
         const currencyIds = Object.keys(balances);
         for (let i = 0; i < currencyIds.length; i++) {
@@ -567,7 +572,7 @@ class coinmate extends coinmate$1["default"] {
         //         }
         //     }
         //
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeDict(response, 'data', {});
         const keys = Object.keys(data);
         const result = {};
         for (let i = 0; i < keys.length; i++) {
@@ -756,7 +761,7 @@ class coinmate extends coinmate$1["default"] {
         }
         const currency = this.currency(code);
         const withdrawOptions = this.safeValue(this.options, 'withdraw', {});
-        const methods = this.safeValue(withdrawOptions, 'methods', {});
+        const methods = this.safeDict(withdrawOptions, 'methods', {});
         const method = this.safeString(methods, code);
         if (method === undefined) {
             const allowedCurrencies = Object.keys(methods);
@@ -769,7 +774,38 @@ class coinmate extends coinmate$1["default"] {
         if (tag !== undefined) {
             request['destinationTag'] = tag;
         }
-        const response = await this[method](this.extend(request, params));
+        const requestParams = this.extend(request, params);
+        let response = undefined;
+        if (method === 'privatePostBitcoinWithdrawal') {
+            response = await this.privatePostBitcoinWithdrawal(requestParams);
+        }
+        else if (method === 'privatePostLitecoinWithdrawal') {
+            response = await this.privatePostLitecoinWithdrawal(requestParams);
+        }
+        else if (method === 'privatePostBitcoinCashWithdrawal') {
+            response = await this.privatePostBitcoinCashWithdrawal(requestParams);
+        }
+        else if (method === 'privatePostEthereumWithdrawal') {
+            response = await this.privatePostEthereumWithdrawal(requestParams);
+        }
+        else if (method === 'privatePostRippleWithdrawal') {
+            response = await this.privatePostRippleWithdrawal(requestParams);
+        }
+        else if (method === 'privatePostDashWithdrawal') {
+            response = await this.privatePostDashWithdrawal(requestParams);
+        }
+        else if (method === 'privatePostDaiWithdrawal') {
+            response = await this.privatePostDaiWithdrawal(requestParams);
+        }
+        else if (method === 'privatePostAdaWithdrawal') {
+            response = await this.privatePostAdaWithdrawal(requestParams);
+        }
+        else if (method === 'privatePostSolWithdrawal') {
+            response = await this.privatePostSolWithdrawal(requestParams);
+        }
+        else {
+            throw new errors.ExchangeError(this.id + ' withdraw() does not support the ' + method + ' method');
+        }
         //
         //     {
         //         "error": false,
@@ -782,7 +818,7 @@ class coinmate extends coinmate$1["default"] {
         const data = this.safeValue(response, 'data');
         const transaction = this.parseTransaction(data, currency);
         const fillResponseFromRequest = this.safeBool(withdrawOptions, 'fillResponseFromRequest', true);
-        if (fillResponseFromRequest) {
+        if (fillResponseFromRequest === true) {
             transaction['amount'] = amount;
             transaction['currency'] = code;
             transaction['address'] = address;
@@ -1154,7 +1190,23 @@ class coinmate extends coinmate$1["default"] {
             request['price'] = this.priceToPrecision(symbol, price);
             method += this.capitalize(type);
         }
-        const response = await this[method](this.extend(request, params));
+        const requestParams = this.extend(request, params);
+        let response = undefined;
+        if (method === 'privatePostBuyInstant') {
+            response = await this.privatePostBuyInstant(requestParams);
+        }
+        else if (method === 'privatePostSellInstant') {
+            response = await this.privatePostSellInstant(requestParams);
+        }
+        else if (method === 'privatePostBuyLimit') {
+            response = await this.privatePostBuyLimit(requestParams);
+        }
+        else if (method === 'privatePostSellLimit') {
+            response = await this.privatePostSellLimit(requestParams);
+        }
+        else {
+            throw new errors.InvalidOrder(this.id + ' createOrder() does not support order type ' + type);
+        }
         const id = this.safeString(response, 'data');
         return this.safeOrder({
             'info': response,
@@ -1180,7 +1232,7 @@ class coinmate extends coinmate$1["default"] {
             'orderId': id,
         };
         let market = undefined;
-        if (symbol) {
+        if ((symbol !== undefined) && (symbol !== '')) {
             market = this.market(symbol);
         }
         const response = await this.privatePostOrderById(this.extend(request, params));
@@ -1220,7 +1272,7 @@ class coinmate extends coinmate$1["default"] {
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api']['rest'] + '/' + path;
         if (api === 'public') {
-            if (Object.keys(params).length) {
+            if (Object.keys(params).length > 0) {
                 url += '?' + this.urlencode(params);
             }
         }

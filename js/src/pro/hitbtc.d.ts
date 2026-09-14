@@ -232,5 +232,5 @@ export default class hitbtc extends hitbtcRest {
     handleOrderRequest(client: Client, message: any): any;
     handleMessage(client: Client, message: any): void;
     handleAuthenticate(client: Client, message: any): any;
-    handleError(client: Client, message: any): true | undefined;
+    handleError(client: Client, message: any): boolean;
 }

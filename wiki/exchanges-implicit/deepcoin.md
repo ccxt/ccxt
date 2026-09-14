@@ -55,7 +55,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 📚 **Official deepcoin API documentation:** [deepcoin.com](https://www.deepcoin.com/docs)
 
-> 53 implicit endpoints across 2 access groups.
+> 69 implicit endpoints across 2 access groups.
 
 ## public
 
@@ -70,6 +70,10 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `publicGetDeepcoinMarketIndexCandles` | GET | `deepcoin/market/index-candles` | 1 |
 | `publicGetDeepcoinMarketTrades` | GET | `deepcoin/market/trades` | 1 |
 | `publicGetDeepcoinMarketMarkPriceCandles` | GET | `deepcoin/market/mark-price-candles` | 1 |
+| `publicGetDeepcoinMarketMarkPrice` | GET | `deepcoin/market/mark-price` | 1 |
+| `publicGetDeepcoinMarketOpenInterestVolume` | GET | `deepcoin/market/open-interest-volume` | 1 |
+| `publicGetDeepcoinMarketLongShortRatio` | GET | `deepcoin/market/long-short-ratio` | 1 |
+| `publicGetDeepcoinMarketTakerVolume` | GET | `deepcoin/market/taker-volume` | 1 |
 | `publicGetDeepcoinMarketStepMargin` | GET | `deepcoin/market/step-margin` | 5 |
 | `publicGetDeepcoinTradeFundingRate` | GET | `deepcoin/trade/funding-rate` | 5 |
 | `publicGetDeepcoinTradeFundRateCurrentFundingRate` | GET | `deepcoin/trade/fund-rate/current-funding-rate` | 5 |
@@ -82,10 +86,15 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | Method | HTTP | Endpoint | Cost |
 | --- | --- | --- | --- |
 | `privateGetDeepcoinAccountBalances` | GET | `deepcoin/account/balances` | 5 |
+| `privateGetDeepcoinAccountAllBalances` | GET | `deepcoin/account/all-balances` | 5 |
 | `privateGetDeepcoinAccountBills` | GET | `deepcoin/account/bills` | 5 |
 | `privateGetDeepcoinAccountPositions` | GET | `deepcoin/account/positions` | 5 |
+| `privateGetDeepcoinAccountTradeFee` | GET | `deepcoin/account/trade-fee` | 5 |
+| `privateGetDeepcoinAccountLeverageInfo` | GET | `deepcoin/account/leverage-info` | 5 |
+| `privateGetDeepcoinAccountPositionsHistory` | GET | `deepcoin/account/positions-history` | 5 |
 | `privateGetDeepcoinTradeFills` | GET | `deepcoin/trade/fills` | 5 |
 | `privateGetDeepcoinTradeOrderByID` | GET | `deepcoin/trade/orderByID` | 5 |
+| `privateGetDeepcoinTradeOrder` | GET | `deepcoin/trade/order` | 5 |
 | `privateGetDeepcoinTradeFinishOrderByID` | GET | `deepcoin/trade/finishOrderByID` | 5 |
 | `privateGetDeepcoinTradeOrdersHistory` | GET | `deepcoin/trade/orders-history` | 5 |
 | `privateGetDeepcoinTradeV2OrdersPending` | GET | `deepcoin/trade/v2/orders-pending` | 5 |
@@ -107,6 +116,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privateGetDeepcoinAssetRechargeChainList` | GET | `deepcoin/asset/recharge-chain-list` | 5 |
 | `privateGetDeepcoinListenkeyAcquire` | GET | `deepcoin/listenkey/acquire` | 5 |
 | `privateGetDeepcoinListenkeyExtend` | GET | `deepcoin/listenkey/extend` | 5 |
+| `privateGetDeepcoinSubAccountSubAccountApikey` | GET | `deepcoin/sub-account/sub-account-apikey` | 5 |
 | `privatePostDeepcoinAccountSetLeverage` | POST | `deepcoin/account/set-leverage` | 5 |
 | `privatePostDeepcoinTradeOrder` | POST | `deepcoin/trade/order` | 5 |
 | `privatePostDeepcoinTradeReplaceOrder` | POST | `deepcoin/trade/replace-order` | 5 |
@@ -115,12 +125,18 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privatePostDeepcoinTradeCancelTriggerOrder` | POST | `deepcoin/trade/cancel-trigger-order` | 0.16666666666666666 |
 | `privatePostDeepcoinTradeSwapCancelAll` | POST | `deepcoin/trade/swap/cancel-all` | 5 |
 | `privatePostDeepcoinTradeTriggerOrder` | POST | `deepcoin/trade/trigger-order` | 5 |
+| `privatePostDeepcoinTradeAmendTriggerOrder` | POST | `deepcoin/trade/amend-trigger-order` | 5 |
 | `privatePostDeepcoinTradeBatchClosePosition` | POST | `deepcoin/trade/batch-close-position` | 5 |
 | `privatePostDeepcoinTradeReplaceOrderSltp` | POST | `deepcoin/trade/replace-order-sltp` | 5 |
 | `privatePostDeepcoinTradeClosePositionByIds` | POST | `deepcoin/trade/close-position-by-ids` | 5 |
+| `privatePostDeepcoinTradeIncreasePosition` | POST | `deepcoin/trade/increase-position` | 5 |
+| `privatePostDeepcoinTradeMergePositions` | POST | `deepcoin/trade/merge-positions` | 5 |
 | `privatePostDeepcoinCopytradingLeaderSettings` | POST | `deepcoin/copytrading/leader-settings` | 5 |
 | `privatePostDeepcoinCopytradingSetContracts` | POST | `deepcoin/copytrading/set-contracts` | 5 |
 | `privatePostDeepcoinInternalTransfer` | POST | `deepcoin/internal-transfer` | 5 |
 | `privatePostDeepcoinRebateConfig` | POST | `deepcoin/rebate/config` | 5 |
 | `privatePostDeepcoinAssetTransfer` | POST | `deepcoin/asset/transfer` | 5 |
+| `privatePostDeepcoinSubAccountCreateSubAccount` | POST | `deepcoin/sub-account/create-sub-account` | 5 |
+| `privatePostDeepcoinSubAccountSubAccountApikey` | POST | `deepcoin/sub-account/sub-account-apikey` | 5 |
+| `privatePostDeepcoinSubAccountDeleteSubAccountApikey` | POST | `deepcoin/sub-account/delete-sub-account-apikey` | 5 |
 
