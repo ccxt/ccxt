@@ -1934,7 +1934,7 @@ ccxt::any Exchange::setMarkets(ccxt::any markets, ccxt::any currencies) {
       const ccxt::dict valueDict = ccxt::any_cast<ccxt::dict>(value);
       for (const auto &valueKv : valueDict.entries()) {
         if (isTrue(!isEqual(valueKv.second, ccxt::any{}))) {
-          ::setValue(valueDefined, valueKv.first, valueKv.second);
+          ::setValue(valueDefined, std::string (valueKv.first), valueKv.second);
         }
       }
     }
