@@ -325,19 +325,19 @@ class hollaex(Exchange, ImplicitAPI):
         #                 "id": 7,
         #                 "fullname": "Monero",
         #                 "symbol": "xmr",
-        #                 "active": True,
-        #                 "allow_deposit": True,
-        #                 "allow_withdrawal": True,
+        #                 "active": true,
+        #                 "allow_deposit": true,
+        #                 "allow_withdrawal": true,
         #                 "withdrawal_fee": 0.02,
         #                 "min": 0.001,
         #                 "max": 100000,
         #                 "increment_unit": 0.001,
-        #                 "deposit_limits": {'1': 0, '2': 0, '3': 0, '4': 0, "5": 0, "6": 0},
-        #                 "withdrawal_limits": {'1': 10, '2': 15, '3': 100, '4': 100, '5': 200, '6': 300, '7': 350, '8': 400, "9": 500, "10": -1},
+        #                 "deposit_limits": { '1': 0, '2': 0, '3': 0, '4': 0, "5": 0, "6": 0 },
+        #                 "withdrawal_limits": { '1': 10, '2': 15, '3': 100, '4': 100, '5': 200, '6': 300, '7': 350, '8': 400, "9": 500, "10": -1 },
         #                 "created_at": "2019-12-09T07:14:02.720Z",
         #                 "updated_at": "2020-01-16T12:12:53.162Z"
         #             },
-        #             # ...
+        #             // ...
         #         },
         #         "pairs": {
         #             "btc-usdt": {
@@ -345,21 +345,21 @@ class hollaex(Exchange, ImplicitAPI):
         #                 "name": "btc-usdt",
         #                 "pair_base": "btc",
         #                 "pair_2": "usdt",
-        #                 "taker_fees": {'1': 0.3, '2': 0.25, '3': 0.2, '4': 0.18, '5': 0.1, '6': 0.09, '7': 0.08, '8': 0.06, "9": 0.04, "10": 0},
-        #                 "maker_fees": {'1': 0.1, '2': 0.08, '3': 0.05, '4': 0.03, '5': 0, '6': 0, '7': 0, '8': 0, "9": 0, "10": 0},
+        #                 "taker_fees": { '1': 0.3, '2': 0.25, '3': 0.2, '4': 0.18, '5': 0.1, '6': 0.09, '7': 0.08, '8': 0.06, "9": 0.04, "10": 0 },
+        #                 "maker_fees": { '1': 0.1, '2': 0.08, '3': 0.05, '4': 0.03, '5': 0, '6': 0, '7': 0, '8': 0, "9": 0, "10": 0 },
         #                 "min_size": 0.0001,
         #                 "max_size": 1000,
         #                 "min_price": 100,
         #                 "max_price": 100000,
         #                 "increment_size": 0.0001,
         #                 "increment_price": 0.05,
-        #                 "active": True,
+        #                 "active": true,
         #                 "created_at": "2019-12-09T07:15:54.537Z",
         #                 "updated_at": "2019-12-09T07:15:54.537Z"
         #             },
         #         },
-        #         "config": {tiers: 10},
-        #         "status": True
+        #         "config": { tiers: 10 },
+        #         "status": true
         #     }
         #
         pairs = self.safe_dict(response, 'pairs', {})
@@ -440,17 +440,17 @@ class hollaex(Exchange, ImplicitAPI):
         #                "id": "6",
         #                "fullname": "USD Tether",
         #                "symbol": "usdt",
-        #                "active": True,
-        #                "verified": True,
-        #                "allow_deposit": True,
-        #                "allow_withdrawal": True,
+        #                "active": true,
+        #                "verified": true,
+        #                "allow_deposit": true,
+        #                "allow_withdrawal": true,
         #                "withdrawal_fee": "20",
         #                "min": "1",
         #                "max": "10000000",
         #                "increment_unit": "0.0001",
         #                "logo": "https://hollaex-resources.s3.ap-southeast-1.amazonaws.com/icons/usdt.svg",
         #                "code": "usdt",
-        #                "is_public": True,
+        #                "is_public": true,
         #                "meta": {
         #                    "color": "#27a17a",
         #                    "website": "https://tether.to",
@@ -458,7 +458,7 @@ class hollaex(Exchange, ImplicitAPI):
         #                    "decimal_points": "6"
         #                },
         #                "estimated_price": "1",
-        #                "description": "<p>Tether(USDT) is a stablecoin pegged 1:1 to the US dollar. It is a digital currency that aims to maintain its value while allowing for fast and secure transfer of funds. It was the first stablecoin, and is the most widely used due stablecoin due to its stability and low volatility compared to other cryptocurrencies. It was launched in 2014 by Tether Limited.</p>",
+        #                "description": "<p>Tether (USDT) is a stablecoin pegged 1:1 to the US dollar. It is a digital currency that aims to maintain its value while allowing for fast and secure transfer of funds. It was the first stablecoin, and is the most widely used due stablecoin due to its stability and low volatility compared to other cryptocurrencies. It was launched in 2014 by Tether Limited.</p>",
         #                "type": "blockchain",
         #                "network": "eth,trx,bnb,matic",
         #                "standard": "",
@@ -466,28 +466,28 @@ class hollaex(Exchange, ImplicitAPI):
         #                "withdrawal_fees": {
         #                    "bnb": {
         #                        "value": "0.8",
-        #                        "active": True,
+        #                        "active": true,
         #                        "symbol": "usdt"
         #                    },
         #                    "eth": {
         #                        "value": "1.5",
-        #                        "active": True,
+        #                        "active": true,
         #                        "symbol": "usdt"
         #                    },
         #                    "trx": {
         #                        "value": "4",
-        #                        "active": True,
+        #                        "active": true,
         #                        "symbol": "usdt"
         #                    },
         #                    "matic": {
         #                        "value": "0.3",
-        #                        "active": True,
+        #                        "active": true,
         #                        "symbol": "usdt"
         #                    }
         #                },
         #                "display_name": null,
         #                "deposit_fees": null,
-        #                "is_risky": False,
+        #                "is_risky": false,
         #                "market_cap": "144568098696.29",
         #                "category": "stable",
         #                "created_at": "2019-08-09T10:45:43.367Z",
@@ -604,19 +604,19 @@ class hollaex(Exchange, ImplicitAPI):
         #     {
         #         "btc-usdt": {
         #             "bids": [
-        #                 [8836.4, 1.022],
-        #                 [8800, 0.0668],
-        #                 [8797.75, 0.2398],
+        #                 [ 8836.4, 1.022 ],
+        #                 [ 8800, 0.0668 ],
+        #                 [ 8797.75, 0.2398 ],
         #             ],
         #             "asks": [
-        #                 [8839.35, 1.5334],
-        #                 [8852.6, 0.0579],
-        #                 [8860.45, 0.1815],
+        #                 [ 8839.35, 1.5334 ],
+        #                 [ 8852.6, 0.0579 ],
+        #                 [ 8860.45, 0.1815 ],
         #             ],
         #             "timestamp": "2020-03-03T02:27:25.147Z"
         #         },
         #         "eth-usdt": {},
-        #         # ...
+        #         // ...
         #     }
         #
         orderbook = self.safe_value(response, market['id'])
@@ -679,7 +679,7 @@ class hollaex(Exchange, ImplicitAPI):
         #             "volume":0.054,
         #             "symbol":"bch-usdt"
         #         },
-        #         # ...
+        #         // ...
         #     }
         #
         return self.parse_tickers(response, symbols)
@@ -779,7 +779,7 @@ class hollaex(Exchange, ImplicitAPI):
         #                 "side": "buy",
         #                 "timestamp": "2020-03-03T04:44:33.034Z"
         #             },
-        #             # ...
+        #             // ...
         #         ]
         #     }
         #
@@ -788,7 +788,7 @@ class hollaex(Exchange, ImplicitAPI):
 
     def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #
-        # fetchTrades(public)
+        # fetchTrades (public)
         #
         #     {
         #         "size": 0.5,
@@ -797,7 +797,7 @@ class hollaex(Exchange, ImplicitAPI):
         #         "timestamp": "2020-03-03T04:44:33.034Z"
         #     }
         #
-        # fetchMyTrades(private)
+        # fetchMyTrades (private)
         #  {
         #      "side":"sell",
         #      "symbol":"doge-usdt",
@@ -1018,7 +1018,7 @@ class hollaex(Exchange, ImplicitAPI):
         #         "eth_balance": 0,
         #         "eth_pending": 0,
         #         "eth_available": 0,
-        #         # ...
+        #         // ...
         #     }
         #
         return self.parse_balance(response)
@@ -1161,15 +1161,15 @@ class hollaex(Exchange, ImplicitAPI):
         market = None
         request = {
             # 'symbol': market['id'],
-            # 'side': 'buy',  # 'sell'
-            # 'status': 'new',  # 'filled', 'pfilled', 'canceled'
-            # 'open': True,
-            # 'limit': limit,  # default 50, max 100
+            # 'side': 'buy', // 'sell'
+            # 'status': 'new', // 'filled', 'pfilled', 'canceled'
+            # 'open': true,
+            # 'limit': limit, // default 50, max 100
             # 'page': 1,
-            # 'order_by': 'created_at',  # id, ...
-            # 'order': 'asc',  # 'desc'
-            # 'start_date': self.iso8601(since),
-            # 'end_date': self.iso8601(self.milliseconds()),
+            # 'order_by': 'created_at', // id, ...
+            # 'order': 'asc', // 'desc'
+            # 'start_date': this.iso8601 (since),
+            # 'end_date': this.iso8601 (this.milliseconds ()),
         }
         if symbol is not None:
             market = self.market(symbol)
@@ -1238,7 +1238,7 @@ class hollaex(Exchange, ImplicitAPI):
         #          "status":"canceled",
         #          "fee":0,
         #          "fee_coin":"doge",
-        #          "meta": {                # optional field only returned for postOnly orders
+        #          "meta": {                 // optional field only returned for postOnly orders
         #              "post_only":true
         #          },
         #          "fee_structure": {
@@ -1309,8 +1309,8 @@ class hollaex(Exchange, ImplicitAPI):
             'side': side,
             'size': self.amount_to_precision(symbol, amount),
             'type': type,
-            # 'stop': float(self.price_to_precision(symbol, stopPrice)),
-            # 'meta': {},  # other options such as post_only
+            # 'stop': parseFloat (this.priceToPrecision (symbol, stopPrice)),
+            # 'meta': {}, // other options such as post_only
         }
         triggerPrice = self.safe_number_n(params, ['triggerPrice', 'stopPrice', 'stop'])
         meta = self.safe_value(params, 'meta', {})
@@ -1434,12 +1434,12 @@ class hollaex(Exchange, ImplicitAPI):
             await self.load_markets()
         request = {
             # 'symbol': market['id'],
-            # 'limit': 50,  # default 50, max 100
-            # 'page': 1,  # page of data to retrieve
-            # 'order_by': 'timestamp',  # field to order data
-            # 'order': 'asc',  # asc or desc
-            # 'start_date': 123,  # starting date of queried data
-            # 'end_date': 321,  # ending date of queried data
+            # 'limit': 50, // default 50, max 100
+            # 'page': 1, // page of data to retrieve
+            # 'order_by': 'timestamp', // field to order data
+            # 'order': 'asc', // asc or desc
+            # 'start_date': 123, // starting date of queried data
+            # 'end_date': 321, // ending date of queried data
         }
         market = None
         if symbol is not None:
@@ -1577,12 +1577,12 @@ class hollaex(Exchange, ImplicitAPI):
             await self.load_markets()
         request = {
             # 'currency': currency['id'],
-            # 'limit': 50,  # default 50, max 100
-            # 'page': 1,  # page of data to retrieve
-            # 'order_by': 'timestamp',  # field to order data
-            # 'order': 'asc',  # asc or desc
-            # 'start_date': 123,  # starting date of queried data
-            # 'end_date': 321,  # ending date of queried data
+            # 'limit': 50, // default 50, max 100
+            # 'page': 1, // page of data to retrieve
+            # 'order_by': 'timestamp', // field to order data
+            # 'order': 'asc', // asc or desc
+            # 'start_date': 123, // starting date of queried data
+            # 'end_date': 321, // ending date of queried data
         }
         currency = None
         if code is not None:
@@ -1603,9 +1603,9 @@ class hollaex(Exchange, ImplicitAPI):
         #                 "fee": 0,
         #                 "address": "0x5c0cc98270d7089408fcbcc8e2131287f5be2306",
         #                 "transaction_id": "0xd4006327a5ec2c41adbdcf566eaaba6597c3d45906abe78ea1a4a022647c2e28",
-        #                 "status": True,
-        #                 "dismissed": False,
-        #                 "rejected": False,
+        #                 "status": true,
+        #                 "dismissed": false,
+        #                 "rejected": false,
         #                 "description": "",
         #                 "type": "deposit",
         #                 "currency": "usdt",
@@ -1650,9 +1650,9 @@ class hollaex(Exchange, ImplicitAPI):
         #                 "fee": 0,
         #                 "address": "0x5c0cc98270d7089408fcbcc8e2131287f5be2306",
         #                 "transaction_id": "0xd4006327a5ec2c41adbdcf566eaaba6597c3d45906abe78ea1a4a022647c2e28",
-        #                 "status": True,
-        #                 "dismissed": False,
-        #                 "rejected": False,
+        #                 "status": true,
+        #                 "dismissed": false,
+        #                 "rejected": false,
         #                 "description": "",
         #                 "type": "withdrawal",
         #                 "currency": "usdt",
@@ -1683,12 +1683,12 @@ class hollaex(Exchange, ImplicitAPI):
             await self.load_markets()
         request = {
             # 'currency': currency['id'],
-            # 'limit': 50,  # default 50, max 100
-            # 'page': 1,  # page of data to retrieve
-            # 'order_by': 'timestamp',  # field to order data
-            # 'order': 'asc',  # asc or desc
-            # 'start_date': 123,  # starting date of queried data
-            # 'end_date': 321,  # ending date of queried data
+            # 'limit': 50, // default 50, max 100
+            # 'page': 1, // page of data to retrieve
+            # 'order_by': 'timestamp', // field to order data
+            # 'order': 'asc', // asc or desc
+            # 'start_date': 123, // starting date of queried data
+            # 'end_date': 321, // ending date of queried data
         }
         currency = None
         if code is not None:
@@ -1709,9 +1709,9 @@ class hollaex(Exchange, ImplicitAPI):
         #                 "fee": 0,
         #                 "address": "0x5c0cc98270d7089408fcbcc8e2131287f5be2306",
         #                 "transaction_id": "0xd4006327a5ec2c41adbdcf566eaaba6597c3d45906abe78ea1a4a022647c2e28",
-        #                 "status": True,
-        #                 "dismissed": False,
-        #                 "rejected": False,
+        #                 "status": true,
+        #                 "dismissed": false,
+        #                 "rejected": false,
         #                 "description": "",
         #                 "type": "withdrawal",
         #                 "currency": "usdt",
@@ -1735,9 +1735,9 @@ class hollaex(Exchange, ImplicitAPI):
         #         "fee": 0,
         #         "address": "0x5c0cc98270d7089408fcbcc8e2131287f5be2306",
         #         "transaction_id": "0xd4006327a5ec2c41adbdcf566eaaba6597c3d45906abe78ea1a4a022647c2e28",
-        #         "status": True,
-        #         "dismissed": False,
-        #         "rejected": False,
+        #         "status": true,
+        #         "dismissed": false,
+        #         "rejected": false,
         #         "description": "",
         #         "type": "withdrawal",
         #         "currency": "usdt",
@@ -2005,18 +2005,18 @@ class hollaex(Exchange, ImplicitAPI):
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
-        # {"message": "Invalid token"}
+        # { "message": "Invalid token" }
         if response is None:
             return None
         if (code >= 400) and (code <= 503):
             #
-            #  {"message": "Invalid token"}
+            #  { "message": "Invalid token" }
             #
             # different errors return the same code eg
             #
-            #  {"message":"Error 1001 - Order rejected. Order could not be submitted as self order was set to a post only order."}
+            #  { "message":"Error 1001 - Order rejected. Order could not be submitted as this order was set to a post only order." }
             #
-            #  {"message":"Error 1001 - POST ONLY order can not be of type market"}
+            #  { "message":"Error 1001 - POST ONLY order can not be of type market" }
             #
             feedback = self.id + ' ' + body
             message = self.safe_string(response, 'message')

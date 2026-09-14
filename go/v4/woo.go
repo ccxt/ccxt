@@ -102,8 +102,8 @@ func (this *Woo) Describe() any {
 			"fetchPositionsHistory":                false,
 			"fetchPremiumIndexOHLCV":               false,
 			"fetchStatus":                          true,
-			"fetchTicker":                          false,
-			"fetchTickers":                         false,
+			"fetchTicker":                          true,
+			"fetchTickers":                         true,
 			"fetchTime":                            true,
 			"fetchTrades":                          true,
 			"fetchTradingFee":                      true,
@@ -2796,6 +2796,206 @@ func (this *Woo) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...any
 	ch <- this.ParseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "quantity")
 	return nil
 }
+func (this *Woo) ParseTicker(ticker any, optionalArgs ...any) any {
+	//
+	//     {
+	//         "symbol": "PERP_BTC_USDT",
+	//         "indexPrice": "63049",
+	//         "markPrice": "63028",
+	//         "estFundingRate": "0.00008868",
+	//         "lastFundingRate": "0.00008545",
+	//         "openInterest": "221.3498",
+	//         "24hOpen": "63880",
+	//         "24hClose": "63020",
+	//         "24hHigh": "64000",
+	//         "24hLow": "62800",
+	//         "24hVolume": "12000",
+	//         "24hAmount": "756000000",
+	//         "nextFundingTime": 1786694400000
+	//     }
+	//
+	market := GetArg(optionalArgs, 0, nil)
+	_ = market
+	var marketId any = this.SafeString(ticker, "symbol")
+	market = this.SafeMarket(marketId, market)
+	var timestamp any = this.SafeInteger(ticker, "timestamp")
+	return this.SafeTicker(map[string]any{
+		"symbol":        GetValue(market, "symbol"),
+		"timestamp":     timestamp,
+		"datetime":      this.Iso8601(timestamp),
+		"high":          this.SafeString(ticker, "24hHigh"),
+		"low":           this.SafeString(ticker, "24hLow"),
+		"bid":           nil,
+		"bidVolume":     nil,
+		"ask":           nil,
+		"askVolume":     nil,
+		"vwap":          nil,
+		"open":          this.SafeString(ticker, "24hOpen"),
+		"close":         this.SafeString(ticker, "24hClose"),
+		"last":          this.SafeString(ticker, "24hClose"),
+		"previousClose": nil,
+		"change":        nil,
+		"percentage":    nil,
+		"average":       nil,
+		"baseVolume":    this.SafeString(ticker, "24hVolume"),
+		"quoteVolume":   this.SafeString(ticker, "24hAmount"),
+		"indexPrice":    this.SafeString(ticker, "indexPrice"),
+		"markPrice":     this.SafeString(ticker, "markPrice"),
+		"info":          ticker,
+	}, market)
+}
+
+/**
+ * @method
+ * @name woo#fetchTicker
+ * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market, swap markets only
+ * @see https://developer.woox.io/api-reference/endpoint/public_data/futures
+ * @param {string} symbol unified symbol of the market to fetch the ticker for
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+ */
+func (this *Woo) FetchTickerAsync(symbol any, optionalArgs ...any) <-chan any {
+	ch := make(chan any, 1)
+	go this.fetchTickerBody(ch, symbol, optionalArgs...)
+	return ch
+}
+func (this *Woo) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes239612 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes239612)
+	}
+	var market any = this.Market(symbol)
+	if IsTrue(!IsEqual(GetValue(market, "swap"), true)) {
+		panic(NotSupported(Add(this.Id, " fetchTicker() supports swap markets only, there is no spot ticker endpoint")))
+	}
+	var request map[string]any = map[string]any{
+		"symbol": GetValue(market, "id"),
+	}
+
+	response := (<-this.V3PublicGetFutures(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	//     {
+	//         "success": true,
+	//         "data": {
+	//             "rows": [
+	//                 {
+	//                     "symbol": "PERP_BTC_USDT",
+	//                     "indexPrice": "63049",
+	//                     "markPrice": "63028",
+	//                     "estFundingRate": "0.00008868",
+	//                     "lastFundingRate": "0.00008545",
+	//                     "openInterest": "221.3498",
+	//                     "24hOpen": "63880",
+	//                     "24hClose": "63020",
+	//                     "24hHigh": "64000",
+	//                     "24hLow": "62800",
+	//                     "24hVolume": "12000",
+	//                     "24hAmount": "756000000",
+	//                     "nextFundingTime": 1786694400000
+	//                 }
+	//             ]
+	//         },
+	//         "timestamp": 1786690534921
+	//     }
+	//
+	var data any = this.SafeDict(response, "data", map[string]any{})
+	var rows any = this.SafeList(data, "rows", []any{})
+	var first any = this.SafeDict(rows, 0)
+	if IsTrue(IsEqual(first, nil)) {
+		panic(BadSymbol(Add(Add(this.Id, " fetchTicker() could not find ticker data for "), symbol)))
+	}
+	var ticker map[string]any = this.Extend(map[string]any{
+		"timestamp": this.SafeInteger(response, "timestamp"),
+	}, first)
+
+	ch <- this.ParseTicker(ticker, market)
+	return nil
+}
+
+/**
+ * @method
+ * @name woo#fetchTickers
+ * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market, only swap markets are supported
+ * @see https://developer.woox.io/api-reference/endpoint/public_data/futures
+ * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, swap markets only, all swap tickers are returned when not assigned
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.type] market type, must be 'swap' when no symbols are provided
+ * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+ */
+func (this *Woo) FetchTickersAsync(optionalArgs ...any) <-chan any {
+	ch := make(chan any, 1)
+	go this.fetchTickersBody(ch, optionalArgs...)
+	return ch
+}
+func (this *Woo) fetchTickersBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbols := GetArg(optionalArgs, 0, nil)
+	_ = symbols
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes245312 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes245312)
+	}
+	if IsTrue(!IsEqual(symbols, nil)) {
+		var symbolsLength int = GetArrayLength(symbols)
+		if IsTrue(IsGreaterThan(symbolsLength, 0)) {
+			// the type gate throws NotSupported rather than letting marketSymbols raise
+			// BadRequest, so callers (and the live test harness) can tell "wrong market
+			// type" apart from a malformed request, marketSymbols still enforces that the
+			// rest of the list matches
+			var firstMarket any = this.Market(GetValue(symbols, 0))
+			if IsTrue(!IsEqual(GetValue(firstMarket, "swap"), true)) {
+				panic(NotSupported(Add(this.Id, " fetchTickers() supports swap markets only")))
+			}
+		}
+	}
+	symbols = this.MarketSymbols(symbols, "swap", true, true)
+	if IsTrue(IsEqual(symbols, nil)) {
+		var marketType any = nil
+		marketTypeparamsVariable := this.HandleMarketTypeAndParams("fetchTickers", nil, params, "swap")
+		marketType = GetValue(marketTypeparamsVariable, 0)
+		params = GetValue(marketTypeparamsVariable, 1)
+		if IsTrue(!IsEqual(marketType, "swap")) {
+			panic(NotSupported(Add(this.Id, " fetchTickers() supports swap markets only")))
+		}
+	}
+
+	response := (<-this.V3PublicGetFutures(params))
+	PanicOnError(response)
+	//
+	// same as fetchTicker, with multiple rows
+	//
+	var data any = this.SafeDict(response, "data", map[string]any{})
+	var rows any = this.SafeList(data, "rows", []any{})
+	var timestamp any = this.SafeInteger(response, "timestamp")
+	var result any = []any{}
+	for i := 0; IsLessThan(i, GetArrayLength(rows)); i++ {
+		var row any = GetValue(rows, i)
+		var marketId any = this.SafeString(row, "symbol")
+		if IsTrue(IsEqual(marketId, nil)) {
+			continue
+		}
+		if IsTrue(IsTrue((IsEqual(this.Markets_by_id, nil))) || !IsTrue((InOp(this.Markets_by_id, marketId)))) {
+			continue
+		}
+		var ticker map[string]any = this.Extend(map[string]any{
+			"timestamp": timestamp,
+		}, row)
+		AppendToArray(&result, this.ParseTicker(ticker))
+	}
+
+	ch <- this.FilterByArrayTickers(result, "symbol", symbols)
+	return nil
+}
 
 /**
  * @method
@@ -2828,8 +3028,8 @@ func (this *Woo) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) an
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes235312 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes235312)
+		retRes251412 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes251412)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -2914,8 +3114,8 @@ func (this *Woo) fetchOrderTradesBody(ch chan any, id any, optionalArgs ...any) 
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes242412 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes242412)
+		retRes258512 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes258512)
 	}
 	var market any = nil
 	if IsTrue(!IsEqual(symbol, nil)) {
@@ -2981,8 +3181,8 @@ func (this *Woo) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes247012 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes247012)
+		retRes263112 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes263112)
 	}
 	var paginate any = false
 	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchMyTrades", "paginate")
@@ -2990,9 +3190,9 @@ func (this *Woo) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	params = GetValue(paginateparamsVariable, 1)
 	if IsTrue(paginate) {
 
-		retRes247519 := (<-this.FetchPaginatedCallIncrementalAsync("fetchMyTrades", symbol, since, limit, params, "page", 500))
-		PanicOnError(retRes247519)
-		ch <- retRes247519
+		retRes263619 := (<-this.FetchPaginatedCallIncrementalAsync("fetchMyTrades", symbol, since, limit, params, "page", 500))
+		PanicOnError(retRes263619)
+		ch <- retRes263619
 		return nil
 	}
 	var request map[string]any = map[string]any{}
@@ -3189,8 +3389,8 @@ func (this *Woo) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes264512 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes264512)
+		retRes280612 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes280612)
 	}
 
 	response := (<-this.V3PrivateGetAssetBalances(params))
@@ -3263,8 +3463,8 @@ func (this *Woo) fetchDepositAddressBody(ch chan any, code any, optionalArgs ...
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes270512 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes270512)
+		retRes286612 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes286612)
 	}
 	var currency any = this.Currency(code)
 	var networkCode any = nil
@@ -3341,8 +3541,8 @@ func (this *Woo) getAssetHistoryRowsBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes275712 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes275712)
+		retRes291812 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes291812)
 	}
 	var request map[string]any = map[string]any{}
 	var currency any = nil
@@ -3553,9 +3753,9 @@ func (this *Woo) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 		"tokenSide": "DEPOSIT",
 	}
 
-	retRes292815 := (<-this.FetchDepositsWithdrawalsAsync(code, since, limit, this.Extend(request, params)))
-	PanicOnError(retRes292815)
-	ch <- retRes292815
+	retRes308915 := (<-this.FetchDepositsWithdrawalsAsync(code, since, limit, this.Extend(request, params)))
+	PanicOnError(retRes308915)
+	ch <- retRes308915
 	return nil
 }
 
@@ -3590,9 +3790,9 @@ func (this *Woo) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 		"tokenSide": "WITHDRAW",
 	}
 
-	retRes294615 := (<-this.FetchDepositsWithdrawalsAsync(code, since, limit, this.Extend(request, params)))
-	PanicOnError(retRes294615)
-	ch <- retRes294615
+	retRes310715 := (<-this.FetchDepositsWithdrawalsAsync(code, since, limit, this.Extend(request, params)))
+	PanicOnError(retRes310715)
+	ch <- retRes310715
 	return nil
 }
 
@@ -3729,8 +3929,8 @@ func (this *Woo) transferBody(ch chan any, code any, amount any, fromAccount any
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes305312 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes305312)
+		retRes321412 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes321412)
 	}
 	var currency any = this.Currency(code)
 	var request map[string]any = map[string]any{
@@ -3944,8 +4144,8 @@ func (this *Woo) withdrawBody(ch chan any, code any, amount any, address any, op
 	params = GetValue(tagparamsVariable, 1)
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes322912 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes322912)
+		retRes339012 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes339012)
 	}
 	this.CheckAddress(address)
 	var currency any = this.Currency(code)
@@ -4014,8 +4214,8 @@ func (this *Woo) repayMarginBody(ch chan any, code any, amount any, optionalArgs
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes328212 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes328212)
+		retRes344312 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes344312)
 	}
 	var market any = nil
 	if IsTrue(!IsEqual(symbol, nil)) {
@@ -4234,8 +4434,8 @@ func (this *Woo) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes346712 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes346712)
+		retRes362812 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes362812)
 	}
 	var paginate any = false
 	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchFundingHistory", "paginate")
@@ -4243,9 +4443,9 @@ func (this *Woo) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any {
 	params = GetValue(paginateparamsVariable, 1)
 	if IsTrue(paginate) {
 
-		retRes347219 := (<-this.FetchPaginatedCallIncrementalAsync("fetchFundingHistory", symbol, since, limit, params, "page", 500))
-		PanicOnError(retRes347219)
-		ch <- retRes347219
+		retRes363319 := (<-this.FetchPaginatedCallIncrementalAsync("fetchFundingHistory", symbol, since, limit, params, "page", 500))
+		PanicOnError(retRes363319)
+		ch <- retRes363319
 		return nil
 	}
 	var request map[string]any = map[string]any{}
@@ -4376,9 +4576,9 @@ func (this *Woo) fetchFundingIntervalBody(ch chan any, symbol any, optionalArgs 
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	retRes358715 := (<-this.FetchFundingRateAsync(symbol, params))
-	PanicOnError(retRes358715)
-	ch <- retRes358715
+	retRes374815 := (<-this.FetchFundingRateAsync(symbol, params))
+	PanicOnError(retRes374815)
+	ch <- retRes374815
 	return nil
 }
 
@@ -4403,8 +4603,8 @@ func (this *Woo) fetchFundingRateBody(ch chan any, symbol any, optionalArgs ...a
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes360112 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes360112)
+		retRes376212 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes376212)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -4464,8 +4664,8 @@ func (this *Woo) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes364512 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes364512)
+		retRes380612 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes380612)
 	}
 	symbols = this.MarketSymbols(symbols)
 
@@ -4529,8 +4729,8 @@ func (this *Woo) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) a
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes368912 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes368912)
+		retRes385012 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes385012)
 	}
 	var paginate any = false
 	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchFundingRateHistory", "paginate")
@@ -4538,9 +4738,9 @@ func (this *Woo) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) a
 	params = GetValue(paginateparamsVariable, 1)
 	if IsTrue(paginate) {
 
-		retRes369419 := (<-this.FetchPaginatedCallIncrementalAsync("fetchFundingRateHistory", symbol, since, limit, params, "page", 25))
-		PanicOnError(retRes369419)
-		ch <- retRes369419
+		retRes385519 := (<-this.FetchPaginatedCallIncrementalAsync("fetchFundingRateHistory", symbol, since, limit, params, "page", 25))
+		PanicOnError(retRes385519)
+		ch <- retRes385519
 		return nil
 	}
 	if IsTrue(IsEqual(symbol, nil)) {
@@ -4672,8 +4872,8 @@ func (this *Woo) fetchLeverageBody(ch chan any, symbol any, optionalArgs ...any)
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes379412 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes379412)
+		retRes395512 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes395512)
 	}
 	var market any = this.Market(symbol)
 	var response any = nil
@@ -4763,8 +4963,8 @@ func (this *Woo) setLeverageBody(ch chan any, leverage any, optionalArgs ...any)
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes393212 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes393212)
+		retRes409312 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes409312)
 	}
 	var request map[string]any = map[string]any{
 		"leverage": leverage,
@@ -4775,9 +4975,9 @@ func (this *Woo) setLeverageBody(ch chan any, leverage any, optionalArgs ...any)
 	}
 	if IsTrue(IsTrue((IsEqual(symbol, nil))) || IsTrue((IsEqual(this.SafeBool(market, "spot"), true)))) {
 
-		retRes394219 := (<-this.V3PrivatePostSpotMarginLeverage(this.Extend(request, params)))
-		PanicOnError(retRes394219)
-		ch <- retRes394219
+		retRes410319 := (<-this.V3PrivatePostSpotMarginLeverage(this.Extend(request, params)))
+		PanicOnError(retRes410319)
+		ch <- retRes410319
 		return nil
 	} else if IsTrue(IsEqual(this.SafeBool(market, "swap"), true)) {
 		AddElementToObject(request, "symbol", this.SafeString(market, "id"))
@@ -4787,9 +4987,9 @@ func (this *Woo) setLeverageBody(ch chan any, leverage any, optionalArgs ...any)
 		params = GetValue(marginModeparamsVariable, 1)
 		AddElementToObject(request, "marginMode", this.EncodeMarginMode(marginMode))
 
-		retRes394819 := (<-this.V3PrivatePutFuturesLeverage(this.Extend(request, params)))
-		PanicOnError(retRes394819)
-		ch <- retRes394819
+		retRes410919 := (<-this.V3PrivatePutFuturesLeverage(this.Extend(request, params)))
+		PanicOnError(retRes410919)
+		ch <- retRes410919
 		return nil
 	} else {
 		panic(NotSupported(Add(Add(Add(this.Id, " fetchLeverage() is not supported for "), this.SafeString(market, "type")), " markets")))
@@ -4818,9 +5018,9 @@ func (this *Woo) addMarginBody(ch chan any, symbol any, amount any, optionalArgs
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	retRes396615 := (<-this.ModifyMarginHelperAsync(symbol, amount, "ADD", params))
-	PanicOnError(retRes396615)
-	ch <- retRes396615
+	retRes412715 := (<-this.ModifyMarginHelperAsync(symbol, amount, "ADD", params))
+	PanicOnError(retRes412715)
+	ch <- retRes412715
 	return nil
 }
 
@@ -4846,9 +5046,9 @@ func (this *Woo) reduceMarginBody(ch chan any, symbol any, amount any, optionalA
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	retRes398115 := (<-this.ModifyMarginHelperAsync(symbol, amount, "REDUCE", params))
-	PanicOnError(retRes398115)
-	ch <- retRes398115
+	retRes414215 := (<-this.ModifyMarginHelperAsync(symbol, amount, "REDUCE", params))
+	PanicOnError(retRes414215)
+	ch <- retRes414215
 	return nil
 }
 func (this *Woo) ModifyMarginHelperAsync(symbol any, amount any, typeVar any, optionalArgs ...any) <-chan any {
@@ -4863,8 +5063,8 @@ func (this *Woo) modifyMarginHelperBody(ch chan any, symbol any, amount any, typ
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes398612 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes398612)
+		retRes414712 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes414712)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -4874,9 +5074,9 @@ func (this *Woo) modifyMarginHelperBody(ch chan any, symbol any, amount any, typ
 		"action":        typeVar,
 	}
 
-	retRes399515 := (<-this.V1PrivatePostClientIsolatedMargin(this.Extend(request, params)))
-	PanicOnError(retRes399515)
-	ch <- retRes399515
+	retRes415615 := (<-this.V1PrivatePostClientIsolatedMargin(this.Extend(request, params)))
+	PanicOnError(retRes415615)
+	ch <- retRes415615
 	return nil
 }
 
@@ -4901,8 +5101,8 @@ func (this *Woo) fetchPositionBody(ch chan any, symbol any, optionalArgs ...any)
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes400912 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes400912)
+		retRes417012 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes417012)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -4973,8 +5173,8 @@ func (this *Woo) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes406412 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes406412)
+		retRes422512 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes422512)
 	}
 	symbols = this.MarketSymbols(symbols)
 	var request map[string]any = map[string]any{}
@@ -5158,8 +5358,8 @@ func (this *Woo) fetchConvertQuoteBody(ch chan any, fromCode any, toCode any, op
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes423112 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes423112)
+		retRes439212 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes439212)
 	}
 	var request map[string]any = map[string]any{
 		"sellToken":    ToUpper(fromCode),
@@ -5221,8 +5421,8 @@ func (this *Woo) createConvertTradeBody(ch chan any, id any, fromCode any, toCod
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes427712 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes427712)
+		retRes443812 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes443812)
 	}
 	var request map[string]any = map[string]any{
 		"quoteId": id,
@@ -5270,8 +5470,8 @@ func (this *Woo) fetchConvertTradeBody(ch chan any, id any, optionalArgs ...any)
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes430912 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes430912)
+		retRes447012 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes447012)
 	}
 	var request map[string]any = map[string]any{
 		"quoteId": id,
@@ -5339,8 +5539,8 @@ func (this *Woo) fetchConvertTradeHistoryBody(ch chan any, optionalArgs ...any) 
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes435712 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes435712)
+		retRes451812 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes451812)
 	}
 	var request any = map[string]any{}
 	requestparamsVariable := this.HandleUntilOption("endTime", request, params)
@@ -5460,8 +5660,8 @@ func (this *Woo) fetchConvertCurrenciesBody(ch chan any, optionalArgs ...any) an
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes445812 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes445812)
+		retRes461912 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes461912)
 	}
 
 	response := (<-this.V3PrivateGetConvertAssetInfo(params))
@@ -5544,8 +5744,8 @@ func (this *Woo) fetchPositionsADLRankBody(ch chan any, optionalArgs ...any) any
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes452512 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes452512)
+		retRes468612 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes468612)
 	}
 	symbols = this.MarketSymbols(symbols, nil, true, true, true)
 	var request map[string]any = map[string]any{}
@@ -5734,13 +5934,7 @@ func (this *Woo) FetchTrades(symbol string, options ...FetchTradesOptions) ([]Tr
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var since *int64 = opts.Since
-
-	var limit *int64 = opts.Limit
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchTradesAsync(symbol, since, limit, params)
+	res := <-this.FetchTradesAsync(symbol, opts.Since, opts.Limit, opts.Params)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
@@ -5765,9 +5959,7 @@ func (this *Woo) FetchTradingFee(symbol string, options ...FetchTradingFeeOption
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchTradingFeeAsync(symbol, params)
+	res := <-this.FetchTradingFeeAsync(symbol, opts.Params)
 	if IsError(res) {
 		return TradingFeeInterface{}, CreateReturnError(res)
 	}
@@ -5823,9 +6015,7 @@ func (this *Woo) CreateMarketBuyOrderWithCost(symbol string, cost float64, optio
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var params *map[string]any = opts.Params
-	res := <-this.CreateMarketBuyOrderWithCostAsync(symbol, cost, params)
+	res := <-this.CreateMarketBuyOrderWithCostAsync(symbol, cost, opts.Params)
 	if IsError(res) {
 		return Order{}, CreateReturnError(res)
 	}
@@ -5849,9 +6039,7 @@ func (this *Woo) CreateMarketSellOrderWithCost(symbol string, cost float64, opti
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var params *map[string]any = opts.Params
-	res := <-this.CreateMarketSellOrderWithCostAsync(symbol, cost, params)
+	res := <-this.CreateMarketSellOrderWithCostAsync(symbol, cost, opts.Params)
 	if IsError(res) {
 		return Order{}, CreateReturnError(res)
 	}
@@ -5880,15 +6068,7 @@ func (this *Woo) CreateTrailingAmountOrder(symbol string, typeVar string, side s
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var price *float64 = opts.Price
-
-	var trailingAmount *float64 = opts.TrailingAmount
-
-	var trailingTriggerPrice *float64 = opts.TrailingTriggerPrice
-
-	var params *map[string]any = opts.Params
-	res := <-this.CreateTrailingAmountOrderAsync(symbol, typeVar, side, amount, price, trailingAmount, trailingTriggerPrice, params)
+	res := <-this.CreateTrailingAmountOrderAsync(symbol, typeVar, side, amount, opts.Price, opts.TrailingAmount, opts.TrailingTriggerPrice, opts.Params)
 	if IsError(res) {
 		return Order{}, CreateReturnError(res)
 	}
@@ -5917,15 +6097,7 @@ func (this *Woo) CreateTrailingPercentOrder(symbol string, typeVar string, side 
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var price *float64 = opts.Price
-
-	var trailingPercent *float64 = opts.TrailingPercent
-
-	var trailingTriggerPrice *float64 = opts.TrailingTriggerPrice
-
-	var params *map[string]any = opts.Params
-	res := <-this.CreateTrailingPercentOrderAsync(symbol, typeVar, side, amount, price, trailingPercent, trailingTriggerPrice, params)
+	res := <-this.CreateTrailingPercentOrderAsync(symbol, typeVar, side, amount, opts.Price, opts.TrailingPercent, opts.TrailingTriggerPrice, opts.Params)
 	if IsError(res) {
 		return Order{}, CreateReturnError(res)
 	}
@@ -5965,11 +6137,7 @@ func (this *Woo) CreateOrder(symbol string, typeVar string, side string, amount 
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var price *float64 = opts.Price
-
-	var params *map[string]any = opts.Params
-	res := <-this.CreateOrderAsync(symbol, typeVar, side, amount, price, params)
+	res := <-this.CreateOrderAsync(symbol, typeVar, side, amount, opts.Price, opts.Params)
 	if IsError(res) {
 		return Order{}, CreateReturnError(res)
 	}
@@ -6006,13 +6174,7 @@ func (this *Woo) EditOrder(id string, symbol string, typeVar string, side string
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var amount *float64 = opts.Amount
-
-	var price *float64 = opts.Price
-
-	var params *map[string]any = opts.Params
-	res := <-this.EditOrderAsync(id, symbol, typeVar, side, amount, price, params)
+	res := <-this.EditOrderAsync(id, symbol, typeVar, side, opts.Amount, opts.Price, opts.Params)
 	if IsError(res) {
 		return Order{}, CreateReturnError(res)
 	}
@@ -6038,11 +6200,7 @@ func (this *Woo) CancelOrder(id string, options ...CancelOrderOptions) (Order, e
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var symbol *string = opts.Symbol
-
-	var params *map[string]any = opts.Params
-	res := <-this.CancelOrderAsync(id, symbol, params)
+	res := <-this.CancelOrderAsync(id, opts.Symbol, opts.Params)
 	if IsError(res) {
 		return Order{}, CreateReturnError(res)
 	}
@@ -6067,11 +6225,7 @@ func (this *Woo) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order, er
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var symbol *string = opts.Symbol
-
-	var params *map[string]any = opts.Params
-	res := <-this.CancelAllOrdersAsync(symbol, params)
+	res := <-this.CancelAllOrdersAsync(opts.Symbol, opts.Params)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
@@ -6094,9 +6248,7 @@ func (this *Woo) CancelAllOrdersAfter(timeout int64, options ...CancelAllOrdersA
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var params *map[string]any = opts.Params
-	res := <-this.CancelAllOrdersAfterAsync(timeout, params)
+	res := <-this.CancelAllOrdersAfterAsync(timeout, opts.Params)
 	if IsError(res) {
 		return map[string]any{}, CreateReturnError(res)
 	}
@@ -6122,11 +6274,7 @@ func (this *Woo) FetchOrder(id string, options ...FetchOrderOptions) (Order, err
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var symbol *string = opts.Symbol
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchOrderAsync(id, symbol, params)
+	res := <-this.FetchOrderAsync(id, opts.Symbol, opts.Params)
 	if IsError(res) {
 		return Order{}, CreateReturnError(res)
 	}
@@ -6156,15 +6304,7 @@ func (this *Woo) FetchOrders(options ...FetchOrdersOptions) ([]Order, error) {
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var symbol *string = opts.Symbol
-
-	var since *int64 = opts.Since
-
-	var limit *int64 = opts.Limit
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchOrdersAsync(symbol, since, limit, params)
+	res := <-this.FetchOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
@@ -6195,15 +6335,7 @@ func (this *Woo) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Order, er
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var symbol *string = opts.Symbol
-
-	var since *int64 = opts.Since
-
-	var limit *int64 = opts.Limit
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchOpenOrdersAsync(symbol, since, limit, params)
+	res := <-this.FetchOpenOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
@@ -6234,15 +6366,7 @@ func (this *Woo) FetchClosedOrders(options ...FetchClosedOrdersOptions) ([]Order
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var symbol *string = opts.Symbol
-
-	var since *int64 = opts.Since
-
-	var limit *int64 = opts.Limit
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchClosedOrdersAsync(symbol, since, limit, params)
+	res := <-this.FetchClosedOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
@@ -6266,15 +6390,58 @@ func (this *Woo) FetchOrderBook(symbol string, options ...FetchOrderBookOptions)
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var limit *int64 = opts.Limit
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchOrderBookAsync(symbol, limit, params)
+	res := <-this.FetchOrderBookAsync(symbol, opts.Limit, opts.Params)
 	if IsError(res) {
 		return OrderBook{}, CreateReturnError(res)
 	}
 	return NewOrderBook(res), nil
+}
+
+/**
+ * @method
+ * @name woo#fetchTicker
+ * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market, swap markets only
+ * @see https://developer.woox.io/api-reference/endpoint/public_data/futures
+ * @param {string} symbol unified symbol of the market to fetch the ticker for
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+ */
+func (this *Woo) FetchTicker(symbol string, options ...FetchTickerOptions) (Ticker, error) {
+
+	opts := FetchTickerOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+	res := <-this.FetchTickerAsync(symbol, opts.Params)
+	if IsError(res) {
+		return Ticker{}, CreateReturnError(res)
+	}
+	return NewTicker(res), nil
+}
+
+/**
+ * @method
+ * @name woo#fetchTickers
+ * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market, only swap markets are supported
+ * @see https://developer.woox.io/api-reference/endpoint/public_data/futures
+ * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, swap markets only, all swap tickers are returned when not assigned
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.type] market type, must be 'swap' when no symbols are provided
+ * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+ */
+func (this *Woo) FetchTickers(options ...FetchTickersOptions) (Tickers, error) {
+
+	opts := FetchTickersOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+	res := <-this.FetchTickersAsync(opts.Symbols, opts.Params)
+	if IsError(res) {
+		return Tickers{}, CreateReturnError(res)
+	}
+	return NewTickers(res), nil
 }
 
 /**
@@ -6297,15 +6464,7 @@ func (this *Woo) FetchOHLCV(symbol string, options ...FetchOHLCVOptions) ([]OHLC
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var timeframe *string = opts.Timeframe
-
-	var since *int64 = opts.Since
-
-	var limit *int64 = opts.Limit
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchOHLCVAsync(symbol, timeframe, since, limit, params)
+	res := <-this.FetchOHLCVAsync(symbol, opts.Timeframe, opts.Since, opts.Limit, opts.Params)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
@@ -6331,15 +6490,7 @@ func (this *Woo) FetchOrderTrades(id string, options ...FetchOrderTradesOptions)
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var symbol *string = opts.Symbol
-
-	var since *int64 = opts.Since
-
-	var limit *int64 = opts.Limit
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchOrderTradesAsync(id, symbol, since, limit, params)
+	res := <-this.FetchOrderTradesAsync(id, opts.Symbol, opts.Since, opts.Limit, opts.Params)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
@@ -6365,15 +6516,7 @@ func (this *Woo) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, error)
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var symbol *string = opts.Symbol
-
-	var since *int64 = opts.Since
-
-	var limit *int64 = opts.Limit
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchMyTradesAsync(symbol, since, limit, params)
+	res := <-this.FetchMyTradesAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
@@ -6429,9 +6572,7 @@ func (this *Woo) FetchDepositAddress(code string, options ...FetchDepositAddress
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchDepositAddressAsync(code, params)
+	res := <-this.FetchDepositAddressAsync(code, opts.Params)
 	if IsError(res) {
 		return DepositAddress{}, CreateReturnError(res)
 	}
@@ -6456,15 +6597,7 @@ func (this *Woo) FetchLedger(options ...FetchLedgerOptions) ([]LedgerEntry, erro
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var code *string = opts.Code
-
-	var since *int64 = opts.Since
-
-	var limit *int64 = opts.Limit
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchLedgerAsync(code, since, limit, params)
+	res := <-this.FetchLedgerAsync(opts.Code, opts.Since, opts.Limit, opts.Params)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
@@ -6489,15 +6622,7 @@ func (this *Woo) FetchDeposits(options ...FetchDepositsOptions) ([]Transaction, 
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var code *string = opts.Code
-
-	var since *int64 = opts.Since
-
-	var limit *int64 = opts.Limit
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchDepositsAsync(code, since, limit, params)
+	res := <-this.FetchDepositsAsync(opts.Code, opts.Since, opts.Limit, opts.Params)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
@@ -6522,15 +6647,7 @@ func (this *Woo) FetchWithdrawals(options ...FetchWithdrawalsOptions) ([]Transac
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var code *string = opts.Code
-
-	var since *int64 = opts.Since
-
-	var limit *int64 = opts.Limit
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchWithdrawalsAsync(code, since, limit, params)
+	res := <-this.FetchWithdrawalsAsync(opts.Code, opts.Since, opts.Limit, opts.Params)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
@@ -6555,15 +6672,7 @@ func (this *Woo) FetchDepositsWithdrawals(options ...FetchDepositsWithdrawalsOpt
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var code *string = opts.Code
-
-	var since *int64 = opts.Since
-
-	var limit *int64 = opts.Limit
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchDepositsWithdrawalsAsync(code, since, limit, params)
+	res := <-this.FetchDepositsWithdrawalsAsync(opts.Code, opts.Since, opts.Limit, opts.Params)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
@@ -6589,9 +6698,7 @@ func (this *Woo) Transfer(code string, amount float64, fromAccount string, toAcc
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var params *map[string]any = opts.Params
-	res := <-this.TransferAsync(code, amount, fromAccount, toAccount, params)
+	res := <-this.TransferAsync(code, amount, fromAccount, toAccount, opts.Params)
 	if IsError(res) {
 		return TransferEntry{}, CreateReturnError(res)
 	}
@@ -6617,15 +6724,7 @@ func (this *Woo) FetchTransfers(options ...FetchTransfersOptions) ([]TransferEnt
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var code *string = opts.Code
-
-	var since *int64 = opts.Since
-
-	var limit *int64 = opts.Limit
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchTransfersAsync(code, since, limit, params)
+	res := <-this.FetchTransfersAsync(opts.Code, opts.Since, opts.Limit, opts.Params)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
@@ -6651,11 +6750,7 @@ func (this *Woo) Withdraw(code string, amount float64, address string, options .
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var tag *string = opts.Tag
-
-	var params *map[string]any = opts.Params
-	res := <-this.WithdrawAsync(code, amount, address, tag, params)
+	res := <-this.WithdrawAsync(code, amount, address, opts.Tag, opts.Params)
 	if IsError(res) {
 		return Transaction{}, CreateReturnError(res)
 	}
@@ -6681,15 +6776,7 @@ func (this *Woo) FetchFundingHistory(options ...FetchFundingHistoryOptions) ([]F
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var symbol *string = opts.Symbol
-
-	var since *int64 = opts.Since
-
-	var limit *int64 = opts.Limit
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchFundingHistoryAsync(symbol, since, limit, params)
+	res := <-this.FetchFundingHistoryAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
@@ -6712,9 +6799,7 @@ func (this *Woo) FetchFundingInterval(symbol string, options ...FetchFundingInte
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchFundingIntervalAsync(symbol, params)
+	res := <-this.FetchFundingIntervalAsync(symbol, opts.Params)
 	if IsError(res) {
 		return FundingRate{}, CreateReturnError(res)
 	}
@@ -6737,9 +6822,7 @@ func (this *Woo) FetchFundingRate(symbol string, options ...FetchFundingRateOpti
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchFundingRateAsync(symbol, params)
+	res := <-this.FetchFundingRateAsync(symbol, opts.Params)
 	if IsError(res) {
 		return FundingRate{}, CreateReturnError(res)
 	}
@@ -6762,11 +6845,7 @@ func (this *Woo) FetchFundingRates(options ...FetchFundingRatesOptions) (Funding
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var symbols *[]string = opts.Symbols
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchFundingRatesAsync(symbols, params)
+	res := <-this.FetchFundingRatesAsync(opts.Symbols, opts.Params)
 	if IsError(res) {
 		return FundingRates{}, CreateReturnError(res)
 	}
@@ -6793,15 +6872,7 @@ func (this *Woo) FetchFundingRateHistory(options ...FetchFundingRateHistoryOptio
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var symbol *string = opts.Symbol
-
-	var since *int64 = opts.Since
-
-	var limit *int64 = opts.Limit
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchFundingRateHistoryAsync(symbol, since, limit, params)
+	res := <-this.FetchFundingRateHistoryAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
@@ -6825,11 +6896,7 @@ func (this *Woo) SetPositionMode(hedged bool, options ...SetPositionModeOptions)
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var symbol *string = opts.Symbol
-
-	var params *map[string]any = opts.Params
-	res := <-this.SetPositionModeAsync(hedged, symbol, params)
+	res := <-this.SetPositionModeAsync(hedged, opts.Symbol, opts.Params)
 	if IsError(res) {
 		return map[string]any{}, CreateReturnError(res)
 	}
@@ -6855,9 +6922,7 @@ func (this *Woo) FetchLeverage(symbol string, options ...FetchLeverageOptions) (
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchLeverageAsync(symbol, params)
+	res := <-this.FetchLeverageAsync(symbol, opts.Params)
 	if IsError(res) {
 		return Leverage{}, CreateReturnError(res)
 	}
@@ -6884,11 +6949,7 @@ func (this *Woo) SetLeverage(leverage int64, options ...SetLeverageOptions) (map
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var symbol *string = opts.Symbol
-
-	var params *map[string]any = opts.Params
-	res := <-this.SetLeverageAsync(leverage, symbol, params)
+	res := <-this.SetLeverageAsync(leverage, opts.Symbol, opts.Params)
 	if IsError(res) {
 		return map[string]any{}, CreateReturnError(res)
 	}
@@ -6911,9 +6972,7 @@ func (this *Woo) FetchPosition(symbol string, options ...FetchPositionOptions) (
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchPositionAsync(symbol, params)
+	res := <-this.FetchPositionAsync(symbol, opts.Params)
 	if IsError(res) {
 		return Position{}, CreateReturnError(res)
 	}
@@ -6936,11 +6995,7 @@ func (this *Woo) FetchPositions(options ...FetchPositionsOptions) ([]Position, e
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var symbols *[]string = opts.Symbols
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchPositionsAsync(symbols, params)
+	res := <-this.FetchPositionsAsync(opts.Symbols, opts.Params)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
@@ -6965,11 +7020,7 @@ func (this *Woo) FetchConvertQuote(fromCode string, toCode string, options ...Fe
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var amount *float64 = opts.Amount
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchConvertQuoteAsync(fromCode, toCode, amount, params)
+	res := <-this.FetchConvertQuoteAsync(fromCode, toCode, opts.Amount, opts.Params)
 	if IsError(res) {
 		return Conversion{}, CreateReturnError(res)
 	}
@@ -6995,11 +7046,7 @@ func (this *Woo) CreateConvertTrade(id string, fromCode string, toCode string, o
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var amount *float64 = opts.Amount
-
-	var params *map[string]any = opts.Params
-	res := <-this.CreateConvertTradeAsync(id, fromCode, toCode, amount, params)
+	res := <-this.CreateConvertTradeAsync(id, fromCode, toCode, opts.Amount, opts.Params)
 	if IsError(res) {
 		return Conversion{}, CreateReturnError(res)
 	}
@@ -7023,11 +7070,7 @@ func (this *Woo) FetchConvertTrade(id string, options ...FetchConvertTradeOption
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var code *string = opts.Code
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchConvertTradeAsync(id, code, params)
+	res := <-this.FetchConvertTradeAsync(id, opts.Code, opts.Params)
 	if IsError(res) {
 		return Conversion{}, CreateReturnError(res)
 	}
@@ -7053,15 +7096,7 @@ func (this *Woo) FetchConvertTradeHistory(options ...FetchConvertTradeHistoryOpt
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var code *string = opts.Code
-
-	var since *int64 = opts.Since
-
-	var limit *int64 = opts.Limit
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchConvertTradeHistoryAsync(code, since, limit, params)
+	res := <-this.FetchConvertTradeHistoryAsync(opts.Code, opts.Since, opts.Limit, opts.Params)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
@@ -7100,11 +7135,7 @@ func (this *Woo) FetchPositionsADLRank(options ...FetchPositionsADLRankOptions) 
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var symbols *[]string = opts.Symbols
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchPositionsADLRankAsync(symbols, params)
+	res := <-this.FetchPositionsADLRankAsync(opts.Symbols, opts.Params)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
@@ -7337,12 +7368,6 @@ func (this *Woo) FetchPositionsRisk(options ...FetchPositionsRiskOptions) ([]Pos
 }
 func (this *Woo) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiumIndexOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)
-}
-func (this *Woo) FetchTicker(symbol string, options ...FetchTickerOptions) (Ticker, error) {
-	return this.exchangeTyped.FetchTicker(symbol, options...)
-}
-func (this *Woo) FetchTickers(options ...FetchTickersOptions) (Tickers, error) {
-	return this.exchangeTyped.FetchTickers(options...)
 }
 func (this *Woo) FetchTradingLimits(options ...FetchTradingLimitsOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchTradingLimits(options...)

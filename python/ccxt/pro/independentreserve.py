@@ -190,7 +190,7 @@ class independentreserve(ccxt.async_support.independentreserve):
         subscription = self.safe_value(client.subscriptions, messageHash, {})
         receivedSnapshot = self.safe_bool(subscription, 'receivedSnapshot', False)
         timestamp = self.safe_integer(message, 'Time')
-        # orderbook = self.safe_value(self.orderbooks, symbol)
+        # let orderbook = this.safeValue (this.orderbooks, symbol);
         if not (symbol in self.orderbooks):
             self.orderbooks[symbol] = self.order_book({})
         orderbook = self.orderbooks[symbol]
@@ -264,7 +264,7 @@ class independentreserve(ccxt.async_support.independentreserve):
     def handle_subscriptions(self, client: Client, message: object):
         #
         #    {
-        #        "Data": ["ticker-btc-sgd"],
+        #        "Data": [ "ticker-btc-sgd" ],
         #        "Time": 1676157556223,
         #        "Event": "Subscriptions"
         #    }

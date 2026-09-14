@@ -244,8 +244,8 @@ class mudrex(Exchange, ImplicitAPI):
 
     def parse_ohlcv(self, ohlcv: object, market: Market = None) -> list:
         #
-        #     [1782984660, 60681, 60797.6, 60671.8, 60693.3, 275.741]
-        #     [timestampInSeconds, open, high, low, close, volume]
+        #     [ 1782984660, 60681, 60797.6, 60671.8, 60693.3, 275.741 ]
+        #     [ timestampInSeconds, open, high, low, close, volume ]
         #
         return [
             self.safe_timestamp(ohlcv, 0),
@@ -276,13 +276,13 @@ class mudrex(Exchange, ImplicitAPI):
         market = self.market(symbol)
         priceType = self.safe_string(params, 'price')
         params = self.omit(params, 'price')
-        # the endpoint expects the pair in "BASE/QUOTE" format(comma-separated for multiple)
+        # the endpoint expects the pair in "BASE/QUOTE" format (comma-separated for multiple)
         assetPair = market['baseId'] + '/' + market['quoteId']
         request = {
             'assets': assetPair,
             'aggregation': self.safe_string(self.timeframes, timeframe, timeframe),
         }
-        # the endpoint requires an explicit time window(in seconds)
+        # the endpoint requires an explicit time window (in seconds)
         duration = self.parse_timeframe(timeframe)
         requestLimit = limit
         if requestLimit is None:
@@ -311,10 +311,10 @@ class mudrex(Exchange, ImplicitAPI):
             response = await self.marketGetPriceKline(self.extend(request, params))
         #
         #     {
-        #         "success": True,
+        #         "success": true,
         #         "data": {
         #             "asset_ticks": {
-        #                 "btc/usdt": [[1782984660, 60681, 60797.6, 60671.8, 60693.3, 275.741]]
+        #                 "btc/usdt": [ [ 1782984660, 60681, 60797.6, 60671.8, 60693.3, 275.741 ] ]
         #             }
         #         }
         #     }
@@ -455,7 +455,7 @@ class mudrex(Exchange, ImplicitAPI):
             if numItems < pageLimit:
                 paging = False
             else:
-                # self.sum keeps the offset numeric across the php transpile, see https://github.com/ccxt/ccxt/pull/29684
+                # this.sum keeps the offset numeric across the php transpile, see https://github.com/ccxt/ccxt/pull/29684
                 offset = self.sum(offset, pageLimit)
         result = []
         for i in range(0, len(aggregated)):
@@ -659,7 +659,7 @@ class mudrex(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        # standalone stop-loss / take-profit orders(stopLossPrice/takeProfitPrice) are attached to
+        # standalone stop-loss / take-profit orders (stopLossPrice/takeProfitPrice) are attached to
         # an existing position through the riskorder endpoint, so a positionId is required
         stopLossPrice = self.safe_string(params, 'stopLossPrice')
         takeProfitPrice = self.safe_string(params, 'takeProfitPrice')
@@ -990,7 +990,7 @@ class mudrex(Exchange, ImplicitAPI):
         response = await self.privateGetFuturesPositionsHistory(self.extend(request, params))
         #
         #     {
-        #         "success": True,
+        #         "success": true,
         #         "data": [
         #             {
         #                 "id": "019f1ed6-...",
@@ -1017,7 +1017,7 @@ class mudrex(Exchange, ImplicitAPI):
         market = self.safe_market(None, market)
         ms = self.safe_string(position, 'symbol')
         symbol = self.safe_symbol(ms, market)
-        # open positions use "order_type", closed positions(history) use "position_type"
+        # open positions use "order_type", closed positions (history) use "position_type"
         rawSide = self.safe_string_upper_2(position, 'order_type', 'position_type')
         side = None
         if rawSide == 'LONG':
@@ -1202,7 +1202,7 @@ class mudrex(Exchange, ImplicitAPI):
             paging = False
             # the page cap bounds the walk when the requested symbol has few or no rows anywhere near the top of the history
             if (limit is not None) and (dataLength == pageSize) and (transactionsCount < limit) and (calls < maxCalls):
-                # self.sum keeps the offset numeric across the php transpile, see https://github.com/ccxt/ccxt/pull/29684
+                # this.sum keeps the offset numeric across the php transpile, see https://github.com/ccxt/ccxt/pull/29684
                 offset = self.sum(offset, pageSize)
                 paging = True
         # a REBATE row is a partial refund of one fill's TRANSACTION fee, matched by symbol, time and notional - each rebate is consumed once, so equal fills sharing a key net exactly one refund apiece
@@ -1255,7 +1255,7 @@ class mudrex(Exchange, ImplicitAPI):
         market = self.safe_market(ms, market)
         symbol = market['symbol']
         ts = self.parse8601(self.safe_string(trade, 'created_at'))
-        # exit fills carry STOPLOSS / TAKEPROFIT markers without the closing direction, so their unified direction stays None
+        # exit fills carry STOPLOSS / TAKEPROFIT markers without the closing direction, so their unified direction stays undefined
         side = self.safe_string_lower(trade, 'order_type')
         tradeSide = None
         if side == 'long':

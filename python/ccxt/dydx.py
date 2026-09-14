@@ -357,7 +357,7 @@ class dydx(Exchange, ImplicitAPI):
                     # error collision for clob and sending modules from 2 - 8
                     # https://github.com/dydxprotocol/v4-chain/blob/5f9f6c9b95cc87d732e23de764909703b81a6e8b/protocol/x/clob/types/errors.go#L320
                     # https://github.com/dydxprotocol/v4-chain/blob/5f9f6c9b95cc87d732e23de764909703b81a6e8b/protocol/x/sending/types/errors.go
-                    '9': InvalidOrder,  # A cancel already exists in the memclob for self order with a greater than or equal GoodTilBlock
+                    '9': InvalidOrder,  # A cancel already exists in the memclob for this order with a greater than or equal GoodTilBlock
                     '10': InvalidOrder,  # The next block height is greater than the GoodTilBlock of the message
                     '11': InvalidOrder,  # The GoodTilBlock of the message is further than ShortBlockWindow blocks into the future
                     '12': InvalidOrder,  # MsgPlaceOrder is invalid
@@ -378,7 +378,7 @@ class dydx(Exchange, ImplicitAPI):
                     '27': InvalidOrder,  # Invalid ClobPair parameter
                     '28': InvalidOrder,  # Oracle price must be > 0.
                     '29': InvalidOrder,  # Invalid stateful order cancellation
-                    '30': InvalidOrder,  # An order with the same `OrderId` and `OrderHash` has already been processed for self CLOB
+                    '30': InvalidOrder,  # An order with the same `OrderId` and `OrderHash` has already been processed for this CLOB
                     '31': InvalidOrder,  # Missing mid price for ClobPair
                     '32': InvalidOrder,  # Existing stateful order cancellation has higher-or-equal priority than the new one
                     '33': InvalidOrder,  # ClobPair with id already exists
@@ -406,7 +406,7 @@ class dydx(Exchange, ImplicitAPI):
                     '1005': InvalidOrder,  # Liquidation order is on the wrong side
                     '1006': InvalidOrder,  # Total fills amount exceeds size of liquidation order
                     '1007': InvalidOrder,  # Liquidation order does not contain any fills
-                    '1008': InvalidOrder,  # Subaccount has previously liquidated self perpetual in the current block
+                    '1008': InvalidOrder,  # Subaccount has previously liquidated this perpetual in the current block
                     '1009': InvalidOrder,  # Liquidation order has size smaller than min position notional specified in the liquidation config
                     '1010': InvalidOrder,  # Liquidation order has size greater than max position notional specified in the liquidation config
                     '1011': InvalidOrder,  # Liquidation exceeds the maximum notional amount that a single subaccount can have liquidated per block
@@ -866,14 +866,14 @@ class dydx(Exchange, ImplicitAPI):
         #     "type": "LIMIT",
         #     "status": "FILLED",
         #     "timeInForce": "GTT",
-        #     "reduceOnly": False,
+        #     "reduceOnly": false,
         #     "orderFlags": "64",
         #     "goodTilBlockTime": "2025-07-28T12:07:33.000Z",
         #     "createdAtHeight": "45058325",
         #     "clientMetadata": "2",
         #     "updatedAt": "2025-07-28T12:06:35.330Z",
         #     "updatedAtHeight": "45058326",
-        #     "postOnly": False,
+        #     "postOnly": false,
         #     "ticker": "BTC-USD",
         #     "subaccountNumber": 0
         # }
@@ -1000,14 +1000,14 @@ class dydx(Exchange, ImplicitAPI):
         #         "type": "LIMIT",
         #         "status": "FILLED",
         #         "timeInForce": "GTT",
-        #         "reduceOnly": False,
+        #         "reduceOnly": false,
         #         "orderFlags": "64",
         #         "goodTilBlockTime": "2025-07-28T12:07:33.000Z",
         #         "createdAtHeight": "45058325",
         #         "clientMetadata": "2",
         #         "updatedAt": "2025-07-28T12:06:35.330Z",
         #         "updatedAtHeight": "45058326",
-        #         "postOnly": False,
+        #         "postOnly": false,
         #         "ticker": "BTC-USD",
         #         "subaccountNumber": 0
         #     }
@@ -1451,7 +1451,7 @@ class dydx(Exchange, ImplicitAPI):
         credentials = self.retrieve_credentials()
         account = self.fetch_dydx_account()
         lastBlockHeight = self.fetch_latest_block_height()
-        # params['latestBlockHeight'] = lastBlockHeight
+        # params['latestBlockHeight'] = lastBlockHeight;
         newParams = self.extend(params, {'latestBlockHeight': lastBlockHeight})
         orderRequestRes = self.create_order_request(symbol, type, side, amount, price, newParams)
         orderId = orderRequestRes[0]
@@ -1771,7 +1771,7 @@ class dydx(Exchange, ImplicitAPI):
         response = self.nodeRestPostCosmosTxV1beta1Simulate(request)
         #
         # {
-        #     gas_info: {gas_wanted: '18446744073709551615', gas_used: '86055'},
+        #     gas_info: { gas_wanted: '18446744073709551615', gas_used: '86055' },
         #     result: {
         #         ...
         #     }
@@ -1827,7 +1827,7 @@ class dydx(Exchange, ImplicitAPI):
         fromSubaccountId = self.safe_integer(params, 'fromSubaccountId')
         toSubaccountId = self.safe_integer(params, 'toSubaccountId')
         if fromAccount != 'main':
-            # raise error if from subaccount id is None
+            # throw error if from subaccount id is undefined
             if fromAccount is None:
                 raise NotSupported(self.id + ' transfer only support main > subaccount and subaccount <> subaccount.')
             if fromSubaccountId is None or toSubaccountId is None:
@@ -2237,7 +2237,7 @@ class dydx(Exchange, ImplicitAPI):
         #                     "subaccountNumber": 0
         #                 }
         #             },
-        #             "marginEnabled": True,
+        #             "marginEnabled": true,
         #             "updatedAtHeight": "45234659",
         #             "latestProcessedBlockHeight": "45293477"
         #         }
@@ -2332,7 +2332,7 @@ class dydx(Exchange, ImplicitAPI):
         #                 "subaccountNumber": 0
         #             }
         #         },
-        #         "marginEnabled": True,
+        #         "marginEnabled": true,
         #         "updatedAtHeight": "52228833",
         #         "latestProcessedBlockHeight": "52246761"
         #     }
@@ -2358,7 +2358,7 @@ class dydx(Exchange, ImplicitAPI):
             return self.walletAddress
         dydxAccount = self.safe_dict(self.options, 'dydxAccount')
         if dydxAccount is not None:
-            # return dydxAccount
+            # return dydxAccount;
             wallet = self.safe_string(dydxAccount, 'address')
             if wallet is not None:
                 return wallet
@@ -2385,10 +2385,10 @@ class dydx(Exchange, ImplicitAPI):
             return None  # fallback to default error handler
         #
         # abci response
-        # {"result": {"code": 0}}
+        # { "result": { "code": 0 } }
         #
         # rest response
-        # {"code": 123}
+        # { "code": 123 }
         #
         result = self.safe_dict(response, 'result')
         errorCode = self.safe_string(result, 'code')

@@ -116,8 +116,8 @@ class derive(ccxt.async_support.derive):
         #         timestamp: 1738331231506,
         #         instrument_name: 'BTC-PERP',
         #         publish_id: 628419,
-        #         bids: [['104669', '40']],
-        #         asks: [['104736', '40']]
+        #         bids: [ [ '104669', '40' ] ],
+        #         asks: [ [ '104736', '40' ] ]
         #       }
         #     }
         # }
@@ -181,7 +181,7 @@ class derive(ccxt.async_support.derive):
         #           instrument_name: 'BTC-PERP',
         #           scheduled_activation: 1701840228,
         #           scheduled_deactivation: '9223372036854775807',
-        #           is_active: True,
+        #           is_active: true,
         #           tick_size: '0.1',
         #           minimum_amount: '0.01',
         #           maximum_amount: '10000',
@@ -367,7 +367,7 @@ class derive(ccxt.async_support.derive):
         # {
         #     id: 1,
         #     result: {
-        #       status: {'orderbook.BTC-PERP.10.10': 'ok'},
+        #       status: { 'orderbook.BTC-PERP.10.10': 'ok' },
         #       remaining_subscriptions: []
         #     }
         # }
@@ -459,11 +459,11 @@ class derive(ccxt.async_support.derive):
                     'signature': signature,
                 },
             }
-            # subscription = {
+            # const subscription: Dict = {
             #     'name': topic,
             #     'symbol': symbol,
             #     'params': params,
-            # }
+            # };
             message = self.extend(request, params)
             self.watch(url, messageHash, message, messageHash, message)
         return await future
@@ -552,8 +552,8 @@ class derive(ccxt.async_support.derive):
         #                 signer: '0x30CB7B06AdD6749BbE146A6827502B8f2a79269A',
         #                 signature: '0xc6927095f74a0d3b1aeef8c0579d120056530479f806e9d2e6616df742a8934c69046361beae833b32b25c0145e318438d7d1624bb835add956f63aa37192f571c',
         #                 cancel_reason: '',
-        #                 mmp: False,
-        #                 is_transfer: False,
+        #                 mmp: false,
+        #                 is_transfer: false,
         #                 replaced_order_id: null,
         #                 trigger_type: 'stoploss',
         #                 trigger_price_type: 'mark',
@@ -656,7 +656,7 @@ class derive(ccxt.async_support.derive):
         #
         # {
         #     id: '690c6276-0fc6-4121-aafa-f28bf5adedcb',
-        #     error: {code: -32600, message: 'Invalid Request'}
+        #     error: { code: -32600, message: 'Invalid Request' }
         # }
         #
         if not ('error' in message):
@@ -722,13 +722,13 @@ class derive(ccxt.async_support.derive):
         #
         # {
         #     id: 1,
-        #     result: [130837]
+        #     result: [ 130837 ]
         # }
         #
         messageHash = 'authenticated'
         ids = self.safe_list(message, 'result', [])
         if len(ids) > 0:
-            # client.resolve(message, messageHash)
+            # client.resolve (message, messageHash);
             future = self.safe_value(client.futures, 'authenticated')
             future.resolve(True)
         else:
