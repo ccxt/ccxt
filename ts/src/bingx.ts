@@ -766,6 +766,7 @@ export default class bingx extends Exchange {
                 },
                 'defaultForInverse': {
                     'extends': 'defaultForLinear',
+                    'sandbox': false,
                     'createOrders': undefined,
                     'fetchOHLCV': {
                         'limit': 1000,
@@ -780,6 +781,7 @@ export default class bingx extends Exchange {
                 //
                 'spot': {
                     'extends': 'defaultForLinear',
+                    'sandbox': false,
                     'fetchCurrencies': {
                         'private': true,
                     },
@@ -805,18 +807,6 @@ export default class bingx extends Exchange {
                     },
                     'inverse': {
                         'extends': 'defaultForInverse',
-                    },
-                },
-                'defaultForFuture': {
-                    'extends': 'defaultForLinear',
-                    'fetchOrders': undefined,
-                },
-                'future': {
-                    'linear': {
-                        'extends': 'defaultForFuture',
-                    },
-                    'inverse': {
-                        'extends': 'defaultForFuture',
                     },
                 },
             },
