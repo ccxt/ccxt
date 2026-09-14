@@ -2428,6 +2428,14 @@ export class BaseExchange {
         return undefined;  // c# stub
     }
 
+    lockLastNonce () {
+        return undefined; // c# stub
+    }
+
+    unlockLastNonce () {
+        return undefined;  // c# stub
+    }
+
     async loadLighterLibrary (libraryPath: any, chainId: any, privateKey: any, apiKeyIndex: any, accountIndex: any, createClient = false) {
         // wasmExecPathExample: '/opt/homebrew/opt/go/libexec/lib/wasm/wasm_exec.js';
         // libraryPath eg: '/Users/cjg/Git/lighter-go/lighter.wasm';
@@ -6212,6 +6220,23 @@ export class BaseExchange {
 
     nonce () {
         return this.seconds ();
+    }
+
+    /**
+     * @method
+     * @ignore
+     * @name Exchange#incrementingNonce
+     * @description returns the current timestamp in milliseconds, bumped past the previously issued value when both land in the same millisecond — for venues that reject duplicate nonces per signer; the counter is per exchange instance, so it narrows the duplicate-nonce race but does not remove it across instances or processes
+     * @returns {int} a strictly-increasing millisecond nonce
+     */
+    incrementingNonce () {
+        this.lockLastNonce ();
+        const currentMilliseconds = this.milliseconds ();
+        const lastNonce = this.safeInteger (this.options, 'lastNonce', 0);
+        const result = (currentMilliseconds > lastNonce) ? currentMilliseconds : lastNonce + 1;
+        this.options['lastNonce'] = result;
+        this.unlockLastNonce ();
+        return result;
     }
 
     setHeaders (headers: any) {

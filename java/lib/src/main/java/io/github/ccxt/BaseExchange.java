@@ -1657,6 +1657,16 @@ public class BaseExchange {
 
     private final Object marketsLock = new Object();
 
+    private final java.util.concurrent.locks.ReentrantLock lastNonceReentrantLock = new java.util.concurrent.locks.ReentrantLock();
+
+    public void lockLastNonce() {
+        this.lastNonceReentrantLock.lock();
+    }
+
+    public void unlockLastNonce() {
+        this.lastNonceReentrantLock.unlock();
+    }
+
     public java.util.concurrent.CompletableFuture<Object> loadMarkets(Object... args) {
 
         var reload = (Boolean) Helpers.getArg(args, 0, false);
@@ -8525,6 +8535,24 @@ public Object describe()
     public Object nonce()
     {
         return this.seconds();
+    }
+
+    /**
+     * @method
+     * @ignore
+     * @name Exchange#incrementingNonce
+     * @description returns the current timestamp in milliseconds, bumped past the previously issued value when both land in the same millisecond — for venues that reject duplicate nonces per signer; the counter is per exchange instance, so it narrows the duplicate-nonce race but does not remove it across instances or processes
+     * @returns {int} a strictly-increasing millisecond nonce
+     */
+    public Object incrementingNonce()
+    {
+        this.lockLastNonce();
+        Object currentMilliseconds = this.milliseconds();
+        Long lastNonce = this.safeInteger(this.options, "lastNonce", 0);
+        Object result = ((Helpers.isTrue((Helpers.isGreaterThan(currentMilliseconds, lastNonce))))) ? currentMilliseconds : Helpers.add(lastNonce, 1);
+        Helpers.addElementToObject(this.options, "lastNonce", result);
+        this.unlockLastNonce();
+        return result;
     }
 
     public Object setHeaders(Object headers)

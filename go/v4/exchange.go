@@ -208,6 +208,9 @@ type BaseExchange struct {
 
 	// id lock
 	idMutex sync.Mutex
+
+	// last nonce lock
+	lastNonceMutex sync.Mutex
 }
 
 // Exchange is the thin, public REST exchange type. All shared infrastructure lives in the
@@ -2263,6 +2266,16 @@ func (this *BaseExchange) LockId() bool {
 
 func (this *BaseExchange) UnlockId() bool {
 	this.idMutex.Unlock()
+	return true
+}
+
+func (this *BaseExchange) LockLastNonce() bool {
+	this.lastNonceMutex.Lock()
+	return true
+}
+
+func (this *BaseExchange) UnlockLastNonce() bool {
+	this.lastNonceMutex.Unlock()
 	return true
 }
 
