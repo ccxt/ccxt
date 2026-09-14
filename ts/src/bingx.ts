@@ -4035,7 +4035,7 @@ export default class bingx extends Exchange {
             'stopLossPrice': stopLossPrice,
             'takeProfitPrice': takeProfitPrice,
             'average': this.safeString2 (order, 'avgPrice', 'ap'),
-            'cost': this.safeString (order, 'cummulativeQuoteQty'),
+            'cost': this.safeString2 (order, 'cummulativeQuoteQty', 'Z'),
             'amount': this.safeStringN (order, [ 'origQty', 'q', 'quantity', 'totalAmount' ]),
             'filled': this.safeString2 (order, 'executedQty', 'z'),
             'remaining': undefined,
