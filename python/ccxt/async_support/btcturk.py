@@ -143,7 +143,7 @@ class btcturk(Exchange, ImplicitAPI):
                         'orderbook': {'cost': 1},
                         'ticker': {'cost': 0.1},
                         'ticker/currency': {'cost': 0.1},
-                        'trades': {'cost': 1},   # ?last=COUNT(max 50)
+                        'trades': {'cost': 1},   # ?last=COUNT (max 50)
                         'ohlc': {'cost': 1},
                         'server/exchangeinfo': {'cost': 1},
                     },
@@ -282,7 +282,7 @@ class btcturk(Exchange, ImplicitAPI):
         #                    "denominator": "TRY",
         #                    "numeratorScale": "8",
         #                    "denominatorScale": "2",
-        #                    "hasFraction": False,
+        #                    "hasFraction": false,
         #                    "filters": [
         #                        {
         #                            "filterType": "PRICE_FILTER",
@@ -301,9 +301,9 @@ class btcturk(Exchange, ImplicitAPI):
         #                        "STOP_LIMIT"
         #                    ],
         #                    "displayFormat": "#,###",
-        #                    "commissionFromNumerator": False,
+        #                    "commissionFromNumerator": false,
         #                    "order": "1000",
-        #                    "priceRounding": False
+        #                    "priceRounding": false
         #                },
         #                ...
         #            },
@@ -624,7 +624,7 @@ class btcturk(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        # maxCount = 50
+        # let maxCount = 50;
         request = {
             'pairSymbol': market['id'],
         }
@@ -699,7 +699,7 @@ class btcturk(Exchange, ImplicitAPI):
         request['to'] = self.parse_to_int((until / 1000))
         if since is not None:
             request['from'] = self.parse_to_int(since / 1000)
-        elif limit is None:  # since will also be None
+        elif limit is None:  # since will also be undefined
             limit = 100  # default value
         if limit is not None:
             limit = min(limit, 11000)  # max 11000 candles diapason can be covered
@@ -821,7 +821,7 @@ class btcturk(Exchange, ImplicitAPI):
         response = await self.privateDeleteOrder(self.extend(request, params))
         #
         #    {
-        #        "success": True,
+        #        "success": true,
         #        "message": "SUCCESS",
         #        "code": 0
         #    }
@@ -1011,7 +1011,7 @@ class btcturk(Exchange, ImplicitAPI):
         #           "tax": "0"
         #         }
         #       ],
-        #       "success": True,
+        #       "success": true,
         #       "message": "SUCCESS",
         #       "code": "0"
         #     }
