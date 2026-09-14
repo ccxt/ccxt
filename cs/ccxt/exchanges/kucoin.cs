@@ -3238,6 +3238,11 @@ public partial class kucoin : Exchange
         //         "markPrice": "1572.68"
         //     }
         //
+        string? last = this.safeStringN(ticker, new List<object>() {"last", "lastTradedPrice", "lastPrice"});
+        last = this.safeString(ticker, "price", last);
+        string? marketId = this.safeString(ticker, "symbol");
+        market = this.safeMarket(marketId, market, "-");
+        object symbol = getValue(market, "symbol");
         string? percentage = this.safeString(ticker, "changeRate");
         if (isTrue(!isEqual(percentage, null)))
         {
@@ -3245,12 +3250,14 @@ public partial class kucoin : Exchange
         } else
         {
             percentage = this.safeString(ticker, "priceChangePercent");
+            // uta spot sends a ratio under this name and uta swap sends a percentage.
+            // An unresolved market has no `spot` key at all, so read it the way okx
+            // does and leave the value alone rather than scaling on a guess.
+            if (isTrue(this.safeBool(market, "spot", false)))
+            {
+                percentage = Precise.stringMul(percentage, "100");
+            }
         }
-        string? last = this.safeStringN(ticker, new List<object>() {"last", "lastTradedPrice", "lastPrice"});
-        last = this.safeString(ticker, "price", last);
-        string? marketId = this.safeString(ticker, "symbol");
-        market = this.safeMarket(marketId, market, "-");
-        object symbol = getValue(market, "symbol");
         string? baseVolume = this.safeString2(ticker, "vol", "baseVolume");
         string? quoteVolume = this.safeString2(ticker, "volValue", "quoteVolume");
         Int64? timestamp = this.safeIntegerN(ticker, new List<object>() {"time", "datetime", "timePoint"});

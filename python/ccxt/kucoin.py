@@ -2695,16 +2695,21 @@ class kucoin(Exchange, ImplicitAPI):
         #         "markPrice": "1572.68"
         #     }
         #
-        percentage = self.safe_string(ticker, 'changeRate')
-        if percentage is not None:
-            percentage = Precise.string_mul(percentage, '100')
-        else:
-            percentage = self.safe_string(ticker, 'priceChangePercent')
         last = self.safe_string_n(ticker, ['last', 'lastTradedPrice', 'lastPrice'])
         last = self.safe_string(ticker, 'price', last)
         marketId = self.safe_string(ticker, 'symbol')
         market = self.safe_market(marketId, market, '-')
         symbol = market['symbol']
+        percentage = self.safe_string(ticker, 'changeRate')
+        if percentage is not None:
+            percentage = Precise.string_mul(percentage, '100')
+        else:
+            percentage = self.safe_string(ticker, 'priceChangePercent')
+            # uta spot sends a ratio under self name and uta swap sends a percentage.
+            # An unresolved market has no `spot` key at all, so read it the way okx
+            # does and leave the value alone rather than scaling on a guess.
+            if self.safe_bool(market, 'spot', False):
+                percentage = Precise.string_mul(percentage, '100')
         baseVolume = self.safe_string_2(ticker, 'vol', 'baseVolume')
         quoteVolume = self.safe_string_2(ticker, 'volValue', 'quoteVolume')
         timestamp = self.safe_integer_n(ticker, ['time', 'datetime', 'timePoint'])

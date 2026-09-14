@@ -3375,6 +3375,11 @@ public class Kucoin extends KucoinApi
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
+        String last = this.safeStringN(ticker, new ArrayList<Object>(Arrays.asList("last", "lastTradedPrice", "lastPrice")));
+        last = this.safeString(ticker, "price", last);
+        String marketId = this.safeString(ticker, "symbol");
+        market = this.safeMarket(marketId, market, "-");
+        Object symbol = Helpers.GetValue(market, "symbol");
         String percentage = this.safeString(ticker, "changeRate");
         if (Helpers.isTrue(!Helpers.isEqual(percentage, null)))
         {
@@ -3382,12 +3387,14 @@ public class Kucoin extends KucoinApi
         } else
         {
             percentage = this.safeString(ticker, "priceChangePercent");
+            // uta spot sends a ratio under this name and uta swap sends a percentage.
+            // An unresolved market has no `spot` key at all, so read it the way okx
+            // does and leave the value alone rather than scaling on a guess.
+            if (Helpers.isTrue(this.safeBool(market, "spot", false)))
+            {
+                percentage = Precise.stringMul(percentage, "100");
+            }
         }
-        String last = this.safeStringN(ticker, new ArrayList<Object>(Arrays.asList("last", "lastTradedPrice", "lastPrice")));
-        last = this.safeString(ticker, "price", last);
-        String marketId = this.safeString(ticker, "symbol");
-        market = this.safeMarket(marketId, market, "-");
-        Object symbol = Helpers.GetValue(market, "symbol");
         String baseVolume = this.safeString2(ticker, "vol", "baseVolume");
         String quoteVolume = this.safeString2(ticker, "volValue", "quoteVolume");
         Long timestamp = this.safeIntegerN(ticker, new ArrayList<Object>(Arrays.asList("time", "datetime", "timePoint")));

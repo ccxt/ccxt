@@ -250,7 +250,7 @@ class bybit(ccxt.async_support.bybit):
         :param boolean [params.isLeverage]: *unified spot only* False then spot trading True then margin trading
         :param str [params.tpslMode]: *contract only* 'full' or 'partial'
         :param str [params.mmp]: *option only* market maker protection
-        :param str [params.triggerDirection]: *contract only* the direction for trigger orders, 'above' or 'below'
+        :param str [params.triggerDirection]: *contract only* the direction for trigger orders, 'ascending' or 'descending'
         :param float [params.triggerPrice]: The price at which a trigger order is triggered at
         :param float [params.stopLossPrice]: The price at which a stop loss order is triggered at
         :param float [params.takeProfitPrice]: The price at which a take profit order is triggered at

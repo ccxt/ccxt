@@ -248,6 +248,21 @@
                 "output": null
             },
             {
+                "description": "Spot market buy formats quoteOrderQty",
+                "method": "createOrder",
+                "url": "https://open-api.bingx.com/openApi/spot/v1/trade/order?quoteOrderQty=10&side=BUY&symbol=BTC-USDT&timestamp=1701413688001&type=MARKET&signature=fed01fa9ea12fdeae745f7c7cee390763e21af614d93bc92bde5419dad250399",
+                "input": [
+                    "BTC/USDT",
+                    "market",
+                    "buy",
+                    1,
+                    null,
+                    {
+                        "quoteOrderQty": 10.009
+                    }
+                ]
+            },
+            {
                 "description": "Spot market buy",
                 "method": "createOrder",
                 "url": "https://open-api.bingx.com/openApi/spot/v1/trade/order?quoteOrderQty=5&side=BUY&symbol=LTC-USDT&timestamp=1698777135343&type=MARKET&signature=d55a7e4f7f9dbe56c4004c9f3ab340869d3cb004e2f0b5b861e5fbd1762fd9a0",
