@@ -857,8 +857,9 @@ export default class pacifica extends Exchange {
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
             account['total'] = this.safeString (balance, 'amount');
-            account['used'] = this.safeString (balance, 'pending_balance');
-            if (code !== undefined) {
+            account['free'] = this.safeString (balance, 'available_to_withdraw');
+            // skip a spot USDC entry so it can't clobber the perp-collateral account above
+            if ((code !== undefined) && !(code in result)) {
                 result[code] = account;
             }
         }
