@@ -1248,6 +1248,31 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
         }
     } }
 
+    /// A watch method can await a spawned REST snapshot before entering
+    /// `ws_run`. Run its producer first: only draining inside the read loop
+    /// would leave that snapshot queued behind its own waiter.
+    fn ws_await_flight(&mut self, handle: Value) -> impl ::std::future::Future<Output = Value> + Send { async move {
+        self.ws_drain_spawns().await;
+        crate::pro::ws_client::ws_await_flight(&handle).await
+    } }
+
+    fn ws_drain_spawns(&mut self) -> impl ::std::future::Future<Output = ()> + Send { async move {
+        loop {
+            let batch = crate::exchange_stubs::drain_spawn_queue();
+            if batch.is_empty() { break; }
+            for (method, args) in batch {
+                if std::env::var("CCXT_WS_DEBUG").is_ok() {
+                    eprintln!("[wsdrain] {}", method);
+                }
+                if method == "load_order_book" {
+                    self.ws_load_order_book(args).await;
+                } else {
+                    let _ = self.dispatch_to_derived(&method, args).await;
+                }
+            }
+        }
+    } }
+
     /// Read → dispatch → drain loop, split out so `ws_run` can wrap it in the
     /// `WS_DRIVEN_URLS` task-local scope.
     fn ws_drive_loop(
@@ -1262,20 +1287,7 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
             // (handle_order_book → delay(watch_order_book_snapshot)). Runs at
             // the top of the iteration rather than after the dispatch below so
             // the `continue` on a fired deadline reaches it too.
-            loop {
-                let batch = crate::exchange_stubs::drain_spawn_queue();
-                if batch.is_empty() { break; }
-                for (method, args) in batch {
-                    if std::env::var("CCXT_WS_DEBUG").is_ok() {
-                        eprintln!("[wsdrain] {}", method);
-                    }
-                    if method == "load_order_book" {
-                        self.ws_load_order_book(args).await;
-                    } else {
-                        let _ = self.dispatch_to_derived(&method, args).await;
-                    }
-                }
-            }
+            self.ws_drain_spawns().await;
             if let Some(settled) = client.take_settled(&hashes) {
                 match settled {
                     Ok(v) => return v,
@@ -1846,6 +1858,87 @@ impl crate::exchange_generated::ExchangeBase for BaseCore {
         -> std::pin::Pin<Box<dyn std::future::Future<Output = Value> + Send + 'a>>
     {
         Box::pin(async move { self.call_dynamic_base(method, args).await })
+    }
+}
+
+#[cfg(test)]
+mod ws_snapshot_spawn_tests {
+    use super::*;
+    use crate::exchange_generated::ExchangeBase;
+    use crate::exchange_stubs::{drain_spawn_queue, enqueue_spawn};
+    use crate::pro::ws_client;
+    use futures::FutureExt;
+
+    struct SnapshotCore(Exchange);
+    impl std::ops::Deref for SnapshotCore {
+        type Target = Exchange;
+        fn deref(&self) -> &Exchange { &self.0 }
+    }
+    impl std::ops::DerefMut for SnapshotCore {
+        fn deref_mut(&mut self) -> &mut Exchange { &mut self.0 }
+    }
+    impl DerivedExchange for SnapshotCore {}
+    impl ExchangeBase for SnapshotCore {
+        fn call_dynamic<'a>(&'a mut self, method: &'a str, args: Vec<Value>)
+            -> std::pin::Pin<Box<dyn std::future::Future<Output = Value> + Send + 'a>>
+        {
+            Box::pin(async move {
+                match method {
+                    "schedule_snapshot" => enqueue_spawn("load_snapshot", args),
+                    "load_snapshot" => {
+                        self.balance = Value::Int(42);
+                        args[0].resolve(&[Value::Int(42), Value::Str("snapshot".into())]);
+                    }
+                    "fail_snapshot" => panic!("snapshot producer failed"),
+                    _ => panic!("unexpected test method: {method}"),
+                }
+                Value::Null
+            })
+        }
+    }
+
+    async fn snapshot_before_watch(url: &str, method: &str) {
+        ws_client::mock_setup(url);
+        let client = ws_client::client_value(url);
+        let hash = Value::Str("snapshot".into());
+        client.future(&[hash.clone()]);
+        enqueue_spawn(method, vec![client.clone()]);
+        // Mirrors setBalanceCache creating the future, then watchBalance
+        // joining it before watch() has started the WS read loop.
+        let follower = client.future(&[hash]);
+        let mut core = SnapshotCore(Exchange::default());
+        assert_eq!(core.ws_await_flight(follower).await, Value::Int(42));
+        assert_eq!(core.balance, Value::Int(42));
+        assert!(drain_spawn_queue().is_empty());
+        ws_client::drop_client(url);
+    }
+
+    #[tokio::test]
+    async fn queued_snapshot_completes_before_watch() {
+        snapshot_before_watch("snapshot-before-watch", "load_snapshot").await;
+    }
+
+    #[tokio::test]
+    async fn nested_snapshot_spawn_completes_before_watch() {
+        snapshot_before_watch("nested-snapshot-before-watch", "schedule_snapshot").await;
+    }
+
+    #[tokio::test]
+    async fn snapshot_producer_error_reaches_waiter() {
+        let url = "failed-snapshot-before-watch";
+        ws_client::mock_setup(url);
+        let client = ws_client::client_value(url);
+        let hash = Value::Str("snapshot".into());
+        client.future(&[hash.clone()]);
+        enqueue_spawn("fail_snapshot", vec![client.clone()]);
+        let mut core = SnapshotCore(Exchange::default());
+        let result = std::panic::AssertUnwindSafe(core.ws_await_flight(client.future(&[hash])))
+            .catch_unwind().await;
+        let error = result.expect_err("producer errors must propagate");
+        assert_eq!(error.downcast_ref::<&str>(), Some(&"snapshot producer failed"));
+        assert!(core.internals.dispatch_stack.is_empty());
+        assert!(drain_spawn_queue().is_empty());
+        ws_client::drop_client(url);
     }
 }
 

@@ -637,9 +637,9 @@ class RustTranspilerBuilder {
      *   `await future`             → `get_value(&future, "await")`
      *                                (await-on-a-local has no Rust lowering)
      *
-     * Both become `crate::exchange_stubs::ws_await_flight(&<handle>).await`,
-     * which waits on the flight the `future ()` / `reusableFuture ()` call
-     * opened. Without this the follower never waits and the leader's trailing
+     * Both become `self.ws_await_flight(<handle>).await`, which runs queued
+     * snapshot coroutines before waiting on the flight opened by `future ()`
+     * / `reusableFuture ()`. Without flight lowering the follower never waits and the leader's trailing
      * await is a no-op, so every caller races ahead of the credential the
      * flight is fetching.
      *
@@ -674,7 +674,7 @@ class RustTranspilerBuilder {
             out += content.slice(i, callStart);
             const call = content.slice(callStart, callEnd);
             if (awaitMatch) {
-                out += `crate::exchange_stubs::ws_await_flight(&${call}).await`;
+                out += `self.ws_await_flight(${call}).await`;
                 i = callEnd + awaitMatch[0].length;
             } else {
                 out += call;
@@ -684,7 +684,7 @@ class RustTranspilerBuilder {
         // 2. Whatever await-on-value is left is a flight handle held in a local.
         return out.replace(
             /get_value\(&(\w+),\s*&(?:crate::)?Value::Str\("await"\.to_string\(\)\)\)/g,
-            'crate::exchange_stubs::ws_await_flight(&$1).await',
+            'self.ws_await_flight($1.clone()).await',
         );
     }
 
