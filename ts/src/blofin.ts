@@ -519,10 +519,40 @@ export default class blofin extends Exchange {
                     'USDT': 'TRC20',
                 },
                 'networks': {
+                    // code -> the withdrawal-apply chain identifier: the live
+                    // venue registry (GET /asset/currencies) uses display
+                    // names like 'Tron (TRC20)', NOT the short forms the doc
+                    // examples show - a bare 'TRC20' is rejected with 152002
                     'BTC': 'Bitcoin',
-                    'BEP20': 'BSC',
-                    'ERC20': 'ERC20',
-                    'TRC20': 'TRC20',
+                    'ERC20': 'Ethereum (ERC20)',
+                    'TRC20': 'Tron (TRC20)',
+                    'BEP20': 'BNB Smart Chain (BEP20)',
+                    'MATIC': 'Polygon POS',
+                    'AVAXC': 'AVAX C-Chain',
+                    'SOL': 'Solana',
+                    'ARBITRUM': 'Arbitrum One',
+                    'OP': 'Optimism',
+                    'APT': 'APT (APT)',
+                    'TON': 'TON (Toncoin)',
+                    'KAIA': 'KAIA',
+                },
+                'networksById': {
+                    // id -> code for BOTH identifier families: the deposit /
+                    // withdrawal history rows carry the short forms ('TRC20')
+                    // while the currencies registry and withdrawal-apply use
+                    // the display names - map both back to unified codes
+                    'Bitcoin': 'BTC',
+                    'Ethereum (ERC20)': 'ERC20',
+                    'Tron (TRC20)': 'TRC20',
+                    'BNB Smart Chain (BEP20)': 'BEP20',
+                    'BSC': 'BEP20',
+                    'Polygon POS': 'MATIC',
+                    'AVAX C-Chain': 'AVAXC',
+                    'Solana': 'SOL',
+                    'Arbitrum One': 'ARBITRUM',
+                    'Optimism': 'OP',
+                    'APT (APT)': 'APT',
+                    'TON (Toncoin)': 'TON',
                 },
                 'fetchOpenInterestHistory': {
                     'timeframes': {
