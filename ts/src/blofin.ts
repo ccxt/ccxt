@@ -520,9 +520,11 @@ export default class blofin extends Exchange {
                 },
                 'networks': {
                     // code -> the withdrawal-apply chain identifier: the live
-                    // venue registry (GET /asset/currencies) uses display
-                    // names like 'Tron (TRC20)', NOT the short forms the doc
-                    // examples show - a bare 'TRC20' is rejected with 152002
+                    // venue registry (GET /asset/currencies) returns display
+                    // names like 'Tron (TRC20)', NOT the short forms shown in
+                    // the doc's own Get Currencies response example - a bare
+                    // 'TRC20' in withdrawal-apply is rejected with 152002
+                    // 'Invalid parameter' (verified live 2026-09-14)
                     'BTC': 'Bitcoin',
                     'ERC20': 'Ethereum (ERC20)',
                     'TRC20': 'Tron (TRC20)',
@@ -1985,6 +1987,16 @@ export default class blofin extends Exchange {
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
     override async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}): Promise<Transaction> {
+        // LIVE API vs DOCS quirks, verified against the venue 2026-09-14:
+        // - addrType is documented optional but the live venue rejects
+        //   on-chain withdrawals without it: 152001 "Parameter addrType
+        //   cannot be empty" - defaulted to 1 below
+        // - the chain identifiers accepted here are the DISPLAY NAMES from
+        //   GET /asset/currencies ("Tron (TRC20)", "Ethereum (ERC20)", ...);
+        //   the short forms shown in the doc examples ("TRC20") are rejected
+        //   with 152002 "Invalid parameter" - see options["networks"]
+        // - 152002 responses omit the offending field name even though the
+        //   error table documents the message as "Parameter {} error"
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         await this.loadMarkets ();
         const currency = this.currency (code);
@@ -1998,9 +2010,10 @@ export default class blofin extends Exchange {
         params = this.omit (params, 'dest');
         if (dest === 'onchain') {
             this.checkAddress (address);
-            // the doc marks addrType optional but the live venue rejects
-            // on-chain withdrawals without it (152001 "Parameter addrType
-            // cannot be empty"), so default to 1 = wallet address
+            // the doc's Request Parameters table marks addrType "Required:
+            // No", but the live venue rejects on-chain withdrawals without
+            // it (152001 "Parameter addrType cannot be empty") - default to
+            // 1 = wallet address, callers can override for other kinds
             request['addrType'] = this.safeString (params, 'addrType', '1');
             params = this.omit (params, 'addrType');
         }
@@ -2134,6 +2147,9 @@ export default class blofin extends Exchange {
         const currencyId = this.safeString (transaction, 'currency');
         const code = this.safeCurrencyCode (currencyId);
         const amount = this.safeNumber (transaction, 'amount');
+        // history rows carry the SHORT chain forms ('TRC20') while the
+        // currencies registry and withdrawal-apply use display names
+        // ('Tron (TRC20)') - options['networksById'] maps both families
         const txid = this.safeString (transaction, 'txId');
         const timestamp = this.safeInteger (transaction, 'ts');
         const feeCurrencyId = this.safeString (transaction, 'feeCurrency');
