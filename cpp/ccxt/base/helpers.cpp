@@ -12,10 +12,39 @@
 #include <cstdlib>
 #include <cctype>
 #include <iostream>
+#include <mutex>
 #include <stdexcept>
+#include <unordered_set>
 
 using ccxt::dict;
 using ccxt::list;
+
+// ---------------------------------------------------------------------------
+// interned dict-key pool: 16 hash-sharded unordered_sets, insert-only (the
+// key universe is bounded by the exchange surface; one-shot/daemon lifetimes
+// both fine). The set NODES own the strings and their addresses are stable,
+// so the returned views outlive everything. Sharding keeps the parallel
+// worker-thread parses off one another's mutex.
+// ---------------------------------------------------------------------------
+namespace ccxt { namespace intern {
+    namespace {
+        struct KeyPoolShard {
+            std::mutex mutex;
+            std::unordered_set<std::string> set;
+        };
+        KeyPoolShard* shards () {
+            static KeyPoolShard s[16];
+            return s;
+        }
+    }
+    std::string_view internKey (std::string_view s) {
+        const std::size_t h = std::hash<std::string_view> {} (s);
+        KeyPoolShard& shard = shards ()[h & 15];
+        std::lock_guard<std::mutex> guard (shard.mutex);
+        const auto it = shard.set.emplace (s).first;
+        return std::string_view (it->data (), it->size ());
+    }
+}}
 
 namespace {
 
@@ -463,7 +492,7 @@ ccxt::any getObjectKeys (const ccxt::any& v) {
     list out;
     if (ccxt::isDict (v)) {
         for (const auto& kv : ccxt::any_cast<dict> (v).entries ()) {
-            out.push (ccxt::any (kv.first));
+            out.push (ccxt::any (kv.first.str ()));
         }
     } else if (ccxt::isList (v)) {
         const std::size_t n = ccxt::any_cast<list> (v).size ();
@@ -905,7 +934,7 @@ ccxt::any jsonStringify (const ccxt::any& v) {
         for (const auto& kv : ccxt::any_cast<dict> (v).entries ()) {
             if (!first) out += ",";
             first = false;
-            out += "\"" + kv.first + "\":" + ccxt::any_cast<std::string> (jsonStringify (kv.second));
+            out += "\"" + kv.first.str () + "\":" + ccxt::any_cast<std::string> (jsonStringify (kv.second));
         }
         return ccxt::any (out + "}");
     }

@@ -24,6 +24,7 @@
 // overload set, and empty is `typeid(void)`/`has_value() == false`.
 
 #include <any>
+#include <cstdint>
 #include <cstring>
 #include <initializer_list>
 #include <memory>
@@ -317,12 +318,74 @@ template <class T> inline T* any_cast (any* v) noexcept {
 }
 
 // ---------------------------------------------------------------------------
+// InternedKey — a 16-byte (pointer, length) view into a global pool of
+// interned dict-key strings. Market data repeats the same keys ("symbol",
+// "precision", "price"…) across hundreds of thousands of dicts; interning
+// stores each distinct key once and shrinks every OrderedMap entry from 72 to
+// 56 bytes. Implicit std::string/std::string_view conversions keep the ~30
+// string-context consumers compiling unchanged; comparisons never intern (the
+// string→string_view conversion is standard and beats the user-defined
+// string→InternedKey conversion in overload resolution).
+// ---------------------------------------------------------------------------
+namespace intern {
+    std::string_view internKey (std::string_view s);   // defined in helpers.cpp
+}
+
+class InternedKey {
+    const char* data_ = nullptr;
+    std::uint32_t len_ = 0;
+
+public:
+    InternedKey () = default;
+    InternedKey (const std::string& s) { *this = InternedKey (std::string_view (s)); }
+    InternedKey (std::string_view s) {
+        const std::string_view pooled = intern::internKey (s);
+        this->data_ = pooled.data ();
+        this->len_ = static_cast<std::uint32_t> (pooled.size ());
+    }
+
+    const char* data () const noexcept { return data_; }
+    std::size_t size () const noexcept { return len_; }
+    bool empty () const noexcept { return len_ == 0; }
+    std::string_view view () const noexcept { return { data_, len_ }; }
+    std::string str () const { return std::string (data_, len_); }
+    operator std::string () const { return str (); }
+    operator std::string_view () const noexcept { return view (); }
+};
+
+inline bool operator== (const InternedKey& a, const InternedKey& b) noexcept {
+    return a.data () == b.data () || a.view () == b.view ();
+}
+inline bool operator== (const InternedKey& a, std::string_view b) noexcept {
+    return a.view () == b;
+}
+inline bool operator== (std::string_view a, const InternedKey& b) noexcept {
+    return b == a;
+}
+// exact-match overloads: `InternedKey == std::string` is ambiguous between the
+// string_view and InternedKey conversions (both user-defined) without these
+inline bool operator== (const InternedKey& a, const std::string& b) noexcept {
+    return a.view () == std::string_view (b);
+}
+inline bool operator== (const std::string& a, const InternedKey& b) noexcept {
+    return b == a;
+}
+// const char* literal overload: `kv.first == "alg"` is ambiguous between the
+// string_view and std::string conversions without it
+inline bool operator== (const InternedKey& a, const char* b) noexcept {
+    return a.view () == std::string_view (b);
+}
+inline bool operator== (const char* a, const InternedKey& b) noexcept {
+    return b == a;
+}
+
+// ---------------------------------------------------------------------------
 // dict — insertion-ordered string-keyed map with O(1) lookup
 // ---------------------------------------------------------------------------
 
 class OrderedMap {
 public:
-    using entry = std::pair<std::string, any>;
+    using entry = std::pair<InternedKey, any>;
 
     // dicts with few keys (the vast majority in market data: precision/limits/
     // filters/fee dicts are 2-10 entries) skip the hash index entirely: a linear

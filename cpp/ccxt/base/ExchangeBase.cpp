@@ -769,7 +769,7 @@ ccxt::any ExchangeBase::implodeParams (ccxt::any target, ccxt::any params) {
             if (isList (kv.second)) {
                 continue;   // array params are query values, not path segments
             }
-            const std::string token = "{" + kv.first + "}";
+            const std::string token = "{" + kv.first.str () + "}";
             std::size_t at = out.find (token);
             while (at != std::string::npos) {
                 const std::string replacement = str (kv.second);
@@ -1115,7 +1115,7 @@ void qsAppend (std::vector<std::pair<std::string, std::string>>& out,
                const std::string& prefix, const ccxt::any& value, bool arrayRepeat) {
     if (isDict (value)) {
         for (const auto& kv : ccxt::any_cast<dict> (value).entries ()) {
-            const std::string key = prefix.empty () ? kv.first : (prefix + "[" + kv.first + "]");
+            const std::string key = prefix.empty () ? kv.first.str () : (prefix + "[" + kv.first.str () + "]");
             qsAppend (out, key, kv.second, arrayRepeat);
         }
         return;
@@ -1800,7 +1800,7 @@ std::shared_future<ccxt::any> ExchangeBase::fetch (ccxt::any url, ccxt::any meth
         struct curl_slist* hdrs = nullptr;
         if (merged.has_value () && isDict (merged)) {
             for (const auto& kv : ccxt::any_cast<dict> (merged).entries ()) {
-                hdrs = curl_slist_append (hdrs, (kv.first + ": " + str (kv.second)).c_str ());
+                hdrs = curl_slist_append (hdrs, (kv.first.str () + ": " + str (kv.second)).c_str ());
             }
         }
         if (hdrs) {
@@ -3291,7 +3291,7 @@ namespace {
                 putBigEndian64 (out, static_cast<unsigned long long> (n));
             }
             for (const auto& kv : entries) {
-                msgpackAppend (out, ccxt::any (kv.first));
+                msgpackAppend (out, ccxt::any (kv.first.str ()));
                 msgpackAppend (out, kv.second);
             }
             return;
