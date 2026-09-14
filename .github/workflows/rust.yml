@@ -103,6 +103,7 @@ jobs:
         run: cargo build --manifest-path examples/rust/Cargo.toml --bins
       - name: Build tests
         run: |
+          : "${CARGO_TARGET_DIR:?Prepare isolated Cargo target must run first}"
           cargo build --manifest-path rust/Cargo.toml -p ccxt_tests --bin ti-rust
           cp "$CARGO_TARGET_DIR/debug/ti-rust" rust/tests.bin
       - name: Cargo test
@@ -206,6 +207,14 @@ jobs:
           git fetch origin master
           git rebase --autostash origin/master
           git push origin HEAD:master
+
+      - name: Clean isolated Cargo target
+        if: always()
+        run: |
+          : "${RUNNER_TEMP:?}" "${GITHUB_RUN_ID:?}" "${GITHUB_RUN_ATTEMPT:?}"
+          # Reconstruct only this run's path, even if preparation failed before export.
+          rust_target="$RUNNER_TEMP/ccxt-rust-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
+          rm -rf -- "$rust_target"
 
   live-tests:
     needs: build
