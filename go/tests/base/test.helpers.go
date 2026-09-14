@@ -3,8 +3,6 @@ package base
 import (
 	"fmt"
 	"reflect"
-	"runtime/debug"
-	"strings"
 	"sync"
 	"time"
 
@@ -434,15 +432,7 @@ func ReturnPanicError(ch chan interface{}) {
 	// returned nil, so any panic in a test goroutine killed the whole binary
 	if r := recover(); r != nil {
 		if r != "break" {
-			stack := debug.Stack()
-			strErr := ToString(r)
-			var panicMsg string
-			if !strings.HasPrefix(strErr, "panic:") {
-				panicMsg = fmt.Sprintf("panic:%s\nStack trace:\n%s", strErr, stack)
-			} else {
-				panicMsg = fmt.Sprintf("%s\nStack trace:\n%s", strErr, stack)
-			}
-			ch <- panicMsg
+			ch <- ccxt.PanicMessage(r)
 		}
 	}
 }
