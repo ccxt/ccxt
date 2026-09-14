@@ -3177,7 +3177,7 @@ class bingx extends Exchange {
 
     private function do_create_market_order_with_cost(string $symbol, string $side, float $cost, $params = array()) {
         /**
-         * create a market order by providing the $symbol, $side and $cost
+         * create a spot market order by providing the $symbol, $side and $cost
          * @param {string} $symbol unified $symbol of the market to create an order in
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $cost how much you want to trade in units of the quote currency
@@ -3194,7 +3194,7 @@ class bingx extends Exchange {
 
     private function do_create_market_buy_order_with_cost(string $symbol, float $cost, $params = array()) {
         /**
-         * create a market buy order by providing the $symbol and $cost
+         * create a spot market buy order by providing the $symbol and $cost
          * @param {string} $symbol unified $symbol of the market to create an order in
          * @param {float} $cost how much you want to trade in units of the quote currency
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -3210,7 +3210,7 @@ class bingx extends Exchange {
 
     private function do_create_market_sell_order_with_cost(string $symbol, float $cost, $params = array()) {
         /**
-         * create a market sell order by providing the $symbol and $cost
+         * create a spot market sell order by providing the $symbol and $cost
          * @param {string} $symbol unified $symbol of the market to create an order in
          * @param {float} $cost how much you want to trade in units of the quote currency
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -3239,6 +3239,10 @@ class bingx extends Exchange {
          * @return {array} $request to be sent to the exchange
          */
         $market = $this->market($symbol);
+        $cost = $this->safe_string_2($params, 'cost', 'quoteOrderQty');
+        if (($market['contract'] === true) && ($cost !== null)) {
+            throw new NotSupported($this->id . ' createOrder() with $cost or quoteOrderQty is not supported for contract markets');
+        }
         $postOnly = null;
         $marketType = null;
         list($marketType, $params) = $this->handle_market_type_and_params('createOrder', $market, $params);
@@ -3275,8 +3279,7 @@ class bingx extends Exchange {
             $request['timeInForce'] = 'GTC';
         }
         if ($isSpot) {
-            $cost = $this->safe_string_2($params, 'cost', 'quoteOrderQty');
-            $params = $this->omit($params, 'cost');
+            $params = $this->omit($params, array( 'cost', 'quoteOrderQty' ));
             if ($cost !== null) {
                 $request['quoteOrderQty'] = $this->parse_to_numeric($this->cost_to_precision($symbol, $cost));
             } else {
@@ -3406,7 +3409,11 @@ class bingx extends Exchange {
                         $slRequest['price'] = $this->parse_to_numeric($this->price_to_precision($symbol, $slPrice));
                     }
                     $slQuantity = $this->safe_string($stopLossDict, 'quantity', $stringifiedAmount);
-                    $slRequest['quantity'] = $this->parse_to_numeric($this->amount_to_precision($symbol, $slQuantity));
+                    $slQuantityRequest = $this->parse_to_numeric($slQuantity);
+                    if ($market['inverse'] !== true) {
+                        $slQuantityRequest = $this->parse_to_numeric($this->amount_to_precision($symbol, $slQuantity));
+                    }
+                    $slRequest['quantity'] = $slQuantityRequest;
                     $request['stopLoss'] = $this->json($slRequest);
                 }
                 if ($hasTakeProfit) {
@@ -3423,7 +3430,11 @@ class bingx extends Exchange {
                         $tpRequest['price'] = $this->parse_to_numeric($this->price_to_precision($symbol, $slPrice));
                     }
                     $tkQuantity = $this->safe_string($takeProfitDict, 'quantity', $stringifiedAmount);
-                    $tpRequest['quantity'] = $this->parse_to_numeric($this->amount_to_precision($symbol, $tkQuantity));
+                    $tkQuantityRequest = $this->parse_to_numeric($tkQuantity);
+                    if ($market['inverse'] !== true) {
+                        $tkQuantityRequest = $this->parse_to_numeric($this->amount_to_precision($symbol, $tkQuantity));
+                    }
+                    $tpRequest['quantity'] = $tkQuantityRequest;
                     $request['takeProfit'] = $this->json($tpRequest);
                 }
             }
@@ -3479,7 +3490,8 @@ class bingx extends Exchange {
          * @param {float} [$params->triggerPrice] triggerPrice at which the attached take profit / stop loss order will be triggered
          * @param {float} [$params->stopLossPrice] stop loss trigger $price
          * @param {float} [$params->takeProfitPrice] take profit trigger $price
-         * @param {float} [$params->cost] the quote quantity that can be used as an alternative for the $amount
+         * @param {float} [$params->cost] *spot only* the quote quantity that can be used as an alternative for the $amount
+         * @param {float} [$params->quoteOrderQty] *spot only* the quote quantity, an alternative to $params->cost
          * @param {float} [$params->trailingAmount] *swap only* the quote $amount to trail away from the current $market $price
          * @param {float} [$params->trailingPercent] *swap only* the percent to trail away from the current $market $price
          * @param {array} [$params->takeProfit] *$takeProfit object in $params* containing the triggerPrice at which the attached take profit order will be triggered

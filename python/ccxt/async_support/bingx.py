@@ -2970,7 +2970,7 @@ class bingx(Exchange, ImplicitAPI):
 
     async def create_market_order_with_cost(self, symbol: str, side: OrderSide, cost: float, params: dict = {}):
         """
-        create a market order by providing the symbol, side and cost
+        create a spot market order by providing the symbol, side and cost
         :param str symbol: unified symbol of the market to create an order in
         :param str side: 'buy' or 'sell'
         :param float cost: how much you want to trade in units of the quote currency
@@ -2982,7 +2982,7 @@ class bingx(Exchange, ImplicitAPI):
 
     async def create_market_buy_order_with_cost(self, symbol: str, cost: float, params: dict = {}):
         """
-        create a market buy order by providing the symbol and cost
+        create a spot market buy order by providing the symbol and cost
         :param str symbol: unified symbol of the market to create an order in
         :param float cost: how much you want to trade in units of the quote currency
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -2993,7 +2993,7 @@ class bingx(Exchange, ImplicitAPI):
 
     async def create_market_sell_order_with_cost(self, symbol: str, cost: float, params: dict = {}):
         """
-        create a market sell order by providing the symbol and cost
+        create a spot market sell order by providing the symbol and cost
         :param str symbol: unified symbol of the market to create an order in
         :param float cost: how much you want to trade in units of the quote currency
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -3019,6 +3019,9 @@ class bingx(Exchange, ImplicitAPI):
         :returns dict: request to be sent to the exchange
         """
         market = self.market(symbol)
+        cost = self.safe_string_2(params, 'cost', 'quoteOrderQty')
+        if (market['contract'] is True) and (cost is not None):
+            raise NotSupported(self.id + ' createOrder() with cost or quoteOrderQty is not supported for contract markets')
         postOnly = None
         marketType = None
         marketType, params = self.handle_market_type_and_params('createOrder', market, params)
@@ -3052,8 +3055,7 @@ class bingx(Exchange, ImplicitAPI):
         elif timeInForce == 'GTC':
             request['timeInForce'] = 'GTC'
         if isSpot:
-            cost = self.safe_string_2(params, 'cost', 'quoteOrderQty')
-            params = self.omit(params, 'cost')
+            params = self.omit(params, ['cost', 'quoteOrderQty'])
             if cost is not None:
                 request['quoteOrderQty'] = self.parse_to_numeric(self.cost_to_precision(symbol, cost))
             else:
@@ -3164,7 +3166,10 @@ class bingx(Exchange, ImplicitAPI):
                     if slPrice is not None:
                         slRequest['price'] = self.parse_to_numeric(self.price_to_precision(symbol, slPrice))
                     slQuantity = self.safe_string(stopLossDict, 'quantity', stringifiedAmount)
-                    slRequest['quantity'] = self.parse_to_numeric(self.amount_to_precision(symbol, slQuantity))
+                    slQuantityRequest = self.parse_to_numeric(slQuantity)
+                    if market['inverse'] is not True:
+                        slQuantityRequest = self.parse_to_numeric(self.amount_to_precision(symbol, slQuantity))
+                    slRequest['quantity'] = slQuantityRequest
                     request['stopLoss'] = self.json(slRequest)
                 if hasTakeProfit:
                     tkTriggerPrice = self.safe_string_2(takeProfitDict, 'triggerPrice', 'stopPrice')
@@ -3179,7 +3184,10 @@ class bingx(Exchange, ImplicitAPI):
                     if slPrice is not None:
                         tpRequest['price'] = self.parse_to_numeric(self.price_to_precision(symbol, slPrice))
                     tkQuantity = self.safe_string(takeProfitDict, 'quantity', stringifiedAmount)
-                    tpRequest['quantity'] = self.parse_to_numeric(self.amount_to_precision(symbol, tkQuantity))
+                    tkQuantityRequest = self.parse_to_numeric(tkQuantity)
+                    if market['inverse'] is not True:
+                        tkQuantityRequest = self.parse_to_numeric(self.amount_to_precision(symbol, tkQuantity))
+                    tpRequest['quantity'] = tkQuantityRequest
                     request['takeProfit'] = self.json(tpRequest)
             positionSide = None
             hedged = self.safe_bool(params, 'hedged', False)
@@ -3223,7 +3231,8 @@ class bingx(Exchange, ImplicitAPI):
         :param float [params.triggerPrice]: triggerPrice at which the attached take profit / stop loss order will be triggered
         :param float [params.stopLossPrice]: stop loss trigger price
         :param float [params.takeProfitPrice]: take profit trigger price
-        :param float [params.cost]: the quote quantity that can be used as an alternative for the amount
+        :param float [params.cost]: *spot only* the quote quantity that can be used as an alternative for the amount
+        :param float [params.quoteOrderQty]: *spot only* the quote quantity, an alternative to params.cost
         :param float [params.trailingAmount]: *swap only* the quote amount to trail away from the current market price
         :param float [params.trailingPercent]: *swap only* the percent to trail away from the current market price
         :param dict [params.takeProfit]: *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered

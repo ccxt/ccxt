@@ -488,13 +488,18 @@ fetch the trading fees for a market
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
 **Returns**: <code>object</code> - a [fee structure](https://docs.ccxt.com/?id=fee-structure)
 
-**See**: https://www.bitget.com/api-doc/common/public/Get-Trade-Rate  
+**See**
+
+- https://www.bitget.com/api-doc/common/public/Get-Trade-Rate
+- https://www.bitget.com/docs/catalog/account/assets-balance#get-account-fee-rate
+
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | symbol | <code>string</code> | Yes | unified market symbol |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.marginMode | <code>string</code> | No | 'isolated' or 'cross', for finding the fee rate of spot margin trading pairs |
+| params.uta | <code>boolean</code> | No | set to true for the unified trading account (uta), defaults to false |
 
 
 ```javascript
@@ -515,6 +520,7 @@ fetch the trading fees for multiple markets
 - https://www.bitget.com/api-doc/spot/market/Get-Symbols
 - https://www.bitget.com/api-doc/contract/market/Get-All-Symbols-Contracts
 - https://www.bitget.com/api-doc/margin/common/support-currencies
+- https://www.bitget.com/docs/catalog/account/risk-position#get-all-symbol-fee-rates
 
 
 | Param | Type | Required | Description |
@@ -522,6 +528,7 @@ fetch the trading fees for multiple markets
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.productType | <code>string</code> | No | *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES' |
 | params.margin | <code>boolean</code> | No | set to true for spot margin |
+| params.uta | <code>boolean</code> | No | set to true for the unified trading account (uta), defaults to false |
 
 
 ```javascript

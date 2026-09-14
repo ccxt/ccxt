@@ -168,6 +168,49 @@ public partial class testMainClass : BaseTest
                 assert(Precise.stringLe(quoteVolume, baseHigh), add("quoteVolume should be <= baseVolume * high", logText));
             }
         }
+        //
+        // change & percentage
+        //
+        // the Manual defines both against open: change is `last - open`, and
+        // percentage is `(change/open) * 100`
+        string? changeString = exchange.safeString(entry, "change");
+        string? percentageString = exchange.safeString(entry, "percentage");
+        if (isTrue(isTrue(isTrue(isTrue((!isEqual(changeString, null))) && isTrue((!isEqual(open, null)))) && isTrue((!isEqual(close, null)))) && !isTrue((inOp(skippedProperties, "compareChange")))))
+        {
+            // the window is the larger of two roundings: float residue on a change
+            // safeTicker derived, which needs a part per million of the price, and an
+            // exchange's own rounding, which its reported decimals reveal
+            string? pricePart = Precise.stringDiv(Precise.stringAbs(close), "1000000");
+            int changeDecimals = exchange.precisionFromString(changeString);
+            // exponent notation ("1e4") makes `precisionFromString` return a negative
+            // count, which `parsePrecision` would turn into a step of 10000 - a string
+            // like that reveals no rounding at all, so fall back to the price part
+            // instead of letting it widen the window
+            string? changeWindow = pricePart;
+            if (isTrue(isGreaterThanOrEqual(changeDecimals, 0)))
+            {
+                string? changeQuantum = exchange.parsePrecision(exchange.numberToString(changeDecimals));
+                // a change of "0" prints no decimals, so its apparent step is a whole unit
+                // and accepts anything on a micro-priced asset. a per cent of the price
+                // caps it, and covers whole units on a price in the tens of thousands
+                string? quantumCap = Precise.stringDiv(Precise.stringAbs(close), "100");
+                changeQuantum = Precise.stringMin(changeQuantum, quantumCap);
+                changeWindow = Precise.stringMax(pricePart, changeQuantum);
+            }
+            string? difference = Precise.stringAbs(Precise.stringSub(changeString, Precise.stringSub(close, open)));
+            assert(Precise.stringLe(difference, changeWindow), add("`change` should be `last - open`", logText));
+        }
+        if (isTrue(isTrue(isTrue(isTrue((!isEqual(changeString, null))) && isTrue((!isEqual(percentageString, null)))) && isTrue((!isEqual(open, null)))) && !isTrue((inOp(skippedProperties, "comparePercentage")))))
+        {
+            string? derived = Precise.stringMul(Precise.stringDiv(changeString, open), "100");
+            // exchanges round the percentage, so allow one part in fifty of the derived
+            // value plus a floor for moves near zero. a ratio where a percentage
+            // belongs is out by a hundred and clears that by three orders of magnitude
+            string? relative = Precise.stringDiv(Precise.stringAbs(derived), "50");
+            string? allowed = Precise.stringMax(relative, "0.01");
+            string? gap = Precise.stringAbs(Precise.stringSub(percentageString, derived));
+            assert(Precise.stringLe(gap, allowed), add("`percentage` should be `(change/open) * 100`", logText));
+        }
         // open and close should be between High & Low
         if (isTrue(isTrue(isTrue(!isEqual(high, null)) && isTrue(!isEqual(low, null))) && !isTrue((inOp(skippedProperties, "compareOHLC")))))
         {

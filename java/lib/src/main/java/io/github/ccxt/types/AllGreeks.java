@@ -7,12 +7,13 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.NoSuchElementException;
 
-public final class AllGreeks {
+public final class AllGreeks extends TypedMap {
     public Map<String, Greeks> greeks;
     public Map<String, Object> info;
 
     @SuppressWarnings("unchecked")
     public AllGreeks(Object raw) {
+        super(raw);
         Map<String, Object> data = TypeHelper.toMap(raw);
         this.info = TypeHelper.getInfo(data);
         this.greeks = new LinkedHashMap<>();
