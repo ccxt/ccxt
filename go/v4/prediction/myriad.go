@@ -5013,9 +5013,7 @@ func (this *Myriad) FetchRawMarketsBySearch(queries []any, options ...FetchRawMa
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchRawMarketsBySearchAsync(queries, params)
+	res := <-this.FetchRawMarketsBySearchAsync(queries, opts.Params)
 	if ccxt.IsError(res) {
 		return nil, ccxt.CreateReturnError(res)
 	}
@@ -5056,9 +5054,7 @@ func (this *Myriad) FetchEvent(id string, options ...FetchEventOptions) (ccxt.Pr
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchEventAsync(id, params)
+	res := <-this.FetchEventAsync(id, opts.Params)
 	if ccxt.IsError(res) {
 		return ccxt.PredictionEvent{}, ccxt.CreateReturnError(res)
 	}
@@ -5081,9 +5077,7 @@ func (this *Myriad) FetchRawMarketById(id string, options ...FetchRawMarketByIdO
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchRawMarketByIdAsync(id, params)
+	res := <-this.FetchRawMarketByIdAsync(id, opts.Params)
 	if ccxt.IsError(res) {
 		return map[string]any{}, ccxt.CreateReturnError(res)
 	}
@@ -5106,9 +5100,7 @@ func (this *Myriad) FetchRawQuestionById(id string, options ...FetchRawQuestionB
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchRawQuestionByIdAsync(id, params)
+	res := <-this.FetchRawQuestionByIdAsync(id, opts.Params)
 	if ccxt.IsError(res) {
 		return map[string]any{}, ccxt.CreateReturnError(res)
 	}
@@ -5131,9 +5123,7 @@ func (this *Myriad) FetchRawQuestionsBySearch(queries []string, options ...Fetch
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchRawQuestionsBySearchAsync(queries, params)
+	res := <-this.FetchRawQuestionsBySearchAsync(queries, opts.Params)
 	if ccxt.IsError(res) {
 		return nil, ccxt.CreateReturnError(res)
 	}
@@ -5174,11 +5164,7 @@ func (this *Myriad) FetchPositions(options ...FetchPositionsOptions) ([]ccxt.Pre
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var outcomes *[]string = opts.Outcomes
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchPositionsAsync(outcomes, params)
+	res := <-this.FetchPositionsAsync(opts.Outcomes, opts.Params)
 	if ccxt.IsError(res) {
 		return nil, ccxt.CreateReturnError(res)
 	}
@@ -5204,9 +5190,7 @@ func (this *Myriad) FetchTradeQuote(outcome string, side string, amount float64,
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchTradeQuoteAsync(outcome, side, amount, params)
+	res := <-this.FetchTradeQuoteAsync(outcome, side, amount, opts.Params)
 	if ccxt.IsError(res) {
 		return map[string]any{}, ccxt.CreateReturnError(res)
 	}
@@ -5236,11 +5220,7 @@ func (this *Myriad) CreateOrder(outcome string, typeVar string, side string, amo
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var price *float64 = opts.Price
-
-	var params *map[string]any = opts.Params
-	res := <-this.CreateOrderAsync(outcome, typeVar, side, amount, price, params)
+	res := <-this.CreateOrderAsync(outcome, typeVar, side, amount, opts.Price, opts.Params)
 	if ccxt.IsError(res) {
 		return ccxt.PredictionOrder{}, ccxt.CreateReturnError(res)
 	}
@@ -5261,11 +5241,7 @@ func (this *Myriad) CreateOrderbookOrder(outcome string, typeVar string, side st
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var price *float64 = opts.Price
-
-	var params *map[string]any = opts.Params
-	res := <-this.CreateOrderbookOrderAsync(outcome, typeVar, side, amount, price, params)
+	res := <-this.CreateOrderbookOrderAsync(outcome, typeVar, side, amount, opts.Price, opts.Params)
 	if ccxt.IsError(res) {
 		return ccxt.PredictionOrder{}, ccxt.CreateReturnError(res)
 	}
@@ -5289,9 +5265,7 @@ func (this *Myriad) CreateOrders(orders []ccxt.PredictionOrderRequest, options .
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var params *map[string]any = opts.Params
-	res := <-this.CreateOrdersAsync(ccxt.ConvertPredictionOrderRequestListToArray(orders), params)
+	res := <-this.CreateOrdersAsync(ccxt.ConvertPredictionOrderRequestListToArray(orders), opts.Params)
 	if ccxt.IsError(res) {
 		return nil, ccxt.CreateReturnError(res)
 	}
@@ -5323,13 +5297,7 @@ func (this *Myriad) EditOrder(id string, outcome string, typeVar string, side st
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var amount *float64 = opts.Amount
-
-	var price *float64 = opts.Price
-
-	var params *map[string]any = opts.Params
-	res := <-this.EditOrderAsync(id, outcome, typeVar, side, amount, price, params)
+	res := <-this.EditOrderAsync(id, outcome, typeVar, side, opts.Amount, opts.Price, opts.Params)
 	if ccxt.IsError(res) {
 		return ccxt.PredictionOrder{}, ccxt.CreateReturnError(res)
 	}
@@ -5360,11 +5328,7 @@ func (this *Myriad) CreateAmmOrder(outcome string, typeVar string, side string, 
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var price *float64 = opts.Price
-
-	var params *map[string]any = opts.Params
-	res := <-this.CreateAmmOrderAsync(outcome, typeVar, side, amount, price, params)
+	res := <-this.CreateAmmOrderAsync(outcome, typeVar, side, amount, opts.Price, opts.Params)
 	if ccxt.IsError(res) {
 		return ccxt.PredictionOrder{}, ccxt.CreateReturnError(res)
 	}
@@ -5388,9 +5352,7 @@ func (this *Myriad) CreateMarketBuyOrderWithCost(outcome string, cost float64, o
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var params *map[string]any = opts.Params
-	res := <-this.CreateMarketBuyOrderWithCostAsync(outcome, cost, params)
+	res := <-this.CreateMarketBuyOrderWithCostAsync(outcome, cost, opts.Params)
 	if ccxt.IsError(res) {
 		return ccxt.PredictionOrder{}, ccxt.CreateReturnError(res)
 	}
@@ -5415,15 +5377,7 @@ func (this *Myriad) FetchAmmOrders(options ...FetchAmmOrdersOptions) ([]ccxt.Pre
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var outcome *string = opts.Outcome
-
-	var since *int64 = opts.Since
-
-	var limit *int64 = opts.Limit
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchAmmOrdersAsync(outcome, since, limit, params)
+	res := <-this.FetchAmmOrdersAsync(opts.Outcome, opts.Since, opts.Limit, opts.Params)
 	if ccxt.IsError(res) {
 		return nil, ccxt.CreateReturnError(res)
 	}
@@ -5450,11 +5404,7 @@ func (this *Myriad) CancelOrder(id string, options ...CancelOrderOptions) (ccxt.
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var outcome *string = opts.Outcome
-
-	var params *map[string]any = opts.Params
-	res := <-this.CancelOrderAsync(id, outcome, params)
+	res := <-this.CancelOrderAsync(id, opts.Outcome, opts.Params)
 	if ccxt.IsError(res) {
 		return ccxt.PredictionOrder{}, ccxt.CreateReturnError(res)
 	}
@@ -5477,11 +5427,7 @@ func (this *Myriad) CancelAllOrders(options ...CancelAllOrdersOptions) ([]ccxt.P
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var outcome *string = opts.Outcome
-
-	var params *map[string]any = opts.Params
-	res := <-this.CancelAllOrdersAsync(outcome, params)
+	res := <-this.CancelAllOrdersAsync(opts.Outcome, opts.Params)
 	if ccxt.IsError(res) {
 		return nil, ccxt.CreateReturnError(res)
 	}
@@ -5507,11 +5453,7 @@ func (this *Myriad) CancelOrders(ids []string, options ...CancelOrdersOptions) (
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var outcome *string = opts.Outcome
-
-	var params *map[string]any = opts.Params
-	res := <-this.CancelOrdersAsync(ids, outcome, params)
+	res := <-this.CancelOrdersAsync(ids, opts.Outcome, opts.Params)
 	if ccxt.IsError(res) {
 		return nil, ccxt.CreateReturnError(res)
 	}
@@ -5535,11 +5477,7 @@ func (this *Myriad) FetchOrder(id string, options ...FetchOrderOptions) (ccxt.Pr
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var outcome *string = opts.Outcome
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchOrderAsync(id, outcome, params)
+	res := <-this.FetchOrderAsync(id, opts.Outcome, opts.Params)
 	if ccxt.IsError(res) {
 		return ccxt.PredictionOrder{}, ccxt.CreateReturnError(res)
 	}
@@ -5566,15 +5504,7 @@ func (this *Myriad) FetchOrders(options ...FetchOrdersOptions) ([]ccxt.Predictio
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var outcome *string = opts.Outcome
-
-	var since *int64 = opts.Since
-
-	var limit *int64 = opts.Limit
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchOrdersAsync(outcome, since, limit, params)
+	res := <-this.FetchOrdersAsync(opts.Outcome, opts.Since, opts.Limit, opts.Params)
 	if ccxt.IsError(res) {
 		return nil, ccxt.CreateReturnError(res)
 	}
@@ -5599,15 +5529,7 @@ func (this *Myriad) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]ccxt.P
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var outcome *string = opts.Outcome
-
-	var since *int64 = opts.Since
-
-	var limit *int64 = opts.Limit
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchOpenOrdersAsync(outcome, since, limit, params)
+	res := <-this.FetchOpenOrdersAsync(opts.Outcome, opts.Since, opts.Limit, opts.Params)
 	if ccxt.IsError(res) {
 		return nil, ccxt.CreateReturnError(res)
 	}
@@ -5632,15 +5554,7 @@ func (this *Myriad) FetchClosedOrders(options ...FetchClosedOrdersOptions) ([]cc
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var outcome *string = opts.Outcome
-
-	var since *int64 = opts.Since
-
-	var limit *int64 = opts.Limit
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchClosedOrdersAsync(outcome, since, limit, params)
+	res := <-this.FetchClosedOrdersAsync(opts.Outcome, opts.Since, opts.Limit, opts.Params)
 	if ccxt.IsError(res) {
 		return nil, ccxt.CreateReturnError(res)
 	}
@@ -5665,15 +5579,7 @@ func (this *Myriad) FetchCanceledOrders(options ...FetchCanceledOrdersOptions) (
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var outcome *string = opts.Outcome
-
-	var since *int64 = opts.Since
-
-	var limit *int64 = opts.Limit
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchCanceledOrdersAsync(outcome, since, limit, params)
+	res := <-this.FetchCanceledOrdersAsync(opts.Outcome, opts.Since, opts.Limit, opts.Params)
 	if ccxt.IsError(res) {
 		return nil, ccxt.CreateReturnError(res)
 	}
@@ -5700,15 +5606,7 @@ func (this *Myriad) FetchMyTrades(options ...FetchMyTradesOptions) ([]ccxt.Predi
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var outcome *string = opts.Outcome
-
-	var since *int64 = opts.Since
-
-	var limit *int64 = opts.Limit
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchMyTradesAsync(outcome, since, limit, params)
+	res := <-this.FetchMyTradesAsync(opts.Outcome, opts.Since, opts.Limit, opts.Params)
 	if ccxt.IsError(res) {
 		return nil, ccxt.CreateReturnError(res)
 	}
@@ -5751,9 +5649,7 @@ func (this *Myriad) FetchTicker(outcome string, options ...ccxt.FetchTickerOptio
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchTickerAsync(outcome, params)
+	res := <-this.FetchTickerAsync(outcome, opts.Params)
 	if ccxt.IsError(res) {
 		return ccxt.PredictionTicker{}, ccxt.CreateReturnError(res)
 	}
@@ -5776,9 +5672,7 @@ func (this *Myriad) FetchTradingFee(outcome string, options ...ccxt.FetchTrading
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchTradingFeeAsync(outcome, params)
+	res := <-this.FetchTradingFeeAsync(outcome, opts.Params)
 	if ccxt.IsError(res) {
 		return ccxt.PredictionTradingFee{}, ccxt.CreateReturnError(res)
 	}
@@ -5802,11 +5696,7 @@ func (this *Myriad) FetchOrderBook(outcome string, options ...ccxt.FetchOrderBoo
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var limit *int64 = opts.Limit
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchOrderBookAsync(outcome, limit, params)
+	res := <-this.FetchOrderBookAsync(outcome, opts.Limit, opts.Params)
 	if ccxt.IsError(res) {
 		return ccxt.PredictionOrderBook{}, ccxt.CreateReturnError(res)
 	}
@@ -5832,15 +5722,7 @@ func (this *Myriad) FetchOHLCV(outcome string, options ...ccxt.FetchOHLCVOptions
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var timeframe *string = opts.Timeframe
-
-	var since *int64 = opts.Since
-
-	var limit *int64 = opts.Limit
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchOHLCVAsync(outcome, timeframe, since, limit, params)
+	res := <-this.FetchOHLCVAsync(outcome, opts.Timeframe, opts.Since, opts.Limit, opts.Params)
 	if ccxt.IsError(res) {
 		return nil, ccxt.CreateReturnError(res)
 	}
@@ -5863,11 +5745,7 @@ func (this *Myriad) FetchTickers(options ...FetchTickersOptions) (ccxt.Predictio
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var outcomes *[]string = opts.Outcomes
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchTickersAsync(outcomes, params)
+	res := <-this.FetchTickersAsync(opts.Outcomes, opts.Params)
 	if ccxt.IsError(res) {
 		return ccxt.PredictionTickers{}, ccxt.CreateReturnError(res)
 	}
@@ -5892,13 +5770,7 @@ func (this *Myriad) FetchTrades(outcome string, options ...ccxt.FetchTradesOptio
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var since *int64 = opts.Since
-
-	var limit *int64 = opts.Limit
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchTradesAsync(outcome, since, limit, params)
+	res := <-this.FetchTradesAsync(outcome, opts.Since, opts.Limit, opts.Params)
 	if ccxt.IsError(res) {
 		return nil, ccxt.CreateReturnError(res)
 	}
@@ -5944,11 +5816,7 @@ func (this *Myriad) WatchOrderBook(outcome string, options ...ccxt.WatchOrderBoo
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var limit *int64 = opts.Limit
-
-	var params *map[string]any = opts.Params
-	res := <-this.WatchOrderBookAsync(outcome, limit, params)
+	res := <-this.WatchOrderBookAsync(outcome, opts.Limit, opts.Params)
 	if ccxt.IsError(res) {
 		return ccxt.PredictionOrderBook{}, ccxt.CreateReturnError(res)
 	}
@@ -5973,13 +5841,7 @@ func (this *Myriad) WatchTrades(outcome string, options ...ccxt.WatchTradesOptio
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var since *int64 = opts.Since
-
-	var limit *int64 = opts.Limit
-
-	var params *map[string]any = opts.Params
-	res := <-this.WatchTradesAsync(outcome, since, limit, params)
+	res := <-this.WatchTradesAsync(outcome, opts.Since, opts.Limit, opts.Params)
 	if ccxt.IsError(res) {
 		return nil, ccxt.CreateReturnError(res)
 	}
@@ -6005,15 +5867,7 @@ func (this *Myriad) WatchMyTrades(options ...WatchMyTradesOptions) ([]ccxt.Predi
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var outcome *string = opts.Outcome
-
-	var since *int64 = opts.Since
-
-	var limit *int64 = opts.Limit
-
-	var params *map[string]any = opts.Params
-	res := <-this.WatchMyTradesAsync(outcome, since, limit, params)
+	res := <-this.WatchMyTradesAsync(opts.Outcome, opts.Since, opts.Limit, opts.Params)
 	if ccxt.IsError(res) {
 		return nil, ccxt.CreateReturnError(res)
 	}
@@ -6036,9 +5890,7 @@ func (this *Myriad) WatchTicker(outcome string, options ...ccxt.WatchTickerOptio
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var params *map[string]any = opts.Params
-	res := <-this.WatchTickerAsync(outcome, params)
+	res := <-this.WatchTickerAsync(outcome, opts.Params)
 	if ccxt.IsError(res) {
 		return ccxt.PredictionTicker{}, ccxt.CreateReturnError(res)
 	}
@@ -6061,11 +5913,7 @@ func (this *Myriad) WatchTickers(options ...WatchTickersOptions) (ccxt.Predictio
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var outcomes *[]string = opts.Outcomes
-
-	var params *map[string]any = opts.Params
-	res := <-this.WatchTickersAsync(outcomes, params)
+	res := <-this.WatchTickersAsync(opts.Outcomes, opts.Params)
 	if ccxt.IsError(res) {
 		return ccxt.PredictionTickers{}, ccxt.CreateReturnError(res)
 	}
@@ -6091,15 +5939,7 @@ func (this *Myriad) WatchOHLCV(outcome string, options ...ccxt.WatchOHLCVOptions
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var timeframe *string = opts.Timeframe
-
-	var since *int64 = opts.Since
-
-	var limit *int64 = opts.Limit
-
-	var params *map[string]any = opts.Params
-	res := <-this.WatchOHLCVAsync(outcome, timeframe, since, limit, params)
+	res := <-this.WatchOHLCVAsync(outcome, opts.Timeframe, opts.Since, opts.Limit, opts.Params)
 	if ccxt.IsError(res) {
 		return nil, ccxt.CreateReturnError(res)
 	}
@@ -6124,15 +5964,7 @@ func (this *Myriad) WatchOrders(options ...WatchOrdersOptions) ([]ccxt.Predictio
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var outcome *string = opts.Outcome
-
-	var since *int64 = opts.Since
-
-	var limit *int64 = opts.Limit
-
-	var params *map[string]any = opts.Params
-	res := <-this.WatchOrdersAsync(outcome, since, limit, params)
+	res := <-this.WatchOrdersAsync(opts.Outcome, opts.Since, opts.Limit, opts.Params)
 	if ccxt.IsError(res) {
 		return nil, ccxt.CreateReturnError(res)
 	}
@@ -6157,15 +5989,7 @@ func (this *Myriad) WatchPositions(options ...WatchPositionsOptions) ([]ccxt.Pre
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var outcomes *[]string = opts.Outcomes
-
-	var since *int64 = opts.Since
-
-	var limit *int64 = opts.Limit
-
-	var params *map[string]any = opts.Params
-	res := <-this.WatchPositionsAsync(outcomes, since, limit, params)
+	res := <-this.WatchPositionsAsync(opts.Outcomes, opts.Since, opts.Limit, opts.Params)
 	if ccxt.IsError(res) {
 		return nil, ccxt.CreateReturnError(res)
 	}
@@ -6196,9 +6020,7 @@ func (this *Myriad) CreateMarketSellOrderWithCost(outcome string, cost float64, 
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var params *map[string]any = opts.Params
-	res := <-this.CreateMarketSellOrderWithCostAsync(outcome, cost, params)
+	res := <-this.CreateMarketSellOrderWithCostAsync(outcome, cost, opts.Params)
 	if ccxt.IsError(res) {
 		return ccxt.PredictionOrder{}, ccxt.CreateReturnError(res)
 	}
@@ -6343,9 +6165,7 @@ func (this *Myriad) FetchOpenInterest(outcome string, options ...ccxt.FetchOpenI
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchOpenInterestAsync(outcome, params)
+	res := <-this.FetchOpenInterestAsync(outcome, opts.Params)
 	if ccxt.IsError(res) {
 		return ccxt.PredictionOpenInterest{}, ccxt.CreateReturnError(res)
 	}
@@ -6373,15 +6193,7 @@ func (this *Myriad) FetchOrderTrades(id string, options ...FetchOrderTradesOptio
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var outcome *string = opts.Outcome
-
-	var since *int64 = opts.Since
-
-	var limit *int64 = opts.Limit
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchOrderTradesAsync(id, outcome, since, limit, params)
+	res := <-this.FetchOrderTradesAsync(id, opts.Outcome, opts.Since, opts.Limit, opts.Params)
 	if ccxt.IsError(res) {
 		return nil, ccxt.CreateReturnError(res)
 	}
@@ -6397,9 +6209,7 @@ func (this *Myriad) FetchPosition(outcome string, options ...ccxt.FetchPositionO
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchPositionAsync(outcome, params)
+	res := <-this.FetchPositionAsync(outcome, opts.Params)
 	if ccxt.IsError(res) {
 		return ccxt.PredictionPosition{}, ccxt.CreateReturnError(res)
 	}
