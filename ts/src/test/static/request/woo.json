@@ -3,6 +3,35 @@
     "skipKeys": [],
     "outputType": "urlencoded",
     "methods": {
+        "fetchTicker": [
+            {
+                "description": "Swap ticker",
+                "method": "fetchTicker",
+                "url": "https://api.woox.io/v3/public/futures?symbol=PERP_BTC_USDT",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            }
+        ],
+        "fetchTickers": [
+            {
+                "description": "All swap tickers",
+                "method": "fetchTickers",
+                "url": "https://api.woox.io/v3/public/futures",
+                "input": []
+            },
+            {
+                "description": "Filtered swap tickers, filtering is client-side",
+                "method": "fetchTickers",
+                "url": "https://api.woox.io/v3/public/futures",
+                "input": [
+                    [
+                        "BTC/USDT:USDT",
+                        "ETH/USDT:USDT"
+                    ]
+                ]
+            }
+        ],
         "withdraw": [
             {
                 "description": "withdraw v3",
