@@ -1458,7 +1458,8 @@ class bitget extends bitget$1["default"] {
                     '40014': errors.PermissionDenied, // Incorrect permissions
                     '40015': errors.ExchangeError, // System is abnormal, please try again later
                     '40016': errors.PermissionDenied, // The user must bind the phone or Google
-                    '40017': errors.ExchangeError, // Parameter verification failed
+                    '40017': errors.BadRequest, // Parameter verification failed
+                    '400172': errors.BadRequest, // {"code":"400172","msg":"Parameter verification failed","requestTime":1789206270550,"data":null} - v3 uta twin of 40017
                     '40018': errors.PermissionDenied, // Invalid IP
                     '40019': errors.BadRequest, // {"code":"40019","msg":"Parameter QLCUSDT_SPBL cannot be empty","requestTime":1679196063659,"data":null}
                     '40031': errors.AccountSuspended, // The account has been cancelled and cannot be used again
@@ -4387,9 +4388,11 @@ class bitget extends bitget$1["default"] {
      * @name bitget#fetchTradingFee
      * @description fetch the trading fees for a market
      * @see https://www.bitget.com/api-doc/common/public/Get-Trade-Rate
+     * @see https://www.bitget.com/docs/catalog/account/assets-balance#get-account-fee-rate
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.marginMode] 'isolated' or 'cross', for finding the fee rate of spot margin trading pairs
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
     async fetchTradingFee(symbol, params = {}) {
@@ -4400,6 +4403,27 @@ class bitget extends bitget$1["default"] {
         const request = {
             'symbol': market['id'],
         };
+        let uta = undefined;
+        [uta, params] = await this.handleUTAAndParams(params, 'fetchTradingFee', false);
+        if (uta === true) {
+            let productType = undefined;
+            [productType, params] = this.handleProductTypeAndParams(market, params);
+            request['category'] = productType;
+            const utaResponse = await this.privateUtaGetV3AccountFeeRate(this.extend(request, params));
+            //
+            //     {
+            //         "code": "00000",
+            //         "msg": "success",
+            //         "requestTime": 1789206261241,
+            //         "data": {
+            //             "makerFeeRate": "0.001",
+            //             "takerFeeRate": "0.001"
+            //         }
+            //     }
+            //
+            const utaData = this.safeDict(utaResponse, 'data', {});
+            return this.parseTradingFee(utaData, market);
+        }
         let marginMode = undefined;
         [marginMode, params] = this.handleMarginModeAndParams('fetchTradingFee', params);
         if (market['spot'] === true) {
@@ -4435,9 +4459,11 @@ class bitget extends bitget$1["default"] {
      * @see https://www.bitget.com/api-doc/spot/market/Get-Symbols
      * @see https://www.bitget.com/api-doc/contract/market/Get-All-Symbols-Contracts
      * @see https://www.bitget.com/api-doc/margin/common/support-currencies
+     * @see https://www.bitget.com/docs/catalog/account/risk-position#get-all-symbol-fee-rates
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.productType] *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
      * @param {boolean} [params.margin] set to true for spot margin
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
     async fetchTradingFees(params = {}) {
@@ -4449,6 +4475,60 @@ class bitget extends bitget$1["default"] {
         let marketType = undefined;
         [marginMode, params] = this.handleMarginModeAndParams('fetchTradingFees', params);
         [marketType, params] = this.handleMarketTypeAndParams('fetchTradingFees', undefined, params);
+        let uta = undefined;
+        [uta, params] = await this.handleUTAAndParams(params, 'fetchTradingFees', false);
+        if (uta === true) {
+            const utaMargin = this.safeBool(params, 'margin', false);
+            params = this.omit(params, 'margin');
+            const request = {};
+            if (marketType === 'spot') {
+                if ((marginMode !== undefined) || (utaMargin === true)) {
+                    request['category'] = 'MARGIN';
+                }
+                else {
+                    request['category'] = 'SPOT';
+                }
+            }
+            else if ((marketType === 'swap') || (marketType === 'future')) {
+                let productType = undefined;
+                [productType, params] = this.handleProductTypeAndParams(undefined, params);
+                request['category'] = productType;
+            }
+            else {
+                throw new errors.NotSupported(this.id + ' does not support ' + marketType + ' market');
+            }
+            const utaResponse = await this.privateUtaGetV3AccountAllFeeRate(this.extend(request, params));
+            //
+            //     {
+            //         "code": "00000",
+            //         "msg": "success",
+            //         "requestTime": 1789206286428,
+            //         "data": [
+            //             {
+            //                 "makerFeeRate": "0.00036",
+            //                 "takerFeeRate": "0.001",
+            //                 "symbol": "BTCUSDT"
+            //             }
+            //         ]
+            //     }
+            //
+            const rows = this.safeList(utaResponse, 'data', []);
+            const utaResult = {};
+            for (let i = 0; i < rows.length; i++) {
+                const entry = rows[i];
+                const entryMarketId = this.safeString(entry, 'symbol');
+                if ((entryMarketId === undefined) || (this.markets_by_id === undefined) || !(entryMarketId in this.markets_by_id)) {
+                    continue; // skip ids missing from the loaded market map, a raw id must not become a unified symbol key
+                }
+                const entryMarket = this.safeMarket(entryMarketId, undefined, undefined, marketType);
+                const entrySymbol = this.safeString(entryMarket, 'symbol');
+                if ((entrySymbol === undefined) || (entrySymbol === entryMarketId)) {
+                    continue; // safeMarket found no market of this type and fell back to a raw-id structure
+                }
+                utaResult[entrySymbol] = this.parseTradingFee(entry, entryMarket);
+            }
+            return utaResult;
+        }
         if (marketType === 'spot') {
             const margin = this.safeBool(params, 'margin', false);
             params = this.omit(params, 'margin');

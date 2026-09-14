@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.weex import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currencies, Currency, CurrencyInterface, Int, LastPrice, LastPrices, LedgerEntry, Leverage, Leverages, MarginMode, MarginModes, MarginModification, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, PositionModeInfo, Status, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, TransferEntry
+from ccxt.base.types import Balances, Currencies, Currency, CurrencyInterface, FundingHistory, Int, LastPrice, LastPrices, LedgerEntry, Leverage, Leverages, MarginMode, MarginModes, MarginModification, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, PositionModeInfo, Status, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, TransferEntry
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -105,7 +105,7 @@ class weex(Exchange, ImplicitAPI):
                 'fetchDepositsWithdrawals': False,
                 'fetchDepositWithdrawFee': False,
                 'fetchDepositWithdrawFees': False,
-                'fetchFundingHistory': False,
+                'fetchFundingHistory': True,
                 'fetchFundingInterval': False,
                 'fetchFundingIntervals': False,
                 'fetchFundingRate': True,
@@ -382,12 +382,12 @@ class weex(Exchange, ImplicitAPI):
                     '-1049': AuthenticationError,  # API_KEY_OR_PASSPHRASE_INCORRECT API key or passphrase incorrect.
                     '-1050': PermissionDenied,  # USER_STATUS_FORBIDDEN User status is abnormal.
                     '-1051': PermissionDenied,  # PERMISSION_DENIED Permission denied.
-                    '-1052': PermissionDenied,  # INSUFFICIENT_PERMISSIONS Insufficient permissions for self action.
+                    '-1052': PermissionDenied,  # INSUFFICIENT_PERMISSIONS Insufficient permissions for this action.
                     '-1053': PermissionDenied,  # PERMISSION_VALIDATION_FAILED Permission validation failed.
                     '-1055': PermissionDenied,  # USER_AUTH_NOT_SAFE User must bind phone or Google authenticator.
                     '-1056': PermissionDenied,  # ILLEGAL_IP Invalid IP address.
                     '-1057': PermissionDenied,  # USER_LOCKED User account is locked.
-                    '-1058': PermissionDenied,  # NO_PERMISSION_TRADE_PAIR No permission for self trading pair.
+                    '-1058': PermissionDenied,  # NO_PERMISSION_TRADE_PAIR No permission for this trading pair.
                     '-1115': InvalidOrder,  # INVALID_TIME_IN_FORCE Invalid timeInForce.
                     '-1116': InvalidOrder,  # INVALID_ORDER_TYPE Invalid order type.
                     '-1117': InvalidOrder,  # INVALID_SIDE Invalid side.
@@ -408,8 +408,8 @@ class weex(Exchange, ImplicitAPI):
                     '-3006': InvalidOrder,  # CONTRACT_DOES_NOT_SUPPORT_CONTRACT_UNITS Contract does not support ordering by contract units.
                     '-3007': InvalidOrder,  # CONTRACT_MAX_ORDER_QUANTITY_EXCEEDED Maximum contract order quantity exceeded.
                     '-3200': InvalidOrder,  # CONTRACT_ORDER_NOT_EXIST Order does not exist.
-                    '-3235': PermissionDenied,  # CONTRACT_NO_PERMISSION_TRADE_PAIR No permission for self trading pair.
-                    '-3236': PermissionDenied,  # CONTRACT_NO_PERMISSION_API No permission to access self API.
+                    '-3235': PermissionDenied,  # CONTRACT_NO_PERMISSION_TRADE_PAIR No permission for this trading pair.
+                    '-3236': PermissionDenied,  # CONTRACT_NO_PERMISSION_API No permission to access this API.
                     '-3313': InvalidOrder,  # CONTRACT_LEVERAGE_ERROR Leverage exceeds maximum limit.
                     '-3613': ExchangeError,  # CONTRACT_FATAL_TOKEN_NOT_SUPPORT Fatal: token ID not supported for symbol.
                     'FAILED_ORDER_NOT_FOUND': OrderNotFound,  # {"orderId":121231,"status":"FAILED","errorMsg":"FAILED_ORDER_NOT_FOUND"}
@@ -783,17 +783,17 @@ class weex(Exchange, ImplicitAPI):
         #     [
         #         {
         #             "coin": "BTC",
-        #             "depositAllEnable": True,
-        #             "withdrawAllEnable": True,
+        #             "depositAllEnable": true,
+        #             "withdrawAllEnable": true,
         #             "name": "BTC",
         #             "networkList": [
         #                 {
         #                     "network": "BTC",
         #                     "coin": "BTC",
         #                     "withdrawIntegerMultiple": 1E-8,
-        #                     "isDefault": True,
-        #                     "depositEnable": True,
-        #                     "withdrawEnable": True,
+        #                     "isDefault": true,
+        #                     "depositEnable": true,
+        #                     "withdrawEnable": true,
         #                     "depositDesc": null,
         #                     "withdrawDesc": null,
         #                     "name": "BTC",
@@ -801,7 +801,7 @@ class weex(Exchange, ImplicitAPI):
         #                     "withdrawMin": "0.002",
         #                     "depositDust": "0.00001",
         #                     "minConfirm": 3,
-        #                     "withdrawTag": False,
+        #                     "withdrawTag": false,
         #                     "contractAddressUrl": "https://www.blockchain.com/explorer/mempool/",
         #                     "contractAddress": "btc"
         #                 },
@@ -809,9 +809,9 @@ class weex(Exchange, ImplicitAPI):
         #                     "network": "BEP20(BSC)",
         #                     "coin": "BTC",
         #                     "withdrawIntegerMultiple": 1E-8,
-        #                     "isDefault": False,
-        #                     "depositEnable": True,
-        #                     "withdrawEnable": False,
+        #                     "isDefault": false,
+        #                     "depositEnable": true,
+        #                     "withdrawEnable": false,
         #                     "depositDesc": null,
         #                     "withdrawDesc": null,
         #                     "name": "BEP20(BSC)",
@@ -819,7 +819,7 @@ class weex(Exchange, ImplicitAPI):
         #                     "withdrawMin": "0.00006",
         #                     "depositDust": "0.00003",
         #                     "minConfirm": 61,
-        #                     "withdrawTag": False,
+        #                     "withdrawTag": false,
         #                     "contractAddressUrl": "",
         #                     "contractAddress": ""
         #                 }
@@ -827,17 +827,17 @@ class weex(Exchange, ImplicitAPI):
         #         },
         #         {
         #             "coin": "USDT",
-        #             "depositAllEnable": True,
-        #             "withdrawAllEnable": True,
+        #             "depositAllEnable": true,
+        #             "withdrawAllEnable": true,
         #             "name": "USDT",
         #             "networkList": [
         #                 {
         #                     "network": "TRC20",
         #                     "coin": "USDT",
         #                     "withdrawIntegerMultiple": 1E-8,
-        #                     "isDefault": True,
-        #                     "depositEnable": True,
-        #                     "withdrawEnable": True,
+        #                     "isDefault": true,
+        #                     "depositEnable": true,
+        #                     "withdrawEnable": true,
         #                     "depositDesc": null,
         #                     "withdrawDesc": null,
         #                     "name": "TRC20",
@@ -845,7 +845,7 @@ class weex(Exchange, ImplicitAPI):
         #                     "withdrawMin": "10",
         #                     "depositDust": "0.1",
         #                     "minConfirm": 20,
-        #                     "withdrawTag": False,
+        #                     "withdrawTag": false,
         #                     "contractAddressUrl": "https://tronscan.org/#/token20/",
         #                     "contractAddress": "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t"
         #                 },
@@ -853,9 +853,9 @@ class weex(Exchange, ImplicitAPI):
         #                     "network": "ERC20",
         #                     "coin": "USDT",
         #                     "withdrawIntegerMultiple": 1E-8,
-        #                     "isDefault": False,
-        #                     "depositEnable": True,
-        #                     "withdrawEnable": True,
+        #                     "isDefault": false,
+        #                     "depositEnable": true,
+        #                     "withdrawEnable": true,
         #                     "depositDesc": null,
         #                     "withdrawDesc": null,
         #                     "name": "ERC20",
@@ -863,7 +863,7 @@ class weex(Exchange, ImplicitAPI):
         #                     "withdrawMin": "20",
         #                     "depositDust": "0.1",
         #                     "minConfirm": 12,
-        #                     "withdrawTag": False,
+        #                     "withdrawTag": false,
         #                     "contractAddressUrl": "https://etherscan.io/token/",
         #                     "contractAddress": "0xdac17f958d2ee523a2206206994597c13d831ec7"
         #                 },
@@ -871,9 +871,9 @@ class weex(Exchange, ImplicitAPI):
         #                     "network": "AVALANCHE_C(AVAX_C)",
         #                     "coin": "USDT",
         #                     "withdrawIntegerMultiple": 1E-8,
-        #                     "isDefault": False,
-        #                     "depositEnable": True,
-        #                     "withdrawEnable": True,
+        #                     "isDefault": false,
+        #                     "depositEnable": true,
+        #                     "withdrawEnable": true,
         #                     "depositDesc": null,
         #                     "withdrawDesc": null,
         #                     "name": "AVALANCHE_C(AVAX_C)",
@@ -881,7 +881,7 @@ class weex(Exchange, ImplicitAPI):
         #                     "withdrawMin": "10",
         #                     "depositDust": "0.1",
         #                     "minConfirm": 35,
-        #                     "withdrawTag": False,
+        #                     "withdrawTag": false,
         #                     "contractAddressUrl": "https://avascan.info/blockchain/c/token/",
         #                     "contractAddress": "0x9702230A8Ea53601f5cD2dc00fDBc13d4dF4A8c7"
         #                 }
@@ -998,11 +998,11 @@ class weex(Exchange, ImplicitAPI):
         #         "marketBuyLimitSize": "99999",
         #         "marketSellLimitSize": "99999",
         #         "marketFallbackPriceRatio": "0",
-        #         "enableTrade": True,
-        #         "enableDisplay": True,
+        #         "enableTrade": true,
+        #         "enableDisplay": true,
         #         "displayDigitMerge": "0.01,0.1,0.5,1,5",
-        #         "displayNew": False,
-        #         "displayHot": False
+        #         "displayNew": false,
+        #         "displayHot": false
         #     }
         #
         # contract
@@ -1021,7 +1021,7 @@ class weex(Exchange, ImplicitAPI):
         #             "08:00:00",
         #             "16:00:00"
         #         ],
-        #         "forwardContractFlag": True,
+        #         "forwardContractFlag": true,
         #         "minLeverage": "1",
         #         "maxLeverage": "400",
         #         "buyLimitPriceRatio": "0.01",
@@ -1272,7 +1272,7 @@ class weex(Exchange, ImplicitAPI):
         #         "indexPrice": "2082.75"
         #     }
         #
-        # fetchMarkPrice(markPrice or indexPrice is copied from the raw 'price' field by fetchMarkPrice before parsing, depending on the requested priceType)
+        # fetchMarkPrice (markPrice or indexPrice is copied from the raw 'price' field by fetchMarkPrice before parsing, depending on the requested priceType)
         #     {
         #         "symbol": "ETHUSDT",
         #         "price": "1929.18",
@@ -1659,8 +1659,8 @@ class weex(Exchange, ImplicitAPI):
         #             "qty": "0.01000",
         #             "quoteQty": "21.1477000",
         #             "time": 1775594995485,
-        #             "isBuyerMaker": False,
-        #             "isBestMatch": True
+        #             "isBuyerMaker": false,
+        #             "isBestMatch": true
         #         }
         #     ]
         #
@@ -1678,11 +1678,11 @@ class weex(Exchange, ImplicitAPI):
         #         "qty": "0.01000",
         #         "quoteQty": "21.1477000",
         #         "time": 1775594995485,
-        #         "isBuyerMaker": False,
-        #         "isBestMatch": True
+        #         "isBuyerMaker": false,
+        #         "isBestMatch": true
         #     }
         #
-        # fetchMyTrades(spot)
+        # fetchMyTrades (spot)
         #     {
         #         "symbol": "DOGEUSDT",
         #         "id": 736825748291060702,
@@ -1692,18 +1692,18 @@ class weex(Exchange, ImplicitAPI):
         #         "quoteQty": "23.3725",
         #         "commission": "0.0233725",
         #         "time": 1775672947953,
-        #         "isBuyer": False
+        #         "isBuyer": false
         #     }
         #
-        # fetchMyTrades(contract)
+        # fetchMyTrades (contract)
         #     {
         #         "id": 737074389731770728,
         #         "orderId": 737074043320009064,
         #         "symbol": "DOGEUSDT",
-        #         "buyer": True,
+        #         "buyer": true,
         #         "commission": "0.00183500",
         #         "commissionAsset": "USDT",
-        #         "maker": True,
+        #         "maker": true,
         #         "price": "0.09175",
         #         "qty": "100",
         #         "quoteQty": "9.17500",
@@ -1941,7 +1941,7 @@ class weex(Exchange, ImplicitAPI):
         type, params = self.handle_market_type_and_params('fetchBalance', None, params)
         sandboxMode = self.safe_bool(self.options, 'sandboxMode', False)
         if (sandboxMode is True) and (requestedType is None):
-            type = 'swap'  # the demo trading API only provides the swap account, don't the default spot type break a bare fetchBalance() call
+            type = 'swap'  # the demo trading API only provides the swap account, don't let the default spot type break a bare fetchBalance() call
         response = None
         if type == 'spot':
             if sandboxMode is True:
@@ -1954,9 +1954,9 @@ class weex(Exchange, ImplicitAPI):
             #             "maker": "0.00000000",
             #             "taker": "0.00000000"
             #         },
-            #         "canTrade": True,
-            #         "canWithdraw": True,
-            #         "canDeposit": True,
+            #         "canTrade": true,
+            #         "canWithdraw": true,
+            #         "canDeposit": true,
             #         "updateTime": 1775601317093,
             #         "accountType": "SPOT",
             #         "balances": [
@@ -1977,7 +1977,7 @@ class weex(Exchange, ImplicitAPI):
             #
             #     [
             #         {
-            #             "asset": "USDT",  # SUSDT in sandbox mode
+            #             "asset": "USDT", // SUSDT in sandbox mode
             #             "balance": "20.00000000",
             #             "availableBalance": "20.00000000",
             #             "frozen": "0",
@@ -2545,7 +2545,7 @@ class weex(Exchange, ImplicitAPI):
             #         "side": "BUY",
             #         "time": 1775666888520,
             #         "updateTime": 1775666888536,
-            #         "isWorking": True
+            #         "isWorking": true
             #     }
             #
             response = self.privateGetApiV3Order(self.extend(request, params))
@@ -2607,7 +2607,7 @@ class weex(Exchange, ImplicitAPI):
             #             "side": "SELL",
             #             "time": 1775668655796,
             #             "updateTime": 1775668655810,
-            #             "isWorking": True
+            #             "isWorking": true
             #         }
             #     ]
             #
@@ -2644,8 +2644,8 @@ class weex(Exchange, ImplicitAPI):
                 #             "slPrice": null,
                 #             "tpOrderType": null,
                 #             "workingType": "CONTRACT_PRICE",
-                #             "closePosition": False,
-                #             "reduceOnly": True,
+                #             "closePosition": false,
+                #             "reduceOnly": true,
                 #             "createTime": 1775732228695,
                 #             "updateTime": 1775732228695,
                 #             "triggerTime": 0
@@ -2664,7 +2664,7 @@ class weex(Exchange, ImplicitAPI):
                 #             "orderId": 737185556881998184,
                 #             "origQty": "1400",
                 #             "price": "0.05000",
-                #             "reduceOnly": False,
+                #             "reduceOnly": false,
                 #             "side": "BUY",
                 #             "positionSide": "LONG",
                 #             "status": "NEW",
@@ -2799,7 +2799,7 @@ class weex(Exchange, ImplicitAPI):
         #             "side": "BUY",
         #             "time": 1775668439484,
         #             "updateTime": 1775668439498,
-        #             "isWorking": False
+        #             "isWorking": false
         #         }
         #     ]
         #
@@ -2859,7 +2859,7 @@ class weex(Exchange, ImplicitAPI):
         #             "orderId": 737074389744353640,
         #             "origQty": "100",
         #             "price": "0.00000",
-        #             "reduceOnly": True,
+        #             "reduceOnly": true,
         #             "side": "SELL",
         #             "positionSide": "LONG",
         #             "status": "CANCELED",
@@ -2877,7 +2877,7 @@ class weex(Exchange, ImplicitAPI):
 
     def parse_order(self, order: dict, market: Market = None) -> Order:
         #
-        # createOrder(spot)
+        # createOrder (spot)
         #     {
         #         "symbol": "DOGEUSDT",
         #         "orderId": 736557215397183592,
@@ -2885,7 +2885,7 @@ class weex(Exchange, ImplicitAPI):
         #         "transactTime": 1775608924724
         #     }
         #
-        # fetchOpenOrders / fetchOrders / fetchOrder(spot)
+        # fetchOpenOrders / fetchOrders / fetchOrder (spot)
         #     {
         #         "symbol": "DOGEUSDT",
         #         "orderId": 736800333186991070,
@@ -2900,10 +2900,10 @@ class weex(Exchange, ImplicitAPI):
         #         "side": "BUY",
         #         "time": 1775666888520,
         #         "updateTime": 1775666888536,
-        #         "isWorking": True
+        #         "isWorking": true
         #     }
         #
-        # fetchOpenOrders(contract)
+        # fetchOpenOrders (contract)
         #     {
         #         "avgPrice": "0.00000",
         #         "clientOrderId": "857e1482-3225-44ce-bc0a-947714c5cabc",
@@ -2912,7 +2912,7 @@ class weex(Exchange, ImplicitAPI):
         #         "orderId": 737185556881998184,
         #         "origQty": "1400",
         #         "price": "0.05000",
-        #         "reduceOnly": False,
+        #         "reduceOnly": false,
         #         "side": "BUY",
         #         "positionSide": "LONG",
         #         "status": "NEW",
@@ -2925,7 +2925,7 @@ class weex(Exchange, ImplicitAPI):
         #         "workingType": "UNKNOWN_PRICE_TYPE"
         #     }
         #
-        # fetchOpenOrders(contract-trigger)
+        # fetchOpenOrders (contract-trigger)
         #     {
         #         "algoId": 737074389748547944,
         #         "clientAlgoId": "d574f517-cea5-433e-b029-415590d3bb80",
@@ -2947,14 +2947,14 @@ class weex(Exchange, ImplicitAPI):
         #         "slPrice": null,
         #         "tpOrderType": null,
         #         "workingType": "CONTRACT_PRICE",
-        #         "closePosition": False,
-        #         "reduceOnly": True,
+        #         "closePosition": false,
+        #         "reduceOnly": true,
         #         "createTime": 1775732228695,
         #         "updateTime": 1775732228695,
         #         "triggerTime": 0
         #     }
         #
-        # fetchCanceledAndClosedOrders(swap only)
+        # fetchCanceledAndClosedOrders (swap only)
         #     {
         #         "avgPrice": "0.00000",
         #         "clientOrderId": "7bd80776-0c3f-4ed9-ab9c-a616d66fac5e",
@@ -2963,7 +2963,7 @@ class weex(Exchange, ImplicitAPI):
         #         "orderId": 737074389744353640,
         #         "origQty": "100",
         #         "price": "0.00000",
-        #         "reduceOnly": True,
+        #         "reduceOnly": true,
         #         "side": "SELL",
         #         "positionSide": "LONG",
         #         "status": "CANCELED",
@@ -2986,11 +2986,11 @@ class weex(Exchange, ImplicitAPI):
             marketType = 'spot' if (positionSide is None) else 'swap'
             market = self.safe_market(marketId, None, None, marketType)
         timestamp = self.safe_integer_n(order, ['transactTime', 'time', 'createTime'])
-        rawStatus = self.safe_string_lower_2(order, 'status', 'algoStatus')  # algo(trigger) order payloads carry algoStatus instead of status
+        rawStatus = self.safe_string_lower_2(order, 'status', 'algoStatus')  # algo (trigger) order payloads carry algoStatus instead of status
         triggerPrice = self.omit_zero(self.safe_string_2(order, 'triggerPrice', 'stopPrice'))
         rawType = self.safe_string_upper_2(order, 'type', 'orderType')
         isReduceOnly = self.safe_bool(order, 'reduceOnly')
-        # entry conditional orders reuse the STOP/TAKE_PROFIT types with reduceOnly set to False, their trigger price is not a stop loss / take profit price
+        # entry conditional orders reuse the STOP/TAKE_PROFIT types with reduceOnly set to false, their trigger price is not a stop loss / take profit price
         # a missing reduceOnly counts as reduce-only to keep the legacy mapping for responses that omit the field
         isEntryTrigger = not self.safe_bool(order, 'reduceOnly', True)
         takeProfitPrice = None
@@ -3144,7 +3144,7 @@ class weex(Exchange, ImplicitAPI):
             #             "quoteQty": "23.3725",
             #             "commission": "0.0233725",
             #             "time": 1775672947953,
-            #             "isBuyer": False
+            #             "isBuyer": false
             #         }
             #     ]
             #
@@ -3156,10 +3156,10 @@ class weex(Exchange, ImplicitAPI):
             #             "id": 737074389731770728,
             #             "orderId": 737074043320009064,
             #             "symbol": "DOGEUSDT",
-            #             "buyer": True,
+            #             "buyer": true,
             #             "commission": "0.00183500",
             #             "commissionAsset": "USDT",
-            #             "maker": True,
+            #             "maker": true,
             #             "price": "0.09175",
             #             "qty": "100",
             #             "quoteQty": "9.17500",
@@ -3210,9 +3210,7 @@ class weex(Exchange, ImplicitAPI):
         if code is not None:
             currency = self.currency(code)
         if accountType == 'contract':
-            if currency is None:
-                raise ExchangeError(self.id + ' fetchLedger() could not resolve currency')
-            if code is not None:
+            if currency is not None:
                 request['currency'] = currency['id']
             if since is not None:
                 request['startTime'] = since
@@ -3337,6 +3335,97 @@ class weex(Exchange, ImplicitAPI):
         }
         return self.safe_string(types, type, type)
 
+    def fetch_funding_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[FundingHistory]:
+        """
+        fetch the history of funding payments paid and received on self account
+
+        https://www.weex.com/api-doc/contract/Account_API/GetContractBills
+
+        :param str [symbol]: unified market symbol
+        :param int [since]: the earliest time in ms to fetch funding history for
+        :param int [limit]: the maximum number of funding history structures to retrieve(default 20, max 100)
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.until]: timestamp in ms of the latest funding history entry, requires since to be set, the span may not exceed 100 days
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        :returns dict[]: a list of `funding history structures <https://docs.ccxt.com/?id=funding-history-structure>`
+        """
+        if self.markets is None:
+            self.load_markets()
+        paginate = False
+        paginate, params = self.handle_option_and_params(params, 'fetchFundingHistory', 'paginate', False)
+        if paginate:
+            return self.fetch_paginated_call_dynamic('fetchFundingHistory', symbol, since, limit, params, 100)
+        market = None
+        request = {
+            'incomeType': 'position_funding',  # deposit, withdraw, transfer_in, transfer_out, margin_move_in, margin_move_out, position_open_long, position_open_short, position_close_long, position_close_short, position_funding, order_fill_fee_income, order_liquidate_fee_income, start_liquidate, finish_liquidate, order_fix_margin_amount, tracking_follow_pay, tracking_system_pre_receive, tracking_follow_back, tracking_trader_income, tracking_third_party_share
+        }
+        if symbol is not None:
+            market = self.market(symbol)
+            if market['swap'] is not True:
+                raise NotSupported(self.id + ' fetchFundingHistory() supports swap contracts only')
+            request['symbol'] = market['id']
+        if since is not None:
+            request['startTime'] = since
+        if limit is not None:
+            request['limit'] = limit
+        request, params = self.handle_until_option('endTime', request, params)
+        # the exchange rejects startTime and endTime when either is sent alone, they only work as a pair
+        hasSince = ('startTime' in request)
+        hasUntil = ('endTime' in request)
+        if hasSince and not hasUntil:
+            request['endTime'] = self.milliseconds()
+        elif hasUntil and not hasSince:
+            raise ArgumentsRequired(self.id + ' fetchFundingHistory() requires since to be set when until is used')
+        response = self.contractPrivatePostCapiV3AccountIncome(self.extend(request, params))
+        #
+        #     {
+        #         "hasNextPage": false,
+        #         "nextKey": null,
+        #         "items": [
+        #             {
+        #                 "billId": "793622764958253481",
+        #                 "asset": "USDT",
+        #                 "symbol": "VIRTUALUSDT",
+        #                 "income": "0.00000378",
+        #                 "incomeType": "position_funding",
+        #                 "balance": "29.36239410",
+        #                 "fillFee": "0",
+        #                 "time": "1789214411964",
+        #                 "transferReason": "UNKNOWN_TRANSFER_REASON"
+        #             }
+        #         ]
+        #     }
+        #
+        items = self.safe_list(response, 'items', [])
+        return self.parse_incomes(items, market, since, limit)
+
+    def parse_income(self, income: object, market: Market = None) -> object:
+        #
+        #     {
+        #         "billId": "793622764958253481",
+        #         "asset": "USDT",
+        #         "symbol": "VIRTUALUSDT",
+        #         "income": "0.00000378",
+        #         "incomeType": "position_funding",
+        #         "balance": "29.36239410",
+        #         "fillFee": "0",
+        #         "time": "1789214411964",
+        #         "transferReason": "UNKNOWN_TRANSFER_REASON"
+        #     }
+        #
+        marketId = self.safe_string(income, 'symbol')
+        currencyId = self.safe_string(income, 'asset')
+        timestamp = self.safe_integer(income, 'time')
+        return {
+            'info': income,
+            'symbol': self.safe_symbol(marketId, market, None, 'swap'),
+            'code': self.safe_currency_code(currencyId),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'id': self.safe_string(income, 'billId'),
+            'amount': self.safe_number(income, 'income'),
+        }
+
     def fetch_positions(self, symbols: Strings = None, params={}) -> list[Position]:
         """
         fetch all open positions
@@ -3413,7 +3502,7 @@ class weex(Exchange, ImplicitAPI):
         #         "fundingFee": "0",
         #         "marginSize": "100",
         #         "isolatedMargin": "0",
-        #         "isAutoAppendIsolatedMargin": False,
+        #         "isAutoAppendIsolatedMargin": false,
         #         "cumOpenSize": "300",
         #         "cumOpenValue": "27.96900",
         #         "cumOpenFee": "0.02237520",
@@ -3445,7 +3534,7 @@ class weex(Exchange, ImplicitAPI):
         #         "openFee": "0.00744880",
         #         "fundingFee": "0",
         #         "isolatedMargin": "0",
-        #         "autoAppendIsolatedMargin": False,
+        #         "autoAppendIsolatedMargin": false,
         #         "cumOpenSize": "100",
         #         "cumOpenValue": "9.31100",
         #         "cumOpenFee": "0.00744880",
@@ -3529,7 +3618,7 @@ class weex(Exchange, ImplicitAPI):
         #             "positionId": 737191855967437160,
         #             "successOrderId": 737215340433375592,
         #             "errorMessage": "",
-        #             "success": True
+        #             "success": true
         #         }
         #     ]
         #
@@ -3932,7 +4021,7 @@ class weex(Exchange, ImplicitAPI):
         sandboxMode = self.safe_bool(self.options, 'sandboxMode', False)
         baseId = self.safe_string(market, 'baseId')
         if (sandboxMode is True) and (baseId is not None):
-            # demo trading only has USDT-margined linear markets quoted in the demo asset SUSDT(e.g. BTCSUSDT), revisit if weex ever adds a non-USDT settle
+            # demo trading only has USDT-margined linear markets quoted in the demo asset SUSDT (e.g. BTCSUSDT), revisit if weex ever adds a non-USDT settle
             return baseId + 'SUSDT'
         return self.safe_string(market, 'id')
 

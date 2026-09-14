@@ -265,7 +265,7 @@ class bittrade extends Exchange {
                     'sandbox' => false,
                     'createOrder' => array(
                         'marginMode' => false,
-                        'triggerPrice' => true, // todo => implement
+                        'triggerPrice' => true, // todo: implement
                         'triggerPriceType' => null,
                         'triggerDirection' => false,
                         'stopLossPrice' => false, // todo
@@ -347,35 +347,35 @@ class bittrade extends Exchange {
                 'exact' => array(
                     // err-code
                     'bad-request' => '\\ccxt\\BadRequest',
-                    'base-date-limit-error' => '\\ccxt\\BadRequest', // array("status":"error","err-code":"base-date-limit-error","err-msg":"date less than system limit","data":null)
-                    'api-not-support-temp-addr' => '\\ccxt\\PermissionDenied', // array("status":"error","err-code":"api-not-support-temp-addr","err-msg":"API withdrawal does not support temporary addresses","data":null)
-                    'timeout' => '\\ccxt\\RequestTimeout', // array("ts":1571653730865,"status":"error","err-code":"timeout","err-msg":"Request Timeout")
-                    'gateway-internal-error' => '\\ccxt\\ExchangeNotAvailable', // array("status":"error","err-code":"gateway-internal-error","err-msg":"Failed to load data. Try again later.","data":null)
-                    'account-frozen-balance-insufficient-error' => '\\ccxt\\InsufficientFunds', // array("status":"error","err-code":"account-frozen-balance-insufficient-error","err-msg":"trade account balance is not enough, left => `0.0027`","data":null)
+                    'base-date-limit-error' => '\\ccxt\\BadRequest', // {"status":"error","err-code":"base-date-limit-error","err-msg":"date less than system limit","data":null}
+                    'api-not-support-temp-addr' => '\\ccxt\\PermissionDenied', // {"status":"error","err-code":"api-not-support-temp-addr","err-msg":"API withdrawal does not support temporary addresses","data":null}
+                    'timeout' => '\\ccxt\\RequestTimeout', // {"ts":1571653730865,"status":"error","err-code":"timeout","err-msg":"Request Timeout"}
+                    'gateway-internal-error' => '\\ccxt\\ExchangeNotAvailable', // {"status":"error","err-code":"gateway-internal-error","err-msg":"Failed to load data. Try again later.","data":null}
+                    'account-frozen-balance-insufficient-error' => '\\ccxt\\InsufficientFunds', // {"status":"error","err-code":"account-frozen-balance-insufficient-error","err-msg":"trade account balance is not enough, left: `0.0027`","data":null}
                     'invalid-amount' => '\\ccxt\\InvalidOrder', // eg "Paramemter `amount` is invalid."
-                    'order-limitorder-amount-min-error' => '\\ccxt\\InvalidOrder', // limit order amount error, min => `0.001`
-                    'order-limitorder-amount-max-error' => '\\ccxt\\InvalidOrder', // market order amount error, max => `1000000`
-                    'order-marketorder-amount-min-error' => '\\ccxt\\InvalidOrder', // market order amount error, min => `0.01`
+                    'order-limitorder-amount-min-error' => '\\ccxt\\InvalidOrder', // limit order amount error, min: `0.001`
+                    'order-limitorder-amount-max-error' => '\\ccxt\\InvalidOrder', // market order amount error, max: `1000000`
+                    'order-marketorder-amount-min-error' => '\\ccxt\\InvalidOrder', // market order amount error, min: `0.01`
                     'order-limitorder-price-min-error' => '\\ccxt\\InvalidOrder', // limit order price error
                     'order-limitorder-price-max-error' => '\\ccxt\\InvalidOrder', // limit order price error
-                    'order-holding-limit-failed' => '\\ccxt\\InvalidOrder', // array("status":"error","err-code":"order-holding-limit-failed","err-msg":"Order failed, exceeded the holding limit of this currency","data":null)
-                    'order-orderprice-precision-error' => '\\ccxt\\InvalidOrder', // array("status":"error","err-code":"order-orderprice-precision-error","err-msg":"order price precision error, scale => `4`","data":null)
-                    'order-etp-nav-price-max-error' => '\\ccxt\\InvalidOrder', // array("status":"error","err-code":"order-etp-nav-price-max-error","err-msg":"Order price cannot be higher than 5% of NAV","data":null)
+                    'order-holding-limit-failed' => '\\ccxt\\InvalidOrder', // {"status":"error","err-code":"order-holding-limit-failed","err-msg":"Order failed, exceeded the holding limit of this currency","data":null}
+                    'order-orderprice-precision-error' => '\\ccxt\\InvalidOrder', // {"status":"error","err-code":"order-orderprice-precision-error","err-msg":"order price precision error, scale: `4`","data":null}
+                    'order-etp-nav-price-max-error' => '\\ccxt\\InvalidOrder', // {"status":"error","err-code":"order-etp-nav-price-max-error","err-msg":"Order price cannot be higher than 5% of NAV","data":null}
                     'order-orderstate-error' => '\\ccxt\\OrderNotFound', // canceling an already canceled order
                     'order-queryorder-invalid' => '\\ccxt\\OrderNotFound', // querying a non-existent order
                     'order-update-error' => '\\ccxt\\ExchangeNotAvailable', // undocumented error
                     'api-signature-check-failed' => '\\ccxt\\AuthenticationError',
-                    'api-signature-not-valid' => '\\ccxt\\AuthenticationError', // array("status":"error","err-code":"api-signature-not-valid","err-msg":"Signature not valid => Incorrect Access key [Access key错误]","data":null)
+                    'api-signature-not-valid' => '\\ccxt\\AuthenticationError', // {"status":"error","err-code":"api-signature-not-valid","err-msg":"Signature not valid: Incorrect Access key [Access key错误]","data":null}
                     'base-record-invalid' => '\\ccxt\\OrderNotFound', // https://github.com/ccxt/ccxt/issues/5750
-                    'base-symbol-trade-disabled' => '\\ccxt\\BadSymbol', // array("status":"error","err-code":"base-symbol-trade-disabled","err-msg":"Trading is disabled for this symbol","data":null)
-                    'base-symbol-error' => '\\ccxt\\BadSymbol', // array("status":"error","err-code":"base-symbol-error","err-msg":"The symbol is invalid","data":null)
-                    'system-maintenance' => '\\ccxt\\OnMaintenance', // array("status" => "error", "err-code" => "system-maintenance", "err-msg" => "System is in maintenance!", "data" => null)
+                    'base-symbol-trade-disabled' => '\\ccxt\\BadSymbol', // {"status":"error","err-code":"base-symbol-trade-disabled","err-msg":"Trading is disabled for this symbol","data":null}
+                    'base-symbol-error' => '\\ccxt\\BadSymbol', // {"status":"error","err-code":"base-symbol-error","err-msg":"The symbol is invalid","data":null}
+                    'system-maintenance' => '\\ccxt\\OnMaintenance', // {"status": "error", "err-code": "system-maintenance", "err-msg": "System is in maintenance!", "data": null}
                     // err-msg
-                    'invalid symbol' => '\\ccxt\\BadSymbol', // array("ts":1568813334794,"status":"error","err-code":"invalid-parameter","err-msg":"invalid symbol")
-                    'symbol trade not open now' => '\\ccxt\\BadSymbol', // array("ts":1576210479343,"status":"error","err-code":"invalid-parameter","err-msg":"symbol trade not open now"),
-                    'invalid-address' => '\\ccxt\\BadRequest', // array("status":"error","err-code":"invalid-address","err-msg":"Invalid address.","data":null),
-                    'base-currency-chain-error' => '\\ccxt\\BadRequest', // array("status":"error","err-code":"base-currency-chain-error","err-msg":"The current currency chain does not exist","data":null),
-                    'dw-insufficient-balance' => '\\ccxt\\InsufficientFunds', // array("status":"error","err-code":"dw-insufficient-balance","err-msg":"Insufficient balance. You can only transfer `12.3456` at most.","data":null)
+                    'invalid symbol' => '\\ccxt\\BadSymbol', // {"ts":1568813334794,"status":"error","err-code":"invalid-parameter","err-msg":"invalid symbol"}
+                    'symbol trade not open now' => '\\ccxt\\BadSymbol', // {"ts":1576210479343,"status":"error","err-code":"invalid-parameter","err-msg":"symbol trade not open now"},
+                    'invalid-address' => '\\ccxt\\BadRequest', // {"status":"error","err-code":"invalid-address","err-msg":"Invalid address.","data":null},
+                    'base-currency-chain-error' => '\\ccxt\\BadRequest', // {"status":"error","err-code":"base-currency-chain-error","err-msg":"The current currency chain does not exist","data":null},
+                    'dw-insufficient-balance' => '\\ccxt\\InsufficientFunds', // {"status":"error","err-code":"dw-insufficient-balance","err-msg":"Insufficient balance. You can only transfer `12.3456` at most.","data":null}
                 ),
             ),
             'options' => array(
@@ -452,7 +452,7 @@ class bittrade extends Exchange {
     private function do_fetch_trading_limits(?array $symbols = null, $params = array()) {
         // this method should not be called directly, use loadTradingLimits () instead
         //  by default it will try load withdrawal fees of all currencies (with separate requests)
-        //  however if you define $symbols = array( 'ETH/BTC', 'LTC/BTC' ) in args it will only load those
+        //  however if you define symbols = [ 'ETH/BTC', 'LTC/BTC' ] in args it will only load those
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
@@ -480,39 +480,39 @@ class bittrade extends Exchange {
         );
         $response = Async\await($this->publicGetCommonExchange($this->extend($request, $params)));
         //
-        //     { status =>   "ok",
-        //         "data" => {                                  symbol => "aidocbtc",
-        //                              "buy-limit-must-less-than" =>  1.1,
-        //                          "sell-limit-must-greater-than" =>  0.9,
-        //                         "limit-order-must-greater-than" =>  1,
-        //                            "limit-order-must-less-than" =>  5000000,
-        //                    "market-buy-order-must-greater-than" =>  0.0001,
-        //                       "market-buy-order-must-less-than" =>  100,
-        //                   "market-sell-order-must-greater-than" =>  1,
-        //                      "market-sell-order-must-less-than" =>  500000,
-        //                       "circuit-break-when-greater-than" =>  10000,
-        //                          "circuit-break-when-less-than" =>  10,
-        //                 "market-sell-order-rate-must-less-than" =>  0.1,
-        //                  "market-buy-order-rate-must-less-than" =>  0.1        } }
+        //     { status:   "ok",
+        //         "data": {                                  symbol: "aidocbtc",
+        //                              "buy-limit-must-less-than":  1.1,
+        //                          "sell-limit-must-greater-than":  0.9,
+        //                         "limit-order-must-greater-than":  1,
+        //                            "limit-order-must-less-than":  5000000,
+        //                    "market-buy-order-must-greater-than":  0.0001,
+        //                       "market-buy-order-must-less-than":  100,
+        //                   "market-sell-order-must-greater-than":  1,
+        //                      "market-sell-order-must-less-than":  500000,
+        //                       "circuit-break-when-greater-than":  10000,
+        //                          "circuit-break-when-less-than":  10,
+        //                 "market-sell-order-rate-must-less-than":  0.1,
+        //                  "market-buy-order-rate-must-less-than":  0.1        } }
         //
         return $this->parse_trading_limits($this->safe_value($response, 'data', array()));
     }
 
     public function parse_trading_limits(mixed $limits, ?string $symbol = null, $params = array()) {
         //
-        //   {                                  $symbol => "aidocbtc",
-        //                  "buy-limit-must-less-than" =>  1.1,
-        //              "sell-limit-must-greater-than" =>  0.9,
-        //             "limit-order-must-greater-than" =>  1,
-        //                "limit-order-must-less-than" =>  5000000,
-        //        "market-buy-order-must-greater-than" =>  0.0001,
-        //           "market-buy-order-must-less-than" =>  100,
-        //       "market-sell-order-must-greater-than" =>  1,
-        //          "market-sell-order-must-less-than" =>  500000,
-        //           "circuit-break-when-greater-than" =>  10000,
-        //              "circuit-break-when-less-than" =>  10,
-        //     "market-sell-order-rate-must-less-than" =>  0.1,
-        //      "market-buy-order-rate-must-less-than" =>  0.1        }
+        //   {                                  symbol: "aidocbtc",
+        //                  "buy-limit-must-less-than":  1.1,
+        //              "sell-limit-must-greater-than":  0.9,
+        //             "limit-order-must-greater-than":  1,
+        //                "limit-order-must-less-than":  5000000,
+        //        "market-buy-order-must-greater-than":  0.0001,
+        //           "market-buy-order-must-less-than":  100,
+        //       "market-sell-order-must-greater-than":  1,
+        //          "market-sell-order-must-less-than":  500000,
+        //           "circuit-break-when-greater-than":  10000,
+        //              "circuit-break-when-less-than":  10,
+        //     "market-sell-order-rate-must-less-than":  0.1,
+        //      "market-buy-order-rate-must-less-than":  0.1        }
         //
         return array(
             'info' => $limits,
@@ -548,34 +548,34 @@ class bittrade extends Exchange {
         }
         //
         //    {
-        //        "status" => "ok",
-        //        "data" => array(
+        //        "status": "ok",
+        //        "data": [
         //            {
-        //                "base-currency" => "xrp",
-        //                "quote-currency" => "btc",
-        //                "price-precision" => 9,
-        //                "amount-precision" => 2,
-        //                "symbol-partition" => "default",
-        //                "symbol" => "xrpbtc",
-        //                "state" => "online",
-        //                "value-precision" => 8,
-        //                "min-order-amt" => 1,
-        //                "max-order-amt" => 5000000,
-        //                "min-order-value" => 0.0001,
-        //                "limit-order-min-order-amt" => 1,
-        //                "limit-order-max-order-amt" => 5000000,
-        //                "limit-order-max-buy-amt" => 5000000,
-        //                "limit-order-max-sell-amt" => 5000000,
-        //                "sell-$market-min-order-amt" => 1,
-        //                "sell-$market-max-order-amt" => 500000,
-        //                "buy-$market-max-order-value" => 100,
-        //                "leverage-ratio" => 5,
-        //                "super-$margin-leverage-ratio" => 3,
-        //                "api-trading" => "enabled",
-        //                "tags" => ""
+        //                "base-currency": "xrp",
+        //                "quote-currency": "btc",
+        //                "price-precision": 9,
+        //                "amount-precision": 2,
+        //                "symbol-partition": "default",
+        //                "symbol": "xrpbtc",
+        //                "state": "online",
+        //                "value-precision": 8,
+        //                "min-order-amt": 1,
+        //                "max-order-amt": 5000000,
+        //                "min-order-value": 0.0001,
+        //                "limit-order-min-order-amt": 1,
+        //                "limit-order-max-order-amt": 5000000,
+        //                "limit-order-max-buy-amt": 5000000,
+        //                "limit-order-max-sell-amt": 5000000,
+        //                "sell-market-min-order-amt": 1,
+        //                "sell-market-max-order-amt": 500000,
+        //                "buy-market-max-order-value": 100,
+        //                "leverage-ratio": 5,
+        //                "super-margin-leverage-ratio": 3,
+        //                "api-trading": "enabled",
+        //                "tags": ""
         //            }
         //            ...
-        //         )
+        //         ]
         //    }
         //
         $markets = $this->safe_list($response, 'data', array());
@@ -663,33 +663,33 @@ class bittrade extends Exchange {
         // fetchTicker
         //
         //     {
-        //         "amount" => 26228.672978342216,
-        //         "open" => 9078.95,
-        //         "close" => 9146.86,
-        //         "high" => 9155.41,
-        //         "id" => 209988544334,
-        //         "count" => 265846,
-        //         "low" => 8988.0,
-        //         "version" => 209988544334,
-        //         "ask" => array( 9146.87, 0.156134 ),
-        //         "vol" => 2.3822168242201668E8,
-        //         "bid" => array( 9146.86, 0.080758 ),
+        //         "amount": 26228.672978342216,
+        //         "open": 9078.95,
+        //         "close": 9146.86,
+        //         "high": 9155.41,
+        //         "id": 209988544334,
+        //         "count": 265846,
+        //         "low": 8988.0,
+        //         "version": 209988544334,
+        //         "ask": [ 9146.87, 0.156134 ],
+        //         "vol": 2.3822168242201668E8,
+        //         "bid": [ 9146.86, 0.080758 ],
         //     }
         //
         // fetchTickers
         //     {
-        //         "symbol" => "bhdht",
-        //         "open" =>  2.3938,
-        //         "high" =>  2.4151,
-        //         "low" =>  2.3323,
-        //         "close" =>  2.3909,
-        //         "amount" =>  628.992,
-        //         "vol" =>  1493.71841095,
-        //         "count" =>  2088,
-        //         "bid" =>  2.3643,
-        //         "bidSize" =>  0.7136,
-        //         "ask" =>  2.4061,
-        //         "askSize" =>  0.4156
+        //         "symbol": "bhdht",
+        //         "open":  2.3938,
+        //         "high":  2.4151,
+        //         "low":  2.3323,
+        //         "close":  2.3909,
+        //         "amount":  628.992,
+        //         "vol":  1493.71841095,
+        //         "count":  2088,
+        //         "bid":  2.3643,
+        //         "bidSize":  0.7136,
+        //         "ask":  2.4061,
+        //         "askSize":  0.4156
         //     }
         //
         $symbol = $this->safe_symbol(null, $market);
@@ -767,20 +767,20 @@ class bittrade extends Exchange {
         $response = Async\await($this->marketGetDepth($this->extend($request, $params)));
         //
         //     {
-        //         "status" => "ok",
-        //         "ch" => "market.btcusdt.depth.step0",
-        //         "ts" => 1583474832790,
-        //         "tick" => {
-        //             "bids" => array(
-        //                 array( 9100.290000000000000000, 0.200000000000000000 ),
-        //                 array( 9099.820000000000000000, 0.200000000000000000 ),
-        //                 array( 9099.610000000000000000, 0.205000000000000000 ),
-        //             ),
-        //             "asks" => array(
-        //                 array( 9100.640000000000000000, 0.005904000000000000 ),
-        //                 array( 9101.010000000000000000, 0.287311000000000000 ),
-        //                 array( 9101.030000000000000000, 0.012121000000000000 ),
-        //             ),
+        //         "status": "ok",
+        //         "ch": "market.btcusdt.depth.step0",
+        //         "ts": 1583474832790,
+        //         "tick": {
+        //             "bids": [
+        //                 [ 9100.290000000000000000, 0.200000000000000000 ],
+        //                 [ 9099.820000000000000000, 0.200000000000000000 ],
+        //                 [ 9099.610000000000000000, 0.205000000000000000 ],
+        //             ],
+        //             "asks": [
+        //                 [ 9100.640000000000000000, 0.005904000000000000 ],
+        //                 [ 9101.010000000000000000, 0.287311000000000000 ],
+        //                 [ 9101.030000000000000000, 0.012121000000000000 ],
+        //             ],
         //             "ts":1583474832008,
         //             "version":104999698780
         //         }
@@ -820,21 +820,21 @@ class bittrade extends Exchange {
         $response = Async\await($this->marketGetDetailMerged($this->extend($request, $params)));
         //
         //     {
-        //         "status" => "ok",
-        //         "ch" => "market.btcusdt.detail.merged",
-        //         "ts" => 1583494336669,
-        //         "tick" => {
-        //             "amount" => 26228.672978342216,
-        //             "open" => 9078.95,
-        //             "close" => 9146.86,
-        //             "high" => 9155.41,
-        //             "id" => 209988544334,
-        //             "count" => 265846,
-        //             "low" => 8988.0,
-        //             "version" => 209988544334,
-        //             "ask" => array( 9146.87, 0.156134 ),
-        //             "vol" => 2.3822168242201668E8,
-        //             "bid" => array( 9146.86, 0.080758 ),
+        //         "status": "ok",
+        //         "ch": "market.btcusdt.detail.merged",
+        //         "ts": 1583494336669,
+        //         "tick": {
+        //             "amount": 26228.672978342216,
+        //             "open": 9078.95,
+        //             "close": 9146.86,
+        //             "high": 9155.41,
+        //             "id": 209988544334,
+        //             "count": 265846,
+        //             "low": 8988.0,
+        //             "version": 209988544334,
+        //             "ask": [ 9146.87, 0.156134 ],
+        //             "vol": 2.3822168242201668E8,
+        //             "bid": [ 9146.86, 0.080758 ],
         //         }
         //     }
         //
@@ -882,33 +882,33 @@ class bittrade extends Exchange {
         // fetchTrades (public)
         //
         //     {
-        //         "amount" => 0.010411000000000000,
-        //         "trade-$id" => 102090736910,
-        //         "ts" => 1583497692182,
-        //         "id" => 10500517034273194594947,
-        //         "price" => 9096.050000000000000000,
-        //         "direction" => "sell"
+        //         "amount": 0.010411000000000000,
+        //         "trade-id": 102090736910,
+        //         "ts": 1583497692182,
+        //         "id": 10500517034273194594947,
+        //         "price": 9096.050000000000000000,
+        //         "direction": "sell"
         //     }
         //
         // fetchMyTrades (private)
         //
-        //     array(
-        //          "symbol" => "swftcbtc",
-        //          "fee-currency" => "swftc",
-        //          "filled-fees" => "0",
-        //          "source" => "spot-api",
-        //          "id" => 83789509854000,
-        //          "type" => "buy-limit",
-        //          "order-$id" => 83711103204909,
-        //          'filled-points' => "0.005826843283532154",
-        //          "fee-deduct-currency" => "ht",
-        //          'filled-amount' => "45941.53",
-        //          "price" => "0.0000001401",
-        //          "created-at" => 1597933260729,
-        //          "match-$id" => 100087455560,
-        //          "role" => "maker",
-        //          "trade-$id" => 100050305348
-        //     ),
+        //     {
+        //          "symbol": "swftcbtc",
+        //          "fee-currency": "swftc",
+        //          "filled-fees": "0",
+        //          "source": "spot-api",
+        //          "id": 83789509854000,
+        //          "type": "buy-limit",
+        //          "order-id": 83711103204909,
+        //          'filled-points': "0.005826843283532154",
+        //          "fee-deduct-currency": "ht",
+        //          'filled-amount': "45941.53",
+        //          "price": "0.0000001401",
+        //          "created-at": 1597933260729,
+        //          "match-id": 100087455560,
+        //          "role": "maker",
+        //          "trade-id": 100050305348
+        //     },
         //
         $marketId = $this->safe_string($trade, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market);
@@ -1012,7 +1012,7 @@ class bittrade extends Exchange {
         }
         if ($since !== null) {
             $request['start-time'] = $since; // a date within 120 days from today
-            // $request['end-time'] = $this->sum($since, 172800000); // 48 hours window
+            // request['end-time'] = this.sum (since, 172800000); // 48 hours window
         }
         $response = Async\await($this->privateGetOrderMatchresults($this->extend($request, $params)));
         $data = $this->safe_list($response, 'data', array());
@@ -1045,26 +1045,26 @@ class bittrade extends Exchange {
         $response = Async\await($this->marketGetHistoryTrade($this->extend($request, $params)));
         //
         //     {
-        //         "status" => "ok",
-        //         "ch" => "market.btcusdt.trade.detail",
-        //         "ts" => 1583497692365,
-        //         "data" => array(
+        //         "status": "ok",
+        //         "ch": "market.btcusdt.trade.detail",
+        //         "ts": 1583497692365,
+        //         "data": [
         //             {
-        //                 "id" => 105005170342,
-        //                 "ts" => 1583497692182,
-        //                 "data" => array(
-        //                     array(
-        //                         "amount" => 0.010411000000000000,
-        //                         "trade-id" => 102090736910,
-        //                         "ts" => 1583497692182,
-        //                         "id" => 10500517034273194594947,
-        //                         "price" => 9096.050000000000000000,
-        //                         "direction" => "sell"
+        //                 "id": 105005170342,
+        //                 "ts": 1583497692182,
+        //                 "data": [
+        //                     {
+        //                         "amount": 0.010411000000000000,
+        //                         "trade-id": 102090736910,
+        //                         "ts": 1583497692182,
+        //                         "id": 10500517034273194594947,
+        //                         "price": 9096.050000000000000000,
+        //                         "direction": "sell"
         //                     }
-        //                 )
-        //             ),
+        //                 ]
+        //             },
         //             // ...
-        //         )
+        //         ]
         //     }
         //
         $data = $this->safe_list($response, 'data', array());
@@ -1134,11 +1134,11 @@ class bittrade extends Exchange {
         //         "status":"ok",
         //         "ch":"market.ethbtc.kline.1min",
         //         "ts":1591515374371,
-        //         "data":array(
-        //             array("amount":0.0,"open":0.025095,"close":0.025095,"high":0.025095,"id":1591515360,"count":0,"low":0.025095,"vol":0.0),
-        //             array("amount":1.2082,"open":0.025096,"close":0.025095,"high":0.025096,"id":1591515300,"count":6,"low":0.025095,"vol":0.0303205097),
-        //             array("amount":0.0648,"open":0.025096,"close":0.025096,"high":0.025096,"id":1591515240,"count":2,"low":0.025096,"vol":0.0016262208),
-        //         )
+        //         "data":[
+        //             {"amount":0.0,"open":0.025095,"close":0.025095,"high":0.025095,"id":1591515360,"count":0,"low":0.025095,"vol":0.0},
+        //             {"amount":1.2082,"open":0.025096,"close":0.025095,"high":0.025096,"id":1591515300,"count":6,"low":0.025095,"vol":0.0303205097},
+        //             {"amount":0.0648,"open":0.025096,"close":0.025096,"high":0.025096,"id":1591515240,"count":2,"low":0.025096,"vol":0.0016262208},
+        //         ]
         //     }
         //
         $data = $this->safe_list($response, 'data', array());
@@ -1179,7 +1179,7 @@ class bittrade extends Exchange {
         //
         //     {
         //         "status":"ok",
-        //         "data":array(
+        //         "data":[
         //             {
         //                 "currency-addr-with-tag":false,
         //                 "fast-confirms":12,
@@ -1208,12 +1208,12 @@ class bittrade extends Exchange {
         //                 "state":"online",
         //                 "display-name":"USDT",
         //                 "suspend-withdraw-desc":null,
-        //                 "withdraw-desc":"Minimum withdrawal amount => 10 USDT (ERC20). !>_<!To ensure the safety of your funds, your withdrawal $request will be manually reviewed if your security strategy or password is changed. Please wait for phone calls or emails from our staff.!>_<!Please make sure that your computer and browser are secure and your information is protected from being tampered or leaked.",
+        //                 "withdraw-desc":"Minimum withdrawal amount: 10 USDT (ERC20). !>_<!To ensure the safety of your funds, your withdrawal request will be manually reviewed if your security strategy or password is changed. Please wait for phone calls or emails from our staff.!>_<!Please make sure that your computer and browser are secure and your information is protected from being tampered or leaked.",
         //                 "suspend-deposit-desc":null,
-        //                 "deposit-desc":"Please don’t deposit any other digital assets except USDT to the above address. Otherwise, you may lose your assets permanently. !>_<!Depositing to the above address requires confirmations of the entire network. It will arrive after 12 confirmations, and it will be available to withdraw after 12 confirmations. !>_<!Minimum deposit amount => 1 USDT. Any deposits less than the minimum will not be credited or refunded.!>_<!Your deposit address won’t change often. If there are any changes, we will notify you via announcement or email.!>_<!Please make sure that your computer and browser are secure and your information is protected from being tampered or leaked.",
+        //                 "deposit-desc":"Please don’t deposit any other digital assets except USDT to the above address. Otherwise, you may lose your assets permanently. !>_<!Depositing to the above address requires confirmations of the entire network. It will arrive after 12 confirmations, and it will be available to withdraw after 12 confirmations. !>_<!Minimum deposit amount: 1 USDT. Any deposits less than the minimum will not be credited or refunded.!>_<!Your deposit address won’t change often. If there are any changes, we will notify you via announcement or email.!>_<!Please make sure that your computer and browser are secure and your information is protected from being tampered or leaked.",
         //                 "suspend-visible-desc":null
         //             }
-        //         )
+        //         ]
         //     }
         //
         $currencies = $this->safe_value($response, 'data', array());
@@ -1235,9 +1235,9 @@ class bittrade extends Exchange {
             'id' => $id,
             'code' => $code,
             'type' => 'crypto',
-            // 'payin' => $currency['deposit-enabled'],
-            // 'payout' => $currency['withdraw-enabled'],
-            // 'transfer' => null,
+            // 'payin': currency['deposit-enabled'],
+            // 'payout': currency['withdraw-enabled'],
+            // 'transfer': undefined,
             'name' => $name,
             'active' => $active,
             'deposit' => $depositEnabled,
@@ -1346,21 +1346,21 @@ class bittrade extends Exchange {
             $response = Async\await($this->privateGetOrderOrders($this->extend($request, $params)));
         }
         //
-        //     { "status" =>   "ok",
-        //         "data" => array( {                  id =>  13997833016,
-        //                                "symbol" => "ethbtc",
-        //                          "account-id" =>  3398321,
-        //                                "amount" => "0.045000000000000000",
-        //                                 "price" => "0.034014000000000000",
-        //                          "created-at" =>  1545836976871,
-        //                                  "type" => "sell-$limit",
-        //                        "field-amount" => "0.045000000000000000",
-        //                   "field-cash-amount" => "0.001530630000000000",
-        //                          "field-fees" => "0.000003061260000000",
-        //                         "finished-at" =>  1545837948214,
-        //                                "source" => "spot-api",
-        //                                 "state" => "filled",
-        //                         "canceled-at" =>  0                      }  ) }
+        //     { "status":   "ok",
+        //         "data": [ {                  id:  13997833016,
+        //                                "symbol": "ethbtc",
+        //                          "account-id":  3398321,
+        //                                "amount": "0.045000000000000000",
+        //                                 "price": "0.034014000000000000",
+        //                          "created-at":  1545836976871,
+        //                                  "type": "sell-limit",
+        //                        "field-amount": "0.045000000000000000",
+        //                   "field-cash-amount": "0.001530630000000000",
+        //                          "field-fees": "0.000003061260000000",
+        //                         "finished-at":  1545837948214,
+        //                                "source": "spot-api",
+        //                                 "state": "filled",
+        //                         "canceled-at":  0                      }  ] }
         //
         return $this->parse_orders($response['data'], $market, $since, $limit);
     }
@@ -1467,7 +1467,7 @@ class bittrade extends Exchange {
         }
         $accountId = $this->safe_string($params, 'account-id');
         if ($accountId === null) {
-            // pick the first $account
+            // pick the first account
             Async\await($this->load_accounts());
             for ($i = 0; $i < count($this->accounts); $i++) {
                 $account = $this->accounts[$i];
@@ -1488,7 +1488,7 @@ class bittrade extends Exchange {
         //
         //     {
         //         "status":"ok",
-        //         "data":array(
+        //         "data":[
         //             {
         //                 "symbol":"ethusdt",
         //                 "source":"api",
@@ -1501,9 +1501,9 @@ class bittrade extends Exchange {
         //                 "filled-fees":"0.0",
         //                 "id":38477101630,
         //                 "state":"submitted",
-        //                 "type":"sell-$limit"
+        //                 "type":"sell-limit"
         //             }
-        //         )
+        //         ]
         //     }
         //
         $data = $this->safe_list($response, 'data', array());
@@ -1523,35 +1523,35 @@ class bittrade extends Exchange {
 
     public function parse_order(array $order, ?array $market = null): array {
         //
-        //     {                  $id =>  13997833014,
-        //                    "symbol" => "ethbtc",
-        //              "account-$id" =>  3398321,
-        //                    "amount" => "0.045000000000000000",
-        //                     "price" => "0.034014000000000000",
-        //              "created-at" =>  1545836976871,
-        //                      "type" => "sell-limit",
-        //            "field-$amount" => "0.045000000000000000", // they have fixed it for $filled-$amount
-        //       "field-cash-$amount" => "0.001530630000000000", // they have fixed it for $filled-cash-$amount
-        //              "field-fees" => "0.000003061260000000", // they have fixed it for $filled-fees
-        //             "finished-at" =>  1545837948214,
-        //                    "source" => "spot-api",
-        //                     "state" => "filled",
-        //             "canceled-at" =>  0                      }
+        //     {                  id:  13997833014,
+        //                    "symbol": "ethbtc",
+        //              "account-id":  3398321,
+        //                    "amount": "0.045000000000000000",
+        //                     "price": "0.034014000000000000",
+        //              "created-at":  1545836976871,
+        //                      "type": "sell-limit",
+        //            "field-amount": "0.045000000000000000", // they have fixed it for filled-amount
+        //       "field-cash-amount": "0.001530630000000000", // they have fixed it for filled-cash-amount
+        //              "field-fees": "0.000003061260000000", // they have fixed it for filled-fees
+        //             "finished-at":  1545837948214,
+        //                    "source": "spot-api",
+        //                     "state": "filled",
+        //             "canceled-at":  0                      }
         //
-        //     {                  $id =>  20395337822,
-        //                    "symbol" => "ethbtc",
-        //              "account-$id" =>  5685075,
-        //                    "amount" => "0.001000000000000000",
-        //                     "price" => "0.0",
-        //              "created-at" =>  1545831584023,
-        //                      "type" => "buy-$market",
-        //            "field-$amount" => "0.029100000000000000", // they have fixed it for $filled-$amount
-        //       "field-cash-$amount" => "0.000999788700000000", // they have fixed it for $filled-cash-$amount
-        //              "field-fees" => "0.000058200000000000", // they have fixed it for $filled-fees
-        //             "finished-at" =>  1545831584181,
-        //                    "source" => "spot-api",
-        //                     "state" => "filled",
-        //             "canceled-at" =>  0                      }
+        //     {                  id:  20395337822,
+        //                    "symbol": "ethbtc",
+        //              "account-id":  5685075,
+        //                    "amount": "0.001000000000000000",
+        //                     "price": "0.0",
+        //              "created-at":  1545831584023,
+        //                      "type": "buy-market",
+        //            "field-amount": "0.029100000000000000", // they have fixed it for filled-amount
+        //       "field-cash-amount": "0.000999788700000000", // they have fixed it for filled-cash-amount
+        //              "field-fees": "0.000058200000000000", // they have fixed it for filled-fees
+        //             "finished-at":  1545831584181,
+        //                    "source": "spot-api",
+        //                     "state": "filled",
+        //             "canceled-at":  0                      }
         //
         $id = $this->safe_string($order, 'id');
         $side = null;
@@ -1568,10 +1568,10 @@ class bittrade extends Exchange {
         $timestamp = $this->safe_integer($order, 'created-at');
         $clientOrderId = $this->safe_string($order, 'client-$order-id');
         $amount = $this->safe_string($order, 'amount');
-        $filled = $this->safe_string_2($order, 'filled-amount', 'field-amount'); // typo in their API, $filled $amount
+        $filled = $this->safe_string_2($order, 'filled-amount', 'field-amount'); // typo in their API, filled amount
         $price = $this->safe_string($order, 'price');
         $cost = $this->safe_string_2($order, 'filled-cash-amount', 'field-cash-amount'); // same typo
-        $feeCost = $this->safe_string_2($order, 'filled-fees', 'field-fees'); // typo in their API, $filled fees
+        $feeCost = $this->safe_string_2($order, 'filled-fees', 'field-fees'); // typo in their API, filled fees
         $fee = null;
         if ($feeCost !== null) {
             $feeCurrency = ($side === 'sell') ? $market['quote'] : $market['base'];
@@ -1674,12 +1674,12 @@ class bittrade extends Exchange {
                 if ($price === null) {
                     throw new InvalidOrder($this->id . ' createOrder() requires the $price argument for $market buy orders to calculate the total $cost to spend ($amount * $price), alternatively set the $createMarketBuyOrderRequiresPrice option or param to false and pass the $cost to spend in the $amount argument');
                 } else {
-                    // despite that $cost = $amount * $price is in quote currency and should have quote precision
-                    // the exchange API requires the $cost supplied in 'amount' to be of base precision
+                    // despite that cost = amount * price is in quote currency and should have quote precision
+                    // the exchange API requires the cost supplied in 'amount' to be of base precision
                     // more about it here:
                     // https://github.com/ccxt/ccxt/pull/4395
                     // https://github.com/ccxt/ccxt/issues/7611
-                    // we use amountToPrecision here because the exchange requires $cost in base precision
+                    // we use amountToPrecision here because the exchange requires cost in base precision
                     $amountString = $this->number_to_string($amount);
                     $priceString = $this->number_to_string($price);
                     $quoteAmount = $this->amount_to_precision($symbol, Precise::string_mul($amountString, $priceString));
@@ -1739,8 +1739,8 @@ class bittrade extends Exchange {
         $response = Async\await($this->privatePostOrderOrdersIdSubmitcancel(array( 'id' => $id )));
         //
         //     {
-        //         "status" => "ok",
-        //         "data" => "10138899000",
+        //         "status": "ok",
+        //         "data": "10138899000",
         //     }
         //
         return $this->extend($this->parse_order($response), array(
@@ -1775,33 +1775,33 @@ class bittrade extends Exchange {
         $response = Async\await($this->privatePostOrderOrdersBatchcancel($this->extend($request, $params)));
         //
         //     {
-        //         "status" => "ok",
-        //         "data" => {
-        //             "success" => array(
+        //         "status": "ok",
+        //         "data": {
+        //             "success": [
         //                 "5983466"
-        //             ),
-        //             "failed" => array(
-        //                 array(
-        //                     "err-msg" => "Incorrect order state",
-        //                     "order-state" => 7,
-        //                     "order-id" => "",
-        //                     "err-code" => "order-orderstate-error",
-        //                     "client-order-id" => "first"
-        //                 ),
-        //                 array(
-        //                     "err-msg" => "Incorrect order state",
-        //                     "order-state" => 7,
-        //                     "order-id" => "",
-        //                     "err-code" => "order-orderstate-error",
-        //                     "client-order-id" => "second"
-        //                 ),
+        //             ],
+        //             "failed": [
         //                 {
-        //                     "err-msg" => "The record is not found.",
-        //                     "order-id" => "",
-        //                     "err-code" => "base-not-found",
-        //                     "client-order-id" => "third"
+        //                     "err-msg": "Incorrect order state",
+        //                     "order-state": 7,
+        //                     "order-id": "",
+        //                     "err-code": "order-orderstate-error",
+        //                     "client-order-id": "first"
+        //                 },
+        //                 {
+        //                     "err-msg": "Incorrect order state",
+        //                     "order-state": 7,
+        //                     "order-id": "",
+        //                     "err-code": "order-orderstate-error",
+        //                     "client-order-id": "second"
+        //                 },
+        //                 {
+        //                     "err-msg": "The record is not found.",
+        //                     "order-id": "",
+        //                     "err-code": "base-not-found",
+        //                     "client-order-id": "third"
         //                 }
-        //             )
+        //             ]
         //         }
         //     }
         //
@@ -1811,30 +1811,30 @@ class bittrade extends Exchange {
     public function parse_cancel_orders(mixed $orders) {
         //
         //    {
-        //        "success" => array(
+        //        "success": [
         //            "5983466"
-        //        ),
-        //        "failed" => array(
-        //            array(
-        //                "err-msg" => "Incorrect $order state",
-        //                "order-state" => 7,
-        //                "order-id" => "",
-        //                "err-code" => "order-orderstate-error",
-        //                "client-$order-id" => "first"
-        //            ),
+        //        ],
+        //        "failed": [
+        //            {
+        //                "err-msg": "Incorrect order state",
+        //                "order-state": 7,
+        //                "order-id": "",
+        //                "err-code": "order-orderstate-error",
+        //                "client-order-id": "first"
+        //            },
         //            ...
-        //        )
+        //        ]
         //    }
         //
         //    {
-        //        "errors" => array(
+        //        "errors": [
         //            {
-        //                "order_id" => "769206471845261312",
-        //                "err_code" => 1061,
-        //                "err_msg" => "This $order doesnt exist."
+        //                "order_id": "769206471845261312",
+        //                "err_code": 1061,
+        //                "err_msg": "This order doesnt exist."
         //            }
-        //        ),
-        //        "successes" => "1258075374411399168,1258075393254871040"
+        //        ],
+        //        "successes": "1258075374411399168,1258075393254871040"
         //    }
         //
         $successes = $this->safe_string($orders, 'successes');
@@ -1882,10 +1882,10 @@ class bittrade extends Exchange {
         }
         $request = array(
             // 'account-id' string false NA The account id used for this cancel Refer to GET /v1/account/accounts
-            // 'symbol' => $market['id'], // a list of comma-separated symbols, all symbols by default
-            // 'types' 'string', buy-$market, sell-$market, buy-limit, sell-limit, buy-ioc, sell-ioc, buy-stop-limit, sell-stop-limit, buy-limit-fok, sell-limit-fok, buy-stop-limit-fok, sell-stop-limit-fok
-            // 'side' => 'buy', // or 'sell'
-            // 'size' => 100, // the number of orders to cancel 1-100
+            // 'symbol': market['id'], // a list of comma-separated symbols, all symbols by default
+            // 'types' 'string', buy-market, sell-market, buy-limit, sell-limit, buy-ioc, sell-ioc, buy-stop-limit, sell-stop-limit, buy-limit-fok, sell-limit-fok, buy-stop-limit-fok, sell-stop-limit-fok
+            // 'side': 'buy', // or 'sell'
+            // 'size': 100, // the number of orders to cancel 1-100
         );
         $market = null;
         if ($symbol !== null) {
@@ -1895,11 +1895,11 @@ class bittrade extends Exchange {
         $response = Async\await($this->privatePostOrderOrdersBatchCancelOpenOrders($this->extend($request, $params)));
         //
         //     {
-        //         "code" => 200,
-        //         "data" => {
-        //             "success-count" => 2,
-        //             "failed-count" => 0,
-        //             "next-id" => 5454600
+        //         "code": 200,
+        //         "data": {
+        //             "success-count": 2,
+        //             "failed-count": 0,
+        //             "next-id": 5454600
         //         }
         //     }
         //
@@ -1914,10 +1914,10 @@ class bittrade extends Exchange {
     public function parse_deposit_address(mixed $depositAddress, ?array $currency = null) {
         //
         //     {
-        //         "currency" => "usdt",
-        //         "address" => "0xf7292eb9ba7bc50358e27f0e025a4d225a64127b",
-        //         "addressTag" => "",
-        //         "chain" => "usdterc20", // trc20usdt, hrc20usdt, usdt, algousdt
+        //         "currency": "usdt",
+        //         "address": "0xf7292eb9ba7bc50358e27f0e025a4d225a64127b",
+        //         "addressTag": "",
+        //         "chain": "usdterc20", // trc20usdt, hrc20usdt, usdt, algousdt
         //     }
         //
         $address = $this->safe_string($depositAddress, 'address');
@@ -1965,7 +1965,7 @@ class bittrade extends Exchange {
         }
         $request = array(
             'type' => 'deposit',
-            'from' => 0, // From 'id' ... if you want to get results after a particular transaction id, pass the id in $params->from
+            'from' => 0, // From 'id' ... if you want to get results after a particular transaction id, pass the id in params.from
         );
         if ($currency !== null) {
             $request['currency'] = $currency['id'];
@@ -1974,7 +1974,7 @@ class bittrade extends Exchange {
             $request['size'] = $limit; // max 100
         }
         $response = Async\await($this->privateGetQueryDepositWithdraw($this->extend($request, $params)));
-        // return $response
+        // return response
         $data = $this->safe_list($response, 'data', array());
         return $this->parse_transactions($data, $currency, $since, $limit);
     }
@@ -2004,7 +2004,7 @@ class bittrade extends Exchange {
         }
         $request = array(
             'type' => 'withdraw',
-            'from' => 0, // From 'id' ... if you want to get results after a particular transaction id, pass the id in $params->from
+            'from' => 0, // From 'id' ... if you want to get results after a particular transaction id, pass the id in params.from
         );
         if ($currency !== null) {
             $request['currency'] = $currency['id'];
@@ -2013,7 +2013,7 @@ class bittrade extends Exchange {
             $request['size'] = $limit; // max 100
         }
         $response = Async\await($this->privateGetQueryDepositWithdraw($this->extend($request, $params)));
-        // return $response
+        // return response
         $data = $this->safe_list($response, 'data', array());
         return $this->parse_transactions($data, $currency, $since, $limit);
     }
@@ -2023,42 +2023,42 @@ class bittrade extends Exchange {
         // fetchDeposits
         //
         //     {
-        //         "id" => 8211029,
-        //         "type" => "deposit",
-        //         "currency" => "eth",
-        //         "chain" => "eth",
-        //         'tx-hash' => "bd315....",
-        //         "amount" => 0.81162421,
-        //         "address" => "4b8b....",
-        //         'address-tag" => '",
-        //         "fee" => 0,
-        //         "state" => "safe",
-        //         "created-at" => 1542180380965,
-        //         "updated-at" => 1542180788077
+        //         "id": 8211029,
+        //         "type": "deposit",
+        //         "currency": "eth",
+        //         "chain": "eth",
+        //         'tx-hash': "bd315....",
+        //         "amount": 0.81162421,
+        //         "address": "4b8b....",
+        //         'address-tag": '",
+        //         "fee": 0,
+        //         "state": "safe",
+        //         "created-at": 1542180380965,
+        //         "updated-at": 1542180788077
         //     }
         //
         // fetchWithdrawals
         //
         //     {
-        //         "id" => 6908275,
-        //         "type" => "withdraw",
-        //         "currency" => "btc",
-        //         "chain" => "btc",
-        //         'tx-hash' => "c1a1a....",
-        //         "amount" => 0.80257005,
-        //         "address" => "1QR....",
-        //         'address-tag" => '",
-        //         "fee" => 0.0005,
-        //         "state" => "confirmed",
-        //         "created-at" => 1552107295685,
-        //         "updated-at" => 1552108032859
+        //         "id": 6908275,
+        //         "type": "withdraw",
+        //         "currency": "btc",
+        //         "chain": "btc",
+        //         'tx-hash': "c1a1a....",
+        //         "amount": 0.80257005,
+        //         "address": "1QR....",
+        //         'address-tag": '",
+        //         "fee": 0.0005,
+        //         "state": "confirmed",
+        //         "created-at": 1552107295685,
+        //         "updated-at": 1552108032859
         //     }
         //
         // withdraw
         //
         //     {
-        //         "status" => "ok",
-        //         "data" => "99562054"
+        //         "status": "ok",
+        //         "data": "99562054"
         //     }
         //
         $timestamp = $this->safe_integer($transaction, 'created-at');
@@ -2101,20 +2101,20 @@ class bittrade extends Exchange {
 
     public function parse_transaction_status(?string $status) {
         $statuses = array(
-            // deposit $statuses
+            // deposit statuses
             'unknown' => 'failed',
             'confirming' => 'pending',
             'confirmed' => 'ok',
             'safe' => 'ok',
             'orphan' => 'failed',
-            // withdrawal $statuses
+            // withdrawal statuses
             'submitted' => 'pending',
             'canceled' => 'canceled',
             'reexamine' => 'pending',
             'reject' => 'failed',
             'pass' => 'pending',
             'wallet-reject' => 'failed',
-            // 'confirmed' => 'ok', // present in deposit $statuses
+            // 'confirmed': 'ok', // present in deposit statuses
             'confirm-error' => 'failed',
             'repealed' => 'failed',
             'wallet-transfer' => 'pending',
@@ -2144,7 +2144,7 @@ class bittrade extends Exchange {
         $this->check_address($address);
         $currency = $this->currency($code);
         $request = array(
-            'address' => $address, // only supports existing addresses in your withdraw $address list
+            'address' => $address, // only supports existing addresses in your withdraw address list
             'amount' => $amount,
             'currency' => strtolower($currency['id']),
         );
@@ -2166,8 +2166,8 @@ class bittrade extends Exchange {
         $response = Async\await($this->privatePostDwWithdrawApiCreate($this->extend($request, $params)));
         //
         //     {
-        //         "status" => "ok",
-        //         "data" => "99562054"
+        //         "status": "ok",
+        //         "data": "99562054"
         //     }
         //
         return $this->parse_transaction($response, $currency);
@@ -2232,7 +2232,7 @@ class bittrade extends Exchange {
         }
         if (is_array($response) && array_key_exists('status' ?? '', $response)) {
             //
-            //     array("status":"error","err-$code":"order-limitorder-amount-min-error","err-msg":"limit order amount error, min => `0.001`","data":null)
+            //     {"status":"error","err-code":"order-limitorder-amount-min-error","err-msg":"limit order amount error, min: `0.001`","data":null}
             //
             $status = $this->safe_string($response, 'status');
             if ($status === 'error') {

@@ -384,7 +384,7 @@ class cryptocom extends Exchange {
                     'createOrder' => array(
                         'marginMode' => true,
                         'triggerPrice' => true,
-                        // todo => implementation fix
+                        // todo: implementation fix
                         'triggerPriceType' => array(
                             'last' => true,
                             'mark' => true,
@@ -401,7 +401,7 @@ class cryptocom extends Exchange {
                             'GTD' => false,
                         ),
                         'hedged' => false,
-                        'selfTradePrevention' => true, // todo => implement
+                        'selfTradePrevention' => true, // todo: implement
                         'trailing' => false,
                         'iceberg' => false,
                         'leverage' => false,
@@ -484,13 +484,13 @@ class cryptocom extends Exchange {
             'precisionMode' => TICK_SIZE,
             'exceptions' => array(
                 'exact' => array(
-                    '213' => '\\ccxt\\InvalidOrder', // array( "id" : 1778510838168, "method" : "private/create-order", "code" : 213, "message" : "Invalid quantity format" )
+                    '213' => '\\ccxt\\InvalidOrder', // { "id" : 1778510838168, "method" : "private/create-order", "code" : 213, "message" : "Invalid quantity format" }
                     '219' => '\\ccxt\\InvalidOrder',
-                    '306' => '\\ccxt\\InsufficientFunds', // array( "id" : 1753xxx, "method" : "private/amend-order", "code" : 306, "message" : "INSUFFICIENT_AVAILABLE_BALANCE", "result" : array( "client_oid" : "1753xxx", "order_id" : "6530xxx" ) )
-                    '314' => '\\ccxt\\InvalidOrder', // array( "id" : 1700xxx, "method" : "private/create-order", "code" : 314, "message" : "EXCEEDS_MAX_ORDER_SIZE", "result" : array( "client_oid" : "1700xxx", "order_id" : "6530xxx" ) )
-                    '315' => '\\ccxt\\InvalidOrder', // array( "id" : 1769xxx, "method" : "private/create-order", "code" : 315, "message" : "FAR_AWAY_LIMIT_PRICE", "result" : array( "client_oid" : "1769xxx", "order_id" : "6530xxx" ) )
-                    '325' => '\\ccxt\\InvalidOrder', // array( "id" : 1741xxx, "method" : "private/create-order", "code" : 325, "message" : "EXCEED_DAILY_VOL_LIMIT", "result" : array( "client_oid" : "1741xxx", "order_id" : "6530xxx" ) )
-                    '415' => '\\ccxt\\InvalidOrder', // array( "id" : 1741xxx, "method" : "private/create-order", "code" : 415, "message" : "BELOW_MIN_ORDER_SIZE", "result" : array( "client_oid" : "1741xxx", "order_id" : "6530xxx" ) )
+                    '306' => '\\ccxt\\InsufficientFunds', // { "id" : 1753xxx, "method" : "private/amend-order", "code" : 306, "message" : "INSUFFICIENT_AVAILABLE_BALANCE", "result" : { "client_oid" : "1753xxx", "order_id" : "6530xxx" } }
+                    '314' => '\\ccxt\\InvalidOrder', // { "id" : 1700xxx, "method" : "private/create-order", "code" : 314, "message" : "EXCEEDS_MAX_ORDER_SIZE", "result" : { "client_oid" : "1700xxx", "order_id" : "6530xxx" } }
+                    '315' => '\\ccxt\\InvalidOrder', // { "id" : 1769xxx, "method" : "private/create-order", "code" : 315, "message" : "FAR_AWAY_LIMIT_PRICE", "result" : { "client_oid" : "1769xxx", "order_id" : "6530xxx" } }
+                    '325' => '\\ccxt\\InvalidOrder', // { "id" : 1741xxx, "method" : "private/create-order", "code" : 325, "message" : "EXCEED_DAILY_VOL_LIMIT", "result" : { "client_oid" : "1741xxx", "order_id" : "6530xxx" } }
+                    '415' => '\\ccxt\\InvalidOrder', // { "id" : 1741xxx, "method" : "private/create-order", "code" : 415, "message" : "BELOW_MIN_ORDER_SIZE", "result" : { "client_oid" : "1741xxx", "order_id" : "6530xxx" } }
                     '10001' => '\\ccxt\\ExchangeError',
                     '10002' => '\\ccxt\\PermissionDenied',
                     '10003' => '\\ccxt\\PermissionDenied',
@@ -502,7 +502,7 @@ class cryptocom extends Exchange {
                     '10009' => '\\ccxt\\BadRequest',
                     '20001' => '\\ccxt\\BadRequest',
                     '20002' => '\\ccxt\\InsufficientFunds',
-                    '20005' => '\\ccxt\\AccountNotEnabled', // array("id":"123xxx","method":"private/margin/xxx","code":"20005","message":"ACCOUNT_NOT_FOUND")
+                    '20005' => '\\ccxt\\AccountNotEnabled', // {"id":"123xxx","method":"private/margin/xxx","code":"20005","message":"ACCOUNT_NOT_FOUND"}
                     '30003' => '\\ccxt\\BadSymbol',
                     '30004' => '\\ccxt\\BadRequest',
                     '30005' => '\\ccxt\\BadRequest',
@@ -538,7 +538,7 @@ class cryptocom extends Exchange {
                     '43004' => '\\ccxt\\InvalidOrder', // IOC order has not been filled and cancelled
                     '43012' => '\\ccxt\\BadRequest', // Canceled due to Self Trade Prevention
                     '50001' => '\\ccxt\\ExchangeError',
-                    '9010001' => '\\ccxt\\OnMaintenance', // array("code":9010001,"message":"SYSTEM_MAINTENANCE","details":"Crypto.com Exchange is currently under maintenance. Please refer to https://status.crypto.com for more details.")
+                    '9010001' => '\\ccxt\\OnMaintenance', // {"code":9010001,"message":"SYSTEM_MAINTENANCE","details":"Crypto.com Exchange is currently under maintenance. Please refer to https://status.crypto.com for more details."}
                 ),
                 'broad' => array(),
             ),
@@ -571,7 +571,7 @@ class cryptocom extends Exchange {
             $erString = $this->exception_message($e);
             if (mb_strpos($erString, 'SYS_ERROR') !== false) {
                 // sub-accounts can't access this endpoint
-                // array("code":"10001","msg":"SYS_ERROR")
+                // {"code":"10001","msg":"SYS_ERROR"}
                 return array();
             }
             throw $e;
@@ -580,41 +580,41 @@ class cryptocom extends Exchange {
         }
         //
         //    {
-        //        "id" => "1747502328559",
-        //        "method" => "private/get-currency-networks",
-        //        "code" => "0",
-        //        "result" => {
-        //            "update_time" => "1747502281000",
-        //            "currency_map" => {
-        //                "USDT" => {
-        //                    "full_name" => "Tether USD",
-        //                    "default_network" => "ETH",
-        //                    "network_list" => array(
-        //                        array(
-        //                            "network_id" => "ETH",
-        //                            "withdrawal_fee" => "10.00000000",
-        //                            "withdraw_enabled" => true,
-        //                            "min_withdrawal_amount" => "20.0",
-        //                            "deposit_enabled" => true,
-        //                            "confirmation_required" => "32"
-        //                        ),
-        //                        array(
-        //                            "network_id" => "CRONOS",
-        //                            "withdrawal_fee" => "0.18000000",
-        //                            "withdraw_enabled" => true,
-        //                            "min_withdrawal_amount" => "0.35",
-        //                            "deposit_enabled" => true,
-        //                            "confirmation_required" => "15"
-        //                        ),
+        //        "id": "1747502328559",
+        //        "method": "private/get-currency-networks",
+        //        "code": "0",
+        //        "result": {
+        //            "update_time": "1747502281000",
+        //            "currency_map": {
+        //                "USDT": {
+        //                    "full_name": "Tether USD",
+        //                    "default_network": "ETH",
+        //                    "network_list": [
         //                        {
-        //                            "network_id" => "SOL",
-        //                            "withdrawal_fee" => "5.31000000",
-        //                            "withdraw_enabled" => true,
-        //                            "min_withdrawal_amount" => "10.62",
-        //                            "deposit_enabled" => true,
-        //                            "confirmation_required" => "1"
+        //                            "network_id": "ETH",
+        //                            "withdrawal_fee": "10.00000000",
+        //                            "withdraw_enabled": true,
+        //                            "min_withdrawal_amount": "20.0",
+        //                            "deposit_enabled": true,
+        //                            "confirmation_required": "32"
+        //                        },
+        //                        {
+        //                            "network_id": "CRONOS",
+        //                            "withdrawal_fee": "0.18000000",
+        //                            "withdraw_enabled": true,
+        //                            "min_withdrawal_amount": "0.35",
+        //                            "deposit_enabled": true,
+        //                            "confirmation_required": "15"
+        //                        },
+        //                        {
+        //                            "network_id": "SOL",
+        //                            "withdrawal_fee": "5.31000000",
+        //                            "withdraw_enabled": true,
+        //                            "min_withdrawal_amount": "10.62",
+        //                            "deposit_enabled": true,
+        //                            "confirmation_required": "1"
         //                        }
-        //                    )
+        //                    ]
         //                }
         //            }
         //        }
@@ -687,88 +687,88 @@ class cryptocom extends Exchange {
         $response = $this->v1PublicGetPublicGetInstruments($params);
         //
         //     {
-        //         "id" => 1,
-        //         "method" => "public/get-instruments",
-        //         "code" => 0,
-        //         "result" => {
-        //             "data" => array(
-        //                 array(
-        //                     "symbol" => "BTC_USDT",
-        //                     "inst_type" => "CCY_PAIR",
-        //                     "display_name" => "BTC/USDT",
-        //                     "base_ccy" => "BTC",
-        //                     "quote_ccy" => "USDT",
-        //                     "quote_decimals" => 2,
-        //                     "quantity_decimals" => 5,
-        //                     "price_tick_size" => "0.01",
-        //                     "qty_tick_size" => "0.00001",
-        //                     "max_leverage" => "50",
-        //                     "tradable" => true,
-        //                     "expiry_timestamp_ms" => 0,
-        //                     "beta_product" => false,
-        //                     "margin_buy_enabled" => false,
-        //                     "margin_sell_enabled" => true
-        //                 ),
-        //                 array(
-        //                     "symbol" => "RUNEUSD-PERP",
-        //                     "inst_type" => "PERPETUAL_SWAP",
-        //                     "display_name" => "RUNEUSD Perpetual",
-        //                     "base_ccy" => "RUNE",
-        //                     "quote_ccy" => "USD",
-        //                     "quote_decimals" => 3,
-        //                     "quantity_decimals" => 1,
-        //                     "price_tick_size" => "0.001",
-        //                     "qty_tick_size" => "0.1",
-        //                     "max_leverage" => "50",
-        //                     "tradable" => true,
-        //                     "expiry_timestamp_ms" => 0,
-        //                     "beta_product" => false,
-        //                     "underlying_symbol" => "RUNEUSD-INDEX",
-        //                     "contract_size" => "1",
-        //                     "margin_buy_enabled" => false,
-        //                     "margin_sell_enabled" => false
-        //                 ),
-        //                 array(
-        //                     "symbol" => "ETHUSD-230825",
-        //                     "inst_type" => "FUTURE",
-        //                     "display_name" => "ETHUSD Futures 20230825",
-        //                     "base_ccy" => "ETH",
-        //                     "quote_ccy" => "USD",
-        //                     "quote_decimals" => 2,
-        //                     "quantity_decimals" => 4,
-        //                     "price_tick_size" => "0.01",
-        //                     "qty_tick_size" => "0.0001",
-        //                     "max_leverage" => "100",
-        //                     "tradable" => true,
-        //                     "expiry_timestamp_ms" => 1692950400000,
-        //                     "beta_product" => false,
-        //                     "underlying_symbol" => "ETHUSD-INDEX",
-        //                     "contract_size" => "1",
-        //                     "margin_buy_enabled" => false,
-        //                     "margin_sell_enabled" => false
-        //                 ),
-        //                 array(
-        //                     "symbol" => "BTCUSD-230630-CW30000",
-        //                     "inst_type" => "WARRANT",
-        //                     "display_name" => "BTCUSD-230630-CW30000",
-        //                     "base_ccy" => "BTC",
-        //                     "quote_ccy" => "USD",
-        //                     "quote_decimals" => 3,
-        //                     "quantity_decimals" => 0,
-        //                     "price_tick_size" => "0.001",
-        //                     "qty_tick_size" => "10",
-        //                     "max_leverage" => "50",
-        //                     "tradable" => true,
-        //                     "expiry_timestamp_ms" => 1688112000000,
-        //                     "beta_product" => false,
-        //                     "underlying_symbol" => "BTCUSD-INDEX",
-        //                     "put_call" => "CALL",
-        //                     "strike" => "30000",
-        //                     "contract_size" => "0.0001",
-        //                     "margin_buy_enabled" => false,
-        //                     "margin_sell_enabled" => false
-        //                 ),
-        //             )
+        //         "id": 1,
+        //         "method": "public/get-instruments",
+        //         "code": 0,
+        //         "result": {
+        //             "data": [
+        //                 {
+        //                     "symbol": "BTC_USDT",
+        //                     "inst_type": "CCY_PAIR",
+        //                     "display_name": "BTC/USDT",
+        //                     "base_ccy": "BTC",
+        //                     "quote_ccy": "USDT",
+        //                     "quote_decimals": 2,
+        //                     "quantity_decimals": 5,
+        //                     "price_tick_size": "0.01",
+        //                     "qty_tick_size": "0.00001",
+        //                     "max_leverage": "50",
+        //                     "tradable": true,
+        //                     "expiry_timestamp_ms": 0,
+        //                     "beta_product": false,
+        //                     "margin_buy_enabled": false,
+        //                     "margin_sell_enabled": true
+        //                 },
+        //                 {
+        //                     "symbol": "RUNEUSD-PERP",
+        //                     "inst_type": "PERPETUAL_SWAP",
+        //                     "display_name": "RUNEUSD Perpetual",
+        //                     "base_ccy": "RUNE",
+        //                     "quote_ccy": "USD",
+        //                     "quote_decimals": 3,
+        //                     "quantity_decimals": 1,
+        //                     "price_tick_size": "0.001",
+        //                     "qty_tick_size": "0.1",
+        //                     "max_leverage": "50",
+        //                     "tradable": true,
+        //                     "expiry_timestamp_ms": 0,
+        //                     "beta_product": false,
+        //                     "underlying_symbol": "RUNEUSD-INDEX",
+        //                     "contract_size": "1",
+        //                     "margin_buy_enabled": false,
+        //                     "margin_sell_enabled": false
+        //                 },
+        //                 {
+        //                     "symbol": "ETHUSD-230825",
+        //                     "inst_type": "FUTURE",
+        //                     "display_name": "ETHUSD Futures 20230825",
+        //                     "base_ccy": "ETH",
+        //                     "quote_ccy": "USD",
+        //                     "quote_decimals": 2,
+        //                     "quantity_decimals": 4,
+        //                     "price_tick_size": "0.01",
+        //                     "qty_tick_size": "0.0001",
+        //                     "max_leverage": "100",
+        //                     "tradable": true,
+        //                     "expiry_timestamp_ms": 1692950400000,
+        //                     "beta_product": false,
+        //                     "underlying_symbol": "ETHUSD-INDEX",
+        //                     "contract_size": "1",
+        //                     "margin_buy_enabled": false,
+        //                     "margin_sell_enabled": false
+        //                 },
+        //                 {
+        //                     "symbol": "BTCUSD-230630-CW30000",
+        //                     "inst_type": "WARRANT",
+        //                     "display_name": "BTCUSD-230630-CW30000",
+        //                     "base_ccy": "BTC",
+        //                     "quote_ccy": "USD",
+        //                     "quote_decimals": 3,
+        //                     "quantity_decimals": 0,
+        //                     "price_tick_size": "0.001",
+        //                     "qty_tick_size": "10",
+        //                     "max_leverage": "50",
+        //                     "tradable": true,
+        //                     "expiry_timestamp_ms": 1688112000000,
+        //                     "beta_product": false,
+        //                     "underlying_symbol": "BTCUSD-INDEX",
+        //                     "put_call": "CALL",
+        //                     "strike": "30000",
+        //                     "contract_size": "0.0001",
+        //                     "margin_buy_enabled": false,
+        //                     "margin_sell_enabled": false
+        //                 },
+        //             ]
         //         }
         //     }
         //
@@ -902,25 +902,25 @@ class cryptocom extends Exchange {
         $response = $this->v1PublicGetPublicGetTickers($this->extend($request, $params));
         //
         //     {
-        //         "id" => -1,
-        //         "method" => "public/get-tickers",
-        //         "code" => 0,
-        //         "result" => {
-        //             "data" => array(
-        //                 array(
-        //                     "i" => "AVAXUSD-PERP",
-        //                     "h" => "13.209",
-        //                     "l" => "12.148",
-        //                     "a" => "13.209",
-        //                     "v" => "1109.8",
-        //                     "vv" => "14017.33",
-        //                     "c" => "0.0732",
-        //                     "b" => "13.210",
-        //                     "k" => "13.230",
-        //                     "oi" => "10888.9",
-        //                     "t" => 1687402657575
-        //                 ),
-        //             )
+        //         "id": -1,
+        //         "method": "public/get-tickers",
+        //         "code": 0,
+        //         "result": {
+        //             "data": [
+        //                 {
+        //                     "i": "AVAXUSD-PERP",
+        //                     "h": "13.209",
+        //                     "l": "12.148",
+        //                     "a": "13.209",
+        //                     "v": "1109.8",
+        //                     "vv": "14017.33",
+        //                     "c": "0.0732",
+        //                     "b": "13.210",
+        //                     "k": "13.230",
+        //                     "oi": "10888.9",
+        //                     "t": 1687402657575
+        //                 },
+        //             ]
         //         }
         //     }
         //
@@ -989,40 +989,40 @@ class cryptocom extends Exchange {
         $response = $this->v1PrivatePostPrivateGetOrderHistory($this->extend($request, $params));
         //
         //     {
-        //         "id" => 1686881486183,
-        //         "method" => "private/get-order-history",
-        //         "code" => 0,
-        //         "result" => {
-        //             "data" => array(
+        //         "id": 1686881486183,
+        //         "method": "private/get-order-history",
+        //         "code": 0,
+        //         "result": {
+        //             "data": [
         //                 {
-        //                     "account_id" => "ce075bef-1234-4321-bd6g-ff9007252e63",
-        //                     "order_id" => "6142909895014042762",
-        //                     "client_oid" => "4e918597-1234-4321-8201-a7577e1e1d91",
-        //                     "order_type" => "MARKET",
-        //                     "time_in_force" => "GOOD_TILL_CANCEL",
-        //                     "side" => "SELL",
-        //                     "exec_inst" => array(),
-        //                     "quantity" => "0.00024",
-        //                     "order_value" => "5.7054672",
-        //                     "maker_fee_rate" => "0",
-        //                     "taker_fee_rate" => "0",
-        //                     "avg_price" => "25023.97",
-        //                     "trigger_price" => "0",
-        //                     "ref_price" => "0",
-        //                     "ref_price_type" => "NULL_VAL",
-        //                     "cumulative_quantity" => "0.00024",
-        //                     "cumulative_value" => "6.0057528",
-        //                     "cumulative_fee" => "0.001501438200",
-        //                     "status" => "FILLED",
-        //                     "update_user_id" => "ce075bef-1234-4321-bd6g-ff9007252e63",
-        //                     "order_date" => "2023-06-15",
-        //                     "instrument_name" => "BTC_USD",
-        //                     "fee_instrument_name" => "USD",
-        //                     "create_time" => 1686805465891,
-        //                     "create_time_ns" => "1686805465891812578",
-        //                     "update_time" => 1686805465891
+        //                     "account_id": "ce075bef-1234-4321-bd6g-ff9007252e63",
+        //                     "order_id": "6142909895014042762",
+        //                     "client_oid": "4e918597-1234-4321-8201-a7577e1e1d91",
+        //                     "order_type": "MARKET",
+        //                     "time_in_force": "GOOD_TILL_CANCEL",
+        //                     "side": "SELL",
+        //                     "exec_inst": [ ],
+        //                     "quantity": "0.00024",
+        //                     "order_value": "5.7054672",
+        //                     "maker_fee_rate": "0",
+        //                     "taker_fee_rate": "0",
+        //                     "avg_price": "25023.97",
+        //                     "trigger_price": "0",
+        //                     "ref_price": "0",
+        //                     "ref_price_type": "NULL_VAL",
+        //                     "cumulative_quantity": "0.00024",
+        //                     "cumulative_value": "6.0057528",
+        //                     "cumulative_fee": "0.001501438200",
+        //                     "status": "FILLED",
+        //                     "update_user_id": "ce075bef-1234-4321-bd6g-ff9007252e63",
+        //                     "order_date": "2023-06-15",
+        //                     "instrument_name": "BTC_USD",
+        //                     "fee_instrument_name": "USD",
+        //                     "create_time": 1686805465891,
+        //                     "create_time_ns": "1686805465891812578",
+        //                     "update_time": 1686805465891
         //                 }
-        //             )
+        //             ]
         //         }
         //     }
         //
@@ -1071,21 +1071,21 @@ class cryptocom extends Exchange {
         $response = $this->v1PublicGetPublicGetTrades($this->extend($request, $params));
         //
         //     {
-        //         "id" => -1,
-        //         "method" => "public/get-$trades",
-        //         "code" => 0,
-        //         "result" => {
-        //             "data" => array(
-        //                 array(
-        //                     "s" => "sell",
-        //                     "p" => "26386.00",
-        //                     "q" => "0.00453",
-        //                     "t" => 1686944282062,
+        //         "id": -1,
+        //         "method": "public/get-trades",
+        //         "code": 0,
+        //         "result": {
+        //             "data": [
+        //                 {
+        //                     "s": "sell",
+        //                     "p": "26386.00",
+        //                     "q": "0.00453",
+        //                     "t": 1686944282062,
         //                     "tn" : 1704476468851524373,
-        //                     "d" => "4611686018455979970",
-        //                     "i" => "BTC_USD"
-        //                 ),
-        //             )
+        //                     "d": "4611686018455979970",
+        //                     "i": "BTC_USD"
+        //                 },
+        //             ]
         //         }
         //     }
         //
@@ -1145,22 +1145,22 @@ class cryptocom extends Exchange {
         $response = $this->v1PublicGetPublicGetCandlestick($this->extend($request, $params));
         //
         //     {
-        //         "id" => -1,
-        //         "method" => "public/get-candlestick",
-        //         "code" => 0,
-        //         "result" => {
-        //             "interval" => "1m",
-        //             "data" => array(
-        //                 array(
-        //                     "o" => "26949.89",
-        //                     "h" => "26957.64",
-        //                     "l" => "26948.24",
-        //                     "c" => "26950.00",
-        //                     "v" => "0.0670",
-        //                     "t" => 1687237080000
-        //                 ),
-        //             ),
-        //             "instrument_name" => "BTC_USD"
+        //         "id": -1,
+        //         "method": "public/get-candlestick",
+        //         "code": 0,
+        //         "result": {
+        //             "interval": "1m",
+        //             "data": [
+        //                 {
+        //                     "o": "26949.89",
+        //                     "h": "26957.64",
+        //                     "l": "26948.24",
+        //                     "c": "26950.00",
+        //                     "v": "0.0670",
+        //                     "t": 1687237080000
+        //                 },
+        //             ],
+        //             "instrument_name": "BTC_USD"
         //         }
         //     }
         //
@@ -1193,19 +1193,19 @@ class cryptocom extends Exchange {
         $response = $this->v1PublicGetPublicGetBook($this->extend($request, $params));
         //
         //     {
-        //         "id" => -1,
-        //         "method" => "public/get-book",
-        //         "code" => 0,
-        //         "result" => {
-        //             "depth" => 3,
-        //             "data" => array(
+        //         "id": -1,
+        //         "method": "public/get-book",
+        //         "code": 0,
+        //         "result": {
+        //             "depth": 3,
+        //             "data": [
         //                 {
-        //                     "bids" => array( array( "30025.00", "0.00004", "1" ), array( "30020.15", "0.02498", "1" ), array( "30020.00", "0.00004", "1" ) ),
-        //                     "asks" => array( array( "30025.01", "0.04090", "1" ), array( "30025.70", "0.01000", "1" ), array( "30026.94", "0.02681", "1" ) ),
-        //                     "t" => 1687491287380
+        //                     "bids": [ [ "30025.00", "0.00004", "1" ], [ "30020.15", "0.02498", "1" ], [ "30020.00", "0.00004", "1" ] ],
+        //                     "asks": [ [ "30025.01", "0.04090", "1" ], [ "30025.70", "0.01000", "1" ], [ "30026.94", "0.02681", "1" ] ],
+        //                     "t": 1687491287380
         //                 }
-        //             ),
-        //             "instrument_name" => "BTC_USD"
+        //             ],
+        //             "instrument_name": "BTC_USD"
         //         }
         //     }
         //
@@ -1250,44 +1250,44 @@ class cryptocom extends Exchange {
         $response = $this->v1PrivatePostPrivateUserBalance($params);
         //
         //     {
-        //         "id" => 1687300499018,
-        //         "method" => "private/user-balance",
-        //         "code" => 0,
-        //         "result" => {
-        //             "data" => array(
+        //         "id": 1687300499018,
+        //         "method": "private/user-balance",
+        //         "code": 0,
+        //         "result": {
+        //             "data": [
         //                 {
-        //                     "total_available_balance" => "5.84684368",
-        //                     "total_margin_balance" => "5.84684368",
-        //                     "total_initial_margin" => "0",
-        //                     "total_maintenance_margin" => "0",
-        //                     "total_position_cost" => "0",
-        //                     "total_cash_balance" => "6.44412101",
-        //                     "total_collateral_value" => "5.846843685",
-        //                     "total_session_unrealized_pnl" => "0",
-        //                     "instrument_name" => "USD",
-        //                     "total_session_realized_pnl" => "0",
-        //                     "position_balances" => array(
-        //                         array(
-        //                             "quantity" => "0.0002119875",
-        //                             "reserved_qty" => "0",
-        //                             "collateral_weight" => "0.9",
-        //                             "collateral_amount" => "5.37549592",
-        //                             "market_value" => "5.97277325",
-        //                             "max_withdrawal_balance" => "0.00021198",
-        //                             "instrument_name" => "BTC",
-        //                             "hourly_interest_rate" => "0"
-        //                         ),
-        //                     ),
-        //                     "total_effective_leverage" => "0",
-        //                     "position_limit" => "3000000",
-        //                     "used_position_limit" => "0",
-        //                     "total_borrow" => "0",
-        //                     "margin_score" => "0",
-        //                     "is_liquidating" => false,
-        //                     "has_risk" => false,
-        //                     "terminatable" => true
+        //                     "total_available_balance": "5.84684368",
+        //                     "total_margin_balance": "5.84684368",
+        //                     "total_initial_margin": "0",
+        //                     "total_maintenance_margin": "0",
+        //                     "total_position_cost": "0",
+        //                     "total_cash_balance": "6.44412101",
+        //                     "total_collateral_value": "5.846843685",
+        //                     "total_session_unrealized_pnl": "0",
+        //                     "instrument_name": "USD",
+        //                     "total_session_realized_pnl": "0",
+        //                     "position_balances": [
+        //                         {
+        //                             "quantity": "0.0002119875",
+        //                             "reserved_qty": "0",
+        //                             "collateral_weight": "0.9",
+        //                             "collateral_amount": "5.37549592",
+        //                             "market_value": "5.97277325",
+        //                             "max_withdrawal_balance": "0.00021198",
+        //                             "instrument_name": "BTC",
+        //                             "hourly_interest_rate": "0"
+        //                         },
+        //                     ],
+        //                     "total_effective_leverage": "0",
+        //                     "position_limit": "3000000",
+        //                     "used_position_limit": "0",
+        //                     "total_borrow": "0",
+        //                     "margin_score": "0",
+        //                     "is_liquidating": false,
+        //                     "has_risk": false,
+        //                     "terminatable": true
         //                 }
-        //             )
+        //             ]
         //         }
         //     }
         //
@@ -1318,34 +1318,34 @@ class cryptocom extends Exchange {
         $response = $this->v1PrivatePostPrivateGetOrderDetail($this->extend($request, $params));
         //
         //     {
-        //         "id" => 1686872583882,
-        //         "method" => "private/get-$order-detail",
-        //         "code" => 0,
-        //         "result" => {
-        //             "account_id" => "ae075bef-1234-4321-bd6g-bb9007252a63",
-        //             "order_id" => "6142909895025252686",
-        //             "client_oid" => "CCXT_c2d2152cc32d40a3ae7fbf",
-        //             "order_type" => "LIMIT",
-        //             "time_in_force" => "GOOD_TILL_CANCEL",
-        //             "side" => "BUY",
-        //             "exec_inst" => array(),
-        //             "quantity" => "0.00020",
-        //             "limit_price" => "20000.00",
-        //             "order_value" => "4",
-        //             "avg_price" => "0",
-        //             "trigger_price" => "0",
-        //             "ref_price" => "0",
-        //             "cumulative_quantity" => "0",
-        //             "cumulative_value" => "0",
-        //             "cumulative_fee" => "0",
-        //             "status" => "ACTIVE",
-        //             "update_user_id" => "ae075bef-1234-4321-bd6g-bb9007252a63",
-        //             "order_date" => "2023-06-15",
-        //             "instrument_name" => "BTC_USD",
-        //             "fee_instrument_name" => "BTC",
-        //             "create_time" => 1686870220684,
-        //             "create_time_ns" => "1686870220684239675",
-        //             "update_time" => 1686870220684
+        //         "id": 1686872583882,
+        //         "method": "private/get-order-detail",
+        //         "code": 0,
+        //         "result": {
+        //             "account_id": "ae075bef-1234-4321-bd6g-bb9007252a63",
+        //             "order_id": "6142909895025252686",
+        //             "client_oid": "CCXT_c2d2152cc32d40a3ae7fbf",
+        //             "order_type": "LIMIT",
+        //             "time_in_force": "GOOD_TILL_CANCEL",
+        //             "side": "BUY",
+        //             "exec_inst": [ ],
+        //             "quantity": "0.00020",
+        //             "limit_price": "20000.00",
+        //             "order_value": "4",
+        //             "avg_price": "0",
+        //             "trigger_price": "0",
+        //             "ref_price": "0",
+        //             "cumulative_quantity": "0",
+        //             "cumulative_value": "0",
+        //             "cumulative_fee": "0",
+        //             "status": "ACTIVE",
+        //             "update_user_id": "ae075bef-1234-4321-bd6g-bb9007252a63",
+        //             "order_date": "2023-06-15",
+        //             "instrument_name": "BTC_USD",
+        //             "fee_instrument_name": "BTC",
+        //             "create_time": 1686870220684,
+        //             "create_time_ns": "1686870220684239675",
+        //             "update_time": 1686870220684
         //         }
         //     }
         //
@@ -1484,12 +1484,12 @@ class cryptocom extends Exchange {
         $response = $this->v1PrivatePostPrivateCreateOrder($request);
         //
         //     {
-        //         "id" => 1686804664362,
-        //         "method" => "private/create-order",
+        //         "id": 1686804664362,
+        //         "method": "private/create-order",
         //         "code" : 0,
-        //         "result" => {
-        //             "order_id" => "6540219377766741832",
-        //             "client_oid" => "CCXT_d6ef7c3db6c1495aa8b757"
+        //         "result": {
+        //             "order_id": "6540219377766741832",
+        //             "client_oid": "CCXT_d6ef7c3db6c1495aa8b757"
         //         }
         //     }
         //
@@ -1531,24 +1531,24 @@ class cryptocom extends Exchange {
         $response = $this->v1PrivatePostPrivateCreateOrderList($this->extend($request, $params));
         //
         // {
-        //     "id" => 12,
-        //     "method" => "private/create-order-list",
-        //     "code" => 10001,
-        //     "result" => {
-        //       "result_list" => array(
-        //         array(
-        //           "index" => 0,
-        //           "code" => 0,
-        //           "order_id" => "2015106383706015873",
-        //           "client_oid" => "my_order_0001"
-        //         ),
+        //     "id": 12,
+        //     "method": "private/create-order-list",
+        //     "code": 10001,
+        //     "result": {
+        //       "result_list": [
         //         {
-        //           "index" => 1,
-        //           "code" => 20007,
-        //           "message" => "INVALID_REQUEST",
-        //           "client_oid" => "my_order_0002"
+        //           "index": 0,
+        //           "code": 0,
+        //           "order_id": "2015106383706015873",
+        //           "client_oid": "my_order_0001"
+        //         },
+        //         {
+        //           "index": 1,
+        //           "code": 20007,
+        //           "message": "INVALID_REQUEST",
+        //           "client_oid": "my_order_0002"
         //         }
-        //       )
+        //       ]
         //     }
         // }
         //
@@ -1556,18 +1556,18 @@ class cryptocom extends Exchange {
         //       "id" : 1698068111133,
         //       "method" : "private/create-order-list",
         //       "code" : 0,
-        //       "result" : array( array(
+        //       "result" : [ {
         //         "code" : 0,
         //         "index" : 0,
         //         "client_oid" : "1698068111133_0",
         //         "order_id" : "6142909896519488206"
-        //       ), {
+        //       }, {
         //         "code" : 306,
         //         "index" : 1,
         //         "client_oid" : "1698068111133_1",
         //         "message" : "INSUFFICIENT_AVAILABLE_BALANCE",
         //         "order_id" : "6142909896519488207"
-        //       } )
+        //       } ]
         //   }
         //
         $result = $this->safe_value($response, 'result', array());
@@ -1589,7 +1589,7 @@ class cryptocom extends Exchange {
         // differs slightly from createOrderRequest
         // since the advanced order endpoint requires a different set of parameters
         // namely here we don't support ref_price or spot_margin
-        // and $market-buy orders need to send notional instead of quantity
+        // and market-buy orders need to send notional instead of quantity
         $market = $this->market($symbol);
         $uppercaseType = strtoupper($type);
         $request = array(
@@ -1792,13 +1792,13 @@ class cryptocom extends Exchange {
         $response = $this->v1PrivatePostPrivateCancelOrder($this->extend($request, $params));
         //
         //     {
-        //         "id" => 1686882846638,
-        //         "method" => "private/cancel-order",
-        //         "code" => 0,
-        //         "message" => "NO_ERROR",
-        //         "result" => {
-        //             "client_oid" => "CCXT_c2d2152cc32d40a3ae7fbf",
-        //             "order_id" => "6142909895025252686"
+        //         "id": 1686882846638,
+        //         "method": "private/cancel-order",
+        //         "code": 0,
+        //         "message": "NO_ERROR",
+        //         "result": {
+        //             "client_oid": "CCXT_c2d2152cc32d40a3ae7fbf",
+        //             "order_id": "6142909895025252686"
         //         }
         //     }
         //
@@ -1900,38 +1900,38 @@ class cryptocom extends Exchange {
         $response = $this->v1PrivatePostPrivateGetOpenOrders($this->extend($request, $params));
         //
         //     {
-        //         "id" => 1686806134961,
-        //         "method" => "private/get-open-$orders",
-        //         "code" => 0,
-        //         "result" => {
-        //             "data" => array(
+        //         "id": 1686806134961,
+        //         "method": "private/get-open-orders",
+        //         "code": 0,
+        //         "result": {
+        //             "data": [
         //                 {
-        //                     "account_id" => "ce075bef-1234-4321-bd6g-ff9007252e63",
-        //                     "order_id" => "6530219477767564494",
-        //                     "client_oid" => "CCXT_7ce730f0388441df9bc218",
-        //                     "order_type" => "LIMIT",
-        //                     "time_in_force" => "GOOD_TILL_CANCEL",
-        //                     "side" => "BUY",
-        //                     "exec_inst" => array(),
-        //                     "quantity" => "0.00020",
-        //                     "limit_price" => "20000.00",
-        //                     "order_value" => "4",
-        //                     "avg_price" => "0",
-        //                     "trigger_price" => "0",
-        //                     "ref_price" => "0",
-        //                     "cumulative_quantity" => "0",
-        //                     "cumulative_value" => "0",
-        //                     "cumulative_fee" => "0",
-        //                     "status" => "ACTIVE",
-        //                     "update_user_id" => "ce075bef-1234-4321-bd6g-gg9007252e63",
-        //                     "order_date" => "2023-06-15",
-        //                     "instrument_name" => "BTC_USD",
-        //                     "fee_instrument_name" => "BTC",
-        //                     "create_time" => 1686806053992,
-        //                     "create_time_ns" => "1686806053992921880",
-        //                     "update_time" => 1686806053993
+        //                     "account_id": "ce075bef-1234-4321-bd6g-ff9007252e63",
+        //                     "order_id": "6530219477767564494",
+        //                     "client_oid": "CCXT_7ce730f0388441df9bc218",
+        //                     "order_type": "LIMIT",
+        //                     "time_in_force": "GOOD_TILL_CANCEL",
+        //                     "side": "BUY",
+        //                     "exec_inst": [ ],
+        //                     "quantity": "0.00020",
+        //                     "limit_price": "20000.00",
+        //                     "order_value": "4",
+        //                     "avg_price": "0",
+        //                     "trigger_price": "0",
+        //                     "ref_price": "0",
+        //                     "cumulative_quantity": "0",
+        //                     "cumulative_value": "0",
+        //                     "cumulative_fee": "0",
+        //                     "status": "ACTIVE",
+        //                     "update_user_id": "ce075bef-1234-4321-bd6g-gg9007252e63",
+        //                     "order_date": "2023-06-15",
+        //                     "instrument_name": "BTC_USD",
+        //                     "fee_instrument_name": "BTC",
+        //                     "create_time": 1686806053992,
+        //                     "create_time_ns": "1686806053992921880",
+        //                     "update_time": 1686806053993
         //                 }
-        //             )
+        //             ]
         //         }
         //     }
         //
@@ -1982,30 +1982,30 @@ class cryptocom extends Exchange {
         $response = $this->v1PrivatePostPrivateGetTrades($this->extend($request, $params));
         //
         //     {
-        //         "id" => 1686942003520,
-        //         "method" => "private/get-$trades",
-        //         "code" => 0,
-        //         "result" => {
-        //             "data" => array(
+        //         "id": 1686942003520,
+        //         "method": "private/get-trades",
+        //         "code": 0,
+        //         "result": {
+        //             "data": [
         //                 {
-        //                     "account_id" => "ds075abc-1234-4321-bd6g-ff9007252r63",
-        //                     "event_date" => "2023-06-16",
-        //                     "journal_type" => "TRADING",
-        //                     "side" => "BUY",
-        //                     "instrument_name" => "BTC_USD",
-        //                     "fees" => "-0.0000000525",
-        //                     "trade_id" => "6142909898247428343",
-        //                     "trade_match_id" => "4611686018455978480",
-        //                     "create_time" => 1686941992887,
-        //                     "traded_price" => "26347.16",
-        //                     "traded_quantity" => "0.00021",
-        //                     "fee_instrument_name" => "BTC",
-        //                     "client_oid" => "d1c70a60-810e-4c92-b2a0-72b931cb31e0",
-        //                     "taker_side" => "TAKER",
-        //                     "order_id" => "6142909895036331486",
-        //                     "create_time_ns" => "1686941992887207066"
+        //                     "account_id": "ds075abc-1234-4321-bd6g-ff9007252r63",
+        //                     "event_date": "2023-06-16",
+        //                     "journal_type": "TRADING",
+        //                     "side": "BUY",
+        //                     "instrument_name": "BTC_USD",
+        //                     "fees": "-0.0000000525",
+        //                     "trade_id": "6142909898247428343",
+        //                     "trade_match_id": "4611686018455978480",
+        //                     "create_time": 1686941992887,
+        //                     "traded_price": "26347.16",
+        //                     "traded_quantity": "0.00021",
+        //                     "fee_instrument_name": "BTC",
+        //                     "client_oid": "d1c70a60-810e-4c92-b2a0-72b931cb31e0",
+        //                     "taker_side": "TAKER",
+        //                     "order_id": "6142909895036331486",
+        //                     "create_time_ns": "1686941992887207066"
         //                 }
-        //             )
+        //             ]
         //         }
         //     }
         //
@@ -2066,13 +2066,13 @@ class cryptocom extends Exchange {
         //        "id":-1,
         //        "method":"private/create-withdrawal",
         //        "code":0,
-        //        "result" => {
-        //            "id" => 2220,
-        //            "amount" => 1,
-        //            "fee" => 0.0004,
-        //            "symbol" => "BTC",
-        //            "address" => "2NBqqD5GRJ8wHy1PYyCXTe9ke5226FhavBf",
-        //            "client_wid" => "my_withdrawal_002",
+        //        "result": {
+        //            "id": 2220,
+        //            "amount": 1,
+        //            "fee": 0.0004,
+        //            "symbol": "BTC",
+        //            "address": "2NBqqD5GRJ8wHy1PYyCXTe9ke5226FhavBf",
+        //            "client_wid": "my_withdrawal_002",
         //            "create_time":1607063412000
         //        }
         //     }
@@ -2101,20 +2101,20 @@ class cryptocom extends Exchange {
         $response = $this->v1PrivatePostPrivateGetDepositAddress($this->extend($request, $params));
         //
         //     {
-        //         "id" => 1234555011221,
-        //         "method" => "private/get-deposit-$address",
-        //         "code" => 0,
-        //         "result" => {
-        //             "deposit_address_list" => array(
-        //                 array(
-        //                     "currency" => "BTC",
-        //                     "create_time" => 1686730755000,
-        //                     "id" => "3737377",
-        //                     "address" => "3N9afggxTSmJ3H4jaMQuWyEiLBzZdAbK6d",
+        //         "id": 1234555011221,
+        //         "method": "private/get-deposit-address",
+        //         "code": 0,
+        //         "result": {
+        //             "deposit_address_list": [
+        //                 {
+        //                     "currency": "BTC",
+        //                     "create_time": 1686730755000,
+        //                     "id": "3737377",
+        //                     "address": "3N9afggxTSmJ3H4jaMQuWyEiLBzZdAbK6d",
         //                     "status":"1",
-        //                     "network" => "BTC"
-        //                 ),
-        //             )
+        //                     "network": "BTC"
+        //                 },
+        //             ]
         //         }
         //     }
         //
@@ -2205,23 +2205,23 @@ class cryptocom extends Exchange {
         $response = $this->v1PrivatePostPrivateGetDepositHistory($this->extend($request, $params));
         //
         //     {
-        //         "id" => 1688701375714,
-        //         "method" => "private/get-deposit-history",
-        //         "code" => 0,
-        //         "result" => {
-        //             "deposit_list" => array(
-        //                 array(
-        //                     "currency" => "BTC",
-        //                     "fee" => 0,
-        //                     "create_time" => 1688023659000,
-        //                     "id" => "6201135",
-        //                     "update_time" => 1688178509000,
-        //                     "amount" => 0.00114571,
-        //                     "address" => "1234fggxTSmJ3H4jaMQuWyEiLBzZdAbK6d",
-        //                     "status" => "1",
-        //                     "txid" => "f0ae4202b76eb999c301eccdde44dc639bee42d1fdd5974105286ca3393f6065/2"
-        //                 ),
-        //             )
+        //         "id": 1688701375714,
+        //         "method": "private/get-deposit-history",
+        //         "code": 0,
+        //         "result": {
+        //             "deposit_list": [
+        //                 {
+        //                     "currency": "BTC",
+        //                     "fee": 0,
+        //                     "create_time": 1688023659000,
+        //                     "id": "6201135",
+        //                     "update_time": 1688178509000,
+        //                     "amount": 0.00114571,
+        //                     "address": "1234fggxTSmJ3H4jaMQuWyEiLBzZdAbK6d",
+        //                     "status": "1",
+        //                     "txid": "f0ae4202b76eb999c301eccdde44dc639bee42d1fdd5974105286ca3393f6065/2"
+        //                 },
+        //             ]
         //         }
         //     }
         //
@@ -2267,25 +2267,25 @@ class cryptocom extends Exchange {
         $response = $this->v1PrivatePostPrivateGetWithdrawalHistory($this->extend($request, $params));
         //
         //     {
-        //         "id" => 1688613879534,
-        //         "method" => "private/get-withdrawal-history",
-        //         "code" => 0,
-        //         "result" => {
-        //             "withdrawal_list" => array(
+        //         "id": 1688613879534,
+        //         "method": "private/get-withdrawal-history",
+        //         "code": 0,
+        //         "result": {
+        //             "withdrawal_list": [
         //                 {
-        //                     "currency" => "BTC",
-        //                     "client_wid" => "",
-        //                     "fee" => 0.0005,
-        //                     "create_time" => 1688613850000,
-        //                     "id" => "5275977",
-        //                     "update_time" => 1688613850000,
-        //                     "amount" => 0.0005,
-        //                     "address" => "1234NMEWbiF8ZkwUMxmfzMxi2A1MQ44bMn",
-        //                     "status" => "1",
-        //                     "txid" => "",
-        //                     "network_id" => "BTC"
+        //                     "currency": "BTC",
+        //                     "client_wid": "",
+        //                     "fee": 0.0005,
+        //                     "create_time": 1688613850000,
+        //                     "id": "5275977",
+        //                     "update_time": 1688613850000,
+        //                     "amount": 0.0005,
+        //                     "address": "1234NMEWbiF8ZkwUMxmfzMxi2A1MQ44bMn",
+        //                     "status": "1",
+        //                     "txid": "",
+        //                     "network_id": "BTC"
         //                 }
-        //             )
+        //             ]
         //         }
         //     }
         //
@@ -2299,32 +2299,32 @@ class cryptocom extends Exchange {
         // fetchTicker
         //
         //     {
-        //         "i" => "BTC_USD",
-        //         "h" => "30821.45",
-        //         "l" => "28685.11",
-        //         "a" => "30446.00",
-        //         "v" => "1767.8734",
-        //         "vv" => "52436726.42",
-        //         "c" => "0.0583",
-        //         "b" => "30442.00",
-        //         "k" => "30447.66",
-        //         "t" => 1687403045415
+        //         "i": "BTC_USD",
+        //         "h": "30821.45",
+        //         "l": "28685.11",
+        //         "a": "30446.00",
+        //         "v": "1767.8734",
+        //         "vv": "52436726.42",
+        //         "c": "0.0583",
+        //         "b": "30442.00",
+        //         "k": "30447.66",
+        //         "t": 1687403045415
         //     }
         //
         // fetchTickers
         //
         //     {
-        //         "i" => "AVAXUSD-PERP",
-        //         "h" => "13.209",
-        //         "l" => "12.148",
-        //         "a" => "13.209",
-        //         "v" => "1109.8",
-        //         "vv" => "14017.33",
-        //         "c" => "0.0732",
-        //         "b" => "13.210",
-        //         "k" => "13.230",
-        //         "oi" => "10888.9",
-        //         "t" => 1687402657575
+        //         "i": "AVAXUSD-PERP",
+        //         "h": "13.209",
+        //         "l": "12.148",
+        //         "a": "13.209",
+        //         "v": "1109.8",
+        //         "vv": "14017.33",
+        //         "c": "0.0732",
+        //         "b": "13.210",
+        //         "k": "13.230",
+        //         "oi": "10888.9",
+        //         "t": 1687402657575
         //     }
         //
         $timestamp = $this->safe_integer($ticker, 't');
@@ -2360,34 +2360,34 @@ class cryptocom extends Exchange {
         // fetchTrades
         //
         //     {
-        //         "s" => "sell",
-        //         "p" => "26386.00",
-        //         "q" => "0.00453",
-        //         "tn" => 1686944282062,
-        //         "tn" => 1704476468851524373,
-        //         "d" => "4611686018455979970",
-        //         "i" => "BTC_USD"
+        //         "s": "sell",
+        //         "p": "26386.00",
+        //         "q": "0.00453",
+        //         "tn": 1686944282062,
+        //         "tn": 1704476468851524373,
+        //         "d": "4611686018455979970",
+        //         "i": "BTC_USD"
         //     }
         //
         // fetchMyTrades
         //
         //     {
-        //         "account_id" => "ds075abc-1234-4321-bd6g-ff9007252r63",
-        //         "event_date" => "2023-06-16",
-        //         "journal_type" => "TRADING",
-        //         "side" => "BUY",
-        //         "instrument_name" => "BTC_USD",
-        //         "fees" => "-0.0000000525",
-        //         "trade_id" => "6142909898247428343",
-        //         "trade_match_id" => "4611686018455978480",
-        //         "create_time" => 1686941992887,
-        //         "traded_price" => "26347.16",
-        //         "traded_quantity" => "0.00021",
-        //         "fee_instrument_name" => "BTC",
-        //         "client_oid" => "d1c70a60-1234-4c92-b2a0-72b931cb31e0",
-        //         "taker_side" => "TAKER",
-        //         "order_id" => "6142909895036331486",
-        //         "create_time_ns" => "1686941992887207066"
+        //         "account_id": "ds075abc-1234-4321-bd6g-ff9007252r63",
+        //         "event_date": "2023-06-16",
+        //         "journal_type": "TRADING",
+        //         "side": "BUY",
+        //         "instrument_name": "BTC_USD",
+        //         "fees": "-0.0000000525",
+        //         "trade_id": "6142909898247428343",
+        //         "trade_match_id": "4611686018455978480",
+        //         "create_time": 1686941992887,
+        //         "traded_price": "26347.16",
+        //         "traded_quantity": "0.00021",
+        //         "fee_instrument_name": "BTC",
+        //         "client_oid": "d1c70a60-1234-4c92-b2a0-72b931cb31e0",
+        //         "taker_side": "TAKER",
+        //         "order_id": "6142909895036331486",
+        //         "create_time_ns": "1686941992887207066"
         //     }
         //
         $timestamp = $this->safe_integer_2($trade, 't', 'create_time');
@@ -2418,12 +2418,12 @@ class cryptocom extends Exchange {
     public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
         //
         //     {
-        //         "o" => "26949.89",
-        //         "h" => "26957.64",
-        //         "l" => "26948.24",
-        //         "c" => "26950.00",
-        //         "v" => "0.0670",
-        //         "t" => 1687237080000
+        //         "o": "26949.89",
+        //         "h": "26957.64",
+        //         "l": "26948.24",
+        //         "c": "26950.00",
+        //         "v": "0.0670",
+        //         "t": 1687237080000
         //     }
         //
         return array(
@@ -2461,37 +2461,37 @@ class cryptocom extends Exchange {
         // createOrder, cancelOrder
         //
         //     {
-        //         "order_id" => "6540219377766741832",
-        //         "client_oid" => "CCXT_d6ef7c3db6c1495aa8b757"
+        //         "order_id": "6540219377766741832",
+        //         "client_oid": "CCXT_d6ef7c3db6c1495aa8b757"
         //     }
         //
         // fetchOpenOrders, fetchOrder, fetchOrders
         //
         //     {
-        //         "account_id" => "ce075bef-1234-4321-bd6g-ff9007252e63",
-        //         "order_id" => "6530219477767564494",
-        //         "client_oid" => "CCXT_7ce730f0388441df9bc218",
-        //         "order_type" => "LIMIT",
-        //         "time_in_force" => "GOOD_TILL_CANCEL",
-        //         "side" => "BUY",
-        //         "exec_inst" => array(),
-        //         "quantity" => "0.00020",
-        //         "limit_price" => "20000.00",
-        //         "order_value" => "4",
-        //         "avg_price" => "0",
-        //         "trigger_price" => "0",
-        //         "ref_price" => "0",
-        //         "cumulative_quantity" => "0",
-        //         "cumulative_value" => "0",
-        //         "cumulative_fee" => "0",
-        //         "status" => "ACTIVE",
-        //         "update_user_id" => "ce075bef-1234-4321-bd6g-gg9007252e63",
-        //         "order_date" => "2023-06-15",
-        //         "instrument_name" => "BTC_USD",
-        //         "fee_instrument_name" => "BTC",
-        //         "create_time" => 1686806053992,
-        //         "create_time_ns" => "1686806053992921880",
-        //         "update_time" => 1686806053993
+        //         "account_id": "ce075bef-1234-4321-bd6g-ff9007252e63",
+        //         "order_id": "6530219477767564494",
+        //         "client_oid": "CCXT_7ce730f0388441df9bc218",
+        //         "order_type": "LIMIT",
+        //         "time_in_force": "GOOD_TILL_CANCEL",
+        //         "side": "BUY",
+        //         "exec_inst": [ ],
+        //         "quantity": "0.00020",
+        //         "limit_price": "20000.00",
+        //         "order_value": "4",
+        //         "avg_price": "0",
+        //         "trigger_price": "0",
+        //         "ref_price": "0",
+        //         "cumulative_quantity": "0",
+        //         "cumulative_value": "0",
+        //         "cumulative_fee": "0",
+        //         "status": "ACTIVE",
+        //         "update_user_id": "ce075bef-1234-4321-bd6g-gg9007252e63",
+        //         "order_date": "2023-06-15",
+        //         "instrument_name": "BTC_USD",
+        //         "fee_instrument_name": "BTC",
+        //         "create_time": 1686806053992,
+        //         "create_time_ns": "1686806053992921880",
+        //         "update_time": 1686806053993
         //     }
         //
         // createOrders
@@ -2583,42 +2583,42 @@ class cryptocom extends Exchange {
         // fetchDeposits
         //
         //     {
-        //         "currency" => "BTC",
-        //         "fee" => 0,
-        //         "create_time" => 1688023659000,
-        //         "id" => "6201135",
-        //         "update_time" => 1688178509000,
-        //         "amount" => 0.00114571,
-        //         "address" => "1234fggxTSmJ3H4jaMQuWyEiLBzZdAbK6d",
-        //         "status" => "1",
-        //         "txid" => "f0ae4202b76eb999c301eccdde44dc639bee42d1fdd5974105286ca3393f6065/2"
+        //         "currency": "BTC",
+        //         "fee": 0,
+        //         "create_time": 1688023659000,
+        //         "id": "6201135",
+        //         "update_time": 1688178509000,
+        //         "amount": 0.00114571,
+        //         "address": "1234fggxTSmJ3H4jaMQuWyEiLBzZdAbK6d",
+        //         "status": "1",
+        //         "txid": "f0ae4202b76eb999c301eccdde44dc639bee42d1fdd5974105286ca3393f6065/2"
         //     }
         //
         // fetchWithdrawals
         //
         //     {
-        //         "currency" => "BTC",
-        //         "client_wid" => "",
-        //         "fee" => 0.0005,
-        //         "create_time" => 1688613850000,
-        //         "id" => "5775977",
-        //         "update_time" => 1688613850000,
-        //         "amount" => 0.0005,
-        //         "address" => "1234NMEWbiF8ZkwUMxmfzMxi2A1MQ44bMn",
-        //         "status" => "1",
-        //         "txid" => "",
-        //         "network_id" => "BTC"
+        //         "currency": "BTC",
+        //         "client_wid": "",
+        //         "fee": 0.0005,
+        //         "create_time": 1688613850000,
+        //         "id": "5775977",
+        //         "update_time": 1688613850000,
+        //         "amount": 0.0005,
+        //         "address": "1234NMEWbiF8ZkwUMxmfzMxi2A1MQ44bMn",
+        //         "status": "1",
+        //         "txid": "",
+        //         "network_id": "BTC"
         //     }
         //
         // withdraw
         //
         //     {
-        //         "id" => 2220,
-        //         "amount" => 1,
-        //         "fee" => 0.0004,
-        //         "symbol" => "BTC",
-        //         "address" => "2NBqqD5GRJ8wHy1PYyCXTe9ke5226FhavBf",
-        //         "client_wid" => "my_withdrawal_002",
+        //         "id": 2220,
+        //         "amount": 1,
+        //         "fee": 0.0004,
+        //         "symbol": "BTC",
+        //         "address": "2NBqqD5GRJ8wHy1PYyCXTe9ke5226FhavBf",
+        //         "client_wid": "my_withdrawal_002",
         //         "create_time":1607063412000
         //     }
         //
@@ -2693,18 +2693,18 @@ class cryptocom extends Exchange {
     public function parse_deposit_withdraw_fee(mixed $fee, ?array $currency = null) {
         //
         //    {
-        //        "full_name" => "Alchemix",
-        //        "default_network" => "ETH",
-        //        "network_list" => array(
+        //        "full_name": "Alchemix",
+        //        "default_network": "ETH",
+        //        "network_list": [
         //          {
-        //            "network_id" => "ETH",
-        //            "withdrawal_fee" => "0.25000000",
-        //            "withdraw_enabled" => true,
-        //            "min_withdrawal_amount" => "0.5",
-        //            "deposit_enabled" => true,
-        //            "confirmation_required" => "0"
+        //            "network_id": "ETH",
+        //            "withdrawal_fee": "0.25000000",
+        //            "withdraw_enabled": true,
+        //            "min_withdrawal_amount": "0.5",
+        //            "deposit_enabled": true,
+        //            "confirmation_required": "0"
         //          }
-        //        )
+        //        ]
         //    }
         //
         $networkList = $this->safe_list($fee, 'network_list', array());
@@ -2796,30 +2796,30 @@ class cryptocom extends Exchange {
         $response = $this->v1PrivatePostPrivateGetTransactions($this->extend($request, $params));
         //
         //     {
-        //         "id" => 1686813195698,
-        //         "method" => "private/get-transactions",
-        //         "code" => 0,
-        //         "result" => {
-        //             "data" => array(
-        //                 array(
-        //                     "account_id" => "ce075cef-1234-4321-bd6e-gf9007351e64",
-        //                     "event_date" => "2023-06-15",
-        //                     "journal_type" => "TRADING",
-        //                     "journal_id" => "6530219460124075091",
-        //                     "transaction_qty" => "6.0091224",
-        //                     "transaction_cost" => "6.0091224",
-        //                     "realized_pnl" => "0",
-        //                     "order_id" => "6530219477766741833",
-        //                     "trade_id" => "6530219495775954765",
-        //                     "trade_match_id" => "4611686018455865176",
-        //                     "event_timestamp_ms" => 1686804665013,
-        //                     "event_timestamp_ns" => "1686804665013642422",
-        //                     "client_oid" => "CCXT_d6ea7c5db6c1495aa8b758",
-        //                     "taker_side" => "",
-        //                     "side" => "BUY",
-        //                     "instrument_name" => "USD"
-        //                 ),
-        //             )
+        //         "id": 1686813195698,
+        //         "method": "private/get-transactions",
+        //         "code": 0,
+        //         "result": {
+        //             "data": [
+        //                 {
+        //                     "account_id": "ce075cef-1234-4321-bd6e-gf9007351e64",
+        //                     "event_date": "2023-06-15",
+        //                     "journal_type": "TRADING",
+        //                     "journal_id": "6530219460124075091",
+        //                     "transaction_qty": "6.0091224",
+        //                     "transaction_cost": "6.0091224",
+        //                     "realized_pnl": "0",
+        //                     "order_id": "6530219477766741833",
+        //                     "trade_id": "6530219495775954765",
+        //                     "trade_match_id": "4611686018455865176",
+        //                     "event_timestamp_ms": 1686804665013,
+        //                     "event_timestamp_ns": "1686804665013642422",
+        //                     "client_oid": "CCXT_d6ea7c5db6c1495aa8b758",
+        //                     "taker_side": "",
+        //                     "side": "BUY",
+        //                     "instrument_name": "USD"
+        //                 },
+        //             ]
         //         }
         //     }
         //
@@ -2831,22 +2831,22 @@ class cryptocom extends Exchange {
     public function parse_ledger_entry(array $item, ?array $currency = null): array {
         //
         //     {
-        //         "account_id" => "ce075cef-1234-4321-bd6e-gf9007351e64",
-        //         "event_date" => "2023-06-15",
-        //         "journal_type" => "TRADING",
-        //         "journal_id" => "6530219460124075091",
-        //         "transaction_qty" => "6.0091224",
-        //         "transaction_cost" => "6.0091224",
-        //         "realized_pnl" => "0",
-        //         "order_id" => "6530219477766741833",
-        //         "trade_id" => "6530219495775954765",
-        //         "trade_match_id" => "4611686018455865176",
-        //         "event_timestamp_ms" => 1686804665013,
-        //         "event_timestamp_ns" => "1686804665013642422",
-        //         "client_oid" => "CCXT_d6ea7c5db6c1495aa8b758",
-        //         "taker_side" => "",
-        //         "side" => "BUY",
-        //         "instrument_name" => "USD"
+        //         "account_id": "ce075cef-1234-4321-bd6e-gf9007351e64",
+        //         "event_date": "2023-06-15",
+        //         "journal_type": "TRADING",
+        //         "journal_id": "6530219460124075091",
+        //         "transaction_qty": "6.0091224",
+        //         "transaction_cost": "6.0091224",
+        //         "realized_pnl": "0",
+        //         "order_id": "6530219477766741833",
+        //         "trade_id": "6530219495775954765",
+        //         "trade_match_id": "4611686018455865176",
+        //         "event_timestamp_ms": 1686804665013,
+        //         "event_timestamp_ns": "1686804665013642422",
+        //         "client_oid": "CCXT_d6ea7c5db6c1495aa8b758",
+        //         "taker_side": "",
+        //         "side": "BUY",
+        //         "instrument_name": "USD"
         //     }
         //
         $timestamp = $this->safe_integer($item, 'event_timestamp_ms');
@@ -2925,32 +2925,32 @@ class cryptocom extends Exchange {
         $response = $this->v1PrivatePostPrivateGetAccounts($params);
         //
         //     {
-        //         "id" => 1234567894321,
-        //         "method" => "private/get-$accounts",
-        //         "code" => 0,
-        //         "result" => {
-        //             "master_account" => array(
-        //                 "uuid" => "a1234abc-1234-4321-q5r7-b1ab0a0b12b",
-        //                 "user_uuid" => "a1234abc-1234-4321-q5r7-b1ab0a0b12b",
-        //                 "enabled" => true,
-        //                 "tradable" => true,
-        //                 "name" => "YOUR_NAME",
-        //                 "country_code" => "CAN",
-        //                 "phone_country_code" => "CAN",
-        //                 "incorp_country_code" => "",
-        //                 "margin_access" => "DEFAULT",
-        //                 "derivatives_access" => "DEFAULT",
-        //                 "create_time" => 1656445188000,
-        //                 "update_time" => 1660794567262,
-        //                 "two_fa_enabled" => true,
-        //                 "kyc_level" => "ADVANCED",
-        //                 "suspended" => false,
-        //                 "terminated" => false,
-        //                 "spot_enabled" => false,
-        //                 "margin_enabled" => false,
-        //                 "derivatives_enabled" => false
-        //             ),
-        //             "sub_account_list" => array()
+        //         "id": 1234567894321,
+        //         "method": "private/get-accounts",
+        //         "code": 0,
+        //         "result": {
+        //             "master_account": {
+        //                 "uuid": "a1234abc-1234-4321-q5r7-b1ab0a0b12b",
+        //                 "user_uuid": "a1234abc-1234-4321-q5r7-b1ab0a0b12b",
+        //                 "enabled": true,
+        //                 "tradable": true,
+        //                 "name": "YOUR_NAME",
+        //                 "country_code": "CAN",
+        //                 "phone_country_code": "CAN",
+        //                 "incorp_country_code": "",
+        //                 "margin_access": "DEFAULT",
+        //                 "derivatives_access": "DEFAULT",
+        //                 "create_time": 1656445188000,
+        //                 "update_time": 1660794567262,
+        //                 "two_fa_enabled": true,
+        //                 "kyc_level": "ADVANCED",
+        //                 "suspended": false,
+        //                 "terminated": false,
+        //                 "spot_enabled": false,
+        //                 "margin_enabled": false,
+        //                 "derivatives_enabled": false
+        //             },
+        //             "sub_account_list": []
         //         }
         //     }
         //
@@ -2964,27 +2964,27 @@ class cryptocom extends Exchange {
     public function parse_account(mixed $account) {
         //
         //     {
-        //         "uuid" => "a1234abc-1234-4321-q5r7-b1ab0a0b12b",
-        //         "user_uuid" => "a1234abc-1234-4321-q5r7-b1ab0a0b12b",
-        //         "master_account_uuid" => "a1234abc-1234-4321-q5r7-b1ab0a0b12b",
-        //         "label" => "FORMER_MASTER_MARGIN",
-        //         "enabled" => true,
-        //         "tradable" => true,
-        //         "name" => "YOUR_NAME",
-        //         "country_code" => "YOUR_COUNTRY_CODE",
-        //         "incorp_country_code" => "",
-        //         "margin_access" => "DEFAULT",
-        //         "derivatives_access" => "DEFAULT",
-        //         "create_time" => 1656481992000,
-        //         "update_time" => 1667272884594,
-        //         "two_fa_enabled" => false,
-        //         "kyc_level" => "ADVANCED",
-        //         "suspended" => false,
-        //         "terminated" => false,
-        //         "spot_enabled" => false,
-        //         "margin_enabled" => false,
-        //         "derivatives_enabled" => false,
-        //         "system_label" => "FORMER_MASTER_MARGIN"
+        //         "uuid": "a1234abc-1234-4321-q5r7-b1ab0a0b12b",
+        //         "user_uuid": "a1234abc-1234-4321-q5r7-b1ab0a0b12b",
+        //         "master_account_uuid": "a1234abc-1234-4321-q5r7-b1ab0a0b12b",
+        //         "label": "FORMER_MASTER_MARGIN",
+        //         "enabled": true,
+        //         "tradable": true,
+        //         "name": "YOUR_NAME",
+        //         "country_code": "YOUR_COUNTRY_CODE",
+        //         "incorp_country_code": "",
+        //         "margin_access": "DEFAULT",
+        //         "derivatives_access": "DEFAULT",
+        //         "create_time": 1656481992000,
+        //         "update_time": 1667272884594,
+        //         "two_fa_enabled": false,
+        //         "kyc_level": "ADVANCED",
+        //         "suspended": false,
+        //         "terminated": false,
+        //         "spot_enabled": false,
+        //         "margin_enabled": false,
+        //         "derivatives_enabled": false,
+        //         "system_label": "FORMER_MASTER_MARGIN"
         //     }
         //
         return array(
@@ -3027,18 +3027,18 @@ class cryptocom extends Exchange {
         $response = $this->v1PublicGetPublicGetExpiredSettlementPrice($this->extend($request, $params));
         //
         //     {
-        //         "id" => -1,
-        //         "method" => "public/get-expired-settlement-price",
-        //         "code" => 0,
-        //         "result" => {
-        //             "data" => array(
+        //         "id": -1,
+        //         "method": "public/get-expired-settlement-price",
+        //         "code": 0,
+        //         "result": {
+        //             "data": [
         //                 {
-        //                     "i" => "BTCUSD-230526",
-        //                     "x" => 1685088000000,
-        //                     "v" => "26464.1",
-        //                     "t" => 1685087999500
+        //                     "i": "BTCUSD-230526",
+        //                     "x": 1685088000000,
+        //                     "v": "26464.1",
+        //                     "t": 1685087999500
         //                 }
-        //             )
+        //             ]
         //         }
         //     }
         //
@@ -3052,10 +3052,10 @@ class cryptocom extends Exchange {
     public function parse_settlement(mixed $settlement, mixed $market) {
         //
         //     {
-        //         "i" => "BTCUSD-230526",
-        //         "x" => 1685088000000,
-        //         "v" => "26464.1",
-        //         "t" => 1685087999500
+        //         "i": "BTCUSD-230526",
+        //         "x": 1685088000000,
+        //         "v": "26464.1",
+        //         "t": 1685087999500
         //     }
         //
         $timestamp = $this->safe_integer($settlement, 'x');
@@ -3071,14 +3071,14 @@ class cryptocom extends Exchange {
 
     public function parse_settlements(mixed $settlements, mixed $market) {
         //
-        //     array(
+        //     [
         //         {
-        //             "i" => "BTCUSD-230526",
-        //             "x" => 1685088000000,
-        //             "v" => "26464.1",
-        //             "t" => 1685087999500
+        //             "i": "BTCUSD-230526",
+        //             "x": 1685088000000,
+        //             "v": "26464.1",
+        //             "t": 1685087999500
         //         }
-        //     )
+        //     ]
         //
         $result = array();
         for ($i = 0; $i < count($settlements); $i++) {
@@ -3112,17 +3112,17 @@ class cryptocom extends Exchange {
         $response = $this->v1PublicGetPublicGetValuations($this->extend($request, $params));
         //
         //     {
-        //         "id" => -1,
-        //         "method" => "public/get-valuations",
-        //         "code" => 0,
-        //         "result" => {
-        //             "data" => array(
-        //                 array(
-        //                     "v" => "-0.000001884",
-        //                     "t" => 1687892400000
-        //                 ),
-        //             ),
-        //             "instrument_name" => "BTCUSD-PERP"
+        //         "id": -1,
+        //         "method": "public/get-valuations",
+        //         "code": 0,
+        //         "result": {
+        //             "data": [
+        //                 {
+        //                     "v": "-0.000001884",
+        //                     "t": 1687892400000
+        //                 },
+        //             ],
+        //             "instrument_name": "BTCUSD-PERP"
         //         }
         //     }
         //
@@ -3134,10 +3134,10 @@ class cryptocom extends Exchange {
 
     public function parse_funding_rate(mixed $contract, ?array $market = null): array {
         //
-        //                 array(
-        //                     "v" => "-0.000001884",
-        //                     "t" => 1687892400000
-        //                 ),
+        //                 {
+        //                     "v": "-0.000001884",
+        //                     "t": 1687892400000
+        //                 },
         //
         $timestamp = $this->safe_integer($contract, 't');
         $fundingTimestamp = null;
@@ -3213,17 +3213,17 @@ class cryptocom extends Exchange {
         $response = $this->v1PublicGetPublicGetValuations($this->extend($request, $params));
         //
         //     {
-        //         "id" => -1,
-        //         "method" => "public/get-valuations",
-        //         "code" => 0,
-        //         "result" => {
-        //             "data" => array(
-        //                 array(
-        //                     "v" => "-0.000001884",
-        //                     "t" => 1687892400000
-        //                 ),
-        //             ),
-        //             "instrument_name" => "BTCUSD-PERP"
+        //         "id": -1,
+        //         "method": "public/get-valuations",
+        //         "code": 0,
+        //         "result": {
+        //             "data": [
+        //                 {
+        //                     "v": "-0.000001884",
+        //                     "t": 1687892400000
+        //                 },
+        //             ],
+        //             "instrument_name": "BTCUSD-PERP"
         //         }
         //     }
         //
@@ -3266,23 +3266,23 @@ class cryptocom extends Exchange {
         $response = $this->v1PrivatePostPrivateGetPositions($this->extend($request, $params));
         //
         //     {
-        //         "id" => 1688015952050,
-        //         "method" => "private/get-positions",
-        //         "code" => 0,
-        //         "result" => {
-        //             "data" => array(
+        //         "id": 1688015952050,
+        //         "method": "private/get-positions",
+        //         "code": 0,
+        //         "result": {
+        //             "data": [
         //                 {
-        //                     "account_id" => "ce075bef-b600-4277-bd6e-ff9007251e63",
-        //                     "quantity" => "0.0001",
-        //                     "cost" => "3.02392",
-        //                     "open_pos_cost" => "3.02392",
-        //                     "open_position_pnl" => "-0.0010281328",
-        //                     "session_pnl" => "-0.0010281328",
-        //                     "update_timestamp_ms" => 1688015919091,
-        //                     "instrument_name" => "BTCUSD-PERP",
-        //                     "type" => "PERPETUAL_SWAP"
+        //                     "account_id": "ce075bef-b600-4277-bd6e-ff9007251e63",
+        //                     "quantity": "0.0001",
+        //                     "cost": "3.02392",
+        //                     "open_pos_cost": "3.02392",
+        //                     "open_position_pnl": "-0.0010281328",
+        //                     "session_pnl": "-0.0010281328",
+        //                     "update_timestamp_ms": 1688015919091,
+        //                     "instrument_name": "BTCUSD-PERP",
+        //                     "type": "PERPETUAL_SWAP"
         //                 }
-        //             )
+        //             ]
         //         }
         //     }
         //
@@ -3324,23 +3324,23 @@ class cryptocom extends Exchange {
         $response = $this->v1PrivatePostPrivateGetPositions($this->extend($request, $params));
         //
         //     {
-        //         "id" => 1688015952050,
-        //         "method" => "private/get-$positions",
-        //         "code" => 0,
-        //         "result" => {
-        //             "data" => array(
+        //         "id": 1688015952050,
+        //         "method": "private/get-positions",
+        //         "code": 0,
+        //         "result": {
+        //             "data": [
         //                 {
-        //                     "account_id" => "ce075bef-b600-4277-bd6e-ff9007251e63",
-        //                     "quantity" => "0.0001",
-        //                     "cost" => "3.02392",
-        //                     "open_pos_cost" => "3.02392",
-        //                     "open_position_pnl" => "-0.0010281328",
-        //                     "session_pnl" => "-0.0010281328",
-        //                     "update_timestamp_ms" => 1688015919091,
-        //                     "instrument_name" => "BTCUSD-PERP",
-        //                     "type" => "PERPETUAL_SWAP"
+        //                     "account_id": "ce075bef-b600-4277-bd6e-ff9007251e63",
+        //                     "quantity": "0.0001",
+        //                     "cost": "3.02392",
+        //                     "open_pos_cost": "3.02392",
+        //                     "open_position_pnl": "-0.0010281328",
+        //                     "session_pnl": "-0.0010281328",
+        //                     "update_timestamp_ms": 1688015919091,
+        //                     "instrument_name": "BTCUSD-PERP",
+        //                     "type": "PERPETUAL_SWAP"
         //                 }
-        //             )
+        //             ]
         //         }
         //     }
         //
@@ -3359,15 +3359,15 @@ class cryptocom extends Exchange {
     public function parse_position(array $position, ?array $market = null) {
         //
         //     {
-        //         "account_id" => "ce075bef-b600-4277-bd6e-ff9007251e63",
-        //         "quantity" => "0.0001",
-        //         "cost" => "3.02392",
-        //         "open_pos_cost" => "3.02392",
-        //         "open_position_pnl" => "-0.0010281328",
-        //         "session_pnl" => "-0.0010281328",
-        //         "update_timestamp_ms" => 1688015919091,
-        //         "instrument_name" => "BTCUSD-PERP",
-        //         "type" => "PERPETUAL_SWAP"
+        //         "account_id": "ce075bef-b600-4277-bd6e-ff9007251e63",
+        //         "quantity": "0.0001",
+        //         "cost": "3.02392",
+        //         "open_pos_cost": "3.02392",
+        //         "open_position_pnl": "-0.0010281328",
+        //         "session_pnl": "-0.0010281328",
+        //         "update_timestamp_ms": 1688015919091,
+        //         "instrument_name": "BTCUSD-PERP",
+        //         "type": "PERPETUAL_SWAP"
         //     }
         //
         $marketId = $this->safe_string($position, 'instrument_name');
@@ -3508,16 +3508,16 @@ class cryptocom extends Exchange {
         $response = $this->v1PrivatePostPrivateGetInstrumentFeeRate($this->extend($request, $params));
         //
         //    {
-        //        "id" => 1,
-        //        "code" => 0,
-        //        "method" => "private/staking/unstake",
-        //        "result" => {
-        //          "staking_id" => "1",
-        //          "instrument_name" => "SOL.staked",
-        //          "status" => "NEW",
-        //          "quantity" => "1",
-        //          "underlying_inst_name" => "SOL",
-        //          "reason" => "NO_ERROR"
+        //        "id": 1,
+        //        "code": 0,
+        //        "method": "private/staking/unstake",
+        //        "result": {
+        //          "staking_id": "1",
+        //          "instrument_name": "SOL.staked",
+        //          "status": "NEW",
+        //          "quantity": "1",
+        //          "underlying_inst_name": "SOL",
+        //          "reason": "NO_ERROR"
         //        }
         //    }
         //
@@ -3540,16 +3540,16 @@ class cryptocom extends Exchange {
         $response = $this->v1PrivatePostPrivateGetFeeRate($params);
         //
         //   {
-        //       "id" => 1,
-        //       "method" => "/private/get-fee-rate",
-        //       "code" => 0,
-        //       "result" => {
-        //         "spot_tier" => "3",
-        //         "deriv_tier" => "3",
-        //         "effective_spot_maker_rate_bps" => "6.5",
-        //         "effective_spot_taker_rate_bps" => "6.9",
-        //         "effective_deriv_maker_rate_bps" => "1.1",
-        //         "effective_deriv_taker_rate_bps" => "3"
+        //       "id": 1,
+        //       "method": "/private/get-fee-rate",
+        //       "code": 0,
+        //       "result": {
+        //         "spot_tier": "3",
+        //         "deriv_tier": "3",
+        //         "effective_spot_maker_rate_bps": "6.5",
+        //         "effective_spot_taker_rate_bps": "6.9",
+        //         "effective_deriv_maker_rate_bps": "1.1",
+        //         "effective_deriv_taker_rate_bps": "3"
         //       }
         //   }
         //
@@ -3560,12 +3560,12 @@ class cryptocom extends Exchange {
     public function parse_trading_fees(mixed $response) {
         //
         // {
-        //         "spot_tier" => "3",
-        //         "deriv_tier" => "3",
-        //         "effective_spot_maker_rate_bps" => "6.5",
-        //         "effective_spot_taker_rate_bps" => "6.9",
-        //         "effective_deriv_maker_rate_bps" => "1.1",
-        //         "effective_deriv_taker_rate_bps" => "3"
+        //         "spot_tier": "3",
+        //         "deriv_tier": "3",
+        //         "effective_spot_maker_rate_bps": "6.5",
+        //         "effective_spot_taker_rate_bps": "6.9",
+        //         "effective_deriv_maker_rate_bps": "1.1",
+        //         "effective_deriv_taker_rate_bps": "3"
         //  }
         //
         $result = array();
@@ -3592,9 +3592,9 @@ class cryptocom extends Exchange {
     public function parse_trading_fee(array $fee, ?array $market = null): array {
         //
         // {
-        //      "instrument_name" => "BTC_USD",
-        //      "effective_maker_rate_bps" => "6.5",
-        //      "effective_taker_rate_bps" => "6.9"
+        //      "instrument_name": "BTC_USD",
+        //      "effective_maker_rate_bps": "6.5",
+        //      "effective_taker_rate_bps": "6.9"
         // }
         //
         $marketId = $this->safe_string($fee, 'instrument_name');

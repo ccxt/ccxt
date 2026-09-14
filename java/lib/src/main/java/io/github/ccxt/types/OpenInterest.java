@@ -5,7 +5,7 @@ package io.github.ccxt.types;
 
 import java.util.Map;
 
-public final class OpenInterest {
+public final class OpenInterest extends TypedMap {
     public String symbol;
     public Double openInterestAmount;
     public Double openInterestValue;
@@ -17,6 +17,7 @@ public final class OpenInterest {
 
     @SuppressWarnings("unchecked")
     public OpenInterest(Object raw) {
+        super(raw);
         Map<String, Object> data = TypeHelper.toMap(raw);
         this.symbol = TypeHelper.safeString(data, "symbol");
         this.openInterestAmount = TypeHelper.safeFloat(data, "openInterestAmount");

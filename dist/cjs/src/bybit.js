@@ -10086,11 +10086,9 @@ class bybit extends bybit$1["default"] {
             }
         }
         if (method === 'POST') {
-            const brokerId = this.safeString(this.options, 'brokerId');
-            if (brokerId !== undefined) {
-                headers = (headers === undefined) ? {} : headers;
-                headers['Referer'] = brokerId;
-            }
+            const brokerId = this.safeString(this.options, 'brokerId', 'CCXT');
+            headers = (headers === undefined) ? {} : headers;
+            headers['Referer'] = brokerId;
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }

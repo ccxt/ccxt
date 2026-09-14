@@ -1377,8 +1377,14 @@ public partial class ndax : Exchange
             timestamp = this.safeInteger(trade, 6);
             id = this.safeString(trade, 0);
             marketId = this.safeString(trade, 1);
-            object takerSide = this.safeValue(trade, 8);
-            side = ((bool) isTrue((isEqual(takerSide, true)))) ? "sell" : "buy";
+            Int64? takerSide = this.safeInteger(trade, 8);
+            if (isTrue(isEqual(takerSide, 0)))
+            {
+                side = "buy";
+            } else if (isTrue(isEqual(takerSide, 1)))
+            {
+                side = "sell";
+            }
             orderId = this.safeString(trade, 4);
         } else
         {

@@ -1163,6 +1163,7 @@ public partial class bingx : Exchange
                 } },
                 { "defaultForInverse", new Dictionary<string, object>() {
                     { "extends", "defaultForLinear" },
+                    { "sandbox", false },
                     { "createOrders", null },
                     { "fetchOHLCV", new Dictionary<string, object>() {
                         { "limit", 1000 },
@@ -1176,6 +1177,7 @@ public partial class bingx : Exchange
                 } },
                 { "spot", new Dictionary<string, object>() {
                     { "extends", "defaultForLinear" },
+                    { "sandbox", false },
                     { "fetchCurrencies", new Dictionary<string, object>() {
                         { "private", true },
                     } },
@@ -1201,18 +1203,6 @@ public partial class bingx : Exchange
                     } },
                     { "inverse", new Dictionary<string, object>() {
                         { "extends", "defaultForInverse" },
-                    } },
-                } },
-                { "defaultForFuture", new Dictionary<string, object>() {
-                    { "extends", "defaultForLinear" },
-                    { "fetchOrders", null },
-                } },
-                { "future", new Dictionary<string, object>() {
-                    { "linear", new Dictionary<string, object>() {
-                        { "extends", "defaultForFuture" },
-                    } },
-                    { "inverse", new Dictionary<string, object>() {
-                        { "extends", "defaultForFuture" },
                     } },
                 } },
             } },
@@ -3476,7 +3466,7 @@ public partial class bingx : Exchange
     /**
      * @method
      * @name bingx#createMarketOrderWithCost
-     * @description create a market order by providing the symbol, side and cost
+     * @description create a spot market order by providing the symbol, side and cost
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} side 'buy' or 'sell'
      * @param {float} cost how much you want to trade in units of the quote currency
@@ -3493,7 +3483,7 @@ public partial class bingx : Exchange
     /**
      * @method
      * @name bingx#createMarketBuyOrderWithCost
-     * @description create a market buy order by providing the symbol and cost
+     * @description create a spot market buy order by providing the symbol and cost
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {float} cost how much you want to trade in units of the quote currency
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -3509,7 +3499,7 @@ public partial class bingx : Exchange
     /**
      * @method
      * @name bingx#createMarketSellOrderWithCost
-     * @description create a market sell order by providing the symbol and cost
+     * @description create a spot market sell order by providing the symbol and cost
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {float} cost how much you want to trade in units of the quote currency
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -3547,6 +3537,11 @@ public partial class bingx : Exchange
          * @returns {object} request to be sent to the exchange
          */
         Dictionary<string, object> market = this.market(symbol);
+        string? cost = this.safeString2(parameters, "cost", "quoteOrderQty");
+        if (isTrue(isTrue((isEqual(getValue(market, "contract"), true))) && isTrue((!isEqual(cost, null)))))
+        {
+            throw new NotSupported ((string)add(this.id, " createOrder() with cost or quoteOrderQty is not supported for contract markets")) ;
+        }
         object postOnly = null;
         object marketType = null;
         IList<object> marketTypeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("createOrder", market, parameters);
@@ -3593,8 +3588,7 @@ public partial class bingx : Exchange
         }
         if (isTrue(isSpot))
         {
-            string? cost = this.safeString2(parameters, "cost", "quoteOrderQty");
-            parameters = this.omit(parameters, "cost");
+            parameters = this.omit(parameters, new List<object>() {"cost", "quoteOrderQty"});
             if (isTrue(!isEqual(cost, null)))
             {
                 ((IDictionary<string,object>)request)["quoteOrderQty"] = this.parseToNumeric(this.costToPrecision(symbol, cost));
@@ -3758,7 +3752,12 @@ public partial class bingx : Exchange
                         ((IDictionary<string,object>)slRequest)["price"] = this.parseToNumeric(this.priceToPrecision(symbol, slPrice));
                     }
                     string? slQuantity = this.safeString(stopLossDict, "quantity", stringifiedAmount);
-                    ((IDictionary<string,object>)slRequest)["quantity"] = this.parseToNumeric(this.amountToPrecision(symbol, slQuantity));
+                    object slQuantityRequest = this.parseToNumeric(slQuantity);
+                    if (isTrue(!isEqual(getValue(market, "inverse"), true)))
+                    {
+                        slQuantityRequest = this.parseToNumeric(this.amountToPrecision(symbol, slQuantity));
+                    }
+                    ((IDictionary<string,object>)slRequest)["quantity"] = slQuantityRequest;
                     ((IDictionary<string,object>)request)["stopLoss"] = this.json(slRequest);
                 }
                 if (isTrue(hasTakeProfit))
@@ -3777,7 +3776,12 @@ public partial class bingx : Exchange
                         ((IDictionary<string,object>)tpRequest)["price"] = this.parseToNumeric(this.priceToPrecision(symbol, slPrice));
                     }
                     string? tkQuantity = this.safeString(takeProfitDict, "quantity", stringifiedAmount);
-                    ((IDictionary<string,object>)tpRequest)["quantity"] = this.parseToNumeric(this.amountToPrecision(symbol, tkQuantity));
+                    object tkQuantityRequest = this.parseToNumeric(tkQuantity);
+                    if (isTrue(!isEqual(getValue(market, "inverse"), true)))
+                    {
+                        tkQuantityRequest = this.parseToNumeric(this.amountToPrecision(symbol, tkQuantity));
+                    }
+                    ((IDictionary<string,object>)tpRequest)["quantity"] = tkQuantityRequest;
                     ((IDictionary<string,object>)request)["takeProfit"] = this.json(tpRequest);
                 }
             }
@@ -3834,7 +3838,8 @@ public partial class bingx : Exchange
      * @param {float} [params.triggerPrice] triggerPrice at which the attached take profit / stop loss order will be triggered
      * @param {float} [params.stopLossPrice] stop loss trigger price
      * @param {float} [params.takeProfitPrice] take profit trigger price
-     * @param {float} [params.cost] the quote quantity that can be used as an alternative for the amount
+     * @param {float} [params.cost] *spot only* the quote quantity that can be used as an alternative for the amount
+     * @param {float} [params.quoteOrderQty] *spot only* the quote quantity, an alternative to params.cost
      * @param {float} [params.trailingAmount] *swap only* the quote amount to trail away from the current market price
      * @param {float} [params.trailingPercent] *swap only* the percent to trail away from the current market price
      * @param {object} [params.takeProfit] *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered
@@ -4511,7 +4516,7 @@ public partial class bingx : Exchange
             { "stopLossPrice", stopLossPrice },
             { "takeProfitPrice", takeProfitPrice },
             { "average", this.safeString2(order, "avgPrice", "ap") },
-            { "cost", this.safeString(order, "cummulativeQuoteQty") },
+            { "cost", this.safeString2(order, "cummulativeQuoteQty", "Z") },
             { "amount", this.safeStringN(order, new List<object>() {"origQty", "q", "quantity", "totalAmount"}) },
             { "filled", this.safeString2(order, "executedQty", "z") },
             { "remaining", null },

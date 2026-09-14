@@ -306,22 +306,22 @@ class coinone extends Exchange {
         $response = $this->v2PublicGetCurrencies($params);
         //
         //     {
-        //         "result" => "success",
-        //         "error_code" => "0",
-        //         "server_time" => 1701054555578,
-        //         "currencies" => array(
+        //         "result": "success",
+        //         "error_code": "0",
+        //         "server_time": 1701054555578,
+        //         "currencies": [
         //           {
-        //             "name" => "Polygon",
-        //             "symbol" => "MATIC",
-        //             "deposit_status" => "normal",
-        //             "withdraw_status" => "normal",
-        //             "deposit_confirm_count" => 150,
-        //             "max_precision" => 8,
-        //             "deposit_fee" => "0.0",
-        //             "withdrawal_min_amount" => "1.0",
-        //             "withdrawal_fee" => "3.0"
+        //             "name": "Polygon",
+        //             "symbol": "MATIC",
+        //             "deposit_status": "normal",
+        //             "withdraw_status": "normal",
+        //             "deposit_confirm_count": 150,
+        //             "max_precision": 8,
+        //             "deposit_fee": "0.0",
+        //             "withdrawal_min_amount": "1.0",
+        //             "withdrawal_fee": "3.0"
         //           }
-        //         )
+        //         ]
         //     }
         //
         $currencies = $this->safe_list($response, 'currencies', array());
@@ -374,35 +374,35 @@ class coinone extends Exchange {
         $response = $this->v2PublicGetTickerNewQuoteCurrency($request);
         //
         //     {
-        //         "result" => "success",
-        //         "error_code" => "0",
-        //         "server_time" => 1701067923060,
-        //         "tickers" => array(
+        //         "result": "success",
+        //         "error_code": "0",
+        //         "server_time": 1701067923060,
+        //         "tickers": [
         //             {
-        //                 "quote_currency" => "krw",
-        //                 "target_currency" => "stg",
-        //                 "timestamp" => 1701067920001,
-        //                 "high" => "667.5",
-        //                 "low" => "667.5",
-        //                 "first" => "667.5",
-        //                 "last" => "667.5",
-        //                 "quote_volume" => "0.0",
-        //                 "target_volume" => "0.0",
-        //                 "best_asks" => array(
+        //                 "quote_currency": "krw",
+        //                 "target_currency": "stg",
+        //                 "timestamp": 1701067920001,
+        //                 "high": "667.5",
+        //                 "low": "667.5",
+        //                 "first": "667.5",
+        //                 "last": "667.5",
+        //                 "quote_volume": "0.0",
+        //                 "target_volume": "0.0",
+        //                 "best_asks": [
         //                     {
-        //                         "price" => "777.0",
-        //                         "qty" => "73.9098"
+        //                         "price": "777.0",
+        //                         "qty": "73.9098"
         //                     }
-        //                 ),
-        //                 "best_bids" => array(
+        //                 ],
+        //                 "best_bids": [
         //                     {
-        //                         "price" => "690.8",
-        //                         "qty" => "40.7768"
+        //                         "price": "690.8",
+        //                         "qty": "40.7768"
         //                     }
-        //                 ),
-        //                 "id" => "1701067920001001"
+        //                 ],
+        //                 "id": "1701067920001001"
         //             }
-        //         )
+        //         ]
         //     }
         //
         $tickers = $this->safe_list($response, 'tickers', array());
@@ -531,25 +531,25 @@ class coinone extends Exchange {
         $response = $this->v2PublicGetOrderbookQuoteCurrencyTargetCurrency($this->extend($request, $params));
         //
         //     {
-        //         "result" => "success",
-        //         "error_code" => "0",
-        //         "timestamp" => 1701071108673,
-        //         "id" => "1701071108673001",
-        //         "quote_currency" => "KRW",
-        //         "target_currency" => "BTC",
-        //         "order_book_unit" => "0.0",
-        //         "bids" => array(
+        //         "result": "success",
+        //         "error_code": "0",
+        //         "timestamp": 1701071108673,
+        //         "id": "1701071108673001",
+        //         "quote_currency": "KRW",
+        //         "target_currency": "BTC",
+        //         "order_book_unit": "0.0",
+        //         "bids": [
         //             {
-        //                 "price" => "50048000",
-        //                 "qty" => "0.01080229"
+        //                 "price": "50048000",
+        //                 "qty": "0.01080229"
         //             }
-        //         ),
-        //         "asks" => array(
+        //         ],
+        //         "asks": [
         //             {
-        //                 "price" => "50058000",
-        //                 "qty" => "0.00272592"
+        //                 "price": "50058000",
+        //                 "qty": "0.00272592"
         //             }
-        //         )
+        //         ]
         //     }
         //
         $timestamp = $this->safe_integer($response, 'timestamp');
@@ -587,35 +587,35 @@ class coinone extends Exchange {
         }
         //
         //     {
-        //         "result" => "success",
-        //         "error_code" => "0",
-        //         "server_time" => 1701073358487,
-        //         "tickers" => array(
+        //         "result": "success",
+        //         "error_code": "0",
+        //         "server_time": 1701073358487,
+        //         "tickers": [
         //             {
-        //                 "quote_currency" => "krw",
-        //                 "target_currency" => "btc",
-        //                 "timestamp" => 1701073357818,
-        //                 "high" => "50543000.0",
-        //                 "low" => "49945000.0",
-        //                 "first" => "50487000.0",
-        //                 "last" => "50062000.0",
-        //                 "quote_volume" => "11349804285.3859",
-        //                 "target_volume" => "226.07268994",
-        //                 "best_asks" => array(
+        //                 "quote_currency": "krw",
+        //                 "target_currency": "btc",
+        //                 "timestamp": 1701073357818,
+        //                 "high": "50543000.0",
+        //                 "low": "49945000.0",
+        //                 "first": "50487000.0",
+        //                 "last": "50062000.0",
+        //                 "quote_volume": "11349804285.3859",
+        //                 "target_volume": "226.07268994",
+        //                 "best_asks": [
         //                     {
-        //                         "price" => "50081000.0",
-        //                         "qty" => "0.18471358"
+        //                         "price": "50081000.0",
+        //                         "qty": "0.18471358"
         //                     }
-        //                 ),
-        //                 "best_bids" => array(
+        //                 ],
+        //                 "best_bids": [
         //                     {
-        //                         "price" => "50062000.0",
-        //                         "qty" => "0.04213455"
+        //                         "price": "50062000.0",
+        //                         "qty": "0.04213455"
         //                     }
-        //                 ),
-        //                 "id" => "1701073357818001"
+        //                 ],
+        //                 "id": "1701073357818001"
         //             }
-        //         )
+        //         ]
         //     }
         //
         $data = $this->safe_list($response, 'tickers', array());
@@ -643,35 +643,35 @@ class coinone extends Exchange {
         $response = $this->v2PublicGetTickerNewQuoteCurrencyTargetCurrency($this->extend($request, $params));
         //
         //     {
-        //         "result" => "success",
-        //         "error_code" => "0",
-        //         "server_time" => 1701073358487,
-        //         "tickers" => array(
+        //         "result": "success",
+        //         "error_code": "0",
+        //         "server_time": 1701073358487,
+        //         "tickers": [
         //             {
-        //                 "quote_currency" => "krw",
-        //                 "target_currency" => "btc",
-        //                 "timestamp" => 1701073357818,
-        //                 "high" => "50543000.0",
-        //                 "low" => "49945000.0",
-        //                 "first" => "50487000.0",
-        //                 "last" => "50062000.0",
-        //                 "quote_volume" => "11349804285.3859",
-        //                 "target_volume" => "226.07268994",
-        //                 "best_asks" => array(
+        //                 "quote_currency": "krw",
+        //                 "target_currency": "btc",
+        //                 "timestamp": 1701073357818,
+        //                 "high": "50543000.0",
+        //                 "low": "49945000.0",
+        //                 "first": "50487000.0",
+        //                 "last": "50062000.0",
+        //                 "quote_volume": "11349804285.3859",
+        //                 "target_volume": "226.07268994",
+        //                 "best_asks": [
         //                     {
-        //                         "price" => "50081000.0",
-        //                         "qty" => "0.18471358"
+        //                         "price": "50081000.0",
+        //                         "qty": "0.18471358"
         //                     }
-        //                 ),
-        //                 "best_bids" => array(
+        //                 ],
+        //                 "best_bids": [
         //                     {
-        //                         "price" => "50062000.0",
-        //                         "qty" => "0.04213455"
+        //                         "price": "50062000.0",
+        //                         "qty": "0.04213455"
         //                     }
-        //                 ),
-        //                 "id" => "1701073357818001"
+        //                 ],
+        //                 "id": "1701073357818001"
         //             }
-        //         )
+        //         ]
         //     }
         //
         $data = $this->safe_list($response, 'tickers', array());
@@ -682,28 +682,28 @@ class coinone extends Exchange {
     public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         //     {
-        //         "quote_currency" => "krw",
-        //         "target_currency" => "btc",
-        //         "timestamp" => 1701073357818,
-        //         "high" => "50543000.0",
-        //         "low" => "49945000.0",
-        //         "first" => "50487000.0",
-        //         "last" => "50062000.0",
-        //         "quote_volume" => "11349804285.3859",
-        //         "target_volume" => "226.07268994",
-        //         "best_asks" => array(
+        //         "quote_currency": "krw",
+        //         "target_currency": "btc",
+        //         "timestamp": 1701073357818,
+        //         "high": "50543000.0",
+        //         "low": "49945000.0",
+        //         "first": "50487000.0",
+        //         "last": "50062000.0",
+        //         "quote_volume": "11349804285.3859",
+        //         "target_volume": "226.07268994",
+        //         "best_asks": [
         //             {
-        //                 "price" => "50081000.0",
-        //                 "qty" => "0.18471358"
+        //                 "price": "50081000.0",
+        //                 "qty": "0.18471358"
         //             }
-        //         ),
-        //         "best_bids" => array(
+        //         ],
+        //         "best_bids": [
         //             {
-        //                 "price" => "50062000.0",
-        //                 "qty" => "0.04213455"
+        //                 "price": "50062000.0",
+        //                 "qty": "0.04213455"
         //             }
-        //         ),
-        //         "id" => "1701073357818001"
+        //         ],
+        //         "id": "1701073357818001"
         //     }
         //
         $timestamp = $this->safe_integer($ticker, 'timestamp');
@@ -743,23 +743,23 @@ class coinone extends Exchange {
         // fetchTrades (public)
         //
         //     {
-        //         "id" => "1701075265708001",
-        //         "timestamp" => 1701075265708,
-        //         "price" => "50020000",
-        //         "qty" => "0.00155177",
-        //         "is_seller_maker" => false
+        //         "id": "1701075265708001",
+        //         "timestamp": 1701075265708,
+        //         "price": "50020000",
+        //         "qty": "0.00155177",
+        //         "is_seller_maker": false
         //     }
         //
         // fetchMyTrades (private)
         //
         //     {
-        //         "timestamp" => "1416561032",
-        //         "price" => "419000.0",
-        //         "type" => "bid",
-        //         "qty" => "0.001",
-        //         "feeRate" => "-0.0015",
-        //         "fee" => "-0.0000015",
-        //         "orderId" => "E84A1AC2-8088-4FA0-B093-A3BCDB9B3C85"
+        //         "timestamp": "1416561032",
+        //         "price": "419000.0",
+        //         "type": "bid",
+        //         "qty": "0.001",
+        //         "feeRate": "-0.0015",
+        //         "fee": "-0.0000015",
+        //         "orderId": "E84A1AC2-8088-4FA0-B093-A3BCDB9B3C85"
         //     }
         //
         $timestamp = $this->safe_integer($trade, 'timestamp');
@@ -828,20 +828,20 @@ class coinone extends Exchange {
         $response = $this->v2PublicGetTradesQuoteCurrencyTargetCurrency($this->extend($request, $params));
         //
         //     {
-        //         "result" => "success",
-        //         "error_code" => "0",
-        //         "server_time" => 1701075315771,
-        //         "quote_currency" => "KRW",
-        //         "target_currency" => "BTC",
-        //         "transactions" => array(
+        //         "result": "success",
+        //         "error_code": "0",
+        //         "server_time": 1701075315771,
+        //         "quote_currency": "KRW",
+        //         "target_currency": "BTC",
+        //         "transactions": [
         //             {
-        //                 "id" => "1701075265708001",
-        //                 "timestamp" => 1701075265708,
-        //                 "price" => "50020000",
-        //                 "qty" => "0.00155177",
-        //                 "is_seller_maker" => false
+        //                 "id": "1701075265708001",
+        //                 "timestamp": 1701075265708,
+        //                 "price": "50020000",
+        //                 "qty": "0.00155177",
+        //                 "is_seller_maker": false
         //             }
-        //         )
+        //         ]
         //     }
         //
         $data = $this->safe_list($response, 'transactions', array());
@@ -888,9 +888,9 @@ class coinone extends Exchange {
         $response = $this->v2_1PrivatePostOrderLimit($this->extend($request, $params));
         //
         //     {
-        //         "result" => "success",
-        //         "error_code" => "0",
-        //         "order_id" => "8a82c561-40b4-4cb3-9bc0-9ac9ffc1d63b"
+        //         "result": "success",
+        //         "error_code": "0",
+        //         "order_id": "8a82c561-40b4-4cb3-9bc0-9ac9ffc1d63b"
         //     }
         //
         return $this->parse_order($response, $market);
@@ -918,23 +918,23 @@ class coinone extends Exchange {
         $response = $this->v2PrivatePostOrderQueryOrder($this->extend($request, $params));
         //
         //     {
-        //         "result" => "success",
-        //         "errorCode" => "0",
-        //         "orderId" => "0e3019f2-1e4d-11e9-9ec7-00e04c3600d7",
-        //         "baseCurrency" => "KRW",
-        //         "targetCurrency" => "BTC",
-        //         "price" => "10011000.0",
-        //         "originalQty" => "3.0",
-        //         "executedQty" => "0.62",
-        //         "canceledQty" => "1.125",
-        //         "remainQty" => "1.255",
-        //         "status" => "partially_filled",
-        //         "side" => "bid",
-        //         "orderedAt" => 1499340941,
-        //         "updatedAt" => 1499341142,
-        //         "feeRate" => "0.002",
-        //         "fee" => "0.00124",
-        //         "averageExecutedPrice" => "10011000.0"
+        //         "result": "success",
+        //         "errorCode": "0",
+        //         "orderId": "0e3019f2-1e4d-11e9-9ec7-00e04c3600d7",
+        //         "baseCurrency": "KRW",
+        //         "targetCurrency": "BTC",
+        //         "price": "10011000.0",
+        //         "originalQty": "3.0",
+        //         "executedQty": "0.62",
+        //         "canceledQty": "1.125",
+        //         "remainQty": "1.255",
+        //         "status": "partially_filled",
+        //         "side": "bid",
+        //         "orderedAt": 1499340941,
+        //         "updatedAt": 1499341142,
+        //         "feeRate": "0.002",
+        //         "fee": "0.00124",
+        //         "averageExecutedPrice": "10011000.0"
         //     }
         //
         return $this->parse_order($response, $market);
@@ -956,43 +956,43 @@ class coinone extends Exchange {
         // createOrder
         //
         //     {
-        //         "result" => "success",
-        //         "errorCode" => "0",
-        //         "orderId" => "8a82c561-40b4-4cb3-9bc0-9ac9ffc1d63b"
+        //         "result": "success",
+        //         "errorCode": "0",
+        //         "orderId": "8a82c561-40b4-4cb3-9bc0-9ac9ffc1d63b"
         //     }
         //
         // fetchOrder
         //
         //     {
-        //         "result" => "success",
-        //         "errorCode" => "0",
-        //         "orderId" => "0e3019f2-1e4d-11e9-9ec7-00e04c3600d7",
-        //         "baseCurrency" => "KRW",
-        //         "targetCurrency" => "BTC",
-        //         "price" => "10011000.0",
-        //         "originalQty" => "3.0",
-        //         "executedQty" => "0.62",
-        //         "canceledQty" => "1.125",
-        //         "remainQty" => "1.255",
-        //         "status" => "partially_filled",
-        //         "side" => "bid",
-        //         "orderedAt" => 1499340941,
-        //         "updatedAt" => 1499341142,
-        //         "feeRate" => "0.002",
-        //         "fee" => "0.00124",
-        //         "averageExecutedPrice" => "10011000.0"
+        //         "result": "success",
+        //         "errorCode": "0",
+        //         "orderId": "0e3019f2-1e4d-11e9-9ec7-00e04c3600d7",
+        //         "baseCurrency": "KRW",
+        //         "targetCurrency": "BTC",
+        //         "price": "10011000.0",
+        //         "originalQty": "3.0",
+        //         "executedQty": "0.62",
+        //         "canceledQty": "1.125",
+        //         "remainQty": "1.255",
+        //         "status": "partially_filled",
+        //         "side": "bid",
+        //         "orderedAt": 1499340941,
+        //         "updatedAt": 1499341142,
+        //         "feeRate": "0.002",
+        //         "fee": "0.00124",
+        //         "averageExecutedPrice": "10011000.0"
         //     }
         //
         // fetchOpenOrders
         //
         //     {
-        //         "index" => "0",
-        //         "orderId" => "68665943-1eb5-4e4b-9d76-845fc54f5489",
-        //         "timestamp" => "1449037367",
-        //         "price" => "444000.0",
-        //         "qty" => "0.3456",
-        //         "type" => "ask",
-        //         "feeRate" => "-0.0015"
+        //         "index": "0",
+        //         "orderId": "68665943-1eb5-4e4b-9d76-845fc54f5489",
+        //         "timestamp": "1449037367",
+        //         "price": "444000.0",
+        //         "qty": "0.3456",
+        //         "type": "ask",
+        //         "feeRate": "-0.0015"
         //     }
         //
         $id = $this->safe_string_2($order, 'orderId', 'order_id');
@@ -1017,7 +1017,7 @@ class coinone extends Exchange {
         }
         $side = $this->safe_string_lower_2($order, 'type', 'side');
         if (($side === 'limit') || ($side === 'market') || ($side === 'stop_limit')) {
-            $side = $this->safe_string_lower($order, 'side'); // in v2.1 rows the type field carries the $order type, the $side lives in $side
+            $side = $this->safe_string_lower($order, 'side'); // in v2.1 rows the type field carries the order type, the side lives in side
         }
         if ($side === 'ask') {
             $side = 'sell';
@@ -1097,19 +1097,19 @@ class coinone extends Exchange {
         $response = $this->v2_1PrivatePostOrderOpenOrders($this->extend($request, $params));
         //
         //     {
-        //         "result" => "success",
-        //         "errorCode" => "0",
-        //         "limitOrders" => array(
+        //         "result": "success",
+        //         "errorCode": "0",
+        //         "limitOrders": [
         //             {
-        //                 "index" => "0",
-        //                 "orderId" => "68665943-1eb5-4e4b-9d76-845fc54f5489",
-        //                 "timestamp" => "1449037367",
-        //                 "price" => "444000.0",
-        //                 "qty" => "0.3456",
-        //                 "type" => "ask",
-        //                 "feeRate" => "-0.0015"
+        //                 "index": "0",
+        //                 "orderId": "68665943-1eb5-4e4b-9d76-845fc54f5489",
+        //                 "timestamp": "1449037367",
+        //                 "price": "444000.0",
+        //                 "qty": "0.3456",
+        //                 "type": "ask",
+        //                 "feeRate": "-0.0015"
         //             }
-        //         )
+        //         ]
         //     }
         //
         $openOrders = $this->safe_list_2($response, 'open_orders', 'limitOrders', array());
@@ -1141,19 +1141,19 @@ class coinone extends Exchange {
         // https://github.com/ccxt/ccxt/pull/7067
         //
         //     {
-        //         "result" => "success",
-        //         "errorCode" => "0",
-        //         "completeOrders" => array(
+        //         "result": "success",
+        //         "errorCode": "0",
+        //         "completeOrders": [
         //             {
-        //                 "timestamp" => "1416561032",
-        //                 "price" => "419000.0",
-        //                 "type" => "bid",
-        //                 "qty" => "0.001",
-        //                 "feeRate" => "-0.0015",
-        //                 "fee" => "-0.0000015",
-        //                 "orderId" => "E84A1AC2-8088-4FA0-B093-A3BCDB9B3C85"
+        //                 "timestamp": "1416561032",
+        //                 "price": "419000.0",
+        //                 "type": "bid",
+        //                 "qty": "0.001",
+        //                 "feeRate": "-0.0015",
+        //                 "fee": "-0.0000015",
+        //                 "orderId": "E84A1AC2-8088-4FA0-B093-A3BCDB9B3C85"
         //             }
-        //         )
+        //         ]
         //     }
         //
         $completeOrders = $this->safe_list($response, 'completeOrders', array());
@@ -1190,8 +1190,8 @@ class coinone extends Exchange {
         $response = $this->v2PrivatePostOrderCancel($this->extend($request, $params));
         //
         //     {
-        //         "result" => "success",
-        //         "errorCode" => "0"
+        //         "result": "success",
+        //         "errorCode": "0"
         //     }
         //
         return $this->safe_order($response);
@@ -1210,15 +1210,15 @@ class coinone extends Exchange {
         $response = $this->v2PrivatePostAccountDepositAddress($params);
         //
         //     {
-        //         "result" => "success",
-        //         "errorCode" => "0",
-        //         "walletAddress" => {
-        //             "matic" => null,
-        //             "btc" => "mnobqu4i6qMCJWDpf5UimRmr8JCvZ8FLcN",
-        //             "xrp" => null,
-        //             "xrp_tag" => "-1",
-        //             "kava" => null,
-        //             "kava_memo" => null,
+        //         "result": "success",
+        //         "errorCode": "0",
+        //         "walletAddress": {
+        //             "matic": null,
+        //             "btc": "mnobqu4i6qMCJWDpf5UimRmr8JCvZ8FLcN",
+        //             "xrp": null,
+        //             "xrp_tag": "-1",
+        //             "kava": null,
+        //             "kava_memo": null,
         //         }
         //     }
         //
@@ -1280,7 +1280,7 @@ class coinone extends Exchange {
         } else {
             $this->check_required_credentials();
             $url .= $request;
-            // the v2.1 $api requires a uuid $nonce, the older apis use a numeric one
+            // the v2.1 api requires a uuid nonce, the older apis use a numeric one
             $nonce = null;
             if ($api === 'v2_1Private') {
                 $nonce = $this->uuid();
@@ -1309,8 +1309,8 @@ class coinone extends Exchange {
             return null; // fallback to default error handler
         }
         //
-        //     array("result":"error","error_code":"107","error_msg":"Parameter value is wrong")
-        //     array("result":"error","error_code":"108","error_msg":"Unknown CryptoCurrency")
+        //     {"result":"error","error_code":"107","error_msg":"Parameter value is wrong"}
+        //     {"result":"error","error_code":"108","error_msg":"Unknown CryptoCurrency"}
         //
         $errorCode = $this->safe_string($response, 'error_code');
         if ($errorCode !== null && $errorCode !== '0') {

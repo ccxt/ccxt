@@ -520,7 +520,7 @@ class coinmate(Exchange, ImplicitAPI):
         response = await self.publicGetTicker(self.extend(request, params))
         #
         #     {
-        #         "error": False,
+        #         "error": false,
         #         "errorMessage": null,
         #         "data": {
         #             "last": 0.55105,
@@ -554,7 +554,7 @@ class coinmate(Exchange, ImplicitAPI):
         response = await self.publicGetTickerAll(params)
         #
         #     {
-        #         "error": False,
+        #         "error": false,
         #         "errorMessage": null,
         #         "data": {
         #             "LTC_BTC": {
@@ -789,7 +789,7 @@ class coinmate(Exchange, ImplicitAPI):
             raise ExchangeError(self.id + ' withdraw() does not support the ' + method + ' method')
         #
         #     {
-        #         "error": False,
+        #         "error": false,
         #         "errorMessage": null,
         #         "data": {
         #             "id": "9e0a37fc-4ab4-4b9d-b9e7-c9c8f7c4c8e0"
@@ -838,7 +838,7 @@ class coinmate(Exchange, ImplicitAPI):
 
     def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #
-        # fetchMyTrades(private)
+        # fetchMyTrades (private)
         #
         #     {
         #         "transactionId": 2671819,
@@ -853,7 +853,7 @@ class coinmate(Exchange, ImplicitAPI):
         #         "feeType": "MAKER"
         #     }
         #
-        # fetchTrades(public)
+        # fetchTrades (public)
         #
         #     {
         #         "timestamp":1561598833416,
@@ -956,9 +956,9 @@ class coinmate(Exchange, ImplicitAPI):
         response = await self.privatePostTraderFees(self.extend(request, params))
         #
         #     {
-        #         "error": False,
+        #         "error": false,
         #         "errorMessage": null,
-        #         "data": {maker: '0.3', taker: "0.35", timestamp: "1646253217815"}
+        #         "data": { maker: '0.3', taker: "0.35", timestamp: "1646253217815" }
         #     }
         #
         data = self.safe_value(response, 'data', {})
@@ -1052,8 +1052,8 @@ class coinmate(Exchange, ImplicitAPI):
         #         "marketPriceAtLastUpdate": null,
         #         "marketPriceAtOrderCreation": null,
         #         "orderTradeType": "LIMIT",
-        #         "hidden": False,
-        #         "trailing": False,
+        #         "hidden": false,
+        #         "trailing": false,
         #         "clientOrderId": null
         #     }
         #
@@ -1073,15 +1073,15 @@ class coinmate(Exchange, ImplicitAPI):
         #         "marketPriceAtOrderCreation": null,
         #         "status": "CANCELLED",
         #         "orderTradeType": "LIMIT",
-        #         "hidden": False,
+        #         "hidden": false,
         #         "avgPrice": null,
-        #         "trailing": False,
+        #         "trailing": false,
         #     }
         #
         # cancelOrder
         #
         #    {
-        #        "success": True,
+        #        "success": true,
         #        "remainingAmount": 0.1
         #    }
         #
@@ -1213,10 +1213,10 @@ class coinmate(Exchange, ImplicitAPI):
         response = await self.privatePostCancelOrderWithInfo(self.extend(request, params))
         #
         #    {
-        #        "error": False,
+        #        "error": false,
         #        "errorMessage": null,
         #        "data": {
-        #          "success": True,
+        #          "success": true,
         #          "remainingAmount": 0.1
         #        }
         #    }

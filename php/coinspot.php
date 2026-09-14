@@ -346,11 +346,11 @@ class coinspot extends Exchange {
         //
         //     {
         //         "status":"ok",
-        //         "balances":array(
+        //         "balances":[
         //             {
-        //                 "LTC":array("balance":0.1,"audbalance":16.59,"rate":165.95)
+        //                 "LTC":{"balance":0.1,"audbalance":16.59,"rate":165.95}
         //             }
-        //         )
+        //         ]
         //     }
         //
         return $this->parse_balance($response);
@@ -464,17 +464,17 @@ class coinspot extends Exchange {
         $response = $this->publicGetLatest($params);
         //
         //    {
-        //        "status" => "ok",
-        //        "prices" =>   {
-        //            "btc" =>   array(
-        //                "bid" => "25050",
-        //                "ask" => "25370",
-        //                "last" => "25234"
-        //            ),
-        //            "ltc" =>   {
-        //                "bid" => "79.39192993",
-        //                "ask" => "87.98",
-        //                "last" => "87.95"
+        //        "status": "ok",
+        //        "prices":   {
+        //            "btc":   {
+        //                "bid": "25050",
+        //                "ask": "25370",
+        //                "last": "25234"
+        //            },
+        //            "ltc":   {
+        //                "bid": "79.39192993",
+        //                "ask": "87.98",
+        //                "last": "87.95"
         //            }
         //        }
         //    }
@@ -517,9 +517,9 @@ class coinspot extends Exchange {
         //
         //     {
         //         "status":"ok",
-        //         "orders":array(
-        //             array("amount":0.00102091,"rate":21549.09999991,"total":21.99969168,"coin":"BTC","solddate":1604890646143,"market":"BTC/AUD"),
-        //         ),
+        //         "orders":[
+        //             {"amount":0.00102091,"rate":21549.09999991,"total":21.99969168,"coin":"BTC","solddate":1604890646143,"market":"BTC/AUD"},
+        //         ],
         //     }
         //
         $trades = $this->safe_list($response, 'orders', array());
@@ -551,30 +551,30 @@ class coinspot extends Exchange {
         }
         $response = $this->privatePostRoMyTransactions($this->extend($request, $params));
         //  {
-        //      "status" => "ok",
-        //      "buyorders" => array(
-        //          array(
-        //              "otc" => false,
-        //              "market" => "ALGO/AUD",
-        //              "amount" => 386.95197925,
-        //              "created" => "2022-10-20T09:56:44.502Z",
-        //              "audfeeExGst" => 1.80018002,
-        //              "audGst" => 0.180018,
-        //              "audtotal" => 200
-        //          ),
-        //      ),
-        //      "sellorders" => array(
-        //          array(
-        //              "otc" => false,
-        //              "market" => "SOLO/ALGO",
-        //              "amount" => 154.52345614,
-        //              "total" => 115.78858204658796,
-        //              "created" => "2022-04-16T09:36:43.698Z",
-        //              "audfeeExGst" => 1.08995731,
-        //              "audGst" => 0.10899573,
-        //              "audtotal" => 118.7
-        //          ),
-        //      )
+        //      "status": "ok",
+        //      "buyorders": [
+        //          {
+        //              "otc": false,
+        //              "market": "ALGO/AUD",
+        //              "amount": 386.95197925,
+        //              "created": "2022-10-20T09:56:44.502Z",
+        //              "audfeeExGst": 1.80018002,
+        //              "audGst": 0.180018,
+        //              "audtotal": 200
+        //          },
+        //      ],
+        //      "sellorders": [
+        //          {
+        //              "otc": false,
+        //              "market": "SOLO/ALGO",
+        //              "amount": 154.52345614,
+        //              "total": 115.78858204658796,
+        //              "created": "2022-04-16T09:36:43.698Z",
+        //              "audfeeExGst": 1.08995731,
+        //              "audGst": 0.10899573,
+        //              "audtotal": 118.7
+        //          },
+        //      ]
         // }
         $buyTrades = $this->safe_list($response, 'buyorders', array());
         for ($i = 0; $i < count($buyTrades); $i++) {
@@ -603,16 +603,16 @@ class coinspot extends Exchange {
         //
         // private fetchMyTrades
         //     {
-        //       "otc" => false,
-        //       "market" => "ALGO/AUD",
-        //       "amount" => 386.95197925,
-        //       "created" => "2022-10-20T09:56:44.502Z",
-        //       "audfeeExGst" => 1.80018002,
-        //       "audGst" => 0.180018,
-        //       "audtotal" => 200,
-        //       "total" => 200,
-        //       "side" => "buy",
-        //       "price" => 0.5168600000125209
+        //       "otc": false,
+        //       "market": "ALGO/AUD",
+        //       "amount": 386.95197925,
+        //       "created": "2022-10-20T09:56:44.502Z",
+        //       "audfeeExGst": 1.80018002,
+        //       "audGst": 0.180018,
+        //       "audtotal": 200,
+        //       "total": 200,
+        //       "side": "buy",
+        //       "price": 0.5168600000125209
         //     }
         $timestamp = null;
         $priceString = null;
@@ -633,7 +633,7 @@ class coinspot extends Exchange {
             $timestamp = $this->parse8601($createdString);
             $audfeeExGst = $this->safe_string($trade, 'audfeeExGst');
             $audGst = $this->safe_string($trade, 'audGst');
-            // The transaction $fee which consumers pay is inclusive of GST by default
+            // The transaction fee which consumers pay is inclusive of GST by default
             $feeCost = Precise::string_add($audfeeExGst, $audGst);
             $feeCurrencyId = 'AUD';
             $fee = array(

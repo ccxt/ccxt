@@ -87,7 +87,7 @@ public partial class weex : Exchange
                 { "fetchDepositsWithdrawals", false },
                 { "fetchDepositWithdrawFee", false },
                 { "fetchDepositWithdrawFees", false },
-                { "fetchFundingHistory", false },
+                { "fetchFundingHistory", true },
                 { "fetchFundingInterval", false },
                 { "fetchFundingIntervals", false },
                 { "fetchFundingRate", true },
@@ -3968,11 +3968,7 @@ public partial class weex : Exchange
         }
         if (isTrue(isEqual(accountType, "contract")))
         {
-            if (isTrue(isEqual(currency, null)))
-            {
-                throw new ExchangeError ((string)add(this.id, " fetchLedger() could not resolve currency")) ;
-            }
-            if (isTrue(!isEqual(code, null)))
+            if (isTrue(!isEqual(currency, null)))
             {
                 ((IDictionary<string,object>)request)["currency"] = getValue(currency, "id");
             }
@@ -4131,6 +4127,121 @@ public partial class weex : Exchange
             { "position_close_short", "trade" },
         };
         return this.safeString(types, ((string)type), type);
+    }
+
+    /**
+     * @method
+     * @name weex#fetchFundingHistory
+     * @description fetch the history of funding payments paid and received on this account
+     * @see https://www.weex.com/api-doc/contract/Account_API/GetContractBills
+     * @param {string} [symbol] unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch funding history for
+     * @param {int} [limit] the maximum number of funding history structures to retrieve (default 20, max 100)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest funding history entry, requires since to be set, the span may not exceed 100 days
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns {object[]} a list of [funding history structures]{@link https://docs.ccxt.com/?id=funding-history-structure}
+     */
+    public async override Task<List<ccxt.FundingHistory>> FetchFundingHistory(object symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
+        object paginate = false;
+        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchFundingHistory", "paginate", false);
+        paginate = ((IList<object>)paginateparametersVariable)[0];
+        parameters = ((IList<object>)paginateparametersVariable)[1];
+        if (isTrue(paginate))
+        {
+            return ccxt.BaseExchange.ToFundingHistoryList(await this.fetchPaginatedCallDynamic("fetchFundingHistory", symbol, since, limit, parameters, 100));
+        }
+        IDictionary<string, object> market = null;
+        Dictionary<string, object> request = new Dictionary<string, object>() {
+            { "incomeType", "position_funding" },
+        };
+        if (isTrue(!isEqual(symbol, null)))
+        {
+            market = this.market(symbol);
+            if (isTrue(!isEqual(getValue(market, "swap"), true)))
+            {
+                throw new NotSupported ((string)add(this.id, " fetchFundingHistory() supports swap contracts only")) ;
+            }
+            ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+        }
+        if (isTrue(!isEqual(since, null)))
+        {
+            ((IDictionary<string,object>)request)["startTime"] = since;
+        }
+        if (isTrue(!isEqual(limit, null)))
+        {
+            ((IDictionary<string,object>)request)["limit"] = limit;
+        }
+        IList<object> requestparametersVariable = (IList<object>)this.handleUntilOption("endTime", request, parameters);
+        request = (Dictionary<string, object>)((IList<object>)requestparametersVariable)[0];
+        parameters = ((IList<object>)requestparametersVariable)[1];
+        // the exchange rejects startTime and endTime when either is sent alone, they only work as a pair
+        bool hasSince = (inOp(request, "startTime"));
+        bool hasUntil = (inOp(request, "endTime"));
+        if (isTrue(isTrue(hasSince) && !isTrue(hasUntil)))
+        {
+            ((IDictionary<string,object>)request)["endTime"] = this.milliseconds();
+        } else if (isTrue(isTrue(hasUntil) && !isTrue(hasSince)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " fetchFundingHistory() requires since to be set when until is used")) ;
+        }
+        Dictionary<string, object> response = await this.contractPrivatePostCapiV3AccountIncome(this.extend(request, parameters));
+        //
+        //     {
+        //         "hasNextPage": false,
+        //         "nextKey": null,
+        //         "items": [
+        //             {
+        //                 "billId": "793622764958253481",
+        //                 "asset": "USDT",
+        //                 "symbol": "VIRTUALUSDT",
+        //                 "income": "0.00000378",
+        //                 "incomeType": "position_funding",
+        //                 "balance": "29.36239410",
+        //                 "fillFee": "0",
+        //                 "time": "1789214411964",
+        //                 "transferReason": "UNKNOWN_TRANSFER_REASON"
+        //             }
+        //         ]
+        //     }
+        //
+        List<object> items = this.safeList(response, "items", new List<object>() {});
+        return ccxt.BaseExchange.ToFundingHistoryList(this.parseIncomes(items, market, since, limit));
+    }
+
+    public override object parseIncome(object income, object market = null)
+    {
+        //
+        //     {
+        //         "billId": "793622764958253481",
+        //         "asset": "USDT",
+        //         "symbol": "VIRTUALUSDT",
+        //         "income": "0.00000378",
+        //         "incomeType": "position_funding",
+        //         "balance": "29.36239410",
+        //         "fillFee": "0",
+        //         "time": "1789214411964",
+        //         "transferReason": "UNKNOWN_TRANSFER_REASON"
+        //     }
+        //
+        string? marketId = this.safeString(income, "symbol");
+        string? currencyId = this.safeString(income, "asset");
+        Int64? timestamp = this.safeInteger(income, "time");
+        return new Dictionary<string, object>() {
+            { "info", income },
+            { "symbol", this.safeSymbol(marketId, market, null, "swap") },
+            { "code", this.safeCurrencyCode(currencyId) },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
+            { "id", this.safeString(income, "billId") },
+            { "amount", this.safeNumber(income, "income") },
+        };
     }
 
     /**

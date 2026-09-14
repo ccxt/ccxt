@@ -58,8 +58,8 @@ class blofin extends \ccxt\async\blofin {
                 'defaultType' => 'swap',
                 'tradesLimit' => 1000,
                 // orderbook channel can be one from:
-                //  - "books" => 200 depth levels will be pushed in the initial full snapshot. Incremental data will be pushed every 100 ms for the changes in the order book during that period of time.
-                //  - "books5" => 5 depth levels snapshot will be pushed every time. Snapshot data will be pushed every 100 ms when there are changes in the 5 depth levels snapshot.
+                //  - "books": 200 depth levels will be pushed in the initial full snapshot. Incremental data will be pushed every 100 ms for the changes in the order book during that period of time.
+                //  - "books5": 5 depth levels snapshot will be pushed every time. Snapshot data will be pushed every 100 ms when there are changes in the 5 depth levels snapshot.
                 'watchOrderBook' => array(
                     'channel' => 'books',
                 ),
@@ -137,14 +137,14 @@ class blofin extends \ccxt\async\blofin {
     public function handle_trades(Client $client, mixed $message) {
         //
         //     {
-        //       $arg => array(
-        //         channel => "trades",
-        //         instId => "DOGE-USDT",
-        //       ),
-        //       $data : array(
+        //       arg: {
+        //         channel: "trades",
+        //         instId: "DOGE-USDT",
+        //       },
+        //       data : [
         //         <same object as shown in REST example>,
         //         ...
-        //       )
+        //       ]
         //     }
         //
         $arg = $this->safe_dict($message, 'arg');
@@ -226,18 +226,18 @@ class blofin extends \ccxt\async\blofin {
     public function handle_order_book(Client $client, mixed $message) {
         //
         //   {
-        //     $arg => array(
-        //         channel => "books",
-        //         instId => "DOGE-USDT",
-        //     ),
-        //     $action => "snapshot", // can be 'snapshot' or 'update'
-        //     $data => array(
-        //         $asks => array(   array( 0.08096, 1 ), array( 0.08097, 123 ), ...   ),
-        //         $bids => array(   array( 0.08095, 4 ), array( 0.08094, 237 ), ...   ),
-        //         ts => "1707491587909",
-        //         prevSeqId => "0", // in case of 'update' there will be some value, less then seqId
-        //         seqId => "3374250786",
-        //     ),
+        //     arg: {
+        //         channel: "books",
+        //         instId: "DOGE-USDT",
+        //     },
+        //     action: "snapshot", // can be 'snapshot' or 'update'
+        //     data: {
+        //         asks: [   [ 0.08096, 1 ], [ 0.08097, 123 ], ...   ],
+        //         bids: [   [ 0.08095, 4 ], [ 0.08094, 237 ], ...   ],
+        //         ts: "1707491587909",
+        //         prevSeqId: "0", // in case of 'update' there will be some value, less then seqId
+        //         seqId: "3374250786",
+        //     },
         // }
         //
         $arg = $this->safe_dict($message, 'arg');
@@ -318,16 +318,16 @@ class blofin extends \ccxt\async\blofin {
 
     public function handle_ticker(Client $client, mixed $message) {
         //
-        // $message
+        // message
         //
         //     {
-        //         $arg => array(
-        //             channel => "tickers",
-        //             instId => "DOGE-USDT",
-        //         ),
-        //         $data => array(
+        //         arg: {
+        //             channel: "tickers",
+        //             instId: "DOGE-USDT",
+        //         },
+        //         data: [
         //             <same object as shown in REST example>
-        //         ),
+        //         ],
         //     }
         //
         $this->handle_bid_ask($client, $message);
@@ -471,16 +471,16 @@ class blofin extends \ccxt\async\blofin {
 
     public function handle_ohlcv(Client $client, mixed $message) {
         //
-        // $message
+        // message
         //
         //     {
-        //         $arg => array(
-        //             channel => "candle1m",
-        //             instId => "DOGE-USDT",
-        //         ),
-        //         $data => array(
-        //             array( same object as shown in REST example )
-        //         ),
+        //         arg: {
+        //             channel: "candle1m",
+        //             instId: "DOGE-USDT",
+        //         },
+        //         data: [
+        //             [ same object as shown in REST example ]
+        //         ],
         //     }
         //
         $arg = $this->safe_dict($message, 'arg');
@@ -542,10 +542,10 @@ class blofin extends \ccxt\async\blofin {
     public function handle_balance(Client $client, mixed $message) {
         //
         //     {
-        //         arg => array(
-        //           channel => "account",
-        //         ),
-        //         data => <same object as shown in REST example>,
+        //         arg: {
+        //           channel: "account",
+        //         },
+        //         data: <same object as shown in REST example>,
         //     }
         //
         $marketType = 'swap'; // for now
@@ -621,11 +621,11 @@ class blofin extends \ccxt\async\blofin {
     public function handle_orders(Client $client, mixed $message) {
         //
         //     {
-        //         action => 'update',
-        //         $arg => array( channel => 'orders' ),
-        //         $data => array(
+        //         action: 'update',
+        //         arg: { channel: 'orders' },
+        //         data: [
         //           <same object as shown in REST example>
-        //         )
+        //         ]
         //     }
         //
         if ($this->orders === null) {
@@ -680,10 +680,10 @@ class blofin extends \ccxt\async\blofin {
     public function handle_positions(Client $client, mixed $message) {
         //
         //     {
-        //         $arg => array( channel => 'positions' ),
-        //         $data => array(
+        //         arg: { channel: 'positions' },
+        //         data: [
         //           <same object as shown in REST example>
-        //         )
+        //         ]
         //     }
         //
         if ($this->positions === null) {
@@ -740,17 +740,17 @@ class blofin extends \ccxt\async\blofin {
     public function handle_funding_rate(Client $client, mixed $message) {
         //
         //     {
-        //         "arg" => array(
-        //             "channel" => "funding-rate",
-        //             "instId" => "BTC-USDT"
-        //         ),
-        //         "data" => array(
+        //         "arg": {
+        //             "channel": "funding-rate",
+        //             "instId": "BTC-USDT"
+        //         },
+        //         "data": [
         //             {
-        //                 "instId" => "BTC-USDT",
-        //                 "fundingRate" => "0.00007873240488719234",
-        //                 "fundingTime" => "1771430400000"
+        //                 "instId": "BTC-USDT",
+        //                 "fundingRate": "0.00007873240488719234",
+        //                 "fundingTime": "1771430400000"
         //             }
-        //         )
+        //         ]
         //     }
         //
         $data = $this->safe_list($message, 'data', array());
@@ -767,12 +767,12 @@ class blofin extends \ccxt\async\blofin {
     }
 
     private function do_watch_multiple_wrapper(bool $isPublic, string $channelName, string $callerMethodName, mixed $symbolsArray = null, $params = array()) {
-        // underlier method for all watch-multiple $symbols
+        // underlier method for all watch-multiple symbols
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
         list($callerMethodName, $params) = $this->handle_param_string($params, 'callerMethodName', $callerMethodName);
-        // if OHLCV method are being called, then $symbols would be symbolsAndTimeframes (multi-dimensional) array
+        // if OHLCV method are being called, then symbols would be symbolsAndTimeframes (multi-dimensional) array
         $isOHLCV = ($channelName === 'candle');
         $symbols = $isOHLCV ? $this->get_list_from_object_values($symbolsArray, 0) : $symbolsArray;
         $symbols = $this->market_symbols($symbols, null, true, true);
@@ -817,7 +817,7 @@ class blofin extends \ccxt\async\blofin {
             $rawSubscriptions[] = array( 'channel' => $channelName );
             $messageHashes[] = $channelName;
         }
-        // private $channel are difference, they only need plural $channel name for multiple $symbols
+        // private channel are difference, they only need plural channel name for multiple symbols
         if ($this->in_array($channelName, array( 'orders', 'orders-algo', 'positions' ))) {
             $rawSubscriptions = array( array( 'channel' => $channelName ) );
         }
@@ -836,17 +836,17 @@ class blofin extends \ccxt\async\blofin {
 
     public function handle_message(Client $client, mixed $message) {
         //
-        // $message examples
+        // message examples
         //
         // {
-        //   $arg => array(
-        //     channel => "trades",
-        //     instId => "DOGE-USDT",
-        //   ),
-        //   $event => "subscribe"
+        //   arg: {
+        //     channel: "trades",
+        //     instId: "DOGE-USDT",
+        //   },
+        //   event: "subscribe"
         // }
         //
-        // incoming data updates' examples can be seen under each handler $method
+        // incoming data updates' examples can be seen under each handler method
         //
         $methods = array(
             // public

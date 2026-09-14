@@ -5,7 +5,7 @@ package io.github.ccxt.types;
 
 import java.util.Map;
 
-public final class FundingHistory {
+public final class FundingHistory extends TypedMap {
     public String id;
     public String symbol;
     public String code;
@@ -16,6 +16,7 @@ public final class FundingHistory {
 
     @SuppressWarnings("unchecked")
     public FundingHistory(Object raw) {
+        super(raw);
         Map<String, Object> data = TypeHelper.toMap(raw);
         this.id = TypeHelper.safeString(data, "id");
         this.symbol = TypeHelper.safeString(data, "symbol");

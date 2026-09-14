@@ -852,6 +852,7 @@ func (this *Deepcoin) ParseWsOHLCV(ohlcv any, optionalArgs ...any) any {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return.
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.aggregation] price aggregation level of the book, e.g. '0.1' or '0.0001', defaults to the market's price tick size
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *Deepcoin) WatchOrderBookAsync(symbol any, optionalArgs ...any) <-chan any {
@@ -868,12 +869,15 @@ func (this *Deepcoin) watchOrderBookBody(ch chan any, symbol any, optionalArgs .
 	_ = params
 	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 
-		retRes68812 := (<-this.LoadMarketsAsync())
-		ccxt.PanicOnError(retRes68812)
+		retRes68912 := (<-this.LoadMarketsAsync())
+		ccxt.PanicOnError(retRes68912)
 	}
 	var market any = this.Market(symbol)
 	var messageHash any = ccxt.Add(ccxt.Add("orderbook", "::"), ccxt.GetValue(market, "symbol"))
-	var suffix string = "_0.1"
+	var suffix any = nil
+	suffixparamsVariable := this.OrderBookSuffix(market, "watchOrderBook", params)
+	suffix = ccxt.GetValue(suffixparamsVariable, 0)
+	params = ccxt.GetValue(suffixparamsVariable, 1)
 
 	orderbook := (<-this.WatchPublicAsync(market, messageHash, "25", params, suffix))
 	ccxt.PanicOnError(orderbook)
@@ -889,6 +893,7 @@ func (this *Deepcoin) watchOrderBookBody(ch chan any, symbol any, optionalArgs .
  * @see https://www.deepcoin.com/docs/publicWS/25LevelIncrementalMarketData
  * @param {string} symbol unified array of symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.aggregation] price aggregation level the book was subscribed with, defaults to the market's price tick size
  * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *Deepcoin) UnWatchOrderBookAsync(symbol any, optionalArgs ...any) <-chan any {
@@ -903,20 +908,52 @@ func (this *Deepcoin) unWatchOrderBookBody(ch chan any, symbol any, optionalArgs
 	_ = params
 	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 
-		retRes70812 := (<-this.LoadMarketsAsync())
-		ccxt.PanicOnError(retRes70812)
+		retRes71112 := (<-this.LoadMarketsAsync())
+		ccxt.PanicOnError(retRes71112)
 	}
 	var market any = this.Market(symbol)
 	var messageHash any = ccxt.Add(ccxt.Add("orderbook", "::"), ccxt.GetValue(market, "symbol"))
-	var suffix string = "_0.1"
+	var suffix any = nil
+	suffixparamsVariable := this.OrderBookSuffix(market, "unWatchOrderBook", params)
+	suffix = ccxt.GetValue(suffixparamsVariable, 0)
+	params = ccxt.GetValue(suffixparamsVariable, 1)
 	var subscription map[string]any = map[string]any{
 		"topic": "orderbook",
 	}
 
-	retRes71615 := (<-this.UnWatchPublicAsync(market, messageHash, "25", params, subscription, suffix))
-	ccxt.PanicOnError(retRes71615)
-	ch <- retRes71615
+	retRes72015 := (<-this.UnWatchPublicAsync(market, messageHash, "25", params, subscription, suffix))
+	ccxt.PanicOnError(retRes72015)
+	ch <- retRes72015
 	return nil
+}
+func (this *Deepcoin) OrderBookSuffix(market any, methodName any, optionalArgs ...any) any {
+	// the 25-level book is published per price-aggregation level and the
+	// level is part of the FilterValue ('DeepCoin_BTC/USDT_0.1'). the
+	// venue only serves the levels that exist for that market, from the
+	// tick size up to a few coarser steps: subscribing to a level the
+	// market does not have is answered with 'orderbook does not exist:
+	// XRP/USDT_0.1, no available orderbook data' and nothing is
+	// streamed. a fixed '_0.1' therefore only worked for markets whose
+	// tick happens to be 0.1 or finer by a step or two (23 of the first
+	// 120 spot markets, 52 of 120 swaps in a live probe); the tick size
+	// itself was accepted on 116 and 117 of them, and the handful whose
+	// tick was rejected accepted the next coarser level
+	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	var symbol any = this.SafeString(market, "symbol")
+	var aggregation any = nil
+	aggregationparamsVariable := this.HandleOptionAndParams(params, methodName, "aggregation")
+	aggregation = ccxt.GetValue(aggregationparamsVariable, 0)
+	params = ccxt.GetValue(aggregationparamsVariable, 1)
+	if ccxt.IsTrue(ccxt.IsEqual(aggregation, nil)) {
+		var precision any = this.SafeDict(market, "precision", map[string]any{})
+		var tickSize any = this.SafeNumber(precision, "price")
+		if ccxt.IsTrue(ccxt.IsEqual(tickSize, nil)) {
+			panic(ccxt.BadRequest(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(this.Id, " "), methodName), "() requires a params[\"aggregation\"] price level for "), symbol), " because the market has no price precision")))
+		}
+		aggregation = this.NumberToString(tickSize)
+	}
+	return []any{ccxt.Add("_", aggregation), params}
 }
 func (this *Deepcoin) HandleOrderBook(client any, message any) {
 	//
@@ -980,12 +1017,12 @@ func (this *Deepcoin) HandleOrderBookSnapshot(client any, message any) {
 		var volume any = this.SafeNumber(entryData, "V")
 		if ccxt.IsTrue(ccxt.IsEqual(side, "0")) {
 			// bid
-			retRes78216 := ccxt.GetValue(orderedEntries, "bids")
-			ccxt.AppendToArray(&retRes78216, []any{price, volume})
+			retRes81216 := ccxt.GetValue(orderedEntries, "bids")
+			ccxt.AppendToArray(&retRes81216, []any{price, volume})
 		} else if ccxt.IsTrue(ccxt.IsEqual(side, "1")) {
 			// ask
-			retRes78516 := ccxt.GetValue(orderedEntries, "asks")
-			ccxt.AppendToArray(&retRes78516, []any{price, volume})
+			retRes81516 := ccxt.GetValue(orderedEntries, "asks")
+			ccxt.AppendToArray(&retRes81516, []any{price, volume})
 		}
 	}
 	var timestamp any = this.SafeInteger(message, "mt", 0)
@@ -1070,8 +1107,8 @@ func (this *Deepcoin) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var messageHash any = "myTrades"
 	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 
-		retRes85612 := (<-this.LoadMarketsAsync())
-		ccxt.PanicOnError(retRes85612)
+		retRes88612 := (<-this.LoadMarketsAsync())
+		ccxt.PanicOnError(retRes88612)
 	}
 	if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
 		symbol = this.Symbol(symbol)
@@ -1169,8 +1206,8 @@ func (this *Deepcoin) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var messageHash any = "orders"
 	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 
-		retRes93512 := (<-this.LoadMarketsAsync())
-		ccxt.PanicOnError(retRes93512)
+		retRes96512 := (<-this.LoadMarketsAsync())
+		ccxt.PanicOnError(retRes96512)
 	}
 	if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
 		symbol = this.Symbol(symbol)
@@ -1330,8 +1367,8 @@ func (this *Deepcoin) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 
-		retRes107612 := (<-this.LoadMarketsAsync())
-		ccxt.PanicOnError(retRes107612)
+		retRes110612 := (<-this.LoadMarketsAsync())
+		ccxt.PanicOnError(retRes110612)
 	}
 
 	listenKey := (<-this.AuthenticateAsync())
@@ -1622,9 +1659,7 @@ func (this *Deepcoin) WatchTicker(symbol string, options ...ccxt.WatchTickerOpti
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var params = opts.Params
-	res := <-this.WatchTickerAsync(symbol, params)
+	res := <-this.WatchTickerAsync(symbol, opts.Params)
 	if ccxt.IsError(res) {
 		return ccxt.Ticker{}, ccxt.CreateReturnError(res)
 	}
@@ -1647,9 +1682,7 @@ func (this *Deepcoin) UnWatchTicker(symbol string, options ...ccxt.UnWatchTicker
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var params = opts.Params
-	res := <-this.UnWatchTickerAsync(symbol, params)
+	res := <-this.UnWatchTickerAsync(symbol, opts.Params)
 	if ccxt.IsError(res) {
 		return nil, ccxt.CreateReturnError(res)
 	}
@@ -1674,13 +1707,7 @@ func (this *Deepcoin) WatchTrades(symbol string, options ...ccxt.WatchTradesOpti
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var since = opts.Since
-
-	var limit = opts.Limit
-
-	var params = opts.Params
-	res := <-this.WatchTradesAsync(symbol, since, limit, params)
+	res := <-this.WatchTradesAsync(symbol, opts.Since, opts.Limit, opts.Params)
 	if ccxt.IsError(res) {
 		return nil, ccxt.CreateReturnError(res)
 	}
@@ -1703,9 +1730,7 @@ func (this *Deepcoin) UnWatchTrades(symbol string, options ...ccxt.UnWatchTrades
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var params = opts.Params
-	res := <-this.UnWatchTradesAsync(symbol, params)
+	res := <-this.UnWatchTradesAsync(symbol, opts.Params)
 	if ccxt.IsError(res) {
 		return nil, ccxt.CreateReturnError(res)
 	}
@@ -1731,15 +1756,7 @@ func (this *Deepcoin) WatchOHLCV(symbol string, options ...ccxt.WatchOHLCVOption
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var timeframe = opts.Timeframe
-
-	var since = opts.Since
-
-	var limit = opts.Limit
-
-	var params = opts.Params
-	res := <-this.WatchOHLCVAsync(symbol, timeframe, since, limit, params)
+	res := <-this.WatchOHLCVAsync(symbol, opts.Timeframe, opts.Since, opts.Limit, opts.Params)
 	if ccxt.IsError(res) {
 		return nil, ccxt.CreateReturnError(res)
 	}
@@ -1763,11 +1780,7 @@ func (this *Deepcoin) UnWatchOHLCV(symbol string, options ...ccxt.UnWatchOHLCVOp
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var timeframe = opts.Timeframe
-
-	var params = opts.Params
-	res := <-this.UnWatchOHLCVAsync(symbol, timeframe, params)
+	res := <-this.UnWatchOHLCVAsync(symbol, opts.Timeframe, opts.Params)
 	if ccxt.IsError(res) {
 		return nil, ccxt.CreateReturnError(res)
 	}
@@ -1782,6 +1795,7 @@ func (this *Deepcoin) UnWatchOHLCV(symbol string, options ...ccxt.UnWatchOHLCVOp
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return.
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.aggregation] price aggregation level of the book, e.g. '0.1' or '0.0001', defaults to the market's price tick size
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *Deepcoin) WatchOrderBook(symbol string, options ...ccxt.WatchOrderBookOptions) (ccxt.OrderBook, error) {
@@ -1791,11 +1805,7 @@ func (this *Deepcoin) WatchOrderBook(symbol string, options ...ccxt.WatchOrderBo
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var limit = opts.Limit
-
-	var params = opts.Params
-	res := <-this.WatchOrderBookAsync(symbol, limit, params)
+	res := <-this.WatchOrderBookAsync(symbol, opts.Limit, opts.Params)
 	if ccxt.IsError(res) {
 		return ccxt.OrderBook{}, ccxt.CreateReturnError(res)
 	}
@@ -1809,6 +1819,7 @@ func (this *Deepcoin) WatchOrderBook(symbol string, options ...ccxt.WatchOrderBo
  * @see https://www.deepcoin.com/docs/publicWS/25LevelIncrementalMarketData
  * @param {string} symbol unified array of symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.aggregation] price aggregation level the book was subscribed with, defaults to the market's price tick size
  * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *Deepcoin) UnWatchOrderBook(symbol string, options ...ccxt.UnWatchOrderBookOptions) (any, error) {
@@ -1818,9 +1829,7 @@ func (this *Deepcoin) UnWatchOrderBook(symbol string, options ...ccxt.UnWatchOrd
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var params = opts.Params
-	res := <-this.UnWatchOrderBookAsync(symbol, params)
+	res := <-this.UnWatchOrderBookAsync(symbol, opts.Params)
 	if ccxt.IsError(res) {
 		return nil, ccxt.CreateReturnError(res)
 	}
@@ -1845,15 +1854,7 @@ func (this *Deepcoin) WatchMyTrades(options ...ccxt.WatchMyTradesOptions) ([]ccx
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var symbol = opts.Symbol
-
-	var since = opts.Since
-
-	var limit = opts.Limit
-
-	var params = opts.Params
-	res := <-this.WatchMyTradesAsync(symbol, since, limit, params)
+	res := <-this.WatchMyTradesAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
 	if ccxt.IsError(res) {
 		return nil, ccxt.CreateReturnError(res)
 	}
@@ -1878,15 +1879,7 @@ func (this *Deepcoin) WatchOrders(options ...ccxt.WatchOrdersOptions) ([]ccxt.Or
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var symbol = opts.Symbol
-
-	var since = opts.Since
-
-	var limit = opts.Limit
-
-	var params = opts.Params
-	res := <-this.WatchOrdersAsync(symbol, since, limit, params)
+	res := <-this.WatchOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
 	if ccxt.IsError(res) {
 		return nil, ccxt.CreateReturnError(res)
 	}
@@ -1911,15 +1904,7 @@ func (this *Deepcoin) WatchPositions(options ...ccxt.WatchPositionsOptions) ([]c
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var symbols = opts.Symbols
-
-	var since = opts.Since
-
-	var limit = opts.Limit
-
-	var params = opts.Params
-	res := <-this.WatchPositionsAsync(symbols, since, limit, params)
+	res := <-this.WatchPositionsAsync(opts.Symbols, opts.Since, opts.Limit, opts.Params)
 	if ccxt.IsError(res) {
 		return nil, ccxt.CreateReturnError(res)
 	}
