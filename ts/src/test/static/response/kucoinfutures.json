@@ -5,6 +5,180 @@
         "uta": false
     },
     "methods": {
+        "fetchTickers": [
+            {
+                "description": "contract tickers derive positive and negative percentages from last and change, preserving raw ratios",
+                "method": "fetchTickers",
+                "input": [
+                    null,
+                    {
+                        "type": "swap"
+                    }
+                ],
+                "httpResponse": {
+                    "code": "200000",
+                    "data": [
+                        {
+                            "symbol": "XBTUSDTM",
+                            "lastTradePrice": 120,
+                            "priceChg": 20,
+                            "priceChgPct": 0.05
+                        },
+                        {
+                            "symbol": "XBTUSDM",
+                            "lastTradePrice": 80,
+                            "priceChg": -20,
+                            "priceChgPct": 0.15
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "BTC/USDT:USDT": {
+                        "symbol": "BTC/USDT:USDT",
+                        "timestamp": null,
+                        "datetime": null,
+                        "high": null,
+                        "low": null,
+                        "bid": null,
+                        "bidVolume": null,
+                        "ask": null,
+                        "askVolume": null,
+                        "vwap": null,
+                        "open": 100,
+                        "close": 120,
+                        "last": 120,
+                        "previousClose": null,
+                        "change": 20,
+                        "percentage": 20,
+                        "average": 110,
+                        "baseVolume": null,
+                        "quoteVolume": null,
+                        "markPrice": null,
+                        "indexPrice": null,
+                        "info": {
+                            "symbol": "XBTUSDTM",
+                            "lastTradePrice": 120,
+                            "priceChg": 20,
+                            "priceChgPct": 0.05
+                        }
+                    },
+                    "BTC/USD:BTC": {
+                        "symbol": "BTC/USD:BTC",
+                        "timestamp": null,
+                        "datetime": null,
+                        "high": null,
+                        "low": null,
+                        "bid": null,
+                        "bidVolume": null,
+                        "ask": null,
+                        "askVolume": null,
+                        "vwap": null,
+                        "open": 100,
+                        "close": 80,
+                        "last": 80,
+                        "previousClose": null,
+                        "change": -20,
+                        "percentage": -20,
+                        "average": 90,
+                        "baseVolume": null,
+                        "quoteVolume": null,
+                        "markPrice": null,
+                        "indexPrice": null,
+                        "info": {
+                            "symbol": "XBTUSDM",
+                            "lastTradePrice": 80,
+                            "priceChg": -20,
+                            "priceChgPct": 0.15
+                        }
+                    }
+                }
+            },
+            {
+                "description": "contract tickers preserve zero change and fall back to the reported ratio when change is missing",
+                "method": "fetchTickers",
+                "input": [
+                    null,
+                    {
+                        "type": "swap"
+                    }
+                ],
+                "httpResponse": {
+                    "code": "200000",
+                    "data": [
+                        {
+                            "symbol": "XBTUSDTM",
+                            "lastTradePrice": 100,
+                            "priceChg": 0,
+                            "priceChgPct": 0.02
+                        },
+                        {
+                            "symbol": "XBTUSDM",
+                            "lastTradePrice": 120,
+                            "priceChgPct": 0.2
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "BTC/USDT:USDT": {
+                        "symbol": "BTC/USDT:USDT",
+                        "timestamp": null,
+                        "datetime": null,
+                        "high": null,
+                        "low": null,
+                        "bid": null,
+                        "bidVolume": null,
+                        "ask": null,
+                        "askVolume": null,
+                        "vwap": null,
+                        "open": 100,
+                        "close": 100,
+                        "last": 100,
+                        "previousClose": null,
+                        "change": 0,
+                        "percentage": 0,
+                        "average": 100,
+                        "baseVolume": null,
+                        "quoteVolume": null,
+                        "markPrice": null,
+                        "indexPrice": null,
+                        "info": {
+                            "symbol": "XBTUSDTM",
+                            "lastTradePrice": 100,
+                            "priceChg": 0,
+                            "priceChgPct": 0.02
+                        }
+                    },
+                    "BTC/USD:BTC": {
+                        "symbol": "BTC/USD:BTC",
+                        "timestamp": null,
+                        "datetime": null,
+                        "high": null,
+                        "low": null,
+                        "bid": null,
+                        "bidVolume": null,
+                        "ask": null,
+                        "askVolume": null,
+                        "vwap": null,
+                        "open": 100,
+                        "close": 120,
+                        "last": 120,
+                        "previousClose": null,
+                        "change": 20,
+                        "percentage": 20,
+                        "average": 110,
+                        "baseVolume": null,
+                        "quoteVolume": null,
+                        "markPrice": null,
+                        "indexPrice": null,
+                        "info": {
+                            "symbol": "XBTUSDM",
+                            "lastTradePrice": 120,
+                            "priceChgPct": 0.2
+                        }
+                    }
+                }
+            }
+        ],
         "fetchFundingRates": [
             {
                 "description": "fetch funding rates drops funding index symbols and keeps unresolved contract IDs as raw symbols",
