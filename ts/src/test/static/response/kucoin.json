@@ -7,7 +7,7 @@
     "methods": {
         "fetchFundingRates": [
             {
-                "description": "fetch funding rates skips unresolvable IDs while preserving known linear and inverse rates",
+                "description": "fetch funding rates preserves unknown IDs alongside known linear and inverse rates",
                 "method": "fetchFundingRates",
                 "input": [],
                 "httpResponse": {
@@ -108,6 +108,56 @@
                         "previousFundingTimestamp": null,
                         "previousFundingDatetime": null,
                         "interval": "8h"
+                    },
+                    ".ETHUSDTMFPI8H": {
+                        "info": {
+                            "symbol": ".ETHUSDTMFPI8H",
+                            "nextFundingRate": "0.0001",
+                            "fundingTime": 1789315200000,
+                            "currentGranularity": 28800000
+                        },
+                        "symbol": ".ETHUSDTMFPI8H",
+                        "markPrice": null,
+                        "indexPrice": null,
+                        "interestRate": null,
+                        "estimatedSettlePrice": null,
+                        "timestamp": null,
+                        "datetime": null,
+                        "fundingRate": 0.0001,
+                        "fundingTimestamp": 1789315200000,
+                        "fundingDatetime": "2026-09-13T16:00:00.000Z",
+                        "nextFundingRate": null,
+                        "nextFundingTimestamp": null,
+                        "nextFundingDatetime": null,
+                        "previousFundingRate": null,
+                        "previousFundingTimestamp": null,
+                        "previousFundingDatetime": null,
+                        "interval": "8h"
+                    },
+                    "UNKNOWNUSDTM": {
+                        "info": {
+                            "symbol": "UNKNOWNUSDTM",
+                            "nextFundingRate": "-0.0002",
+                            "fundingTime": 1789315200000,
+                            "currentGranularity": 14400000
+                        },
+                        "symbol": "UNKNOWNUSDTM",
+                        "markPrice": null,
+                        "indexPrice": null,
+                        "interestRate": null,
+                        "estimatedSettlePrice": null,
+                        "timestamp": null,
+                        "datetime": null,
+                        "fundingRate": -0.0002,
+                        "fundingTimestamp": 1789315200000,
+                        "fundingDatetime": "2026-09-13T16:00:00.000Z",
+                        "nextFundingRate": null,
+                        "nextFundingTimestamp": null,
+                        "nextFundingDatetime": null,
+                        "previousFundingRate": null,
+                        "previousFundingTimestamp": null,
+                        "previousFundingDatetime": null,
+                        "interval": "4h"
                     }
                 }
             },
