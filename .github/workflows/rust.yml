@@ -162,8 +162,6 @@ jobs:
           name: rust-files
           path: |
             rust/
-            !rust/target
-            !rust/target/**
           retention-days: 1
       - name: Upload shared_env.txt
         uses: actions/upload-artifact@v4
