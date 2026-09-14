@@ -619,7 +619,15 @@ public partial class testMainClass : BaseTest
         // injector polls this instead of relying on a fixed head-start sleep
         var exchange = exchange2 as BaseExchange;
         var client = exchange.client((string)url);
-        return client.futures.Count > 0;
+        // REST balance snapshots do not wait for WebSocket frames.
+        foreach (var messageHash in client.futures.Keys)
+        {
+            if (!messageHash.ToString().EndsWith(":fetchBalanceSnapshot", StringComparison.Ordinal))
+            {
+                return true;
+            }
+        }
+        return false;
     }
 
     private static readonly HashSet<object> wsCompletedClients = new HashSet<object>();

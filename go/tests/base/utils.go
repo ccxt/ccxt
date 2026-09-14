@@ -113,7 +113,13 @@ func WsClientHasPendingFutures(exchange ccxt.ICoreExchange, url any) bool {
 	client := exchange.(wsClientProvider).Client(url)
 	client.FuturesMu.Lock()
 	defer client.FuturesMu.Unlock()
-	return len(client.Futures) > 0
+	// REST balance snapshots do not wait for WebSocket frames.
+	for messageHash := range client.Futures {
+		if !strings.HasSuffix(fmt.Sprint(messageHash), ":fetchBalanceSnapshot") {
+			return true
+		}
+	}
+	return false
 }
 
 var wsCompletedClientsMu sync.Mutex
