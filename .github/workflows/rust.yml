@@ -6,6 +6,7 @@ env:
   CARGO_PROFILE_DEV_DEBUG: "0"
   CARGO_PROFILE_TEST_DEBUG: "0"
   CARGO_BUILD_JOBS: "4"
+  CARGO_INCREMENTAL: "0"
 
 on:
   workflow_dispatch:
@@ -48,12 +49,15 @@ jobs:
           fi
           echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
           "$HOME/.cargo/bin/cargo" --version || cargo --version
-      - uses: Swatinem/rust-cache@v2
-        with:
-          workspaces: |
-            rust
-            examples/rust
-          cache-all-crates: true
+      - name: Prepare isolated Cargo target
+        # Cargo's existing download cache is retained. rust-cache's post step
+        # prunes workspace artifacts even with cache-targets: false.
+        run: |
+          rust_target="$RUNNER_TEMP/ccxt-rust-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
+          test ! -L "$rust_target"
+          mkdir -p "$rust_target"
+          printf 'CARGO_TARGET_DIR=%s\n' "$rust_target" >> "$GITHUB_ENV"
+          printf 'Cargo target: %s\n' "$rust_target"
       - name: Setup Node.js
         uses: actions/setup-node@v3
       - name: Install npm dependencies
@@ -96,13 +100,11 @@ jobs:
           cargo clippy --manifest-path rust/ccxt-base/Cargo.toml --features transpiled-base -- -D warnings
       - name: Build Rust examples
         if: github.ref == 'refs/heads/master' && env.important_modified == 'true'
-        env:
-          CARGO_TARGET_DIR: ${{ github.workspace }}/rust/target
         run: cargo build --manifest-path examples/rust/Cargo.toml --bins
       - name: Build tests
         run: |
           cargo build --manifest-path rust/Cargo.toml -p ccxt_tests --bin ti-rust
-          cp rust/target/debug/ti-rust rust/tests.bin
+          cp "$CARGO_TARGET_DIR/debug/ti-rust" rust/tests.bin
       - name: Cargo test
         if: github.ref == 'refs/heads/master' && env.important_modified == 'true'
         run: |
