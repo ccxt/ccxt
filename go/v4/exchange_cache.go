@@ -23,6 +23,10 @@ type CacheType interface {
 	Append(any)
 }
 
+// BaseCache supplies the mutex used by Append, GetLimit, Clear, Remove and
+// ToArray. Callers must not hold Mu while calling those methods. Returned rows
+// remain shared mutable values: ToArray copies only the container, not its
+// elements. Separate GetLimit and ToArray calls are not one atomic snapshot.
 type BaseCache struct {
 	MaxSize         int        `json:"-"`
 	Mu              sync.Mutex `json:"-"`
@@ -35,6 +39,9 @@ func NewBaseCache(MaxSize int) *BaseCache {
 	return &BaseCache{MaxSize: MaxSize, Data: make([]any, 0)}
 }
 
+// Clear resets only the base storage. Subclasses with indexes or counters must
+// clear Data and all their metadata under one Mu critical section instead of
+// calling this method and then acquiring Mu again to reset their own fields.
 func (c *BaseCache) Clear() {
 	c.Mu.Lock()
 	defer c.Mu.Unlock()
@@ -288,9 +295,11 @@ func (c *ArrayCache) Append(item any) {
 }
 
 func (c *ArrayCache) Clear() {
-	c.BaseCache.Clear()
 	c.Mu.Lock()
 	defer c.Mu.Unlock()
+	// Clear rows and metadata together; calling BaseCache.Clear first would
+	// allow an append between clearing the rows and resetting the index.
+	c.Data = c.Data[:0]
 	c.Hashmap = make(map[string]map[string]any)
 	c.newUpdatesBySymbol = make(map[string]int)
 	c.seenUpdatesBySymbol = make(map[string]*Set)
@@ -313,6 +322,9 @@ func (c *ArrayCache) ToArray() []any {
 // The function returns any so the transpiled code that works with
 // loosely-typed limits continues to compile.
 func (c *ArrayCache) GetLimit(symbol any, limit any) any {
+	// Polling also writes deferred-reset flags, so it needs the append lock.
+	c.Mu.Lock()
+	defer c.Mu.Unlock()
 	// if limit != nil {
 	// 	return limit
 	// }
@@ -480,9 +492,9 @@ func (c *ArrayCacheByTimestamp) mergeRow(ts int64, existing any, item any) {
 // known timestamp merged into a reference that was no longer in the array and
 // the candle was silently dropped.
 func (c *ArrayCacheByTimestamp) Clear() {
-	c.BaseCache.Clear()
 	c.Mu.Lock()
 	defer c.Mu.Unlock()
+	c.Data = c.Data[:0]
 	c.Hashmap = make(map[int64]any)
 	c.sizeTracker = NewSet()
 	c.newUpdates = 0
@@ -500,6 +512,8 @@ func (c *ArrayCacheByTimestamp) ToArray() []any {
 // GetLimit for timestamp cache ignores symbol because entries are not
 // symbol-segmented.  It mirrors the same precedence order as ArrayCache.
 func (c *ArrayCacheByTimestamp) GetLimit(symbol any, limit any) any {
+	c.Mu.Lock()
+	defer c.Mu.Unlock()
 	c.clearUpdates = true
 	if limit == nil {
 		return c.newUpdates
