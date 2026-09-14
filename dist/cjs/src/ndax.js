@@ -1134,8 +1134,13 @@ class ndax extends ndax$1["default"] {
             timestamp = this.safeInteger(trade, 6);
             id = this.safeString(trade, 0);
             marketId = this.safeString(trade, 1);
-            const takerSide = this.safeValue(trade, 8);
-            side = (takerSide === true) ? 'sell' : 'buy';
+            const takerSide = this.safeInteger(trade, 8);
+            if (takerSide === 0) {
+                side = 'buy';
+            }
+            else if (takerSide === 1) {
+                side = 'sell';
+            }
             orderId = this.safeString(trade, 4);
         }
         else {

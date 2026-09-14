@@ -372,6 +372,7 @@
             },
             "ticker": {
                 "compareQuoteVolumeBaseVolume": "quoteVolume >= baseVolume * low is failing",
+                "comparePercentage": "change24h disagrees with open: open 72170.63 and lastPr 73369.13 is +1.66% while change24h 0.0232 becomes 2.32, and openUtc with changeUtc24h agrees with itself",
                 "compareOHLC": "broken from API: https://github.com/ccxt/ccxt/actions/runs/16058190301/job/45317906432#step:9:318"
             },
             "fetchTickers": {
@@ -2406,7 +2407,8 @@
     "deepcoin": {
         "skipMethods": {
             "loadMarkets": {
-                "limits": "some market limits have min>max "
+                "limits": "some market limits have min>max ",
+                "currencyIdAndCode": "baseId 'xAAOI' of spot market xAAOI-USDT does not match currencies['XAAOI'].id ('XAAOI'); the venue lists both XAAOI-USDT and xAAOI-USDT and safeCurrencyCode maps both to code XAAOI, so setMarkets keeps a single currency per code, https://github.com/ccxt/ccxt/actions/runs/34638612027/job/103394255361?pr=30381"
             },
             "ticker": {
                 "compareQuoteVolumeBaseVolume": "quoteVolume >= baseVolume * low is failing, https://github.com/ccxt/ccxt/actions/runs/18630110901/job/53113603278?pr=27030",

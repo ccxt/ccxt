@@ -4,6 +4,155 @@
         "uta": false
     },
     "methods": {
+        "fetchTradingFees": [
+            {
+                "description": "uta future fetchTradingFees skips rows that resolve to no market of the requested type",
+                "method": "fetchTradingFees",
+                "input": [
+                    {
+                        "uta": true,
+                        "type": "future"
+                    }
+                ],
+                "httpResponse": {
+                    "code": "00000",
+                    "msg": "success",
+                    "requestTime": 1789207541959,
+                    "data": [
+                        {
+                            "makerFeeRate": "0.00036",
+                            "takerFeeRate": "0.001",
+                            "symbol": "BTCUSDT"
+                        }
+                    ]
+                },
+                "parsedResponse": {}
+            },
+            {
+                "description": "uta inverse fetchTradingFees skips rows whose id is missing from the loaded markets",
+                "method": "fetchTradingFees",
+                "input": [
+                    {
+                        "uta": true,
+                        "type": "swap",
+                        "subType": "inverse",
+                        "symbol": "BTCUSD_CM"
+                    }
+                ],
+                "httpResponse": {
+                    "code": "00000",
+                    "msg": "success",
+                    "requestTime": 1789207541959,
+                    "data": [
+                        {
+                            "makerFeeRate": "0.0002",
+                            "takerFeeRate": "0.0006",
+                            "symbol": "BTCUSD_CM"
+                        }
+                    ]
+                },
+                "parsedResponse": {}
+            },
+            {
+                "description": "uta linear fetchTradingFees single symbol",
+                "method": "fetchTradingFees",
+                "input": [
+                    {
+                        "uta": true,
+                        "type": "swap",
+                        "symbol": "BTCUSDT"
+                    }
+                ],
+                "httpResponse": {
+                    "code": "00000",
+                    "msg": "success",
+                    "requestTime": 1789206765893,
+                    "data": [
+                        {
+                            "makerFeeRate": "0.00036",
+                            "takerFeeRate": "0.001",
+                            "symbol": "BTCUSDT"
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "BTC/USDT:USDT": {
+                        "info": {
+                            "makerFeeRate": "0.00036",
+                            "takerFeeRate": "0.001",
+                            "symbol": "BTCUSDT"
+                        },
+                        "symbol": "BTC/USDT:USDT",
+                        "maker": 0.00036,
+                        "taker": 0.001,
+                        "percentage": null,
+                        "tierBased": null
+                    }
+                }
+            }
+        ],
+        "fetchTradingFee": [
+            {
+                "description": "uta swap fetchTradingFee",
+                "method": "fetchTradingFee",
+                "input": [
+                    "BTC/USDT:USDT",
+                    {
+                        "uta": true
+                    }
+                ],
+                "httpResponse": {
+                    "code": "00000",
+                    "msg": "success",
+                    "requestTime": 1789206681959,
+                    "data": {
+                        "makerFeeRate": "0.00036",
+                        "takerFeeRate": "0.001"
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "makerFeeRate": "0.00036",
+                        "takerFeeRate": "0.001"
+                    },
+                    "symbol": "BTC/USDT:USDT",
+                    "maker": 0.00036,
+                    "taker": 0.001,
+                    "percentage": null,
+                    "tierBased": null
+                }
+            },
+            {
+                "description": "uta spot fetchTradingFee",
+                "method": "fetchTradingFee",
+                "input": [
+                    "BTC/USDT",
+                    {
+                        "uta": true
+                    }
+                ],
+                "httpResponse": {
+                    "code": "00000",
+                    "msg": "success",
+                    "requestTime": 1789206680715,
+                    "data": {
+                        "makerFeeRate": "0.001",
+                        "takerFeeRate": "0.001"
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "makerFeeRate": "0.001",
+                        "takerFeeRate": "0.001"
+                    },
+                    "symbol": "BTC/USDT",
+                    "maker": 0.001,
+                    "taker": 0.001,
+                    "percentage": null,
+                    "tierBased": null
+                }
+            }
+        ],
         "withdraw": [
             {
                 "description": "with_precision",

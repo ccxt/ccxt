@@ -1,6 +1,6 @@
 {
     "exchange": "pacifica",
-    "skipKeys": ["wallet", "timestamp", "symbol", "signature", "end_time"],
+    "skipKeys": ["wallet", "timestamp", "symbol", "signature", "end_time", "sub_signature", "main_signature"],
     "privateKey": "2fGURdTtScQVocLdZovb6kJ3V8TmWe3eg5TJpYAqrTRTqYf27goDdQVfMx4W2uUmTwTc78qxsxhhvrdx7MTd55rn",
     "walletAddress": "bNMBfVAEjgxhNruYTR2vSZ92UdVKP2pdZewEG7978Vt",
     "options": {
@@ -8,6 +8,35 @@
     },
     "isSandboxModeEnabled": true,
     "methods": {
+        "createSubAccount": [
+            {
+                "description": "create a subaccount with an agent wallet header",
+                "method": "createSubAccount",
+                "url": "https://test-api.pacifica.fi/api/v1/account/subaccount/create",
+                "input": [
+                    "ccxtsub5",
+                    {
+                        "subAccountAddress": "AUCaxhvyYhnYH7RqBz2g19riU4HEhvETzauGsL6DxUQS",
+                        "subAccountPrivateKey": "2HwJG4ffT7dRyRXbutkPjxjciXHLadsS9r569H8ZQZzFsh9YdGWgz8JXF1xBjM1C6SFGjBkSYmCpNfoocD7YbFEy",
+                        "agentAddress": "8g1g9FMKw7HfAMiD8L3p28RKfv7LQJzAf56A4ftSxMt9"
+                    }
+                ],
+                "output": "{\"agent_wallet\":\"8g1g9FMKw7HfAMiD8L3p28RKfv7LQJzAf56A4ftSxMt9\",\"main_account\":\"bNMBfVAEjgxhNruYTR2vSZ92UdVKP2pdZewEG7978Vt\",\"subaccount\":\"AUCaxhvyYhnYH7RqBz2g19riU4HEhvETzauGsL6DxUQS\",\"sub_signature\":\"pj7T3SYyJEn3nbmxbSzPLRVL8se3JGP85fFZ7jvsM5KzEkSkb5TvGbEnExYKVSPidvzFM3TuZtYrsirijkVVWcD\",\"main_signature\":\"3Jv3QnvJooSKBme5hktrapcAeNMt78HTg5QQtaMiXK8RYWsfWRigQFd8cN3LPLUvFBWEuWJNGqcpq85FEnXAuB7T\",\"timestamp\":1789231873830,\"expiry_window\":5000}"
+            },
+            {
+                "description": "create a subaccount",
+                "method": "createSubAccount",
+                "url": "https://test-api.pacifica.fi/api/v1/account/subaccount/create",
+                "input": [
+                    "ccxtsub2",
+                    {
+                        "subAccountAddress": "AubBvFpKrUiVnXpRq7wZYSUnrx4K5yBYepdmZm75iySQ",
+                        "subAccountPrivateKey": "65qLgAgXZ4Vu7PyzLHHiPy77w2ca6ryWZvzS1nNqSK5YWWj3Ekuq74cEFjEh2UHNLd8drM33WK3Vuc2QvpuAkQhN"
+                    }
+                ],
+                "output": "{\"main_account\":\"bNMBfVAEjgxhNruYTR2vSZ92UdVKP2pdZewEG7978Vt\",\"subaccount\":\"AubBvFpKrUiVnXpRq7wZYSUnrx4K5yBYepdmZm75iySQ\",\"sub_signature\":\"3aoFWK9jS4hY2q7GuLGpoAGDPdjfvDaAXgcUmxFbi39Hf6ZAWGvnt9x1FehnisZE8DcPH1Uo2d3VmARUYf9mvtNC\",\"main_signature\":\"5cozzmP3MeewUpBtcMLyNGfMSRXtW5MPYSfkoj8W5i67rDEiiiXvuhfSSayGU2oTvj8vRgPCjpmHF1qmpSArDtsy\",\"timestamp\":1789231157386,\"expiry_window\":5000}"
+            }
+        ],
         "transfer": [
             {
                 "description": "transfer between own accounts",

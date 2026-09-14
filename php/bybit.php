@@ -10096,11 +10096,9 @@ class bybit extends Exchange {
             }
         }
         if ($method === 'POST') {
-            $brokerId = $this->safe_string($this->options, 'brokerId');
-            if ($brokerId !== null) {
-                $headers = ($headers === null) ? array() : $headers;
-                $headers['Referer'] = $brokerId;
-            }
+            $brokerId = $this->safe_string($this->options, 'brokerId', 'CCXT');
+            $headers = ($headers === null) ? array() : $headers;
+            $headers['Referer'] = $brokerId;
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }

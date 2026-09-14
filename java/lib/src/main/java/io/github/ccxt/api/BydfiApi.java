@@ -7,6 +7,8 @@
 
 package io.github.ccxt.api;
 import io.github.ccxt.Exchange;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 public class BydfiApi extends Exchange
 {
@@ -25,7 +27,7 @@ public class BydfiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetV1PublicApiLimits (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetV1PublicApiLimits (Object... optionalArgs)
     {
         return this.callAsync ("publicGetV1PublicApiLimits", optionalArgs);
     }
@@ -36,7 +38,7 @@ public class BydfiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetV1FapiMarketExchangeInfo (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetV1FapiMarketExchangeInfo (Object... optionalArgs)
     {
         return this.callAsync ("publicGetV1FapiMarketExchangeInfo", optionalArgs);
     }
@@ -47,7 +49,7 @@ public class BydfiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetV1FapiMarketDepth (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetV1FapiMarketDepth (Object... optionalArgs)
     {
         return this.callAsync ("publicGetV1FapiMarketDepth", optionalArgs);
     }
@@ -58,7 +60,7 @@ public class BydfiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetV1FapiMarketTrades (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetV1FapiMarketTrades (Object... optionalArgs)
     {
         return this.callAsync ("publicGetV1FapiMarketTrades", optionalArgs);
     }
@@ -69,7 +71,7 @@ public class BydfiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetV1FapiMarketKlines (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetV1FapiMarketKlines (Object... optionalArgs)
     {
         return this.callAsync ("publicGetV1FapiMarketKlines", optionalArgs);
     }
@@ -80,7 +82,7 @@ public class BydfiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetV1FapiMarketTicker24hr (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetV1FapiMarketTicker24hr (Object... optionalArgs)
     {
         return this.callAsync ("publicGetV1FapiMarketTicker24hr", optionalArgs);
     }
@@ -91,7 +93,7 @@ public class BydfiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetV1FapiMarketTickerPrice (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetV1FapiMarketTickerPrice (Object... optionalArgs)
     {
         return this.callAsync ("publicGetV1FapiMarketTickerPrice", optionalArgs);
     }
@@ -102,7 +104,7 @@ public class BydfiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetV1FapiMarketMarkPrice (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetV1FapiMarketMarkPrice (Object... optionalArgs)
     {
         return this.callAsync ("publicGetV1FapiMarketMarkPrice", optionalArgs);
     }
@@ -113,7 +115,7 @@ public class BydfiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetV1FapiMarketFundingRate (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetV1FapiMarketFundingRate (Object... optionalArgs)
     {
         return this.callAsync ("publicGetV1FapiMarketFundingRate", optionalArgs);
     }
@@ -124,7 +126,7 @@ public class BydfiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetV1FapiMarketFundingRateHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetV1FapiMarketFundingRateHistory (Object... optionalArgs)
     {
         return this.callAsync ("publicGetV1FapiMarketFundingRateHistory", optionalArgs);
     }
@@ -135,7 +137,7 @@ public class BydfiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetV1FapiMarketRiskLimit (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetV1FapiMarketRiskLimit (Object... optionalArgs)
     {
         return this.callAsync ("publicGetV1FapiMarketRiskLimit", optionalArgs);
     }
@@ -146,7 +148,7 @@ public class BydfiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV1AccountAssets (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV1AccountAssets (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV1AccountAssets", optionalArgs);
     }
@@ -157,7 +159,7 @@ public class BydfiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV1AccountTransferRecords (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV1AccountTransferRecords (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV1AccountTransferRecords", optionalArgs);
     }
@@ -168,7 +170,7 @@ public class BydfiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV1SpotDepositRecords (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV1SpotDepositRecords (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV1SpotDepositRecords", optionalArgs);
     }
@@ -179,7 +181,7 @@ public class BydfiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV1SpotWithdrawRecords (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV1SpotWithdrawRecords (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV1SpotWithdrawRecords", optionalArgs);
     }
@@ -190,7 +192,7 @@ public class BydfiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV1FapiTradeOpenOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV1FapiTradeOpenOrder (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV1FapiTradeOpenOrder", optionalArgs);
     }
@@ -201,7 +203,7 @@ public class BydfiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV1FapiTradePlanOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV1FapiTradePlanOrder (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV1FapiTradePlanOrder", optionalArgs);
     }
@@ -212,7 +214,7 @@ public class BydfiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV1FapiTradeLeverage (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV1FapiTradeLeverage (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV1FapiTradeLeverage", optionalArgs);
     }
@@ -223,7 +225,7 @@ public class BydfiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV1FapiTradeHistoryOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV1FapiTradeHistoryOrder (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV1FapiTradeHistoryOrder", optionalArgs);
     }
@@ -234,7 +236,7 @@ public class BydfiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV1FapiTradeHistoryTrade (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV1FapiTradeHistoryTrade (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV1FapiTradeHistoryTrade", optionalArgs);
     }
@@ -245,7 +247,7 @@ public class BydfiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV1FapiTradePositionHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV1FapiTradePositionHistory (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV1FapiTradePositionHistory", optionalArgs);
     }
@@ -256,7 +258,7 @@ public class BydfiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV1FapiTradePositions (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV1FapiTradePositions (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV1FapiTradePositions", optionalArgs);
     }
@@ -267,7 +269,7 @@ public class BydfiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV2FapiTradeOpenOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV2FapiTradeOpenOrder (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV2FapiTradeOpenOrder", optionalArgs);
     }
@@ -278,7 +280,7 @@ public class BydfiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV2FapiTradePlanOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV2FapiTradePlanOrder (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV2FapiTradePlanOrder", optionalArgs);
     }
@@ -289,7 +291,7 @@ public class BydfiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV2FapiTradeHistoryOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV2FapiTradeHistoryOrder (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV2FapiTradeHistoryOrder", optionalArgs);
     }
@@ -300,7 +302,7 @@ public class BydfiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV2FapiTradeHistoryTrade (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV2FapiTradeHistoryTrade (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV2FapiTradeHistoryTrade", optionalArgs);
     }
@@ -311,7 +313,7 @@ public class BydfiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV2FapiTradePositionHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV2FapiTradePositionHistory (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV2FapiTradePositionHistory", optionalArgs);
     }
@@ -322,7 +324,7 @@ public class BydfiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV2FapiTradePositions (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV2FapiTradePositions (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV2FapiTradePositions", optionalArgs);
     }
@@ -333,7 +335,7 @@ public class BydfiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV1FapiAccountBalance (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV1FapiAccountBalance (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV1FapiAccountBalance", optionalArgs);
     }
@@ -344,7 +346,7 @@ public class BydfiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV1FapiUserDataAssetsMargin (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV1FapiUserDataAssetsMargin (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV1FapiUserDataAssetsMargin", optionalArgs);
     }
@@ -355,7 +357,7 @@ public class BydfiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV1FapiUserDataPositionSideDual (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV1FapiUserDataPositionSideDual (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV1FapiUserDataPositionSideDual", optionalArgs);
     }
@@ -366,7 +368,7 @@ public class BydfiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV1AgentTeams (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV1AgentTeams (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV1AgentTeams", optionalArgs);
     }
@@ -377,7 +379,7 @@ public class BydfiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV1AgentAgentLinks (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV1AgentAgentLinks (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV1AgentAgentLinks", optionalArgs);
     }
@@ -388,7 +390,7 @@ public class BydfiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV1AgentRegularOverview (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV1AgentRegularOverview (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV1AgentRegularOverview", optionalArgs);
     }
@@ -399,7 +401,7 @@ public class BydfiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV1AgentAgentSubOverview (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV1AgentAgentSubOverview (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV1AgentAgentSubOverview", optionalArgs);
     }
@@ -410,7 +412,7 @@ public class BydfiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV1AgentPartenerUserDeposit (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV1AgentPartenerUserDeposit (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV1AgentPartenerUserDeposit", optionalArgs);
     }
@@ -421,7 +423,7 @@ public class BydfiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV1AgentPartenerUsersData (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV1AgentPartenerUsersData (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV1AgentPartenerUsersData", optionalArgs);
     }
@@ -432,7 +434,7 @@ public class BydfiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV1AgentAffiliateUids (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV1AgentAffiliateUids (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV1AgentAffiliateUids", optionalArgs);
     }
@@ -443,7 +445,7 @@ public class BydfiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV1AgentAffiliateCommission (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV1AgentAffiliateCommission (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV1AgentAffiliateCommission", optionalArgs);
     }
@@ -454,7 +456,7 @@ public class BydfiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV1AgentInternalWithdrawalStatus (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV1AgentInternalWithdrawalStatus (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV1AgentInternalWithdrawalStatus", optionalArgs);
     }
@@ -465,7 +467,7 @@ public class BydfiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV1AccountTransfer (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV1AccountTransfer (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV1AccountTransfer", optionalArgs);
     }
@@ -476,7 +478,7 @@ public class BydfiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV1FapiTradePlaceOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV1FapiTradePlaceOrder (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV1FapiTradePlaceOrder", optionalArgs);
     }
@@ -487,7 +489,7 @@ public class BydfiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV1FapiTradeBatchPlaceOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV1FapiTradeBatchPlaceOrder (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV1FapiTradeBatchPlaceOrder", optionalArgs);
     }
@@ -498,7 +500,7 @@ public class BydfiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV1FapiTradeEditOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV1FapiTradeEditOrder (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV1FapiTradeEditOrder", optionalArgs);
     }
@@ -509,7 +511,7 @@ public class BydfiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV1FapiTradeBatchEditOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV1FapiTradeBatchEditOrder (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV1FapiTradeBatchEditOrder", optionalArgs);
     }
@@ -520,7 +522,7 @@ public class BydfiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV1FapiTradeCancelAllOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV1FapiTradeCancelAllOrder (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV1FapiTradeCancelAllOrder", optionalArgs);
     }
@@ -531,7 +533,7 @@ public class BydfiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV1FapiTradeLeverage (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV1FapiTradeLeverage (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV1FapiTradeLeverage", optionalArgs);
     }
@@ -542,7 +544,7 @@ public class BydfiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV1FapiTradeBatchLeverageMargin (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV1FapiTradeBatchLeverageMargin (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV1FapiTradeBatchLeverageMargin", optionalArgs);
     }
@@ -553,7 +555,7 @@ public class BydfiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV2FapiTradePlaceOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV2FapiTradePlaceOrder (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV2FapiTradePlaceOrder", optionalArgs);
     }
@@ -564,7 +566,7 @@ public class BydfiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV2FapiTradeBatchPlaceOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV2FapiTradeBatchPlaceOrder (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV2FapiTradeBatchPlaceOrder", optionalArgs);
     }
@@ -575,7 +577,7 @@ public class BydfiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV2FapiTradeEditOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV2FapiTradeEditOrder (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV2FapiTradeEditOrder", optionalArgs);
     }
@@ -586,7 +588,7 @@ public class BydfiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV2FapiTradeBatchEditOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV2FapiTradeBatchEditOrder (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV2FapiTradeBatchEditOrder", optionalArgs);
     }
@@ -597,7 +599,7 @@ public class BydfiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV2FapiTradeCancelOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV2FapiTradeCancelOrder (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV2FapiTradeCancelOrder", optionalArgs);
     }
@@ -608,7 +610,7 @@ public class BydfiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV2FapiTradeBatchCancelOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV2FapiTradeBatchCancelOrder (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV2FapiTradeBatchCancelOrder", optionalArgs);
     }
@@ -619,7 +621,7 @@ public class BydfiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV2FapiTradeCancelAllOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV2FapiTradeCancelAllOrder (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV2FapiTradeCancelAllOrder", optionalArgs);
     }
@@ -630,7 +632,7 @@ public class BydfiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV1FapiUserDataMarginType (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV1FapiUserDataMarginType (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV1FapiUserDataMarginType", optionalArgs);
     }
@@ -641,7 +643,7 @@ public class BydfiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV1FapiUserDataPositionSideDual (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV1FapiUserDataPositionSideDual (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV1FapiUserDataPositionSideDual", optionalArgs);
     }
@@ -652,7 +654,7 @@ public class BydfiApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV1AgentInternalWithdrawal (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV1AgentInternalWithdrawal (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV1AgentInternalWithdrawal", optionalArgs);
     }

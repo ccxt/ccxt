@@ -22,7 +22,7 @@ class extended extends Exchange {
             'dex' => true,
             'has' => array(
                 'CORS' => null,
-                'spot' => true,
+                'spot' => false, // venue retired spot trading; SPOT rows are still parsed, see parseMarket
                 'margin' => false,
                 'swap' => true,
                 'future' => false,
@@ -559,6 +559,9 @@ class extended extends Exchange {
         $contractSize = null;
         $linear = null;
         $inverse = null;
+        // SPOT rows are still parsed on purpose even though has['spot'] is false - that flag
+        // only advertises the capability and gates the unified spot tests, it does not filter
+        // markets, so accounts still holding spot balances keep resolving their symbols
         if ($type === 'spot') {
             $isSpot = true;
         } else {

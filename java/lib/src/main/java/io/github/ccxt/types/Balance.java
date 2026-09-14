@@ -5,7 +5,7 @@ package io.github.ccxt.types;
 
 import java.util.Map;
 
-public final class Balance {
+public final class Balance extends TypedMap {
     public Double free;
     public Double used;
     public Double total;
@@ -13,6 +13,7 @@ public final class Balance {
 
     @SuppressWarnings("unchecked")
     public Balance(Object raw) {
+        super(raw);
         Map<String, Object> data = TypeHelper.toMap(raw);
         this.free = TypeHelper.safeFloat(data, "free");
         this.used = TypeHelper.safeFloat(data, "used");
