@@ -8,6 +8,7 @@ namespace ccxt\async;
 use Exception; // a common import
 use ccxt\async\abstract\bitvavo as Exchange;
 use ccxt\ExchangeError;
+use ccxt\AuthenticationError;
 use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
 use ccxt\Precise;
@@ -347,7 +348,7 @@ class bitvavo extends Exchange {
                     '200' => '\\ccxt\\BadRequest', // ${param} url parameter is not supported. Please note that parameters are case-sensitive and use body parameters for PUT and POST requests.
                     '201' => '\\ccxt\\BadRequest', // ${param} body parameter is not supported. Please note that parameters are case-sensitive and use url parameters for GET and DELETE requests.
                     '202' => '\\ccxt\\BadRequest', // ${param} order parameter is not supported. Please note that certain parameters are only allowed for market or limit orders.
-                    '203' => '\\ccxt\\BadSymbol', // array("errorCode":203,"error":"symbol parameter is required.")
+                    '203' => '\\ccxt\\BadSymbol', // {"errorCode":203,"error":"symbol parameter is required."}
                     '204' => '\\ccxt\\BadRequest', // ${param} parameter is not supported.
                     '205' => '\\ccxt\\BadRequest', // ${param} parameter is invalid.
                     '206' => '\\ccxt\\BadRequest', // Use either ${paramA} or ${paramB}. The usage of both parameters at the same time is not supported.
@@ -357,31 +358,31 @@ class bitvavo extends Exchange {
                     '213' => '\\ccxt\\InvalidOrder', // Price is below the minimum allowed amount (0.000000000000001).
                     '214' => '\\ccxt\\InvalidOrder', // Price is too detailed
                     '215' => '\\ccxt\\InvalidOrder', // Price is too detailed. A maximum of 15 digits behind the decimal point are allowed.
-                    '216' => '\\ccxt\\InsufficientFunds', // array("errorCode":216,"error":"You do not have sufficient balance to complete this operation.")
-                    '217' => '\\ccxt\\InvalidOrder', // array("errorCode":217,"error":"Minimum order size in quote currency is 5 EUR or 0.001 BTC.")
+                    '216' => '\\ccxt\\InsufficientFunds', // {"errorCode":216,"error":"You do not have sufficient balance to complete this operation."}
+                    '217' => '\\ccxt\\InvalidOrder', // {"errorCode":217,"error":"Minimum order size in quote currency is 5 EUR or 0.001 BTC."}
                     '230' => '\\ccxt\\ExchangeError', // The order is rejected by the matching engine.
                     '231' => '\\ccxt\\ExchangeError', // The order is rejected by the matching engine. TimeInForce must be GTC when markets are paused.
                     '232' => '\\ccxt\\BadRequest', // You must change at least one of amount, amountRemaining, price, timeInForce, selfTradePrevention or postOnly.
-                    '233' => '\\ccxt\\OrderNotFound', // array("errorCode":233,"error":"Order must be active (status new or partiallyFilled) to allow updating/cancelling."), canceling an already filled or canceled order, see https://github.com/ccxt/ccxt/issues/24154
+                    '233' => '\\ccxt\\OrderNotFound', // {"errorCode":233,"error":"Order must be active (status new or partiallyFilled) to allow updating/cancelling."}, canceling an already filled or canceled order, see https://github.com/ccxt/ccxt/issues/24154
                     '234' => '\\ccxt\\InvalidOrder', // Market orders cannot be updated.
                     '235' => '\\ccxt\\ExchangeError', // You can only have 100 open orders on each book.
                     '236' => '\\ccxt\\BadRequest', // You can only update amount or amountRemaining, not both.
-                    '240' => '\\ccxt\\OrderNotFound', // array("errorCode":240,"error":"No order found. Please be aware that simultaneously updating the same order may return this error.")
+                    '240' => '\\ccxt\\OrderNotFound', // {"errorCode":240,"error":"No order found. Please be aware that simultaneously updating the same order may return this error."}
                     '300' => '\\ccxt\\AuthenticationError', // Authentication is required for this endpoint.
-                    '301' => '\\ccxt\\AuthenticationError', // array("errorCode":301,"error":"API Key must be of length 64.")
+                    '301' => '\\ccxt\\AuthenticationError', // {"errorCode":301,"error":"API Key must be of length 64."}
                     '302' => '\\ccxt\\AuthenticationError', // Timestamp is invalid. This must be a timestamp in ms. See Bitvavo-Access-Timestamp header or timestamp parameter for websocket.
                     '303' => '\\ccxt\\AuthenticationError', // Window must be between 100 and 60000 ms.
                     '304' => '\\ccxt\\AuthenticationError', // Request was not received within acceptable window (default 30s, or custom with Bitvavo-Access-Window header) of Bitvavo-Access-Timestamp header (or timestamp parameter for websocket).
-                    // "304" => '\\ccxt\\AuthenticationError', // Authentication is required for this endpoint.
-                    '305' => '\\ccxt\\AuthenticationError', // array("errorCode":305,"error":"No active API key found.")
+                    // "304": AuthenticationError, // Authentication is required for this endpoint.
+                    '305' => '\\ccxt\\AuthenticationError', // {"errorCode":305,"error":"No active API key found."}
                     '306' => '\\ccxt\\AuthenticationError', // No active API key found. Please ensure that you have confirmed the API key by e-mail.
                     '307' => '\\ccxt\\PermissionDenied', // This key does not allow access from this IP.
-                    '308' => '\\ccxt\\AuthenticationError', // array("errorCode":308,"error":"The signature length is invalid (HMAC-SHA256 should return a 64 length hexadecimal string).")
-                    '309' => '\\ccxt\\AuthenticationError', // array("errorCode":309,"error":"The signature is invalid.")
+                    '308' => '\\ccxt\\AuthenticationError', // {"errorCode":308,"error":"The signature length is invalid (HMAC-SHA256 should return a 64 length hexadecimal string)."}
+                    '309' => '\\ccxt\\AuthenticationError', // {"errorCode":309,"error":"The signature is invalid."}
                     '310' => '\\ccxt\\PermissionDenied', // This key does not allow trading actions.
                     '311' => '\\ccxt\\PermissionDenied', // This key does not allow showing account information.
                     '312' => '\\ccxt\\PermissionDenied', // This key does not allow withdrawal of funds.
-                    '315' => '\\ccxt\\BadRequest', // Websocket connections may not be used in a browser. Please use REST requests for $this->
+                    '315' => '\\ccxt\\BadRequest', // Websocket connections may not be used in a browser. Please use REST requests for this.
                     '317' => '\\ccxt\\AccountSuspended', // This account is locked. Please contact support.
                     '400' => '\\ccxt\\ExchangeError', // Unknown error. Please contact support with a copy of your request.
                     '401' => '\\ccxt\\ExchangeError', // Deposits for this asset are not available at this time.
@@ -389,21 +390,21 @@ class bitvavo extends Exchange {
                     '403' => '\\ccxt\\PermissionDenied', // You need to verify your phone number before you can deposit and withdraw digital assets.
                     '404' => '\\ccxt\\OnMaintenance', // Could not complete this operation, because our node cannot be reached. Possibly under maintenance.
                     '405' => '\\ccxt\\ExchangeError', // You cannot withdraw digital assets during a cooldown period. This is the result of newly added bank accounts.
-                    '406' => '\\ccxt\\BadRequest', // array("errorCode":406,"error":"Your withdrawal is too small.")
+                    '406' => '\\ccxt\\BadRequest', // {"errorCode":406,"error":"Your withdrawal is too small."}
                     '407' => '\\ccxt\\ExchangeError', // Internal transfer is not possible.
-                    '408' => '\\ccxt\\InsufficientFunds', // array("errorCode":408,"error":"You do not have sufficient balance to complete this operation.")
-                    '409' => '\\ccxt\\InvalidAddress', // array("errorCode":409,"error":"This is not a verified bank account.")
+                    '408' => '\\ccxt\\InsufficientFunds', // {"errorCode":408,"error":"You do not have sufficient balance to complete this operation."}
+                    '409' => '\\ccxt\\InvalidAddress', // {"errorCode":409,"error":"This is not a verified bank account."}
                     '410' => '\\ccxt\\ExchangeError', // Withdrawals for this asset are not available at this time.
                     '411' => '\\ccxt\\BadRequest', // You can not transfer assets to yourself.
-                    '412' => '\\ccxt\\InvalidAddress', // array("errorCode":412,"error":"eth_address_invalid.")
+                    '412' => '\\ccxt\\InvalidAddress', // {"errorCode":412,"error":"eth_address_invalid."}
                     '413' => '\\ccxt\\InvalidAddress', // This address violates the whitelist.
                     '414' => '\\ccxt\\ExchangeError', // You cannot withdraw assets within 2 minutes of logging in.
                 ),
                 'broad' => array(
-                    'start parameter is invalid' => '\\ccxt\\BadRequest', // array("errorCode":205,"error":"start parameter is invalid.")
-                    'symbol parameter is invalid' => '\\ccxt\\BadSymbol', // array("errorCode":205,"error":"symbol parameter is invalid.")
-                    'amount parameter is invalid' => '\\ccxt\\InvalidOrder', // array("errorCode":205,"error":"amount parameter is invalid.")
-                    'orderId parameter is invalid' => '\\ccxt\\InvalidOrder', // array("errorCode":205,"error":"orderId parameter is invalid.")
+                    'start parameter is invalid' => '\\ccxt\\BadRequest', // {"errorCode":205,"error":"start parameter is invalid."}
+                    'symbol parameter is invalid' => '\\ccxt\\BadSymbol', // {"errorCode":205,"error":"symbol parameter is invalid."}
+                    'amount parameter is invalid' => '\\ccxt\\InvalidOrder', // {"errorCode":205,"error":"amount parameter is invalid."}
+                    'orderId parameter is invalid' => '\\ccxt\\InvalidOrder', // {"errorCode":205,"error":"orderId parameter is invalid."}
                 ),
             ),
             'options' => array(
@@ -442,7 +443,7 @@ class bitvavo extends Exchange {
          */
         $response = Async\await($this->publicGetTime($params));
         //
-        //     array( "time" => 1590379519148 )
+        //     { "time": 1590379519148 }
         //
         return $this->safe_integer($response, 'time');
     }
@@ -463,21 +464,21 @@ class bitvavo extends Exchange {
         $response = Async\await($this->publicGetMarkets($params));
         //
         //    {
-        //        "market" => "BTC-EUR",
-        //        "status" => "trading",
-        //        "base" => "BTC",
-        //        "quote" => "EUR",
-        //        "pricePrecision" => "0", // deprecated, this is mostly 0 across other markets too, which is abnormal, so we ignore $this->
-        //        "tickSize" => "1.00",
-        //        "minOrderInBaseAsset" => "0.00006100",
-        //        "minOrderInQuoteAsset" => "5.00",
-        //        "maxOrderInBaseAsset" => "1000000000.00000000",
-        //        "maxOrderInQuoteAsset" => "1000000000.00",
-        //        "quantityDecimals" => "8",
-        //        "notionalDecimals" => "2",
-        //        "maxOpenOrders" => "100",
-        //        "feeCategory" => "A",
-        //        "orderTypes" => array( "market", "limit", "stopLoss", "stopLossLimit", "takeProfit", "takeProfitLimit" )
+        //        "market": "BTC-EUR",
+        //        "status": "trading",
+        //        "base": "BTC",
+        //        "quote": "EUR",
+        //        "pricePrecision": "0", // deprecated, this is mostly 0 across other markets too, which is abnormal, so we ignore this.
+        //        "tickSize": "1.00",
+        //        "minOrderInBaseAsset": "0.00006100",
+        //        "minOrderInQuoteAsset": "5.00",
+        //        "maxOrderInBaseAsset": "1000000000.00000000",
+        //        "maxOrderInQuoteAsset": "1000000000.00",
+        //        "quantityDecimals": "8",
+        //        "notionalDecimals": "2",
+        //        "maxOpenOrders": "100",
+        //        "feeCategory": "A",
+        //        "orderTypes": [ "market", "limit", "stopLoss", "stopLossLimit", "takeProfit", "takeProfitLimit" ]
         //    }
         //
         return $this->parse_markets($response);
@@ -565,74 +566,74 @@ class bitvavo extends Exchange {
          */
         $response = Async\await($this->publicGetAssets($params));
         //
-        //     array(
+        //     [
         //         {
-        //             "symbol" => "USDT",
-        //             "displayTicker" => "USDT",
-        //             "name" => "Tether",
-        //             "slug" => "tether",
-        //             "popularity" => -1,
-        //             "decimals" => 6,
-        //             "depositFee" => "0",
-        //             "depositConfirmations" => 64,
-        //             "depositStatus" => "OK",
-        //             "withdrawalFee" => "3.2",
-        //             "withdrawalMinAmount" => "3.2",
-        //             "withdrawalStatus" => "OK",
-        //             "networks" => array(
+        //             "symbol": "USDT",
+        //             "displayTicker": "USDT",
+        //             "name": "Tether",
+        //             "slug": "tether",
+        //             "popularity": -1,
+        //             "decimals": 6,
+        //             "depositFee": "0",
+        //             "depositConfirmations": 64,
+        //             "depositStatus": "OK",
+        //             "withdrawalFee": "3.2",
+        //             "withdrawalMinAmount": "3.2",
+        //             "withdrawalStatus": "OK",
+        //             "networks": [
         //               "ETH"
-        //             ),
-        //             "light" => {
-        //               "color" => "#009393",
-        //               "icon" => array( "hash" => "4ad7c699", "svg" => "https://...", "webp16" => "https://...", "webp32" => "https://...", "webp64" => "https://...", "webp128" => "https://...", "webp256" => "https://...", "png16" => "https://...", "png32" => "https://...", "png64" => "https://...", "png128" => "https://...", "png256" => "https://..."
+        //             ],
+        //             "light": {
+        //               "color": "#009393",
+        //               "icon": { "hash": "4ad7c699", "svg": "https://...", "webp16": "https://...", "webp32": "https://...", "webp64": "https://...", "webp128": "https://...", "webp256": "https://...", "png16": "https://...", "png32": "https://...", "png64": "https://...", "png128": "https://...", "png256": "https://..."
         //               }
-        //             ),
-        //             "dark" => array(
-        //               "color" => "#009393",
-        //               "icon" => array( "hash" => "4ad7c699", "svg" => "https://...", "webp16" => "https://...", "webp32" => "https://...", "webp64" => "https://...", "webp128" => "https://...", "webp256" => "https://...", "png16" => "https://...", "png32" => "https://...", "png64" => "https://...", "png128" => "https://...", "png256" => "https://..."
+        //             },
+        //             "dark": {
+        //               "color": "#009393",
+        //               "icon": { "hash": "4ad7c699", "svg": "https://...", "webp16": "https://...", "webp32": "https://...", "webp64": "https://...", "webp128": "https://...", "webp256": "https://...", "png16": "https://...", "png32": "https://...", "png64": "https://...", "png128": "https://...", "png256": "https://..."
         //               }
-        //             ),
-        //             "visibility" => "PUBLIC",
-        //             "message" => ""
-        //         ),
-        //     )
+        //             },
+        //             "visibility": "PUBLIC",
+        //             "message": ""
+        //         },
+        //     ]
         //
         return $this->parse_currencies($response);
     }
 
     public function parse_currency(array $rawCurrency): array {
         //
-        //     array(
+        //     [
         //         {
-        //             "symbol" => "USDT",
-        //             "displayTicker" => "USDT",
-        //             "name" => "Tether",
-        //             "slug" => "tether",
-        //             "popularity" => -1,
-        //             "decimals" => 6,
-        //             "depositFee" => "0",
-        //             "depositConfirmations" => 64,
-        //             "depositStatus" => "OK",
-        //             "withdrawalFee" => "3.2",
-        //             "withdrawalMinAmount" => "3.2",
-        //             "withdrawalStatus" => "OK",
-        //             "networks" => array(
+        //             "symbol": "USDT",
+        //             "displayTicker": "USDT",
+        //             "name": "Tether",
+        //             "slug": "tether",
+        //             "popularity": -1,
+        //             "decimals": 6,
+        //             "depositFee": "0",
+        //             "depositConfirmations": 64,
+        //             "depositStatus": "OK",
+        //             "withdrawalFee": "3.2",
+        //             "withdrawalMinAmount": "3.2",
+        //             "withdrawalStatus": "OK",
+        //             "networks": [
         //               "ETH"
-        //             ),
-        //             "light" => {
-        //               "color" => "#009393",
-        //               "icon" => array( "hash" => "4ad7c699", "svg" => "https://...", "webp16" => "https://...", "webp32" => "https://...", "webp64" => "https://...", "webp128" => "https://...", "webp256" => "https://...", "png16" => "https://...", "png32" => "https://...", "png64" => "https://...", "png128" => "https://...", "png256" => "https://..."
+        //             ],
+        //             "light": {
+        //               "color": "#009393",
+        //               "icon": { "hash": "4ad7c699", "svg": "https://...", "webp16": "https://...", "webp32": "https://...", "webp64": "https://...", "webp128": "https://...", "webp256": "https://...", "png16": "https://...", "png32": "https://...", "png64": "https://...", "png128": "https://...", "png256": "https://..."
         //               }
-        //             ),
-        //             "dark" => array(
-        //               "color" => "#009393",
-        //               "icon" => array( "hash" => "4ad7c699", "svg" => "https://...", "webp16" => "https://...", "webp32" => "https://...", "webp64" => "https://...", "webp128" => "https://...", "webp256" => "https://...", "png16" => "https://...", "png32" => "https://...", "png64" => "https://...", "png128" => "https://...", "png256" => "https://..."
+        //             },
+        //             "dark": {
+        //               "color": "#009393",
+        //               "icon": { "hash": "4ad7c699", "svg": "https://...", "webp16": "https://...", "webp32": "https://...", "webp64": "https://...", "webp128": "https://...", "webp256": "https://...", "png16": "https://...", "png32": "https://...", "png64": "https://...", "png128": "https://...", "png256": "https://..."
         //               }
-        //             ),
-        //             "visibility" => "PUBLIC",
-        //             "message" => ""
-        //         ),
-        //     )
+        //             },
+        //             "visibility": "PUBLIC",
+        //             "message": ""
+        //         },
+        //     ]
         //
         $fiatCurrencies = $this->handle_option('fetchCurrencies', 'fiatCurrencies', array());
         $id = $this->safe_string($rawCurrency, 'symbol');
@@ -808,7 +809,7 @@ class bitvavo extends Exchange {
         }
         $response = Async\await($this->publicGetTicker24h($params));
         //
-        //     array(
+        //     [
         //         {
         //             "market":"ADA-BTC",
         //             "open":"0.0000059595",
@@ -823,7 +824,7 @@ class bitvavo extends Exchange {
         //             "askSize":"809.999739",
         //             "timestamp":1590382266324
         //         }
-        //     )
+        //     ]
         //
         return $this->parse_tickers($response, $symbols);
     }
@@ -857,11 +858,11 @@ class bitvavo extends Exchange {
         }
         $request = array(
             'market' => $market['id'],
-            // "limit" => 500, // default 500, max 1000
-            // "start" => $since,
-            // "end" => $this->milliseconds(),
-            // "tradeIdFrom" => "57b1159b-6bf5-4cde-9e2c-6bd6a5678baf",
-            // "tradeIdTo" => "57b1159b-6bf5-4cde-9e2c-6bd6a5678baf",
+            // "limit": 500, // default 500, max 1000
+            // "start": since,
+            // "end": this.milliseconds (),
+            // "tradeIdFrom": "57b1159b-6bf5-4cde-9e2c-6bd6a5678baf",
+            // "tradeIdTo": "57b1159b-6bf5-4cde-9e2c-6bd6a5678baf",
         );
         if ($limit !== null) {
             $request['limit'] = min($limit, 1000);
@@ -872,7 +873,7 @@ class bitvavo extends Exchange {
         list($request, $params) = $this->handle_until_option('end', $request, $params);
         $response = Async\await($this->publicGetMarketTrades($this->extend($request, $params)));
         //
-        //     array(
+        //     [
         //         {
         //             "id":"94154c98-6e8b-4e33-92a8-74e33fc05650",
         //             "timestamp":1590382761859,
@@ -880,7 +881,7 @@ class bitvavo extends Exchange {
         //             "price":"8095.3",
         //             "side":"buy"
         //         }
-        //     )
+        //     ]
         //
         return $this->parse_trades($response, $market, $since, $limit);
     }
@@ -929,17 +930,17 @@ class bitvavo extends Exchange {
         // watchMyTrades (private)
         //
         //     {
-        //         "event" => "fill",
-        //         "timestamp" => 1590964470132,
-        //         "market" => "ETH-EUR",
-        //         "orderId" => "85d082e1-eda4-4209-9580-248281a29a9a",
-        //         "fillId" => "861d2da5-aa93-475c-8d9a-dce431bd4211",
-        //         "side" => "sell",
-        //         "amount" => "0.1",
-        //         "price" => "211.46",
-        //         "taker" => true,
-        //         "fee" => "0.056",
-        //         "feeCurrency" => "EUR"
+        //         "event": "fill",
+        //         "timestamp": 1590964470132,
+        //         "market": "ETH-EUR",
+        //         "orderId": "85d082e1-eda4-4209-9580-248281a29a9a",
+        //         "fillId": "861d2da5-aa93-475c-8d9a-dce431bd4211",
+        //         "side": "sell",
+        //         "amount": "0.1",
+        //         "price": "211.46",
+        //         "taker": true,
+        //         "fee": "0.056",
+        //         "feeCurrency": "EUR"
         //     }
         //
         $priceString = $this->safe_string($trade, 'price');
@@ -1001,10 +1002,10 @@ class bitvavo extends Exchange {
         $response = Async\await($this->privateGetAccount($params));
         //
         //     {
-        //         "fees" => {
-        //           "taker" => "0.0025",
-        //           "maker" => "0.0015",
-        //           "volume" => "10000.00"
+        //         "fees": {
+        //           "taker": "0.0025",
+        //           "maker": "0.0015",
+        //           "volume": "10000.00"
         //         }
         //     }
         //
@@ -1014,10 +1015,10 @@ class bitvavo extends Exchange {
     public function parse_trading_fees(mixed $fees, ?array $market = null) {
         //
         //     {
-        //         "fees" => {
-        //           "taker" => "0.0025",
-        //           "maker" => "0.0015",
-        //           "volume" => "10000.00"
+        //         "fees": {
+        //           "taker": "0.0025",
+        //           "maker": "0.0015",
+        //           "volume": "10000.00"
         //         }
         //     }
         //
@@ -1063,10 +1064,10 @@ class bitvavo extends Exchange {
         $response = Async\await($this->privateGetAccountFees($this->extend($request, $params)));
         //
         //     {
-        //         "tier" => "0",
-        //         "volume" => "10000.00",
-        //         "taker" => "0.0025",
-        //         "maker" => "0.0015"
+        //         "tier": "0",
+        //         "volume": "10000.00",
+        //         "taker": "0.0025",
+        //         "maker": "0.0015"
         //     }
         //
         return $this->parse_trading_fee($response, $market);
@@ -1113,16 +1114,16 @@ class bitvavo extends Exchange {
         //     {
         //         "market":"BTC-EUR",
         //         "nonce":35883831,
-        //         "bids":array(
+        //         "bids":[
         //             ["8097.4","0.6229099"],
         //             ["8097.2","0.64151283"],
         //             ["8097.1","0.24966294"],
-        //         ),
-        //         "asks":array(
+        //         ],
+        //         "asks":[
         //             ["8097.5","1.36916911"],
         //             ["8098.8","0.33462248"],
         //             ["8099.3","1.12908646"],
-        //         )
+        //         ]
         //     }
         //
         $orderbook = $this->parse_order_book($response, $market['symbol']);
@@ -1132,14 +1133,14 @@ class bitvavo extends Exchange {
 
     public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
         //
-        //     array(
+        //     [
         //         1590383700000,
         //         "8088.5",
         //         "8088.5",
         //         "8088.5",
         //         "8088.5",
         //         "0.04788623"
-        //     )
+        //     ]
         //
         return array(
             $this->safe_integer($ohlcv, 0),
@@ -1156,9 +1157,9 @@ class bitvavo extends Exchange {
         $request = array(
             'market' => $market['id'],
             'interval' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
-            // "limit" => 1440, // default 1440, max 1440
-            // "start" => $since,
-            // "end" => $this->milliseconds(),
+            // "limit": 1440, // default 1440, max 1440
+            // "start": since,
+            // "end": this.milliseconds (),
         );
         if ($since !== null) {
             // https://github.com/ccxt/ccxt/issues/9227
@@ -1209,11 +1210,11 @@ class bitvavo extends Exchange {
         $request = $this->fetch_ohlcv_request($symbol, $timeframe, $since, $limit, $params);
         $response = Async\await($this->publicGetMarketCandles($request));
         //
-        //     array(
+        //     [
         //         [1590383700000,"8088.5","8088.5","8088.5","8088.5","0.04788623"],
         //         [1590383580000,"8091.3","8091.5","8091.3","8091.5","0.04931221"],
         //         [1590383520000,"8090.3","8092.7","8090.3","8092.5","0.04001286"],
-        //     )
+        //     ]
         //
         return $this->parse_ohlcvs($this->to_array($response), $market, $timeframe, $since, $limit);
     }
@@ -1256,13 +1257,13 @@ class bitvavo extends Exchange {
         }
         $response = Async\await($this->privateGetBalance($params));
         //
-        //     array(
+        //     [
         //         {
-        //             "symbol" => "BTC",
-        //             "available" => "1.57593193",
-        //             "inOrder" => "0.74832374"
+        //             "symbol": "BTC",
+        //             "available": "1.57593193",
+        //             "inOrder": "0.74832374"
         //         }
-        //     )
+        //     ]
         //
         return $this->parse_balance($response);
     }
@@ -1286,17 +1287,17 @@ class bitvavo extends Exchange {
         $response = Async\await($this->privateGetSubaccounts($params));
         //
         //     {
-        //         "items" => array(
+        //         "items": [
         //             {
-        //                 "id" => "3fa85f64-5717-4562-b3fc-2c963f66afa6",
-        //                 "type" => "spot",
-        //                 "status" => "open",
-        //                 "label" => "string"
+        //                 "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+        //                 "type": "spot",
+        //                 "status": "open",
+        //                 "label": "string"
         //             }
-        //         ),
-        //         "currentPage" => 0,
-        //         "totalPages" => 0,
-        //         "maxItems" => 0
+        //         ],
+        //         "currentPage": 0,
+        //         "totalPages": 0,
+        //         "maxItems": 0
         //     }
         //
         $accounts = $this->safe_list($response, 'items', array());
@@ -1365,14 +1366,14 @@ class bitvavo extends Exchange {
         $response = Async\await($this->privatePostSubaccountsTransfers($this->extend($request, $params)));
         //
         //     {
-        //         "transferId" => "3fa85f64-5717-4562-b3fc-2c963f66afa6",
-        //         "clientRequestId" => "3fa85f64-5717-4562-b3fc-2c963f66afa6",
-        //         "subaccountId" => "3fa85f64-5717-4562-b3fc-2c963f66afa6",
-        //         "direction" => "masterToSub",
-        //         "symbol" => "BTC",
-        //         "amount" => "0.1",
-        //         "status" => "completed",
-        //         "createdAt" => "1700000000000"
+        //         "transferId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+        //         "clientRequestId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+        //         "subaccountId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+        //         "direction": "masterToSub",
+        //         "symbol": "BTC",
+        //         "amount": "0.1",
+        //         "status": "completed",
+        //         "createdAt": "1700000000000"
         //     }
         //
         return $this->parse_transfer($response, $currency);
@@ -1419,21 +1420,21 @@ class bitvavo extends Exchange {
         $response = Async\await($this->privateGetSubaccountsTransfers($this->extend($request, $params)));
         //
         //     {
-        //         "items" => array(
+        //         "items": [
         //             {
-        //                 "transferId" => "3fa85f64-5717-4562-b3fc-2c963f66afa6",
-        //                 "clientRequestId" => "3fa85f64-5717-4562-b3fc-2c963f66afa6",
-        //                 "subaccountId" => "3fa85f64-5717-4562-b3fc-2c963f66afa6",
-        //                 "direction" => "masterToSub",
-        //                 "symbol" => "BTC",
-        //                 "amount" => "0.1",
-        //                 "status" => "completed",
-        //                 "createdAt" => "1700000000000"
+        //                 "transferId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+        //                 "clientRequestId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+        //                 "subaccountId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+        //                 "direction": "masterToSub",
+        //                 "symbol": "BTC",
+        //                 "amount": "0.1",
+        //                 "status": "completed",
+        //                 "createdAt": "1700000000000"
         //             }
-        //         ),
-        //         "start" => 0,
-        //         "end" => 0,
-        //         "limit" => 25
+        //         ],
+        //         "start": 0,
+        //         "end": 0,
+        //         "limit": 25
         //     }
         //
         $items = $this->safe_list($response, 'items', array());
@@ -1468,14 +1469,14 @@ class bitvavo extends Exchange {
         $response = Async\await($this->privateGetSubaccountsTransfersTransferId($this->extend($request, $params)));
         //
         //     {
-        //         "transferId" => "3fa85f64-5717-4562-b3fc-2c963f66afa6",
-        //         "clientRequestId" => "3fa85f64-5717-4562-b3fc-2c963f66afa6",
-        //         "subaccountId" => "3fa85f64-5717-4562-b3fc-2c963f66afa6",
-        //         "direction" => "masterToSub",
-        //         "symbol" => "BTC",
-        //         "amount" => "0.1",
-        //         "status" => "completed",
-        //         "createdAt" => "1700000000000"
+        //         "transferId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+        //         "clientRequestId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+        //         "subaccountId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+        //         "direction": "masterToSub",
+        //         "symbol": "BTC",
+        //         "amount": "0.1",
+        //         "status": "completed",
+        //         "createdAt": "1700000000000"
         //     }
         //
         return $this->parse_transfer($response, $currency);
@@ -1545,8 +1546,8 @@ class bitvavo extends Exchange {
         $response = Async\await($this->privateGetDeposit($this->extend($request, $params)));
         //
         //     {
-        //         "address" => "0x449889e3234514c45d57f7c5a571feba0c7ad567",
-        //         "paymentId" => "10002653"
+        //         "address": "0x449889e3234514c45d57f7c5a571feba0c7ad567",
+        //         "paymentId": "10002653"
         //     }
         //
         $address = $this->safe_string($response, 'address');
@@ -1579,8 +1580,8 @@ class bitvavo extends Exchange {
         $timeInForce = $this->safe_string($params, 'timeInForce');
         $triggerPrice = $this->safe_string_n($params, array( 'triggerPrice', 'stopPrice', 'triggerAmount' ));
         $postOnly = $this->is_post_only($isMarketOrder, false, $params);
-        $stopLossPrice = $this->safe_value($params, 'stopLossPrice'); // trigger when $price crosses from above to below this value
-        $takeProfitPrice = $this->safe_value($params, 'takeProfitPrice'); // trigger when $price crosses from below to above this value
+        $stopLossPrice = $this->safe_value($params, 'stopLossPrice'); // trigger when price crosses from above to below this value
+        $takeProfitPrice = $this->safe_value($params, 'takeProfitPrice'); // trigger when price crosses from below to above this value
         $params = $this->omit($params, array( 'timeInForce', 'triggerPrice', 'stopPrice', 'stopLossPrice', 'takeProfitPrice' ));
         if ($isMarketOrder) {
             $cost = null;
@@ -1703,7 +1704,7 @@ class bitvavo extends Exchange {
         //          "filledAmountQuote":"0",
         //          "feePaid":"0",
         //          "feeCurrency":"EUR",
-        //          "fills":array( // filled with $market orders only
+        //          "fills":[ // filled with market orders only
         //             {
         //                 "id":"b0c86aa5-6ed3-4a2d-ba3a-be9a964220f4",
         //                 "timestamp":1590505649245,
@@ -1714,7 +1715,7 @@ class bitvavo extends Exchange {
         //                 "feeCurrency":"EUR",
         //                 "settled":true
         //             }
-        //          ),
+        //          ],
         //          "selfTradePrevention":"decrementAndCancel",
         //          "visible":true,
         //          "timeInForce":"GTC",
@@ -1834,7 +1835,7 @@ class bitvavo extends Exchange {
         $response = Async\await($this->privateDeleteOrder($request));
         //
         //     {
-        //         "orderId" => "2e7ce7fc-44e2-4d80-a4a7-d079c4750b61"
+        //         "orderId": "2e7ce7fc-44e2-4d80-a4a7-d079c4750b61"
         //     }
         //
         return $this->parse_order($response, $market);
@@ -1872,11 +1873,11 @@ class bitvavo extends Exchange {
         }
         $response = Async\await($this->privateDeleteOrders($this->extend($request, $params)));
         //
-        //     array(
+        //     [
         //         {
-        //             "orderId" => "1be6d0df-d5dc-4b53-a250-3376f3b393e6"
+        //             "orderId": "1be6d0df-d5dc-4b53-a250-3376f3b393e6"
         //         }
-        //     )
+        //     ]
         //
         return $this->parse_orders($response, $market);
     }
@@ -1914,8 +1915,8 @@ class bitvavo extends Exchange {
         $response = Async\await($this->privatePostCancelOrdersAfter($this->extend($request, $params)));
         //
         //     {
-        //         "codGroupId" => 1,
-        //         "timeOfExpirySeconds" => 17202139111
+        //         "codGroupId": 1,
+        //         "timeOfExpirySeconds": 17202139111
         //     }
         //
         return $response;
@@ -1968,7 +1969,7 @@ class bitvavo extends Exchange {
         //         "filledAmountQuote":"45.84038925",
         //         "feePaid":"0.12038925",
         //         "feeCurrency":"EUR",
-        //         "fills":array(
+        //         "fills":[
         //             {
         //                 "id":"b0c86aa5-6ed3-4a2d-ba3a-be9a964220f4",
         //                 "timestamp":1590505649245,
@@ -1979,7 +1980,7 @@ class bitvavo extends Exchange {
         //                 "feeCurrency":"EUR",
         //                 "settled":true
         //             }
-        //         ),
+        //         ],
         //         "selfTradePrevention":"decrementAndCancel",
         //         "visible":false,
         //         "disableMarketProtection":false
@@ -1992,11 +1993,11 @@ class bitvavo extends Exchange {
         $market = $this->market($symbol);
         $request = array(
             'market' => $market['id'],
-            // "limit" => 500,
-            // "start" => $since,
-            // "end" => $this->milliseconds(),
-            // "orderIdFrom" => "af76d6ce-9f7c-4006-b715-bb5d430652d0",
-            // "orderIdTo" => "af76d6ce-9f7c-4006-b715-bb5d430652d0",
+            // "limit": 500,
+            // "start": since,
+            // "end": this.milliseconds (),
+            // "orderIdFrom": "af76d6ce-9f7c-4006-b715-bb5d430652d0",
+            // "orderIdTo": "af76d6ce-9f7c-4006-b715-bb5d430652d0",
         );
         if ($since !== null) {
             $request['start'] = $since;
@@ -2041,7 +2042,7 @@ class bitvavo extends Exchange {
         $request = $this->fetch_orders_request($symbol, $since, $limit, $params);
         $response = Async\await($this->privateGetOrders($request));
         //
-        //     array(
+        //     [
         //         {
         //             "orderId":"af76d6ce-9f7c-4006-b715-bb5d430652d0",
         //             "market":"ETH-EUR",
@@ -2058,7 +2059,7 @@ class bitvavo extends Exchange {
         //             "filledAmountQuote":"45.84038925",
         //             "feePaid":"0.12038925",
         //             "feeCurrency":"EUR",
-        //             "fills":array(
+        //             "fills":[
         //                 {
         //                     "id":"b0c86aa5-6ed3-4a2d-ba3a-be9a964220f4",
         //                     "timestamp":1590505649245,
@@ -2069,12 +2070,12 @@ class bitvavo extends Exchange {
         //                     "feeCurrency":"EUR",
         //                     "settled":true
         //                 }
-        //             ),
+        //             ],
         //             "selfTradePrevention":"decrementAndCancel",
         //             "visible":false,
         //             "disableMarketProtection":false
         //         }
-        //     )
+        //     ]
         //
         return $this->parse_orders($response, $market, $since, $limit);
     }
@@ -2099,7 +2100,7 @@ class bitvavo extends Exchange {
             Async\await($this->load_markets());
         }
         $request = array(
-            // "market" => $market["id"], // rate $limit 25 without a $market, 1 with $market specified
+            // "market": market["id"], // rate limit 25 without a market, 1 with market specified
         );
         $market = null;
         if ($symbol !== null) {
@@ -2108,7 +2109,7 @@ class bitvavo extends Exchange {
         }
         $response = Async\await($this->privateGetOrdersOpen($this->extend($request, $params)));
         //
-        //     array(
+        //     [
         //         {
         //             "orderId":"af76d6ce-9f7c-4006-b715-bb5d430652d0",
         //             "market":"ETH-EUR",
@@ -2125,7 +2126,7 @@ class bitvavo extends Exchange {
         //             "filledAmountQuote":"45.84038925",
         //             "feePaid":"0.12038925",
         //             "feeCurrency":"EUR",
-        //             "fills":array(
+        //             "fills":[
         //                 {
         //                     "id":"b0c86aa5-6ed3-4a2d-ba3a-be9a964220f4",
         //                     "timestamp":1590505649245,
@@ -2136,12 +2137,12 @@ class bitvavo extends Exchange {
         //                     "feeCurrency":"EUR",
         //                     "settled":true
         //                 }
-        //             ),
+        //             ],
         //             "selfTradePrevention":"decrementAndCancel",
         //             "visible":false,
         //             "disableMarketProtection":false
         //         }
-        //     )
+        //     ]
         //
         return $this->parse_orders($response, $market, $since, $limit);
     }
@@ -2170,7 +2171,7 @@ class bitvavo extends Exchange {
         // cancelOrder, cancelAllOrders
         //
         //     {
-        //         "orderId" => "2e7ce7fc-44e2-4d80-a4a7-d079c4750b61"
+        //         "orderId": "2e7ce7fc-44e2-4d80-a4a7-d079c4750b61"
         //     }
         //
         // createOrder, fetchOrder, fetchOpenOrders, fetchOrders, editOrder
@@ -2185,14 +2186,14 @@ class bitvavo extends Exchange {
         //         "orderType":"market",
         //         "amount":"0.249825",
         //         "amountRemaining":"0",
-        //         "price" => "183.49", // limit orders only
+        //         "price": "183.49", // limit orders only
         //         "onHold":"0",
         //         "onHoldCurrency":"ETH",
         //         "filledAmount":"0.249825",
         //         "filledAmountQuote":"45.84038925",
         //         "feePaid":"0.12038925",
         //         "feeCurrency":"EUR",
-        //         "fills":array(
+        //         "fills":[
         //             {
         //                 "id":"b0c86aa5-6ed3-4a2d-ba3a-be9a964220f4",
         //                 "timestamp":1590505649245,
@@ -2203,12 +2204,12 @@ class bitvavo extends Exchange {
         //                 "feeCurrency":"EUR",
         //                 "settled":true
         //             }
-        //         ),
+        //         ],
         //         "selfTradePrevention":"decrementAndCancel",
         //         "visible":false,
         //         "disableMarketProtection":false
-        //         "timeInForce" => "GTC",
-        //         "postOnly" => true,
+        //         "timeInForce": "GTC",
+        //         "postOnly": true,
         //     }
         //
         $id = $this->safe_string($order, 'orderId');
@@ -2272,11 +2273,11 @@ class bitvavo extends Exchange {
         $market = $this->market($symbol);
         $request = array(
             'market' => $market['id'],
-            // "limit" => 500,
-            // "start" => $since,
-            // "end" => $this->milliseconds(),
-            // "tradeIdFrom" => "af76d6ce-9f7c-4006-b715-bb5d430652d0",
-            // "tradeIdTo" => "af76d6ce-9f7c-4006-b715-bb5d430652d0",
+            // "limit": 500,
+            // "start": since,
+            // "end": this.milliseconds (),
+            // "tradeIdFrom": "af76d6ce-9f7c-4006-b715-bb5d430652d0",
+            // "tradeIdTo": "af76d6ce-9f7c-4006-b715-bb5d430652d0",
         );
         if ($since !== null) {
             $request['start'] = $since;
@@ -2321,7 +2322,7 @@ class bitvavo extends Exchange {
         $request = $this->fetch_my_trades_request($symbol, $since, $limit, $params);
         $response = Async\await($this->privateGetTrades($request));
         //
-        //     array(
+        //     [
         //         {
         //             "id":"b0c86aa5-6ed3-4a2d-ba3a-be9a964220f4",
         //             "orderId":"af76d6ce-9f7c-4006-b715-bb5d430652d0",
@@ -2335,7 +2336,7 @@ class bitvavo extends Exchange {
         //             "feeCurrency":"EUR",
         //             "settled":true
         //         }
-        //     )
+        //     ]
         //
         return $this->parse_trades($response, $market, $since, $limit);
     }
@@ -2376,25 +2377,25 @@ class bitvavo extends Exchange {
         $response = Async\await($this->privateGetAccountHistory($this->extend($request, $params)));
         //
         //     {
-        //         "items" => array(
+        //         "items": [
         //             {
-        //                 "transactionId" => "5f5e7b3b-4f5b-4b2d-8b2f-4f2b5b3f5e5f",
-        //                 "executedAt" => "2021-01-01T00:00:00.000Z",
-        //                 "type" => "sell",
-        //                 "priceCurrency" => "EUR",
-        //                 "priceAmount" => "1000.00",
-        //                 "sentCurrency" => "EUR",
-        //                 "sentAmount" => "0.1",
-        //                 "receivedCurrency" => "BTC",
-        //                 "receivedAmount" => "0.0001",
-        //                 "feesCurrency" => "EUR",
-        //                 "feesAmount" => "0.01",
-        //                 "address" => "string"
+        //                 "transactionId": "5f5e7b3b-4f5b-4b2d-8b2f-4f2b5b3f5e5f",
+        //                 "executedAt": "2021-01-01T00:00:00.000Z",
+        //                 "type": "sell",
+        //                 "priceCurrency": "EUR",
+        //                 "priceAmount": "1000.00",
+        //                 "sentCurrency": "EUR",
+        //                 "sentAmount": "0.1",
+        //                 "receivedCurrency": "BTC",
+        //                 "receivedAmount": "0.0001",
+        //                 "feesCurrency": "EUR",
+        //                 "feesAmount": "0.01",
+        //                 "address": "string"
         //             }
-        //         ),
-        //         "currentPage" => 1,
-        //         "totalPages" => 1,
-        //         "maxItems" => 100
+        //         ],
+        //         "currentPage": 1,
+        //         "totalPages": 1,
+        //         "maxItems": 100
         //     }
         //
         $items = $this->safe_list($response, 'items', array());
@@ -2462,9 +2463,9 @@ class bitvavo extends Exchange {
         $request = array(
             'symbol' => $currency['id'],
             'amount' => $this->currency_to_precision($code, $amount),
-            'address' => $address, // $address or IBAN
-            // 'internal' => false, // transfer to another Bitvavo user $address, no fees
-            // 'addWithdrawalFee' => false, // true = add the fee on top, otherwise the fee is subtracted from the $amount
+            'address' => $address, // address or IBAN
+            // 'internal': false, // transfer to another Bitvavo user address, no fees
+            // 'addWithdrawalFee': false, // true = add the fee on top, otherwise the fee is subtracted from the amount
         );
         if ($tag !== null) {
             $request['paymentId'] = $tag;
@@ -2499,9 +2500,9 @@ class bitvavo extends Exchange {
         $response = Async\await($this->privatePostWithdrawal($request));
         //
         //     {
-        //         "success" => true,
-        //         "symbol" => "BTC",
-        //         "amount" => "1.5"
+        //         "success": true,
+        //         "symbol": "BTC",
+        //         "amount": "1.5"
         //     }
         //
         return $this->parse_transaction($response, $currency);
@@ -2509,10 +2510,10 @@ class bitvavo extends Exchange {
 
     public function fetch_withdrawals_request(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()) {
         $request = array(
-            // 'symbol' => $currency['id'],
-            // 'limit' => 500, // default 500, max 1000
-            // 'start' => $since,
-            // 'end' => $this->milliseconds(),
+            // 'symbol': currency['id'],
+            // 'limit': 500, // default 500, max 1000
+            // 'start': since,
+            // 'end': this.milliseconds (),
         );
         $currency = null;
         if ($code !== null) {
@@ -2554,7 +2555,7 @@ class bitvavo extends Exchange {
         }
         $response = Async\await($this->privateGetWithdrawalHistory($request));
         //
-        //     array(
+        //     [
         //         {
         //             "timestamp":1590531212000,
         //             "symbol":"ETH",
@@ -2562,20 +2563,20 @@ class bitvavo extends Exchange {
         //             "fee":"0.009",
         //             "status":"awaiting_bitvavo_inspection",
         //             "address":"0xe42b309f1eE9F0cbf7f54CcF3bc2159eBfA6735b",
-        //             "paymentId" => "10002653",
-        //             "txId" => "927b3ea50c5bb52c6854152d305dfa1e27fc01d10464cf10825d96d69d235eb3",
+        //             "paymentId": "10002653",
+        //             "txId": "927b3ea50c5bb52c6854152d305dfa1e27fc01d10464cf10825d96d69d235eb3",
         //         }
-        //     )
+        //     ]
         //
         return $this->parse_transactions($response, $currency, $since, $limit, array( 'type' => 'withdrawal' ));
     }
 
     public function fetch_deposits_request(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()) {
         $request = array(
-            // 'symbol' => $currency['id'],
-            // 'limit' => 500, // default 500, max 1000
-            // 'start' => $since,
-            // 'end' => $this->milliseconds(),
+            // 'symbol': currency['id'],
+            // 'limit': 500, // default 500, max 1000
+            // 'start': since,
+            // 'end': this.milliseconds (),
         );
         $currency = null;
         if ($code !== null) {
@@ -2617,7 +2618,7 @@ class bitvavo extends Exchange {
         }
         $response = Async\await($this->privateGetDepositHistory($request));
         //
-        //     array(
+        //     [
         //         {
         //             "timestamp":1590492401000,
         //             "symbol":"ETH",
@@ -2626,7 +2627,7 @@ class bitvavo extends Exchange {
         //             "status":"completed",
         //             "txId":"0x5167b473fd37811f9ef22364c3d54726a859ef9d98934b3a1e11d7baa8d2c2e2"
         //         }
-        //     )
+        //     ]
         //
         return $this->parse_transactions($response, $currency, $since, $limit, array( 'type' => 'deposit' ));
     }
@@ -2651,22 +2652,22 @@ class bitvavo extends Exchange {
         // withdraw
         //
         //     {
-        //         "success" => true,
-        //         "symbol" => "BTC",
-        //         "amount" => "1.5"
+        //         "success": true,
+        //         "symbol": "BTC",
+        //         "amount": "1.5"
         //     }
         //
         // fetchWithdrawals
         //
         //     {
-        //         "timestamp" => 1542967486256,
-        //         "symbol" => "BTC",
-        //         "amount" => "0.99994",
-        //         "address" => "BitcoinAddress",
-        //         "paymentId" => "10002653",
-        //         "txId" => "927b3ea50c5bb52c6854152d305dfa1e27fc01d10464cf10825d96d69d235eb3",
-        //         "fee" => "0.00006",
-        //         "status" => "awaiting_processing"
+        //         "timestamp": 1542967486256,
+        //         "symbol": "BTC",
+        //         "amount": "0.99994",
+        //         "address": "BitcoinAddress",
+        //         "paymentId": "10002653",
+        //         "txId": "927b3ea50c5bb52c6854152d305dfa1e27fc01d10464cf10825d96d69d235eb3",
+        //         "fee": "0.00006",
+        //         "status": "awaiting_processing"
         //     }
         //
         // fetchDeposits
@@ -2730,19 +2731,19 @@ class bitvavo extends Exchange {
     public function parse_deposit_withdraw_fee(mixed $fee, ?array $currency = null) {
         //
         //   {
-        //       "symbol" => "1INCH",
-        //       "name" => "1inch",
-        //       "decimals" => 8,
-        //       "depositFee" => "0",
-        //       "depositConfirmations" => 64,
-        //       "depositStatus" => "OK",
-        //       "withdrawalFee" => "6.1",
-        //       "withdrawalMinAmount" => "6.1",
-        //       "withdrawalStatus" => "OK",
-        //       "networks" => array(
+        //       "symbol": "1INCH",
+        //       "name": "1inch",
+        //       "decimals": 8,
+        //       "depositFee": "0",
+        //       "depositConfirmations": 64,
+        //       "depositStatus": "OK",
+        //       "withdrawalFee": "6.1",
+        //       "withdrawalMinAmount": "6.1",
+        //       "withdrawalStatus": "OK",
+        //       "networks": [
         //         "ETH"
-        //       ),
-        //       "message" => ""
+        //       ],
+        //       "message": ""
         //   }
         //
         $result = array(
@@ -2758,7 +2759,7 @@ class bitvavo extends Exchange {
             'networks' => array(),
         );
         $networks = $this->safe_value($fee, 'networks');
-        $networkId = $this->safe_value($networks, 0); // Bitvavo currently only supports one network per $currency
+        $networkId = $this->safe_value($networks, 0); // Bitvavo currently only supports one network per currency
         $currencyCode = $this->safe_string($currency, 'code');
         if ($networkId === 'Mainnet') {
             $networkId = $currencyCode;
@@ -2792,23 +2793,23 @@ class bitvavo extends Exchange {
         }
         $response = Async\await($this->publicGetAssets($params));
         //
-        //   array(
-        //       array(
-        //           "symbol" => "1INCH",
-        //           "name" => "1inch",
-        //           "decimals" => 8,
-        //           "depositFee" => "0",
-        //           "depositConfirmations" => 64,
-        //           "depositStatus" => "OK",
-        //           "withdrawalFee" => "6.1",
-        //           "withdrawalMinAmount" => "6.1",
-        //           "withdrawalStatus" => "OK",
-        //           "networks" => array(
+        //   [
+        //       {
+        //           "symbol": "1INCH",
+        //           "name": "1inch",
+        //           "decimals": 8,
+        //           "depositFee": "0",
+        //           "depositConfirmations": 64,
+        //           "depositStatus": "OK",
+        //           "withdrawalFee": "6.1",
+        //           "withdrawalMinAmount": "6.1",
+        //           "withdrawalStatus": "OK",
+        //           "networks": [
         //             "ETH"
-        //           ),
-        //           "message" => ""
-        //       ),
-        //   )
+        //           ],
+        //           "message": ""
+        //       },
+        //   ]
         //
         return $this->parse_deposit_withdraw_fees($response, $codes, 'symbol');
     }
@@ -2851,12 +2852,12 @@ class bitvavo extends Exchange {
 
     public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         if ($response === null) {
-            return null; // fallback to default $error handler
+            return null; // fallback to default error handler
         }
         //
-        //     array("errorCode":308,"error":"The signature length is invalid (HMAC-SHA256 should return a 64 length hexadecimal string).")
-        //     array("errorCode":203,"error":"symbol parameter is required.")
-        //     array("errorCode":205,"error":"symbol parameter is invalid.")
+        //     {"errorCode":308,"error":"The signature length is invalid (HMAC-SHA256 should return a 64 length hexadecimal string)."}
+        //     {"errorCode":203,"error":"symbol parameter is required."}
+        //     {"errorCode":205,"error":"symbol parameter is invalid."}
         //
         $errorCode = $this->safe_string($response, 'errorCode');
         $error = $this->safe_string($response, 'error');

@@ -949,7 +949,7 @@ class BaseExchange(SyncExchange):
                     if retry == maxRetries:
                         raise e
                 if shouldBreak:
-                    break  # self is needed because of GO
+                    break  # this is needed because of GO
             content = response
             if content is None:
                 raise NullResponse(self.id + ' fetchWebEndpoint() returned empty content')
@@ -1029,7 +1029,7 @@ class BaseExchange(SyncExchange):
                         raise e
                 else:
                     raise e
-        return None  # self line is never reached, but exists for c# value return requirement
+        return None  # this line is never reached, but exists for c# value return requirement
 
     async def request(self, path: object, api: object = 'public', method='GET', params={}, headers: object = None, body: object = None, config={}):
         return await self.fetch2(path, api, method, params, headers, body, config)
@@ -1498,7 +1498,7 @@ class BaseExchange(SyncExchange):
         maxEntriesPerRequest, params = self.handle_max_entries_per_request_and_params(method, maxEntriesPerRequest, params)
         # paginationDirection is only relevant to fetchPaginatedCallDynamic/Cursor; deterministic
         # pagination always walks forward internally, so strip it here to avoid leaking an
-        # unrecognized param into the underlying exchange request(e.g. binance -1104 errors)
+        # unrecognized param into the underlying exchange request (e.g. binance -1104 errors)
         params = self.omit(params, 'paginationDirection')
         current = self.milliseconds()
         tasks = []
@@ -1509,7 +1509,7 @@ class BaseExchange(SyncExchange):
         currentSince = current - (maxCalls * step) - 1
         if since is not None:
             if until is not None:
-                # the recent-window floor below would jump past a fully-historical [since, until]
+                # the recent-window floor below would jump past a fully-historical [ since, until ]
                 # range and return an empty result - requiredCalls is validated against maxCalls
                 # further down, so anchoring at since directly is safe here,
                 # see https://github.com/ccxt/ccxt/issues/26252
@@ -1585,7 +1585,7 @@ class BaseExchange(SyncExchange):
                 if response is not None:
                     result = self.array_concat(result, response)
                 last = self.safe_dict(response, responseLength - 1)
-                # cursorValue = self.safe_value(last['info'], cursorReceived)
+                # cursorValue = this.safeValue (last['info'], cursorReceived);
                 cursorValue = None  # search for the cursor
                 for j in range(0, responseLength):
                     index = responseLength - j - 1

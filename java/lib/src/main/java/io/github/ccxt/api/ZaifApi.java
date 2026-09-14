@@ -7,6 +7,9 @@
 
 package io.github.ccxt.api;
 import io.github.ccxt.Exchange;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 public class ZaifApi extends Exchange
 {
@@ -25,7 +28,7 @@ public class ZaifApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetDepthPair (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetDepthPair (Object... optionalArgs)
     {
         return this.callAsync ("publicGetDepthPair", optionalArgs);
     }
@@ -36,7 +39,7 @@ public class ZaifApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetCurrenciesPair (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicGetCurrenciesPair (Object... optionalArgs)
     {
         return this.callAsync ("publicGetCurrenciesPair", optionalArgs);
     }
@@ -47,7 +50,7 @@ public class ZaifApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetCurrenciesAll (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicGetCurrenciesAll (Object... optionalArgs)
     {
         return this.callAsync ("publicGetCurrenciesAll", optionalArgs);
     }
@@ -58,7 +61,7 @@ public class ZaifApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetCurrencyPairsPair (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicGetCurrencyPairsPair (Object... optionalArgs)
     {
         return this.callAsync ("publicGetCurrencyPairsPair", optionalArgs);
     }
@@ -69,7 +72,7 @@ public class ZaifApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetCurrencyPairsAll (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicGetCurrencyPairsAll (Object... optionalArgs)
     {
         return this.callAsync ("publicGetCurrencyPairsAll", optionalArgs);
     }
@@ -80,7 +83,7 @@ public class ZaifApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetLastPricePair (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetLastPricePair (Object... optionalArgs)
     {
         return this.callAsync ("publicGetLastPricePair", optionalArgs);
     }
@@ -91,7 +94,7 @@ public class ZaifApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetTickerPair (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetTickerPair (Object... optionalArgs)
     {
         return this.callAsync ("publicGetTickerPair", optionalArgs);
     }
@@ -102,7 +105,7 @@ public class ZaifApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetTradesPair (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicGetTradesPair (Object... optionalArgs)
     {
         return this.callAsync ("publicGetTradesPair", optionalArgs);
     }
@@ -113,7 +116,7 @@ public class ZaifApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetVaspInfoVaspMasterId (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicGetVaspInfoVaspMasterId (Object... optionalArgs)
     {
         return this.callAsync ("publicGetVaspInfoVaspMasterId", optionalArgs);
     }
@@ -124,7 +127,7 @@ public class ZaifApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetCountryInfoCode (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicGetCountryInfoCode (Object... optionalArgs)
     {
         return this.callAsync ("publicGetCountryInfoCode", optionalArgs);
     }
@@ -135,7 +138,7 @@ public class ZaifApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetCorpTypeIdInfoId (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicGetCorpTypeIdInfoId (Object... optionalArgs)
     {
         return this.callAsync ("publicGetCorpTypeIdInfoId", optionalArgs);
     }
@@ -146,7 +149,7 @@ public class ZaifApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostActiveOrders (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostActiveOrders (Object... optionalArgs)
     {
         return this.callAsync ("privatePostActiveOrders", optionalArgs);
     }
@@ -157,7 +160,7 @@ public class ZaifApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostCancelOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostCancelOrder (Object... optionalArgs)
     {
         return this.callAsync ("privatePostCancelOrder", optionalArgs);
     }
@@ -168,7 +171,7 @@ public class ZaifApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostDepositHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostDepositHistory (Object... optionalArgs)
     {
         return this.callAsync ("privatePostDepositHistory", optionalArgs);
     }
@@ -179,7 +182,7 @@ public class ZaifApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostGetIdInfo (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostGetIdInfo (Object... optionalArgs)
     {
         return this.callAsync ("privatePostGetIdInfo", optionalArgs);
     }
@@ -190,7 +193,7 @@ public class ZaifApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostGetInfo (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostGetInfo (Object... optionalArgs)
     {
         return this.callAsync ("privatePostGetInfo", optionalArgs);
     }
@@ -201,7 +204,7 @@ public class ZaifApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostGetInfo2 (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostGetInfo2 (Object... optionalArgs)
     {
         return this.callAsync ("privatePostGetInfo2", optionalArgs);
     }
@@ -212,7 +215,7 @@ public class ZaifApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostGetPersonalInfo (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostGetPersonalInfo (Object... optionalArgs)
     {
         return this.callAsync ("privatePostGetPersonalInfo", optionalArgs);
     }
@@ -223,7 +226,7 @@ public class ZaifApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostTrade (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostTrade (Object... optionalArgs)
     {
         return this.callAsync ("privatePostTrade", optionalArgs);
     }
@@ -234,7 +237,7 @@ public class ZaifApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostTradeHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostTradeHistory (Object... optionalArgs)
     {
         return this.callAsync ("privatePostTradeHistory", optionalArgs);
     }
@@ -245,7 +248,7 @@ public class ZaifApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostWithdraw (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostWithdraw (Object... optionalArgs)
     {
         return this.callAsync ("privatePostWithdraw", optionalArgs);
     }
@@ -256,7 +259,7 @@ public class ZaifApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostWithdrawHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostWithdrawHistory (Object... optionalArgs)
     {
         return this.callAsync ("privatePostWithdrawHistory", optionalArgs);
     }
@@ -267,7 +270,7 @@ public class ZaifApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  ecapiPostCreateInvoice (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  ecapiPostCreateInvoice (Object... optionalArgs)
     {
         return this.callAsync ("ecapiPostCreateInvoice", optionalArgs);
     }
@@ -278,7 +281,7 @@ public class ZaifApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  ecapiPostGetInvoice (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  ecapiPostGetInvoice (Object... optionalArgs)
     {
         return this.callAsync ("ecapiPostGetInvoice", optionalArgs);
     }
@@ -289,7 +292,7 @@ public class ZaifApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  ecapiPostGetInvoiceIdsByOrderNumber (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  ecapiPostGetInvoiceIdsByOrderNumber (Object... optionalArgs)
     {
         return this.callAsync ("ecapiPostGetInvoiceIdsByOrderNumber", optionalArgs);
     }
@@ -300,7 +303,7 @@ public class ZaifApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  ecapiPostCancelInvoice (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  ecapiPostCancelInvoice (Object... optionalArgs)
     {
         return this.callAsync ("ecapiPostCancelInvoice", optionalArgs);
     }
@@ -311,7 +314,7 @@ public class ZaifApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  tlapiPostGetPositions (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  tlapiPostGetPositions (Object... optionalArgs)
     {
         return this.callAsync ("tlapiPostGetPositions", optionalArgs);
     }
@@ -322,7 +325,7 @@ public class ZaifApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  tlapiPostPositionHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  tlapiPostPositionHistory (Object... optionalArgs)
     {
         return this.callAsync ("tlapiPostPositionHistory", optionalArgs);
     }
@@ -333,7 +336,7 @@ public class ZaifApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  tlapiPostActivePositions (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  tlapiPostActivePositions (Object... optionalArgs)
     {
         return this.callAsync ("tlapiPostActivePositions", optionalArgs);
     }
@@ -344,7 +347,7 @@ public class ZaifApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  tlapiPostCreatePosition (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  tlapiPostCreatePosition (Object... optionalArgs)
     {
         return this.callAsync ("tlapiPostCreatePosition", optionalArgs);
     }
@@ -355,7 +358,7 @@ public class ZaifApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  tlapiPostChangePosition (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  tlapiPostChangePosition (Object... optionalArgs)
     {
         return this.callAsync ("tlapiPostChangePosition", optionalArgs);
     }
@@ -366,7 +369,7 @@ public class ZaifApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  tlapiPostCancelPosition (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  tlapiPostCancelPosition (Object... optionalArgs)
     {
         return this.callAsync ("tlapiPostCancelPosition", optionalArgs);
     }
@@ -377,7 +380,7 @@ public class ZaifApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  fapiGetGroupsGroupId (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  fapiGetGroupsGroupId (Object... optionalArgs)
     {
         return this.callAsync ("fapiGetGroupsGroupId", optionalArgs);
     }
@@ -388,7 +391,7 @@ public class ZaifApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  fapiGetLastPriceGroupIdPair (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  fapiGetLastPriceGroupIdPair (Object... optionalArgs)
     {
         return this.callAsync ("fapiGetLastPriceGroupIdPair", optionalArgs);
     }
@@ -399,7 +402,7 @@ public class ZaifApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  fapiGetTickerGroupIdPair (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  fapiGetTickerGroupIdPair (Object... optionalArgs)
     {
         return this.callAsync ("fapiGetTickerGroupIdPair", optionalArgs);
     }
@@ -410,7 +413,7 @@ public class ZaifApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  fapiGetTradesGroupIdPair (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  fapiGetTradesGroupIdPair (Object... optionalArgs)
     {
         return this.callAsync ("fapiGetTradesGroupIdPair", optionalArgs);
     }
@@ -421,7 +424,7 @@ public class ZaifApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  fapiGetDepthGroupIdPair (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  fapiGetDepthGroupIdPair (Object... optionalArgs)
     {
         return this.callAsync ("fapiGetDepthGroupIdPair", optionalArgs);
     }

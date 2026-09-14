@@ -3920,9 +3920,7 @@ func (this *Limitless) FetchEvent(id string, options ...FetchEventOptions) (ccxt
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchEventAsync(id, params)
+	res := <-this.FetchEventAsync(id, opts.Params)
 	if ccxt.IsError(res) {
 		return ccxt.PredictionEvent{}, ccxt.CreateReturnError(res)
 	}
@@ -3946,9 +3944,7 @@ func (this *Limitless) FetchTicker(outcome string, options ...ccxt.FetchTickerOp
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchTickerAsync(outcome, params)
+	res := <-this.FetchTickerAsync(outcome, opts.Params)
 	if ccxt.IsError(res) {
 		return ccxt.PredictionTicker{}, ccxt.CreateReturnError(res)
 	}
@@ -3972,11 +3968,7 @@ func (this *Limitless) FetchTickers(options ...FetchTickersOptions) (ccxt.Predic
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var outcomes *[]string = opts.Outcomes
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchTickersAsync(outcomes, params)
+	res := <-this.FetchTickersAsync(opts.Outcomes, opts.Params)
 	if ccxt.IsError(res) {
 		return ccxt.PredictionTickers{}, ccxt.CreateReturnError(res)
 	}
@@ -4001,13 +3993,7 @@ func (this *Limitless) FetchTrades(outcome string, options ...ccxt.FetchTradesOp
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var since *int64 = opts.Since
-
-	var limit *int64 = opts.Limit
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchTradesAsync(outcome, since, limit, params)
+	res := <-this.FetchTradesAsync(outcome, opts.Since, opts.Limit, opts.Params)
 	if ccxt.IsError(res) {
 		return nil, ccxt.CreateReturnError(res)
 	}
@@ -4031,11 +4017,7 @@ func (this *Limitless) FetchOrderBook(outcome string, options ...ccxt.FetchOrder
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var limit *int64 = opts.Limit
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchOrderBookAsync(outcome, limit, params)
+	res := <-this.FetchOrderBookAsync(outcome, opts.Limit, opts.Params)
 	if ccxt.IsError(res) {
 		return ccxt.PredictionOrderBook{}, ccxt.CreateReturnError(res)
 	}
@@ -4061,15 +4043,7 @@ func (this *Limitless) FetchOHLCV(outcome string, options ...ccxt.FetchOHLCVOpti
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var timeframe *string = opts.Timeframe
-
-	var since *int64 = opts.Since
-
-	var limit *int64 = opts.Limit
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchOHLCVAsync(outcome, timeframe, since, limit, params)
+	res := <-this.FetchOHLCVAsync(outcome, opts.Timeframe, opts.Since, opts.Limit, opts.Params)
 	if ccxt.IsError(res) {
 		return nil, ccxt.CreateReturnError(res)
 	}
@@ -4094,15 +4068,7 @@ func (this *Limitless) FetchOrders(options ...FetchOrdersOptions) ([]ccxt.Predic
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var outcome *string = opts.Outcome
-
-	var since *int64 = opts.Since
-
-	var limit *int64 = opts.Limit
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchOrdersAsync(outcome, since, limit, params)
+	res := <-this.FetchOrdersAsync(opts.Outcome, opts.Since, opts.Limit, opts.Params)
 	if ccxt.IsError(res) {
 		return nil, ccxt.CreateReturnError(res)
 	}
@@ -4127,15 +4093,7 @@ func (this *Limitless) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]ccx
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var outcome *string = opts.Outcome
-
-	var since *int64 = opts.Since
-
-	var limit *int64 = opts.Limit
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchOpenOrdersAsync(outcome, since, limit, params)
+	res := <-this.FetchOpenOrdersAsync(opts.Outcome, opts.Since, opts.Limit, opts.Params)
 	if ccxt.IsError(res) {
 		return nil, ccxt.CreateReturnError(res)
 	}
@@ -4160,15 +4118,7 @@ func (this *Limitless) FetchClosedOrders(options ...FetchClosedOrdersOptions) ([
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var outcome *string = opts.Outcome
-
-	var since *int64 = opts.Since
-
-	var limit *int64 = opts.Limit
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchClosedOrdersAsync(outcome, since, limit, params)
+	res := <-this.FetchClosedOrdersAsync(opts.Outcome, opts.Since, opts.Limit, opts.Params)
 	if ccxt.IsError(res) {
 		return nil, ccxt.CreateReturnError(res)
 	}
@@ -4192,11 +4142,7 @@ func (this *Limitless) FetchOrdersByIds(ids any, options ...FetchOrdersByIdsOpti
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var outcome *string = opts.Outcome
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchOrdersByIdsAsync(ids, outcome, params)
+	res := <-this.FetchOrdersByIdsAsync(ids, opts.Outcome, opts.Params)
 	if ccxt.IsError(res) {
 		return nil, ccxt.CreateReturnError(res)
 	}
@@ -4220,11 +4166,7 @@ func (this *Limitless) FetchOrder(id string, options ...FetchOrderOptions) (ccxt
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var outcome *string = opts.Outcome
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchOrderAsync(id, outcome, params)
+	res := <-this.FetchOrderAsync(id, opts.Outcome, opts.Params)
 	if ccxt.IsError(res) {
 		return ccxt.PredictionOrder{}, ccxt.CreateReturnError(res)
 	}
@@ -4267,11 +4209,7 @@ func (this *Limitless) CreateOrder(outcome string, typeVar string, side string, 
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var price *float64 = opts.Price
-
-	var params *map[string]any = opts.Params
-	res := <-this.CreateOrderAsync(outcome, typeVar, side, amount, price, params)
+	res := <-this.CreateOrderAsync(outcome, typeVar, side, amount, opts.Price, opts.Params)
 	if ccxt.IsError(res) {
 		return ccxt.PredictionOrder{}, ccxt.CreateReturnError(res)
 	}
@@ -4295,11 +4233,7 @@ func (this *Limitless) CancelOrder(id string, options ...CancelOrderOptions) (cc
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var outcome *string = opts.Outcome
-
-	var params *map[string]any = opts.Params
-	res := <-this.CancelOrderAsync(id, outcome, params)
+	res := <-this.CancelOrderAsync(id, opts.Outcome, opts.Params)
 	if ccxt.IsError(res) {
 		return ccxt.PredictionOrder{}, ccxt.CreateReturnError(res)
 	}
@@ -4323,11 +4257,7 @@ func (this *Limitless) CancelOrders(ids []string, options ...CancelOrdersOptions
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var outcome *string = opts.Outcome
-
-	var params *map[string]any = opts.Params
-	res := <-this.CancelOrdersAsync(ids, outcome, params)
+	res := <-this.CancelOrdersAsync(ids, opts.Outcome, opts.Params)
 	if ccxt.IsError(res) {
 		return nil, ccxt.CreateReturnError(res)
 	}
@@ -4351,11 +4281,7 @@ func (this *Limitless) CancelAllOrders(options ...CancelAllOrdersOptions) ([]ccx
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var outcome *string = opts.Outcome
-
-	var params *map[string]any = opts.Params
-	res := <-this.CancelAllOrdersAsync(outcome, params)
+	res := <-this.CancelAllOrdersAsync(opts.Outcome, opts.Params)
 	if ccxt.IsError(res) {
 		return nil, ccxt.CreateReturnError(res)
 	}
@@ -4380,15 +4306,7 @@ func (this *Limitless) FetchMyTrades(options ...FetchMyTradesOptions) ([]ccxt.Pr
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var outcome *string = opts.Outcome
-
-	var since *int64 = opts.Since
-
-	var limit *int64 = opts.Limit
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchMyTradesAsync(outcome, since, limit, params)
+	res := <-this.FetchMyTradesAsync(opts.Outcome, opts.Since, opts.Limit, opts.Params)
 	if ccxt.IsError(res) {
 		return nil, ccxt.CreateReturnError(res)
 	}
@@ -4411,11 +4329,7 @@ func (this *Limitless) FetchPositions(options ...FetchPositionsOptions) ([]ccxt.
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var outcomes *[]string = opts.Outcomes
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchPositionsAsync(outcomes, params)
+	res := <-this.FetchPositionsAsync(opts.Outcomes, opts.Params)
 	if ccxt.IsError(res) {
 		return nil, ccxt.CreateReturnError(res)
 	}
@@ -4460,11 +4374,7 @@ func (this *Limitless) FetchRawActiveMarkets(options ...FetchRawActiveMarketsOpt
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var params *map[string]any = opts.Params
-
-	var categoryId *string = opts.CategoryId
-	res := <-this.FetchRawActiveMarketsAsync(params, categoryId)
+	res := <-this.FetchRawActiveMarketsAsync(opts.Params, opts.CategoryId)
 	if ccxt.IsError(res) {
 		return nil, ccxt.CreateReturnError(res)
 	}
@@ -4488,9 +4398,7 @@ func (this *Limitless) FetchRawMarketsByTags(tags []string, options ...FetchRawM
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchRawMarketsByTagsAsync(tags, params)
+	res := <-this.FetchRawMarketsByTagsAsync(tags, opts.Params)
 	if ccxt.IsError(res) {
 		return nil, ccxt.CreateReturnError(res)
 	}
@@ -4521,9 +4429,7 @@ func (this *Limitless) CreateMarketBuyOrderWithCost(outcome string, cost float64
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var params *map[string]any = opts.Params
-	res := <-this.CreateMarketBuyOrderWithCostAsync(outcome, cost, params)
+	res := <-this.CreateMarketBuyOrderWithCostAsync(outcome, cost, opts.Params)
 	if ccxt.IsError(res) {
 		return ccxt.PredictionOrder{}, ccxt.CreateReturnError(res)
 	}
@@ -4536,9 +4442,7 @@ func (this *Limitless) CreateMarketSellOrderWithCost(outcome string, cost float6
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var params *map[string]any = opts.Params
-	res := <-this.CreateMarketSellOrderWithCostAsync(outcome, cost, params)
+	res := <-this.CreateMarketSellOrderWithCostAsync(outcome, cost, opts.Params)
 	if ccxt.IsError(res) {
 		return ccxt.PredictionOrder{}, ccxt.CreateReturnError(res)
 	}
@@ -4551,9 +4455,7 @@ func (this *Limitless) CreateOrders(orders []ccxt.PredictionOrderRequest, option
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var params *map[string]any = opts.Params
-	res := <-this.CreateOrdersAsync(ccxt.ConvertPredictionOrderRequestListToArray(orders), params)
+	res := <-this.CreateOrdersAsync(ccxt.ConvertPredictionOrderRequestListToArray(orders), opts.Params)
 	if ccxt.IsError(res) {
 		return nil, ccxt.CreateReturnError(res)
 	}
@@ -4698,9 +4600,7 @@ func (this *Limitless) FetchOpenInterest(outcome string, options ...ccxt.FetchOp
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchOpenInterestAsync(outcome, params)
+	res := <-this.FetchOpenInterestAsync(outcome, opts.Params)
 	if ccxt.IsError(res) {
 		return ccxt.PredictionOpenInterest{}, ccxt.CreateReturnError(res)
 	}
@@ -4728,15 +4628,7 @@ func (this *Limitless) FetchOrderTrades(id string, options ...FetchOrderTradesOp
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var outcome *string = opts.Outcome
-
-	var since *int64 = opts.Since
-
-	var limit *int64 = opts.Limit
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchOrderTradesAsync(id, outcome, since, limit, params)
+	res := <-this.FetchOrderTradesAsync(id, opts.Outcome, opts.Since, opts.Limit, opts.Params)
 	if ccxt.IsError(res) {
 		return nil, ccxt.CreateReturnError(res)
 	}
@@ -4752,9 +4644,7 @@ func (this *Limitless) FetchPosition(outcome string, options ...ccxt.FetchPositi
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchPositionAsync(outcome, params)
+	res := <-this.FetchPositionAsync(outcome, opts.Params)
 	if ccxt.IsError(res) {
 		return ccxt.PredictionPosition{}, ccxt.CreateReturnError(res)
 	}
@@ -4779,9 +4669,7 @@ func (this *Limitless) FetchTradingFee(outcome string, options ...ccxt.FetchTrad
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchTradingFeeAsync(outcome, params)
+	res := <-this.FetchTradingFeeAsync(outcome, opts.Params)
 	if ccxt.IsError(res) {
 		return ccxt.PredictionTradingFee{}, ccxt.CreateReturnError(res)
 	}
@@ -4896,15 +4784,7 @@ func (this *Limitless) WatchMyTrades(options ...WatchMyTradesOptions) ([]ccxt.Pr
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var outcome *string = opts.Outcome
-
-	var since *int64 = opts.Since
-
-	var limit *int64 = opts.Limit
-
-	var params *map[string]any = opts.Params
-	res := <-this.WatchMyTradesAsync(outcome, since, limit, params)
+	res := <-this.WatchMyTradesAsync(opts.Outcome, opts.Since, opts.Limit, opts.Params)
 	if ccxt.IsError(res) {
 		return nil, ccxt.CreateReturnError(res)
 	}
@@ -4923,11 +4803,7 @@ func (this *Limitless) WatchOrderBook(outcome string, options ...ccxt.WatchOrder
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var limit *int64 = opts.Limit
-
-	var params *map[string]any = opts.Params
-	res := <-this.WatchOrderBookAsync(outcome, limit, params)
+	res := <-this.WatchOrderBookAsync(outcome, opts.Limit, opts.Params)
 	if ccxt.IsError(res) {
 		return ccxt.PredictionOrderBook{}, ccxt.CreateReturnError(res)
 	}
@@ -4940,15 +4816,7 @@ func (this *Limitless) WatchOrders(options ...WatchOrdersOptions) ([]ccxt.Predic
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var outcome *string = opts.Outcome
-
-	var since *int64 = opts.Since
-
-	var limit *int64 = opts.Limit
-
-	var params *map[string]any = opts.Params
-	res := <-this.WatchOrdersAsync(outcome, since, limit, params)
+	res := <-this.WatchOrdersAsync(opts.Outcome, opts.Since, opts.Limit, opts.Params)
 	if ccxt.IsError(res) {
 		return nil, ccxt.CreateReturnError(res)
 	}
@@ -4961,15 +4829,7 @@ func (this *Limitless) WatchPositions(options ...WatchPositionsOptions) ([]ccxt.
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var outcomes *[]string = opts.Outcomes
-
-	var since *int64 = opts.Since
-
-	var limit *int64 = opts.Limit
-
-	var params *map[string]any = opts.Params
-	res := <-this.WatchPositionsAsync(outcomes, since, limit, params)
+	res := <-this.WatchPositionsAsync(opts.Outcomes, opts.Since, opts.Limit, opts.Params)
 	if ccxt.IsError(res) {
 		return nil, ccxt.CreateReturnError(res)
 	}
@@ -4982,9 +4842,7 @@ func (this *Limitless) WatchTicker(outcome string, options ...ccxt.WatchTickerOp
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var params *map[string]any = opts.Params
-	res := <-this.WatchTickerAsync(outcome, params)
+	res := <-this.WatchTickerAsync(outcome, opts.Params)
 	if ccxt.IsError(res) {
 		return ccxt.PredictionTicker{}, ccxt.CreateReturnError(res)
 	}
@@ -4997,11 +4855,7 @@ func (this *Limitless) WatchTickers(options ...WatchTickersOptions) (ccxt.Predic
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var outcomes *[]string = opts.Outcomes
-
-	var params *map[string]any = opts.Params
-	res := <-this.WatchTickersAsync(outcomes, params)
+	res := <-this.WatchTickersAsync(opts.Outcomes, opts.Params)
 	if ccxt.IsError(res) {
 		return ccxt.PredictionTickers{}, ccxt.CreateReturnError(res)
 	}
@@ -5014,13 +4868,7 @@ func (this *Limitless) WatchTrades(outcome string, options ...ccxt.WatchTradesOp
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var since *int64 = opts.Since
-
-	var limit *int64 = opts.Limit
-
-	var params *map[string]any = opts.Params
-	res := <-this.WatchTradesAsync(outcome, since, limit, params)
+	res := <-this.WatchTradesAsync(outcome, opts.Since, opts.Limit, opts.Params)
 	if ccxt.IsError(res) {
 		return nil, ccxt.CreateReturnError(res)
 	}

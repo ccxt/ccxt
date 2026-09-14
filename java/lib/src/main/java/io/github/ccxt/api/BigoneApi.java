@@ -7,6 +7,9 @@
 
 package io.github.ccxt.api;
 import io.github.ccxt.Exchange;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 public class BigoneApi extends Exchange
 {
@@ -25,7 +28,7 @@ public class BigoneApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetPing (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetPing (Object... optionalArgs)
     {
         return this.callAsync ("publicGetPing", optionalArgs);
     }
@@ -36,7 +39,7 @@ public class BigoneApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetAssetPairs (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetAssetPairs (Object... optionalArgs)
     {
         return this.callAsync ("publicGetAssetPairs", optionalArgs);
     }
@@ -47,7 +50,7 @@ public class BigoneApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetAssetPairsAssetPairNameDepth (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetAssetPairsAssetPairNameDepth (Object... optionalArgs)
     {
         return this.callAsync ("publicGetAssetPairsAssetPairNameDepth", optionalArgs);
     }
@@ -58,7 +61,7 @@ public class BigoneApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetAssetPairsAssetPairNameTrades (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetAssetPairsAssetPairNameTrades (Object... optionalArgs)
     {
         return this.callAsync ("publicGetAssetPairsAssetPairNameTrades", optionalArgs);
     }
@@ -69,7 +72,7 @@ public class BigoneApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetAssetPairsAssetPairNameTicker (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetAssetPairsAssetPairNameTicker (Object... optionalArgs)
     {
         return this.callAsync ("publicGetAssetPairsAssetPairNameTicker", optionalArgs);
     }
@@ -80,7 +83,7 @@ public class BigoneApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetAssetPairsAssetPairNameCandles (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetAssetPairsAssetPairNameCandles (Object... optionalArgs)
     {
         return this.callAsync ("publicGetAssetPairsAssetPairNameCandles", optionalArgs);
     }
@@ -91,7 +94,7 @@ public class BigoneApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetAssetPairsTickers (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetAssetPairsTickers (Object... optionalArgs)
     {
         return this.callAsync ("publicGetAssetPairsTickers", optionalArgs);
     }
@@ -102,7 +105,7 @@ public class BigoneApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetAccounts (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetAccounts (Object... optionalArgs)
     {
         return this.callAsync ("privateGetAccounts", optionalArgs);
     }
@@ -113,7 +116,7 @@ public class BigoneApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetFundAccounts (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetFundAccounts (Object... optionalArgs)
     {
         return this.callAsync ("privateGetFundAccounts", optionalArgs);
     }
@@ -124,7 +127,7 @@ public class BigoneApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetAssetsAssetSymbolAddress (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetAssetsAssetSymbolAddress (Object... optionalArgs)
     {
         return this.callAsync ("privateGetAssetsAssetSymbolAddress", optionalArgs);
     }
@@ -135,7 +138,7 @@ public class BigoneApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetOrders (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetOrders (Object... optionalArgs)
     {
         return this.callAsync ("privateGetOrders", optionalArgs);
     }
@@ -146,7 +149,7 @@ public class BigoneApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetOrdersId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetOrdersId (Object... optionalArgs)
     {
         return this.callAsync ("privateGetOrdersId", optionalArgs);
     }
@@ -157,7 +160,7 @@ public class BigoneApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetOrdersMulti (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetOrdersMulti (Object... optionalArgs)
     {
         return this.callAsync ("privateGetOrdersMulti", optionalArgs);
     }
@@ -168,7 +171,7 @@ public class BigoneApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetTrades (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetTrades (Object... optionalArgs)
     {
         return this.callAsync ("privateGetTrades", optionalArgs);
     }
@@ -179,7 +182,7 @@ public class BigoneApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetWithdrawals (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetWithdrawals (Object... optionalArgs)
     {
         return this.callAsync ("privateGetWithdrawals", optionalArgs);
     }
@@ -190,7 +193,7 @@ public class BigoneApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetDeposits (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetDeposits (Object... optionalArgs)
     {
         return this.callAsync ("privateGetDeposits", optionalArgs);
     }
@@ -201,7 +204,7 @@ public class BigoneApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostOrders (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostOrders (Object... optionalArgs)
     {
         return this.callAsync ("privatePostOrders", optionalArgs);
     }
@@ -212,7 +215,7 @@ public class BigoneApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostOrdersIdCancel (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostOrdersIdCancel (Object... optionalArgs)
     {
         return this.callAsync ("privatePostOrdersIdCancel", optionalArgs);
     }
@@ -223,7 +226,7 @@ public class BigoneApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostOrdersCancel (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostOrdersCancel (Object... optionalArgs)
     {
         return this.callAsync ("privatePostOrdersCancel", optionalArgs);
     }
@@ -234,7 +237,7 @@ public class BigoneApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostWithdrawals (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostWithdrawals (Object... optionalArgs)
     {
         return this.callAsync ("privatePostWithdrawals", optionalArgs);
     }
@@ -245,7 +248,7 @@ public class BigoneApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostTransfer (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostTransfer (Object... optionalArgs)
     {
         return this.callAsync ("privatePostTransfer", optionalArgs);
     }
@@ -256,7 +259,7 @@ public class BigoneApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  contractPublicGetSymbols (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  contractPublicGetSymbols (Object... optionalArgs)
     {
         return this.callAsync ("contractPublicGetSymbols", optionalArgs);
     }
@@ -267,7 +270,7 @@ public class BigoneApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  contractPublicGetInstruments (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  contractPublicGetInstruments (Object... optionalArgs)
     {
         return this.callAsync ("contractPublicGetInstruments", optionalArgs);
     }
@@ -278,7 +281,7 @@ public class BigoneApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractPublicGetDepthSymbolSnapshot (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  contractPublicGetDepthSymbolSnapshot (Object... optionalArgs)
     {
         return this.callAsync ("contractPublicGetDepthSymbolSnapshot", optionalArgs);
     }
@@ -289,7 +292,7 @@ public class BigoneApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractPublicGetInstrumentsDifference (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  contractPublicGetInstrumentsDifference (Object... optionalArgs)
     {
         return this.callAsync ("contractPublicGetInstrumentsDifference", optionalArgs);
     }
@@ -300,7 +303,7 @@ public class BigoneApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractPublicGetInstrumentsPrices (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  contractPublicGetInstrumentsPrices (Object... optionalArgs)
     {
         return this.callAsync ("contractPublicGetInstrumentsPrices", optionalArgs);
     }
@@ -311,7 +314,7 @@ public class BigoneApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  contractPrivateGetAccounts (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  contractPrivateGetAccounts (Object... optionalArgs)
     {
         return this.callAsync ("contractPrivateGetAccounts", optionalArgs);
     }
@@ -322,7 +325,7 @@ public class BigoneApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractPrivateGetOrdersId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  contractPrivateGetOrdersId (Object... optionalArgs)
     {
         return this.callAsync ("contractPrivateGetOrdersId", optionalArgs);
     }
@@ -333,7 +336,7 @@ public class BigoneApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  contractPrivateGetOrders (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  contractPrivateGetOrders (Object... optionalArgs)
     {
         return this.callAsync ("contractPrivateGetOrders", optionalArgs);
     }
@@ -344,7 +347,7 @@ public class BigoneApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  contractPrivateGetOrdersOpening (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  contractPrivateGetOrdersOpening (Object... optionalArgs)
     {
         return this.callAsync ("contractPrivateGetOrdersOpening", optionalArgs);
     }
@@ -355,7 +358,7 @@ public class BigoneApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractPrivateGetOrdersCount (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  contractPrivateGetOrdersCount (Object... optionalArgs)
     {
         return this.callAsync ("contractPrivateGetOrdersCount", optionalArgs);
     }
@@ -366,7 +369,7 @@ public class BigoneApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractPrivateGetOrdersOpeningCount (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  contractPrivateGetOrdersOpeningCount (Object... optionalArgs)
     {
         return this.callAsync ("contractPrivateGetOrdersOpeningCount", optionalArgs);
     }
@@ -377,7 +380,7 @@ public class BigoneApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  contractPrivateGetTrades (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  contractPrivateGetTrades (Object... optionalArgs)
     {
         return this.callAsync ("contractPrivateGetTrades", optionalArgs);
     }
@@ -388,7 +391,7 @@ public class BigoneApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractPrivateGetTradesCount (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  contractPrivateGetTradesCount (Object... optionalArgs)
     {
         return this.callAsync ("contractPrivateGetTradesCount", optionalArgs);
     }
@@ -399,7 +402,7 @@ public class BigoneApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractPrivatePostOrders (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  contractPrivatePostOrders (Object... optionalArgs)
     {
         return this.callAsync ("contractPrivatePostOrders", optionalArgs);
     }
@@ -410,7 +413,7 @@ public class BigoneApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractPrivatePostOrdersBatch (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  contractPrivatePostOrdersBatch (Object... optionalArgs)
     {
         return this.callAsync ("contractPrivatePostOrdersBatch", optionalArgs);
     }
@@ -421,7 +424,7 @@ public class BigoneApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractPrivatePutPositionsSymbolMargin (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  contractPrivatePutPositionsSymbolMargin (Object... optionalArgs)
     {
         return this.callAsync ("contractPrivatePutPositionsSymbolMargin", optionalArgs);
     }
@@ -432,7 +435,7 @@ public class BigoneApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractPrivatePutPositionsSymbolRiskLimit (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  contractPrivatePutPositionsSymbolRiskLimit (Object... optionalArgs)
     {
         return this.callAsync ("contractPrivatePutPositionsSymbolRiskLimit", optionalArgs);
     }
@@ -443,7 +446,7 @@ public class BigoneApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractPrivateDeleteOrdersId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  contractPrivateDeleteOrdersId (Object... optionalArgs)
     {
         return this.callAsync ("contractPrivateDeleteOrdersId", optionalArgs);
     }
@@ -454,7 +457,7 @@ public class BigoneApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractPrivateDeleteOrdersBatch (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  contractPrivateDeleteOrdersBatch (Object... optionalArgs)
     {
         return this.callAsync ("contractPrivateDeleteOrdersBatch", optionalArgs);
     }
@@ -465,7 +468,7 @@ public class BigoneApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  webExchangeGetV3Assets (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  webExchangeGetV3Assets (Object... optionalArgs)
     {
         return this.callAsync ("webExchangeGetV3Assets", optionalArgs);
     }

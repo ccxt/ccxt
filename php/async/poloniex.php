@@ -248,7 +248,7 @@ class poloniex extends Exchange {
                         'v3/trade/order/history' => array( 'cost' => 20 ),
                         'v3/trade/order/details' => array( 'cost' => 20 ),
                         'v3/trade/position/opens' => array( 'cost' => 20 ),
-                        'v3/trade/position/history' => array( 'cost' => 20 ), // todo => method for this
+                        'v3/trade/position/history' => array( 'cost' => 20 ), // todo: method for this
                         'v3/position/leverages' => array( 'cost' => 20 ),
                         'v3/position/mode' => array( 'cost' => 20 ),
                         'v3/position/riskLimit' => array( 'cost' => 20 ),
@@ -304,8 +304,8 @@ class poloniex extends Exchange {
                 // this is not documented in the API docs for Poloniex
                 // https://github.com/ccxt/ccxt/issues/7084
                 // when the user calls withdraw ('USDT', amount, address, tag, params)
-                // with params = array( 'currencyToWithdrawAs' => 'USDTTRON' )
-                // or params = array( 'currencyToWithdrawAs' => 'USDTETH' )
+                // with params = { 'currencyToWithdrawAs': 'USDTTRON' }
+                // or params = { 'currencyToWithdrawAs': 'USDTETH' }
                 // fetchWithdrawals ('USDT') returns the corresponding withdrawals
                 // with a USDTTRON or a USDTETH currency id, respectfully
                 // therefore we have map them back to the original code USDT
@@ -321,7 +321,7 @@ class poloniex extends Exchange {
                 'networks' => array(
                     'BEP20' => 'BSC',
                     'ERC20' => 'ETH',
-                    // v2 withdraw accepts only the blockchain id => 'TRX' passes validation, 'TRON' is rejected with 830111 (live-verified)
+                    // v2 withdraw accepts only the blockchain id: 'TRX' passes validation, 'TRON' is rejected with 830111 (live-verified)
                     'TRC20' => 'TRX',
                     'TRX' => 'TRX',
                 ),
@@ -496,16 +496,16 @@ class poloniex extends Exchange {
                     '10060' => '\\ccxt\\ExchangeError', // Symbol setup error
                     '10020' => '\\ccxt\\BadSymbol', // Invalid currency
                     '10041' => '\\ccxt\\BadSymbol', // Symbol frozen for trading
-                    '21340' => '\\ccxt\\OnMaintenance', // No order creation/cancelation is allowed is in Maintenane Mode
-                    '21341' => '\\ccxt\\InvalidOrder', // Post-only orders (type) allowed is in Post Only Mode
-                    '21342' => '\\ccxt\\InvalidOrder', // Price is higher than highest bid is in Maintenance Mode
-                    '21343' => '\\ccxt\\InvalidOrder', // Price is lower than lowest bid is in Maintenance Mode
+                    '21340' => '\\ccxt\\OnMaintenance', // No order creation/cancelation is allowed as Poloniex is in Maintenane Mode
+                    '21341' => '\\ccxt\\InvalidOrder', // Post-only orders (type as LIMIT_MAKER) allowed as Poloniex is in Post Only Mode
+                    '21342' => '\\ccxt\\InvalidOrder', // Price is higher than highest bid as Poloniex is in Maintenance Mode
+                    '21343' => '\\ccxt\\InvalidOrder', // Price is lower than lowest bid as Poloniex is in Maintenance Mode
                     '21351' => '\\ccxt\\AccountSuspended', // Trading for this account is frozen. Contact support
                     '21352' => '\\ccxt\\BadSymbol', // Trading for this currency is frozen
                     '21353' => '\\ccxt\\PermissionDenied', // Trading for US customers is not supported
                     '21354' => '\\ccxt\\PermissionDenied', // Account needs to be verified via email before trading is enabled. Contact support
-                    '21359' => '\\ccxt\\OrderNotFound', // array( "code" : 21359, "message" : "Order was already canceled or filled." )
-                    '21360' => '\\ccxt\\InvalidOrder', // array( "code" : 21360, "message" : "Order size exceeds the limit.Please enter a smaller amount and try again." )
+                    '21359' => '\\ccxt\\OrderNotFound', // { "code" : 21359, "message" : "Order was already canceled or filled." }
+                    '21360' => '\\ccxt\\InvalidOrder', // { "code" : 21360, "message" : "Order size exceeds the limit.Please enter a smaller amount and try again." }
                     '24106' => '\\ccxt\\BadRequest', // Invalid market depth
                     '24201' => '\\ccxt\\ExchangeNotAvailable', // Service busy. Try again later
                     // Orders
@@ -570,11 +570,11 @@ class poloniex extends Exchange {
                     '25018' => '\\ccxt\\BadRequest', // Invalid accountType
                     '25019' => '\\ccxt\\BadSymbol', // Invalid symbol
                     // Wallets v2 (undocumented codes, live-verified via validation probes)
-                    '820181' => '\\ccxt\\BadRequest', // array("code":820181,"message":"amount must be greater than the transaction fee.")
-                    '820201' => '\\ccxt\\BadRequest', // array("code":820201,"message":"blockchain param check error") — network param missing
-                    '830111' => '\\ccxt\\BadRequest', // array("code":830111,"message":"Currency or Network does not exist")
+                    '820181' => '\\ccxt\\BadRequest', // {"code":820181,"message":"amount must be greater than the transaction fee."}
+                    '820201' => '\\ccxt\\BadRequest', // {"code":820201,"message":"blockchain param check error"} — network param missing
+                    '830111' => '\\ccxt\\BadRequest', // {"code":830111,"message":"Currency or Network does not exist"}
                     // Futures v3 (https://api-docs.poloniex.com/v3/futures/error)
-                    '250' => '\\ccxt\\DuplicateOrderId', // array("code":250,"msg":"Client order id already exists") — live-verified on v3/trade/order
+                    '250' => '\\ccxt\\DuplicateOrderId', // {"code":250,"msg":"Client order id already exists"} — live-verified on v3/trade/order
                     '400' => '\\ccxt\\BadRequest', // ILLEGAL_PARAM
                     '403' => '\\ccxt\\PermissionDenied', // ACCESS_DENY
                     '404' => '\\ccxt\\BadRequest', // NOT_FOUND
@@ -620,8 +620,8 @@ class poloniex extends Exchange {
         //
         // spot:
         //
-        //     array(
-        //         array(
+        //     [
+        //         [
         //             "22814.01",
         //             "22937.42",
         //             "22832.57",
@@ -636,12 +636,12 @@ class poloniex extends Exchange {
         //             "MINUTE_5",
         //             1659664800000,
         //             1659665099999
-        //         )
-        //     )
+        //         ]
+        //     ]
         //
         // contract:
         //
-        //           array(
+        //           [
         //             "84207.02",
         //             "84320.85",
         //             "84207.02",
@@ -651,7 +651,7 @@ class poloniex extends Exchange {
         //             "14",
         //             "1740770040000",
         //             "1740770099999",
-        //           ),
+        //           ],
         //
         $ohlcvLength = count($ohlcv);
         $isContract = $ohlcvLength === 9;
@@ -712,7 +712,7 @@ class poloniex extends Exchange {
             $request[$keyStart] = $since;
         }
         if ($limit !== null) {
-            // $limit should in between 100 and 500
+            // limit should in between 100 and 500
             $request['limit'] = $limit;
         }
         list($request, $params) = $this->handle_until_option($keyEnd, $request, $params);
@@ -720,10 +720,10 @@ class poloniex extends Exchange {
             $responseRaw = Async\await($this->swapPublicGetV3MarketCandles($this->extend($request, $params)));
             //
             //     {
-            //         code => "200",
-            //         msg => "Success",
-            //         $data => [
-            //           array(
+            //         code: "200",
+            //         msg: "Success",
+            //         data: [
+            //           [
             //             "84207.02",
             //             "84320.85",
             //             "84207.02",
@@ -733,15 +733,15 @@ class poloniex extends Exchange {
             //             "14",
             //             "1740770040000",
             //             "1740770099999",
-            //           ),
+            //           ],
             //
             $data = $this->safe_list($responseRaw, 'data');
             return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
         }
         $response = Async\await($this->publicGetMarketsSymbolCandles($this->extend($request, $params)));
         //
-        //     array(
-        //         array(
+        //     [
+        //         [
         //             "22814.01",
         //             "22937.42",
         //             "22832.57",
@@ -756,8 +756,8 @@ class poloniex extends Exchange {
         //             "MINUTE_5",
         //             1659664800000,
         //             1659665099999
-        //         )
-        //     )
+        //         ]
+        //     ]
         //
         $candles = array();
         if ((gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response)))) {
@@ -805,7 +805,7 @@ class poloniex extends Exchange {
     private function do_fetch_spot_markets($params = array()) {
         $markets = Async\await($this->publicGetMarkets($params));
         //
-        //     array(
+        //     [
         //         {
         //             "symbol" : "BTS_BTC",
         //             "baseCurrencyName" : "BTS",
@@ -825,7 +825,7 @@ class poloniex extends Exchange {
         //                 "lowestAsk" : "0"
         //             }
         //         }
-        //     )
+        //     ]
         //
         return $this->parse_markets($markets);
     }
@@ -839,41 +839,41 @@ class poloniex extends Exchange {
         $response = Async\await($this->swapPublicGetV3MarketAllInstruments($params));
         //
         //    {
-        //        "code" => "200",
-        //        "msg" => "Success",
-        //        "data" => [
-        //            array(
-        //                "symbol" => "BNB_USDT_PERP",
-        //                "bAsset" => ".PBNBUSDT",
-        //                "bCcy" => "BNB",
-        //                "qCcy" => "USDT",
-        //                "visibleStartTime" => "1620390600000",
-        //                "tradableStartTime" => "1620390600000",
-        //                "sCcy" => "USDT",
-        //                "tSz" => "0.001",
-        //                "pxScale" => "0.001,0.01,0.1,1,10",
-        //                "lotSz" => "1",
-        //                "minSz" => "1",
-        //                "ctVal" => "0.1",
-        //                "status" => "OPEN",
-        //                "oDate" => "1620287590000",
-        //                "maxPx" => "1000000",
-        //                "minPx" => "0.001",
-        //                "maxQty" => "1000000",
-        //                "minQty" => "1",
-        //                "maxLever" => "50",
-        //                "lever" => "10",
-        //                "ctType" => "LINEAR",
-        //                "alias" => "",
-        //                "iM" => "0.02",
-        //                "mM" => "0.0115",
-        //                "mR" => "2000",
-        //                "buyLmt" => "",
-        //                "sellLmt" => "",
-        //                "ordPxRange" => "0.05",
-        //                "marketMaxQty" => "2800",
-        //                "limitMaxQty" => "1000000"
-        //            ),
+        //        "code": "200",
+        //        "msg": "Success",
+        //        "data": [
+        //            {
+        //                "symbol": "BNB_USDT_PERP",
+        //                "bAsset": ".PBNBUSDT",
+        //                "bCcy": "BNB",
+        //                "qCcy": "USDT",
+        //                "visibleStartTime": "1620390600000",
+        //                "tradableStartTime": "1620390600000",
+        //                "sCcy": "USDT",
+        //                "tSz": "0.001",
+        //                "pxScale": "0.001,0.01,0.1,1,10",
+        //                "lotSz": "1",
+        //                "minSz": "1",
+        //                "ctVal": "0.1",
+        //                "status": "OPEN",
+        //                "oDate": "1620287590000",
+        //                "maxPx": "1000000",
+        //                "minPx": "0.001",
+        //                "maxQty": "1000000",
+        //                "minQty": "1",
+        //                "maxLever": "50",
+        //                "lever": "10",
+        //                "ctType": "LINEAR",
+        //                "alias": "",
+        //                "iM": "0.02",
+        //                "mM": "0.0115",
+        //                "mR": "2000",
+        //                "buyLmt": "",
+        //                "sellLmt": "",
+        //                "ordPxRange": "0.05",
+        //                "marketMaxQty": "2800",
+        //                "limitMaxQty": "1000000"
+        //            },
         //
         $markets = $this->safe_list($response, 'data');
         return $this->parse_markets($markets);
@@ -946,38 +946,38 @@ class poloniex extends Exchange {
 
     public function parse_swap_market(array $market): array {
         //
-        //            array(
-        //                "symbol" => "BNB_USDT_PERP",
-        //                "bAsset" => ".PBNBUSDT",
-        //                "bCcy" => "BNB",
-        //                "qCcy" => "USDT",
-        //                "visibleStartTime" => "1620390600000",
-        //                "tradableStartTime" => "1620390600000",
-        //                "sCcy" => "USDT",
-        //                "tSz" => "0.001",
-        //                "pxScale" => "0.001,0.01,0.1,1,10",
-        //                "lotSz" => "1",
-        //                "minSz" => "1",
-        //                "ctVal" => "0.1",
-        //                "status" => "OPEN",
-        //                "oDate" => "1620287590000",
-        //                "maxPx" => "1000000",
-        //                "minPx" => "0.001",
-        //                "maxQty" => "1000000",
-        //                "minQty" => "1",
-        //                "maxLever" => "50",
-        //                "lever" => "10",
-        //                "ctType" => "LINEAR",
-        //                "alias" => "",
-        //                "iM" => "0.02",
-        //                "mM" => "0.0115",
-        //                "mR" => "2000",
-        //                "buyLmt" => "",
-        //                "sellLmt" => "",
-        //                "ordPxRange" => "0.05",
-        //                "marketMaxQty" => "2800",
-        //                "limitMaxQty" => "1000000"
-        //            ),
+        //            {
+        //                "symbol": "BNB_USDT_PERP",
+        //                "bAsset": ".PBNBUSDT",
+        //                "bCcy": "BNB",
+        //                "qCcy": "USDT",
+        //                "visibleStartTime": "1620390600000",
+        //                "tradableStartTime": "1620390600000",
+        //                "sCcy": "USDT",
+        //                "tSz": "0.001",
+        //                "pxScale": "0.001,0.01,0.1,1,10",
+        //                "lotSz": "1",
+        //                "minSz": "1",
+        //                "ctVal": "0.1",
+        //                "status": "OPEN",
+        //                "oDate": "1620287590000",
+        //                "maxPx": "1000000",
+        //                "minPx": "0.001",
+        //                "maxQty": "1000000",
+        //                "minQty": "1",
+        //                "maxLever": "50",
+        //                "lever": "10",
+        //                "ctType": "LINEAR",
+        //                "alias": "",
+        //                "iM": "0.02",
+        //                "mM": "0.0115",
+        //                "mR": "2000",
+        //                "buyLmt": "",
+        //                "sellLmt": "",
+        //                "ordPxRange": "0.05",
+        //                "marketMaxQty": "2800",
+        //                "limitMaxQty": "1000000"
+        //            },
         //
         $id = $this->safe_string($market, 'symbol');
         $baseId = $this->safe_string($market, 'bCcy');
@@ -1099,33 +1099,33 @@ class poloniex extends Exchange {
         //
         //  swap:
         //
-        //            array(
-        //                "s" => "XRP_USDT_PERP",
-        //                "o" => "2.0503",
-        //                "l" => "2.0066",
-        //                "h" => "2.216",
-        //                "c" => "2.1798",
-        //                "qty" => "21090",
-        //                "amt" => "451339.65",
-        //                "tC" => "3267",
-        //                "sT" => "1740736380000",
-        //                "cT" => "1740822777559",
-        //                "dN" => "XRP/USDT/PERP",
-        //                "dC" => "0.0632",
-        //                "bPx" => "2.175",
-        //                "bSz" => "3",
-        //                "aPx" => "2.1831",
-        //                "aSz" => "111",
-        //                "mPx" => "2.1798",
-        //                "iPx" => "2.1834"
-        //            ),
+        //            {
+        //                "s": "XRP_USDT_PERP",
+        //                "o": "2.0503",
+        //                "l": "2.0066",
+        //                "h": "2.216",
+        //                "c": "2.1798",
+        //                "qty": "21090",
+        //                "amt": "451339.65",
+        //                "tC": "3267",
+        //                "sT": "1740736380000",
+        //                "cT": "1740822777559",
+        //                "dN": "XRP/USDT/PERP",
+        //                "dC": "0.0632",
+        //                "bPx": "2.175",
+        //                "bSz": "3",
+        //                "aPx": "2.1831",
+        //                "aSz": "111",
+        //                "mPx": "2.1798",
+        //                "iPx": "2.1834"
+        //            },
         //
         $timestamp = $this->safe_integer_2($ticker, 'ts', 'cT');
         $marketId = $this->safe_string_2($ticker, 'symbol', 's');
         $market = $this->safe_market($marketId);
         $baseVolume = $this->safe_string_2($ticker, 'quantity', 'qty');
         if (($market['contract'] === true) && ($market['contractSize'] !== null)) {
-            // 'quantity' counts contracts, and a $ticker reports base volume
+            // 'quantity' counts contracts, and a ticker reports base volume
             $baseVolume = Precise::string_mul($baseVolume, $this->number_to_string($market['contractSize']));
         }
         $relativeChange = $this->safe_string_2($ticker, 'dailyChange', 'dc');
@@ -1190,36 +1190,36 @@ class poloniex extends Exchange {
             $responseRaw = Async\await($this->swapPublicGetV3MarketTickers($this->extend($request, $params)));
             //
             //    {
-            //        "code" => "200",
-            //        "msg" => "Success",
-            //        "data" => [
-            //            array(
-            //                "s" => "XRP_USDT_PERP",
-            //                "o" => "2.0503",
-            //                "l" => "2.0066",
-            //                "h" => "2.216",
-            //                "c" => "2.1798",
-            //                "qty" => "21090",
-            //                "amt" => "451339.65",
-            //                "tC" => "3267",
-            //                "sT" => "1740736380000",
-            //                "cT" => "1740822777559",
-            //                "dN" => "XRP/USDT/PERP",
-            //                "dC" => "0.0632",
-            //                "bPx" => "2.175",
-            //                "bSz" => "3",
-            //                "aPx" => "2.1831",
-            //                "aSz" => "111",
-            //                "mPx" => "2.1798",
-            //                "iPx" => "2.1834"
-            //            ),
+            //        "code": "200",
+            //        "msg": "Success",
+            //        "data": [
+            //            {
+            //                "s": "XRP_USDT_PERP",
+            //                "o": "2.0503",
+            //                "l": "2.0066",
+            //                "h": "2.216",
+            //                "c": "2.1798",
+            //                "qty": "21090",
+            //                "amt": "451339.65",
+            //                "tC": "3267",
+            //                "sT": "1740736380000",
+            //                "cT": "1740822777559",
+            //                "dN": "XRP/USDT/PERP",
+            //                "dC": "0.0632",
+            //                "bPx": "2.175",
+            //                "bSz": "3",
+            //                "aPx": "2.1831",
+            //                "aSz": "111",
+            //                "mPx": "2.1798",
+            //                "iPx": "2.1834"
+            //            },
             //
             $data = $this->safe_list($responseRaw, 'data');
             return $this->parse_tickers($data, $symbols);
         }
         $response = Async\await($this->publicGetMarketsTicker24h($params));
         //
-        //     array(
+        //     [
         //         {
         //              "symbol" : "BTC_USDT",
         //              "open" : "26053.33",
@@ -1240,7 +1240,7 @@ class poloniex extends Exchange {
         //              "ts" : "1692870845446",
         //              "markPrice" : "26444.11"
         //         }
-        //     )
+        //     ]
         //
         return $this->parse_tickers($response, $symbols);
     }
@@ -1262,31 +1262,31 @@ class poloniex extends Exchange {
         //
         //    [
         //        {
-        //            "id" => 668,
-        //            "coin" => "ADA",
-        //            "delisted" => false,
-        //            "tradeEnable" => true,
-        //            "name" => "Cardano",
-        //            "networkList" => array(
-        //                array(
-        //                    "id" => 668,
-        //                    "coin" => "ADA",
-        //                    "name" => "Cardano",
-        //                    "currencyType" => "address",
-        //                    "blockchain" => "ADA",
-        //                    "withdrawalEnable" => true,
-        //                    "depositEnable" => true,
-        //                    "depositAddress" => null,
-        //                    "withdrawMin" => "5.00000000",
-        //                    "decimals" => 6,
-        //                    "withdrawFee" => "3.00000000",
-        //                    "minConfirm" => 30,
-        //                    "contractAddress" => null
+        //            "id": 668,
+        //            "coin": "ADA",
+        //            "delisted": false,
+        //            "tradeEnable": true,
+        //            "name": "Cardano",
+        //            "networkList": [
+        //                {
+        //                    "id": 668,
+        //                    "coin": "ADA",
+        //                    "name": "Cardano",
+        //                    "currencyType": "address",
+        //                    "blockchain": "ADA",
+        //                    "withdrawalEnable": true,
+        //                    "depositEnable": true,
+        //                    "depositAddress": null,
+        //                    "withdrawMin": "5.00000000",
+        //                    "decimals": 6,
+        //                    "withdrawFee": "3.00000000",
+        //                    "minConfirm": 30,
+        //                    "contractAddress": null
         //                }
-        //            ),
-        //            "supportCollateral" => false,
-        //            "supportBorrow" => false
-        //        ),
+        //            ],
+        //            "supportCollateral": false,
+        //            "supportBorrow": false
+        //        },
         //
         return $this->parse_currencies($response);
     }
@@ -1412,12 +1412,12 @@ class poloniex extends Exchange {
         //   swap:
         //
         //     {
-        //         "id" => "105807376",
-        //         "side" => "buy",
-        //         "px" => "84410.57",
-        //         "qty" => "1",
-        //         "amt" => "84.41057",
-        //         "cT" => "1740777563557",
+        //         "id": "105807376",
+        //         "side": "buy",
+        //         "px": "84410.57",
+        //         "qty": "1",
+        //         "amt": "84.41057",
+        //         "cT": "1740777563557",
         //     }
         //
         // fetchMyTrades
@@ -1425,69 +1425,69 @@ class poloniex extends Exchange {
         //  spot:
         //
         //     {
-        //         "id" => "32164924331503616",
-        //         "symbol" => "LINK_USDT",
-        //         "accountType" => "SPOT",
-        //         "orderId" => "32164923987566592",
-        //         "side" => "SELL",
-        //         "type" => "MARKET",
-        //         "matchRole" => "TAKER",
-        //         "createTime" => 1648635115525,
-        //         "price" => "11",
-        //         "quantity" => "0.5",
-        //         "amount" => "5.5",
-        //         "feeCurrency" => "USDT",
-        //         "feeAmount" => "0.007975",
-        //         "pageId" => "32164924331503616",
-        //         "clientOrderId" => "myOwnId-321"
+        //         "id": "32164924331503616",
+        //         "symbol": "LINK_USDT",
+        //         "accountType": "SPOT",
+        //         "orderId": "32164923987566592",
+        //         "side": "SELL",
+        //         "type": "MARKET",
+        //         "matchRole": "TAKER",
+        //         "createTime": 1648635115525,
+        //         "price": "11",
+        //         "quantity": "0.5",
+        //         "amount": "5.5",
+        //         "feeCurrency": "USDT",
+        //         "feeAmount": "0.007975",
+        //         "pageId": "32164924331503616",
+        //         "clientOrderId": "myOwnId-321"
         //     }
         //
         //  swap:
         //
-        //     array(
-        //         "symbol" => "BTC_USDT_PERP",
-        //         "trdId" => "105813553",
-        //         "side" => "SELL",
-        //         "type" => "TRADE",
-        //         "mgnMode" => "CROSS",
-        //         "ordType" => "MARKET",
-        //         "clOrdId" => "polo418912106147315112",
-        //         "role" => "TAKER",
-        //         "px" => "84704.9",
-        //         "qty" => "1",
-        //         "cTime" => "1740842829430",
-        //         "uTime" => "1740842829450",
-        //         "feeCcy" => "USDT",
-        //         "feeAmt" => "0.04235245",
-        //         "deductCcy" => "",
-        //         "deductAmt" => "0",
-        //         "feeRate" => "0.0005",
-        //         "id" => "418912106342654592",
-        //         "posSide" => "BOTH",
-        //         "ordId" => "418912106147315112",
-        //         "qCcy" => "USDT",
-        //         "value" => "84.7049",
-        //         "actType" => "TRADING"
-        //     ),
+        //     {
+        //         "symbol": "BTC_USDT_PERP",
+        //         "trdId": "105813553",
+        //         "side": "SELL",
+        //         "type": "TRADE",
+        //         "mgnMode": "CROSS",
+        //         "ordType": "MARKET",
+        //         "clOrdId": "polo418912106147315112",
+        //         "role": "TAKER",
+        //         "px": "84704.9",
+        //         "qty": "1",
+        //         "cTime": "1740842829430",
+        //         "uTime": "1740842829450",
+        //         "feeCcy": "USDT",
+        //         "feeAmt": "0.04235245",
+        //         "deductCcy": "",
+        //         "deductAmt": "0",
+        //         "feeRate": "0.0005",
+        //         "id": "418912106342654592",
+        //         "posSide": "BOTH",
+        //         "ordId": "418912106147315112",
+        //         "qCcy": "USDT",
+        //         "value": "84.7049",
+        //         "actType": "TRADING"
+        //     },
         //
         // fetchOrderTrades (taker trades)
         //
         //     {
-        //         "id" => "30341456333942784",
-        //         "symbol" => "LINK_USDT",
-        //         "accountType" => "SPOT",
-        //         "orderId" => "30249408733945856",
-        //         "side" => "BUY",
-        //         "type" => "LIMIT",
-        //         "matchRole" => "MAKER",
-        //         "createTime" => 1648200366864,
-        //         "price" => "3.1",
-        //         "quantity" => "1",
-        //         "amount" => "3.1",
-        //         "feeCurrency" => "LINK",
-        //         "feeAmount" => "0.00145",
-        //         "pageId" => "30341456333942784",
-        //         "clientOrderId" => ""
+        //         "id": "30341456333942784",
+        //         "symbol": "LINK_USDT",
+        //         "accountType": "SPOT",
+        //         "orderId": "30249408733945856",
+        //         "side": "BUY",
+        //         "type": "LIMIT",
+        //         "matchRole": "MAKER",
+        //         "createTime": 1648200366864,
+        //         "price": "3.1",
+        //         "quantity": "1",
+        //         "amount": "3.1",
+        //         "feeCurrency": "LINK",
+        //         "feeAmount": "0.00145",
+        //         "pageId": "30341456333942784",
+        //         "clientOrderId": ""
         //     }
         //
         $id = $this->safe_string_n($trade, array( 'id', 'tradeID', 'trdId' ));
@@ -1556,24 +1556,24 @@ class poloniex extends Exchange {
             $response = Async\await($this->swapPublicGetV3MarketTrades($this->extend($request, $params)));
             //
             //     {
-            //         code => "200",
-            //         msg => "Success",
-            //         data => [
-            //         array(
-            //             id => "105807320", // descending order
-            //             side => "sell",
-            //             px => "84383.93",
-            //             qty => "1",
-            //             amt => "84.38393",
-            //             cT => "1740777074704",
-            //         ),
+            //         code: "200",
+            //         msg: "Success",
+            //         data: [
+            //         {
+            //             id: "105807320", // descending order
+            //             side: "sell",
+            //             px: "84383.93",
+            //             qty: "1",
+            //             amt: "84.38393",
+            //             cT: "1740777074704",
+            //         },
             //
             $tradesList = $this->safe_list($response, 'data', array());
             return $this->parse_trades($tradesList, $market, $since, $limit);
         }
         $trades = Async\await($this->publicGetMarketsSymbolTrades($this->extend($request, $params)));
         //
-        //     array(
+        //     [
         //         {
         //             "id" : "60014521",
         //             "price" : "23162.94",
@@ -1583,7 +1583,7 @@ class poloniex extends Exchange {
         //             "ts" : 1659684602042,
         //             "createTime" : 1659684602036
         //         }
-        //     )
+        //     ]
         //
         return $this->parse_trades($trades, $market, $since, $limit);
     }
@@ -1621,8 +1621,8 @@ class poloniex extends Exchange {
         list($marketType, $params) = $this->handle_market_type_and_params('fetchMyTrades', $market, $params);
         $isContract = $this->in_array($marketType, array( 'swap', 'future' ));
         $request = array(
-            // 'from' => 12345678, // A 'trade Id'. The query begins at ‘from'.
-            // 'direction' => 'PRE', // PRE, NEXT The direction before or after ‘from'.
+            // 'from': 12345678, // A 'trade Id'. The query begins at ‘from'.
+            // 'direction': 'PRE', // PRE, NEXT The direction before or after ‘from'.
         );
         $startKey = $isContract ? 'sTime' : 'startTime';
         $endKey = $isContract ? 'eTime' : 'endTime';
@@ -1640,59 +1640,59 @@ class poloniex extends Exchange {
             $raw = Async\await($this->swapPrivateGetV3TradeOrderTrades($this->extend($request, $params)));
             //
             //    {
-            //        "code" => "200",
-            //        "msg" => "",
-            //        "data" => [
-            //            array(
-            //                "symbol" => "BTC_USDT_PERP",
-            //                "trdId" => "105813553",
-            //                "side" => "SELL",
-            //                "type" => "TRADE",
-            //                "mgnMode" => "CROSS",
-            //                "ordType" => "MARKET",
-            //                "clOrdId" => "polo418912106147315112",
-            //                "role" => "TAKER",
-            //                "px" => "84704.9",
-            //                "qty" => "1",
-            //                "cTime" => "1740842829430",
-            //                "uTime" => "1740842829450",
-            //                "feeCcy" => "USDT",
-            //                "feeAmt" => "0.04235245",
-            //                "deductCcy" => "",
-            //                "deductAmt" => "0",
-            //                "feeRate" => "0.0005",
-            //                "id" => "418912106342654592",
-            //                "posSide" => "BOTH",
-            //                "ordId" => "418912106147315112",
-            //                "qCcy" => "USDT",
-            //                "value" => "84.7049",
-            //                "actType" => "TRADING"
-            //            ),
+            //        "code": "200",
+            //        "msg": "",
+            //        "data": [
+            //            {
+            //                "symbol": "BTC_USDT_PERP",
+            //                "trdId": "105813553",
+            //                "side": "SELL",
+            //                "type": "TRADE",
+            //                "mgnMode": "CROSS",
+            //                "ordType": "MARKET",
+            //                "clOrdId": "polo418912106147315112",
+            //                "role": "TAKER",
+            //                "px": "84704.9",
+            //                "qty": "1",
+            //                "cTime": "1740842829430",
+            //                "uTime": "1740842829450",
+            //                "feeCcy": "USDT",
+            //                "feeAmt": "0.04235245",
+            //                "deductCcy": "",
+            //                "deductAmt": "0",
+            //                "feeRate": "0.0005",
+            //                "id": "418912106342654592",
+            //                "posSide": "BOTH",
+            //                "ordId": "418912106147315112",
+            //                "qCcy": "USDT",
+            //                "value": "84.7049",
+            //                "actType": "TRADING"
+            //            },
             //
             $data = $this->safe_list($raw, 'data', array());
             return $this->parse_trades($data, $market, $since, $limit);
         }
         $response = Async\await($this->privateGetTrades($this->extend($request, $params)));
         //
-        //     array(
+        //     [
         //         {
-        //             "id" => "32164924331503616",
-        //             "symbol" => "LINK_USDT",
-        //             "accountType" => "SPOT",
-        //             "orderId" => "32164923987566592",
-        //             "side" => "SELL",
-        //             "type" => "MARKET",
-        //             "matchRole" => "TAKER",
-        //             "createTime" => 1648635115525,
-        //             "price" => "11",
-        //             "quantity" => "0.5",
-        //             "amount" => "5.5",
-        //             "feeCurrency" => "USDT",
-        //             "feeAmount" => "0.007975",
-        //             "pageId" => "32164924331503616",
-        //             "clientOrderId" => "myOwnId-321"
+        //             "id": "32164924331503616",
+        //             "symbol": "LINK_USDT",
+        //             "accountType": "SPOT",
+        //             "orderId": "32164923987566592",
+        //             "side": "SELL",
+        //             "type": "MARKET",
+        //             "matchRole": "TAKER",
+        //             "createTime": 1648635115525,
+        //             "price": "11",
+        //             "quantity": "0.5",
+        //             "amount": "5.5",
+        //             "feeCurrency": "USDT",
+        //             "feeAmount": "0.007975",
+        //             "pageId": "32164924331503616",
+        //             "clientOrderId": "myOwnId-321"
         //         }
-        //     )
+        //     ]
         //
         $result = $this->parse_trades($response, $market, $since, $limit);
         return $result;
@@ -1739,68 +1739,68 @@ class poloniex extends Exchange {
         //  spot:
         //
         //     {
-        //         "id" => "24993088082542592",
-        //         "clientOrderId" => "",
-        //         "symbol" => "ELON_USDC",
-        //         "state" => "NEW",
-        //         "accountType" => "SPOT",
-        //         "side" => "SELL",
-        //         "type" => "MARKET",
-        //         "timeInForce" => "GTC",
-        //         "quantity" => "1.00",
-        //         "price" => "0.00",
-        //         "avgPrice" => "0.00",
-        //         "amount" => "0.00",
-        //         "filledQuantity" => "0.00",
-        //         "filledAmount" => "0.00",
-        //         "createTime" => 1646925216548,
-        //         "updateTime" => 1646925216548
+        //         "id": "24993088082542592",
+        //         "clientOrderId": "",
+        //         "symbol": "ELON_USDC",
+        //         "state": "NEW",
+        //         "accountType": "SPOT",
+        //         "side": "SELL",
+        //         "type": "MARKET",
+        //         "timeInForce": "GTC",
+        //         "quantity": "1.00",
+        //         "price": "0.00",
+        //         "avgPrice": "0.00",
+        //         "amount": "0.00",
+        //         "filledQuantity": "0.00",
+        //         "filledAmount": "0.00",
+        //         "createTime": 1646925216548,
+        //         "updateTime": 1646925216548
         //     }
         //
         //  contract:
         //
-        //     array(
-        //         "symbol" => "BTC_USDT_PERP",
-        //         "side" => "BUY",
-        //         "type" => "LIMIT",
-        //         "ordId" => "418890767248232148",
-        //         "clOrdId" => "polo418890767248232148",
-        //         "mgnMode" => "CROSS",
-        //         "px" => "81130.13",
-        //         "reduceOnly" => false,
-        //         "lever" => "20",
-        //         "state" => "NEW",
-        //         "source" => "WEB",
-        //         "timeInForce" => "GTC",
-        //         "tpTrgPx" => "",
-        //         "tpPx" => "",
-        //         "tpTrgPxType" => "",
-        //         "slTrgPx" => "",
-        //         "slPx" => "",
-        //         "slTrgPxType" => "",
-        //         "avgPx" => "0",
-        //         "execQty" => "0",
-        //         "execAmt" => "0",
-        //         "feeCcy" => "",
-        //         "feeAmt" => "0",
-        //         "deductCcy" => "0",
-        //         "deductAmt" => "0",
-        //         "stpMode" => "NONE", // todo => selfTradePrevention
-        //         "cTime" => "1740837741523",
-        //         "uTime" => "1740840846882",
-        //         "sz" => "1",
-        //         "posSide" => "BOTH",
-        //         "qCcy" => "USDT"
-        //         "cancelReason" => "", // this field can only be in closed orders
-        //     ),
+        //     {
+        //         "symbol": "BTC_USDT_PERP",
+        //         "side": "BUY",
+        //         "type": "LIMIT",
+        //         "ordId": "418890767248232148",
+        //         "clOrdId": "polo418890767248232148",
+        //         "mgnMode": "CROSS",
+        //         "px": "81130.13",
+        //         "reduceOnly": false,
+        //         "lever": "20",
+        //         "state": "NEW",
+        //         "source": "WEB",
+        //         "timeInForce": "GTC",
+        //         "tpTrgPx": "",
+        //         "tpPx": "",
+        //         "tpTrgPxType": "",
+        //         "slTrgPx": "",
+        //         "slPx": "",
+        //         "slTrgPxType": "",
+        //         "avgPx": "0",
+        //         "execQty": "0",
+        //         "execAmt": "0",
+        //         "feeCcy": "",
+        //         "feeAmt": "0",
+        //         "deductCcy": "0",
+        //         "deductAmt": "0",
+        //         "stpMode": "NONE", // todo: selfTradePrevention
+        //         "cTime": "1740837741523",
+        //         "uTime": "1740840846882",
+        //         "sz": "1",
+        //         "posSide": "BOTH",
+        //         "qCcy": "USDT"
+        //         "cancelReason": "", // this field can only be in closed orders
+        //     },
         //
         // createOrder, editOrder
         //
         //  spot:
         //
         //     {
-        //         "id" => "29772698821328896",
-        //         "clientOrderId" => "1234Abc"
+        //         "id": "29772698821328896",
+        //         "clientOrderId": "1234Abc"
         //     }
         //
         //  contract:
@@ -1948,42 +1948,42 @@ class poloniex extends Exchange {
             $raw = Async\await($this->swapPrivateGetV3TradeOrderOpens($this->extend($request, $params)));
             //
             //    {
-            //        "code" => "200",
-            //        "msg" => "",
-            //        "data" => [
-            //            array(
-            //                "symbol" => "BTC_USDT_PERP",
-            //                "side" => "BUY",
-            //                "type" => "LIMIT",
-            //                "ordId" => "418890767248232148",
-            //                "clOrdId" => "polo418890767248232148",
-            //                "mgnMode" => "CROSS",
-            //                "px" => "81130.13",
-            //                "reduceOnly" => false,
-            //                "lever" => "20",
-            //                "state" => "NEW",
-            //                "source" => "WEB",
-            //                "timeInForce" => "GTC",
-            //                "tpTrgPx" => "",
-            //                "tpPx" => "",
-            //                "tpTrgPxType" => "",
-            //                "slTrgPx" => "",
-            //                "slPx" => "",
-            //                "slTrgPxType" => "",
-            //                "avgPx" => "0",
-            //                "execQty" => "0",
-            //                "execAmt" => "0",
-            //                "feeCcy" => "",
-            //                "feeAmt" => "0",
-            //                "deductCcy" => "0",
-            //                "deductAmt" => "0",
-            //                "stpMode" => "NONE",
-            //                "cTime" => "1740837741523",
-            //                "uTime" => "1740840846882",
-            //                "sz" => "1",
-            //                "posSide" => "BOTH",
-            //                "qCcy" => "USDT"
-            //            ),
+            //        "code": "200",
+            //        "msg": "",
+            //        "data": [
+            //            {
+            //                "symbol": "BTC_USDT_PERP",
+            //                "side": "BUY",
+            //                "type": "LIMIT",
+            //                "ordId": "418890767248232148",
+            //                "clOrdId": "polo418890767248232148",
+            //                "mgnMode": "CROSS",
+            //                "px": "81130.13",
+            //                "reduceOnly": false,
+            //                "lever": "20",
+            //                "state": "NEW",
+            //                "source": "WEB",
+            //                "timeInForce": "GTC",
+            //                "tpTrgPx": "",
+            //                "tpPx": "",
+            //                "tpTrgPxType": "",
+            //                "slTrgPx": "",
+            //                "slPx": "",
+            //                "slTrgPxType": "",
+            //                "avgPx": "0",
+            //                "execQty": "0",
+            //                "execAmt": "0",
+            //                "feeCcy": "",
+            //                "feeAmt": "0",
+            //                "deductCcy": "0",
+            //                "deductAmt": "0",
+            //                "stpMode": "NONE",
+            //                "cTime": "1740837741523",
+            //                "uTime": "1740840846882",
+            //                "sz": "1",
+            //                "posSide": "BOTH",
+            //                "qCcy": "USDT"
+            //            },
             //
             $response = $this->safe_list($raw, 'data', array());
         } elseif ($isTrigger === true) {
@@ -1992,7 +1992,7 @@ class poloniex extends Exchange {
             $response = Async\await($this->privateGetOrders($this->extend($request, $params)));
         }
         //
-        //     array(
+        //     [
         //         {
         //             "id" : "7xxxxxxxxxxxxxxx6",
         //             "clientOrderId" : "",
@@ -2008,11 +2008,11 @@ class poloniex extends Exchange {
         //             "amount" : "0",
         //             "filledQuantity" : "0",
         //             "filledAmount" : "0",
-        //             "stopPrice" => "3750.00",              // for trigger orders
+        //             "stopPrice": "3750.00",              // for trigger orders
         //             "createTime" : 16xxxxxxxxx26,
         //             "updateTime" : 16xxxxxxxxx36
         //         }
-        //     )
+        //     ]
         //
         $extension = array( 'status' => 'open' );
         return $this->parse_orders($response, $market, $since, $limit, $extension);
@@ -2057,43 +2057,43 @@ class poloniex extends Exchange {
         $response = Async\await($this->swapPrivateGetV3TradeOrderHistory($this->extend($request, $params)));
         //
         //    {
-        //        "code" => "200",
-        //        "msg" => "",
-        //        "data" => [
-        //            array(
-        //                "symbol" => "BTC_USDT_PERP",
-        //                "side" => "SELL",
-        //                "type" => "MARKET",
-        //                "ordId" => "418912106147315712",
-        //                "clOrdId" => "polo418912106147315712",
-        //                "mgnMode" => "CROSS",
-        //                "px" => "0",
-        //                "sz" => "2",
-        //                "lever" => "20",
-        //                "state" => "FILLED",
-        //                "cancelReason" => "",
-        //                "source" => "WEB",
-        //                "reduceOnly" => "true",
-        //                "timeInForce" => "GTC",
-        //                "tpTrgPx" => "",
-        //                "tpPx" => "",
-        //                "tpTrgPxType" => "",
-        //                "slTrgPx" => "",
-        //                "slPx" => "",
-        //                "slTrgPxType" => "",
-        //                "avgPx" => "84705.56",
-        //                "execQty" => "2",
-        //                "execAmt" => "169.41112",
-        //                "feeCcy" => "USDT",
-        //                "feeAmt" => "0.08470556",
-        //                "deductCcy" => "0",
-        //                "deductAmt" => "0",
-        //                "stpMode" => "NONE",
-        //                "cTime" => "1740842829116",
-        //                "uTime" => "1740842829130",
-        //                "posSide" => "BOTH",
-        //                "qCcy" => "USDT"
-        //            ),
+        //        "code": "200",
+        //        "msg": "",
+        //        "data": [
+        //            {
+        //                "symbol": "BTC_USDT_PERP",
+        //                "side": "SELL",
+        //                "type": "MARKET",
+        //                "ordId": "418912106147315712",
+        //                "clOrdId": "polo418912106147315712",
+        //                "mgnMode": "CROSS",
+        //                "px": "0",
+        //                "sz": "2",
+        //                "lever": "20",
+        //                "state": "FILLED",
+        //                "cancelReason": "",
+        //                "source": "WEB",
+        //                "reduceOnly": "true",
+        //                "timeInForce": "GTC",
+        //                "tpTrgPx": "",
+        //                "tpPx": "",
+        //                "tpTrgPxType": "",
+        //                "slTrgPx": "",
+        //                "slPx": "",
+        //                "slTrgPxType": "",
+        //                "avgPx": "84705.56",
+        //                "execQty": "2",
+        //                "execAmt": "169.41112",
+        //                "feeCcy": "USDT",
+        //                "feeAmt": "0.08470556",
+        //                "deductCcy": "0",
+        //                "deductAmt": "0",
+        //                "stpMode": "NONE",
+        //                "cTime": "1740842829116",
+        //                "uTime": "1740842829130",
+        //                "posSide": "BOTH",
+        //                "qCcy": "USDT"
+        //            },
         //
         $data = $this->safe_list($response, 'data', array());
         return $this->parse_orders($data, $market, $since, $limit);
@@ -2126,9 +2126,9 @@ class poloniex extends Exchange {
         $request = array(
             'symbol' => $market['id'],
             'side' => strtoupper($side), // uppercase, both for spot & swap
-            // 'timeInForce' => timeInForce, // matches unified values
-            // 'accountType' => 'SPOT',
-            // 'amount' => $amount,
+            // 'timeInForce': timeInForce, // matches unified values
+            // 'accountType': 'SPOT',
+            // 'amount': amount,
         );
         $triggerPrice = $this->safe_number_2($params, 'stopPrice', 'triggerPrice');
         list($request, $params) = $this->order_request($symbol, $type, $side, $amount, $request, $price, $params);
@@ -2136,7 +2136,7 @@ class poloniex extends Exchange {
         if (($market['swap'] === true) || ($market['future'] === true)) {
             $responseInitial = Async\await($this->swapPrivatePostV3TradeOrder($this->extend($request, $params)));
             //
-            // array("code":200,"msg":"Success","data":array("ordId":"418876147745775616","clOrdId":"polo418876147745775616"))
+            // {"code":200,"msg":"Success","data":{"ordId":"418876147745775616","clOrdId":"polo418876147745775616"}}
             //
             $response = $this->safe_dict($responseInitial, 'data', array());
         } elseif ($triggerPrice !== null) {
@@ -2228,7 +2228,7 @@ class poloniex extends Exchange {
             $request[$clientOrderIdKey] = $clientOrderId;
             $params = $this->omit($params, array( 'clientOrderId', 'clOrdId' ));
         }
-        // remember the timestamp before issuing the $request
+        // remember the timestamp before issuing the request
         return array( $request, $params );
     }
 
@@ -2261,7 +2261,7 @@ class poloniex extends Exchange {
         }
         $request = array(
             'id' => $id,
-            // 'timeInForce' => timeInForce,
+            // 'timeInForce': timeInForce,
         );
         $triggerPrice = $this->safe_number_2($params, 'stopPrice', 'triggerPrice');
         list($request, $params) = $this->order_request($symbol, $type, $side, $amount, $request, $price, $params);
@@ -2293,13 +2293,13 @@ class poloniex extends Exchange {
         // @method
         // @name poloniex#cancelOrder
         // @description cancels an open order
-        // @see https://api-docs.poloniex.com/spot/api/private/order#cancel-order-by-$id
-        // @see https://api-docs.poloniex.com/spot/api/private/smart-order#cancel-order-by-$id  // trigger orders
-        // @param {string} $id order $id
-        // @param {string} $symbol unified $symbol of the $market the order was made in
-        // @param {object} [$params] extra parameters specific to the exchange API endpoint
-        // @param {boolean} [$params->trigger] true if canceling a trigger order
-        // @returns {object} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
+        // @see https://api-docs.poloniex.com/spot/api/private/order#cancel-order-by-id
+        // @see https://api-docs.poloniex.com/spot/api/private/smart-order#cancel-order-by-id  // trigger orders
+        // @param {string} id order id
+        // @param {string} symbol unified symbol of the market the order was made in
+        // @param {object} [params] extra parameters specific to the exchange API endpoint
+        // @param {boolean} [params.trigger] true if canceling a trigger order
+        // @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
         //
         Async\await($this->load_markets());
         if ($symbol === null) {
@@ -2313,11 +2313,11 @@ class poloniex extends Exchange {
             $raw = Async\await($this->swapPrivateDeleteV3TradeOrder($this->extend($request, $params)));
             //
             //    {
-            //        "code" => "200",
-            //        "msg" => "Success",
-            //        "data" => {
-            //            "ordId" => "418886099910612040",
-            //            "clOrdId" => "polo418886099910612040"
+            //        "code": "200",
+            //        "msg": "Success",
+            //        "data": {
+            //            "ordId": "418886099910612040",
+            //            "clOrdId": "polo418886099910612040"
             //        }
             //    }
             //
@@ -2367,7 +2367,7 @@ class poloniex extends Exchange {
          */
         Async\await($this->load_markets());
         $request = array(
-            // 'accountTypes' => 'SPOT',
+            // 'accountTypes': 'SPOT',
             'symbols' => array(),
         );
         $market = null;
@@ -2384,16 +2384,16 @@ class poloniex extends Exchange {
             $raw = Async\await($this->swapPrivateDeleteV3TradeAllOrders($this->extend($request, $params)));
             //
             //    {
-            //        "code" => "200",
-            //        "msg" => "Success",
-            //        "data" => array(
+            //        "code": "200",
+            //        "msg": "Success",
+            //        "data": [
             //            {
-            //                "code" => "200",
-            //                "msg" => "Success",
-            //                "ordId" => "418885787866388511",
-            //                "clOrdId" => "polo418885787866388511"
+            //                "code": "200",
+            //                "msg": "Success",
+            //                "ordId": "418885787866388511",
+            //                "clOrdId": "polo418885787866388511"
             //            }
-            //        )
+            //        ]
             //    }
             //
             $response = $this->safe_list($raw, 'data', array());
@@ -2407,21 +2407,21 @@ class poloniex extends Exchange {
             $response = Async\await($this->privateDeleteOrders($this->extend($request, $params)));
         }
         //
-        //     array(
-        //         array(
+        //     [
+        //         {
         //             "orderId" : "78xxxxxxxx80",
         //             "clientOrderId" : "",
         //             "state" : "NEW",
         //             "code" : 200,
         //             "message" : ""
-        //         ), {
+        //         }, {
         //             "orderId" : "78xxxxxxxxx80",
         //             "clientOrderId" : "",
         //             "state" : "NEW",
         //             "code" : 200,
         //             "message" : ""
         //         }
-        //     )
+        //     ]
         //
         return $this->parse_orders($response, $market);
     }
@@ -2469,23 +2469,23 @@ class poloniex extends Exchange {
         }
         //
         //     {
-        //         "id" => "21934611974062080",
-        //         "clientOrderId" => "123",
-        //         "symbol" => "TRX_USDC",
-        //         "state" => "NEW",
-        //         "accountType" => "SPOT",
-        //         "side" => "SELL",
-        //         "type" => "LIMIT",
-        //         "timeInForce" => "GTC",
-        //         "quantity" => "1.00",
-        //         "price" => "10.00",
-        //         "avgPrice" => "0.00",
-        //         "amount" => "0.00",
-        //         "filledQuantity" => "0.00",
-        //         "filledAmount" => "0.00",
-        //         "stopPrice" => "3750.00",              // for trigger orders
-        //         "createTime" => 1646196019020,
-        //         "updateTime" => 1646196019020
+        //         "id": "21934611974062080",
+        //         "clientOrderId": "123",
+        //         "symbol": "TRX_USDC",
+        //         "state": "NEW",
+        //         "accountType": "SPOT",
+        //         "side": "SELL",
+        //         "type": "LIMIT",
+        //         "timeInForce": "GTC",
+        //         "quantity": "1.00",
+        //         "price": "10.00",
+        //         "avgPrice": "0.00",
+        //         "amount": "0.00",
+        //         "filledQuantity": "0.00",
+        //         "filledAmount": "0.00",
+        //         "stopPrice": "3750.00",              // for trigger orders
+        //         "createTime": 1646196019020,
+        //         "updateTime": 1646196019020
         //     }
         //
         $order = $this->parse_order($response);
@@ -2527,25 +2527,25 @@ class poloniex extends Exchange {
         );
         $trades = Async\await($this->privateGetOrdersIdTrades($this->extend($request, $params)));
         //
-        //     array(
+        //     [
         //         {
-        //             "id" => "30341456333942784",
-        //             "symbol" => "LINK_USDT",
-        //             "accountType" => "SPOT",
-        //             "orderId" => "30249408733945856",
-        //             "side" => "BUY",
-        //             "type" => "LIMIT",
-        //             "matchRole" => "MAKER",
-        //             "createTime" => 1648200366864,
-        //             "price" => "3.1",
-        //             "quantity" => "1",
-        //             "amount" => "3.1",
-        //             "feeCurrency" => "LINK",
-        //             "feeAmount" => "0.00145",
-        //             "pageId" => "30341456333942784",
-        //             "clientOrderId" => ""
+        //             "id": "30341456333942784",
+        //             "symbol": "LINK_USDT",
+        //             "accountType": "SPOT",
+        //             "orderId": "30249408733945856",
+        //             "side": "BUY",
+        //             "type": "LIMIT",
+        //             "matchRole": "MAKER",
+        //             "createTime": 1648200366864,
+        //             "price": "3.1",
+        //             "quantity": "1",
+        //             "amount": "3.1",
+        //             "feeCurrency": "LINK",
+        //             "feeAmount": "0.00145",
+        //             "pageId": "30341456333942784",
+        //             "clientOrderId": ""
         //         }
-        //     )
+        //     ]
         //
         return $this->parse_trades($trades);
     }
@@ -2615,38 +2615,38 @@ class poloniex extends Exchange {
             $responseRaw = Async\await($this->swapPrivateGetV3AccountBalance($params));
             //
             //    {
-            //        "code" => "200",
-            //        "msg" => "",
-            //        "data" => {
-            //            "state" => "NORMAL",
-            //            "eq" => "9.98571622",
-            //            "isoEq" => "0",
-            //            "im" => "0",
-            //            "mm" => "0",
-            //            "mmr" => "0",
-            //            "upl" => "0",
-            //            "availMgn" => "9.98571622",
-            //            "cTime" => "1738093601775",
-            //            "uTime" => "1740829116236",
-            //            "details" => array(
+            //        "code": "200",
+            //        "msg": "",
+            //        "data": {
+            //            "state": "NORMAL",
+            //            "eq": "9.98571622",
+            //            "isoEq": "0",
+            //            "im": "0",
+            //            "mm": "0",
+            //            "mmr": "0",
+            //            "upl": "0",
+            //            "availMgn": "9.98571622",
+            //            "cTime": "1738093601775",
+            //            "uTime": "1740829116236",
+            //            "details": [
             //                {
-            //                    "ccy" => "USDT",
-            //                    "eq" => "9.98571622",
-            //                    "isoEq" => "0",
-            //                    "avail" => "9.98571622",
-            //                    "trdHold" => "0",
-            //                    "upl" => "0",
-            //                    "isoAvail" => "0",
-            //                    "isoHold" => "0",
-            //                    "isoUpl" => "0",
-            //                    "im" => "0",
-            //                    "mm" => "0",
-            //                    "mmr" => "0",
-            //                    "imr" => "0",
-            //                    "cTime" => "1740829116236",
-            //                    "uTime" => "1740829116236"
+            //                    "ccy": "USDT",
+            //                    "eq": "9.98571622",
+            //                    "isoEq": "0",
+            //                    "avail": "9.98571622",
+            //                    "trdHold": "0",
+            //                    "upl": "0",
+            //                    "isoAvail": "0",
+            //                    "isoHold": "0",
+            //                    "isoUpl": "0",
+            //                    "im": "0",
+            //                    "mm": "0",
+            //                    "mmr": "0",
+            //                    "imr": "0",
+            //                    "cTime": "1740829116236",
+            //                    "uTime": "1740829116236"
             //                }
-            //            )
+            //            ]
             //        }
             //    }
             //
@@ -2658,20 +2658,20 @@ class poloniex extends Exchange {
         );
         $response = Async\await($this->privateGetAccountsBalances($this->extend($request, $params)));
         //
-        //     array(
+        //     [
         //         {
         //             "accountId" : "7xxxxxxxxxx8",
         //             "accountType" : "SPOT",
-        //             "balances" : array(
+        //             "balances" : [
         //                 {
         //                     "currencyId" : "214",
         //                     "currency" : "USDT",
         //                     "available" : "2.00",
         //                     "hold" : "0.00"
         //                 }
-        //             )
+        //             ]
         //         }
-        //     )
+        //     ]
         //
         return $this->parse_balance($response);
     }
@@ -2737,7 +2737,7 @@ class poloniex extends Exchange {
             'symbol' => $market['id'],
         );
         if ($limit !== null) {
-            $request['limit'] = $limit; // The default value of $limit is 10. Valid $limit values are => 5, 10, 20, 50, 100, 150.
+            $request['limit'] = $limit; // The default value of limit is 10. Valid limit values are: 5, 10, 20, 50, 100, 150.
             if ($market['contract'] === true) {
                 $request['limit'] = $this->find_nearest_ceiling(array( 5, 10, 20, 100, 150 ), $limit);
             }
@@ -2746,14 +2746,14 @@ class poloniex extends Exchange {
             $responseRaw = Async\await($this->swapPublicGetV3MarketOrderBook($this->extend($request, $params)));
             //
             //    {
-            //       "code" => 200,
-            //       "data" => array(
-            //         "asks" => [ ["58700", "9934"], ..],
-            //         "bids" => [ ["58600", "9952"], ..],
-            //         "s" => "100",
-            //         "ts" => 1719974138333
-            //       ),
-            //       "msg" => "Success"
+            //       "code": 200,
+            //       "data": {
+            //         "asks": [ ["58700", "9934"], ..],
+            //         "bids": [ ["58600", "9952"], ..],
+            //         "s": "100",
+            //         "ts": 1719974138333
+            //       },
+            //       "msg": "Success"
             //    }
             //
             $data = $this->safe_dict($responseRaw, 'data', array());
@@ -2765,8 +2765,8 @@ class poloniex extends Exchange {
         //     {
         //         "time" : 1659695219507,
         //         "scale" : "-1",
-        //         "asks" : array( "23139.82", "0.317981", "23140", "0.191091", "23170.06", "0.01", "23200", "0.107758", "23230.55", "0.01", "23247.2", "0.154", "23254", "0.005121", "23263", "0.038", "23285.4", "0.308", "23300", "0.108896" ),
-        //         "bids" : array( "23139.74", "0.432092", "23139.73", "0.198592", "23123.21", "0.000886", "23123.2", "0.308", "23121.4", "0.154", "23105", "0.000789", "23100", "0.078175", "23069.1", "0.026276", "23068.83", "0.001329", "23051", "0.000048" ),
+        //         "asks" : [ "23139.82", "0.317981", "23140", "0.191091", "23170.06", "0.01", "23200", "0.107758", "23230.55", "0.01", "23247.2", "0.154", "23254", "0.005121", "23263", "0.038", "23285.4", "0.308", "23300", "0.108896" ],
+        //         "bids" : [ "23139.74", "0.432092", "23139.73", "0.198592", "23123.21", "0.000886", "23123.2", "0.308", "23121.4", "0.154", "23105", "0.000789", "23100", "0.078175", "23069.1", "0.026276", "23068.83", "0.001329", "23051", "0.000048" ],
         //         "ts" : 1659695219512
         //     }
         //
@@ -2864,7 +2864,7 @@ class poloniex extends Exchange {
         $networkCode = null;
         list($networkCode, $params) = $this->handle_network_code_and_params($params);
         if ($networkCode === null) {
-            // we need to know the network to find out the $currency-junction
+            // we need to know the network to find out the currency-junction
             throw new ArgumentsRequired($this->id . ' fetchDepositAddress requires a network parameter for ' . $code . '.');
         }
         $exchangeNetworkId = null;
@@ -2988,7 +2988,7 @@ class poloniex extends Exchange {
         $networkCode = null;
         list($networkCode, $params) = $this->handle_network_code_and_params($params);
         if ($networkCode === null) {
-            // we need to know the network to find out the $currency-junction
+            // we need to know the network to find out the currency-junction
             throw new ArgumentsRequired($this->id . ' withdraw requires a network parameter for ' . $code . '.');
         }
         $request['network'] = $this->network_code_to_id($networkCode, $code);
@@ -2998,9 +2998,9 @@ class poloniex extends Exchange {
         $response = Async\await($this->privatePostV2WalletsWithdraw($this->extend($request, $params)));
         //
         //     {
-        //         "response" => "Withdrew 1.00000000 USDT.",
-        //         "email2FA" => false,
-        //         "withdrawalNumber" => 13449869
+        //         "response": "Withdrew 1.00000000 USDT.",
+        //         "email2FA": false,
+        //         "withdrawalNumber": 13449869
         //     }
         //
         return $this->parse_transaction($response, $currency);
@@ -3012,7 +3012,7 @@ class poloniex extends Exchange {
 
     private function do_fetch_transactions_helper(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()) {
         Async\await($this->load_markets());
-        $year = 31104000; // 60 * 60 * 24 * 30 * 12 = one $year of history, why not
+        $year = 31104000; // 60 * 60 * 24 * 30 * 12 = one year of history, why not
         $now = $this->seconds();
         $start = ($since !== null) ? $this->parse_to_int($since / 1000) : $now - 10 * $year;
         $request = array(
@@ -3022,73 +3022,73 @@ class poloniex extends Exchange {
         $response = Async\await($this->privateGetWalletsActivity($this->extend($request, $params)));
         //
         //     {
-        //         "adjustments":array(),
-        //         "deposits":array(
-        //             array(
-        //                 "currency" => "BTC",
-        //                 "address" => "1MEtiqJWru53FhhHrfJPPvd2tC3TPDVcmW",
-        //                 "amount" => "0.01063000",
-        //                 "confirmations" =>  1,
-        //                 "txid" => "952b0e1888d6d491591facc0d37b5ebec540ac1efb241fdbc22bcc20d1822fb6",
-        //                 "timestamp" =>  1507916888,
-        //                 "status" => "COMPLETE"
-        //             ),
+        //         "adjustments":[],
+        //         "deposits":[
         //             {
-        //                 "currency" => "ETH",
-        //                 "address" => "0x20108ba20b65c04d82909e91df06618107460197",
-        //                 "amount" => "4.00000000",
-        //                 "confirmations" => 38,
-        //                 "txid" => "0x4be260073491fe63935e9e0da42bd71138fdeb803732f41501015a2d46eb479d",
-        //                 "timestamp" => 1525060430,
-        //                 "status" => "COMPLETE"
+        //                 "currency": "BTC",
+        //                 "address": "1MEtiqJWru53FhhHrfJPPvd2tC3TPDVcmW",
+        //                 "amount": "0.01063000",
+        //                 "confirmations":  1,
+        //                 "txid": "952b0e1888d6d491591facc0d37b5ebec540ac1efb241fdbc22bcc20d1822fb6",
+        //                 "timestamp":  1507916888,
+        //                 "status": "COMPLETE"
+        //             },
+        //             {
+        //                 "currency": "ETH",
+        //                 "address": "0x20108ba20b65c04d82909e91df06618107460197",
+        //                 "amount": "4.00000000",
+        //                 "confirmations": 38,
+        //                 "txid": "0x4be260073491fe63935e9e0da42bd71138fdeb803732f41501015a2d46eb479d",
+        //                 "timestamp": 1525060430,
+        //                 "status": "COMPLETE"
         //             }
-        //         ),
-        //         "withdrawals":array(
-        //             array(
+        //         ],
+        //         "withdrawals":[
+        //             {
         //                 "withdrawalNumber":13449869,
         //                 "currency":"USDTTRON", // not documented in API docs, see commonCurrencies in describe()
         //                 "address":"TXGaqPW23JdRWhsVwS2mRsGsegbdnAd3Rw",
         //                 "amount":"1.00000000",
         //                 "fee":"0.00000000",
         //                 "timestamp":1591573420,
-        //                 "status":"COMPLETE => dadf427224b3d44b38a2c13caa4395e4666152556ca0b2f67dbd86a95655150f",
+        //                 "status":"COMPLETE: dadf427224b3d44b38a2c13caa4395e4666152556ca0b2f67dbd86a95655150f",
         //                 "ipAddress":"x.x.x.x",
         //                 "canCancel":0,
         //                 "canResendEmail":0,
         //                 "paymentID":null,
         //                 "scope":"crypto"
-        //             ),
-        //             array(
-        //                 "withdrawalNumber" => 8224394,
-        //                 "currency" => "EMC2",
-        //                 "address" => "EYEKyCrqTNmVCpdDV8w49XvSKRP9N3EUyF",
-        //                 "amount" => "63.10796020",
-        //                 "fee" => "0.01000000",
-        //                 "timestamp" => 1510819838,
-        //                 "status" => "COMPLETE => d37354f9d02cb24d98c8c4fc17aa42f475530b5727effdf668ee5a43ce667fd6",
-        //                 "ipAddress" => "x.x.x.x"
-        //             ),
-        //             array(
-        //                 "withdrawalNumber" => 9290444,
-        //                 "currency" => "ETH",
-        //                 "address" => "0x191015ff2e75261d50433fbd05bd57e942336149",
-        //                 "amount" => "0.15500000",
-        //                 "fee" => "0.00500000",
-        //                 "timestamp" => 1514099289,
-        //                 "status" => "COMPLETE => 0x12d444493b4bca668992021fd9e54b5292b8e71d9927af1f076f554e4bea5b2d",
-        //                 "ipAddress" => "x.x.x.x"
-        //             ),
+        //             },
         //             {
-        //                 "withdrawalNumber" => 11518260,
-        //                 "currency" => "BTC",
-        //                 "address" => "8JoDXAmE1GY2LRK8jD1gmAmgRPq54kXJ4t",
-        //                 "amount" => "0.20000000",
-        //                 "fee" => "0.00050000",
-        //                 "timestamp" => 1527918155,
-        //                 "status" => "COMPLETE => 1864f4ebb277d90b0b1ff53259b36b97fa1990edc7ad2be47c5e0ab41916b5ff",
-        //                 "ipAddress" => "x.x.x.x"
+        //                 "withdrawalNumber": 8224394,
+        //                 "currency": "EMC2",
+        //                 "address": "EYEKyCrqTNmVCpdDV8w49XvSKRP9N3EUyF",
+        //                 "amount": "63.10796020",
+        //                 "fee": "0.01000000",
+        //                 "timestamp": 1510819838,
+        //                 "status": "COMPLETE: d37354f9d02cb24d98c8c4fc17aa42f475530b5727effdf668ee5a43ce667fd6",
+        //                 "ipAddress": "x.x.x.x"
+        //             },
+        //             {
+        //                 "withdrawalNumber": 9290444,
+        //                 "currency": "ETH",
+        //                 "address": "0x191015ff2e75261d50433fbd05bd57e942336149",
+        //                 "amount": "0.15500000",
+        //                 "fee": "0.00500000",
+        //                 "timestamp": 1514099289,
+        //                 "status": "COMPLETE: 0x12d444493b4bca668992021fd9e54b5292b8e71d9927af1f076f554e4bea5b2d",
+        //                 "ipAddress": "x.x.x.x"
+        //             },
+        //             {
+        //                 "withdrawalNumber": 11518260,
+        //                 "currency": "BTC",
+        //                 "address": "8JoDXAmE1GY2LRK8jD1gmAmgRPq54kXJ4t",
+        //                 "amount": "0.20000000",
+        //                 "fee": "0.00050000",
+        //                 "timestamp": 1527918155,
+        //                 "status": "COMPLETE: 1864f4ebb277d90b0b1ff53259b36b97fa1990edc7ad2be47c5e0ab41916b5ff",
+        //                 "ipAddress": "x.x.x.x"
         //             }
-        //         )
+        //         ]
         //     }
         //
         return $response;
@@ -3167,27 +3167,27 @@ class poloniex extends Exchange {
         Async\await($this->load_markets());
         $response = Async\await($this->publicGetCurrencies($this->extend($params, array( 'includeMultiChainCurrencies' => true ))));
         //
-        //     array(
+        //     [
         //         {
-        //             "1CR" => {
-        //                 "id" => 1,
-        //                 "name" => "1CRedit",
-        //                 "description" => "BTC Clone",
-        //                 "type" => "address",
-        //                 "withdrawalFee" => "0.01000000",
-        //                 "minConf" => 10000,
-        //                 "depositAddress" => null,
-        //                 "blockchain" => "1CR",
-        //                 "delisted" => false,
-        //                 "tradingState" => "NORMAL",
-        //                 "walletState" => "DISABLED",
-        //                 "parentChain" => null,
-        //                 "isMultiChain" => false,
-        //                 "isChildChain" => false,
-        //                 "childChains" => array()
+        //             "1CR": {
+        //                 "id": 1,
+        //                 "name": "1CRedit",
+        //                 "description": "BTC Clone",
+        //                 "type": "address",
+        //                 "withdrawalFee": "0.01000000",
+        //                 "minConf": 10000,
+        //                 "depositAddress": null,
+        //                 "blockchain": "1CR",
+        //                 "delisted": false,
+        //                 "tradingState": "NORMAL",
+        //                 "walletState": "DISABLED",
+        //                 "parentChain": null,
+        //                 "isMultiChain": false,
+        //                 "isChildChain": false,
+        //                 "childChains": []
         //             }
         //         }
-        //     )
+        //     ]
         //
         $data = array();
         $entries = array();
@@ -3206,23 +3206,23 @@ class poloniex extends Exchange {
     public function parse_deposit_withdraw_fees(mixed $response, ?array $codes = null, ?string $currencyIdKey = null) {
         //
         //         {
-        //             "1CR" => array(
-        //                 "id" => 1,
-        //                 "name" => "1CRedit",
-        //                 "description" => "BTC Clone",
-        //                 "type" => "address",
-        //                 "withdrawalFee" => "0.01000000",
-        //                 "minConf" => 10000,
-        //                 "depositAddress" => null,
-        //                 "blockchain" => "1CR",
-        //                 "delisted" => false,
-        //                 "tradingState" => "NORMAL",
-        //                 "walletState" => "DISABLED",
-        //                 "parentChain" => null,
-        //                 "isMultiChain" => false,
-        //                 "isChildChain" => false,
-        //                 "childChains" => array()
-        //             ),
+        //             "1CR": {
+        //                 "id": 1,
+        //                 "name": "1CRedit",
+        //                 "description": "BTC Clone",
+        //                 "type": "address",
+        //                 "withdrawalFee": "0.01000000",
+        //                 "minConf": 10000,
+        //                 "depositAddress": null,
+        //                 "blockchain": "1CR",
+        //                 "delisted": false,
+        //                 "tradingState": "NORMAL",
+        //                 "walletState": "DISABLED",
+        //                 "parentChain": null,
+        //                 "isMultiChain": false,
+        //                 "isChildChain": false,
+        //                 "childChains": []
+        //             },
         //         }
         //
         $depositWithdrawFees = array();
@@ -3336,35 +3336,35 @@ class poloniex extends Exchange {
         // deposits
         //
         //     {
-        //         "txid" => "f49d489616911db44b740612d19464521179c76ebe9021af85b6de1e2f8d68cd",
-        //         "amount" => "49798.01987021",
-        //         "status" => "COMPLETE",
-        //         "address" => "DJVJZ58tJC8UeUv9Tqcdtn6uhWobouxFLT",
-        //         "currency" => "DOGE",
-        //         "timestamp" => 1524321838,
-        //         "confirmations" => 3371,
-        //         "depositNumber" => 134587098
+        //         "txid": "f49d489616911db44b740612d19464521179c76ebe9021af85b6de1e2f8d68cd",
+        //         "amount": "49798.01987021",
+        //         "status": "COMPLETE",
+        //         "address": "DJVJZ58tJC8UeUv9Tqcdtn6uhWobouxFLT",
+        //         "currency": "DOGE",
+        //         "timestamp": 1524321838,
+        //         "confirmations": 3371,
+        //         "depositNumber": 134587098
         //     }
         //
         // withdrawals
         //
         //     {
-        //         "withdrawalRequestsId" => 7397527,
-        //         "currency" => "ETC",
-        //         "address" => "0x26419a62055af459d2cd69bb7392f5100b75e304",
-        //         "amount" => "13.19951600",
-        //         "fee" => "0.01000000",
-        //         "timestamp" => 1506010932,
-        //         "status" => "COMPLETED",
-        //         "txid" => "343346392f82ac16e8c2604f2a604b7b2382d0e9d8030f673821f8de4b5f5bk",
-        //         "ipAddress" => "1.2.3.4",
-        //         "paymentID" => null
+        //         "withdrawalRequestsId": 7397527,
+        //         "currency": "ETC",
+        //         "address": "0x26419a62055af459d2cd69bb7392f5100b75e304",
+        //         "amount": "13.19951600",
+        //         "fee": "0.01000000",
+        //         "timestamp": 1506010932,
+        //         "status": "COMPLETED",
+        //         "txid": "343346392f82ac16e8c2604f2a604b7b2382d0e9d8030f673821f8de4b5f5bk",
+        //         "ipAddress": "1.2.3.4",
+        //         "paymentID": null
         //     }
         //
         // withdraw
         //
         //     {
-        //         "withdrawalRequestsId" => 33485231
+        //         "withdrawalRequestsId": 33485231
         //     }
         //
         // if it's being parsed from "withdraw()" method, get the original response
@@ -3486,37 +3486,37 @@ class poloniex extends Exchange {
         //  for one-way mode:
         //
         //    {
-        //        "code" => "200",
-        //        "msg" => "",
-        //        "data" => array(
+        //        "code": "200",
+        //        "msg": "",
+        //        "data": [
         //            {
-        //                "symbol" => "BTC_USDT_PERP",
-        //                "lever" => "10",
-        //                "mgnMode" => "CROSS",
-        //                "posSide" => "BOTH"
+        //                "symbol": "BTC_USDT_PERP",
+        //                "lever": "10",
+        //                "mgnMode": "CROSS",
+        //                "posSide": "BOTH"
         //            }
-        //        )
+        //        ]
         //    }
         //
         //  for hedge:
         //
         //    {
-        //        "code" => "200",
-        //        "msg" => "",
-        //        "data" => array(
-        //            array(
-        //                "symbol" => "BTC_USDT_PERP",
-        //                "lever" => "20",
-        //                "mgnMode" => "CROSS",
-        //                "posSide" => "SHORT"
-        //            ),
+        //        "code": "200",
+        //        "msg": "",
+        //        "data": [
         //            {
-        //                "symbol" => "BTC_USDT_PERP",
-        //                "lever" => "20",
-        //                "mgnMode" => "CROSS",
-        //                "posSide" => "LONG"
+        //                "symbol": "BTC_USDT_PERP",
+        //                "lever": "20",
+        //                "mgnMode": "CROSS",
+        //                "posSide": "SHORT"
+        //            },
+        //            {
+        //                "symbol": "BTC_USDT_PERP",
+        //                "lever": "20",
+        //                "mgnMode": "CROSS",
+        //                "posSide": "LONG"
         //            }
-        //        )
+        //        ]
         //    }
         //
         return $this->parse_leverage($response, $market);
@@ -3571,10 +3571,10 @@ class poloniex extends Exchange {
         $response = Async\await($this->swapPrivateGetV3PositionMode($params));
         //
         //    {
-        //        "code" => "200",
-        //        "msg" => "Success",
-        //        "data" => {
-        //            "posMode" => "ONE_WAY"
+        //        "code": "200",
+        //        "msg": "Success",
+        //        "data": {
+        //            "posMode": "ONE_WAY"
         //        }
         //    }
         //
@@ -3609,9 +3609,9 @@ class poloniex extends Exchange {
         $response = Async\await($this->swapPrivatePostV3PositionMode($this->extend($request, $params)));
         //
         //    {
-        //        "code" => "200",
-        //        "msg" => "Success",
-        //        "data" => array()
+        //        "code": "200",
+        //        "msg": "Success",
+        //        "data": {}
         //    }
         //
         return $response;
@@ -3637,37 +3637,37 @@ class poloniex extends Exchange {
         $response = Async\await($this->swapPrivateGetV3TradePositionOpens($params));
         //
         //    {
-        //        "code" => "200",
-        //        "msg" => "",
-        //        "data" => array(
+        //        "code": "200",
+        //        "msg": "",
+        //        "data": [
         //            {
-        //                "symbol" => "BTC_USDT_PERP",
-        //                "posSide" => "LONG",
-        //                "side" => "BUY",
-        //                "mgnMode" => "CROSS",
-        //                "openAvgPx" => "94193.42",
-        //                "qty" => "1",
-        //                "availQty" => "1",
-        //                "lever" => "20",
-        //                "adl" => "0.3007",
-        //                "liqPx" => "84918.201844064386317906",
-        //                "im" => "4.7047795",
-        //                "mm" => "0.56457354",
-        //                "upl" => "-0.09783",
-        //                "uplRatio" => "-0.0207",
-        //                "pnl" => "0",
-        //                "markPx" => "94095.59",
-        //                "mgnRatio" => "0.0582",
-        //                "state" => "NORMAL",
-        //                "cTime" => "1740950344401",
-        //                "uTime" => "1740950344401",
-        //                "mgn" => "4.7047795",
-        //                "actType" => "TRADING",
-        //                "maxWAmt" => "0",
-        //                "tpTrgPx" => "",
-        //                "slTrgPx" => ""
+        //                "symbol": "BTC_USDT_PERP",
+        //                "posSide": "LONG",
+        //                "side": "BUY",
+        //                "mgnMode": "CROSS",
+        //                "openAvgPx": "94193.42",
+        //                "qty": "1",
+        //                "availQty": "1",
+        //                "lever": "20",
+        //                "adl": "0.3007",
+        //                "liqPx": "84918.201844064386317906",
+        //                "im": "4.7047795",
+        //                "mm": "0.56457354",
+        //                "upl": "-0.09783",
+        //                "uplRatio": "-0.0207",
+        //                "pnl": "0",
+        //                "markPx": "94095.59",
+        //                "mgnRatio": "0.0582",
+        //                "state": "NORMAL",
+        //                "cTime": "1740950344401",
+        //                "uTime": "1740950344401",
+        //                "mgn": "4.7047795",
+        //                "actType": "TRADING",
+        //                "maxWAmt": "0",
+        //                "tpTrgPx": "",
+        //                "slTrgPx": ""
         //            }
-        //        )
+        //        ]
         //    }
         //
         $positions = $this->safe_list($response, 'data', array());
@@ -3677,31 +3677,31 @@ class poloniex extends Exchange {
     public function parse_position(array $position, ?array $market = null) {
         //
         //            {
-        //                "symbol" => "BTC_USDT_PERP",
-        //                "posSide" => "LONG",
-        //                "side" => "BUY",
-        //                "mgnMode" => "CROSS",
-        //                "openAvgPx" => "94193.42",
-        //                "qty" => "1",
-        //                "availQty" => "1",
-        //                "lever" => "20",
-        //                "adl" => "0.3007",
-        //                "liqPx" => "84918.201844064386317906",
-        //                "im" => "4.7047795",
-        //                "mm" => "0.56457354",
-        //                "upl" => "-0.09783",
-        //                "uplRatio" => "-0.0207",
-        //                "pnl" => "0",
-        //                "markPx" => "94095.59",
-        //                "mgnRatio" => "0.0582",
-        //                "state" => "NORMAL",
-        //                "cTime" => "1740950344401",
-        //                "uTime" => "1740950344401",
-        //                "mgn" => "4.7047795",
-        //                "actType" => "TRADING",
-        //                "maxWAmt" => "0",
-        //                "tpTrgPx" => "",
-        //                "slTrgPx" => ""
+        //                "symbol": "BTC_USDT_PERP",
+        //                "posSide": "LONG",
+        //                "side": "BUY",
+        //                "mgnMode": "CROSS",
+        //                "openAvgPx": "94193.42",
+        //                "qty": "1",
+        //                "availQty": "1",
+        //                "lever": "20",
+        //                "adl": "0.3007",
+        //                "liqPx": "84918.201844064386317906",
+        //                "im": "4.7047795",
+        //                "mm": "0.56457354",
+        //                "upl": "-0.09783",
+        //                "uplRatio": "-0.0207",
+        //                "pnl": "0",
+        //                "markPx": "94095.59",
+        //                "mgnRatio": "0.0582",
+        //                "state": "NORMAL",
+        //                "cTime": "1740950344401",
+        //                "uTime": "1740950344401",
+        //                "mgn": "4.7047795",
+        //                "actType": "TRADING",
+        //                "maxWAmt": "0",
+        //                "tpTrgPx": "",
+        //                "slTrgPx": ""
         //            }
         //
         $marketId = $this->safe_string($position, 'symbol');
@@ -3714,7 +3714,7 @@ class poloniex extends Exchange {
         $qty = $this->safe_string($position, 'qty');
         $avgPrice = $this->safe_string($position, 'openAvgPx');
         $collateral = Precise::string_mul($qty, $avgPrice);
-        // todo => some more fields
+        // todo: some more fields
         return $this->safe_position(array(
             'info' => $position,
             'id' => null,
@@ -3759,22 +3759,22 @@ class poloniex extends Exchange {
             'amt' => Precise::string_abs($amount),
             'type' => strtoupper($type), // 'ADD' or 'REDUCE'
         );
-        // todo => hedged handling, tricky
+        // todo: hedged handling, tricky
         if (!(is_array($params) && array_key_exists('posMode' ?? '', $params))) {
             $request['posMode'] = 'BOTH';
         }
         $response = Async\await($this->swapPrivatePostV3TradePositionMargin($this->extend($request, $params)));
         //
         // {
-        //     "code" => 200,
-        //     "data" => array(
-        //       "amt" => "50",
-        //       "lever" => "20",
-        //       "symbol" => "DOT_USDT_PERP",
-        //       "posSide" => "BOTH",
-        //       "type" => "ADD"
-        //     ),
-        //     "msg" => "Success"
+        //     "code": 200,
+        //     "data": {
+        //       "amt": "50",
+        //       "lever": "20",
+        //       "symbol": "DOT_USDT_PERP",
+        //       "posSide": "BOTH",
+        //       "type": "ADD"
+        //     },
+        //     "msg": "Success"
         // }
         //
         if ($type === 'reduce') {
@@ -3900,7 +3900,7 @@ class poloniex extends Exchange {
             $feedback = $this->id . ' ' . $body;
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $responseCode, $feedback);
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);
-            throw new ExchangeError($feedback); // unknown $message
+            throw new ExchangeError($feedback); // unknown message
         }
         return null;
     }

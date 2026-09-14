@@ -2736,18 +2736,24 @@ export default class kucoin extends Exchange {
         //         "markPrice": "1572.68"
         //     }
         //
+        let last = this.safeStringN(ticker, ['last', 'lastTradedPrice', 'lastPrice']);
+        last = this.safeString(ticker, 'price', last);
+        const marketId = this.safeString(ticker, 'symbol');
+        market = this.safeMarket(marketId, market, '-');
+        const symbol = market['symbol'];
         let percentage = this.safeString(ticker, 'changeRate');
         if (percentage !== undefined) {
             percentage = Precise.stringMul(percentage, '100');
         }
         else {
             percentage = this.safeString(ticker, 'priceChangePercent');
+            // uta spot sends a ratio under this name and uta swap sends a percentage.
+            // An unresolved market has no `spot` key at all, so read it the way okx
+            // does and leave the value alone rather than scaling on a guess.
+            if (this.safeBool(market, 'spot', false)) {
+                percentage = Precise.stringMul(percentage, '100');
+            }
         }
-        let last = this.safeStringN(ticker, ['last', 'lastTradedPrice', 'lastPrice']);
-        last = this.safeString(ticker, 'price', last);
-        const marketId = this.safeString(ticker, 'symbol');
-        market = this.safeMarket(marketId, market, '-');
-        const symbol = market['symbol'];
         const baseVolume = this.safeString2(ticker, 'vol', 'baseVolume');
         const quoteVolume = this.safeString2(ticker, 'volValue', 'quoteVolume');
         const timestamp = this.safeIntegerN(ticker, ['time', 'datetime', 'timePoint']);

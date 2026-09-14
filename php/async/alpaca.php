@@ -22,8 +22,8 @@ class alpaca extends Exchange {
             'name' => 'Alpaca',
             'countries' => array( 'US' ),
             // 3 req/s for free
-            // 150 req/s for subscribers => https://alpaca.markets/data
-            // for brokers => https://alpaca.markets/docs/api-references/broker-api/#authentication-and-rate-limit
+            // 150 req/s for subscribers: https://alpaca.markets/data
+            // for brokers: https://alpaca.markets/docs/api-references/broker-api/#authentication-and-rate-limit
             'rateLimit' => 333,
             'hostname' => 'alpaca.markets',
             'pro' => true,
@@ -383,7 +383,7 @@ class alpaca extends Exchange {
                             'GTD' => false,
                         ),
                         'hedged' => false,
-                        'trailing' => true, // todo => implementation
+                        'trailing' => true, // todo: implementation
                         'leverage' => false,
                         'marketBuyRequiresPrice' => false,
                         'marketBuyByCost' => false,
@@ -445,18 +445,18 @@ class alpaca extends Exchange {
             ),
             'exceptions' => array(
                 'exact' => array(
-                    'forbidden.' => '\\ccxt\\PermissionDenied', // array("message" => "forbidden.")
-                    '40410000' => '\\ccxt\\InvalidOrder', // array( "code" => 40410000, "message" => "order is not found.")
-                    '40010001' => '\\ccxt\\BadRequest', // array("code":40010001,"message":"invalid order type for crypto order")
-                    '40110000' => '\\ccxt\\PermissionDenied', // array( "code" => 40110000, "message" => "request is not authorized")
-                    '42910000' => '\\ccxt\\RateLimitExceeded', // array("code":42910000,"message":"rate limit exceeded")
+                    'forbidden.' => '\\ccxt\\PermissionDenied', // {"message": "forbidden."}
+                    '40410000' => '\\ccxt\\InvalidOrder', // { "code": 40410000, "message": "order is not found."}
+                    '40010001' => '\\ccxt\\BadRequest', // {"code":40010001,"message":"invalid order type for crypto order"}
+                    '40110000' => '\\ccxt\\PermissionDenied', // { "code": 40110000, "message": "request is not authorized"}
+                    '42910000' => '\\ccxt\\RateLimitExceeded', // {"code":42910000,"message":"rate limit exceeded"}
                 ),
                 'broad' => array(
-                    'Invalid format for parameter' => '\\ccxt\\BadRequest', // array("message":"Invalid format for parameter start => error parsing '0' or 2006-01-02 time => parsing time \"0\" as \"2006-01-02\" => cannot parse \"0\" as \"2006\"")
-                    'Invalid symbol' => '\\ccxt\\BadSymbol', // array("message":"Invalid symbol(s) => BTC/USDdsda does not match ^[A-Z]+/[A-Z]+$")
-                    'cost basis must be' => '\\ccxt\\InvalidOrder', // array("code":40310000,"message":"cost basis must be >= minimal amount of order 10")
-                    'insufficient balance for' => '\\ccxt\\InsufficientFunds', // array("available":"0","balance":"0","code":40310000,"message":"insufficient balance for USDT (requested => 221.63, available => 0)","symbol":"USDT")
-                    'orders are rejected by user request' => '\\ccxt\\PermissionDenied', // array("code":40310000,"message":"new orders are rejected by user request") — the account has suspend_trade enabled
+                    'Invalid format for parameter' => '\\ccxt\\BadRequest', // {"message":"Invalid format for parameter start: error parsing '0' as RFC3339 or 2006-01-02 time: parsing time \"0\" as \"2006-01-02\": cannot parse \"0\" as \"2006\""}
+                    'Invalid symbol' => '\\ccxt\\BadSymbol', // {"message":"Invalid symbol(s): BTC/USDdsda does not match ^[A-Z]+/[A-Z]+$"}
+                    'cost basis must be' => '\\ccxt\\InvalidOrder', // {"code":40310000,"message":"cost basis must be >= minimal amount of order 10"}
+                    'insufficient balance for' => '\\ccxt\\InsufficientFunds', // {"available":"0","balance":"0","code":40310000,"message":"insufficient balance for USDT (requested: 221.63, available: 0)","symbol":"USDT"}
+                    'orders are rejected by user request' => '\\ccxt\\PermissionDenied', // {"code":40310000,"message":"new orders are rejected by user request"} — the account has suspend_trade enabled
                 ),
             ),
         ));
@@ -475,10 +475,10 @@ class alpaca extends Exchange {
         $response = Async\await($this->traderPrivateGetV2Clock($params));
         //
         //     {
-        //         $timestamp => '2023-11-22T08:07:57.654738097-05:00',
-        //         is_open => false,
-        //         next_open => '2023-11-22T09:30:00-05:00',
-        //         next_close => '2023-11-22T16:00:00-05:00'
+        //         timestamp: '2023-11-22T08:07:57.654738097-05:00',
+        //         is_open: false,
+        //         next_open: '2023-11-22T09:30:00-05:00',
+        //         next_close: '2023-11-22T16:00:00-05:00'
         //     }
         //
         $timestamp = $this->safe_string($response, 'timestamp');
@@ -521,26 +521,26 @@ class alpaca extends Exchange {
         );
         $assets = Async\await($this->traderPrivateGetV2Assets($this->extend($request, $params)));
         //
-        //     array(
+        //     [
         //         {
-        //             "id" => "c150e086-1e75-44e6-9c2c-093bb1e93139",
-        //             "class" => "crypto",
-        //             "exchange" => "CRYPTO",
-        //             "symbol" => "BTC/USDT",
-        //             "name" => "Bitcoin / USD Tether",
-        //             "status" => "active",
-        //             "tradable" => true,
-        //             "marginable" => false,
-        //             "maintenance_margin_requirement" => 100,
-        //             "shortable" => false,
-        //             "easy_to_borrow" => false,
-        //             "fractionable" => true,
-        //             "attributes" => array(),
-        //             "min_order_size" => "0.000026873",
-        //             "min_trade_increment" => "0.000000001",
-        //             "price_increment" => "1"
+        //             "id": "c150e086-1e75-44e6-9c2c-093bb1e93139",
+        //             "class": "crypto",
+        //             "exchange": "CRYPTO",
+        //             "symbol": "BTC/USDT",
+        //             "name": "Bitcoin / USD Tether",
+        //             "status": "active",
+        //             "tradable": true,
+        //             "marginable": false,
+        //             "maintenance_margin_requirement": 100,
+        //             "shortable": false,
+        //             "easy_to_borrow": false,
+        //             "fractionable": true,
+        //             "attributes": [],
+        //             "min_order_size": "0.000026873",
+        //             "min_trade_increment": "0.000000001",
+        //             "price_increment": "1"
         //         }
-        //     )
+        //     ]
         //
         return $this->parse_markets($assets);
     }
@@ -548,22 +548,22 @@ class alpaca extends Exchange {
     public function parse_market(array $asset): array {
         //
         //     {
-        //         "id" => "c150e086-1e75-44e6-9c2c-093bb1e93139",
-        //         "class" => "crypto",
-        //         "exchange" => "CRYPTO",
-        //         "symbol" => "BTC/USDT",
-        //         "name" => "Bitcoin / USD Tether",
-        //         "status" => "active",
-        //         "tradable" => true,
-        //         "marginable" => false,
-        //         "maintenance_margin_requirement" => 101,
-        //         "shortable" => false,
-        //         "easy_to_borrow" => false,
-        //         "fractionable" => true,
-        //         "attributes" => array(),
-        //         "min_order_size" => "0.000026873",
-        //         "min_trade_increment" => "0.000000001",
-        //         "price_increment" => "1"
+        //         "id": "c150e086-1e75-44e6-9c2c-093bb1e93139",
+        //         "class": "crypto",
+        //         "exchange": "CRYPTO",
+        //         "symbol": "BTC/USDT",
+        //         "name": "Bitcoin / USD Tether",
+        //         "status": "active",
+        //         "tradable": true,
+        //         "marginable": false,
+        //         "maintenance_margin_requirement": 101,
+        //         "shortable": false,
+        //         "easy_to_borrow": false,
+        //         "fractionable": true,
+        //         "attributes": [],
+        //         "min_order_size": "0.000026873",
+        //         "min_trade_increment": "0.000000001",
+        //         "price_increment": "1"
         //     }
         //
         $marketId = $this->safe_string($asset, 'symbol');
@@ -576,8 +576,8 @@ class alpaca extends Exchange {
         $quoteId = $this->safe_string($parts, 1);
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
-        // Us equity markets do not include $quote in $symbol->
-        // We can safely coerce us_equity $quote to USD
+        // Us equity markets do not include quote in symbol.
+        // We can safely coerce us_equity quote to USD
         if ($quote === null && $assetClass === 'us_equity') {
             $quote = 'USD';
         }
@@ -589,7 +589,7 @@ class alpaca extends Exchange {
         $price = $this->safe_number($asset, 'price_increment');
         $minCost = null;
         if (($assetClass === 'crypto') && ($quote === 'USD')) {
-            // alpaca rejects USD-quoted crypto buy orders below 10 USD notional => array("code":40310000,"message":"cost basis must be >= minimal $amount of order 10")
+            // alpaca rejects USD-quoted crypto buy orders below 10 USD notional: {"code":40310000,"message":"cost basis must be >= minimal amount of order 10"}
             // USDT-, USDC- and BTC-quoted pairs accept smaller orders, and sell orders are not floored — verified live 2026-08-25
             $minCost = $this->safe_number($this->options, 'minCostUSD', $this->parse_number('10'));
         }
@@ -686,17 +686,17 @@ class alpaca extends Exchange {
             $response = Async\await($this->marketPublicGetV1beta3CryptoLocTrades($this->extend($request, $params)));
             //
             //    {
-            //        "next_page_token" => null,
-            //        "trades" => {
-            //            "BTC/USD" => array(
+            //        "next_page_token": null,
+            //        "trades": {
+            //            "BTC/USD": [
             //                {
-            //                    "i" => 36440704,
-            //                    "p" => 22625,
-            //                    "s" => 0.0001,
-            //                    "t" => "2022-07-21T11:47:31.073391Z",
-            //                    "tks" => "B"
+            //                    "i": 36440704,
+            //                    "p": 22625,
+            //                    "s": 0.0001,
+            //                    "t": "2022-07-21T11:47:31.073391Z",
+            //                    "tks": "B"
             //                }
-            //            )
+            //            ]
             //        }
             //    }
             //
@@ -706,13 +706,13 @@ class alpaca extends Exchange {
             $response = Async\await($this->marketPublicGetV1beta3CryptoLocLatestTrades($this->extend($request, $params)));
             //
             //    {
-            //       "trades" => {
-            //            "BTC/USD" => {
-            //                "i" => 36440704,
-            //                "p" => 22625,
-            //                "s" => 0.0001,
-            //                "t" => "2022-07-21T11:47:31.073391Z",
-            //                "tks" => "B"
+            //       "trades": {
+            //            "BTC/USD": {
+            //                "i": 36440704,
+            //                "p": 22625,
+            //                "s": 0.0001,
+            //                "t": "2022-07-21T11:47:31.073391Z",
+            //                "tks": "B"
             //            }
             //        }
             //    }
@@ -761,34 +761,34 @@ class alpaca extends Exchange {
         //   {
         //       "orderbooks":{
         //          "BTC/USD":{
-        //             "a":array(
-        //                array(
+        //             "a":[
+        //                {
         //                   "p":22208,
         //                   "s":0.0051
-        //                ),
-        //                array(
+        //                },
+        //                {
         //                   "p":22209,
         //                   "s":0.1123
-        //                ),
+        //                },
         //                {
         //                   "p":22210,
         //                   "s":0.2465
         //                }
-        //             ),
-        //             "b":array(
-        //                array(
+        //             ],
+        //             "b":[
+        //                {
         //                   "p":22203,
         //                   "s":0.395
-        //                ),
-        //                array(
+        //                },
+        //                {
         //                   "p":22202,
         //                   "s":0.2465
-        //                ),
+        //                },
         //                {
         //                   "p":22201,
         //                   "s":0.6455
         //                }
-        //             ),
+        //             ],
         //             "t":"2022-07-19T13:41:55.13210112Z"
         //          }
         //       }
@@ -856,37 +856,37 @@ class alpaca extends Exchange {
             $response = Async\await($this->marketPublicGetV1beta3CryptoLocBars($this->extend($request, $params)));
             //
             //    {
-            //        "bars" => {
-            //           "BTC/USD" => array(
-            //              array(
-            //                 "c" => 22887,
-            //                 "h" => 22888,
-            //                 "l" => 22873,
-            //                 "n" => 11,
-            //                 "o" => 22883,
-            //                 "t" => "2022-07-21T05:00:00Z",
-            //                 "v" => 1.1138,
-            //                 "vw" => 22883.0155324116
-            //              ),
-            //              array(
-            //                 "c" => 22895,
-            //                 "h" => 22895,
-            //                 "l" => 22884,
-            //                 "n" => 6,
-            //                 "o" => 22884,
-            //                 "t" => "2022-07-21T05:01:00Z",
-            //                 "v" => 0.001,
-            //                 "vw" => 22889.5
+            //        "bars": {
+            //           "BTC/USD": [
+            //              {
+            //                 "c": 22887,
+            //                 "h": 22888,
+            //                 "l": 22873,
+            //                 "n": 11,
+            //                 "o": 22883,
+            //                 "t": "2022-07-21T05:00:00Z",
+            //                 "v": 1.1138,
+            //                 "vw": 22883.0155324116
+            //              },
+            //              {
+            //                 "c": 22895,
+            //                 "h": 22895,
+            //                 "l": 22884,
+            //                 "n": 6,
+            //                 "o": 22884,
+            //                 "t": "2022-07-21T05:01:00Z",
+            //                 "v": 0.001,
+            //                 "vw": 22889.5
             //              }
-            //           )
-            //        ),
-            //        "next_page_token" => "QlRDL1VTRHxNfDIwMjItMDctMjFUMDU6MDE6MDAuMDAwMDAwMDAwWg=="
+            //           ]
+            //        },
+            //        "next_page_token": "QlRDL1VTRHxNfDIwMjItMDctMjFUMDU6MDE6MDAuMDAwMDAwMDAwWg=="
             //     }
             //
             $bars = $this->safe_dict($response, 'bars', array());
             $ohlcvs = $this->safe_list($bars, $marketId, array());
             if ($paginate) {
-                // the endpoint answers with a server-sized $page plus a next_page_token regardless of the requested $limit
+                // the endpoint answers with a server-sized page plus a next_page_token regardless of the requested limit
                 $pageToken = $this->safe_string($response, 'next_page_token');
                 for ($i = 1; $i < $paginationCalls; $i++) {
                     $ohlcvsLength = count($ohlcvs);
@@ -909,16 +909,16 @@ class alpaca extends Exchange {
             $response = Async\await($this->marketPublicGetV1beta3CryptoLocLatestBars($this->extend($request, $params)));
             //
             //    {
-            //        "bars" => {
-            //           "BTC/USD" => {
-            //              "c" => 22887,
-            //              "h" => 22888,
-            //              "l" => 22873,
-            //              "n" => 11,
-            //              "o" => 22883,
-            //              "t" => "2022-07-21T05:00:00Z",
-            //              "v" => 1.1138,
-            //              "vw" => 22883.0155324116
+            //        "bars": {
+            //           "BTC/USD": {
+            //              "c": 22887,
+            //              "h": 22888,
+            //              "l": 22873,
+            //              "n": 11,
+            //              "o": 22883,
+            //              "t": "2022-07-21T05:00:00Z",
+            //              "v": 1.1138,
+            //              "vw": 22883.0155324116
             //           }
             //        }
             //     }
@@ -948,7 +948,7 @@ class alpaca extends Exchange {
         $datetime = $this->safe_string($ohlcv, 't');
         $timestamp = $this->parse8601($datetime);
         return array(
-            $timestamp, // $timestamp
+            $timestamp, // timestamp
             $this->safe_number($ohlcv, 'o'), // open
             $this->safe_number($ohlcv, 'h'), // high
             $this->safe_number($ohlcv, 'l'), // low
@@ -999,7 +999,7 @@ class alpaca extends Exchange {
             Async\await($this->load_markets());
         }
         if ($symbols === null) {
-            // every listed $market is a crypto $market because fetchMarkets requests asset_class=crypto, so default to all of them
+            // every listed market is a crypto market because fetchMarkets requests asset_class=crypto, so default to all of them
             $allSymbols = $this->sort($this->symbols); // symbol iteration order differs per language
             $symbols = $allSymbols;
         }
@@ -1014,53 +1014,53 @@ class alpaca extends Exchange {
         $response = Async\await($this->marketPublicGetV1beta3CryptoLocSnapshots($this->extend($request, $params)));
         //
         //     {
-        //         "snapshots" => {
-        //             "BTC/USD" => {
-        //                 "dailyBar" => array(
-        //                     "c" => 69403.554,
-        //                     "h" => 69609.6515,
-        //                     "l" => 69013.26,
-        //                     "n" => 9,
-        //                     "o" => 69536.7,
-        //                     "t" => "2024-11-01T05:00:00Z",
-        //                     "v" => 0.210809181,
-        //                     "vw" => 69327.655393908
-        //                 ),
-        //                 "latestQuote" => array(
-        //                     "ap" => 69424.19,
-        //                     "as" => 0.68149,
-        //                     "bp" => 69366.086,
-        //                     "bs" => 0.68312,
-        //                     "t" => "2024-11-01T08:31:41.880246926Z"
-        //                 ),
-        //                 "latestTrade" => array(
-        //                     "i" => 5272941104897543146,
-        //                     "p" => 69416.9,
-        //                     "s" => 0.014017324,
-        //                     "t" => "2024-11-01T08:14:28.245088803Z",
-        //                     "tks" => "B"
-        //                 ),
-        //                 "minuteBar" => array(
-        //                     "c" => 69403.554,
-        //                     "h" => 69403.554,
-        //                     "l" => 69399.125,
-        //                     "n" => 0,
-        //                     "o" => 69399.125,
-        //                     "t" => "2024-11-01T08:30:00Z",
-        //                     "v" => 0,
-        //                     "vw" => 0
-        //                 ),
-        //                 "prevDailyBar" => array(
-        //                     "c" => 69515.1415,
-        //                     "h" => 72668.837,
-        //                     "l" => 68796.85,
-        //                     "n" => 129,
-        //                     "o" => 72258.9,
-        //                     "t" => "2024-10-31T05:00:00Z",
-        //                     "v" => 2.217683307,
-        //                     "vw" => 70782.6811608144
+        //         "snapshots": {
+        //             "BTC/USD": {
+        //                 "dailyBar": {
+        //                     "c": 69403.554,
+        //                     "h": 69609.6515,
+        //                     "l": 69013.26,
+        //                     "n": 9,
+        //                     "o": 69536.7,
+        //                     "t": "2024-11-01T05:00:00Z",
+        //                     "v": 0.210809181,
+        //                     "vw": 69327.655393908
+        //                 },
+        //                 "latestQuote": {
+        //                     "ap": 69424.19,
+        //                     "as": 0.68149,
+        //                     "bp": 69366.086,
+        //                     "bs": 0.68312,
+        //                     "t": "2024-11-01T08:31:41.880246926Z"
+        //                 },
+        //                 "latestTrade": {
+        //                     "i": 5272941104897543146,
+        //                     "p": 69416.9,
+        //                     "s": 0.014017324,
+        //                     "t": "2024-11-01T08:14:28.245088803Z",
+        //                     "tks": "B"
+        //                 },
+        //                 "minuteBar": {
+        //                     "c": 69403.554,
+        //                     "h": 69403.554,
+        //                     "l": 69399.125,
+        //                     "n": 0,
+        //                     "o": 69399.125,
+        //                     "t": "2024-11-01T08:30:00Z",
+        //                     "v": 0,
+        //                     "vw": 0
+        //                 },
+        //                 "prevDailyBar": {
+        //                     "c": 69515.1415,
+        //                     "h": 72668.837,
+        //                     "l": 68796.85,
+        //                     "n": 129,
+        //                     "o": 72258.9,
+        //                     "t": "2024-10-31T05:00:00Z",
+        //                     "v": 2.217683307,
+        //                     "vw": 70782.6811608144
         //                 }
-        //             ),
+        //             },
         //         }
         //     }
         //
@@ -1215,7 +1215,7 @@ class alpaca extends Exchange {
         $request = array(
             'symbol' => $id,
             'side' => $side,
-            'type' => $type, // $market, limit, stop_limit
+            'type' => $type, // market, limit, stop_limit
         );
         $triggerPrice = $this->safe_string_2($params, 'triggerPrice', 'stop_price');
         if ($triggerPrice !== null) {
@@ -1246,38 +1246,38 @@ class alpaca extends Exchange {
         $order = Async\await($this->traderPrivatePostV2Orders($this->extend($request, $params)));
         //
         //   {
-        //      "id" => "61e69015-8549-4bfd-b9c3-01e75843f47d",
-        //      "client_order_id" => "eb9e2aaa-f71a-4f51-b5b4-52a6c565dad4",
-        //      "created_at" => "2021-03-16T18:38:01.942282Z",
-        //      "updated_at" => "2021-03-16T18:38:01.942282Z",
-        //      "submitted_at" => "2021-03-16T18:38:01.937734Z",
-        //      "filled_at" => null,
-        //      "expired_at" => null,
-        //      "canceled_at" => null,
-        //      "failed_at" => null,
-        //      "replaced_at" => null,
-        //      "replaced_by" => null,
-        //      "replaces" => null,
-        //      "asset_id" => "b0b6dd9d-8b9b-48a9-ba46-b9d54906e415",
-        //      "symbol" => "AAPL",
-        //      "asset_class" => "us_equity",
-        //      "notional" => "500",
-        //      "qty" => null,
-        //      "filled_qty" => "0",
-        //      "filled_avg_price" => null,
-        //      "order_class" => "",
-        //      "order_type" => "market",
-        //      "type" => "market",
-        //      "side" => "buy",
-        //      "time_in_force" => "day",
-        //      "limit_price" => null,
-        //      "stop_price" => null,
-        //      "status" => "accepted",
-        //      "extended_hours" => false,
-        //      "legs" => null,
-        //      "trail_percent" => null,
-        //      "trail_price" => null,
-        //      "hwm" => null
+        //      "id": "61e69015-8549-4bfd-b9c3-01e75843f47d",
+        //      "client_order_id": "eb9e2aaa-f71a-4f51-b5b4-52a6c565dad4",
+        //      "created_at": "2021-03-16T18:38:01.942282Z",
+        //      "updated_at": "2021-03-16T18:38:01.942282Z",
+        //      "submitted_at": "2021-03-16T18:38:01.937734Z",
+        //      "filled_at": null,
+        //      "expired_at": null,
+        //      "canceled_at": null,
+        //      "failed_at": null,
+        //      "replaced_at": null,
+        //      "replaced_by": null,
+        //      "replaces": null,
+        //      "asset_id": "b0b6dd9d-8b9b-48a9-ba46-b9d54906e415",
+        //      "symbol": "AAPL",
+        //      "asset_class": "us_equity",
+        //      "notional": "500",
+        //      "qty": null,
+        //      "filled_qty": "0",
+        //      "filled_avg_price": null,
+        //      "order_class": "",
+        //      "order_type": "market",
+        //      "type": "market",
+        //      "side": "buy",
+        //      "time_in_force": "day",
+        //      "limit_price": null,
+        //      "stop_price": null,
+        //      "status": "accepted",
+        //      "extended_hours": false,
+        //      "legs": null,
+        //      "trail_percent": null,
+        //      "trail_price": null,
+        //      "hwm": null
         //   }
         //
         return $this->parse_order($order, $market);
@@ -1304,8 +1304,8 @@ class alpaca extends Exchange {
         $response = Async\await($this->traderPrivateDeleteV2OrdersOrderId($this->extend($request, $params)));
         //
         //   {
-        //       "code" => 40410000,
-        //       "message" => "order is not found."
+        //       "code": 40410000,
+        //       "message": "order is not found."
         //   }
         //
         return $this->parse_order($response);
@@ -1382,6 +1382,7 @@ class alpaca extends Exchange {
          * @param {int} [$limit] the maximum number of order structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] the latest time in ms to fetch orders for
+         * @param {string} [$params->direction] the ordering of the results, 'asc' or 'desc', defaults to 'asc' when $since is set
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         if ($this->markets === null) {
@@ -1398,54 +1399,59 @@ class alpaca extends Exchange {
         $until = $this->safe_integer($params, 'until');
         if ($until !== null) {
             $params = $this->omit($params, 'until');
-            $request['endTime'] = $this->iso8601($until);
+            $request['until'] = $this->iso8601($until);
         }
         if ($since !== null) {
             $request['after'] = $this->iso8601($since);
+            $direction = $this->safe_string($params, 'direction');
+            if ($direction === null) {
+                // the server default is desc, so a limit would truncate the newest window instead of the range starting at since — request oldest-first like krakenfutures does
+                $request['direction'] = 'asc';
+            }
         }
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
         $response = Async\await($this->traderPrivateGetV2Orders($this->extend($request, $params)));
         //
-        //     array(
+        //     [
         //         {
-        //           "id" => "cbaf12d7-69b8-49c0-a31b-b46af35c755c",
-        //           "client_order_id" => "ccxt_b36156ae6fd44d098ac9c179bab33efd",
-        //           "created_at" => "2023-11-17T04:21:42.234579Z",
-        //           "updated_at" => "2023-11-17T04:22:34.442765Z",
-        //           "submitted_at" => "2023-11-17T04:21:42.233357Z",
-        //           "filled_at" => null,
-        //           "expired_at" => null,
-        //           "canceled_at" => "2023-11-17T04:22:34.399019Z",
-        //           "failed_at" => null,
-        //           "replaced_at" => null,
-        //           "replaced_by" => null,
-        //           "replaces" => null,
-        //           "asset_id" => "77c6f47f-0939-4b23-b41e-47b4469c4bc8",
-        //           "symbol" => "LTC/USDT",
-        //           "asset_class" => "crypto",
-        //           "notional" => null,
-        //           "qty" => "0.001",
-        //           "filled_qty" => "0",
-        //           "filled_avg_price" => null,
-        //           "order_class" => "",
-        //           "order_type" => "limit",
-        //           "type" => "limit",
-        //           "side" => "sell",
-        //           "time_in_force" => "gtc",
-        //           "limit_price" => "1000",
-        //           "stop_price" => null,
-        //           "status" => "canceled",
-        //           "extended_hours" => false,
-        //           "legs" => null,
-        //           "trail_percent" => null,
-        //           "trail_price" => null,
-        //           "hwm" => null,
-        //           "subtag" => null,
-        //           "source" => "access_key"
+        //           "id": "cbaf12d7-69b8-49c0-a31b-b46af35c755c",
+        //           "client_order_id": "ccxt_b36156ae6fd44d098ac9c179bab33efd",
+        //           "created_at": "2023-11-17T04:21:42.234579Z",
+        //           "updated_at": "2023-11-17T04:22:34.442765Z",
+        //           "submitted_at": "2023-11-17T04:21:42.233357Z",
+        //           "filled_at": null,
+        //           "expired_at": null,
+        //           "canceled_at": "2023-11-17T04:22:34.399019Z",
+        //           "failed_at": null,
+        //           "replaced_at": null,
+        //           "replaced_by": null,
+        //           "replaces": null,
+        //           "asset_id": "77c6f47f-0939-4b23-b41e-47b4469c4bc8",
+        //           "symbol": "LTC/USDT",
+        //           "asset_class": "crypto",
+        //           "notional": null,
+        //           "qty": "0.001",
+        //           "filled_qty": "0",
+        //           "filled_avg_price": null,
+        //           "order_class": "",
+        //           "order_type": "limit",
+        //           "type": "limit",
+        //           "side": "sell",
+        //           "time_in_force": "gtc",
+        //           "limit_price": "1000",
+        //           "stop_price": null,
+        //           "status": "canceled",
+        //           "extended_hours": false,
+        //           "legs": null,
+        //           "trail_percent": null,
+        //           "trail_price": null,
+        //           "hwm": null,
+        //           "subtag": null,
+        //           "source": "access_key"
         //         }
-        //     )
+        //     ]
         //
         return $this->parse_orders($response, $market, $since, $limit);
     }
@@ -1465,6 +1471,7 @@ class alpaca extends Exchange {
          * @param {int} [$limit] the maximum number of order structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] the latest time in ms to fetch orders for
+         * @param {string} [$params->direction] the ordering of the results, 'asc' or 'desc', defaults to 'asc' when $since is set
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         $request = array(
@@ -1488,6 +1495,7 @@ class alpaca extends Exchange {
          * @param {int} [$limit] the maximum number of order structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] the latest time in ms to fetch orders for
+         * @param {string} [$params->direction] the ordering of the results, 'asc' or 'desc', defaults to 'asc' when $since is set
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         $request = array(
@@ -1697,23 +1705,23 @@ class alpaca extends Exchange {
         list($request, $params) = $this->handle_until_option('until', $request, $params);
         $response = Async\await($this->traderPrivateGetV2AccountActivitiesActivityType($this->extend($request, $params)));
         //
-        //     array(
-        //         array(
-        //             "id" => "20221228071929579::ca2aafd0-1270-4b56-b0a9-85423b4a07c8",
-        //             "activity_type" => "FILL",
-        //             "transaction_time" => "2022-12-28T12:19:29.579352Z",
-        //             "type" => "fill",
-        //             "price" => "67.31",
-        //             "qty" => "0.07",
-        //             "side" => "sell",
-        //             "symbol" => "LTC/USD",
-        //             "leaves_qty" => "0",
-        //             "order_id" => "82eebcf7-6e66-4b7e-93f8-be0df0e4f12e",
-        //             "cum_qty" => "0.07",
-        //             "order_status" => "filled",
-        //             "swap_rate" => "1"
-        //         ),
-        //     )
+        //     [
+        //         {
+        //             "id": "20221228071929579::ca2aafd0-1270-4b56-b0a9-85423b4a07c8",
+        //             "activity_type": "FILL",
+        //             "transaction_time": "2022-12-28T12:19:29.579352Z",
+        //             "type": "fill",
+        //             "price": "67.31",
+        //             "qty": "0.07",
+        //             "side": "sell",
+        //             "symbol": "LTC/USD",
+        //             "leaves_qty": "0",
+        //             "order_id": "82eebcf7-6e66-4b7e-93f8-be0df0e4f12e",
+        //             "cum_qty": "0.07",
+        //             "order_status": "filled",
+        //             "swap_rate": "1"
+        //         },
+        //     ]
         //
         return $this->parse_trades($response, $market, $since, $limit);
     }
@@ -1733,21 +1741,21 @@ class alpaca extends Exchange {
         //
         // fetchMyTrades
         //
-        //     array(
-        //         "id" => "20221228071929579::ca2aafd0-1270-4b56-b0a9-85423b4a07c8",
-        //         "activity_type" => "FILL",
-        //         "transaction_time" => "2022-12-28T12:19:29.579352Z",
-        //         "type" => "fill",
-        //         "price" => "67.31",
-        //         "qty" => "0.07",
-        //         "side" => "sell",
-        //         "symbol" => "LTC/USD",
-        //         "leaves_qty" => "0",
-        //         "order_id" => "82eebcf7-6e66-4b7e-93f8-be0df0e4f12e",
-        //         "cum_qty" => "0.07",
-        //         "order_status" => "filled",
-        //         "swap_rate" => "1"
-        //     ),
+        //     {
+        //         "id": "20221228071929579::ca2aafd0-1270-4b56-b0a9-85423b4a07c8",
+        //         "activity_type": "FILL",
+        //         "transaction_time": "2022-12-28T12:19:29.579352Z",
+        //         "type": "fill",
+        //         "price": "67.31",
+        //         "qty": "0.07",
+        //         "side": "sell",
+        //         "symbol": "LTC/USD",
+        //         "leaves_qty": "0",
+        //         "order_id": "82eebcf7-6e66-4b7e-93f8-be0df0e4f12e",
+        //         "cum_qty": "0.07",
+        //         "order_status": "filled",
+        //         "swap_rate": "1"
+        //     },
         //
         $marketId = $this->safe_string_2($trade, 'S', 'symbol');
         $symbol = $this->safe_symbol($marketId, $market);
@@ -1803,9 +1811,9 @@ class alpaca extends Exchange {
         $response = Async\await($this->traderPrivateGetV2Wallets($this->extend($request, $params)));
         //
         //     {
-        //         "asset_id" => "4fa30c85-77b7-4cbc-92dd-7b7513640aad",
-        //         "address" => "bc1q2fpskfnwem3uq9z8660e4z6pfv7aqfamysk75r",
-        //         "created_at" => "2024-11-03T07:30:05.609976344Z"
+        //         "asset_id": "4fa30c85-77b7-4cbc-92dd-7b7513640aad",
+        //         "address": "bc1q2fpskfnwem3uq9z8660e4z6pfv7aqfamysk75r",
+        //         "created_at": "2024-11-03T07:30:05.609976344Z"
         //     }
         //
         return $this->parse_deposit_address($response, $currency);
@@ -1814,9 +1822,9 @@ class alpaca extends Exchange {
     public function parse_deposit_address(mixed $depositAddress, ?array $currency = null): array {
         //
         //     {
-        //         "asset_id" => "4fa30c85-77b7-4cbc-92dd-7b7513640aad",
-        //         "address" => "bc1q2fpskfnwem3uq9z8660e4z6pfv7aqfamysk75r",
-        //         "created_at" => "2024-11-03T07:30:05.609976344Z"
+        //         "asset_id": "4fa30c85-77b7-4cbc-92dd-7b7513640aad",
+        //         "address": "bc1q2fpskfnwem3uq9z8660e4z6pfv7aqfamysk75r",
+        //         "created_at": "2024-11-03T07:30:05.609976344Z"
         //     }
         //
         $parsedCurrency = null;
@@ -1866,19 +1874,19 @@ class alpaca extends Exchange {
         $response = Async\await($this->traderPrivatePostV2WalletsTransfers($this->extend($request, $params)));
         //
         //     {
-        //         "id" => "e27b70a6-5610-40d7-8468-a516a284b776",
-        //         "tx_hash" => null,
-        //         "direction" => "OUTGOING",
-        //         "amount" => "20",
-        //         "usd_value" => "19.99856",
-        //         "chain" => "ETH",
-        //         "asset" => "USDT",
-        //         "from_address" => "0x123930E4dCA196E070d39B60c644C8Aae02f23",
-        //         "to_address" => "0x1232c0925196e4dcf05945f67f690153190fbaab",
-        //         "status" => "PROCESSING",
-        //         "created_at" => "2024-11-07T02:39:01.775495Z",
-        //         "network_fee" => "4",
-        //         "fees" => "0.1"
+        //         "id": "e27b70a6-5610-40d7-8468-a516a284b776",
+        //         "tx_hash": null,
+        //         "direction": "OUTGOING",
+        //         "amount": "20",
+        //         "usd_value": "19.99856",
+        //         "chain": "ETH",
+        //         "asset": "USDT",
+        //         "from_address": "0x123930E4dCA196E070d39B60c644C8Aae02f23",
+        //         "to_address": "0x1232c0925196e4dcf05945f67f690153190fbaab",
+        //         "status": "PROCESSING",
+        //         "created_at": "2024-11-07T02:39:01.775495Z",
+        //         "network_fee": "4",
+        //         "fees": "0.1"
         //     }
         //
         return $this->parse_transaction($response, $currency);
@@ -1904,22 +1912,22 @@ class alpaca extends Exchange {
         $sandboxMode = $this->isSandboxModeEnabled || $this->safe_bool($this->options, 'sandboxMode', false);
         if ($sandboxMode === true) {
             // paper-trading hosts do not serve the crypto wallets api at all, so route
-            // through the account $activities $ledger instead, $filtered to transfer-like
+            // through the account activities ledger instead, filtered to transfer-like
             // entries, see https://github.com/ccxt/ccxt/issues/24847
             $request = array(
                 'activity_types' => 'CSD,CSW,TRANS',
             );
             $activities = Async\await($this->traderPrivateGetV2AccountActivities($this->extend($request, $params)));
             //
-            //     array(
+            //     [
             //         {
-            //             "id" => "20250110000000000::7f6cba2b-4c72-46b9-8e34-8e5b0b8d8e10",
-            //             "activity_type" => "CSD",
-            //             "date" => "2025-01-10",
-            //             "net_amount" => "1000",
-            //             "status" => "executed"
+            //             "id": "20250110000000000::7f6cba2b-4c72-46b9-8e34-8e5b0b8d8e10",
+            //             "activity_type": "CSD",
+            //             "date": "2025-01-10",
+            //             "net_amount": "1000",
+            //             "status": "executed"
             //         }
-            //     )
+            //     ]
             //
             $filtered = array();
             $ledger = array();
@@ -1941,19 +1949,19 @@ class alpaca extends Exchange {
         $response = Async\await($this->traderPrivateGetV2WalletsTransfers($params));
         //
         //     {
-        //         "id" => "e27b70a6-5610-40d7-8468-a516a284b776",
-        //         "tx_hash" => null,
-        //         "direction" => "OUTGOING",
-        //         "amount" => "20",
-        //         "usd_value" => "19.99856",
-        //         "chain" => "ETH",
-        //         "asset" => "USDT",
-        //         "from_address" => "0x123930E4dCA196E070d39B60c644C8Aae02f23",
-        //         "to_address" => "0x1232c0925196e4dcf05945f67f690153190fbaab",
-        //         "status" => "PROCESSING",
-        //         "created_at" => "2024-11-07T02:39:01.775495Z",
-        //         "network_fee" => "4",
-        //         "fees" => "0.1"
+        //         "id": "e27b70a6-5610-40d7-8468-a516a284b776",
+        //         "tx_hash": null,
+        //         "direction": "OUTGOING",
+        //         "amount": "20",
+        //         "usd_value": "19.99856",
+        //         "chain": "ETH",
+        //         "asset": "USDT",
+        //         "from_address": "0x123930E4dCA196E070d39B60c644C8Aae02f23",
+        //         "to_address": "0x1232c0925196e4dcf05945f67f690153190fbaab",
+        //         "status": "PROCESSING",
+        //         "created_at": "2024-11-07T02:39:01.775495Z",
+        //         "network_fee": "4",
+        //         "fees": "0.1"
         //     }
         //
         $results = array();
@@ -2035,29 +2043,29 @@ class alpaca extends Exchange {
         // account activities ledger entry (paper-trading path), see https://github.com/ccxt/ccxt/issues/24847
         //
         //     {
-        //         "id" => "20250110000000000::7f6cba2b-4c72-46b9-8e34-8e5b0b8d8e10",
-        //         "activity_type" => "CSD",
-        //         "date" => "2025-01-10",
-        //         "net_amount" => "1000",
-        //         "status" => "executed"
+        //         "id": "20250110000000000::7f6cba2b-4c72-46b9-8e34-8e5b0b8d8e10",
+        //         "activity_type": "CSD",
+        //         "date": "2025-01-10",
+        //         "net_amount": "1000",
+        //         "status": "executed"
         //     }
         //
         // crypto wallets api entry
         //
         //     {
-        //         "id" => "e27b70a6-5610-40d7-8468-a516a284b776",
-        //         "tx_hash" => null,
-        //         "direction" => "OUTGOING",
-        //         "amount" => "20",
-        //         "usd_value" => "19.99856",
-        //         "chain" => "ETH",
-        //         "asset" => "USDT",
-        //         "from_address" => "0x123930E4dCA196E070d39B60c644C8Aae02f23",
-        //         "to_address" => "0x1232c0925196e4dcf05945f67f690153190fbaab",
-        //         "status" => "PROCESSING",
-        //         "created_at" => "2024-11-07T02:39:01.775495Z",
-        //         "network_fee" => "4",
-        //         "fees" => "0.1"
+        //         "id": "e27b70a6-5610-40d7-8468-a516a284b776",
+        //         "tx_hash": null,
+        //         "direction": "OUTGOING",
+        //         "amount": "20",
+        //         "usd_value": "19.99856",
+        //         "chain": "ETH",
+        //         "asset": "USDT",
+        //         "from_address": "0x123930E4dCA196E070d39B60c644C8Aae02f23",
+        //         "to_address": "0x1232c0925196e4dcf05945f67f690153190fbaab",
+        //         "status": "PROCESSING",
+        //         "created_at": "2024-11-07T02:39:01.775495Z",
+        //         "network_fee": "4",
+        //         "fees": "0.1"
         //     }
         //
         $activityType = $this->safe_string($transaction, 'activity_type');
@@ -2084,7 +2092,7 @@ class alpaca extends Exchange {
             $amount = $this->parse_number(Precise::string_abs($netAmount));
             // cash ledger rows carry no per-entry asset field and are USD, while crypto
             // TRANS entries may carry symbol/asset - never blindly adopt the caller's
-            // $currency filter, see the review on https://github.com/ccxt/ccxt/pull/29580
+            // currency filter, see the review on https://github.com/ccxt/ccxt/pull/29580
             $activityCurrencyId = $this->safe_string_2($transaction, 'symbol', 'asset');
             if ($activityCurrencyId !== null) {
                 $code = $this->safe_currency_code($activityCurrencyId);
@@ -2182,50 +2190,50 @@ class alpaca extends Exchange {
         $response = Async\await($this->traderPrivateGetV2Account($params));
         //
         //     {
-        //         "id" => "43a01bde-4eb1-64fssc26adb5",
-        //         "admin_configurations" => array(
-        //             "allow_instant_ach" => true,
-        //             "max_margin_multiplier" => "4"
-        //         ),
-        //         "user_configurations" => array(
-        //             "fractional_trading" => true,
-        //             "max_margin_multiplier" => "4"
-        //         ),
-        //         "account_number" => "744873727",
-        //         "status" => "ACTIVE",
-        //         "crypto_status" => "ACTIVE",
-        //         "currency" => "USD",
-        //         "buying_power" => "5.92",
-        //         "regt_buying_power" => "5.92",
-        //         "daytrading_buying_power" => "0",
-        //         "effective_buying_power" => "5.92",
-        //         "non_marginable_buying_power" => "5.92",
-        //         "bod_dtbp" => "0",
-        //         "cash" => "5.92",
-        //         "accrued_fees" => "0",
-        //         "portfolio_value" => "48.6",
-        //         "pattern_day_trader" => false,
-        //         "trading_blocked" => false,
-        //         "transfers_blocked" => false,
-        //         "account_blocked" => false,
-        //         "created_at" => "2022-06-13T14:59:18.318096Z",
-        //         "trade_suspended_by_user" => false,
-        //         "multiplier" => "1",
-        //         "shorting_enabled" => false,
-        //         "equity" => "48.6",
-        //         "last_equity" => "48.8014266",
-        //         "long_market_value" => "42.68",
-        //         "short_market_value" => "0",
-        //         "position_market_value" => "42.68",
-        //         "initial_margin" => "0",
-        //         "maintenance_margin" => "0",
-        //         "last_maintenance_margin" => "0",
-        //         "sma" => "5.92",
-        //         "daytrade_count" => 0,
-        //         "balance_asof" => "2024-12-10",
-        //         "crypto_tier" => 1,
-        //         "intraday_adjustments" => "0",
-        //         "pending_reg_taf_fees" => "0"
+        //         "id": "43a01bde-4eb1-64fssc26adb5",
+        //         "admin_configurations": {
+        //             "allow_instant_ach": true,
+        //             "max_margin_multiplier": "4"
+        //         },
+        //         "user_configurations": {
+        //             "fractional_trading": true,
+        //             "max_margin_multiplier": "4"
+        //         },
+        //         "account_number": "744873727",
+        //         "status": "ACTIVE",
+        //         "crypto_status": "ACTIVE",
+        //         "currency": "USD",
+        //         "buying_power": "5.92",
+        //         "regt_buying_power": "5.92",
+        //         "daytrading_buying_power": "0",
+        //         "effective_buying_power": "5.92",
+        //         "non_marginable_buying_power": "5.92",
+        //         "bod_dtbp": "0",
+        //         "cash": "5.92",
+        //         "accrued_fees": "0",
+        //         "portfolio_value": "48.6",
+        //         "pattern_day_trader": false,
+        //         "trading_blocked": false,
+        //         "transfers_blocked": false,
+        //         "account_blocked": false,
+        //         "created_at": "2022-06-13T14:59:18.318096Z",
+        //         "trade_suspended_by_user": false,
+        //         "multiplier": "1",
+        //         "shorting_enabled": false,
+        //         "equity": "48.6",
+        //         "last_equity": "48.8014266",
+        //         "long_market_value": "42.68",
+        //         "short_market_value": "0",
+        //         "position_market_value": "42.68",
+        //         "initial_margin": "0",
+        //         "maintenance_margin": "0",
+        //         "last_maintenance_margin": "0",
+        //         "sma": "5.92",
+        //         "daytrade_count": 0,
+        //         "balance_asof": "2024-12-10",
+        //         "crypto_tier": 1,
+        //         "intraday_adjustments": "0",
+        //         "pending_reg_taf_fees": "0"
         //     }
         //
         return $this->parse_balance($response);
@@ -2271,8 +2279,8 @@ class alpaca extends Exchange {
             return null; // default error handler
         }
         // {
-        //     "code" => 40110000,
-        //     "message" => "request is not authorized"
+        //     "code": 40110000,
+        //     "message": "request is not authorized"
         // }
         $feedback = $this->id . ' ' . $body;
         $errorCode = $this->safe_string($response, 'code');

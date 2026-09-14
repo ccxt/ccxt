@@ -124,67 +124,67 @@ class mexc extends \ccxt\async\mexc {
         // swap
         //
         //     {
-        //         "symbol" => "BTC_USDT",
-        //         "data" => array(
-        //             "symbol" => "BTC_USDT",
-        //             "lastPrice" => 76376.1,
-        //             "riseFallRate" => -0.0006,
-        //             "fairPrice" => 76374.4,
-        //             "indexPrice" => 76385.8,
-        //             "volume24" => 962062810,
-        //             "amount24" => 7344207079.96768,
-        //             "maxBidPrice" => 84024.3,
-        //             "minAskPrice" => 68747.2,
-        //             "lower24Price" => 75620.2,
-        //             "high24Price" => 77210,
-        //             "timestamp" => 1731137509138,
-        //             "bid1" => 76376.2,
-        //             "ask1" => 76376.3,
-        //             "holdVol" => 95479623,
-        //             "riseFallValue" => -46.5,
-        //             "fundingRate" => 0.0001,
-        //             "zone" => "UTC+8",
-        //             "riseFallRates" => array( -0.0006, 0.1008, 0.2262, 0.2628, 0.2439, 1.0564 ),
-        //             "riseFallRatesOfTimezone" => array( 0.0065, -0.0013, -0.0006 )
-        //         ),
-        //         "channel" => "push.ticker",
-        //         "ts" => 1731137509138
+        //         "symbol": "BTC_USDT",
+        //         "data": {
+        //             "symbol": "BTC_USDT",
+        //             "lastPrice": 76376.1,
+        //             "riseFallRate": -0.0006,
+        //             "fairPrice": 76374.4,
+        //             "indexPrice": 76385.8,
+        //             "volume24": 962062810,
+        //             "amount24": 7344207079.96768,
+        //             "maxBidPrice": 84024.3,
+        //             "minAskPrice": 68747.2,
+        //             "lower24Price": 75620.2,
+        //             "high24Price": 77210,
+        //             "timestamp": 1731137509138,
+        //             "bid1": 76376.2,
+        //             "ask1": 76376.3,
+        //             "holdVol": 95479623,
+        //             "riseFallValue": -46.5,
+        //             "fundingRate": 0.0001,
+        //             "zone": "UTC+8",
+        //             "riseFallRates": [ -0.0006, 0.1008, 0.2262, 0.2628, 0.2439, 1.0564 ],
+        //             "riseFallRatesOfTimezone": [ 0.0065, -0.0013, -0.0006 ]
+        //         },
+        //         "channel": "push.ticker",
+        //         "ts": 1731137509138
         //     }
         //
         // spot
         //
         //    {
-        //        "c" => "spot@public.bookTicker.v3.api@BTCUSDT",
-        //        "d" => array(
-        //            "A" => "4.70432",
-        //            "B" => "6.714863",
-        //            "a" => "20744.54",
-        //            "b" => "20744.17"
-        //        ),
-        //        "s" => "BTCUSDT",
-        //        "t" => 1678643605721
+        //        "c": "spot@public.bookTicker.v3.api@BTCUSDT",
+        //        "d": {
+        //            "A": "4.70432",
+        //            "B": "6.714863",
+        //            "a": "20744.54",
+        //            "b": "20744.17"
+        //        },
+        //        "s": "BTCUSDT",
+        //        "t": 1678643605721
         //    }
         //
         // spot miniTicker
         //
         //     {
-        //         "d" => array(
-        //             "s" => "BTCUSDT",
-        //             "p" => "76522",
-        //             "r" => "0.0012",
-        //             "tr" => "0.0012",
-        //             "h" => "77196.3",
-        //             "l" => "75630.77",
-        //             "v" => "584664223.92",
-        //             "q" => "7666.720258",
-        //             "lastRT" => "-1",
-        //             "MT" => "0",
-        //             "NV" => "--",
-        //             "t" => "1731135533126"
-        //         ),
-        //         "c" => "spot@public.miniTicker.v3.api@BTCUSDT@UTC+8",
-        //         "t" => 1731135533126,
-        //         "s" => "BTCUSDT"
+        //         "d": {
+        //             "s": "BTCUSDT",
+        //             "p": "76522",
+        //             "r": "0.0012",
+        //             "tr": "0.0012",
+        //             "h": "77196.3",
+        //             "l": "75630.77",
+        //             "v": "584664223.92",
+        //             "q": "7666.720258",
+        //             "lastRT": "-1",
+        //             "MT": "0",
+        //             "NV": "--",
+        //             "t": "1731135533126"
+        //         },
+        //         "c": "spot@public.miniTicker.v3.api@BTCUSDT@UTC+8",
+        //         "t": 1731135533126,
+        //         "s": "BTCUSDT"
         //     }
         //
         $this->handle_bid_ask($client, $message);
@@ -238,32 +238,32 @@ class mexc extends \ccxt\async\mexc {
         $request = array();
         if ($isSpot) {
             throw new NotSupported($this->id . ' watchTickers does not support spot markets');
-            // $miniTicker = false;
-            // list($miniTicker, $params) = $this->handle_option_and_params($params, 'watchTickers', 'miniTicker');
-            // $topics = array();
-            // if (!$miniTicker) {
-            //     if ($symbols === null) {
-            //         throw new ArgumentsRequired($this->id . ' watchTickers required $symbols argument for the bookTicker channel');
+            // let miniTicker = false;
+            // [ miniTicker, params ] = this.handleOptionAndParams (params, 'watchTickers', 'miniTicker');
+            // const topics = [];
+            // if (!miniTicker) {
+            //     if (symbols === undefined) {
+            //         throw new ArgumentsRequired (this.id + ' watchTickers required symbols argument for the bookTicker channel');
             //     }
-            //     $marketIds = $this->market_ids($symbols);
-            //     for ($i = 0; $i < count($marketIds); $i++) {
-            //         $marketId = $marketIds[$i];
-            //         $messageHashes[] = 'ticker:' . $symbols[$i];
-            //         $channel = 'spot@public.bookTicker.v3.api@' . $marketId;
-            //         $topics[] = $channel;
+            //     const marketIds = this.marketIds (symbols);
+            //     for (let i = 0; i < marketIds.length; i++) {
+            //         const marketId = marketIds[i];
+            //         messageHashes.push ('ticker:' + symbols[i]);
+            //         const channel = 'spot@public.bookTicker.v3.api@' + marketId;
+            //         topics.push (channel);
             //     }
             // } else {
-            //     $topics[] = 'spot@public.miniTickers.v3.api@UTC+8';
-            //     if ($symbols === null) {
-            //         $messageHashes[] = 'spot:ticker';
+            //     topics.push ('spot@public.miniTickers.v3.api@UTC+8');
+            //     if (symbols === undefined) {
+            //         messageHashes.push ('spot:ticker');
             //     } else {
-            //         for ($i = 0; $i < count($symbols); $i++) {
-            //             $messageHashes[] = 'ticker:' . $symbols[$i];
+            //         for (let i = 0; i < symbols.length; i++) {
+            //             messageHashes.push ('ticker:' + symbols[i]);
             //         }
             //     }
             // }
-            // $request['method'] = 'SUBSCRIPTION';
-            // $request['params'] = $topics;
+            // request['method'] = 'SUBSCRIPTION';
+            // request['params'] = topics;
         } else {
             $request['method'] = 'sub.tickers';
             $request['params'] = array();
@@ -283,60 +283,60 @@ class mexc extends \ccxt\async\mexc {
         // swap
         //
         //     {
-        //       "channel" => "push.tickers",
-        //       "data" => array(
+        //       "channel": "push.tickers",
+        //       "data": [
         //         {
-        //           "symbol" => "ETH_USDT",
-        //           "lastPrice" => 2324.5,
-        //           "riseFallRate" => 0.0356,
-        //           "fairPrice" => 2324.32,
-        //           "indexPrice" => 2325.44,
-        //           "volume24" => 25868309,
-        //           "amount24" => 591752573.9792,
-        //           "maxBidPrice" => 2557.98,
-        //           "minAskPrice" => 2092.89,
-        //           "lower24Price" => 2239.39,
-        //           "high24Price" => 2332.59,
-        //           "timestamp" => 1725872514111
+        //           "symbol": "ETH_USDT",
+        //           "lastPrice": 2324.5,
+        //           "riseFallRate": 0.0356,
+        //           "fairPrice": 2324.32,
+        //           "indexPrice": 2325.44,
+        //           "volume24": 25868309,
+        //           "amount24": 591752573.9792,
+        //           "maxBidPrice": 2557.98,
+        //           "minAskPrice": 2092.89,
+        //           "lower24Price": 2239.39,
+        //           "high24Price": 2332.59,
+        //           "timestamp": 1725872514111
         //         }
-        //       ),
-        //       "ts" => 1725872514111
+        //       ],
+        //       "ts": 1725872514111
         //     }
         //
         // spot
         //
         //    {
-        //        "c" => "spot@public.bookTicker.v3.api@BTCUSDT",
-        //        "d" => array(
-        //            "A" => "4.70432",
-        //            "B" => "6.714863",
-        //            "a" => "20744.54",
-        //            "b" => "20744.17"
-        //        ),
-        //        "s" => "BTCUSDT",
-        //        "t" => 1678643605721
+        //        "c": "spot@public.bookTicker.v3.api@BTCUSDT",
+        //        "d": {
+        //            "A": "4.70432",
+        //            "B": "6.714863",
+        //            "a": "20744.54",
+        //            "b": "20744.17"
+        //        },
+        //        "s": "BTCUSDT",
+        //        "t": 1678643605721
         //    }
         //
         // spot miniTicker
         //
         //     {
-        //         "d" => array(
-        //             "s" => "BTCUSDT",
-        //             "p" => "76522",
-        //             "r" => "0.0012",
-        //             "tr" => "0.0012",
-        //             "h" => "77196.3",
-        //             "l" => "75630.77",
-        //             "v" => "584664223.92",
-        //             "q" => "7666.720258",
-        //             "lastRT" => "-1",
-        //             "MT" => "0",
-        //             "NV" => "--",
-        //             "t" => "1731135533126"
-        //         ),
-        //         "c" => "spot@public.miniTicker.v3.api@BTCUSDT@UTC+8",
-        //         "t" => 1731135533126,
-        //         "s" => "BTCUSDT"
+        //         "d": {
+        //             "s": "BTCUSDT",
+        //             "p": "76522",
+        //             "r": "0.0012",
+        //             "tr": "0.0012",
+        //             "h": "77196.3",
+        //             "l": "75630.77",
+        //             "v": "584664223.92",
+        //             "q": "7666.720258",
+        //             "lastRT": "-1",
+        //             "MT": "0",
+        //             "NV": "--",
+        //             "t": "1731135533126"
+        //         },
+        //         "c": "spot@public.miniTicker.v3.api@BTCUSDT@UTC+8",
+        //         "t": 1731135533126,
+        //         "s": "BTCUSDT"
         //     }
         //
         $data = $this->safe_list_2($message, 'data', 'd', array());
@@ -369,36 +369,36 @@ class mexc extends \ccxt\async\mexc {
     }
 
     public function parse_ws_ticker(array $ticker, ?array $market = null) {
-        // protobuf $ticker
-        // "bidprice" => "93387.28",  // Best bid $price
-        // "bidquantity" => "3.73485", // Best bid quantity
-        // "askprice" => "93387.29", // Best ask $price
-        // "askquantity" => "7.669875" // Best ask quantity
+        // protobuf ticker
+        // "bidprice": "93387.28",  // Best bid price
+        // "bidquantity": "3.73485", // Best bid quantity
+        // "askprice": "93387.29", // Best ask price
+        // "askquantity": "7.669875" // Best ask quantity
         //
         // spot
         //
         //     {
-        //         "A" => "4.70432",
-        //         "B" => "6.714863",
-        //         "a" => "20744.54",
-        //         "b" => "20744.17"
+        //         "A": "4.70432",
+        //         "B": "6.714863",
+        //         "a": "20744.54",
+        //         "b": "20744.17"
         //     }
         //
         // spot miniTicker
         //
         //     {
-        //         "s" => "BTCUSDT",
-        //         "p" => "76521",
-        //         "r" => "0.0012",
-        //         "tr" => "0.0012",
-        //         "h" => "77196.3",
-        //         "l" => "75630.77",
-        //         "v" => "584664223.92",
-        //         "q" => "7666.720258",
-        //         "lastRT" => "-1",
-        //         "MT" => "0",
-        //         "NV" => "--",
-        //         "t" => "1731135533126"
+        //         "s": "BTCUSDT",
+        //         "p": "76521",
+        //         "r": "0.0012",
+        //         "tr": "0.0012",
+        //         "h": "77196.3",
+        //         "l": "75630.77",
+        //         "v": "584664223.92",
+        //         "q": "7666.720258",
+        //         "lastRT": "-1",
+        //         "MT": "0",
+        //         "NV": "--",
+        //         "t": "1731135533126"
         //     }
         //
         $marketId = $this->safe_string($ticker, 's');
@@ -482,15 +482,15 @@ class mexc extends \ccxt\async\mexc {
     public function handle_bid_ask(Client $client, mixed $message) {
         //
         //    {
-        //        "c" => "spot@public.bookTicker.v3.api@BTCUSDT",
-        //        "d" => array(
-        //            "A" => "4.70432",
-        //            "B" => "6.714863",
-        //            "a" => "20744.54",
-        //            "b" => "20744.17"
-        //        ),
-        //        "s" => "BTCUSDT",
-        //        "t" => 1678643605721
+        //        "c": "spot@public.bookTicker.v3.api@BTCUSDT",
+        //        "d": {
+        //            "A": "4.70432",
+        //            "B": "6.714863",
+        //            "a": "20744.54",
+        //            "b": "20744.17"
+        //        },
+        //        "s": "BTCUSDT",
+        //        "t": 1678643605721
         //    }
         //
         $parsedTicker = $this->parse_ws_bid_ask($message);
@@ -639,46 +639,46 @@ class mexc extends \ccxt\async\mexc {
         // spot
         //
         //    {
-        //        "d" => {
-        //            "e" => "spot@public.kline.v3.api",
-        //            "k" => array(
-        //                "t" => 1678642261,
-        //                "o" => 20626.94,
-        //                "c" => 20599.69,
-        //                "h" => 20626.94,
-        //                "l" => 20597.06,
-        //                "v" => 27.678686,
-        //                "a" => 570332.77,
-        //                "T" => 1678642320,
-        //                "i" => "Min1"
+        //        "d": {
+        //            "e": "spot@public.kline.v3.api",
+        //            "k": {
+        //                "t": 1678642261,
+        //                "o": 20626.94,
+        //                "c": 20599.69,
+        //                "h": 20626.94,
+        //                "l": 20597.06,
+        //                "v": 27.678686,
+        //                "a": 570332.77,
+        //                "T": 1678642320,
+        //                "i": "Min1"
         //            }
-        //        ),
-        //        "c" => "spot@public.kline.v3.api@BTCUSDT@Min1",
-        //        "t" => 1678642276459,
-        //        "s" => "BTCUSDT"
+        //        },
+        //        "c": "spot@public.kline.v3.api@BTCUSDT@Min1",
+        //        "t": 1678642276459,
+        //        "s": "BTCUSDT"
         //    }
         //
         // swap
         //
         //   {
-        //       "channel" => "push.kline",
-        //       "data" => array(
-        //         "a" => 325653.3287,
-        //         "c" => 38839,
-        //         "h" => 38909.5,
-        //         "interval" => "Min1",
-        //         "l" => 38833,
-        //         "o" => 38901.5,
-        //         "q" => 83808,
-        //         "rc" => 38839,
-        //         "rh" => 38909.5,
-        //         "rl" => 38833,
-        //         "ro" => 38909.5,
-        //         "symbol" => "BTC_USDT",
-        //         "t" => 1651230660
-        //       ),
-        //       "symbol" => "BTC_USDT",
-        //       "ts" => 1651230713067
+        //       "channel": "push.kline",
+        //       "data": {
+        //         "a": 325653.3287,
+        //         "c": 38839,
+        //         "h": 38909.5,
+        //         "interval": "Min1",
+        //         "l": 38833,
+        //         "o": 38901.5,
+        //         "q": 83808,
+        //         "rc": 38839,
+        //         "rh": 38909.5,
+        //         "rl": 38833,
+        //         "ro": 38909.5,
+        //         "symbol": "BTC_USDT",
+        //         "t": 1651230660
+        //       },
+        //       "symbol": "BTC_USDT",
+        //       "ts": 1651230713067
         //   }
         // protobuf
         //  {
@@ -738,32 +738,32 @@ class mexc extends \ccxt\async\mexc {
         // spot
         //
         //    {
-        //        "t" => 1678642260,
-        //        "o" => 20626.94,
-        //        "c" => 20599.69,
-        //        "h" => 20626.94,
-        //        "l" => 20597.06,
-        //        "v" => 27.678686,
-        //        "a" => 570332.77,
-        //        "T" => 1678642320,
-        //        "i" => "Min1"
+        //        "t": 1678642260,
+        //        "o": 20626.94,
+        //        "c": 20599.69,
+        //        "h": 20626.94,
+        //        "l": 20597.06,
+        //        "v": 27.678686,
+        //        "a": 570332.77,
+        //        "T": 1678642320,
+        //        "i": "Min1"
         //    }
         //
         // swap
         //    {
-        //       "symbol" => "BTC_USDT",
-        //       "interval" => "Min1",
-        //       "t" => 1680055080,
-        //       "o" => 27301.9,
-        //       "c" => 27301.8,
-        //       "h" => 27301.9,
-        //       "l" => 27301.8,
-        //       "a" => 8.19054,
-        //       "q" => 3,
-        //       "ro" => 27301.8,
-        //       "rc" => 27301.8,
-        //       "rh" => 27301.8,
-        //       "rl" => 27301.8
+        //       "symbol": "BTC_USDT",
+        //       "interval": "Min1",
+        //       "t": 1680055080,
+        //       "o": 27301.9,
+        //       "c": 27301.8,
+        //       "h": 27301.9,
+        //       "l": 27301.8,
+        //       "a": 8.19054,
+        //       "q": 3,
+        //       "ro": 27301.8,
+        //       "rc": 27301.8,
+        //       "rh": 27301.8,
+        //       "rl": 27301.8
         //     }
         // protobuf
         //
@@ -778,8 +778,8 @@ class mexc extends \ccxt\async\mexc {
         //       "windowEnd":"1754737980"
         //
         $volume = $this->safe_number_2($ohlcv, 'v', 'volume');
-        // MEXC swap websocket klines publish contracts $volume in `q`,
-        // while spot/protobuf uses `v`/`$volume`.
+        // MEXC swap websocket klines publish contracts volume in `q`,
+        // while spot/protobuf uses `v`/`volume`.
         if (($market !== null) && ($this->safe_bool($market, 'spot') !== true) && ($volume === null)) {
             $volume = $this->safe_number_2($ohlcv, 'q', 'v');
         }
@@ -835,7 +835,7 @@ class mexc extends \ccxt\async\mexc {
 
     public function handle_order_book_subscription(Client $client, mixed $message) {
         // spot
-        //     array( id => 0, code => 0, $msg => "spot@public.increase.depth.v3.api@BTCUSDT" )
+        //     { id: 0, code: 0, msg: "spot@public.increase.depth.v3.api@BTCUSDT" }
         //
         $msg = $this->safe_string($message, 'msg', '');
         $parts = explode('@', $msg);
@@ -845,7 +845,7 @@ class mexc extends \ccxt\async\mexc {
     }
 
     public function get_cache_index(mixed $orderbook, mixed $cache) {
-        // return the first index of the $cache that can be applied to the $orderbook or -1 if not possible
+        // return the first index of the cache that can be applied to the orderbook or -1 if not possible
         $nonce = $this->safe_integer($orderbook, 'nonce');
         $firstDelta = $this->safe_value($cache, 0);
         $firstDeltaNonce = $this->safe_integer_n($firstDelta, array( 'r', 'version', 'fromVersion' ));
@@ -872,17 +872,17 @@ class mexc extends \ccxt\async\mexc {
         //
         // spot
         //    {
-        //        "c" => "spot@public.increase.depth.v3.api@BTCUSDT",
-        //        "d" => array(
-        //            "asks" => [array(
-        //                "p" => "20290.89",
-        //                "v" => "0.000000"
-        //            )],
-        //            "e" => "spot@public.increase.depth.v3.api",
-        //            "r" => "3407459756"
-        //        ),
-        //        "s" => "BTCUSDT",
-        //        "t" => 1661932660144
+        //        "c": "spot@public.increase.depth.v3.api@BTCUSDT",
+        //        "d": {
+        //            "asks": [{
+        //                "p": "20290.89",
+        //                "v": "0.000000"
+        //            }],
+        //            "e": "spot@public.increase.depth.v3.api",
+        //            "r": "3407459756"
+        //        },
+        //        "s": "BTCUSDT",
+        //        "t": 1661932660144
         //    }
         //
         //
@@ -890,24 +890,24 @@ class mexc extends \ccxt\async\mexc {
         // swap
         //  {
         //      "channel":"push.depth",
-        //      "data":array(
-        //         "asks":array(
-        //            array(
+        //      "data":{
+        //         "asks":[
+        //            [
         //               39146.5,
         //               11264,
         //               1
-        //            )
-        //         ),
-        //         "bids":array(
-        //            array(
+        //            ]
+        //         ],
+        //         "bids":[
+        //            [
         //               39144,
         //               35460,
         //               1
-        //            )
-        //         ),
+        //            ]
+        //         ],
         //         "end":4895965272,
         //         "begin":4895965271
-        //      ),
+        //      },
         //      "symbol":"BTC_USDT",
         //      "ts":1651239652372
         //  }
@@ -917,18 +917,18 @@ class mexc extends \ccxt\async\mexc {
         //      "symbol":"BTCUSDT",
         //      "sendTime":"1754741322152",
         //      "publicAggreDepths":{
-        //          "asks":array(
+        //          "asks":[
         //              {
         //                  "price":"117145.49",
         //                  "quantity":"0"
         //              }
-        //          ),
-        //          "bids":array(
+        //          ],
+        //          "bids":[
         //              {
         //                  "price":"117053.41",
         //                  "quantity":"1.86837271"
         //              }
-        //          ),
+        //          ],
         //          "eventType":"spot@public.aggre.depth.v3.api.pb@100ms",
         //          "fromVersion":"43296363236",
         //          "toVersion":"43296363255"
@@ -975,10 +975,10 @@ class mexc extends \ccxt\async\mexc {
 
     public function handle_bookside_delta(mixed $bookside, mixed $bidasks) {
         //
-        //    [array(
-        //        "p" => "20290.89",
-        //        "v" => "0.000000"
-        //    )]
+        //    [{
+        //        "p": "20290.89",
+        //        "v": "0.000000"
+        //    }]
         //
         for ($i = 0; $i < count($bidasks); $i++) {
             $bidask = $bidasks[$i];
@@ -996,7 +996,7 @@ class mexc extends \ccxt\async\mexc {
         $existingNonce = $this->safe_integer($orderbook, 'nonce');
         $deltaNonce = $this->safe_integer_n($delta, array( 'r', 'version', 'fromVersion' ));
         if (($deltaNonce !== null) && ($existingNonce !== null) && ($deltaNonce < $existingNonce)) {
-            // even when doing < comparison, this happens => https://app.travis-ci.com/github/ccxt/ccxt/builds/269234741#L1809
+            // even when doing < comparison, this happens: https://app.travis-ci.com/github/ccxt/ccxt/builds/269234741#L1809
             // so, we just skip old updates
             return;
         }
@@ -1053,52 +1053,52 @@ class mexc extends \ccxt\async\mexc {
     public function handle_trades(Client $client, mixed $message) {
         // protobuf
         // {
-        // "channel" => "spot@public.aggre.deals.v3.api.pb@100ms@BTCUSDT",
-        // "publicdeals" => {
-        //     "dealsList" => array(
-        //     array(
-        //         "price" => "93220.00", // Trade price
-        //         "quantity" => "0.04438243", // Trade quantity
-        //         "tradetype" => 2, // Trade type (1 => Buy, 2 => Sell)
-        //         "time" => 1736409765051 // Trade time
+        // "channel": "spot@public.aggre.deals.v3.api.pb@100ms@BTCUSDT",
+        // "publicdeals": {
+        //     "dealsList": [
+        //     {
+        //         "price": "93220.00", // Trade price
+        //         "quantity": "0.04438243", // Trade quantity
+        //         "tradetype": 2, // Trade type (1: Buy, 2: Sell)
+        //         "time": 1736409765051 // Trade time
         //     }
-        //     ),
-        //     "eventtype" => "spot@public.aggre.deals.v3.api.pb@100ms" // Event type
-        // ),
-        // "symbol" => "BTCUSDT", // Trading pair
-        // "sendtime" => 1736409765052 // Event time
+        //     ],
+        //     "eventtype": "spot@public.aggre.deals.v3.api.pb@100ms" // Event type
+        // },
+        // "symbol": "BTCUSDT", // Trading pair
+        // "sendtime": 1736409765052 // Event time
         // }
         //
         //    {
-        //        "c" => "spot@public.deals.v3.api@BTCUSDT",
-        //        "d" => array(
-        //            "deals" => [array(
-        //                "p" => "20382.70",
-        //                "v" => "0.043800",
-        //                "S" => 1,
-        //                "t" => 1678593222456,
-        //            ), ],
-        //            "e" => "spot@public.deals.v3.api",
-        //        ),
-        //        "s" => "BTCUSDT",
-        //        "t" => 1678593222460,
+        //        "c": "spot@public.deals.v3.api@BTCUSDT",
+        //        "d": {
+        //            "deals": [{
+        //                "p": "20382.70",
+        //                "v": "0.043800",
+        //                "S": 1,
+        //                "t": 1678593222456,
+        //            }, ],
+        //            "e": "spot@public.deals.v3.api",
+        //        },
+        //        "s": "BTCUSDT",
+        //        "t": 1678593222460,
         //    }
         //
         // swap
         //     {
-        //         "symbol" => "BTC_USDT",
-        //         "data" => array(
+        //         "symbol": "BTC_USDT",
+        //         "data": [
         //            {
-        //                "p" => 114350.4,
-        //                "v" => 4,
-        //                "T" => 2,
-        //                "O" => 3,
-        //                "M" => 2,
-        //                "t" => 1760368563597
+        //                "p": 114350.4,
+        //                "v": 4,
+        //                "T": 2,
+        //                "O": 3,
+        //                "M": 2,
+        //                "t": 1760368563597
         //            }
-        //         ),
-        //         "channel" => "push.deal",
-        //         "ts" => 1680055941870
+        //         ],
+        //         "channel": "push.deal",
+        //         "ts": 1680055941870
         //     }
         //
         $marketId = $this->safe_string_2($message, 's', 'symbol');
@@ -1173,35 +1173,35 @@ class mexc extends \ccxt\async\mexc {
     public function handle_my_trade(Client $client, mixed $message, ?array $subscription = null) {
         //
         //    {
-        //        "c" => "spot@private.deals.v3.api",
-        //        "d" => array(
-        //            "p" => "22339.99",
-        //            "v" => "0.000235",
-        //            "S" => 1,
-        //            "T" => 1678670940695,
-        //            "t" => "9f6a47fb926442e496c5c4c104076ae3",
-        //            "c" => '',
-        //            "i" => "e2b9835d1b6745f8a10ab74a81a16d50",
-        //            "m" => 0,
-        //            "st" => 0
-        //        ),
-        //        "s" => "BTCUSDT",
-        //        "t" => 1678670940700
+        //        "c": "spot@private.deals.v3.api",
+        //        "d": {
+        //            "p": "22339.99",
+        //            "v": "0.000235",
+        //            "S": 1,
+        //            "T": 1678670940695,
+        //            "t": "9f6a47fb926442e496c5c4c104076ae3",
+        //            "c": '',
+        //            "i": "e2b9835d1b6745f8a10ab74a81a16d50",
+        //            "m": 0,
+        //            "st": 0
+        //        },
+        //        "s": "BTCUSDT",
+        //        "t": 1678670940700
         //    }
         //    {
-        //      channel => "spot@private.deals.v3.api.pb",
-        //      $symbol => "MXUSDT",
-        //      sendTime => 1736417034332,
+        //      channel: "spot@private.deals.v3.api.pb",
+        //      symbol: "MXUSDT",
+        //      sendTime: 1736417034332,
         //      privateDeals {
-        //        price => "3.6962",
-        //        quantity => "1",
-        //        amount => "3.6962",
-        //        tradeType => 2,
-        //        tradeId => "505979017439002624X1",
-        //        orderId => "C02__505979017439002624115",
-        //        feeAmount => "0.0003998377369698171",
-        //        feeCurrency => "MX",
-        //        time => 1736417034280
+        //        price: "3.6962",
+        //        quantity: "1",
+        //        amount: "3.6962",
+        //        tradeType: 2,
+        //        tradeId: "505979017439002624X1",
+        //        orderId: "C02__505979017439002624115",
+        //        feeAmount: "0.0003998377369698171",
+        //        feeCurrency: "MX",
+        //        time: 1736417034280
         //      }
         // }
         //
@@ -1232,52 +1232,52 @@ class mexc extends \ccxt\async\mexc {
 
     public function parse_ws_trade(mixed $trade, ?array $market = null) {
         //
-        // public $trade (protobuf)
+        // public trade (protobuf)
         //    {
-        //        "p" => "20382.70",
-        //        "v" => "0.043800",
-        //        "S" => 1,
-        //        "t" => 1678593222456,
+        //        "p": "20382.70",
+        //        "v": "0.043800",
+        //        "S": 1,
+        //        "t": 1678593222456,
         //    }
-        // private $trade
+        // private trade
         //    {
-        //        "S" => 1,
-        //        "T" => 1661938980268,
-        //        "c" => "",
-        //        "i" => "c079b0fcb80a46e8b128b281ce4e4f38",
-        //        "m" => 1,
-        //        "p" => "1.008",
-        //        "st" => 0,
-        //        "t" => "4079b1522a0b40e7919f609e1ea38d44",
-        //        "v" => "5"
+        //        "S": 1,
+        //        "T": 1661938980268,
+        //        "c": "",
+        //        "i": "c079b0fcb80a46e8b128b281ce4e4f38",
+        //        "m": 1,
+        //        "p": "1.008",
+        //        "st": 0,
+        //        "t": "4079b1522a0b40e7919f609e1ea38d44",
+        //        "v": "5"
         //    }
         //
-        //   d => {
-        //       p => '1.0005',
-        //       v => '5.71',
-        //       a => '5.712855',
-        //       S => 1,
-        //       T => 1714325698237,
-        //       t => 'edafcd9fdc2f426e82443d114691f724',
-        //       c => '',
-        //       i => 'C02__413321238354677760043',
-        //       m => 0,
-        //       st => 0,
-        //       n => '0.005712855',
-        //       N => 'USDT'
+        //   d: {
+        //       p: '1.0005',
+        //       v: '5.71',
+        //       a: '5.712855',
+        //       S: 1,
+        //       T: 1714325698237,
+        //       t: 'edafcd9fdc2f426e82443d114691f724',
+        //       c: '',
+        //       i: 'C02__413321238354677760043',
+        //       m: 0,
+        //       st: 0,
+        //       n: '0.005712855',
+        //       N: 'USDT'
         //   }
         // protobuf
         //
         //     {
-        //        price => "3.6962",
-        //        quantity => "1",
-        //        amount => "3.6962",
-        //        tradeType => 2,
-        //        $tradeId => "505979017439002624X1",
-        //        orderId => "C02__505979017439002624115",
-        //        $feeAmount => "0.0003998377369698171",
-        //        feeCurrency => "MX",
-        //        time => 1736417034280
+        //        price: "3.6962",
+        //        quantity: "1",
+        //        amount: "3.6962",
+        //        tradeType: 2,
+        //        tradeId: "505979017439002624X1",
+        //        orderId: "C02__505979017439002624115",
+        //        feeAmount: "0.0003998377369698171",
+        //        feeCurrency: "MX",
+        //        time: 1736417034280
         //      }
         //
         $timestamp = $this->safe_integer_2($trade, 'T', 'time');
@@ -1361,8 +1361,8 @@ class mexc extends \ccxt\async\mexc {
         //
         // spot
         //    {
-        //        "c" => "spot@private.orders.v3.api",
-        //        "d" => array(
+        //        "c": "spot@private.orders.v3.api",
+        //        "d": {
         //              "A":8.0,
         //              "O":1661938138000,
         //              "S":1,
@@ -1378,14 +1378,14 @@ class mexc extends \ccxt\async\mexc {
         //              "ap":0,
         //              "cv":0,
         //              "ca":0
-        //        ),
-        //        "s" => "MXUSDT",
-        //        "t" => 1661938138193
+        //        },
+        //        "s": "MXUSDT",
+        //        "t": 1661938138193
         //    }
         // spot - stop
         //    {
-        //        "c" => "spot@private.orders.v3.api",
-        //        "d" => array(
+        //        "c": "spot@private.orders.v3.api",
+        //        "d": {
         //              "N":"USDT",
         //              "O":1661938853715,
         //              "P":0.9,
@@ -1396,14 +1396,14 @@ class mexc extends \ccxt\async\mexc {
         //              "p":1.01,
         //              "s":"NEW",
         //              "v":6
-        //        ),
-        //        "s" => "MXUSDT",
-        //        "t" => 1661938853727
+        //        },
+        //        "s": "MXUSDT",
+        //        "t": 1661938853727
         //    }
         // margin
         //    {
-        //        "c" => "margin@private.orders.v3.api",
-        //        "d":array(
+        //        "c": "margin@private.orders.v3.api",
+        //        "d":{
         //             "O":1661938138000,
         //             "p":"0.8",
         //             "a":"8",
@@ -1412,22 +1412,22 @@ class mexc extends \ccxt\async\mexc {
         //            "dv":"0",
         //             "A":"8.0",
         //             "V":"10",
-        //             "n" => "0",
-        //             "N" => "USDT",
+        //             "n": "0",
+        //             "N": "USDT",
         //             "S":1,
         //             "o":1,
         //             "s":1,
         //             "i":"e03a5c7441e44ed899466a7140b71391",
-        //        ),
-        //        "s" => "MXUSDT",
+        //        },
+        //        "s": "MXUSDT",
         //        "t":1661938138193
         //    }
         // protobuf
         //   {
-        //      channel => "spot@private.orders.v3.api.pb",
-        //      $symbol => "MXUSDT",
-        //      $sendTime => 1736417034281,
-        //      privateOrders array()
+        //      channel: "spot@private.orders.v3.api.pb",
+        //      symbol: "MXUSDT",
+        //      sendTime: 1736417034281,
+        //      privateOrders {}
         //   }
         //
         $messageHash = 'orders';
@@ -1502,14 +1502,14 @@ class mexc extends \ccxt\async\mexc {
         //       "dv":"0",
         //        "A":"8.0",
         //        "V":"10",
-        //        "n" => "0",
-        //        "N" => "USDT",
+        //        "n": "0",
+        //        "N": "USDT",
         //        "S":1,
         //        "o":1,
         //        "s":1,
         //        "i":"e03a5c7441e44ed899466a7140b71391",
         //    }
-        // protofbuf spot $order
+        // protofbuf spot order
         // {
         //     "id":"C02__583905164440776704043",
         //     "price":"0.001053",
@@ -1641,18 +1641,18 @@ class mexc extends \ccxt\async\mexc {
         // spot
         //
         //    {
-        //        $channel => "spot@private.account.v3.api.pb",
-        //        createTime => "1758134605364",
-        //        sendTime => "1758134605373",
-        //        privateAccount => {
-        //          vcoinName => "USDT",
-        //          coinId => "128f589271cb4951b03e71e6323eb7be",
-        //          balanceAmount => "0.006016465074677006",
-        //          balanceAmountChange => "-4.4022",
-        //          frozenAmount => "4.4022",
-        //          frozenAmountChange => "4.4022",
-        //          $type => "ENTRUST_PLACE",
-        //          time => "1758134605364",
+        //        channel: "spot@private.account.v3.api.pb",
+        //        createTime: "1758134605364",
+        //        sendTime: "1758134605373",
+        //        privateAccount: {
+        //          vcoinName: "USDT",
+        //          coinId: "128f589271cb4951b03e71e6323eb7be",
+        //          balanceAmount: "0.006016465074677006",
+        //          balanceAmountChange: "-4.4022",
+        //          frozenAmount: "4.4022",
+        //          frozenAmountChange: "4.4022",
+        //          type: "ENTRUST_PLACE",
+        //          time: "1758134605364",
         //       }
         //    }
         //
@@ -1660,15 +1660,15 @@ class mexc extends \ccxt\async\mexc {
         // swap balance
         //
         //     {
-        //         "channel" => "push.personal.asset",
-        //         "data" => array(
-        //             "availableBalance" => 67.2426683348,
-        //             "bonus" => 0,
-        //             "currency" => "USDT",
-        //             "frozenBalance" => 0,
-        //             "positionMargin" => 1.36945756
-        //         ),
-        //         "ts" => 1680059188191
+        //         "channel": "push.personal.asset",
+        //         "data": {
+        //             "availableBalance": 67.2426683348,
+        //             "bonus": 0,
+        //             "currency": "USDT",
+        //             "frozenBalance": 0,
+        //             "positionMargin": 1.36945756
+        //         },
+        //         "ts": 1680059188191
         //     }
         //
         $channel = $this->safe_string($message, 'channel');
@@ -1755,14 +1755,14 @@ class mexc extends \ccxt\async\mexc {
     public function handle_funding_rate(Client $client, mixed $message) {
         //
         //     {
-        //         "symbol" => "BTC_USDT",
-        //         "data" => array(
-        //             "symbol" => "BTC_USDT",
-        //             "rate" => -0.000021,
-        //             "nextSettleTime" => 1771084800000
-        //         ),
-        //         "channel" => "push.funding.rate",
-        //         "ts" => 1771069020506
+        //         "symbol": "BTC_USDT",
+        //         "data": {
+        //             "symbol": "BTC_USDT",
+        //             "rate": -0.000021,
+        //             "nextSettleTime": 1771084800000
+        //         },
+        //         "channel": "push.funding.rate",
+        //         "ts": 1771069020506
         //     }
         //
         $data = $this->safe_dict($message, 'data', array());
@@ -1839,32 +1839,32 @@ class mexc extends \ccxt\async\mexc {
         $request = array();
         if ($isSpot) {
             throw new NotSupported($this->id . ' watchTickers does not support spot markets');
-            // $miniTicker = false;
-            // list($miniTicker, $params) = $this->handle_option_and_params($params, 'watchTickers', 'miniTicker');
-            // $topics = array();
-            // if (!$miniTicker) {
-            //     if ($symbols === null) {
-            //         throw new ArgumentsRequired($this->id . ' watchTickers required $symbols argument for the bookTicker channel');
+            // let miniTicker = false;
+            // [ miniTicker, params ] = this.handleOptionAndParams (params, 'watchTickers', 'miniTicker');
+            // const topics = [];
+            // if (!miniTicker) {
+            //     if (symbols === undefined) {
+            //         throw new ArgumentsRequired (this.id + ' watchTickers required symbols argument for the bookTicker channel');
             //     }
-            //     $marketIds = $this->market_ids($symbols);
-            //     for ($i = 0; $i < count($marketIds); $i++) {
-            //         $marketId = $marketIds[$i];
-            //         $messageHashes[] = 'unsubscribe:ticker:' . $symbols[$i];
-            //         $channel = 'spot@public.bookTicker.v3.api@' . $marketId;
-            //         $topics[] = $channel;
+            //     const marketIds = this.marketIds (symbols);
+            //     for (let i = 0; i < marketIds.length; i++) {
+            //         const marketId = marketIds[i];
+            //         messageHashes.push ('unsubscribe:ticker:' + symbols[i]);
+            //         const channel = 'spot@public.bookTicker.v3.api@' + marketId;
+            //         topics.push (channel);
             //     }
             // } else {
-            //     $topics[] = 'spot@public.miniTickers.v3.api@UTC+8';
-            //     if ($symbols === null) {
-            //         $messageHashes[] = 'unsubscribe:spot:ticker';
+            //     topics.push ('spot@public.miniTickers.v3.api@UTC+8');
+            //     if (symbols === undefined) {
+            //         messageHashes.push ('unsubscribe:spot:ticker');
             //     } else {
-            //         for ($i = 0; $i < count($symbols); $i++) {
-            //             $messageHashes[] = 'unsubscribe:ticker:' . $symbols[$i];
+            //         for (let i = 0; i < symbols.length; i++) {
+            //             messageHashes.push ('unsubscribe:ticker:' + symbols[i]);
             //         }
             //     }
             // }
-            // $request['method'] = 'UNSUBSCRIPTION';
-            // $request['params'] = $topics;
+            // request['method'] = 'UNSUBSCRIPTION';
+            // request['params'] = topics;
         } else {
             $request['method'] = 'unsub.tickers';
             $request['params'] = array();
@@ -2093,14 +2093,14 @@ class mexc extends \ccxt\async\mexc {
     }
 
     private function do_authenticate(mixed $subscriptionHash, $params = array()) {
-        // we only need one $listenKey since ccxt shares connections
+        // we only need one listenKey since ccxt shares connections
         $listenKey = $this->safe_string($this->options, 'listenKey');
         if ($listenKey !== null) {
             return $listenKey;
         }
-        // guard against concurrent $listenKey requests with a future on the base
-        // spot ws $client - the first caller fetches the $listenKey, concurrent
-        // callers wait on the future and resume when the $listenKey is ready,
+        // guard against concurrent listenKey requests with a future on the base
+        // spot ws client - the first caller fetches the listenKey, concurrent
+        // callers wait on the future and resume when the listenKey is ready,
         // otherwise the user-data subscriptions would be split across two connections
         $client = $this->client($this->urls['api']['ws']['spot']);
         $messageHash = 'authenticate:listenKey';
@@ -2122,7 +2122,7 @@ class mexc extends \ccxt\async\mexc {
         $this->options['listenKeyFetching'] = false;
         //
         //    {
-        //        "listenKey" => "pqia91ma19a5s61cv6a81va65sdf19v8a65a1a5s61cv6a81va65sdf19v8a65a1"
+        //        "listenKey": "pqia91ma19a5s61cv6a81va65sdf19v8a65a1a5s61cv6a81va65sdf19v8a65a1"
         //    }
         //
         $listenKey = $this->safe_string($response, 'listenKey');
@@ -2165,11 +2165,11 @@ class mexc extends \ccxt\async\mexc {
     public function handle_subscription_status(Client $client, mixed $message) {
         //
         //    {
-        //        "id" => 0,
-        //        "code" => 0,
-        //        "msg" => "spot@public.increase.depth.v3.api@BTCUSDT"
+        //        "id": 0,
+        //        "code": 0,
+        //        "msg": "spot@public.increase.depth.v3.api@BTCUSDT"
         //    }
-        // Set the default to an empty string if the $message is empty during the test.
+        // Set the default to an empty string if the message is empty during the test.
         $msg = $this->safe_string($message, 'msg', '');
         if ($msg === 'PONG') {
             $this->handle_pong($client, $message);
@@ -2188,7 +2188,7 @@ class mexc extends \ccxt\async\mexc {
     }
 
     public function handle_protobuf_message(Client $client, mixed $message): bool {
-        // protobuf $message decoded
+        // protobuf message decoded
         //  {
         //    "channel":"spot@public.kline.v3.api.pb@BTCUSDT@Min1",
         //    "symbol":"BTCUSDT",

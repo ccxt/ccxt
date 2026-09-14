@@ -301,9 +301,9 @@ class bitbank(Exchange, ImplicitAPI):
         #             "market_allowance_rate": "0.2",
         #             "price_digits": 0,
         #             "amount_digits": 4,
-        #             "is_enabled": True,
-        #             "stop_order": False,
-        #             "stop_order_and_cancel": False
+        #             "is_enabled": true,
+        #             "stop_order": false,
+        #             "stop_order_and_cancel": false
         #           }
         #         ]
         #       }
@@ -538,9 +538,9 @@ class bitbank(Exchange, ImplicitAPI):
         #               "market_allowance_rate": "0.2",
         #               "price_digits": "0",
         #               "amount_digits": "4",
-        #               "is_enabled": True,
-        #               "stop_order": False,
-        #               "stop_order_and_cancel": False
+        #               "is_enabled": true,
+        #               "stop_order": false,
+        #               "stop_order_and_cancel": false
         #             },
         #             ...
         #           ]
@@ -600,7 +600,7 @@ class bitbank(Exchange, ImplicitAPI):
         """
         if since is None:
             if limit is None:
-                limit = 1000  # it doesn't have any defaults, might return 200, might 2000(i.e. https://public.bitbank.cc/btc_jpy/candlestick/4hour/2020)
+                limit = 1000  # it doesn't have any defaults, might return 200, might 2000 (i.e. https://public.bitbank.cc/btc_jpy/candlestick/4hour/2020)
             duration = self.parse_timeframe(timeframe)
             since = self.milliseconds() - duration * 1000 * limit
         if self.markets is None:
@@ -679,8 +679,8 @@ class bitbank(Exchange, ImplicitAPI):
         #             "onhand_amount": "0.0000",
         #             "locked_amount": "0.0000",
         #             "free_amount": "0.0000",
-        #             "stop_deposit": False,
-        #             "stop_withdrawal": False,
+        #             "stop_deposit": false,
+        #             "stop_withdrawal": false,
         #             "withdrawal_fee": {
         #               "threshold": "30000.0000",
         #               "under": "550.0000",
@@ -693,8 +693,8 @@ class bitbank(Exchange, ImplicitAPI):
         #             "onhand_amount": "0.00000000",
         #             "locked_amount": "0.00000000",
         #             "free_amount": "0.00000000",
-        #             "stop_deposit": False,
-        #             "stop_withdrawal": False,
+        #             "stop_deposit": false,
+        #             "stop_withdrawal": false,
         #             "withdrawal_fee": "0.00060000"
         #           },
         #         ]
@@ -810,7 +810,7 @@ class bitbank(Exchange, ImplicitAPI):
         #            "remaining_amount": "string",
         #            "executed_amount": "string",
         #            "price": "string",
-        #            "post_only": False,
+        #            "post_only": false,
         #            "average_price": "string",
         #            "ordered_at": 0,
         #            "expire_at": 0,
@@ -855,7 +855,7 @@ class bitbank(Exchange, ImplicitAPI):
         #          "remaining_amount": "string",
         #          "executed_amount": "string",
         #          "price": "string",
-        #          "post_only": False,
+        #          "post_only": false,
         #          "average_price": "string",
         #          "ordered_at": 0,
         #          "expire_at": 0,
@@ -941,7 +941,7 @@ class bitbank(Exchange, ImplicitAPI):
         }
         response = self.privateGetUserWithdrawalAccount(self.extend(request, params))
         data = self.safe_value(response, 'data', {})
-        # Not sure about self if there could be more than one account...
+        # Not sure about this if there could be more than one account...
         accounts = self.safe_value(data, 'accounts', [])
         firstAccount = self.safe_value(accounts, 0, {})
         address = self.safe_string(firstAccount, 'address')
@@ -1052,7 +1052,7 @@ class bitbank(Exchange, ImplicitAPI):
         else:
             self.check_required_credentials()
             # bitbank supports two auth methods, see https://github.com/bitbankinc/bitbank-api-docs/blob/master/rest-api.md#authorization
-            # 'timeWindow'(default): request time + validity window, stateless and safe for concurrent use of one key
+            # 'timeWindow' (default): request time + validity window, stateless and safe for concurrent use of one key
             # 'nonce': legacy strictly-increasing nonce, kept as an escape hatch for clients with drifting clocks,
             # since bitbank offers no server time endpoint to compensate against
             authMethod = self.safe_string(self.options, 'authMethod', 'timeWindow')

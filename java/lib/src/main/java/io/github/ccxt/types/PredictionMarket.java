@@ -9,7 +9,7 @@ import java.util.stream.Collectors;
 
 // Native dedicated prediction-market type. Hierarchy: Event -> Market -> Outcome.
 // Mirrors the `PredictionMarket` interface in ts/src/base/types.ts and the Go/C# structs.
-public final class PredictionMarket {
+public final class PredictionMarket extends TypedMap {
     public String id;              // raw exchange market id
     public String market;          // unified handle "TRUMP_WIN_2024"
     public String eventId;
@@ -44,6 +44,7 @@ public final class PredictionMarket {
 
     @SuppressWarnings("unchecked")
     public PredictionMarket(Object raw) {
+        super(raw);
         Map<String, Object> data = TypeHelper.toMap(raw);
         this.id = TypeHelper.safeString(data, "id");
         this.market = TypeHelper.safeString(data, "market");

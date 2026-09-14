@@ -973,7 +973,7 @@ class nado(Exchange, ImplicitAPI):
         #                 },
         #                 "signature": "0x...",
         #                 "product_id": 1,
-        #                 "spot_leverage": True,
+        #                 "spot_leverage": true,
         #                 "trigger": {
         #                     "price_above": "1000000000000000000"
         #                 },
@@ -1222,7 +1222,7 @@ class nado(Exchange, ImplicitAPI):
         #                 "quote_filled": "-20276464287857571514302",
         #                 "fee": "4055287857571514302",
         #                 "submission_idx": "563012",
-        #                 "is_taker": True
+        #                 "is_taker": true
         #             }
         #         ],
         #         "txs": [
@@ -1270,7 +1270,7 @@ class nado(Exchange, ImplicitAPI):
         #         "status": "success",
         #         "data": {
         #             "subaccount": "0x8d7d64d6cf1d4f018dd101482ac71ad49e30c56064656661756c740000000000",
-        #             "exists": True,
+        #             "exists": true,
         #             "spot_balances": [
         #                 {
         #                     "product_id": 0,
@@ -1993,12 +1993,12 @@ class nado(Exchange, ImplicitAPI):
         #         "product_id": 1,
         #         "ticker_id": "BTC-PERP_USDT0",
         #         "bids": [
-        #             [116215.0, 0.128],
-        #             [116214.0, 0.172]
+        #             [ 116215.0, 0.128 ],
+        #             [ 116214.0, 0.172 ]
         #         ],
         #         "asks": [
-        #             [116225.0, 0.043],
-        #             [116226.0, 0.172]
+        #             [ 116225.0, 0.043 ],
+        #             [ 116226.0, 0.172 ]
         #         ],
         #         "timestamp": 1757913317944
         #     }
@@ -2143,7 +2143,7 @@ class nado(Exchange, ImplicitAPI):
         #         "base_filled": "736000000000000000",
         #         "quote_filled": "-20276464287857571514302",
         #         "fee": "4055287857571514302",
-        #         "is_taker": True
+        #         "is_taker": true
         #     }
         #
         marketId = self.safe_string(trade, 'product_id')
@@ -2380,7 +2380,7 @@ class nado(Exchange, ImplicitAPI):
         #
         #     {
         #         "subaccount": "0x8d7d64d6cf1d4f018dd101482ac71ad49e30c56064656661756c740000000000",
-        #         "exists": True,
+        #         "exists": true,
         #         "spot_balances": [
         #             {
         #                 "product_id": 0,
@@ -2612,7 +2612,7 @@ class nado(Exchange, ImplicitAPI):
         #         product_id: '8',
         #         spot_leverage: null,
         #         borrow_margin: null,
-        #         trigger: {price_trigger: [Object]},
+        #         trigger: { price_trigger: [Object] },
         #         digest: '',
         #         id: null
         #     },

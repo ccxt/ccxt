@@ -124,15 +124,15 @@ class derive extends \ccxt\async\derive {
     public function handle_order_book(Client $client, mixed $message) {
         //
         // {
-        //     method => 'subscription',
-        //     $params => {
-        //       channel => 'orderbook.BTC-PERP.10.1',
-        //       $data => {
-        //         $timestamp => 1738331231506,
-        //         instrument_name => 'BTC-PERP',
-        //         publish_id => 628419,
-        //         bids => array( array( '104669', '40' ) ),
-        //         asks => array( array( '104736', '40' ) )
+        //     method: 'subscription',
+        //     params: {
+        //       channel: 'orderbook.BTC-PERP.10.1',
+        //       data: {
+        //         timestamp: 1738331231506,
+        //         instrument_name: 'BTC-PERP',
+        //         publish_id: 628419,
+        //         bids: [ [ '104669', '40' ] ],
+        //         asks: [ [ '104736', '40' ] ]
         //       }
         //     }
         // }
@@ -194,63 +194,63 @@ class derive extends \ccxt\async\derive {
     public function handle_ticker(Client $client, mixed $message) {
         //
         // {
-        //     method => 'subscription',
-        //     $params => {
-        //       channel => 'ticker.BTC-PERP.100',
-        //       $data => {
-        //         timestamp => 1738485104439,
-        //         instrument_ticker => {
-        //           instrument_type => 'perp',
-        //           instrument_name => 'BTC-PERP',
-        //           scheduled_activation => 1701840228,
-        //           scheduled_deactivation => '9223372036854775807',
-        //           is_active => true,
-        //           tick_size => '0.1',
-        //           minimum_amount => '0.01',
-        //           maximum_amount => '10000',
-        //           amount_step => '0.001',
-        //           mark_price_fee_rate_cap => '0',
-        //           maker_fee_rate => '0.0001',
-        //           taker_fee_rate => '0.0003',
-        //           base_fee => '0.1',
-        //           base_currency => 'BTC',
-        //           quote_currency => 'USD',
-        //           option_details => null,
-        //           perp_details => array(
-        //             index => 'BTC-USD',
-        //             max_rate_per_hour => '0.004',
-        //             min_rate_per_hour => '-0.004',
-        //             static_interest_rate => '0.0000125',
-        //             aggregate_funding => '10581.779418721074588722',
-        //             funding_rate => '0.000024792239208858'
-        //           ),
-        //           erc20_details => null,
-        //           base_asset_address => '0xDBa83C0C654DB1cd914FA2710bA743e925B53086',
-        //           base_asset_sub_id => '0',
-        //           pro_rata_fraction => '0',
-        //           fifo_min_allocation => '0',
-        //           pro_rata_amount_step => '0.1',
-        //           best_ask_amount => '0.131',
-        //           best_ask_price => '99898.6',
-        //           best_bid_amount => '0.056',
-        //           best_bid_price => '99889.1',
-        //           five_percent_bid_depth => '11.817',
-        //           five_percent_ask_depth => '9.116',
-        //           option_pricing => null,
-        //           index_price => '99883.8',
-        //           mark_price => '99897.52408421244763303548098',
-        //           $stats => array(
-        //             contract_volume => '92.395',
-        //             num_trades => '2924',
-        //             open_interest => '33.743468027373780786',
-        //             high => '102320.4',
-        //             low => '99064.3',
-        //             percent_change => '-0.021356',
-        //             usd_change => '-2178'
-        //           ),
-        //           timestamp => 1738485165881,
-        //           min_price => '97939.1',
-        //           max_price => '101895.2'
+        //     method: 'subscription',
+        //     params: {
+        //       channel: 'ticker.BTC-PERP.100',
+        //       data: {
+        //         timestamp: 1738485104439,
+        //         instrument_ticker: {
+        //           instrument_type: 'perp',
+        //           instrument_name: 'BTC-PERP',
+        //           scheduled_activation: 1701840228,
+        //           scheduled_deactivation: '9223372036854775807',
+        //           is_active: true,
+        //           tick_size: '0.1',
+        //           minimum_amount: '0.01',
+        //           maximum_amount: '10000',
+        //           amount_step: '0.001',
+        //           mark_price_fee_rate_cap: '0',
+        //           maker_fee_rate: '0.0001',
+        //           taker_fee_rate: '0.0003',
+        //           base_fee: '0.1',
+        //           base_currency: 'BTC',
+        //           quote_currency: 'USD',
+        //           option_details: null,
+        //           perp_details: {
+        //             index: 'BTC-USD',
+        //             max_rate_per_hour: '0.004',
+        //             min_rate_per_hour: '-0.004',
+        //             static_interest_rate: '0.0000125',
+        //             aggregate_funding: '10581.779418721074588722',
+        //             funding_rate: '0.000024792239208858'
+        //           },
+        //           erc20_details: null,
+        //           base_asset_address: '0xDBa83C0C654DB1cd914FA2710bA743e925B53086',
+        //           base_asset_sub_id: '0',
+        //           pro_rata_fraction: '0',
+        //           fifo_min_allocation: '0',
+        //           pro_rata_amount_step: '0.1',
+        //           best_ask_amount: '0.131',
+        //           best_ask_price: '99898.6',
+        //           best_bid_amount: '0.056',
+        //           best_bid_price: '99889.1',
+        //           five_percent_bid_depth: '11.817',
+        //           five_percent_ask_depth: '9.116',
+        //           option_pricing: null,
+        //           index_price: '99883.8',
+        //           mark_price: '99897.52408421244763303548098',
+        //           stats: {
+        //             contract_volume: '92.395',
+        //             num_trades: '2924',
+        //             open_interest: '33.743468027373780786',
+        //             high: '102320.4',
+        //             low: '99064.3',
+        //             percent_change: '-0.021356',
+        //             usd_change: '-2178'
+        //           },
+        //           timestamp: 1738485165881,
+        //           min_price: '97939.1',
+        //           max_price: '101895.2'
         //         }
         //       }
         //     }
@@ -263,7 +263,7 @@ class derive extends \ccxt\async\derive {
         $ticker = null;
         if ($topic !== null && str_starts_with($topic, 'ticker_slim')) {
             // the slim payload uses short keys and does not carry the instrument name,
-            // so the symbol is recovered from the channel => ticker_slim.BTC-PERP.100
+            // so the symbol is recovered from the channel: ticker_slim.BTC-PERP.100
             $parts = explode('.', $topic);
             $marketId = $this->safe_string($parts, 1);
             $market = $this->safe_market($marketId);
@@ -415,10 +415,10 @@ class derive extends \ccxt\async\derive {
     public function handle_un_subscribe(Client $client, mixed $message) {
         //
         // {
-        //     id => 1,
-        //     $result => {
-        //       $status => array( 'orderbook.BTC-PERP.10.10' => 'ok' ),
-        //       remaining_subscriptions => array()
+        //     id: 1,
+        //     result: {
+        //       status: { 'orderbook.BTC-PERP.10.10': 'ok' },
+        //       remaining_subscriptions: []
         //     }
         // }
         //
@@ -527,11 +527,11 @@ class derive extends \ccxt\async\derive {
                     'signature' => $signature,
                 ),
             );
-            // $subscription = array(
-            //     'name' => topic,
-            //     'symbol' => symbol,
-            //     'params' => $params,
-            // );
+            // const subscription: Dict = {
+            //     'name': topic,
+            //     'symbol': symbol,
+            //     'params': params,
+            // };
             $message = $this->extend($request, $params);
             $this->watch($url, $messageHash, $message, $messageHash, $message);
         }
@@ -608,42 +608,42 @@ class derive extends \ccxt\async\derive {
     public function handle_order(Client $client, mixed $message) {
         //
         // {
-        //     method => 'subscription',
-        //     $params => {
-        //         channel => '130837.orders',
-        //         $data => array(
+        //     method: 'subscription',
+        //     params: {
+        //         channel: '130837.orders',
+        //         data: [
         //             {
-        //                 subaccount_id => 130837,
-        //                 order_id => '1f44c564-5658-4b69-b8c4-4019924207d5',
-        //                 instrument_name => 'BTC-PERP',
-        //                 direction => 'buy',
-        //                 label => 'test1234',
-        //                 quote_id => null,
-        //                 creation_timestamp => 1738578974146,
-        //                 last_update_timestamp => 1738578974146,
-        //                 limit_price => '10000',
-        //                 amount => '0.01',
-        //                 filled_amount => '0',
-        //                 average_price => '0',
-        //                 order_fee => '0',
-        //                 order_type => 'limit',
-        //                 time_in_force => 'post_only',
-        //                 order_status => 'untriggered',
-        //                 max_fee => '219',
-        //                 signature_expiry_sec => 1746354973,
-        //                 nonce => 1738578973570,
-        //                 signer => '0x30CB7B06AdD6749BbE146A6827502B8f2a79269A',
-        //                 signature => '0xc6927095f74a0d3b1aeef8c0579d120056530479f806e9d2e6616df742a8934c69046361beae833b32b25c0145e318438d7d1624bb835add956f63aa37192f571c',
-        //                 cancel_reason => '',
-        //                 mmp => false,
-        //                 is_transfer => false,
-        //                 replaced_order_id => null,
-        //                 trigger_type => 'stoploss',
-        //                 trigger_price_type => 'mark',
-        //                 trigger_price => '102800',
-        //                 trigger_reject_message => null
+        //                 subaccount_id: 130837,
+        //                 order_id: '1f44c564-5658-4b69-b8c4-4019924207d5',
+        //                 instrument_name: 'BTC-PERP',
+        //                 direction: 'buy',
+        //                 label: 'test1234',
+        //                 quote_id: null,
+        //                 creation_timestamp: 1738578974146,
+        //                 last_update_timestamp: 1738578974146,
+        //                 limit_price: '10000',
+        //                 amount: '0.01',
+        //                 filled_amount: '0',
+        //                 average_price: '0',
+        //                 order_fee: '0',
+        //                 order_type: 'limit',
+        //                 time_in_force: 'post_only',
+        //                 order_status: 'untriggered',
+        //                 max_fee: '219',
+        //                 signature_expiry_sec: 1746354973,
+        //                 nonce: 1738578973570,
+        //                 signer: '0x30CB7B06AdD6749BbE146A6827502B8f2a79269A',
+        //                 signature: '0xc6927095f74a0d3b1aeef8c0579d120056530479f806e9d2e6616df742a8934c69046361beae833b32b25c0145e318438d7d1624bb835add956f63aa37192f571c',
+        //                 cancel_reason: '',
+        //                 mmp: false,
+        //                 is_transfer: false,
+        //                 replaced_order_id: null,
+        //                 trigger_type: 'stoploss',
+        //                 trigger_price_type: 'mark',
+        //                 trigger_price: '102800',
+        //                 trigger_reject_message: null
         //             }
-        //         )
+        //         ]
         //     }
         // }
         //
@@ -756,8 +756,8 @@ class derive extends \ccxt\async\derive {
     public function handle_error_message(Client $client, mixed $message): ?bool {
         //
         // {
-        //     id => '690c6276-0fc6-4121-aafa-f28bf5adedcb',
-        //     $error => array( code => -32600, $message => 'Invalid Request' )
+        //     id: '690c6276-0fc6-4121-aafa-f28bf5adedcb',
+        //     error: { code: -32600, message: 'Invalid Request' }
         // }
         //
         if (!(is_array($message) && array_key_exists('error' ?? '', $message))) {
@@ -838,14 +838,14 @@ class derive extends \ccxt\async\derive {
     public function handle_auth(Client $client, mixed $message) {
         //
         // {
-        //     id => 1,
-        //     result => array( 130837 )
+        //     id: 1,
+        //     result: [ 130837 ]
         // }
         //
         $messageHash = 'authenticated';
         $ids = $this->safe_list($message, 'result', array());
         if (strlen($ids) > 0) {
-            // $client->resolve($message, $messageHash);
+            // client.resolve (message, messageHash);
             $future = $this->safe_value($client->futures, 'authenticated');
             $future->resolve(true);
         } else {

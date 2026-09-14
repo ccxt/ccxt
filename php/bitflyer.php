@@ -214,7 +214,7 @@ class bitflyer extends Exchange {
             ),
             'exceptions' => array(
                 'exact' => array(
-                    '-2' => '\\ccxt\\OnMaintenance', // array("status":-2,"error_message":"Under maintenance","data":null)
+                    '-2' => '\\ccxt\\OnMaintenance', // {"status":-2,"error_message":"Under maintenance","data":null}
                 ),
             ),
         ));
@@ -260,34 +260,34 @@ class bitflyer extends Exchange {
          */
         $jp_markets = $this->publicGetGetmarkets($params);
         //
-        //     array(
-        //         // $spot
-        //         array( "product_code" => "BTC_JPY", "market_type" => "Spot" ),
-        //         array( "product_code" => "BCH_BTC", "market_type" => "Spot" ),
-        //         // forex $swap
-        //         array( "product_code" => "FX_BTC_JPY", "market_type" => "FX" ),
+        //     [
+        //         // spot
+        //         { "product_code": "BTC_JPY", "market_type": "Spot" },
+        //         { "product_code": "BCH_BTC", "market_type": "Spot" },
+        //         // forex swap
+        //         { "product_code": "FX_BTC_JPY", "market_type": "FX" },
         //
-        //         // $future
-        //         array(
-        //             "product_code" => "BTCJPY11FEB2022",
-        //             "alias" => "BTCJPY_MAT1WK",
-        //             "market_type" => "Futures",
-        //         ),
-        //     );
+        //         // future
+        //         {
+        //             "product_code": "BTCJPY11FEB2022",
+        //             "alias": "BTCJPY_MAT1WK",
+        //             "market_type": "Futures",
+        //         },
+        //     ];
         //
         $us_markets = $this->publicGetGetmarketsUsa($params);
         //
-        //     array(
-        //         array( "product_code" => "BTC_USD", "market_type" => "Spot" ),
-        //         array( "product_code" => "BTC_JPY", "market_type" => "Spot" ),
-        //     );
+        //     [
+        //         { "product_code": "BTC_USD", "market_type": "Spot" },
+        //         { "product_code": "BTC_JPY", "market_type": "Spot" },
+        //     ];
         //
         $eu_markets = $this->publicGetGetmarketsEu($params);
         //
-        //     array(
-        //         array( "product_code" => "BTC_EUR", "market_type" => "Spot" ),
-        //         array( "product_code" => "BTC_JPY", "market_type" => "Spot" ),
-        //     );
+        //     [
+        //         { "product_code": "BTC_EUR", "market_type": "Spot" },
+        //         { "product_code": "BTC_JPY", "market_type": "Spot" },
+        //     ];
         //
         $markets = $this->array_concat($this->to_array($jp_markets), $this->to_array($us_markets));
         $markets = $this->array_concat($markets, $this->to_array($eu_markets));
@@ -315,12 +315,12 @@ class bitflyer extends Exchange {
             } elseif ($future) {
                 $alias = $this->safe_string($market, 'alias');
                 if ($alias === null) {
-                    // no $alias:
-                    // array( product_code => 'BTCJPY11MAR2022', market_type => 'Futures' )
+                    // no alias:
+                    // { product_code: 'BTCJPY11MAR2022', market_type: 'Futures' }
                     // TODO this will break if there are products with 4 chars
                     $baseId = mb_substr($id, 0, 3 - 0);
                     $quoteId = mb_substr($id, 3, 6 - 3);
-                    // last 9 chars are $expiry date
+                    // last 9 chars are expiry date
                     $expiryDate = mb_substr($id, -9);
                     $expiry = $this->parse_expiry_date($expiryDate);
                 } else {
@@ -434,23 +434,23 @@ class bitflyer extends Exchange {
         }
         $response = $this->privateGetGetbalance($params);
         //
-        //     array(
-        //         array(
-        //             "currency_code" => "JPY",
-        //             "amount" => 1024078,
-        //             "available" => 508000
-        //         ),
-        //         array(
-        //             "currency_code" => "BTC",
-        //             "amount" => 10.24,
-        //             "available" => 4.12
-        //         ),
+        //     [
         //         {
-        //             "currency_code" => "ETH",
-        //             "amount" => 20.48,
-        //             "available" => 16.38
+        //             "currency_code": "JPY",
+        //             "amount": 1024078,
+        //             "available": 508000
+        //         },
+        //         {
+        //             "currency_code": "BTC",
+        //             "amount": 10.24,
+        //             "available": 4.12
+        //         },
+        //         {
+        //             "currency_code": "ETH",
+        //             "amount": 20.48,
+        //             "available": 16.38
         //         }
-        //     )
+        //     ]
         //
         return $this->parse_balance($response);
     }
@@ -542,16 +542,16 @@ class bitflyer extends Exchange {
         //
         // fetchMyTrades
         //
-        //      array(
-        //          "id" => 37233,
-        //          "side" => "BUY",
-        //          "price" => 33470,
-        //          "size" => 0.01,
-        //          "exec_date" => "2015-07-07T09:57:40.397",
-        //          "child_order_id" => "JOR20150707-060559-021935",
-        //          "child_order_acceptance_id" => "JRF20150707-060559-396699"
-        //          "commission" => 0,
-        //      ),
+        //      {
+        //          "id": 37233,
+        //          "side": "BUY",
+        //          "price": 33470,
+        //          "size": 0.01,
+        //          "exec_date": "2015-07-07T09:57:40.397",
+        //          "child_order_id": "JOR20150707-060559-021935",
+        //          "child_order_acceptance_id": "JRF20150707-060559-396699"
+        //          "commission": 0,
+        //      },
         //
         $side = $this->safe_string_lower($trade, 'side');
         if ($side !== null) {
@@ -615,17 +615,17 @@ class bitflyer extends Exchange {
         }
         $response = $this->publicGetGetexecutions($this->extend($request, $params));
         //
-        //    array(
-        //     array(
-        //       "id" => 39287,
-        //       "side" => "BUY",
-        //       "price" => 31690,
-        //       "size" => 27.04,
-        //       "exec_date" => "2015-07-08T02:43:34.823",
-        //       "buy_child_order_acceptance_id" => "JRF20150707-200203-452209",
-        //       "sell_child_order_acceptance_id" => "JRF20150708-024334-060234"
-        //     ),
-        //    )
+        //    [
+        //     {
+        //       "id": 39287,
+        //       "side": "BUY",
+        //       "price": 31690,
+        //       "size": 27.04,
+        //       "exec_date": "2015-07-08T02:43:34.823",
+        //       "buy_child_order_acceptance_id": "JRF20150707-200203-452209",
+        //       "sell_child_order_acceptance_id": "JRF20150708-024334-060234"
+        //     },
+        //    ]
         //
         return $this->parse_trades($response, $market, $since, $limit);
     }
@@ -650,7 +650,7 @@ class bitflyer extends Exchange {
         $response = $this->privateGetGettradingcommission($this->extend($request, $params));
         //
         //   {
-        //       commission_rate => '0.0020'
+        //       commission_rate: '0.0020'
         //   }
         //
         $fee = $this->safe_number($response, 'commission_rate');
@@ -689,7 +689,7 @@ class bitflyer extends Exchange {
             'size' => $amount,
         );
         $result = $this->privatePostSendchildorder($this->extend($request, $params));
-        // array( "status" => - 200, "error_message" => "Insufficient funds", "data" => null )
+        // { "status": - 200, "error_message": "Insufficient funds", "data": null }
         $id = $this->safe_string($result, 'child_order_acceptance_id');
         return $this->safe_order(array(
             'id' => $id,
@@ -900,18 +900,18 @@ class bitflyer extends Exchange {
         }
         $response = $this->privateGetGetexecutions($this->extend($request, $params));
         //
-        //    array(
-        //     array(
-        //       "id" => 37233,
-        //       "side" => "BUY",
-        //       "price" => 33470,
-        //       "size" => 0.01,
-        //       "exec_date" => "2015-07-07T09:57:40.397",
-        //       "child_order_id" => "JOR20150707-060559-021935",
-        //       "child_order_acceptance_id" => "JRF20150707-060559-396699"
-        //       "commission" => 0,
-        //     ),
-        //    )
+        //    [
+        //     {
+        //       "id": 37233,
+        //       "side": "BUY",
+        //       "price": 33470,
+        //       "size": 0.01,
+        //       "exec_date": "2015-07-07T09:57:40.397",
+        //       "child_order_id": "JOR20150707-060559-021935",
+        //       "child_order_acceptance_id": "JRF20150707-060559-396699"
+        //       "commission": 0,
+        //     },
+        //    ]
         //
         return $this->parse_trades($response, $market, $since, $limit);
     }
@@ -937,21 +937,21 @@ class bitflyer extends Exchange {
         );
         $response = $this->privateGetGetpositions($this->extend($request, $params));
         //
-        //     array(
+        //     [
         //         {
-        //             "product_code" => "FX_BTC_JPY",
-        //             "side" => "BUY",
-        //             "price" => 36000,
-        //             "size" => 10,
-        //             "commission" => 0,
-        //             "swap_point_accumulate" => -35,
-        //             "require_collateral" => 120000,
-        //             "open_date" => "2015-11-03T10:04:45.011",
-        //             "leverage" => 3,
-        //             "pnl" => 965,
-        //             "sfd" => -0.5
+        //             "product_code": "FX_BTC_JPY",
+        //             "side": "BUY",
+        //             "price": 36000,
+        //             "size": 10,
+        //             "commission": 0,
+        //             "swap_point_accumulate": -35,
+        //             "require_collateral": 120000,
+        //             "open_date": "2015-11-03T10:04:45.011",
+        //             "leverage": 3,
+        //             "pnl": 965,
+        //             "sfd": -0.5
         //         }
-        //     )
+        //     ]
         //
         // todo unify parsePosition/parsePositions
         return $response;
@@ -981,12 +981,12 @@ class bitflyer extends Exchange {
         $request = array(
             'currency_code' => $currency['id'],
             'amount' => $amount,
-            // 'bank_account_id' => 1234,
+            // 'bank_account_id': 1234,
         );
         $response = $this->privatePostWithdraw($this->extend($request, $params));
         //
         //     {
-        //         "message_id" => "69476620-5056-4003-bcbe-42658a2b041b"
+        //         "message_id": "69476620-5056-4003-bcbe-42658a2b041b"
         //     }
         //
         return $this->parse_transaction($response, $currency);
@@ -1017,18 +1017,18 @@ class bitflyer extends Exchange {
         }
         $response = $this->privateGetGetcoinins($this->extend($request, $params));
         //
-        //     array(
+        //     [
         //         {
-        //             "id" => 100,
-        //             "order_id" => "CDP20151227-024141-055555",
-        //             "currency_code" => "BTC",
-        //             "amount" => 0.00002,
-        //             "address" => "1WriteySQufKZ2pVuM1oMhPrTtTVFq35j",
-        //             "tx_hash" => "9f92ee65a176bb9545f7becb8706c50d07d4cee5ffca34d8be3ef11d411405ae",
-        //             "status" => "COMPLETED",
-        //             "event_date" => "2015-11-27T08:59:20.301"
+        //             "id": 100,
+        //             "order_id": "CDP20151227-024141-055555",
+        //             "currency_code": "BTC",
+        //             "amount": 0.00002,
+        //             "address": "1WriteySQufKZ2pVuM1oMhPrTtTVFq35j",
+        //             "tx_hash": "9f92ee65a176bb9545f7becb8706c50d07d4cee5ffca34d8be3ef11d411405ae",
+        //             "status": "COMPLETED",
+        //             "event_date": "2015-11-27T08:59:20.301"
         //         }
-        //     )
+        //     ]
         //
         return $this->parse_transactions($response, $currency, $since, $limit);
     }
@@ -1058,20 +1058,20 @@ class bitflyer extends Exchange {
         }
         $response = $this->privateGetGetcoinouts($this->extend($request, $params));
         //
-        //     array(
+        //     [
         //         {
-        //             "id" => 500,
-        //             "order_id" => "CWD20151224-014040-077777",
-        //             "currency_code" => "BTC",
-        //             "amount" => 0.1234,
-        //             "address" => "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa",
-        //             "tx_hash" => "724c07dfd4044abcb390b0412c3e707dd5c4f373f0a52b3bd295ce32b478c60a",
-        //             "fee" => 0.0005,
-        //             "additional_fee" => 0.0001,
-        //             "status" => "COMPLETED",
-        //             "event_date" => "2015-12-24T01:40:40.397"
+        //             "id": 500,
+        //             "order_id": "CWD20151224-014040-077777",
+        //             "currency_code": "BTC",
+        //             "amount": 0.1234,
+        //             "address": "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa",
+        //             "tx_hash": "724c07dfd4044abcb390b0412c3e707dd5c4f373f0a52b3bd295ce32b478c60a",
+        //             "fee": 0.0005,
+        //             "additional_fee": 0.0001,
+        //             "status": "COMPLETED",
+        //             "event_date": "2015-12-24T01:40:40.397"
         //         }
-        //     )
+        //     ]
         //
         return $this->parse_transactions($response, $currency, $since, $limit);
     }
@@ -1097,35 +1097,35 @@ class bitflyer extends Exchange {
         // fetchDeposits
         //
         //     {
-        //         "id" => 100,
-        //         "order_id" => "CDP20151227-024141-055555",
-        //         "currency_code" => "BTC",
-        //         "amount" => 0.00002,
-        //         "address" => "1WriteySQufKZ2pVuM1oMhPrTtTVFq35j",
-        //         "tx_hash" => "9f92ee65a176bb9545f7becb8706c50d07d4cee5ffca34d8be3ef11d411405ae",
-        //         "status" => "COMPLETED",
-        //         "event_date" => "2015-11-27T08:59:20.301"
+        //         "id": 100,
+        //         "order_id": "CDP20151227-024141-055555",
+        //         "currency_code": "BTC",
+        //         "amount": 0.00002,
+        //         "address": "1WriteySQufKZ2pVuM1oMhPrTtTVFq35j",
+        //         "tx_hash": "9f92ee65a176bb9545f7becb8706c50d07d4cee5ffca34d8be3ef11d411405ae",
+        //         "status": "COMPLETED",
+        //         "event_date": "2015-11-27T08:59:20.301"
         //     }
         //
         // fetchWithdrawals
         //
         //     {
-        //         "id" => 500,
-        //         "order_id" => "CWD20151224-014040-077777",
-        //         "currency_code" => "BTC",
-        //         "amount" => 0.1234,
-        //         "address" => "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa",
-        //         "tx_hash" => "724c07dfd4044abcb390b0412c3e707dd5c4f373f0a52b3bd295ce32b478c60a",
-        //         "fee" => 0.0005,
-        //         "additional_fee" => 0.0001,
-        //         "status" => "COMPLETED",
-        //         "event_date" => "2015-12-24T01:40:40.397"
+        //         "id": 500,
+        //         "order_id": "CWD20151224-014040-077777",
+        //         "currency_code": "BTC",
+        //         "amount": 0.1234,
+        //         "address": "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa",
+        //         "tx_hash": "724c07dfd4044abcb390b0412c3e707dd5c4f373f0a52b3bd295ce32b478c60a",
+        //         "fee": 0.0005,
+        //         "additional_fee": 0.0001,
+        //         "status": "COMPLETED",
+        //         "event_date": "2015-12-24T01:40:40.397"
         //     }
         //
         // withdraw
         //
         //     {
-        //         "message_id" => "69476620-5056-4003-bcbe-42658a2b041b"
+        //         "message_id": "69476620-5056-4003-bcbe-42658a2b041b"
         //     }
         //
         $id = $this->safe_string_2($transaction, 'id', 'message_id');
@@ -1193,8 +1193,8 @@ class bitflyer extends Exchange {
         $response = $this->publicGetGetfundingrate($this->extend($request, $params));
         //
         //    {
-        //        "current_funding_rate" => -0.003750000000
-        //        "next_funding_rate_settledate" => "2024-04-15T13:00:00"
+        //        "current_funding_rate": -0.003750000000
+        //        "next_funding_rate_settledate": "2024-04-15T13:00:00"
         //    }
         //
         return $this->parse_funding_rate($response, $market);
@@ -1203,8 +1203,8 @@ class bitflyer extends Exchange {
     public function parse_funding_rate(mixed $contract, ?array $market = null): array {
         //
         //    {
-        //        "current_funding_rate" => -0.003750000000
-        //        "next_funding_rate_settledate" => "2024-04-15T13:00:00"
+        //        "current_funding_rate": -0.003750000000
+        //        "next_funding_rate_settledate": "2024-04-15T13:00:00"
         //    }
         //
         $nextFundingDatetime = $this->safe_string($contract, 'next_funding_rate_settledate');
@@ -1270,7 +1270,7 @@ class bitflyer extends Exchange {
             return null; // fallback to the default error handler
         }
         $feedback = $this->id . ' ' . $body;
-        // i.e. array("status":-2,"error_message":"Under maintenance","data":null)
+        // i.e. {"status":-2,"error_message":"Under maintenance","data":null}
         $errorMessage = $this->safe_string($response, 'error_message');
         $statusCode = $this->safe_integer($response, 'status');
         if ($errorMessage !== null) {

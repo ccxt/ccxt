@@ -5,7 +5,7 @@ package io.github.ccxt.types;
 
 import java.util.Map;
 
-public final class Trade {
+public final class Trade extends TypedMap {
     public Double amount;
     public Double price;
     public Double cost;
@@ -22,6 +22,7 @@ public final class Trade {
 
     @SuppressWarnings("unchecked")
     public Trade(Object raw) {
+        super(raw);
         Map<String, Object> data = TypeHelper.toMap(raw);
         this.amount = TypeHelper.safeFloat(data, "amount");
         this.price = TypeHelper.safeFloat(data, "price");

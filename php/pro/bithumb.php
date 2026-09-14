@@ -218,39 +218,39 @@ class bithumb extends \ccxt\async\bithumb {
         // generation 2
         //
         //     {
-        //         "type" => "ticker",
-        //         "code" => "KRW-BTC",
-        //         "opening_price" => 94223000,
-        //         "high_price" => 95465000,
-        //         "low_price" => 93601000,
-        //         "trade_price" => 95299000,
-        //         "prev_closing_price" => 94201000,
-        //         "change" => "RISE",
-        //         "change_price" => 1098000,
-        //         "signed_change_price" => 1098000,
-        //         "change_rate" => 0.01165593,
-        //         "signed_change_rate" => 0.01165593,
-        //         "trade_volume" => 0.0094,
-        //         "acc_trade_volume" => 151.44914647,
-        //         "acc_trade_volume_24h" => 310.44065227,
-        //         "acc_trade_price" => 14330306973.41015,
-        //         "acc_trade_price_24h" => 29226371799.56915,
-        //         "trade_date" => "20260710",
-        //         "trade_time" => "124548",
-        //         "trade_timestamp" => 1783655148303,
-        //         "ask_bid" => "BID",
-        //         "acc_ask_volume" => 52.30413928,
-        //         "acc_bid_volume" => 99.14500719,
-        //         "highest_52_week_price" => 179734000,
-        //         "highest_52_week_date" => "2025-10-09",
-        //         "lowest_52_week_price" => 81110000,
-        //         "lowest_52_week_date" => "2026-02-06",
-        //         "market_state" => "ACTIVE",
-        //         "is_trading_suspended" => false,
-        //         "delisting_date" => "",
-        //         "market_warning" => "NONE",
-        //         "timestamp" => 1783655148485,
-        //         "stream_type" => "REALTIME"
+        //         "type": "ticker",
+        //         "code": "KRW-BTC",
+        //         "opening_price": 94223000,
+        //         "high_price": 95465000,
+        //         "low_price": 93601000,
+        //         "trade_price": 95299000,
+        //         "prev_closing_price": 94201000,
+        //         "change": "RISE",
+        //         "change_price": 1098000,
+        //         "signed_change_price": 1098000,
+        //         "change_rate": 0.01165593,
+        //         "signed_change_rate": 0.01165593,
+        //         "trade_volume": 0.0094,
+        //         "acc_trade_volume": 151.44914647,
+        //         "acc_trade_volume_24h": 310.44065227,
+        //         "acc_trade_price": 14330306973.41015,
+        //         "acc_trade_price_24h": 29226371799.56915,
+        //         "trade_date": "20260710",
+        //         "trade_time": "124548",
+        //         "trade_timestamp": 1783655148303,
+        //         "ask_bid": "BID",
+        //         "acc_ask_volume": 52.30413928,
+        //         "acc_bid_volume": 99.14500719,
+        //         "highest_52_week_price": 179734000,
+        //         "highest_52_week_date": "2025-10-09",
+        //         "lowest_52_week_price": 81110000,
+        //         "lowest_52_week_date": "2026-02-06",
+        //         "market_state": "ACTIVE",
+        //         "is_trading_suspended": false,
+        //         "delisting_date": "",
+        //         "market_warning": "NONE",
+        //         "timestamp": 1783655148485,
+        //         "stream_type": "REALTIME"
         //     }
         //
         $content = $this->safe_dict($message, 'content');
@@ -304,39 +304,39 @@ class bithumb extends \ccxt\async\bithumb {
         // generation 2
         //
         //     {
-        //         "type" => "ticker",
-        //         "code" => "KRW-BTC",
-        //         "opening_price" => 94223000,
-        //         "high_price" => 95465000,
-        //         "low_price" => 93601000,
-        //         "trade_price" => 95299000,
-        //         "prev_closing_price" => 94201000,
-        //         "change" => "RISE",
-        //         "change_price" => 1098000,
-        //         "signed_change_price" => 1098000,
-        //         "change_rate" => 0.01165593,
-        //         "signed_change_rate" => 0.01165593,
-        //         "trade_volume" => 0.0094,
-        //         "acc_trade_volume" => 151.44914647,
-        //         "acc_trade_volume_24h" => 310.44065227,
-        //         "acc_trade_price" => 14330306973.41015,
-        //         "acc_trade_price_24h" => 29226371799.56915,
-        //         "trade_date" => "20260710",
-        //         "trade_time" => "124548",
-        //         "trade_timestamp" => 1783655148303,
-        //         "ask_bid" => "BID",
-        //         "acc_ask_volume" => 52.30413928,
-        //         "acc_bid_volume" => 99.14500719,
-        //         "highest_52_week_price" => 179734000,
-        //         "highest_52_week_date" => "2025-10-09",
-        //         "lowest_52_week_price" => 81110000,
-        //         "lowest_52_week_date" => "2026-02-06",
-        //         "market_state" => "ACTIVE",
-        //         "is_trading_suspended" => false,
-        //         "delisting_date" => "",
-        //         "market_warning" => "NONE",
-        //         "timestamp" => 1783655148485,
-        //         "stream_type" => "REALTIME"
+        //         "type": "ticker",
+        //         "code": "KRW-BTC",
+        //         "opening_price": 94223000,
+        //         "high_price": 95465000,
+        //         "low_price": 93601000,
+        //         "trade_price": 95299000,
+        //         "prev_closing_price": 94201000,
+        //         "change": "RISE",
+        //         "change_price": 1098000,
+        //         "signed_change_price": 1098000,
+        //         "change_rate": 0.01165593,
+        //         "signed_change_rate": 0.01165593,
+        //         "trade_volume": 0.0094,
+        //         "acc_trade_volume": 151.44914647,
+        //         "acc_trade_volume_24h": 310.44065227,
+        //         "acc_trade_price": 14330306973.41015,
+        //         "acc_trade_price_24h": 29226371799.56915,
+        //         "trade_date": "20260710",
+        //         "trade_time": "124548",
+        //         "trade_timestamp": 1783655148303,
+        //         "ask_bid": "BID",
+        //         "acc_ask_volume": 52.30413928,
+        //         "acc_bid_volume": 99.14500719,
+        //         "highest_52_week_price": 179734000,
+        //         "highest_52_week_date": "2025-10-09",
+        //         "lowest_52_week_price": 81110000,
+        //         "lowest_52_week_date": "2026-02-06",
+        //         "market_state": "ACTIVE",
+        //         "is_trading_suspended": false,
+        //         "delisting_date": "",
+        //         "market_warning": "NONE",
+        //         "timestamp": 1783655148485,
+        //         "stream_type": "REALTIME"
         //     }
         //
         $code = $this->safe_string($ticker, 'code');
@@ -431,21 +431,21 @@ class bithumb extends \ccxt\async\bithumb {
         //    {
         //        "type" : "orderbookdepth",
         //            "content" : {
-        //            "list" : array(
-        //                array(
+        //            "list" : [
+        //                {
         //                    "symbol" : "BTC_KRW",
         //                    "orderType" : "ask",        // 주문타입 – bid / ask
         //                    "price" : "10593000",       // 호가
         //                    "quantity" : "1.11223318",  // 잔량
         //                    "total" : "3"               // 건수
-        //                ),
-        //                array("symbol" : "BTC_KRW", "orderType" : "ask", "price" : "10596000", "quantity" : "0.5495", "total" : "8"),
-        //                array("symbol" : "BTC_KRW", "orderType" : "ask", "price" : "10598000", "quantity" : "18.2085", "total" : "10"),
-        //                array("symbol" : "BTC_KRW", "orderType" : "bid", "price" : "10532000", "quantity" : "0", "total" : "0"),
-        //                array("symbol" : "BTC_KRW", "orderType" : "bid", "price" : "10572000", "quantity" : "2.3324", "total" : "4"),
-        //                array("symbol" : "BTC_KRW", "orderType" : "bid", "price" : "10571000", "quantity" : "1.469", "total" : "3"),
-        //                array("symbol" : "BTC_KRW", "orderType" : "bid", "price" : "10569000", "quantity" : "0.5152", "total" : "2")
-        //            ),
+        //                },
+        //                {"symbol" : "BTC_KRW", "orderType" : "ask", "price" : "10596000", "quantity" : "0.5495", "total" : "8"},
+        //                {"symbol" : "BTC_KRW", "orderType" : "ask", "price" : "10598000", "quantity" : "18.2085", "total" : "10"},
+        //                {"symbol" : "BTC_KRW", "orderType" : "bid", "price" : "10532000", "quantity" : "0", "total" : "0"},
+        //                {"symbol" : "BTC_KRW", "orderType" : "bid", "price" : "10572000", "quantity" : "2.3324", "total" : "4"},
+        //                {"symbol" : "BTC_KRW", "orderType" : "bid", "price" : "10571000", "quantity" : "1.469", "total" : "3"},
+        //                {"symbol" : "BTC_KRW", "orderType" : "bid", "price" : "10569000", "quantity" : "0.5152", "total" : "2"}
+        //            ],
         //            "datetime":1580268255864325     // 일시
         //        }
         //    }
@@ -453,21 +453,21 @@ class bithumb extends \ccxt\async\bithumb {
         // generation 2
         //
         //     {
-        //         "type" => "orderbook",
-        //         "code" => "KRW-BTC",
-        //         "total_ask_size" => 4.7398,
-        //         "total_bid_size" => 0.2889,
-        //         "orderbook_units" => array(
-        //             array(
-        //                 "ask_price" => 95340000,
-        //                 "bid_price" => 95339000,
-        //                 "ask_size" => 0.0007,
-        //                 "bid_size" => 0.0024
-        //             ),
-        //         ),
-        //         "level" => 1,
-        //         "timestamp" => "1783657882348968",
-        //         "stream_type" => "SNAPSHOT"
+        //         "type": "orderbook",
+        //         "code": "KRW-BTC",
+        //         "total_ask_size": 4.7398,
+        //         "total_bid_size": 0.2889,
+        //         "orderbook_units": [
+        //             {
+        //                 "ask_price": 95340000,
+        //                 "bid_price": 95339000,
+        //                 "ask_size": 0.0007,
+        //                 "bid_size": 0.0024
+        //             },
+        //         ],
+        //         "level": 1,
+        //         "timestamp": "1783657882348968",
+        //         "stream_type": "SNAPSHOT"
         //     }
         //
         $content = $this->safe_dict($message, 'content');
@@ -544,11 +544,11 @@ class bithumb extends \ccxt\async\bithumb {
     public function handle_delta(mixed $orderbook, mixed $delta) {
         //
         //    {
-        //        symbol => "ETH_BTC",
-        //        orderType => "bid",
-        //        price => "0.07349517",
-        //        quantity => "0",
-        //        total => "0",
+        //        symbol: "ETH_BTC",
+        //        orderType: "bid",
+        //        price: "0.07349517",
+        //        quantity: "0",
+        //        total: "0",
         //    }
         //
         $sideId = $this->safe_string($delta, 'orderType');
@@ -622,7 +622,7 @@ class bithumb extends \ccxt\async\bithumb {
         //    {
         //        "type" : "transaction",
         //        "content" : {
-        //            "list" : array(
+        //            "list" : [
         //                {
         //                    "symbol" : "BTC_KRW",
         //                    "buySellGb" : "1",
@@ -632,27 +632,27 @@ class bithumb extends \ccxt\async\bithumb {
         //                    "contDtm" : "2020-01-29 12:24:18.830039",
         //                    "updn" : "dn"
         //                }
-        //            )
+        //            ]
         //        }
         //    }
         //
         // generation 2
         //
         //     {
-        //         "type" => "trade",
-        //         "code" => "KRW-BTC",
-        //         "trade_price" => 95539000,
-        //         "trade_volume" => 0.00022664,
-        //         "ask_bid" => "ASK",
-        //         "prev_closing_price" => 94201000,
-        //         "change" => "RISE",
-        //         "change_price" => 1338000,
-        //         "trade_date" => "2026-07-10",
-        //         "trade_time" => "13:39:41",
-        //         "trade_timestamp" => 1783658381138,
-        //         "sequential_id" => "862683813820523888",
-        //         "timestamp" => 1783658381398,
-        //         "stream_type" => "REALTIME"
+        //         "type": "trade",
+        //         "code": "KRW-BTC",
+        //         "trade_price": 95539000,
+        //         "trade_volume": 0.00022664,
+        //         "ask_bid": "ASK",
+        //         "prev_closing_price": 94201000,
+        //         "change": "RISE",
+        //         "change_price": 1338000,
+        //         "trade_date": "2026-07-10",
+        //         "trade_time": "13:39:41",
+        //         "trade_timestamp": 1783658381138,
+        //         "sequential_id": "862683813820523888",
+        //         "timestamp": 1783658381398,
+        //         "stream_type": "REALTIME"
         //     }
         //
         $content = $this->safe_dict($message, 'content');
@@ -705,20 +705,20 @@ class bithumb extends \ccxt\async\bithumb {
         // generation 2
         //
         //     {
-        //         "type" => "trade",
-        //         "code" => "KRW-BTC",
-        //         "trade_price" => 95539000,
-        //         "trade_volume" => 0.00022664,
-        //         "ask_bid" => "ASK",
-        //         "prev_closing_price" => 94201000,
-        //         "change" => "RISE",
-        //         "change_price" => 1338000,
-        //         "trade_date" => "2026-07-10",
-        //         "trade_time" => "13:39:41",
-        //         "trade_timestamp" => 1783658381138,
-        //         "sequential_id" => "862683813820523888",
-        //         "timestamp" => 1783658381398,
-        //         "stream_type" => "REALTIME"
+        //         "type": "trade",
+        //         "code": "KRW-BTC",
+        //         "trade_price": 95539000,
+        //         "trade_volume": 0.00022664,
+        //         "ask_bid": "ASK",
+        //         "prev_closing_price": 94201000,
+        //         "change": "RISE",
+        //         "change_price": 1338000,
+        //         "trade_date": "2026-07-10",
+        //         "trade_time": "13:39:41",
+        //         "trade_timestamp": 1783658381138,
+        //         "sequential_id": "862683813820523888",
+        //         "timestamp": 1783658381398,
+        //         "stream_type": "REALTIME"
         //     }
         //
         $marketCode = $this->safe_string($trade, 'code');
@@ -824,17 +824,17 @@ class bithumb extends \ccxt\async\bithumb {
     public function handle_balance(Client $client, mixed $message) {
         //
         //    {
-        //        "type" => "myAsset",
-        //        "assets" => array(
+        //        "type": "myAsset",
+        //        "assets": [
         //            {
-        //                "currency" => "KRW",
-        //                "balance" => "2061832.35",
-        //                "locked" => "3824127.3"
+        //                "currency": "KRW",
+        //                "balance": "2061832.35",
+        //                "locked": "3824127.3"
         //            }
-        //        ),
-        //        "asset_timestamp" => 1727052537592,
-        //        "timestamp" => 1727052537687,
-        //        "stream_type" => "REALTIME"
+        //        ],
+        //        "asset_timestamp": 1727052537592,
+        //        "timestamp": 1727052537687,
+        //        "stream_type": "REALTIME"
         //    }
         //
         $messageHash = 'myAsset';
@@ -957,32 +957,32 @@ class bithumb extends \ccxt\async\bithumb {
     public function handle_orders(Client $client, mixed $message) {
         //
         //    {
-        //        "type" => "myOrder",
-        //        "code" => "KRW-BTC",
-        //        "uuid" => "C0101000000001818113",
-        //        "ask_bid" => "BID",
-        //        "order_type" => "limit",
-        //        "state" => "trade",
-        //        "trade_uuid" => "C0101000000001744207",
-        //        "price" => 1927000,
-        //        "volume" => 0.4697,
-        //        "remaining_volume" => 0.0803,
-        //        "executed_volume" => 0.4697,
-        //        "trades_count" => 1,
-        //        "reserved_fee" => 0,
-        //        "remaining_fee" => 0,
-        //        "paid_fee" => 0,
-        //        "executed_funds" => 905111.9000,
-        //        "trade_timestamp" => 1727052318148,
-        //        "order_timestamp" => 1727052318074,
-        //        "timestamp" => 1727052318369,
-        //        "stream_type" => "REALTIME"
+        //        "type": "myOrder",
+        //        "code": "KRW-BTC",
+        //        "uuid": "C0101000000001818113",
+        //        "ask_bid": "BID",
+        //        "order_type": "limit",
+        //        "state": "trade",
+        //        "trade_uuid": "C0101000000001744207",
+        //        "price": 1927000,
+        //        "volume": 0.4697,
+        //        "remaining_volume": 0.0803,
+        //        "executed_volume": 0.4697,
+        //        "trades_count": 1,
+        //        "reserved_fee": 0,
+        //        "remaining_fee": 0,
+        //        "paid_fee": 0,
+        //        "executed_funds": 905111.9000,
+        //        "trade_timestamp": 1727052318148,
+        //        "order_timestamp": 1727052318074,
+        //        "timestamp": 1727052318369,
+        //        "stream_type": "REALTIME"
         //    }
         //
         $messageHash = 'myOrder';
         $parsed = $this->parse_ws_order($message);
         $symbol = $this->safe_string($parsed, 'symbol');
-        // $orderId = $this->safe_string($parsed, 'id');
+        // const orderId = this.safeString (parsed, 'id');
         if ($this->orders === null) {
             $limit = $this->safe_integer($this->options, 'ordersLimit', 1000);
             $this->orders = new ArrayCacheBySymbolById($limit);
@@ -997,26 +997,26 @@ class bithumb extends \ccxt\async\bithumb {
     public function parse_ws_order(mixed $order, ?array $market = null) {
         //
         //    {
-        //        "type" => "myOrder",
-        //        "code" => "KRW-BTC",
-        //        "uuid" => "C0101000000001818113",
-        //        "ask_bid" => "BID",
-        //        "order_type" => "limit",
-        //        "state" => "trade",
-        //        "trade_uuid" => "C0101000000001744207",
-        //        "price" => 1927000,
-        //        "volume" => 0.4697,
-        //        "remaining_volume" => 0.0803,
-        //        "executed_volume" => 0.4697,
-        //        "trades_count" => 1,
-        //        "reserved_fee" => 0,
-        //        "remaining_fee" => 0,
-        //        "paid_fee" => 0,
-        //        "executed_funds" => 905111.9000,
-        //        "trade_timestamp" => 1727052318148,
-        //        "order_timestamp" => 1727052318074,
-        //        "timestamp" => 1727052318369,
-        //        "stream_type" => "REALTIME"
+        //        "type": "myOrder",
+        //        "code": "KRW-BTC",
+        //        "uuid": "C0101000000001818113",
+        //        "ask_bid": "BID",
+        //        "order_type": "limit",
+        //        "state": "trade",
+        //        "trade_uuid": "C0101000000001744207",
+        //        "price": 1927000,
+        //        "volume": 0.4697,
+        //        "remaining_volume": 0.0803,
+        //        "executed_volume": 0.4697,
+        //        "trades_count": 1,
+        //        "reserved_fee": 0,
+        //        "remaining_fee": 0,
+        //        "paid_fee": 0,
+        //        "executed_funds": 905111.9000,
+        //        "trade_timestamp": 1727052318148,
+        //        "order_timestamp": 1727052318074,
+        //        "timestamp": 1727052318369,
+        //        "stream_type": "REALTIME"
         //    }
         //
         $marketId = $this->safe_string($order, 'code');

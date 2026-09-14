@@ -117,7 +117,7 @@ class gemini(ccxt.async_support.gemini):
         #    {
         #        "type": "trade",
         #        "symbol": "ETHUSD",
-        #        "tid": "1683002242170204",  # self is not TS, but somewhat ID
+        #        "tid": "1683002242170204", // this is not TS, but somewhat ID
         #        "price": "2299.24",
         #        "amount": "0.002662",
         #        "makerSide": "bid"
@@ -182,15 +182,15 @@ class gemini(ccxt.async_support.gemini):
         #         "type": "l2_updates",
         #         "symbol": "BTCUSD",
         #         "changes": [
-        #             ["buy", '22252.37', "0.02"],
-        #             ["buy", '22251.61', "0.04"],
-        #             ["buy", '22251.60', "0.04"],
-        #             # some asks as well
+        #             [ "buy", '22252.37', "0.02" ],
+        #             [ "buy", '22251.61', "0.04" ],
+        #             [ "buy", '22251.60', "0.04" ],
+        #             // some asks as well
         #         ],
         #         "trades": [
-        #             {type: 'trade', symbol: 'BTCUSD', event_id: 122258166738, timestamp: 1655330221424, price: '22269.14', quantity: "0.00004473", side: "buy"},
-        #             {type: 'trade', symbol: 'BTCUSD', event_id: 122258141090, timestamp: 1655330213216, price: '22250.00', quantity: "0.00704098", side: "buy"},
-        #             {type: 'trade', symbol: 'BTCUSD', event_id: 122258118291, timestamp: 1655330206753, price: '22250.00', quantity: "0.03", side: "buy"},
+        #             { type: 'trade', symbol: 'BTCUSD', event_id: 122258166738, timestamp: 1655330221424, price: '22269.14', quantity: "0.00004473", side: "buy" },
+        #             { type: 'trade', symbol: 'BTCUSD', event_id: 122258141090, timestamp: 1655330213216, price: '22250.00', quantity: "0.00704098", side: "buy" },
+        #             { type: 'trade', symbol: 'BTCUSD', event_id: 122258118291, timestamp: 1655330206753, price: '22250.00', quantity: "0.03", side: "buy" },
         #         ],
         #         "auction_events": [
         #             {
@@ -384,7 +384,7 @@ class gemini(ccxt.async_support.gemini):
         market = self.safe_market(marketId)
         symbol = market['symbol']
         messageHash = 'orderbook:' + symbol
-        # orderbook = self.safe_value(self.orderbooks, symbol)
+        # let orderbook = this.safeValue (this.orderbooks, symbol);
         if not (symbol in self.orderbooks):
             self.orderbooks[symbol] = self.order_book()
         elif isInitial:
@@ -525,11 +525,11 @@ class gemini(ccxt.async_support.gemini):
         #   {
         #     delta: "4105123935484.817624",
         #     price: "0.000000001",
-        #     reason: "initial",  # initial|cancel|place
+        #     reason: "initial", // initial|cancel|place
         #     remaining: "4105123935484.817624",
-        #     side: "bid",  # bid|ask
+        #     side: "bid", // bid|ask
         #     symbol: "SHIBUSD",
-        #     type: "change",  # seems always change
+        #     type: "change", // seems always change
         #   },
         #   ...
         #
@@ -567,15 +567,15 @@ class gemini(ccxt.async_support.gemini):
         #         "type": "l2_updates",
         #         "symbol": "BTCUSD",
         #         "changes": [
-        #             ["buy", '22252.37', "0.02"],
-        #             ["buy", '22251.61', "0.04"],
-        #             ["buy", '22251.60', "0.04"],
-        #             # some asks as well
+        #             [ "buy", '22252.37', "0.02" ],
+        #             [ "buy", '22251.61', "0.04" ],
+        #             [ "buy", '22251.60', "0.04" ],
+        #             // some asks as well
         #         ],
         #         "trades": [
-        #             {type: 'trade', symbol: 'BTCUSD', event_id: 122258166738, timestamp: 1655330221424, price: '22269.14', quantity: "0.00004473", side: "buy"},
-        #             {type: 'trade', symbol: 'BTCUSD', event_id: 122258141090, timestamp: 1655330213216, price: '22250.00', quantity: "0.00704098", side: "buy"},
-        #             {type: 'trade', symbol: 'BTCUSD', event_id: 122258118291, timestamp: 1655330206753, price: '22250.00', quantity: "0.03", side: "buy"},
+        #             { type: 'trade', symbol: 'BTCUSD', event_id: 122258166738, timestamp: 1655330221424, price: '22269.14', quantity: "0.00004473", side: "buy" },
+        #             { type: 'trade', symbol: 'BTCUSD', event_id: 122258141090, timestamp: 1655330213216, price: '22250.00', quantity: "0.00704098", side: "buy" },
+        #             { type: 'trade', symbol: 'BTCUSD', event_id: 122258118291, timestamp: 1655330206753, price: '22250.00', quantity: "0.03", side: "buy" },
         #         ],
         #         "auction_events": [
         #             {
@@ -671,9 +671,9 @@ class gemini(ccxt.async_support.gemini):
         #             "order_type": "exchange limit",
         #             "timestamp": "1659739407",
         #             "timestampms": 1659739407576,
-        #             "is_live": True,
-        #             "is_cancelled": False,
-        #             "is_hidden": False,
+        #             "is_live": true,
+        #             "is_cancelled": false,
+        #             "is_hidden": false,
         #             "original_amount": "1",
         #             "price": "1",
         #             "socket_sequence": 139
@@ -704,9 +704,9 @@ class gemini(ccxt.async_support.gemini):
         #         "order_type": "exchange limit",
         #         "timestamp": "1659739407",
         #         "timestampms": 1659739407576,
-        #         "is_live": True,
-        #         "is_cancelled": False,
-        #         "is_hidden": False,
+        #         "is_live": true,
+        #         "is_cancelled": false,
+        #         "is_hidden": false,
         #         "original_amount": "1",
         #         "price": "1",
         #         "socket_sequence": 139
@@ -805,9 +805,9 @@ class gemini(ccxt.async_support.gemini):
         #             "order_type": "exchange limit",
         #             "timestamp": "1659739407",
         #             "timestampms": 1659739407576,
-        #             "is_live": True,
-        #             "is_cancelled": False,
-        #             "is_hidden": False,
+        #             "is_live": true,
+        #             "is_cancelled": false,
+        #             "is_hidden": false,
         #             "original_amount": "1",
         #             "price": "1",
         #             "socket_sequence": 139
@@ -892,7 +892,7 @@ class gemini(ccxt.async_support.gemini):
                 },
             },
         }
-        # self.options = self.extend(defaultOptions, self.options)
+        # this.options = this.extend (defaultOptions, this.options);
         self.extend_exchange_options(defaultOptions)
         originalHeaders = self.options['ws']['options']['headers']
         headers = {

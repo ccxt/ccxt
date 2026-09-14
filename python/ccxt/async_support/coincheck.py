@@ -170,30 +170,30 @@ class coincheck(Exchange, ImplicitAPI):
             },
             'markets': {
                 'BTC/JPY': self.safe_market_structure({'id': 'btc_jpy', 'symbol': 'BTC/JPY', 'base': 'BTC', 'quote': 'JPY', 'baseId': 'btc', 'quoteId': 'jpy', 'type': 'spot', 'spot': True}),  # the only real pair
-                # 'ETH/JPY': {'id': 'eth_jpy', 'symbol': 'ETH/JPY', 'base': 'ETH', 'quote': 'JPY', 'baseId': 'eth', 'quoteId': 'jpy'},
+                # 'ETH/JPY': { 'id': 'eth_jpy', 'symbol': 'ETH/JPY', 'base': 'ETH', 'quote': 'JPY', 'baseId': 'eth', 'quoteId': 'jpy' },
                 'ETC/JPY': self.safe_market_structure({'id': 'etc_jpy', 'symbol': 'ETC/JPY', 'base': 'ETC', 'quote': 'JPY', 'baseId': 'etc', 'quoteId': 'jpy', 'type': 'spot', 'spot': True}),
-                # 'DAO/JPY': {'id': 'dao_jpy', 'symbol': 'DAO/JPY', 'base': 'DAO', 'quote': 'JPY', 'baseId': 'dao', 'quoteId': 'jpy'},
-                # 'LSK/JPY': {'id': 'lsk_jpy', 'symbol': 'LSK/JPY', 'base': 'LSK', 'quote': 'JPY', 'baseId': 'lsk', 'quoteId': 'jpy'},
+                # 'DAO/JPY': { 'id': 'dao_jpy', 'symbol': 'DAO/JPY', 'base': 'DAO', 'quote': 'JPY', 'baseId': 'dao', 'quoteId': 'jpy' },
+                # 'LSK/JPY': { 'id': 'lsk_jpy', 'symbol': 'LSK/JPY', 'base': 'LSK', 'quote': 'JPY', 'baseId': 'lsk', 'quoteId': 'jpy' },
                 'FCT/JPY': self.safe_market_structure({'id': 'fct_jpy', 'symbol': 'FCT/JPY', 'base': 'FCT', 'quote': 'JPY', 'baseId': 'fct', 'quoteId': 'jpy', 'type': 'spot', 'spot': True}),
                 'MONA/JPY': self.safe_market_structure({'id': 'mona_jpy', 'symbol': 'MONA/JPY', 'base': 'MONA', 'quote': 'JPY', 'baseId': 'mona', 'quoteId': 'jpy', 'type': 'spot', 'spot': True}),
-                # 'XMR/JPY': {'id': 'xmr_jpy', 'symbol': 'XMR/JPY', 'base': 'XMR', 'quote': 'JPY', 'baseId': 'xmr', 'quoteId': 'jpy'},
-                # 'REP/JPY': {'id': 'rep_jpy', 'symbol': 'REP/JPY', 'base': 'REP', 'quote': 'JPY', 'baseId': 'rep', 'quoteId': 'jpy'},
-                # 'XRP/JPY': {'id': 'xrp_jpy', 'symbol': 'XRP/JPY', 'base': 'XRP', 'quote': 'JPY', 'baseId': 'xrp', 'quoteId': 'jpy'},
-                # 'ZEC/JPY': {'id': 'zec_jpy', 'symbol': 'ZEC/JPY', 'base': 'ZEC', 'quote': 'JPY', 'baseId': 'zec', 'quoteId': 'jpy'},
-                # 'XEM/JPY': {'id': 'xem_jpy', 'symbol': 'XEM/JPY', 'base': 'XEM', 'quote': 'JPY', 'baseId': 'xem', 'quoteId': 'jpy'},
-                # 'LTC/JPY': {'id': 'ltc_jpy', 'symbol': 'LTC/JPY', 'base': 'LTC', 'quote': 'JPY', 'baseId': 'ltc', 'quoteId': 'jpy'},
-                # 'DASH/JPY': {'id': 'dash_jpy', 'symbol': 'DASH/JPY', 'base': 'DASH', 'quote': 'JPY', 'baseId': 'dash', 'quoteId': 'jpy'},
-                # 'ETH/BTC': {'id': 'eth_btc', 'symbol': 'ETH/BTC', 'base': 'ETH', 'quote': 'BTC', 'baseId': 'eth', 'quoteId': 'btc'},
+                # 'XMR/JPY': { 'id': 'xmr_jpy', 'symbol': 'XMR/JPY', 'base': 'XMR', 'quote': 'JPY', 'baseId': 'xmr', 'quoteId': 'jpy' },
+                # 'REP/JPY': { 'id': 'rep_jpy', 'symbol': 'REP/JPY', 'base': 'REP', 'quote': 'JPY', 'baseId': 'rep', 'quoteId': 'jpy' },
+                # 'XRP/JPY': { 'id': 'xrp_jpy', 'symbol': 'XRP/JPY', 'base': 'XRP', 'quote': 'JPY', 'baseId': 'xrp', 'quoteId': 'jpy' },
+                # 'ZEC/JPY': { 'id': 'zec_jpy', 'symbol': 'ZEC/JPY', 'base': 'ZEC', 'quote': 'JPY', 'baseId': 'zec', 'quoteId': 'jpy' },
+                # 'XEM/JPY': { 'id': 'xem_jpy', 'symbol': 'XEM/JPY', 'base': 'XEM', 'quote': 'JPY', 'baseId': 'xem', 'quoteId': 'jpy' },
+                # 'LTC/JPY': { 'id': 'ltc_jpy', 'symbol': 'LTC/JPY', 'base': 'LTC', 'quote': 'JPY', 'baseId': 'ltc', 'quoteId': 'jpy' },
+                # 'DASH/JPY': { 'id': 'dash_jpy', 'symbol': 'DASH/JPY', 'base': 'DASH', 'quote': 'JPY', 'baseId': 'dash', 'quoteId': 'jpy' },
+                # 'ETH/BTC': { 'id': 'eth_btc', 'symbol': 'ETH/BTC', 'base': 'ETH', 'quote': 'BTC', 'baseId': 'eth', 'quoteId': 'btc' },
                 'ETC/BTC': self.safe_market_structure({'id': 'etc_btc', 'symbol': 'ETC/BTC', 'base': 'ETC', 'quote': 'BTC', 'baseId': 'etc', 'quoteId': 'btc', 'type': 'spot', 'spot': True}),
-                # 'LSK/BTC': {'id': 'lsk_btc', 'symbol': 'LSK/BTC', 'base': 'LSK', 'quote': 'BTC', 'baseId': 'lsk', 'quoteId': 'btc'},
-                # 'FCT/BTC': {'id': 'fct_btc', 'symbol': 'FCT/BTC', 'base': 'FCT', 'quote': 'BTC', 'baseId': 'fct', 'quoteId': 'btc'},
-                # 'XMR/BTC': {'id': 'xmr_btc', 'symbol': 'XMR/BTC', 'base': 'XMR', 'quote': 'BTC', 'baseId': 'xmr', 'quoteId': 'btc'},
-                # 'REP/BTC': {'id': 'rep_btc', 'symbol': 'REP/BTC', 'base': 'REP', 'quote': 'BTC', 'baseId': 'rep', 'quoteId': 'btc'},
-                # 'XRP/BTC': {'id': 'xrp_btc', 'symbol': 'XRP/BTC', 'base': 'XRP', 'quote': 'BTC', 'baseId': 'xrp', 'quoteId': 'btc'},
-                # 'ZEC/BTC': {'id': 'zec_btc', 'symbol': 'ZEC/BTC', 'base': 'ZEC', 'quote': 'BTC', 'baseId': 'zec', 'quoteId': 'btc'},
-                # 'XEM/BTC': {'id': 'xem_btc', 'symbol': 'XEM/BTC', 'base': 'XEM', 'quote': 'BTC', 'baseId': 'xem', 'quoteId': 'btc'},
-                # 'LTC/BTC': {'id': 'ltc_btc', 'symbol': 'LTC/BTC', 'base': 'LTC', 'quote': 'BTC', 'baseId': 'ltc', 'quoteId': 'btc'},
-                # 'DASH/BTC': {'id': 'dash_btc', 'symbol': 'DASH/BTC', 'base': 'DASH', 'quote': 'BTC', 'baseId': 'dash', 'quoteId': 'btc'},
+                # 'LSK/BTC': { 'id': 'lsk_btc', 'symbol': 'LSK/BTC', 'base': 'LSK', 'quote': 'BTC', 'baseId': 'lsk', 'quoteId': 'btc' },
+                # 'FCT/BTC': { 'id': 'fct_btc', 'symbol': 'FCT/BTC', 'base': 'FCT', 'quote': 'BTC', 'baseId': 'fct', 'quoteId': 'btc' },
+                # 'XMR/BTC': { 'id': 'xmr_btc', 'symbol': 'XMR/BTC', 'base': 'XMR', 'quote': 'BTC', 'baseId': 'xmr', 'quoteId': 'btc' },
+                # 'REP/BTC': { 'id': 'rep_btc', 'symbol': 'REP/BTC', 'base': 'REP', 'quote': 'BTC', 'baseId': 'rep', 'quoteId': 'btc' },
+                # 'XRP/BTC': { 'id': 'xrp_btc', 'symbol': 'XRP/BTC', 'base': 'XRP', 'quote': 'BTC', 'baseId': 'xrp', 'quoteId': 'btc' },
+                # 'ZEC/BTC': { 'id': 'zec_btc', 'symbol': 'ZEC/BTC', 'base': 'ZEC', 'quote': 'BTC', 'baseId': 'zec', 'quoteId': 'btc' },
+                # 'XEM/BTC': { 'id': 'xem_btc', 'symbol': 'XEM/BTC', 'base': 'XEM', 'quote': 'BTC', 'baseId': 'xem', 'quoteId': 'btc' },
+                # 'LTC/BTC': { 'id': 'ltc_btc', 'symbol': 'LTC/BTC', 'base': 'LTC', 'quote': 'BTC', 'baseId': 'ltc', 'quoteId': 'btc' },
+                # 'DASH/BTC': { 'id': 'dash_btc', 'symbol': 'DASH/BTC', 'base': 'DASH', 'quote': 'BTC', 'baseId': 'dash', 'quoteId': 'btc' },
             },
             'features': {
                 'spot': {
@@ -300,9 +300,9 @@ class coincheck(Exchange, ImplicitAPI):
         #                 "status": "available",
         #                 "timestamp": 1782787596,
         #                 "availability": {
-        #                     "order": True,
-        #                     "market_order": True,
-        #                     "cancel": True
+        #                     "order": true,
+        #                     "market_order": true,
+        #                     "cancel": true
         #                 }
         #             }
         #         ]
@@ -370,14 +370,14 @@ class coincheck(Exchange, ImplicitAPI):
         #
         # fetchOpenOrders
         #
-        #     {                       id:  202835,
+        #     {                        id:  202835,
         #                      "order_type": "buy",
         #                            "rate":  26890,
         #                            "pair": "btc_jpy",
         #                  "pending_amount": "0.5527",
         #       "pending_market_buy_amount":  null,
         #                  "stop_loss_rate":  null,
-        #                      "created_at": "2015-01-10T05:55:38.000Z"}
+        #                      "created_at": "2015-01-10T05:55:38.000Z" }
         #
         # todo: add formats for fetchOrder, fetchClosedOrders here
         #
@@ -506,7 +506,7 @@ class coincheck(Exchange, ImplicitAPI):
 
     def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #
-        # fetchTrades(public)
+        # fetchTrades (public)
         #
         #      {
         #          "id": "206849494",
@@ -517,7 +517,7 @@ class coincheck(Exchange, ImplicitAPI):
         #          "created_at": "2021-12-08T14:10:33.000Z"
         #      }
         #
-        # fetchMyTrades(private) - example from docs
+        # fetchMyTrades (private) - example from docs
         #
         #      {
         #          "id": 38,
@@ -603,7 +603,7 @@ class coincheck(Exchange, ImplicitAPI):
         response = await self.privateGetExchangeOrdersTransactionsPagination(self.extend(request, params))
         #
         #      {
-        #          "success": True,
+        #          "success": true,
         #          "data": [
         #                      {
         #                          "id": 38,
@@ -674,7 +674,7 @@ class coincheck(Exchange, ImplicitAPI):
         response = await self.privateGetAccounts(params)
         #
         #     {
-        #         "success": True,
+        #         "success": true,
         #         "id": "7487995",
         #         "email": "some@email.com",
         #         "identity_status": "identity_pending",
@@ -683,11 +683,11 @@ class coincheck(Exchange, ImplicitAPI):
         #         "taker_fee": "0.0",
         #         "maker_fee": "0.0",
         #         "exchange_fees": {
-        #           "btc_jpy": {taker_fee: '0.0', maker_fee: "0.0"},
-        #           "etc_jpy": {taker_fee: '0.0', maker_fee: "0.0"},
-        #           "fct_jpy": {taker_fee: '0.0', maker_fee: "0.0"},
-        #           "mona_jpy": {taker_fee: '0.0', maker_fee: "0.0"},
-        #           "plt_jpy": {taker_fee: '0.0', maker_fee: "0.0"}
+        #           "btc_jpy": { taker_fee: '0.0', maker_fee: "0.0" },
+        #           "etc_jpy": { taker_fee: '0.0', maker_fee: "0.0" },
+        #           "fct_jpy": { taker_fee: '0.0', maker_fee: "0.0" },
+        #           "mona_jpy": { taker_fee: '0.0', maker_fee: "0.0" },
+        #           "plt_jpy": { taker_fee: '0.0', maker_fee: "0.0" }
         #         }
         #     }
         #
@@ -768,7 +768,7 @@ class coincheck(Exchange, ImplicitAPI):
         response = await self.privateDeleteExchangeOrdersId(self.extend(request, params))
         #
         #    {
-        #        "success": True,
+        #        "success": true,
         #        "id": 12345
         #    }
         #
@@ -797,7 +797,7 @@ class coincheck(Exchange, ImplicitAPI):
             request['limit'] = limit
         response = await self.privateGetDepositMoney(self.extend(request, params))
         # {
-        #   "success": True,
+        #   "success": true,
         #   "deposits": [
         #     {
         #       "id": 2,
@@ -844,7 +844,7 @@ class coincheck(Exchange, ImplicitAPI):
             request['limit'] = limit
         response = await self.privateGetWithdraws(self.extend(request, params))
         #  {
-        #   "success": True,
+        #   "success": true,
         #   "pagination": {
         #     "limit": 25,
         #     "order": "desc",
@@ -860,7 +860,7 @@ class coincheck(Exchange, ImplicitAPI):
         #       "created_at": "2014-12-04T15:00:00.000Z",
         #       "bank_account_id": 243,
         #       "fee": "400.0",
-        #       "is_fast": True
+        #       "is_fast": true
         #     }
         #   ]
         # }
@@ -904,7 +904,7 @@ class coincheck(Exchange, ImplicitAPI):
         #       "created_at": "2014-12-04T15:00:00.000Z",
         #       "bank_account_id": 243,
         #       "fee": "400.0",
-        #       "is_fast": True
+        #       "is_fast": true
         #  }
         #
         id = self.safe_string(transaction, 'id')

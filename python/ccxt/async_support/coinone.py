@@ -731,17 +731,17 @@ class coinone(Exchange, ImplicitAPI):
 
     def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #
-        # fetchTrades(public)
+        # fetchTrades (public)
         #
         #     {
         #         "id": "1701075265708001",
         #         "timestamp": 1701075265708,
         #         "price": "50020000",
         #         "qty": "0.00155177",
-        #         "is_seller_maker": False
+        #         "is_seller_maker": false
         #     }
         #
-        # fetchMyTrades(private)
+        # fetchMyTrades (private)
         #
         #     {
         #         "timestamp": "1416561032",
@@ -825,7 +825,7 @@ class coinone(Exchange, ImplicitAPI):
         #                 "timestamp": 1701075265708,
         #                 "price": "50020000",
         #                 "qty": "0.00155177",
-        #                 "is_seller_maker": False
+        #                 "is_seller_maker": false
         #             }
         #         ]
         #     }

@@ -374,7 +374,7 @@ class bitteam(Exchange, ImplicitAPI):
         response = self.publicGetTradeApiCcxtPairs(params)
         #
         #     {
-        #         "ok": True,
+        #         "ok": true,
         #         "result": {
         #             "count": 28,
         #             "pairs": [
@@ -391,7 +391,7 @@ class bitteam(Exchange, ImplicitAPI):
         #                     "change24": 1.41,
         #                     "volume24": 28.22627543,
         #                     "volume24USD": 55662.35636401598,
-        #                     "active": True,
+        #                     "active": true,
         #                     "baseStep": 8,
         #                     "quoteStep": 6,
         #                     "status": 1,
@@ -429,7 +429,7 @@ class bitteam(Exchange, ImplicitAPI):
         #                     "change24": -6.72,
         #                     "volume24": 0,
         #                     "volume24USD": null,
-        #                     "active": True,
+        #                     "active": true,
         #                     "baseStep": 8,
         #                     "quoteStep": 6,
         #                     "status": 0,
@@ -542,7 +542,7 @@ class bitteam(Exchange, ImplicitAPI):
         response = self.publicGetTradeApiCurrencies(params)
         #
         #     {
-        #         "ok": True,
+        #         "ok": true,
         #         "result": {
         #             "count": 24,
         #             "currencies": [
@@ -559,14 +559,14 @@ class bitteam(Exchange, ImplicitAPI):
         #                     "symbol": "eth",
         #                     "title": "Ethereum",
         #                     "logoURL": "https://ethereum.org/static/6b935ac0e6194247347855dc3d328e83/34ca5/eth-diamond-black.png",
-        #                     "isDiscount": False,
+        #                     "isDiscount": false,
         #                     "address": "https://ethereum.org/",
         #                     "description": "Ethereum ETH",
         #                     "decimals": 18,
         #                     "blockChain": "Ethereum",
         #                     "precision": 8,
         #                     "currentRate": null,
-        #                     "active": True,
+        #                     "active": true,
         #                     "timeStart": "2021-01-28T08:57:41.719Z",
         #                     "type": "crypto",
         #                     "typeNetwork": "internalGW",
@@ -596,14 +596,14 @@ class bitteam(Exchange, ImplicitAPI):
         #                     "symbol": "usdt",
         #                     "title": "Tether USD",
         #                     "logoURL": "https://cryptologos.cc/logos/tether-usdt-logo.png?v=010",
-        #                     "isDiscount": False,
+        #                     "isDiscount": false,
         #                     "address": "https://tether.to/",
         #                     "description": "Tether USD",
         #                     "decimals": 6,
         #                     "blockChain": "",
         #                     "precision": 6,
         #                     "currentRate": null,
-        #                     "active": True,
+        #                     "active": true,
         #                     "timeStart": "2021-01-28T09:04:17.170Z",
         #                     "type": "crypto",
         #                     "typeNetwork": "internalGW",
@@ -639,16 +639,16 @@ class bitteam(Exchange, ImplicitAPI):
         #         "ZNX": {
         #             "name": "ZeNeX Coin",
         #             "unified_cryptoasset_id": 30,
-        #             "withdrawStatus": True,
-        #             "depositStatus": True,
+        #             "withdrawStatus": true,
+        #             "depositStatus": true,
         #             "min_withdraw": 0.00001,
         #             "max_withdraw": 10000
         #         },
         #         "USDT": {
         #             "name": "Tether USD",
         #             "unified_cryptoasset_id": 3,
-        #             "withdrawStatus": True,
-        #             "depositStatus": True,
+        #             "withdrawStatus": true,
+        #             "depositStatus": true,
         #             "min_withdraw": 1,
         #             "max_withdraw": 100000
         #         },
@@ -767,7 +767,7 @@ class bitteam(Exchange, ImplicitAPI):
         response = self.historyGetApiTwHistoryPairNameResolution(self.extend(request, params))
         #
         #     {
-        #         "ok": True,
+        #         "ok": true,
         #         "result": {
         #             "count": 364,
         #             "data": [
@@ -893,7 +893,7 @@ class bitteam(Exchange, ImplicitAPI):
         response = self.privateGetTradeApiCcxtOrdersOfUser(self.extend(request, params))
         #
         #     {
-        #         "ok": True,
+        #         "ok": true,
         #         "result": {
         #             "count": 3,
         #             "orders": [
@@ -999,7 +999,7 @@ class bitteam(Exchange, ImplicitAPI):
         response = self.privateGetTradeApiCcxtOrderId(self.extend(request, params))
         #
         #     {
-        #         "ok": True,
+        #         "ok": true,
         #         "result": {
         #             "id": 106494347,
         #             "orderId": "13214332",
@@ -1125,7 +1125,7 @@ class bitteam(Exchange, ImplicitAPI):
         response = self.privatePostTradeApiCcxtOrdercreate(self.extend(request, params))
         #
         #     {
-        #         "ok": True,
+        #         "ok": true,
         #         "result": {
         #             "id": 106733308,
         #             "userId": 21639,
@@ -1168,7 +1168,7 @@ class bitteam(Exchange, ImplicitAPI):
         response = self.privatePostTradeApiCcxtCancelorder(self.extend(request, params))
         #
         #     {
-        #         "ok": True,
+        #         "ok": true,
         #         "result": {
         #             "message": "The request to cancel your order was received"
         #         }
@@ -1199,7 +1199,7 @@ class bitteam(Exchange, ImplicitAPI):
         response = self.privatePostTradeApiCcxtCancelAllOrder(self.extend(request, params))
         #
         #     {
-        #         "ok": True,
+        #         "ok": true,
         #         "result": {
         #             "message":"The request to cancel all your orders was received"
         #         }
@@ -1449,7 +1449,7 @@ class bitteam(Exchange, ImplicitAPI):
         response = self.publicGetTradeApiPairName(self.extend(request, params))
         #
         #     {
-        #         "ok": True,
+        #         "ok": true,
         #         "result": {
         #             "pair": {
         #                 "id": 2,
@@ -1464,7 +1464,7 @@ class bitteam(Exchange, ImplicitAPI):
         #                 "change24": "1.02",
         #                 "volume24": 24.0796457,
         #                 "volume24USD": 44282.347995912205,
-        #                 "active": True,
+        #                 "active": true,
         #                 "baseStep": 8,
         #                 "quoteStep": 6,
         #                 "status": 1,
@@ -1528,14 +1528,14 @@ class bitteam(Exchange, ImplicitAPI):
         #                     "symbol": "eth",
         #                     "title": "Ethereum",
         #                     "logoURL": "https://ethereum.org/static/6b935ac0e6194247347855dc3d328e83/34ca5/eth-diamond-black.png",
-        #                     "isDiscount": False,
+        #                     "isDiscount": false,
         #                     "address": "https://ethereum.org/",
         #                     "description": "Ethereum ETH",
         #                     "decimals": 18,
         #                     "blockChain": "Ethereum",
         #                     "precision": 8,
         #                     "currentRate": null,
-        #                     "active": True,
+        #                     "active": true,
         #                     "timeStart": "2021-01-28T08:57:41.719Z",
         #                     "txLimits": {
         #                         "minDeposit": "100000000000000",
@@ -1569,14 +1569,14 @@ class bitteam(Exchange, ImplicitAPI):
         #                     "symbol": "usdt",
         #                     "title": "Tether USD",
         #                     "logoURL": "https://cryptologos.cc/logos/tether-usdt-logo.png?v=010",
-        #                     "isDiscount": False,
+        #                     "isDiscount": false,
         #                     "address": "https://tether.to/",
         #                     "description": "Tether USD",
         #                     "decimals": 6,
         #                     "blockChain": "",
         #                     "precision": 6,
         #                     "currentRate": null,
-        #                     "active": True,
+        #                     "active": true,
         #                     "timeStart": "2021-01-28T09:04:17.170Z",
         #                     "txLimits": {
         #                         "minDeposit": "1000",
@@ -1650,7 +1650,7 @@ class bitteam(Exchange, ImplicitAPI):
         #         "change24": "1.02",
         #         "volume24": 24.0796457,
         #         "volume24USD": 44282.347995912205,
-        #         "active": True,
+        #         "active": true,
         #         "baseStep": 8,
         #         "quoteStep": 6,
         #         "status": 1,
@@ -1826,7 +1826,7 @@ class bitteam(Exchange, ImplicitAPI):
         response = self.privateGetTradeApiCcxtTradesOfUser(self.extend(request, params))
         #
         #     {
-        #         "ok": True,
+        #         "ok": true,
         #         "result": {
         #             "count": 3,
         #             "trades": [
@@ -1838,12 +1838,12 @@ class bitteam(Exchange, ImplicitAPI):
         #                     "pairId": 2,
         #                     "quantity": "0.00955449",
         #                     "price": "1993.674994",
-        #                     "isBuyerMaker": True,
+        #                     "isBuyerMaker": true,
         #                     "baseDecimals": 18,
         #                     "quoteDecimals": 6,
         #                     "side": "sell",
         #                     "timestamp": 1700615250,
-        #                     "rewarded": True,
+        #                     "rewarded": true,
         #                     "makerUserId": 21639,
         #                     "takerUserId": 15913,
         #                     "baseCurrencyId": 2,
@@ -1879,12 +1879,12 @@ class bitteam(Exchange, ImplicitAPI):
         #                     "pairId": 2,
         #                     "quantity": "0.0027193",
         #                     "price": "1993.674994",
-        #                     "isBuyerMaker": True,
+        #                     "isBuyerMaker": true,
         #                     "baseDecimals": 18,
         #                     "quoteDecimals": 6,
         #                     "side": "sell",
         #                     "timestamp": 1700602983,
-        #                     "rewarded": True,
+        #                     "rewarded": true,
         #                     "makerUserId": 21639,
         #                     "takerUserId": 15912,
         #                     "baseCurrencyId": 2,
@@ -1920,12 +1920,12 @@ class bitteam(Exchange, ImplicitAPI):
         #                     "pairId": 22,
         #                     "quantity": "0.00001",
         #                     "price": "37017.495008",
-        #                     "isBuyerMaker": False,
+        #                     "isBuyerMaker": false,
         #                     "baseDecimals": 8,
         #                     "quoteDecimals": 6,
         #                     "side": "buy",
         #                     "timestamp": 1700594960,
-        #                     "rewarded": True,
+        #                     "rewarded": true,
         #                     "makerUserId": 15909,
         #                     "takerUserId": 21639,
         #                     "baseCurrencyId": 11,
@@ -1982,12 +1982,12 @@ class bitteam(Exchange, ImplicitAPI):
         #         "pairId": 2,
         #         "quantity": "0.0027193",
         #         "price": "1993.674994",
-        #         "isBuyerMaker": True,
+        #         "isBuyerMaker": true,
         #         "baseDecimals": 18,
         #         "quoteDecimals": 6,
         #         "side": "sell",
         #         "timestamp": 1700602983,
-        #         "rewarded": True,
+        #         "rewarded": true,
         #         "makerUserId": 21639,
         #         "takerUserId": 15912,
         #         "baseCurrencyId": 2,
@@ -2081,7 +2081,7 @@ class bitteam(Exchange, ImplicitAPI):
     def parse_balance(self, response: object) -> Balances:
         #
         #     {
-        #         "ok": True,
+        #         "ok": true,
         #         "result": {
         #             "free": {
         #                 "USDT": "0",
@@ -2168,7 +2168,7 @@ class bitteam(Exchange, ImplicitAPI):
         response = self.privateGetTradeApiTransactionsOfUser(self.extend(request, params))
         #
         #     {
-        #         "ok": True,
+        #         "ok": true,
         #         "result": {
         #             "count": 2,
         #             "transactions": [

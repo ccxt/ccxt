@@ -505,13 +505,13 @@ class cryptocom(Exchange, ImplicitAPI):
             'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
-                    '213': InvalidOrder,  # {"id" : 1778510838168, "method" : "private/create-order", "code" : 213, "message" : "Invalid quantity format"}
+                    '213': InvalidOrder,  # { "id" : 1778510838168, "method" : "private/create-order", "code" : 213, "message" : "Invalid quantity format" }
                     '219': InvalidOrder,
-                    '306': InsufficientFunds,  # {"id" : 1753xxx, "method" : "private/amend-order", "code" : 306, "message" : "INSUFFICIENT_AVAILABLE_BALANCE", "result" : {"client_oid" : "1753xxx", "order_id" : "6530xxx"}}
-                    '314': InvalidOrder,  # {"id" : 1700xxx, "method" : "private/create-order", "code" : 314, "message" : "EXCEEDS_MAX_ORDER_SIZE", "result" : {"client_oid" : "1700xxx", "order_id" : "6530xxx"}}
-                    '315': InvalidOrder,  # {"id" : 1769xxx, "method" : "private/create-order", "code" : 315, "message" : "FAR_AWAY_LIMIT_PRICE", "result" : {"client_oid" : "1769xxx", "order_id" : "6530xxx"}}
-                    '325': InvalidOrder,  # {"id" : 1741xxx, "method" : "private/create-order", "code" : 325, "message" : "EXCEED_DAILY_VOL_LIMIT", "result" : {"client_oid" : "1741xxx", "order_id" : "6530xxx"}}
-                    '415': InvalidOrder,  # {"id" : 1741xxx, "method" : "private/create-order", "code" : 415, "message" : "BELOW_MIN_ORDER_SIZE", "result" : {"client_oid" : "1741xxx", "order_id" : "6530xxx"}}
+                    '306': InsufficientFunds,  # { "id" : 1753xxx, "method" : "private/amend-order", "code" : 306, "message" : "INSUFFICIENT_AVAILABLE_BALANCE", "result" : { "client_oid" : "1753xxx", "order_id" : "6530xxx" } }
+                    '314': InvalidOrder,  # { "id" : 1700xxx, "method" : "private/create-order", "code" : 314, "message" : "EXCEEDS_MAX_ORDER_SIZE", "result" : { "client_oid" : "1700xxx", "order_id" : "6530xxx" } }
+                    '315': InvalidOrder,  # { "id" : 1769xxx, "method" : "private/create-order", "code" : 315, "message" : "FAR_AWAY_LIMIT_PRICE", "result" : { "client_oid" : "1769xxx", "order_id" : "6530xxx" } }
+                    '325': InvalidOrder,  # { "id" : 1741xxx, "method" : "private/create-order", "code" : 325, "message" : "EXCEED_DAILY_VOL_LIMIT", "result" : { "client_oid" : "1741xxx", "order_id" : "6530xxx" } }
+                    '415': InvalidOrder,  # { "id" : 1741xxx, "method" : "private/create-order", "code" : 415, "message" : "BELOW_MIN_ORDER_SIZE", "result" : { "client_oid" : "1741xxx", "order_id" : "6530xxx" } }
                     '10001': ExchangeError,
                     '10002': PermissionDenied,
                     '10003': PermissionDenied,
@@ -554,7 +554,7 @@ class cryptocom(Exchange, ImplicitAPI):
                     '40401': OrderNotFound,
                     '40801': RequestTimeout,
                     '42901': RateLimitExceeded,
-                    '43005': InvalidOrder,  # Rejected POST_ONLY create-order request(normally happened when exec_inst contains POST_ONLY but time_in_force is NOT GOOD_TILL_CANCEL)
+                    '43005': InvalidOrder,  # Rejected POST_ONLY create-order request (normally happened when exec_inst contains POST_ONLY but time_in_force is NOT GOOD_TILL_CANCEL)
                     '43003': InvalidOrder,  # FOK order has not been filled and cancelled
                     '43004': InvalidOrder,  # IOC order has not been filled and cancelled
                     '43012': BadRequest,  # Canceled due to Self Trade Prevention
@@ -574,13 +574,13 @@ class cryptocom(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an associative dictionary of currencies
         """
-        # self endpoint requires authentication
+        # this endpoint requires authentication
         if not self.check_required_credentials(False):
             return {}
         skipFetchCurrencies = False
         skipFetchCurrencies, params = self.handle_option_and_params(params, 'fetchCurrencies', 'skipFetchCurrencies', False)
         if skipFetchCurrencies:
-            # sub-accounts can't access self endpoint
+            # sub-accounts can't access this endpoint
             return {}
         response = {}
         try:
@@ -588,12 +588,12 @@ class cryptocom(Exchange, ImplicitAPI):
         except Exception as e:
             erString = self.exception_message(e)
             if erString.find('SYS_ERROR') >= 0:
-                # sub-accounts can't access self endpoint
+                # sub-accounts can't access this endpoint
                 # {"code":"10001","msg":"SYS_ERROR"}
                 return {}
             raise e
             # do nothing
-            # sub-accounts can't access self endpoint
+            # sub-accounts can't access this endpoint
         #
         #    {
         #        "id": "1747502328559",
@@ -609,25 +609,25 @@ class cryptocom(Exchange, ImplicitAPI):
         #                        {
         #                            "network_id": "ETH",
         #                            "withdrawal_fee": "10.00000000",
-        #                            "withdraw_enabled": True,
+        #                            "withdraw_enabled": true,
         #                            "min_withdrawal_amount": "20.0",
-        #                            "deposit_enabled": True,
+        #                            "deposit_enabled": true,
         #                            "confirmation_required": "32"
         #                        },
         #                        {
         #                            "network_id": "CRONOS",
         #                            "withdrawal_fee": "0.18000000",
-        #                            "withdraw_enabled": True,
+        #                            "withdraw_enabled": true,
         #                            "min_withdrawal_amount": "0.35",
-        #                            "deposit_enabled": True,
+        #                            "deposit_enabled": true,
         #                            "confirmation_required": "15"
         #                        },
         #                        {
         #                            "network_id": "SOL",
         #                            "withdrawal_fee": "5.31000000",
-        #                            "withdraw_enabled": True,
+        #                            "withdraw_enabled": true,
         #                            "min_withdrawal_amount": "10.62",
-        #                            "deposit_enabled": True,
+        #                            "deposit_enabled": true,
         #                            "confirmation_required": "1"
         #                        }
         #                    ]
@@ -715,11 +715,11 @@ class cryptocom(Exchange, ImplicitAPI):
         #                     "price_tick_size": "0.01",
         #                     "qty_tick_size": "0.00001",
         #                     "max_leverage": "50",
-        #                     "tradable": True,
+        #                     "tradable": true,
         #                     "expiry_timestamp_ms": 0,
-        #                     "beta_product": False,
-        #                     "margin_buy_enabled": False,
-        #                     "margin_sell_enabled": True
+        #                     "beta_product": false,
+        #                     "margin_buy_enabled": false,
+        #                     "margin_sell_enabled": true
         #                 },
         #                 {
         #                     "symbol": "RUNEUSD-PERP",
@@ -732,13 +732,13 @@ class cryptocom(Exchange, ImplicitAPI):
         #                     "price_tick_size": "0.001",
         #                     "qty_tick_size": "0.1",
         #                     "max_leverage": "50",
-        #                     "tradable": True,
+        #                     "tradable": true,
         #                     "expiry_timestamp_ms": 0,
-        #                     "beta_product": False,
+        #                     "beta_product": false,
         #                     "underlying_symbol": "RUNEUSD-INDEX",
         #                     "contract_size": "1",
-        #                     "margin_buy_enabled": False,
-        #                     "margin_sell_enabled": False
+        #                     "margin_buy_enabled": false,
+        #                     "margin_sell_enabled": false
         #                 },
         #                 {
         #                     "symbol": "ETHUSD-230825",
@@ -751,13 +751,13 @@ class cryptocom(Exchange, ImplicitAPI):
         #                     "price_tick_size": "0.01",
         #                     "qty_tick_size": "0.0001",
         #                     "max_leverage": "100",
-        #                     "tradable": True,
+        #                     "tradable": true,
         #                     "expiry_timestamp_ms": 1692950400000,
-        #                     "beta_product": False,
+        #                     "beta_product": false,
         #                     "underlying_symbol": "ETHUSD-INDEX",
         #                     "contract_size": "1",
-        #                     "margin_buy_enabled": False,
-        #                     "margin_sell_enabled": False
+        #                     "margin_buy_enabled": false,
+        #                     "margin_sell_enabled": false
         #                 },
         #                 {
         #                     "symbol": "BTCUSD-230630-CW30000",
@@ -770,15 +770,15 @@ class cryptocom(Exchange, ImplicitAPI):
         #                     "price_tick_size": "0.001",
         #                     "qty_tick_size": "10",
         #                     "max_leverage": "50",
-        #                     "tradable": True,
+        #                     "tradable": true,
         #                     "expiry_timestamp_ms": 1688112000000,
-        #                     "beta_product": False,
+        #                     "beta_product": false,
         #                     "underlying_symbol": "BTCUSD-INDEX",
         #                     "put_call": "CALL",
         #                     "strike": "30000",
         #                     "contract_size": "0.0001",
-        #                     "margin_buy_enabled": False,
-        #                     "margin_sell_enabled": False
+        #                     "margin_buy_enabled": false,
+        #                     "margin_sell_enabled": false
         #                 },
         #             ]
         #         }
@@ -997,7 +997,7 @@ class cryptocom(Exchange, ImplicitAPI):
         #                     "order_type": "MARKET",
         #                     "time_in_force": "GOOD_TILL_CANCEL",
         #                     "side": "SELL",
-        #                     "exec_inst": [],
+        #                     "exec_inst": [ ],
         #                     "quantity": "0.00024",
         #                     "order_value": "5.7054672",
         #                     "maker_fee_rate": "0",
@@ -1180,8 +1180,8 @@ class cryptocom(Exchange, ImplicitAPI):
         #             "depth": 3,
         #             "data": [
         #                 {
-        #                     "bids": [["30025.00", "0.00004", "1"], ["30020.15", "0.02498", "1"], ["30020.00", "0.00004", "1"]],
-        #                     "asks": [["30025.01", "0.04090", "1"], ["30025.70", "0.01000", "1"], ["30026.94", "0.02681", "1"]],
+        #                     "bids": [ [ "30025.00", "0.00004", "1" ], [ "30020.15", "0.02498", "1" ], [ "30020.00", "0.00004", "1" ] ],
+        #                     "asks": [ [ "30025.01", "0.04090", "1" ], [ "30025.70", "0.01000", "1" ], [ "30026.94", "0.02681", "1" ] ],
         #                     "t": 1687491287380
         #                 }
         #             ],
@@ -1258,9 +1258,9 @@ class cryptocom(Exchange, ImplicitAPI):
         #                     "used_position_limit": "0",
         #                     "total_borrow": "0",
         #                     "margin_score": "0",
-        #                     "is_liquidating": False,
-        #                     "has_risk": False,
-        #                     "terminatable": True
+        #                     "is_liquidating": false,
+        #                     "has_risk": false,
+        #                     "terminatable": true
         #                 }
         #             ]
         #         }
@@ -1300,7 +1300,7 @@ class cryptocom(Exchange, ImplicitAPI):
         #             "order_type": "LIMIT",
         #             "time_in_force": "GOOD_TILL_CANCEL",
         #             "side": "BUY",
-        #             "exec_inst": [],
+        #             "exec_inst": [ ],
         #             "quantity": "0.00020",
         #             "limit_price": "20000.00",
         #             "order_value": "4",
@@ -1505,7 +1505,7 @@ class cryptocom(Exchange, ImplicitAPI):
         #       "id" : 1698068111133,
         #       "method" : "private/create-order-list",
         #       "code" : 0,
-        #       "result" : [{
+        #       "result" : [ {
         #         "code" : 0,
         #         "index" : 0,
         #         "client_oid" : "1698068111133_0",
@@ -1516,7 +1516,7 @@ class cryptocom(Exchange, ImplicitAPI):
         #         "client_oid" : "1698068111133_1",
         #         "message" : "INSUFFICIENT_AVAILABLE_BALANCE",
         #         "order_id" : "6142909896519488207"
-        #       }]
+        #       } ]
         #   }
         #
         result = self.safe_value(response, 'result', [])
@@ -1818,7 +1818,7 @@ class cryptocom(Exchange, ImplicitAPI):
         #                     "order_type": "LIMIT",
         #                     "time_in_force": "GOOD_TILL_CANCEL",
         #                     "side": "BUY",
-        #                     "exec_inst": [],
+        #                     "exec_inst": [ ],
         #                     "quantity": "0.00020",
         #                     "limit_price": "20000.00",
         #                     "order_value": "4",
@@ -2342,7 +2342,7 @@ class cryptocom(Exchange, ImplicitAPI):
         #         "order_type": "LIMIT",
         #         "time_in_force": "GOOD_TILL_CANCEL",
         #         "side": "BUY",
-        #         "exec_inst": [],
+        #         "exec_inst": [ ],
         #         "quantity": "0.00020",
         #         "limit_price": "20000.00",
         #         "order_value": "4",
@@ -2553,9 +2553,9 @@ class cryptocom(Exchange, ImplicitAPI):
         #          {
         #            "network_id": "ETH",
         #            "withdrawal_fee": "0.25000000",
-        #            "withdraw_enabled": True,
+        #            "withdraw_enabled": true,
         #            "min_withdrawal_amount": "0.5",
-        #            "deposit_enabled": True,
+        #            "deposit_enabled": true,
         #            "confirmation_required": "0"
         #          }
         #        ]
@@ -2769,8 +2769,8 @@ class cryptocom(Exchange, ImplicitAPI):
         #             "master_account": {
         #                 "uuid": "a1234abc-1234-4321-q5r7-b1ab0a0b12b",
         #                 "user_uuid": "a1234abc-1234-4321-q5r7-b1ab0a0b12b",
-        #                 "enabled": True,
-        #                 "tradable": True,
+        #                 "enabled": true,
+        #                 "tradable": true,
         #                 "name": "YOUR_NAME",
         #                 "country_code": "CAN",
         #                 "phone_country_code": "CAN",
@@ -2779,13 +2779,13 @@ class cryptocom(Exchange, ImplicitAPI):
         #                 "derivatives_access": "DEFAULT",
         #                 "create_time": 1656445188000,
         #                 "update_time": 1660794567262,
-        #                 "two_fa_enabled": True,
+        #                 "two_fa_enabled": true,
         #                 "kyc_level": "ADVANCED",
-        #                 "suspended": False,
-        #                 "terminated": False,
-        #                 "spot_enabled": False,
-        #                 "margin_enabled": False,
-        #                 "derivatives_enabled": False
+        #                 "suspended": false,
+        #                 "terminated": false,
+        #                 "spot_enabled": false,
+        #                 "margin_enabled": false,
+        #                 "derivatives_enabled": false
         #             },
         #             "sub_account_list": []
         #         }
@@ -2804,8 +2804,8 @@ class cryptocom(Exchange, ImplicitAPI):
         #         "user_uuid": "a1234abc-1234-4321-q5r7-b1ab0a0b12b",
         #         "master_account_uuid": "a1234abc-1234-4321-q5r7-b1ab0a0b12b",
         #         "label": "FORMER_MASTER_MARGIN",
-        #         "enabled": True,
-        #         "tradable": True,
+        #         "enabled": true,
+        #         "tradable": true,
         #         "name": "YOUR_NAME",
         #         "country_code": "YOUR_COUNTRY_CODE",
         #         "incorp_country_code": "",
@@ -2813,13 +2813,13 @@ class cryptocom(Exchange, ImplicitAPI):
         #         "derivatives_access": "DEFAULT",
         #         "create_time": 1656481992000,
         #         "update_time": 1667272884594,
-        #         "two_fa_enabled": False,
+        #         "two_fa_enabled": false,
         #         "kyc_level": "ADVANCED",
-        #         "suspended": False,
-        #         "terminated": False,
-        #         "spot_enabled": False,
-        #         "margin_enabled": False,
-        #         "derivatives_enabled": False,
+        #         "suspended": false,
+        #         "terminated": false,
+        #         "spot_enabled": false,
+        #         "margin_enabled": false,
+        #         "derivatives_enabled": false,
         #         "system_label": "FORMER_MASTER_MARGIN"
         #     }
         #

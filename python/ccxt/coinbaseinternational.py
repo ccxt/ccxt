@@ -1192,7 +1192,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         #    {
         #        "idem":"8e471d77-4208-45a8-9e5b-f3bd8a2c1fc3"
         #    }
-        # transactionType = self.safe_string(transaction, 'type')
+        # const transactionType = this.safeString (transaction, 'type');
         datetime = self.safe_string(transaction, 'updated_at')
         fromPorfolio = self.safe_dict(transaction, 'from_portfolio', {})
         addressFrom = self.safe_string_n(transaction, ['from_address', 'from_cb_account', self.safe_string_n(fromPorfolio, ['id', 'uuid', 'name']), 'from_counterparty_id'])
@@ -2281,7 +2281,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
     def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         #
         #    {
-        #        "title":"io.javalin.http.BadRequestResponse: Order rejected(DUPLICATE_CLIENT_ORDER_ID - duplicate client order id detected)",
+        #        "title":"io.javalin.http.BadRequestResponse: Order rejected (DUPLICATE_CLIENT_ORDER_ID - duplicate client order id detected)",
         #        "status":400
         #    }
         #

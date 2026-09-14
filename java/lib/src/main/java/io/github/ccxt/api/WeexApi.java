@@ -7,6 +7,9 @@
 
 package io.github.ccxt.api;
 import io.github.ccxt.Exchange;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 public class WeexApi extends Exchange
 {
@@ -25,7 +28,7 @@ public class WeexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetApiV3Time (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetApiV3Time (Object... optionalArgs)
     {
         return this.callAsync ("publicGetApiV3Time", optionalArgs);
     }
@@ -36,7 +39,7 @@ public class WeexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetApiV3Coins (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicGetApiV3Coins (Object... optionalArgs)
     {
         return this.callAsync ("publicGetApiV3Coins", optionalArgs);
     }
@@ -47,7 +50,7 @@ public class WeexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetApiV3ExchangeInfo (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetApiV3ExchangeInfo (Object... optionalArgs)
     {
         return this.callAsync ("publicGetApiV3ExchangeInfo", optionalArgs);
     }
@@ -58,7 +61,7 @@ public class WeexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetApiV3Ping (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetApiV3Ping (Object... optionalArgs)
     {
         return this.callAsync ("publicGetApiV3Ping", optionalArgs);
     }
@@ -69,7 +72,7 @@ public class WeexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetApiV3ApiTradingSymbols (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicGetApiV3ApiTradingSymbols (Object... optionalArgs)
     {
         return this.callAsync ("publicGetApiV3ApiTradingSymbols", optionalArgs);
     }
@@ -80,7 +83,7 @@ public class WeexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetApiV3MarketTickerPrice (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicGetApiV3MarketTickerPrice (Object... optionalArgs)
     {
         return this.callAsync ("publicGetApiV3MarketTickerPrice", optionalArgs);
     }
@@ -91,7 +94,7 @@ public class WeexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object or a JSON array, so this endpoint keeps Object
      */
-    public java.util.concurrent.CompletableFuture<Object>  publicGetApiV3MarketTicker24hr (Object... optionalArgs)
+    public CompletableFuture<Object>  publicGetApiV3MarketTicker24hr (Object... optionalArgs)
     {
         return this.callAsync ("publicGetApiV3MarketTicker24hr", optionalArgs);
     }
@@ -102,7 +105,7 @@ public class WeexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetApiV3MarketTrades (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicGetApiV3MarketTrades (Object... optionalArgs)
     {
         return this.callAsync ("publicGetApiV3MarketTrades", optionalArgs);
     }
@@ -113,7 +116,7 @@ public class WeexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetApiV3MarketKlines (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicGetApiV3MarketKlines (Object... optionalArgs)
     {
         return this.callAsync ("publicGetApiV3MarketKlines", optionalArgs);
     }
@@ -124,7 +127,7 @@ public class WeexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetApiV3MarketDepth (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetApiV3MarketDepth (Object... optionalArgs)
     {
         return this.callAsync ("publicGetApiV3MarketDepth", optionalArgs);
     }
@@ -135,7 +138,7 @@ public class WeexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetApiV3MarketTickerBookTicker (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicGetApiV3MarketTickerBookTicker (Object... optionalArgs)
     {
         return this.callAsync ("publicGetApiV3MarketTickerBookTicker", optionalArgs);
     }
@@ -146,7 +149,7 @@ public class WeexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetApiV3Account (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetApiV3Account (Object... optionalArgs)
     {
         return this.callAsync ("privateGetApiV3Account", optionalArgs);
     }
@@ -157,7 +160,7 @@ public class WeexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetApiV3AccountTransferRecords (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetApiV3AccountTransferRecords (Object... optionalArgs)
     {
         return this.callAsync ("privateGetApiV3AccountTransferRecords", optionalArgs);
     }
@@ -168,7 +171,7 @@ public class WeexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetApiV3Order (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetApiV3Order (Object... optionalArgs)
     {
         return this.callAsync ("privateGetApiV3Order", optionalArgs);
     }
@@ -179,7 +182,7 @@ public class WeexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetApiV3OpenOrders (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetApiV3OpenOrders (Object... optionalArgs)
     {
         return this.callAsync ("privateGetApiV3OpenOrders", optionalArgs);
     }
@@ -190,7 +193,7 @@ public class WeexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetApiV3AllOrders (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetApiV3AllOrders (Object... optionalArgs)
     {
         return this.callAsync ("privateGetApiV3AllOrders", optionalArgs);
     }
@@ -201,7 +204,7 @@ public class WeexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetApiV3MyTrades (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetApiV3MyTrades (Object... optionalArgs)
     {
         return this.callAsync ("privateGetApiV3MyTrades", optionalArgs);
     }
@@ -212,7 +215,7 @@ public class WeexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetApiV3RebateAffiliateGetAffiliateUIDs (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetApiV3RebateAffiliateGetAffiliateUIDs (Object... optionalArgs)
     {
         return this.callAsync ("privateGetApiV3RebateAffiliateGetAffiliateUIDs", optionalArgs);
     }
@@ -223,7 +226,7 @@ public class WeexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetApiV3RebateAffiliateGetChannelUserTradeAndAsset (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetApiV3RebateAffiliateGetChannelUserTradeAndAsset (Object... optionalArgs)
     {
         return this.callAsync ("privateGetApiV3RebateAffiliateGetChannelUserTradeAndAsset", optionalArgs);
     }
@@ -234,7 +237,7 @@ public class WeexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetApiV3RebateAffiliateGetAffiliateCommission (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetApiV3RebateAffiliateGetAffiliateCommission (Object... optionalArgs)
     {
         return this.callAsync ("privateGetApiV3RebateAffiliateGetAffiliateCommission", optionalArgs);
     }
@@ -245,7 +248,7 @@ public class WeexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetApiV3RebateAffiliateGetInternalWithdrawalStatus (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetApiV3RebateAffiliateGetInternalWithdrawalStatus (Object... optionalArgs)
     {
         return this.callAsync ("privateGetApiV3RebateAffiliateGetInternalWithdrawalStatus", optionalArgs);
     }
@@ -256,7 +259,7 @@ public class WeexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetApiV3RebateAffiliateQuerySubChannelTransactions (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetApiV3RebateAffiliateQuerySubChannelTransactions (Object... optionalArgs)
     {
         return this.callAsync ("privateGetApiV3RebateAffiliateQuerySubChannelTransactions", optionalArgs);
     }
@@ -267,7 +270,7 @@ public class WeexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetApiV3AgencyVerifyReferrals (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetApiV3AgencyVerifyReferrals (Object... optionalArgs)
     {
         return this.callAsync ("privateGetApiV3AgencyVerifyReferrals", optionalArgs);
     }
@@ -278,7 +281,7 @@ public class WeexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetApiV3AgencyGetAssert (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetApiV3AgencyGetAssert (Object... optionalArgs)
     {
         return this.callAsync ("privateGetApiV3AgencyGetAssert", optionalArgs);
     }
@@ -289,7 +292,7 @@ public class WeexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetApiV3AgencyGetDealData (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetApiV3AgencyGetDealData (Object... optionalArgs)
     {
         return this.callAsync ("privateGetApiV3AgencyGetDealData", optionalArgs);
     }
@@ -300,7 +303,7 @@ public class WeexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetApiV3ApiReferralCheckUserEligibility (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetApiV3ApiReferralCheckUserEligibility (Object... optionalArgs)
     {
         return this.callAsync ("privateGetApiV3ApiReferralCheckUserEligibility", optionalArgs);
     }
@@ -311,7 +314,7 @@ public class WeexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetApiV3ApiReferralRebateRecentRecord (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetApiV3ApiReferralRebateRecentRecord (Object... optionalArgs)
     {
         return this.callAsync ("privateGetApiV3ApiReferralRebateRecentRecord", optionalArgs);
     }
@@ -322,7 +325,7 @@ public class WeexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetApiV3ApiReferralRebateRatio (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetApiV3ApiReferralRebateRatio (Object... optionalArgs)
     {
         return this.callAsync ("privateGetApiV3ApiReferralRebateRatio", optionalArgs);
     }
@@ -333,7 +336,7 @@ public class WeexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetApiV3ContentArticlesDetail (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetApiV3ContentArticlesDetail (Object... optionalArgs)
     {
         return this.callAsync ("privateGetApiV3ContentArticlesDetail", optionalArgs);
     }
@@ -344,7 +347,7 @@ public class WeexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetApiV3ContentArticlesList (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetApiV3ContentArticlesList (Object... optionalArgs)
     {
         return this.callAsync ("privateGetApiV3ContentArticlesList", optionalArgs);
     }
@@ -355,7 +358,7 @@ public class WeexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetApiV3ContentArticlesListByCoin (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetApiV3ContentArticlesListByCoin (Object... optionalArgs)
     {
         return this.callAsync ("privateGetApiV3ContentArticlesListByCoin", optionalArgs);
     }
@@ -366,7 +369,7 @@ public class WeexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetApiV3ContentBannersLatest (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetApiV3ContentBannersLatest (Object... optionalArgs)
     {
         return this.callAsync ("privateGetApiV3ContentBannersLatest", optionalArgs);
     }
@@ -377,7 +380,7 @@ public class WeexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privatePostApiV3AccountBills (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privatePostApiV3AccountBills (Object... optionalArgs)
     {
         return this.callAsync ("privatePostApiV3AccountBills", optionalArgs);
     }
@@ -388,7 +391,7 @@ public class WeexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostApiV3AccountFundingBills (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostApiV3AccountFundingBills (Object... optionalArgs)
     {
         return this.callAsync ("privatePostApiV3AccountFundingBills", optionalArgs);
     }
@@ -399,7 +402,7 @@ public class WeexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostApiV3Order (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostApiV3Order (Object... optionalArgs)
     {
         return this.callAsync ("privatePostApiV3Order", optionalArgs);
     }
@@ -410,7 +413,7 @@ public class WeexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostApiV3OrderBatch (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostApiV3OrderBatch (Object... optionalArgs)
     {
         return this.callAsync ("privatePostApiV3OrderBatch", optionalArgs);
     }
@@ -421,7 +424,7 @@ public class WeexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON scalar
      */
-    public java.util.concurrent.CompletableFuture<String>  privatePostApiV3RebateAffiliateInternalWithdrawal (Object... optionalArgs)
+    public CompletableFuture<String>  privatePostApiV3RebateAffiliateInternalWithdrawal (Object... optionalArgs)
     {
         return this.callAsync ("privatePostApiV3RebateAffiliateInternalWithdrawal", optionalArgs);
     }
@@ -432,7 +435,7 @@ public class WeexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privatePostApiV3TaxIncome (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privatePostApiV3TaxIncome (Object... optionalArgs)
     {
         return this.callAsync ("privatePostApiV3TaxIncome", optionalArgs);
     }
@@ -443,7 +446,7 @@ public class WeexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateDeleteApiV3Order (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateDeleteApiV3Order (Object... optionalArgs)
     {
         return this.callAsync ("privateDeleteApiV3Order", optionalArgs);
     }
@@ -454,7 +457,7 @@ public class WeexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateDeleteApiV3OpenOrders (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateDeleteApiV3OpenOrders (Object... optionalArgs)
     {
         return this.callAsync ("privateDeleteApiV3OpenOrders", optionalArgs);
     }
@@ -465,7 +468,7 @@ public class WeexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateDeleteApiV3OrderBatch (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateDeleteApiV3OrderBatch (Object... optionalArgs)
     {
         return this.callAsync ("privateDeleteApiV3OrderBatch", optionalArgs);
     }
@@ -476,7 +479,7 @@ public class WeexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractGetCapiV3MarketTime (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  contractGetCapiV3MarketTime (Object... optionalArgs)
     {
         return this.callAsync ("contractGetCapiV3MarketTime", optionalArgs);
     }
@@ -487,7 +490,7 @@ public class WeexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractGetCapiV3MarketExchangeInfo (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  contractGetCapiV3MarketExchangeInfo (Object... optionalArgs)
     {
         return this.callAsync ("contractGetCapiV3MarketExchangeInfo", optionalArgs);
     }
@@ -498,7 +501,7 @@ public class WeexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractGetCapiV3MarketDepth (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  contractGetCapiV3MarketDepth (Object... optionalArgs)
     {
         return this.callAsync ("contractGetCapiV3MarketDepth", optionalArgs);
     }
@@ -509,7 +512,7 @@ public class WeexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  contractGetCapiV3MarketTicker24hr (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  contractGetCapiV3MarketTicker24hr (Object... optionalArgs)
     {
         return this.callAsync ("contractGetCapiV3MarketTicker24hr", optionalArgs);
     }
@@ -520,7 +523,7 @@ public class WeexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  contractGetCapiV3MarketTickerBookTicker (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  contractGetCapiV3MarketTickerBookTicker (Object... optionalArgs)
     {
         return this.callAsync ("contractGetCapiV3MarketTickerBookTicker", optionalArgs);
     }
@@ -531,7 +534,7 @@ public class WeexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  contractGetCapiV3MarketTrades (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  contractGetCapiV3MarketTrades (Object... optionalArgs)
     {
         return this.callAsync ("contractGetCapiV3MarketTrades", optionalArgs);
     }
@@ -542,7 +545,7 @@ public class WeexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  contractGetCapiV3MarketKlines (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  contractGetCapiV3MarketKlines (Object... optionalArgs)
     {
         return this.callAsync ("contractGetCapiV3MarketKlines", optionalArgs);
     }
@@ -553,7 +556,7 @@ public class WeexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  contractGetCapiV3MarketIndexPriceKlines (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  contractGetCapiV3MarketIndexPriceKlines (Object... optionalArgs)
     {
         return this.callAsync ("contractGetCapiV3MarketIndexPriceKlines", optionalArgs);
     }
@@ -564,7 +567,7 @@ public class WeexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  contractGetCapiV3MarketMarkPriceKlines (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  contractGetCapiV3MarketMarkPriceKlines (Object... optionalArgs)
     {
         return this.callAsync ("contractGetCapiV3MarketMarkPriceKlines", optionalArgs);
     }
@@ -575,7 +578,7 @@ public class WeexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  contractGetCapiV3MarketHistoryKlines (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  contractGetCapiV3MarketHistoryKlines (Object... optionalArgs)
     {
         return this.callAsync ("contractGetCapiV3MarketHistoryKlines", optionalArgs);
     }
@@ -586,7 +589,7 @@ public class WeexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractGetCapiV3MarketSymbolPrice (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  contractGetCapiV3MarketSymbolPrice (Object... optionalArgs)
     {
         return this.callAsync ("contractGetCapiV3MarketSymbolPrice", optionalArgs);
     }
@@ -597,7 +600,7 @@ public class WeexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractGetCapiV3MarketOpenInterest (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  contractGetCapiV3MarketOpenInterest (Object... optionalArgs)
     {
         return this.callAsync ("contractGetCapiV3MarketOpenInterest", optionalArgs);
     }
@@ -608,7 +611,7 @@ public class WeexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  contractGetCapiV3MarketPremiumIndex (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  contractGetCapiV3MarketPremiumIndex (Object... optionalArgs)
     {
         return this.callAsync ("contractGetCapiV3MarketPremiumIndex", optionalArgs);
     }
@@ -619,7 +622,7 @@ public class WeexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  contractGetCapiV3MarketFundingRate (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  contractGetCapiV3MarketFundingRate (Object... optionalArgs)
     {
         return this.callAsync ("contractGetCapiV3MarketFundingRate", optionalArgs);
     }
@@ -630,7 +633,7 @@ public class WeexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  contractGetCapiV3MarketApiTradingSymbols (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  contractGetCapiV3MarketApiTradingSymbols (Object... optionalArgs)
     {
         return this.callAsync ("contractGetCapiV3MarketApiTradingSymbols", optionalArgs);
     }
@@ -641,7 +644,7 @@ public class WeexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  contractPrivateGetCapiV3AccountBalance (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  contractPrivateGetCapiV3AccountBalance (Object... optionalArgs)
     {
         return this.callAsync ("contractPrivateGetCapiV3AccountBalance", optionalArgs);
     }
@@ -652,7 +655,7 @@ public class WeexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractPrivateGetCapiV3AccountCommissionRate (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  contractPrivateGetCapiV3AccountCommissionRate (Object... optionalArgs)
     {
         return this.callAsync ("contractPrivateGetCapiV3AccountCommissionRate", optionalArgs);
     }
@@ -663,7 +666,7 @@ public class WeexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractPrivateGetCapiV3AccountAccountConfig (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  contractPrivateGetCapiV3AccountAccountConfig (Object... optionalArgs)
     {
         return this.callAsync ("contractPrivateGetCapiV3AccountAccountConfig", optionalArgs);
     }
@@ -674,7 +677,7 @@ public class WeexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  contractPrivateGetCapiV3AccountSymbolConfig (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  contractPrivateGetCapiV3AccountSymbolConfig (Object... optionalArgs)
     {
         return this.callAsync ("contractPrivateGetCapiV3AccountSymbolConfig", optionalArgs);
     }
@@ -685,7 +688,7 @@ public class WeexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  contractPrivateGetCapiV3AccountPositionAllPosition (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  contractPrivateGetCapiV3AccountPositionAllPosition (Object... optionalArgs)
     {
         return this.callAsync ("contractPrivateGetCapiV3AccountPositionAllPosition", optionalArgs);
     }
@@ -696,7 +699,7 @@ public class WeexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  contractPrivateGetCapiV3AccountPositionSinglePosition (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  contractPrivateGetCapiV3AccountPositionSinglePosition (Object... optionalArgs)
     {
         return this.callAsync ("contractPrivateGetCapiV3AccountPositionSinglePosition", optionalArgs);
     }
@@ -707,7 +710,7 @@ public class WeexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractPrivateGetCapiV3Order (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  contractPrivateGetCapiV3Order (Object... optionalArgs)
     {
         return this.callAsync ("contractPrivateGetCapiV3Order", optionalArgs);
     }
@@ -718,7 +721,7 @@ public class WeexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  contractPrivateGetCapiV3OpenOrders (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  contractPrivateGetCapiV3OpenOrders (Object... optionalArgs)
     {
         return this.callAsync ("contractPrivateGetCapiV3OpenOrders", optionalArgs);
     }
@@ -729,7 +732,7 @@ public class WeexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  contractPrivateGetCapiV3OrderHistory (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  contractPrivateGetCapiV3OrderHistory (Object... optionalArgs)
     {
         return this.callAsync ("contractPrivateGetCapiV3OrderHistory", optionalArgs);
     }
@@ -740,7 +743,7 @@ public class WeexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  contractPrivateGetCapiV3UserTrades (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  contractPrivateGetCapiV3UserTrades (Object... optionalArgs)
     {
         return this.callAsync ("contractPrivateGetCapiV3UserTrades", optionalArgs);
     }
@@ -751,7 +754,7 @@ public class WeexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  contractPrivateGetCapiV3OpenAlgoOrders (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  contractPrivateGetCapiV3OpenAlgoOrders (Object... optionalArgs)
     {
         return this.callAsync ("contractPrivateGetCapiV3OpenAlgoOrders", optionalArgs);
     }
@@ -762,7 +765,7 @@ public class WeexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractPrivateGetCapiV3AllAlgoOrders (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  contractPrivateGetCapiV3AllAlgoOrders (Object... optionalArgs)
     {
         return this.callAsync ("contractPrivateGetCapiV3AllAlgoOrders", optionalArgs);
     }
@@ -773,7 +776,7 @@ public class WeexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  contractPrivateGetCapiV3SimBalance (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  contractPrivateGetCapiV3SimBalance (Object... optionalArgs)
     {
         return this.callAsync ("contractPrivateGetCapiV3SimBalance", optionalArgs);
     }
@@ -784,7 +787,7 @@ public class WeexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  contractPrivateGetCapiV3SimPositionAllPosition (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  contractPrivateGetCapiV3SimPositionAllPosition (Object... optionalArgs)
     {
         return this.callAsync ("contractPrivateGetCapiV3SimPositionAllPosition", optionalArgs);
     }
@@ -795,7 +798,7 @@ public class WeexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  contractPrivateGetCapiV3SimOrderHistory (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  contractPrivateGetCapiV3SimOrderHistory (Object... optionalArgs)
     {
         return this.callAsync ("contractPrivateGetCapiV3SimOrderHistory", optionalArgs);
     }
@@ -806,7 +809,7 @@ public class WeexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractPrivateGetCapiV3CopyFollowerHistoryOrders (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  contractPrivateGetCapiV3CopyFollowerHistoryOrders (Object... optionalArgs)
     {
         return this.callAsync ("contractPrivateGetCapiV3CopyFollowerHistoryOrders", optionalArgs);
     }
@@ -817,7 +820,7 @@ public class WeexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractPrivateGetCapiV3CopyFollowerMyTraders (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  contractPrivateGetCapiV3CopyFollowerMyTraders (Object... optionalArgs)
     {
         return this.callAsync ("contractPrivateGetCapiV3CopyFollowerMyTraders", optionalArgs);
     }
@@ -828,7 +831,7 @@ public class WeexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  contractPrivateGetCapiV3CopyFollowerOpenOrders (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  contractPrivateGetCapiV3CopyFollowerOpenOrders (Object... optionalArgs)
     {
         return this.callAsync ("contractPrivateGetCapiV3CopyFollowerOpenOrders", optionalArgs);
     }
@@ -839,7 +842,7 @@ public class WeexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  contractPrivateGetCapiV3CopyFollowerSettings (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  contractPrivateGetCapiV3CopyFollowerSettings (Object... optionalArgs)
     {
         return this.callAsync ("contractPrivateGetCapiV3CopyFollowerSettings", optionalArgs);
     }
@@ -850,7 +853,7 @@ public class WeexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractPrivateGetCapiV3CopyTraderHistoryOrders (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  contractPrivateGetCapiV3CopyTraderHistoryOrders (Object... optionalArgs)
     {
         return this.callAsync ("contractPrivateGetCapiV3CopyTraderHistoryOrders", optionalArgs);
     }
@@ -861,7 +864,7 @@ public class WeexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  contractPrivateGetCapiV3CopyTraderOpenOrders (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  contractPrivateGetCapiV3CopyTraderOpenOrders (Object... optionalArgs)
     {
         return this.callAsync ("contractPrivateGetCapiV3CopyTraderOpenOrders", optionalArgs);
     }
@@ -872,7 +875,7 @@ public class WeexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  contractPrivateGetCapiV3CopyTraderPairs (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  contractPrivateGetCapiV3CopyTraderPairs (Object... optionalArgs)
     {
         return this.callAsync ("contractPrivateGetCapiV3CopyTraderPairs", optionalArgs);
     }
@@ -883,7 +886,7 @@ public class WeexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  contractPrivateGetCapiV3TrailingOpenOrders (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  contractPrivateGetCapiV3TrailingOpenOrders (Object... optionalArgs)
     {
         return this.callAsync ("contractPrivateGetCapiV3TrailingOpenOrders", optionalArgs);
     }
@@ -894,7 +897,7 @@ public class WeexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  contractPrivateGetCapiV3TrailingHistoryOrders (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  contractPrivateGetCapiV3TrailingHistoryOrders (Object... optionalArgs)
     {
         return this.callAsync ("contractPrivateGetCapiV3TrailingHistoryOrders", optionalArgs);
     }
@@ -905,7 +908,7 @@ public class WeexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractPrivatePostCapiV3AccountIncome (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  contractPrivatePostCapiV3AccountIncome (Object... optionalArgs)
     {
         return this.callAsync ("contractPrivatePostCapiV3AccountIncome", optionalArgs);
     }
@@ -916,7 +919,7 @@ public class WeexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractPrivatePostCapiV3AccountMarginType (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  contractPrivatePostCapiV3AccountMarginType (Object... optionalArgs)
     {
         return this.callAsync ("contractPrivatePostCapiV3AccountMarginType", optionalArgs);
     }
@@ -927,7 +930,7 @@ public class WeexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractPrivatePostCapiV3AccountLeverage (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  contractPrivatePostCapiV3AccountLeverage (Object... optionalArgs)
     {
         return this.callAsync ("contractPrivatePostCapiV3AccountLeverage", optionalArgs);
     }
@@ -938,7 +941,7 @@ public class WeexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractPrivatePostCapiV3AccountPositionMargin (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  contractPrivatePostCapiV3AccountPositionMargin (Object... optionalArgs)
     {
         return this.callAsync ("contractPrivatePostCapiV3AccountPositionMargin", optionalArgs);
     }
@@ -949,7 +952,7 @@ public class WeexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractPrivatePostCapiV3AccountModifyAutoAppendMargin (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  contractPrivatePostCapiV3AccountModifyAutoAppendMargin (Object... optionalArgs)
     {
         return this.callAsync ("contractPrivatePostCapiV3AccountModifyAutoAppendMargin", optionalArgs);
     }
@@ -960,7 +963,7 @@ public class WeexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractPrivatePostCapiV3Order (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  contractPrivatePostCapiV3Order (Object... optionalArgs)
     {
         return this.callAsync ("contractPrivatePostCapiV3Order", optionalArgs);
     }
@@ -971,7 +974,7 @@ public class WeexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  contractPrivatePostCapiV3BatchOrders (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  contractPrivatePostCapiV3BatchOrders (Object... optionalArgs)
     {
         return this.callAsync ("contractPrivatePostCapiV3BatchOrders", optionalArgs);
     }
@@ -982,7 +985,7 @@ public class WeexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  contractPrivatePostCapiV3ClosePositions (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  contractPrivatePostCapiV3ClosePositions (Object... optionalArgs)
     {
         return this.callAsync ("contractPrivatePostCapiV3ClosePositions", optionalArgs);
     }
@@ -993,7 +996,7 @@ public class WeexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractPrivatePostCapiV3AlgoOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  contractPrivatePostCapiV3AlgoOrder (Object... optionalArgs)
     {
         return this.callAsync ("contractPrivatePostCapiV3AlgoOrder", optionalArgs);
     }
@@ -1004,7 +1007,7 @@ public class WeexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  contractPrivatePostCapiV3PlaceTpSlOrder (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  contractPrivatePostCapiV3PlaceTpSlOrder (Object... optionalArgs)
     {
         return this.callAsync ("contractPrivatePostCapiV3PlaceTpSlOrder", optionalArgs);
     }
@@ -1015,7 +1018,7 @@ public class WeexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractPrivatePostCapiV3ModifyTpSlOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  contractPrivatePostCapiV3ModifyTpSlOrder (Object... optionalArgs)
     {
         return this.callAsync ("contractPrivatePostCapiV3ModifyTpSlOrder", optionalArgs);
     }
@@ -1026,7 +1029,7 @@ public class WeexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractPrivatePostCapiV3SimOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  contractPrivatePostCapiV3SimOrder (Object... optionalArgs)
     {
         return this.callAsync ("contractPrivatePostCapiV3SimOrder", optionalArgs);
     }
@@ -1037,7 +1040,7 @@ public class WeexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractPrivatePostCapiV3CopyFollowerClosePos (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  contractPrivatePostCapiV3CopyFollowerClosePos (Object... optionalArgs)
     {
         return this.callAsync ("contractPrivatePostCapiV3CopyFollowerClosePos", optionalArgs);
     }
@@ -1048,7 +1051,7 @@ public class WeexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractPrivatePostCapiV3CopyFollowerSettings (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  contractPrivatePostCapiV3CopyFollowerSettings (Object... optionalArgs)
     {
         return this.callAsync ("contractPrivatePostCapiV3CopyFollowerSettings", optionalArgs);
     }
@@ -1059,7 +1062,7 @@ public class WeexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractPrivatePostCapiV3CopyFollowerStopCopy (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  contractPrivatePostCapiV3CopyFollowerStopCopy (Object... optionalArgs)
     {
         return this.callAsync ("contractPrivatePostCapiV3CopyFollowerStopCopy", optionalArgs);
     }
@@ -1070,7 +1073,7 @@ public class WeexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractPrivateDeleteCapiV3Order (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  contractPrivateDeleteCapiV3Order (Object... optionalArgs)
     {
         return this.callAsync ("contractPrivateDeleteCapiV3Order", optionalArgs);
     }
@@ -1081,7 +1084,7 @@ public class WeexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractPrivateDeleteCapiV3BatchOrders (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  contractPrivateDeleteCapiV3BatchOrders (Object... optionalArgs)
     {
         return this.callAsync ("contractPrivateDeleteCapiV3BatchOrders", optionalArgs);
     }
@@ -1092,7 +1095,7 @@ public class WeexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  contractPrivateDeleteCapiV3AllOpenOrders (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  contractPrivateDeleteCapiV3AllOpenOrders (Object... optionalArgs)
     {
         return this.callAsync ("contractPrivateDeleteCapiV3AllOpenOrders", optionalArgs);
     }
@@ -1103,7 +1106,7 @@ public class WeexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractPrivateDeleteCapiV3AlgoOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  contractPrivateDeleteCapiV3AlgoOrder (Object... optionalArgs)
     {
         return this.callAsync ("contractPrivateDeleteCapiV3AlgoOrder", optionalArgs);
     }
@@ -1114,7 +1117,7 @@ public class WeexApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  contractPrivateDeleteCapiV3AlgoOpenOrders (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  contractPrivateDeleteCapiV3AlgoOpenOrders (Object... optionalArgs)
     {
         return this.callAsync ("contractPrivateDeleteCapiV3AlgoOpenOrders", optionalArgs);
     }
