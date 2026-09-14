@@ -72,12 +72,12 @@ class paradex(ccxt.async_support.paradex):
         #     {
         #         "jsonrpc": "2.0",
         #         "id": 1,
-        #         "result": {"node_id": "73cf456f7cb78d59"}
+        #         "result": { "node_id": "73cf456f7cb78d59" }
         #     }
         #
         result = self.safe_dict(message, 'result')
         if result is not None:
-            # client.resolve(True, messageHash)
+            # client.resolve (true, messageHash);
             future = self.safe_value(client.futures, 'authenticated')
             if future is not None:
                 future.resolve(True)
@@ -577,7 +577,7 @@ class paradex(ccxt.async_support.paradex):
         #     {
         #         "jsonrpc": "2.0",
         #         "id": 1,
-        #         "result": {"node_id": "73cf456f7cb78d59"}
+        #         "result": { "node_id": "73cf456f7cb78d59" }
         #     }
         #
         # subscription message

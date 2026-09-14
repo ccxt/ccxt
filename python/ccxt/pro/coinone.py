@@ -293,7 +293,7 @@ class coinone(ccxt.async_support.coinone):
         #             "timestamp": 1705303667916,
         #             "price": "58490000",
         #             "qty": "0.0008",
-        #             "is_seller_maker": False
+        #             "is_seller_maker": false
         #         }
         #     }
         #
@@ -318,7 +318,7 @@ class coinone(ccxt.async_support.coinone):
         #         "timestamp": 1705303667916,
         #         "price": "58490000",
         #         "qty": "0.0008",
-        #         "is_seller_maker": False
+        #         "is_seller_maker": false
         #     }
         #
         baseId = self.safe_string_upper(trade, 'target_currency')

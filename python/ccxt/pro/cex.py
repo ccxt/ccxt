@@ -658,7 +658,7 @@ class cex(ccxt.async_support.cex):
         #             "id": "6310857",
         #             "remains": "200000000"
         #             "fremains": "2.00000000"
-        #             "cancel": True,
+        #             "cancel": true,
         #             "pair": {
         #                 "symbol1": "BTC",
         #                 "symbol2": "USD"
@@ -937,12 +937,12 @@ class cex(ccxt.async_support.cex):
         #             "timestamp": 1663762032,
         #             "timestamp_ms": 1663762031680,
         #             "bids": [
-        #                 [241.947, 155.91626],
-        #                 [241, 154],
+        #                 [ 241.947, 155.91626 ],
+        #                 [ 241, 154 ],
         #             ],
         #             "asks": [
-        #                 [242.947, 155.91626],
-        #                 [243, 154],    ],
+        #                 [ 242.947, 155.91626 ],
+        #                 [ 243, 154 ],    ],
         #             "pair": "BTC:USDT",
         #             "id": 616267120,
         #             "sell_total": "13.59066946",
@@ -1095,7 +1095,7 @@ class cex(ccxt.async_support.cex):
         #
         #     {
         #         "e": "ohlcv24",
-        #         "data": ['18793.2', '19630', '18793.2', "19104.1", "314157273"],
+        #         "data": [ '18793.2', '19630', '18793.2', "19104.1", "314157273" ],
         #         "pair": "BTC:USDT"
         #     }
         #
@@ -1147,7 +1147,7 @@ class cex(ccxt.async_support.cex):
         pair = self.safe_string(message, 'pair')
         symbol = self.pair_to_symbol(pair)
         messageHash = 'ohlcv:' + symbol
-        # stored = self.safe_value(self.ohlcvs, symbol)
+        # const stored = this.safeValue (this.ohlcvs, symbol);
         stored = self.ohlcvs[symbol]['unknown']
         for i in range(0, len(data)):
             ohlcv = [
@@ -1405,7 +1405,7 @@ class cex(ccxt.async_support.cex):
         #
         #     {
         #         "e": "get-balance",
-        #         "data": {error: "Please Login"},
+        #         "data": { error: "Please Login" },
         #         "oid": 1,
         #         "ok": "error"
         #     }

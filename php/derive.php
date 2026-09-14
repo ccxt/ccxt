@@ -315,8 +315,8 @@ class derive extends Exchange {
                     '-32700' => '\\ccxt\\BadRequest', // Parse error
                     '-32600' => '\\ccxt\\BadRequest', // Invalid Request
                     '-32601' => '\\ccxt\\BadRequest', // Method not found
-                    '-32602' => '\\ccxt\\InvalidOrder', // array("id":"55e66a3d-6a4e-4a36-a23d-5cf8a91ef478","error":array("code":"","message":"Invalid params"))
-                    '-32603' => '\\ccxt\\InvalidOrder', // array("code":"-32603","message":"Internal error","data":"SubAccount matching query does not exist.")
+                    '-32602' => '\\ccxt\\InvalidOrder', // {"id":"55e66a3d-6a4e-4a36-a23d-5cf8a91ef478","error":{"code":"","message":"Invalid params"}}
+                    '-32603' => '\\ccxt\\InvalidOrder', // {"code":"-32603","message":"Internal error","data":"SubAccount matching query does not exist."}
                     '9000' => '\\ccxt\\InvalidOrder', // Order confirmation timeout
                     '10000' => '\\ccxt\\BadRequest', // Manager not found
                     '10001' => '\\ccxt\\BadRequest', // Asset is not an ERC20 token
@@ -338,14 +338,14 @@ class derive extends Exchange {
                     '11003' => '\\ccxt\\InvalidOrder', // Already cancelled
                     '11004' => '\\ccxt\\InvalidOrder', // Already filled
                     '11005' => '\\ccxt\\InvalidOrder', // Already expired
-                    '11006' => '\\ccxt\\OrderNotFound', // array("code":"11006","message":"Does not exist","data":"Open order with id => 804018f3-b092-40a3-a933-b29574fa1ff8 does not exist.")
+                    '11006' => '\\ccxt\\OrderNotFound', // {"code":"11006","message":"Does not exist","data":"Open order with id: 804018f3-b092-40a3-a933-b29574fa1ff8 does not exist."}
                     '11007' => '\\ccxt\\InvalidOrder', // Self-crossing disallowed
                     '11008' => '\\ccxt\\InvalidOrder', // Post-only reject
                     '11009' => '\\ccxt\\InvalidOrder', // Zero liquidity for market or IOC/FOK order
                     '11010' => '\\ccxt\\InvalidOrder', // Post-only invalid order type
-                    '11011' => '\\ccxt\\InvalidOrder', // array("code":11011,"message":"Invalid signature expiry","data":"Order must expire in 300 sec or more")
-                    '11012' => '\\ccxt\\InvalidOrder', // array("code":"11012","message":"Invalid amount","data":"Amount must be a multiple of 0.01")
-                    '11013' => '\\ccxt\\InvalidOrder', // array("code":"11013","message":"Invalid limit price","data":array("limit":"10000","bandwidth":"92530"))
+                    '11011' => '\\ccxt\\InvalidOrder', // {"code":11011,"message":"Invalid signature expiry","data":"Order must expire in 300 sec or more"}
+                    '11012' => '\\ccxt\\InvalidOrder', // {"code":"11012","message":"Invalid amount","data":"Amount must be a multiple of 0.01"}
+                    '11013' => '\\ccxt\\InvalidOrder', // {"code":"11013","message":"Invalid limit price","data":{"limit":"10000","bandwidth":"92530"}}
                     '11014' => '\\ccxt\\InvalidOrder', // Fill-or-kill not filled
                     '11015' => '\\ccxt\\InvalidOrder', // MMP frozen
                     '11016' => '\\ccxt\\InvalidOrder', // Already consumed
@@ -355,17 +355,17 @@ class derive extends Exchange {
                     '11020' => '\\ccxt\\InsufficientFunds', // Negative ERC20 balance
                     '11021' => '\\ccxt\\InvalidOrder', // Instrument is not live
                     '11022' => '\\ccxt\\InvalidOrder', // Reject timestamp exceeded
-                    '11023' => '\\ccxt\\InvalidOrder', // array("code":"11023","message":"Max fee order param is too low","data":"signed max_fee must be >= 194.420835871999983091712000000000000000")
-                    '11024' => '\\ccxt\\InvalidOrder', // array("code":11024,"message":"Reduce only not supported with this time in force")
+                    '11023' => '\\ccxt\\InvalidOrder', // {"code":"11023","message":"Max fee order param is too low","data":"signed max_fee must be >= 194.420835871999983091712000000000000000"}
+                    '11024' => '\\ccxt\\InvalidOrder', // {"code":11024,"message":"Reduce only not supported with this time in force"}
                     '11025' => '\\ccxt\\InvalidOrder', // Reduce only reject
                     '11026' => '\\ccxt\\BadRequest', // Transfer reject
                     '11027' => '\\ccxt\\InvalidOrder', // Subaccount undergoing liquidation
                     '11028' => '\\ccxt\\InvalidOrder', // Replaced order filled amount does not match expected state.
                     '11050' => '\\ccxt\\InvalidOrder', // Trigger order was cancelled between the time worker sent order and engine processed order
-                    '11051' => '\\ccxt\\InvalidOrder', // array("code":"11051","message":"Trigger price must be higher than the current price for stop orders and vice versa for take orders","data":"Trigger price 9000.0 must be < or > current price 102671.2 depending on trigger type and direction.")
+                    '11051' => '\\ccxt\\InvalidOrder', // {"code":"11051","message":"Trigger price must be higher than the current price for stop orders and vice versa for take orders","data":"Trigger price 9000.0 must be < or > current price 102671.2 depending on trigger type and direction."}
                     '11052' => '\\ccxt\\InvalidOrder', // Trigger order limit exceeded (separate limit from regular orders)
                     '11053' => '\\ccxt\\InvalidOrder', // Index and last-trade trigger price types not supported yet
-                    '11054' => '\\ccxt\\InvalidOrder', // array("code":"11054","message":"Trigger orders cannot replace or be replaced")
+                    '11054' => '\\ccxt\\InvalidOrder', // {"code":"11054","message":"Trigger orders cannot replace or be replaced"}
                     '11055' => '\\ccxt\\InvalidOrder', // Market order limit_price is unfillable at the given trigger price
                     '11100' => '\\ccxt\\InvalidOrder', // Leg instruments are not unique
                     '11101' => '\\ccxt\\InvalidOrder', // RFQ not found
@@ -384,16 +384,16 @@ class derive extends Exchange {
                     '12002' => '\\ccxt\\BadRequest', // Currency not found
                     '12003' => '\\ccxt\\BadRequest', // USDC does not have asset caps per manager
                     '13000' => '\\ccxt\\BadRequest', // Invalid channels
-                    '14000' => '\\ccxt\\BadRequest', // array("code" => 14000, "message" => "Account not found")
-                    '14001' => '\\ccxt\\InvalidOrder', // array("code" => 14001, "message" => "Subaccount not found")
+                    '14000' => '\\ccxt\\BadRequest', // {"code": 14000, "message": "Account not found"}
+                    '14001' => '\\ccxt\\InvalidOrder', // {"code": 14001, "message": "Subaccount not found"}
                     '14002' => '\\ccxt\\BadRequest', // Subaccount was withdrawn
                     '14008' => '\\ccxt\\BadRequest', // Cannot reduce expiry using registerSessionKey RPC route
                     '14009' => '\\ccxt\\BadRequest', // Session key expiry must be > utc_now + 10 min
                     '14010' => '\\ccxt\\BadRequest', // Session key already registered for this account
                     '14011' => '\\ccxt\\BadRequest', // Session key already registered with another account
                     '14012' => '\\ccxt\\BadRequest', // Address must be checksummed
-                    '14013' => '\\ccxt\\BadRequest', // 'strval' is not a valid ethereum address
-                    '14014' => '\\ccxt\\InvalidOrder', // array("code":"14014","message":"Signature invalid for message or transaction","data":"Signature does not match data")
+                    '14013' => '\\ccxt\\BadRequest', // String is not a valid ethereum address
+                    '14014' => '\\ccxt\\InvalidOrder', // {"code":"14014","message":"Signature invalid for message or transaction","data":"Signature does not match data"}
                     '14015' => '\\ccxt\\BadRequest', // Transaction count for given wallet does not match provided nonce
                     '14016' => '\\ccxt\\BadRequest', // The provided signed raw transaction contains function name that does not match the expected function name
                     '14017' => '\\ccxt\\BadRequest', // The provided signed raw transaction contains contract address that does not match the expected contract address
@@ -402,11 +402,11 @@ class derive extends Exchange {
                     '14020' => '\\ccxt\\BadRequest', // The X-LyraWallet header does not match the requested subaccount_id or wallet
                     '14021' => '\\ccxt\\BadRequest', // The X-LyraWallet header not provided
                     '14022' => '\\ccxt\\AuthenticationError', // Subscription to a private channel failed
-                    '14023' => '\\ccxt\\InvalidOrder', // array(is_array(on-chain related request is not wallet owner or registered session key","data":"Session key does not belong to wallet") && array_key_exists("code":"14023","message":"Signer ?? '', on-chain related request is not wallet owner or registered session key","data":"Session key does not belong to wallet"))
+                    '14023' => '\\ccxt\\InvalidOrder', // {"code":"14023","message":"Signer in on-chain related request is not wallet owner or registered session key","data":"Session key does not belong to wallet"}
                     '14024' => '\\ccxt\\BadRequest', // Chain ID must match the current roll up chain id
                     '14025' => '\\ccxt\\BadRequest', // The private request is missing a wallet or subaccount_id param
                     '14026' => '\\ccxt\\BadRequest', // Session key not found
-                    '14027' => '\\ccxt\\AuthenticationError', // Unauthorized maker
+                    '14027' => '\\ccxt\\AuthenticationError', // Unauthorized as RFQ maker
                     '14028' => '\\ccxt\\BadRequest', // Cross currency RFQ not supported
                     '14029' => '\\ccxt\\AuthenticationError', // Session key IP not whitelisted
                     '14030' => '\\ccxt\\BadRequest', // Session key expired
@@ -463,8 +463,8 @@ class derive extends Exchange {
         $response = $this->publicPostGetTime($params);
         //
         // {
-        //     "result" => 1735846536758,
-        //     "id" => "f1c03d21-f886-4c5a-9a9d-33dd06f180f0"
+        //     "result": 1735846536758,
+        //     "id": "f1c03d21-f886-4c5a-9a9d-33dd06f180f0"
         // }
         //
         return $this->safe_integer($response, 'result');
@@ -482,50 +482,50 @@ class derive extends Exchange {
         $tokenResponse = $this->publicGetGetAllCurrencies($params);
         //
         //    {
-        //        "result" => [
+        //        "result": [
         //            {
-        //                "currency" => "SEI",
-        //                "instrument_types" => array(
+        //                "currency": "SEI",
+        //                "instrument_types": [
         //                    "perp"
-        //                ),
-        //                "protocol_asset_addresses" => array(
-        //                    "perp" => "0x7225889B75fd34C68eA3098dAE04D50553C09840",
-        //                    "option" => null,
-        //                    "spot" => null,
-        //                    "underlying_erc20" => null
-        //                ),
-        //                "managers" => array(
+        //                ],
+        //                "protocol_asset_addresses": {
+        //                    "perp": "0x7225889B75fd34C68eA3098dAE04D50553C09840",
+        //                    "option": null,
+        //                    "spot": null,
+        //                    "underlying_erc20": null
+        //                },
+        //                "managers": [
         //                    {
-        //                        "address" => "0x28c9ddF9A3B29c2E6a561c1BC520954e5A33de5D",
-        //                        "margin_type" => "SM",
-        //                        "currency" => null
+        //                        "address": "0x28c9ddF9A3B29c2E6a561c1BC520954e5A33de5D",
+        //                        "margin_type": "SM",
+        //                        "currency": null
         //                    }
-        //                ),
-        //                "srm_im_discount" => "0",
-        //                "srm_mm_discount" => "0",
-        //                "pm2_collateral_discounts" => array(),
-        //                "borrow_apy" => "0",
-        //                "supply_apy" => "0",
-        //                "total_borrow" => "0",
-        //                "total_supply" => "0",
-        //                "asset_cap_and_supply_per_manager" => array(
-        //                    "perp" => array(
-        //                        "SM" => array(
-        //                            array(
-        //                                "current_open_interest" => "0",
-        //                                "interest_cap" => "2000000",
-        //                                "manager_currency" => null
+        //                ],
+        //                "srm_im_discount": "0",
+        //                "srm_mm_discount": "0",
+        //                "pm2_collateral_discounts": [],
+        //                "borrow_apy": "0",
+        //                "supply_apy": "0",
+        //                "total_borrow": "0",
+        //                "total_supply": "0",
+        //                "asset_cap_and_supply_per_manager": {
+        //                    "perp": {
+        //                        "SM": [
+        //                            {
+        //                                "current_open_interest": "0",
+        //                                "interest_cap": "2000000",
+        //                                "manager_currency": null
         //                            }
-        //                        )
-        //                    ),
-        //                    "option" => array(),
-        //                    "erc20" => array()
-        //                ),
-        //                "market_type" => "SRM_PERP_ONLY",
-        //                "spot_price" => "0.2193542905042081",
-        //                "spot_price_24h" => "0.238381655533635830"
-        //            ),
-        //     "id" => "7e07fe1d-0ab4-4d2b-9e22-b65ce9e232dc"
+        //                        ]
+        //                    },
+        //                    "option": {},
+        //                    "erc20": {}
+        //                },
+        //                "market_type": "SRM_PERP_ONLY",
+        //                "spot_price": "0.2193542905042081",
+        //                "spot_price_24h": "0.238381655533635830"
+        //            },
+        //     "id": "7e07fe1d-0ab4-4d2b-9e22-b65ce9e232dc"
         // }
         //
         $currencies = $this->safe_list($tokenResponse, 'result', array());
@@ -574,47 +574,47 @@ class derive extends Exchange {
         list($spotMarkets, $swapMarkets, $optionMarkets) = array( $spotMarketsPromise, $swapMarketsPromise, $optionMarketsPromise );
         //
         // {
-        //     "result" => {
-        //         "instruments" => array(
+        //     "result": {
+        //         "instruments": [
         //             {
-        //                 "instrument_type" => "perp",
-        //                 "instrument_name" => "BTC-PERP",
-        //                 "scheduled_activation" => 1701840228,
-        //                 "scheduled_deactivation" => 9223372036854776000,
-        //                 "is_active" => true,
-        //                 "tick_size" => "0.1",
-        //                 "minimum_amount" => "0.01",
-        //                 "maximum_amount" => "10000",
-        //                 "amount_step" => "0.001",
-        //                 "mark_price_fee_rate_cap" => "0",
-        //                 "maker_fee_rate" => "0.00005",
-        //                 "taker_fee_rate" => "0.0003",
-        //                 "base_fee" => "0.1",
-        //                 "base_currency" => "BTC",
-        //                 "quote_currency" => "USD",
-        //                 "option_details" => null,
-        //                 "perp_details" => array(
-        //                     "index" => "BTC-USD",
-        //                     "max_rate_per_hour" => "0.004",
-        //                     "min_rate_per_hour" => "-0.004",
-        //                     "static_interest_rate" => "0.0000125",
-        //                     "aggregate_funding" => "10538.574363381759146829",
-        //                     "funding_rate" => "0.0000125"
-        //                 ),
-        //                 "erc20_details" => null,
-        //                 "base_asset_address" => "0xDBa83C0C654DB1cd914FA2710bA743e925B53086",
-        //                 "base_asset_sub_id" => "0",
-        //                 "pro_rata_fraction" => "0",
-        //                 "fifo_min_allocation" => "0",
-        //                 "pro_rata_amount_step" => "0.1"
+        //                 "instrument_type": "perp",
+        //                 "instrument_name": "BTC-PERP",
+        //                 "scheduled_activation": 1701840228,
+        //                 "scheduled_deactivation": 9223372036854776000,
+        //                 "is_active": true,
+        //                 "tick_size": "0.1",
+        //                 "minimum_amount": "0.01",
+        //                 "maximum_amount": "10000",
+        //                 "amount_step": "0.001",
+        //                 "mark_price_fee_rate_cap": "0",
+        //                 "maker_fee_rate": "0.00005",
+        //                 "taker_fee_rate": "0.0003",
+        //                 "base_fee": "0.1",
+        //                 "base_currency": "BTC",
+        //                 "quote_currency": "USD",
+        //                 "option_details": null,
+        //                 "perp_details": {
+        //                     "index": "BTC-USD",
+        //                     "max_rate_per_hour": "0.004",
+        //                     "min_rate_per_hour": "-0.004",
+        //                     "static_interest_rate": "0.0000125",
+        //                     "aggregate_funding": "10538.574363381759146829",
+        //                     "funding_rate": "0.0000125"
+        //                 },
+        //                 "erc20_details": null,
+        //                 "base_asset_address": "0xDBa83C0C654DB1cd914FA2710bA743e925B53086",
+        //                 "base_asset_sub_id": "0",
+        //                 "pro_rata_fraction": "0",
+        //                 "fifo_min_allocation": "0",
+        //                 "pro_rata_amount_step": "0.1"
         //             }
-        //         ),
-        //         "pagination" => array(
-        //             "num_pages" => 1,
-        //             "count" => 1
+        //         ],
+        //         "pagination": {
+        //             "num_pages": 1,
+        //             "count": 1
         //         }
-        //     ),
-        //     "id" => "a06bc0b2-8e78-4536-a21f-f785f225b5a5"
+        //     },
+        //     "id": "a06bc0b2-8e78-4536-a21f-f785f225b5a5"
         // }
         //
         $result = $this->array_concat($spotMarkets, $swapMarkets);
@@ -784,60 +784,60 @@ class derive extends Exchange {
         // spot
         //
         // {
-        //     "result" => array(
-        //         "instrument_type" => "perp",
-        //         "instrument_name" => "BTC-PERP",
-        //         "scheduled_activation" => 1701840228,
-        //         "scheduled_deactivation" => 9223372036854776000,
-        //         "is_active" => true,
-        //         "tick_size" => "0.1",
-        //         "minimum_amount" => "0.01",
-        //         "maximum_amount" => "10000",
-        //         "amount_step" => "0.001",
-        //         "mark_price_fee_rate_cap" => "0",
-        //         "maker_fee_rate" => "0.00005",
-        //         "taker_fee_rate" => "0.0003",
-        //         "base_fee" => "0.1",
-        //         "base_currency" => "BTC",
-        //         "quote_currency" => "USD",
-        //         "option_details" => null,
-        //         "perp_details" => array(
-        //             "index" => "BTC-USD",
-        //             "max_rate_per_hour" => "0.004",
-        //             "min_rate_per_hour" => "-0.004",
-        //             "static_interest_rate" => "0.0000125",
-        //             "aggregate_funding" => "10512.580833189805742522",
-        //             "funding_rate" => "-0.000022223906766867"
-        //         ),
-        //         "erc20_details" => null,
-        //         "base_asset_address" => "0xDBa83C0C654DB1cd914FA2710bA743e925B53086",
-        //         "base_asset_sub_id" => "0",
-        //         "pro_rata_fraction" => "0",
-        //         "fifo_min_allocation" => "0",
-        //         "pro_rata_amount_step" => "0.1",
-        //         "best_ask_amount" => "0.012",
-        //         "best_ask_price" => "99567.9",
-        //         "best_bid_amount" => "0.129",
-        //         "best_bid_price" => "99554.5",
-        //         "five_percent_bid_depth" => "11.208",
-        //         "five_percent_ask_depth" => "11.42",
-        //         "option_pricing" => null,
-        //         "index_price" => "99577.2",
-        //         "mark_price" => "99543.642926357933902181684970855712890625",
-        //         "stats" => array(
-        //             "contract_volume" => "464.712",
-        //             "num_trades" => "10681",
-        //             "open_interest" => "72.804739389481989861",
-        //             "high" => "99519.1",
-        //             "low" => "97254.1",
-        //             "percent_change" => "0.0128",
-        //             "usd_change" => "1258.1"
-        //         ),
-        //         "timestamp" => 1736140984000,
-        //         "min_price" => "97591.2",
-        //         "max_price" => "101535.1"
-        //     ),
-        //     "id" => "bbd7c271-c2be-48f7-b93a-26cf6d4cb79f"
+        //     "result": {
+        //         "instrument_type": "perp",
+        //         "instrument_name": "BTC-PERP",
+        //         "scheduled_activation": 1701840228,
+        //         "scheduled_deactivation": 9223372036854776000,
+        //         "is_active": true,
+        //         "tick_size": "0.1",
+        //         "minimum_amount": "0.01",
+        //         "maximum_amount": "10000",
+        //         "amount_step": "0.001",
+        //         "mark_price_fee_rate_cap": "0",
+        //         "maker_fee_rate": "0.00005",
+        //         "taker_fee_rate": "0.0003",
+        //         "base_fee": "0.1",
+        //         "base_currency": "BTC",
+        //         "quote_currency": "USD",
+        //         "option_details": null,
+        //         "perp_details": {
+        //             "index": "BTC-USD",
+        //             "max_rate_per_hour": "0.004",
+        //             "min_rate_per_hour": "-0.004",
+        //             "static_interest_rate": "0.0000125",
+        //             "aggregate_funding": "10512.580833189805742522",
+        //             "funding_rate": "-0.000022223906766867"
+        //         },
+        //         "erc20_details": null,
+        //         "base_asset_address": "0xDBa83C0C654DB1cd914FA2710bA743e925B53086",
+        //         "base_asset_sub_id": "0",
+        //         "pro_rata_fraction": "0",
+        //         "fifo_min_allocation": "0",
+        //         "pro_rata_amount_step": "0.1",
+        //         "best_ask_amount": "0.012",
+        //         "best_ask_price": "99567.9",
+        //         "best_bid_amount": "0.129",
+        //         "best_bid_price": "99554.5",
+        //         "five_percent_bid_depth": "11.208",
+        //         "five_percent_ask_depth": "11.42",
+        //         "option_pricing": null,
+        //         "index_price": "99577.2",
+        //         "mark_price": "99543.642926357933902181684970855712890625",
+        //         "stats": {
+        //             "contract_volume": "464.712",
+        //             "num_trades": "10681",
+        //             "open_interest": "72.804739389481989861",
+        //             "high": "99519.1",
+        //             "low": "97254.1",
+        //             "percent_change": "0.0128",
+        //             "usd_change": "1258.1"
+        //         },
+        //         "timestamp": 1736140984000,
+        //         "min_price": "97591.2",
+        //         "max_price": "101535.1"
+        //     },
+        //     "id": "bbd7c271-c2be-48f7-b93a-26cf6d4cb79f"
         // }
         //
         $data = $this->safe_dict($response, 'result', array());
@@ -847,57 +847,57 @@ class derive extends Exchange {
     public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         // {
-        //     "instrument_type" => "perp",
-        //     "instrument_name" => "BTC-PERP",
-        //     "scheduled_activation" => 1701840228,
-        //     "scheduled_deactivation" => 9223372036854776000,
-        //     "is_active" => true,
-        //     "tick_size" => "0.1",
-        //     "minimum_amount" => "0.01",
-        //     "maximum_amount" => "10000",
-        //     "amount_step" => "0.001",
-        //     "mark_price_fee_rate_cap" => "0",
-        //     "maker_fee_rate" => "0.00005",
-        //     "taker_fee_rate" => "0.0003",
-        //     "base_fee" => "0.1",
-        //     "base_currency" => "BTC",
-        //     "quote_currency" => "USD",
-        //     "option_details" => null,
-        //     "perp_details" => array(
-        //         "index" => "BTC-USD",
-        //         "max_rate_per_hour" => "0.004",
-        //         "min_rate_per_hour" => "-0.004",
-        //         "static_interest_rate" => "0.0000125",
-        //         "aggregate_funding" => "10512.580833189805742522",
-        //         "funding_rate" => "-0.000022223906766867"
-        //     ),
-        //     "erc20_details" => null,
-        //     "base_asset_address" => "0xDBa83C0C654DB1cd914FA2710bA743e925B53086",
-        //     "base_asset_sub_id" => "0",
-        //     "pro_rata_fraction" => "0",
-        //     "fifo_min_allocation" => "0",
-        //     "pro_rata_amount_step" => "0.1",
-        //     "best_ask_amount" => "0.012",
-        //     "best_ask_price" => "99567.9",
-        //     "best_bid_amount" => "0.129",
-        //     "best_bid_price" => "99554.5",
-        //     "five_percent_bid_depth" => "11.208",
-        //     "five_percent_ask_depth" => "11.42",
-        //     "option_pricing" => null,
-        //     "index_price" => "99577.2",
-        //     "mark_price" => "99543.642926357933902181684970855712890625",
-        //     "stats" => array(
-        //         "contract_volume" => "464.712",
-        //         "num_trades" => "10681",
-        //         "open_interest" => "72.804739389481989861",
-        //         "high" => "99519.1",
-        //         "low" => "97254.1",
-        //         "percent_change" => "0.0128",
-        //         "usd_change" => "1258.1"
-        //     ),
-        //     "timestamp" => 1736140984000,
-        //     "min_price" => "97591.2",
-        //     "max_price" => "101535.1"
+        //     "instrument_type": "perp",
+        //     "instrument_name": "BTC-PERP",
+        //     "scheduled_activation": 1701840228,
+        //     "scheduled_deactivation": 9223372036854776000,
+        //     "is_active": true,
+        //     "tick_size": "0.1",
+        //     "minimum_amount": "0.01",
+        //     "maximum_amount": "10000",
+        //     "amount_step": "0.001",
+        //     "mark_price_fee_rate_cap": "0",
+        //     "maker_fee_rate": "0.00005",
+        //     "taker_fee_rate": "0.0003",
+        //     "base_fee": "0.1",
+        //     "base_currency": "BTC",
+        //     "quote_currency": "USD",
+        //     "option_details": null,
+        //     "perp_details": {
+        //         "index": "BTC-USD",
+        //         "max_rate_per_hour": "0.004",
+        //         "min_rate_per_hour": "-0.004",
+        //         "static_interest_rate": "0.0000125",
+        //         "aggregate_funding": "10512.580833189805742522",
+        //         "funding_rate": "-0.000022223906766867"
+        //     },
+        //     "erc20_details": null,
+        //     "base_asset_address": "0xDBa83C0C654DB1cd914FA2710bA743e925B53086",
+        //     "base_asset_sub_id": "0",
+        //     "pro_rata_fraction": "0",
+        //     "fifo_min_allocation": "0",
+        //     "pro_rata_amount_step": "0.1",
+        //     "best_ask_amount": "0.012",
+        //     "best_ask_price": "99567.9",
+        //     "best_bid_amount": "0.129",
+        //     "best_bid_price": "99554.5",
+        //     "five_percent_bid_depth": "11.208",
+        //     "five_percent_ask_depth": "11.42",
+        //     "option_pricing": null,
+        //     "index_price": "99577.2",
+        //     "mark_price": "99543.642926357933902181684970855712890625",
+        //     "stats": {
+        //         "contract_volume": "464.712",
+        //         "num_trades": "10681",
+        //         "open_interest": "72.804739389481989861",
+        //         "high": "99519.1",
+        //         "low": "97254.1",
+        //         "percent_change": "0.0128",
+        //         "usd_change": "1258.1"
+        //     },
+        //     "timestamp": 1736140984000,
+        //     "min_price": "97591.2",
+        //     "max_price": "101535.1"
         // }
         //
         $marketId = $this->safe_string($ticker, 'instrument_name');
@@ -970,34 +970,34 @@ class derive extends Exchange {
         $response = $this->publicPostGetTradeHistory($this->extend($request, $params));
         //
         // {
-        //     "result" => {
-        //         "trades" => array(
+        //     "result": {
+        //         "trades": [
         //             {
-        //                 "trade_id" => "9dbc88b0-f0c4-4439-9cc1-4e6409d4eafb",
-        //                 "instrument_name" => "BTC-PERP",
-        //                 "timestamp" => 1736153910930,
-        //                 "trade_price" => "98995.3",
-        //                 "trade_amount" => "0.033",
-        //                 "mark_price" => "98990.875914388161618263",
-        //                 "index_price" => "99038.050611100001501184",
-        //                 "direction" => "sell",
-        //                 "quote_id" => null,
-        //                 "wallet" => "0x88B6BB87fbFac92a34F8155aaA35c87B5b166fA9",
-        //                 "subaccount_id" => 8250,
-        //                 "tx_status" => "settled",
-        //                 "tx_hash" => "0x020bd735b312f867f17f8cc254946d87cfe9f2c8ff3605035d8129082eb73723",
-        //                 "trade_fee" => "0.980476701049890015",
-        //                 "liquidity_role" => "taker",
-        //                 "realized_pnl" => "-2.92952402688793509",
-        //                 "realized_pnl_excl_fees" => "-1.949047325838045075"
+        //                 "trade_id": "9dbc88b0-f0c4-4439-9cc1-4e6409d4eafb",
+        //                 "instrument_name": "BTC-PERP",
+        //                 "timestamp": 1736153910930,
+        //                 "trade_price": "98995.3",
+        //                 "trade_amount": "0.033",
+        //                 "mark_price": "98990.875914388161618263",
+        //                 "index_price": "99038.050611100001501184",
+        //                 "direction": "sell",
+        //                 "quote_id": null,
+        //                 "wallet": "0x88B6BB87fbFac92a34F8155aaA35c87B5b166fA9",
+        //                 "subaccount_id": 8250,
+        //                 "tx_status": "settled",
+        //                 "tx_hash": "0x020bd735b312f867f17f8cc254946d87cfe9f2c8ff3605035d8129082eb73723",
+        //                 "trade_fee": "0.980476701049890015",
+        //                 "liquidity_role": "taker",
+        //                 "realized_pnl": "-2.92952402688793509",
+        //                 "realized_pnl_excl_fees": "-1.949047325838045075"
         //             }
-        //         ),
-        //         "pagination" => array(
-        //             "num_pages" => 598196,
-        //             "count" => 598196
+        //         ],
+        //         "pagination": {
+        //             "num_pages": 598196,
+        //             "count": 598196
         //         }
-        //     ),
-        //     "id" => "b8539544-6975-4497-8163-5e51a38e4aa7"
+        //     },
+        //     "id": "b8539544-6975-4497-8163-5e51a38e4aa7"
         // }
         //
         $result = $this->safe_dict($response, 'result', array());
@@ -1013,7 +1013,7 @@ class derive extends Exchange {
             $isFetchTrades = !(is_array($rawTrade) && array_key_exists('order_id' ?? '', $rawTrade));
             $liquidityRole = $this->safe_string($rawTrade, 'liquidity_role');
             if ($isFetchTrades && ($liquidityRole === 'maker')) {
-                // skip maker $trades
+                // skip maker trades
                 continue;
             }
             $parsed = $this->parse_trade($rawTrade, $market);
@@ -1030,30 +1030,30 @@ class derive extends Exchange {
         // fetchTrades & fetchMyTrades
         //
         // {
-        //     "subaccount_id" => 130837,
-        //     "instrument_name" => "BTC-PERP",
-        //     "direction" => "sell",
-        //     "quote_id" => null,
-        //     "trade_id" => "f8a30740-488c-4c2d-905d-e17057bafde1",
-        //     "timestamp" => 1738065303708,
-        //     "mark_price" => "102740.137375457314192317",
-        //     "index_price" => "102741.553409299981533184",
-        //     "trade_price" => "102700.6",
-        //     "trade_amount" => "0.01",
-        //     "liquidity_role" => "taker",
-        //     "realized_pnl" => "0",
-        //     "realized_pnl_excl_fees" => "0",
-        //     "tx_status" => "settled",
-        //     "trade_fee" => "1.127415534092999815",
-        //     "tx_hash" => "0xc55df1f07330faf86579bd8a6385391fbe9e73089301149d8550e9d29c9ead74",
-        //     "label" => "test1234",                                      // only fetchMyTrades
-        //     "order_id" => "30c48194-8d48-43ac-ad00-0d5ba29eddc9",       // only fetchMyTrades
-        //     "is_transfer" => false,                                     // only fetchMyTrades
-        //     "transaction_id" => "e18b9426-3fa5-41bb-99d3-8b54fb4d11bb", // only fetchMyTrades
-        //     "rfq_id" => null,                                           // only fetchTrades
-        //     "wallet" => "0x353Bf69715DdbF7A2b0C6Deba8EAC1F1D160c123",   // only fetchTrades
-        //     "expected_rebate" => "0",                                   // only fetchTrades
-        //     "extra_fee" => "0",                                         // only fetchTrades
+        //     "subaccount_id": 130837,
+        //     "instrument_name": "BTC-PERP",
+        //     "direction": "sell",
+        //     "quote_id": null,
+        //     "trade_id": "f8a30740-488c-4c2d-905d-e17057bafde1",
+        //     "timestamp": 1738065303708,
+        //     "mark_price": "102740.137375457314192317",
+        //     "index_price": "102741.553409299981533184",
+        //     "trade_price": "102700.6",
+        //     "trade_amount": "0.01",
+        //     "liquidity_role": "taker",
+        //     "realized_pnl": "0",
+        //     "realized_pnl_excl_fees": "0",
+        //     "tx_status": "settled",
+        //     "trade_fee": "1.127415534092999815",
+        //     "tx_hash": "0xc55df1f07330faf86579bd8a6385391fbe9e73089301149d8550e9d29c9ead74",
+        //     "label": "test1234",                                      // only fetchMyTrades
+        //     "order_id": "30c48194-8d48-43ac-ad00-0d5ba29eddc9",       // only fetchMyTrades
+        //     "is_transfer": false,                                     // only fetchMyTrades
+        //     "transaction_id": "e18b9426-3fa5-41bb-99d3-8b54fb4d11bb", // only fetchMyTrades
+        //     "rfq_id": null,                                           // only fetchTrades
+        //     "wallet": "0x353Bf69715DdbF7A2b0C6Deba8EAC1F1D160c123",   // only fetchTrades
+        //     "expected_rebate": "0",                                   // only fetchTrades
+        //     "extra_fee": "0",                                         // only fetchTrades
         // }
         //
         $marketId = $this->safe_string($trade, 'instrument_name');
@@ -1110,15 +1110,15 @@ class derive extends Exchange {
         $response = $this->publicPostGetFundingRateHistory($this->extend($request, $params));
         //
         // {
-        //     "result" => {
-        //         "funding_rate_history" => array(
-        //             array(
-        //                 "timestamp" => 1736215200000,
-        //                 "funding_rate" => "-0.000020014"
+        //     "result": {
+        //         "funding_rate_history": [
+        //             {
+        //                 "timestamp": 1736215200000,
+        //                 "funding_rate": "-0.000020014"
         //             }
-        //         )
-        //     ),
-        //     "id" => "3200ab8d-0080-42f0-8517-c13e3d9201d8"
+        //         ]
+        //     },
+        //     "id": "3200ab8d-0080-42f0-8517-c13e3d9201d8"
         // }
         //
         $result = $this->safe_dict($response, 'result', array());
@@ -1151,18 +1151,18 @@ class derive extends Exchange {
          */
         $response = $this->fetch_funding_rate_history($symbol, null, 1, $params);
         //
-        // array(
+        // [
         //     {
-        //         "info" => array(
-        //             "timestamp" => 1736157600000,
-        //             "funding_rate" => "-0.000008872"
-        //         ),
-        //         "symbol" => "BTC/USD:USDC",
-        //         "fundingRate" => -0.000008872,
-        //         "timestamp" => 1736157600000,
-        //         "datetime" => "2025-01-06T10:00:00.000Z"
+        //         "info": {
+        //             "timestamp": 1736157600000,
+        //             "funding_rate": "-0.000008872"
+        //         },
+        //         "symbol": "BTC/USD:USDC",
+        //         "fundingRate": -0.000008872,
+        //         "timestamp": 1736157600000,
+        //         "datetime": "2025-01-06T10:00:00.000Z"
         //     }
-        // )
+        // ]
         //
         $data = $this->safe_dict($response, 0);
         return $this->parse_funding_rate($data);
@@ -1271,9 +1271,9 @@ class derive extends Exchange {
         $postOnly = $this->safe_bool($params, 'postOnly');
         $orderType = strtolower($type);
         $orderSide = strtolower($side);
-        $orderSideIsBuy = ($orderSide === 'buy'); // extracted to a named local => the Rust transpiler can't lower a bare `===` bool inside a list literal (ethAbiEncode args)
+        $orderSideIsBuy = ($orderSide === 'buy'); // extracted to a named local: the Rust transpiler can't lower a bare `===` bool inside a list literal (ethAbiEncode args)
         $nonce = $this->milliseconds();
-        // Order $signature expiry must be between 2592000 and 7776000 sec from now
+        // Order signature expiry must be between 2592000 and 7776000 sec from now
         $signatureExpiry = $this->safe_integer($params, 'signature_expiry_sec', $this->seconds() + 7776000);
         $ACTION_TYPEHASH = $this->base16_to_binary('4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17');
         $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
@@ -1360,69 +1360,69 @@ class derive extends Exchange {
         }
         //
         // {
-        //     "result" => {
-        //         "raw_data" => array(
-        //             "subaccount_id" => 130837,
-        //             "nonce" => 1736923517552,
-        //             "module" => "0x87F2863866D85E3192a35A73b388BD625D83f2be",
-        //             "expiry" => 86400,
-        //             "owner" => "0x108b9aF9279a525b8A8AeAbE7AC2bA925Bc50075",
-        //             "signer" => "0x108b9aF9279a525b8A8AeAbE7AC2bA925Bc50075",
-        //             "signature" => "0xaa4f42b2f3da33c668fa703ea872d4c3a6b55aca66025b5119e3bebb6679fe2e2794638db51dcace21fc39a498047835994f07eb59f311bb956ce057e66793d1c",
-        //             "data" => array(
-        //                 "asset" => "0xAFB6Bb95cd70D5367e2C39e9dbEb422B9815339D",
-        //                 "sub_id" => 0,
-        //                 "limit_price" => "10000",
-        //                 "desired_amount" => "0.001",
-        //                 "worst_fee" => "0",
-        //                 "recipient_id" => 130837,
-        //                 "is_bid" => true,
-        //                 "trade_id" => ""
+        //     "result": {
+        //         "raw_data": {
+        //             "subaccount_id": 130837,
+        //             "nonce": 1736923517552,
+        //             "module": "0x87F2863866D85E3192a35A73b388BD625D83f2be",
+        //             "expiry": 86400,
+        //             "owner": "0x108b9aF9279a525b8A8AeAbE7AC2bA925Bc50075",
+        //             "signer": "0x108b9aF9279a525b8A8AeAbE7AC2bA925Bc50075",
+        //             "signature": "0xaa4f42b2f3da33c668fa703ea872d4c3a6b55aca66025b5119e3bebb6679fe2e2794638db51dcace21fc39a498047835994f07eb59f311bb956ce057e66793d1c",
+        //             "data": {
+        //                 "asset": "0xAFB6Bb95cd70D5367e2C39e9dbEb422B9815339D",
+        //                 "sub_id": 0,
+        //                 "limit_price": "10000",
+        //                 "desired_amount": "0.001",
+        //                 "worst_fee": "0",
+        //                 "recipient_id": 130837,
+        //                 "is_bid": true,
+        //                 "trade_id": ""
         //             }
-        //         ),
-        //         "encoded_data" => "0x000000000000000000000000afb6bb95cd70d5367e2c39e9dbeb422b9815339d000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000021e19e0c9bab240000000000000000000000000000000000000000000000000000000038d7ea4c680000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001ff150000000000000000000000000000000000000000000000000000000000000001",
-        //         "encoded_data_hashed" => "0xe88fb416bc54dba2d288988f1a82fee40fd792ed555b3471b5f6b4b810d279b4",
-        //         "action_hash" => "0x273a0befb3751fa991edc7ed73582456c3b50ae964d458c8f472e932fb6a0069",
-        //         "typed_data_hash" => "0x123e2d2f3d5b2473b4e260f51c6459d6bf904e5db8f042a3ea63be8d55329ce9"
-        //     ),
-        //     "id" => "f851c8c4-dddf-4b77-93cf-aeddd0966f29"
+        //         },
+        //         "encoded_data": "0x000000000000000000000000afb6bb95cd70d5367e2c39e9dbeb422b9815339d000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000021e19e0c9bab240000000000000000000000000000000000000000000000000000000038d7ea4c680000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001ff150000000000000000000000000000000000000000000000000000000000000001",
+        //         "encoded_data_hashed": "0xe88fb416bc54dba2d288988f1a82fee40fd792ed555b3471b5f6b4b810d279b4",
+        //         "action_hash": "0x273a0befb3751fa991edc7ed73582456c3b50ae964d458c8f472e932fb6a0069",
+        //         "typed_data_hash": "0x123e2d2f3d5b2473b4e260f51c6459d6bf904e5db8f042a3ea63be8d55329ce9"
+        //     },
+        //     "id": "f851c8c4-dddf-4b77-93cf-aeddd0966f29"
         // }
         // {
-        //     "result" => array(
-        //         "order" => array(
-        //             "subaccount_id" => 130837,
-        //             "order_id" => "96349ebb-7d46-43ae-81c7-7ab390444293",
-        //             "instrument_name" => "BTC-PERP",
-        //             "direction" => "buy",
-        //             "label" => "",
-        //             "quote_id" => null,
-        //             "creation_timestamp" => 1737467576257,
-        //             "last_update_timestamp" => 1737467576257,
-        //             "limit_price" => "10000",
-        //             "amount" => "0.01",
-        //             "filled_amount" => "0",
-        //             "average_price" => "0",
-        //             "order_fee" => "0",
-        //             "order_type" => "limit",
-        //             "time_in_force" => "gtc",
-        //             "order_status" => "open",
-        //             "max_fee" => "210",
-        //             "signature_expiry_sec" => 1737468175989,
-        //             "nonce" => 1737467575989,
-        //             "signer" => "0x30CB7B06AdD6749BbE146A6827502B8f2a79269A",
-        //             "signature" => "0xd1ca49df1fa06bd805bb59b132ff6c0de29bf973a3e01705abe0a01cc956e4945ed9eb99ab68f3df4c037908113cac5a5bfc3a954a0b7103cdab285962fa6a51c",
-        //             "cancel_reason" => "",
-        //             "mmp" => false,
-        //             "is_transfer" => false,
-        //             "replaced_order_id" => null,
-        //             "trigger_type" => null,
-        //             "trigger_price_type" => null,
-        //             "trigger_price" => null,
-        //             "trigger_reject_message" => null
-        //         ),
-        //         "trades" => array()
-        //     ),
-        //     "id" => "397087fa-0125-42af-bfc3-f66166f9fb55"
+        //     "result": {
+        //         "order": {
+        //             "subaccount_id": 130837,
+        //             "order_id": "96349ebb-7d46-43ae-81c7-7ab390444293",
+        //             "instrument_name": "BTC-PERP",
+        //             "direction": "buy",
+        //             "label": "",
+        //             "quote_id": null,
+        //             "creation_timestamp": 1737467576257,
+        //             "last_update_timestamp": 1737467576257,
+        //             "limit_price": "10000",
+        //             "amount": "0.01",
+        //             "filled_amount": "0",
+        //             "average_price": "0",
+        //             "order_fee": "0",
+        //             "order_type": "limit",
+        //             "time_in_force": "gtc",
+        //             "order_status": "open",
+        //             "max_fee": "210",
+        //             "signature_expiry_sec": 1737468175989,
+        //             "nonce": 1737467575989,
+        //             "signer": "0x30CB7B06AdD6749BbE146A6827502B8f2a79269A",
+        //             "signature": "0xd1ca49df1fa06bd805bb59b132ff6c0de29bf973a3e01705abe0a01cc956e4945ed9eb99ab68f3df4c037908113cac5a5bfc3a954a0b7103cdab285962fa6a51c",
+        //             "cancel_reason": "",
+        //             "mmp": false,
+        //             "is_transfer": false,
+        //             "replaced_order_id": null,
+        //             "trigger_type": null,
+        //             "trigger_price_type": null,
+        //             "trigger_price": null,
+        //             "trigger_reject_message": null
+        //         },
+        //         "trades": []
+        //     },
+        //     "id": "397087fa-0125-42af-bfc3-f66166f9fb55"
         // }
         //
         $result = $this->safe_dict($response, 'result');
@@ -1462,10 +1462,10 @@ class derive extends Exchange {
         $postOnly = $this->safe_bool($params, 'postOnly');
         $orderType = strtolower($type);
         $orderSide = strtolower($side);
-        $orderSideIsBuy = ($orderSide === 'buy'); // extracted to a named local => the Rust transpiler can't lower a bare `===` bool inside a list literal (ethAbiEncode args)
+        $orderSideIsBuy = ($orderSide === 'buy'); // extracted to a named local: the Rust transpiler can't lower a bare `===` bool inside a list literal (ethAbiEncode args)
         $nonce = $this->milliseconds();
         $signatureExpiry = $this->safe_number($params, 'signature_expiry_sec', $this->seconds() + 7776000);
-        // TODO => subaccount $id / trade module address
+        // TODO: subaccount id / trade module address
         $ACTION_TYPEHASH = $this->base16_to_binary('4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17');
         $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
         $TRADE_MODULE_ADDRESS = ($sandboxMode === true) ? '0x87F2863866D85E3192a35A73b388BD625D83f2be' : '0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b';
@@ -1529,75 +1529,75 @@ class derive extends Exchange {
         //
         //   {
         //     "result":
-        //       array(
+        //       {
         //         "cancelled_order":
-        //           array(
-        //             "subaccount_id" => 130837,
-        //             "order_id" => "c2337704-f1af-437d-91c8-dddb9d6bac59",
-        //             "instrument_name" => "BTC-PERP",
-        //             "direction" => "buy",
-        //             "label" => "test1234",
-        //             "quote_id" => null,
-        //             "creation_timestamp" => 1737539743959,
-        //             "last_update_timestamp" => 1737539764234,
-        //             "limit_price" => "10000",
-        //             "amount" => "0.01",
-        //             "filled_amount" => "0",
-        //             "average_price" => "0",
-        //             "order_fee" => "0",
-        //             "order_type" => "limit",
-        //             "time_in_force" => "post_only",
-        //             "order_status" => "cancelled",
-        //             "max_fee" => "211",
-        //             "signature_expiry_sec" => 1737540343631,
-        //             "nonce" => 1737539743631,
-        //             "signer" => "0x30CB7B06AdD6749BbE146A6827502B8f2a79269A",
-        //             "signature" => "0xdb669e18f407a3efa816b79c0dd3bac1c651d4dbf3caad4db67678ce9b81c76378d787a08143a30707eb0827ce4626640767c9f174358df1b90611bd6d1391711b",
-        //             "cancel_reason" => "user_request",
-        //             "mmp" => false,
-        //             "is_transfer" => false,
-        //             "replaced_order_id" => null,
-        //             "trigger_type" => null,
-        //             "trigger_price_type" => null,
-        //             "trigger_price" => null,
-        //             "trigger_reject_message" => null,
-        //           ),
+        //           {
+        //             "subaccount_id": 130837,
+        //             "order_id": "c2337704-f1af-437d-91c8-dddb9d6bac59",
+        //             "instrument_name": "BTC-PERP",
+        //             "direction": "buy",
+        //             "label": "test1234",
+        //             "quote_id": null,
+        //             "creation_timestamp": 1737539743959,
+        //             "last_update_timestamp": 1737539764234,
+        //             "limit_price": "10000",
+        //             "amount": "0.01",
+        //             "filled_amount": "0",
+        //             "average_price": "0",
+        //             "order_fee": "0",
+        //             "order_type": "limit",
+        //             "time_in_force": "post_only",
+        //             "order_status": "cancelled",
+        //             "max_fee": "211",
+        //             "signature_expiry_sec": 1737540343631,
+        //             "nonce": 1737539743631,
+        //             "signer": "0x30CB7B06AdD6749BbE146A6827502B8f2a79269A",
+        //             "signature": "0xdb669e18f407a3efa816b79c0dd3bac1c651d4dbf3caad4db67678ce9b81c76378d787a08143a30707eb0827ce4626640767c9f174358df1b90611bd6d1391711b",
+        //             "cancel_reason": "user_request",
+        //             "mmp": false,
+        //             "is_transfer": false,
+        //             "replaced_order_id": null,
+        //             "trigger_type": null,
+        //             "trigger_price_type": null,
+        //             "trigger_price": null,
+        //             "trigger_reject_message": null,
+        //           },
         //         "order":
-        //           array(
-        //             "subaccount_id" => 130837,
-        //             "order_id" => "97af0902-813f-4892-a54b-797e5689db05",
-        //             "instrument_name" => "BTC-PERP",
-        //             "direction" => "buy",
-        //             "label" => "test1234",
-        //             "quote_id" => null,
-        //             "creation_timestamp" => 1737539764154,
-        //             "last_update_timestamp" => 1737539764154,
-        //             "limit_price" => "10000",
-        //             "amount" => "0.01",
-        //             "filled_amount" => "0",
-        //             "average_price" => "0",
-        //             "order_fee" => "0",
-        //             "order_type" => "limit",
-        //             "time_in_force" => "post_only",
-        //             "order_status" => "open",
-        //             "max_fee" => "211",
-        //             "signature_expiry_sec" => 1737540363890,
-        //             "nonce" => 1737539763890,
-        //             "signer" => "0x30CB7B06AdD6749BbE146A6827502B8f2a79269A",
-        //             "signature" => "0xef2c459ab4797cbbd7d97b47678ff172542af009bac912bf53e7879cf92eb1aa6b1a6cf40bf0928684f5394942fb424cc2db71eac0eaf7226a72480034332f291c",
-        //             "cancel_reason" => "",
-        //             "mmp" => false,
-        //             "is_transfer" => false,
-        //             "replaced_order_id" => "c2337704-f1af-437d-91c8-dddb9d6bac59",
-        //             "trigger_type" => null,
-        //             "trigger_price_type" => null,
-        //             "trigger_price" => null,
-        //             "trigger_reject_message" => null,
-        //           ),
-        //         "trades" => array(),
-        //         "create_order_error" => null,
-        //       ),
-        //     "id" => "fb19e991-15f6-4c80-a20c-917e762a1a38",
+        //           {
+        //             "subaccount_id": 130837,
+        //             "order_id": "97af0902-813f-4892-a54b-797e5689db05",
+        //             "instrument_name": "BTC-PERP",
+        //             "direction": "buy",
+        //             "label": "test1234",
+        //             "quote_id": null,
+        //             "creation_timestamp": 1737539764154,
+        //             "last_update_timestamp": 1737539764154,
+        //             "limit_price": "10000",
+        //             "amount": "0.01",
+        //             "filled_amount": "0",
+        //             "average_price": "0",
+        //             "order_fee": "0",
+        //             "order_type": "limit",
+        //             "time_in_force": "post_only",
+        //             "order_status": "open",
+        //             "max_fee": "211",
+        //             "signature_expiry_sec": 1737540363890,
+        //             "nonce": 1737539763890,
+        //             "signer": "0x30CB7B06AdD6749BbE146A6827502B8f2a79269A",
+        //             "signature": "0xef2c459ab4797cbbd7d97b47678ff172542af009bac912bf53e7879cf92eb1aa6b1a6cf40bf0928684f5394942fb424cc2db71eac0eaf7226a72480034332f291c",
+        //             "cancel_reason": "",
+        //             "mmp": false,
+        //             "is_transfer": false,
+        //             "replaced_order_id": "c2337704-f1af-437d-91c8-dddb9d6bac59",
+        //             "trigger_type": null,
+        //             "trigger_price_type": null,
+        //             "trigger_price": null,
+        //             "trigger_reject_message": null,
+        //           },
+        //         "trades": [],
+        //         "create_order_error": null,
+        //       },
+        //     "id": "fb19e991-15f6-4c80-a20c-917e762a1a38",
         //   }
         //
         $result = $this->safe_dict($response, 'result');
@@ -1651,45 +1651,45 @@ class derive extends Exchange {
         }
         //
         // {
-        //     "result" => array(
-        //         "subaccount_id" => 130837,
-        //         "order_id" => "de4f30b6-0dcb-4df6-9222-c1a27f1ad80d",
-        //         "instrument_name" => "BTC-PERP",
-        //         "direction" => "buy",
-        //         "label" => "test1234",
-        //         "quote_id" => null,
-        //         "creation_timestamp" => 1737540100989,
-        //         "last_update_timestamp" => 1737540574696,
-        //         "limit_price" => "10000",
-        //         "amount" => "0.01",
-        //         "filled_amount" => "0",
-        //         "average_price" => "0",
-        //         "order_fee" => "0",
-        //         "order_type" => "limit",
-        //         "time_in_force" => "post_only",
-        //         "order_status" => "cancelled",
-        //         "max_fee" => "211",
-        //         "signature_expiry_sec" => 1737540700726,
-        //         "nonce" => 1737540100726,
-        //         "signer" => "0x30CB7B06AdD6749BbE146A6827502B8f2a79269A",
-        //         "signature" => "0x9cd1a6e32a0699929e4e090c08c548366b1353701ec56e02d5cdf37fc89bd19b7b29e00e57e8383bb6336d73019027a7e2a4364f40859e7a949115024c7f199a1b",
-        //         "cancel_reason" => "user_request",
-        //         "mmp" => false,
-        //         "is_transfer" => false,
-        //         "replaced_order_id" => "4ccc89ba-3c3d-4047-8900-0aa5fb4ef706",
-        //         "trigger_type" => null,
-        //         "trigger_price_type" => null,
-        //         "trigger_price" => null,
-        //         "trigger_reject_message" => null
-        //     ),
-        //     "id" => "cef61e2a-cb13-4779-8e6b-535361981fad"
+        //     "result": {
+        //         "subaccount_id": 130837,
+        //         "order_id": "de4f30b6-0dcb-4df6-9222-c1a27f1ad80d",
+        //         "instrument_name": "BTC-PERP",
+        //         "direction": "buy",
+        //         "label": "test1234",
+        //         "quote_id": null,
+        //         "creation_timestamp": 1737540100989,
+        //         "last_update_timestamp": 1737540574696,
+        //         "limit_price": "10000",
+        //         "amount": "0.01",
+        //         "filled_amount": "0",
+        //         "average_price": "0",
+        //         "order_fee": "0",
+        //         "order_type": "limit",
+        //         "time_in_force": "post_only",
+        //         "order_status": "cancelled",
+        //         "max_fee": "211",
+        //         "signature_expiry_sec": 1737540700726,
+        //         "nonce": 1737540100726,
+        //         "signer": "0x30CB7B06AdD6749BbE146A6827502B8f2a79269A",
+        //         "signature": "0x9cd1a6e32a0699929e4e090c08c548366b1353701ec56e02d5cdf37fc89bd19b7b29e00e57e8383bb6336d73019027a7e2a4364f40859e7a949115024c7f199a1b",
+        //         "cancel_reason": "user_request",
+        //         "mmp": false,
+        //         "is_transfer": false,
+        //         "replaced_order_id": "4ccc89ba-3c3d-4047-8900-0aa5fb4ef706",
+        //         "trigger_type": null,
+        //         "trigger_price_type": null,
+        //         "trigger_price": null,
+        //         "trigger_reject_message": null
+        //     },
+        //     "id": "cef61e2a-cb13-4779-8e6b-535361981fad"
         // }
         //
         // {
-        //     "result" => array(
-        //         "cancelled_orders" => 1
-        //     ),
-        //     "id" => "674e075e-1e8a-4a47-99ff-75efbdd2370f"
+        //     "result": {
+        //         "cancelled_orders": 1
+        //     },
+        //     "id": "674e075e-1e8a-4a47-99ff-75efbdd2370f"
         // }
         //
         $extendParams = array( 'symbol' => $symbol );
@@ -1732,15 +1732,15 @@ class derive extends Exchange {
         }
         //
         // {
-        //     "result" => array(
-        //         "cancelled_orders" => 0
-        //     ),
-        //     "id" => "9d633799-2098-4559-b547-605bb6f4d8f5"
+        //     "result": {
+        //         "cancelled_orders": 0
+        //     },
+        //     "id": "9d633799-2098-4559-b547-605bb6f4d8f5"
         // }
         //
         // {
-        //     "id" => "45548646-c74f-4ca2-9de4-551e6de49afa",
-        //     "result" => "ok"
+        //     "id": "45548646-c74f-4ca2-9de4-551e6de49afa",
+        //     "result": "ok"
         // }
         //
         return array( $this->safe_order(array( 'info' => $response )) );
@@ -1792,47 +1792,47 @@ class derive extends Exchange {
         $response = $this->privatePostGetOrders($this->extend($request, $params));
         //
         // {
-        //     "result" => {
-        //         "subaccount_id" => 130837,
-        //         "orders" => array(
+        //     "result": {
+        //         "subaccount_id": 130837,
+        //         "orders": [
         //             {
-        //                 "subaccount_id" => 130837,
-        //                 "order_id" => "63a80cb8-387b-472b-a838-71cd9513c365",
-        //                 "instrument_name" => "BTC-PERP",
-        //                 "direction" => "buy",
-        //                 "label" => "test1234",
-        //                 "quote_id" => null,
-        //                 "creation_timestamp" => 1737551053207,
-        //                 "last_update_timestamp" => 1737551053207,
-        //                 "limit_price" => "10000",
-        //                 "amount" => "0.01",
-        //                 "filled_amount" => "0",
-        //                 "average_price" => "0",
-        //                 "order_fee" => "0",
-        //                 "order_type" => "limit",
-        //                 "time_in_force" => "post_only",
-        //                 "order_status" => "open",
-        //                 "max_fee" => "211",
-        //                 "signature_expiry_sec" => 1737551652765,
-        //                 "nonce" => 1737551052765,
-        //                 "signer" => "0x30CB7B06AdD6749BbE146A6827502B8f2a79269A",
-        //                 "signature" => "0x35535ccb1bcad509ecc435c79e966174db6403fc9aeee1e237d08a941014c57b59279dfe4be39e081f9921a53eaad59cb2a151d9f52f2d05fc47e6280254952e1c",
-        //                 "cancel_reason" => "",
-        //                 "mmp" => false,
-        //                 "is_transfer" => false,
-        //                 "replaced_order_id" => null,
-        //                 "trigger_type" => null,
-        //                 "trigger_price_type" => null,
-        //                 "trigger_price" => null,
-        //                 "trigger_reject_message" => null
+        //                 "subaccount_id": 130837,
+        //                 "order_id": "63a80cb8-387b-472b-a838-71cd9513c365",
+        //                 "instrument_name": "BTC-PERP",
+        //                 "direction": "buy",
+        //                 "label": "test1234",
+        //                 "quote_id": null,
+        //                 "creation_timestamp": 1737551053207,
+        //                 "last_update_timestamp": 1737551053207,
+        //                 "limit_price": "10000",
+        //                 "amount": "0.01",
+        //                 "filled_amount": "0",
+        //                 "average_price": "0",
+        //                 "order_fee": "0",
+        //                 "order_type": "limit",
+        //                 "time_in_force": "post_only",
+        //                 "order_status": "open",
+        //                 "max_fee": "211",
+        //                 "signature_expiry_sec": 1737551652765,
+        //                 "nonce": 1737551052765,
+        //                 "signer": "0x30CB7B06AdD6749BbE146A6827502B8f2a79269A",
+        //                 "signature": "0x35535ccb1bcad509ecc435c79e966174db6403fc9aeee1e237d08a941014c57b59279dfe4be39e081f9921a53eaad59cb2a151d9f52f2d05fc47e6280254952e1c",
+        //                 "cancel_reason": "",
+        //                 "mmp": false,
+        //                 "is_transfer": false,
+        //                 "replaced_order_id": null,
+        //                 "trigger_type": null,
+        //                 "trigger_price_type": null,
+        //                 "trigger_price": null,
+        //                 "trigger_reject_message": null
         //             }
-        //         ),
-        //         "pagination" => array(
-        //             "num_pages" => 1,
-        //             "count" => 1
+        //         ],
+        //         "pagination": {
+        //             "num_pages": 1,
+        //             "count": 1
         //         }
-        //     ),
-        //     "id" => "e5a88d4f-7ac7-40cd-aec9-e0e8152b8b92"
+        //     },
+        //     "id": "e5a88d4f-7ac7-40cd-aec9-e0e8152b8b92"
         // }
         //
         $data = $this->safe_value($response, 'result');
@@ -1935,54 +1935,54 @@ class derive extends Exchange {
     public function parse_order(array $rawOrder, ?array $market = null): array {
         //
         // {
-        //     "subaccount_id" => 130837,
-        //     "nonce" => 1736923517552,
-        //     "module" => "0x87F2863866D85E3192a35A73b388BD625D83f2be",
-        //     "expiry" => 86400,
-        //     "owner" => "0x108b9aF9279a525b8A8AeAbE7AC2bA925Bc50075",
-        //     "signer" => "0x108b9aF9279a525b8A8AeAbE7AC2bA925Bc50075",
-        //     "signature" => "0xaa4f42b2f3da33c668fa703ea872d4c3a6b55aca66025b5119e3bebb6679fe2e2794638db51dcace21fc39a498047835994f07eb59f311bb956ce057e66793d1c",
-        //     "data" => {
-        //         "asset" => "0xAFB6Bb95cd70D5367e2C39e9dbEb422B9815339D",
-        //         "sub_id" => 0,
-        //         "limit_price" => "10000",
-        //         "desired_amount" => "0.001",
-        //         "worst_fee" => "0",
-        //         "recipient_id" => 130837,
-        //         "is_bid" => true,
-        //         "trade_id" => ""
+        //     "subaccount_id": 130837,
+        //     "nonce": 1736923517552,
+        //     "module": "0x87F2863866D85E3192a35A73b388BD625D83f2be",
+        //     "expiry": 86400,
+        //     "owner": "0x108b9aF9279a525b8A8AeAbE7AC2bA925Bc50075",
+        //     "signer": "0x108b9aF9279a525b8A8AeAbE7AC2bA925Bc50075",
+        //     "signature": "0xaa4f42b2f3da33c668fa703ea872d4c3a6b55aca66025b5119e3bebb6679fe2e2794638db51dcace21fc39a498047835994f07eb59f311bb956ce057e66793d1c",
+        //     "data": {
+        //         "asset": "0xAFB6Bb95cd70D5367e2C39e9dbEb422B9815339D",
+        //         "sub_id": 0,
+        //         "limit_price": "10000",
+        //         "desired_amount": "0.001",
+        //         "worst_fee": "0",
+        //         "recipient_id": 130837,
+        //         "is_bid": true,
+        //         "trade_id": ""
         //     }
         // }
         // {
-        //     "subaccount_id" => 130837,
-        //     "order_id" => "96349ebb-7d46-43ae-81c7-7ab390444293",
-        //     "instrument_name" => "BTC-PERP",
-        //     "direction" => "buy",
-        //     "label" => "",
-        //     "quote_id" => null,
-        //     "creation_timestamp" => 1737467576257,
-        //     "last_update_timestamp" => 1737467576257,
-        //     "limit_price" => "10000",
-        //     "amount" => "0.01",
-        //     "filled_amount" => "0",
-        //     "average_price" => "0",
-        //     "order_fee" => "0",
-        //     "order_type" => "limit",
-        //     "time_in_force" => "gtc",
-        //     "order_status" => "open",
-        //     "max_fee" => "210",
-        //     "signature_expiry_sec" => 1737468175989,
-        //     "nonce" => 1737467575989,
-        //     "signer" => "0x30CB7B06AdD6749BbE146A6827502B8f2a79269A",
-        //     "signature" => "0xd1ca49df1fa06bd805bb59b132ff6c0de29bf973a3e01705abe0a01cc956e4945ed9eb99ab68f3df4c037908113cac5a5bfc3a954a0b7103cdab285962fa6a51c",
-        //     "cancel_reason" => "",
-        //     "mmp" => false,
-        //     "is_transfer" => false,
-        //     "replaced_order_id" => null,
-        //     "trigger_type" => null,
-        //     "trigger_price_type" => null,
-        //     "trigger_price" => null,
-        //     "trigger_reject_message" => null
+        //     "subaccount_id": 130837,
+        //     "order_id": "96349ebb-7d46-43ae-81c7-7ab390444293",
+        //     "instrument_name": "BTC-PERP",
+        //     "direction": "buy",
+        //     "label": "",
+        //     "quote_id": null,
+        //     "creation_timestamp": 1737467576257,
+        //     "last_update_timestamp": 1737467576257,
+        //     "limit_price": "10000",
+        //     "amount": "0.01",
+        //     "filled_amount": "0",
+        //     "average_price": "0",
+        //     "order_fee": "0",
+        //     "order_type": "limit",
+        //     "time_in_force": "gtc",
+        //     "order_status": "open",
+        //     "max_fee": "210",
+        //     "signature_expiry_sec": 1737468175989,
+        //     "nonce": 1737467575989,
+        //     "signer": "0x30CB7B06AdD6749BbE146A6827502B8f2a79269A",
+        //     "signature": "0xd1ca49df1fa06bd805bb59b132ff6c0de29bf973a3e01705abe0a01cc956e4945ed9eb99ab68f3df4c037908113cac5a5bfc3a954a0b7103cdab285962fa6a51c",
+        //     "cancel_reason": "",
+        //     "mmp": false,
+        //     "is_transfer": false,
+        //     "replaced_order_id": null,
+        //     "trigger_type": null,
+        //     "trigger_price_type": null,
+        //     "trigger_price": null,
+        //     "trigger_reject_message": null
         // }
         $order = $this->safe_dict($rawOrder, 'data');
         if ($order === null) {
@@ -2094,38 +2094,38 @@ class derive extends Exchange {
         $response = $this->privatePostGetTradeHistory($this->extend($request, $params));
         //
         // {
-        //     "result" => {
-        //         "subaccount_id" => 130837,
-        //         "trades" => array(
+        //     "result": {
+        //         "subaccount_id": 130837,
+        //         "trades": [
         //             {
-        //                 "subaccount_id" => 130837,
-        //                 "order_id" => "30c48194-8d48-43ac-ad00-0d5ba29eddc9",
-        //                 "instrument_name" => "BTC-PERP",
-        //                 "direction" => "sell",
-        //                 "label" => "test1234",
-        //                 "quote_id" => null,
-        //                 "trade_id" => "f8a30740-488c-4c2d-905d-e17057bafde1",
-        //                 "timestamp" => 1738065303708,
-        //                 "mark_price" => "102740.137375457314192317",
-        //                 "index_price" => "102741.553409299981533184",
-        //                 "trade_price" => "102700.6",
-        //                 "trade_amount" => "0.01",
-        //                 "liquidity_role" => "taker",
-        //                 "realized_pnl" => "0",
-        //                 "realized_pnl_excl_fees" => "0",
-        //                 "is_transfer" => false,
-        //                 "tx_status" => "settled",
-        //                 "trade_fee" => "1.127415534092999815",
-        //                 "tx_hash" => "0xc55df1f07330faf86579bd8a6385391fbe9e73089301149d8550e9d29c9ead74",
-        //                 "transaction_id" => "e18b9426-3fa5-41bb-99d3-8b54fb4d51bb"
+        //                 "subaccount_id": 130837,
+        //                 "order_id": "30c48194-8d48-43ac-ad00-0d5ba29eddc9",
+        //                 "instrument_name": "BTC-PERP",
+        //                 "direction": "sell",
+        //                 "label": "test1234",
+        //                 "quote_id": null,
+        //                 "trade_id": "f8a30740-488c-4c2d-905d-e17057bafde1",
+        //                 "timestamp": 1738065303708,
+        //                 "mark_price": "102740.137375457314192317",
+        //                 "index_price": "102741.553409299981533184",
+        //                 "trade_price": "102700.6",
+        //                 "trade_amount": "0.01",
+        //                 "liquidity_role": "taker",
+        //                 "realized_pnl": "0",
+        //                 "realized_pnl_excl_fees": "0",
+        //                 "is_transfer": false,
+        //                 "tx_status": "settled",
+        //                 "trade_fee": "1.127415534092999815",
+        //                 "tx_hash": "0xc55df1f07330faf86579bd8a6385391fbe9e73089301149d8550e9d29c9ead74",
+        //                 "transaction_id": "e18b9426-3fa5-41bb-99d3-8b54fb4d51bb"
         //             }
-        //         ),
-        //         "pagination" => array(
-        //             "num_pages" => 1,
-        //             "count" => 1
+        //         ],
+        //         "pagination": {
+        //             "num_pages": 1,
+        //             "count": 1
         //         }
-        //     ),
-        //     "id" => "a16f798c-a121-44e2-b77e-c38a063f8a99"
+        //     },
+        //     "id": "a16f798c-a121-44e2-b77e-c38a063f8a99"
         // }
         //
         $result = $this->safe_dict($response, 'result', array());
@@ -2174,38 +2174,38 @@ class derive extends Exchange {
         $response = $this->privatePostGetTradeHistory($this->extend($request, $params));
         //
         // {
-        //     "result" => {
-        //         "subaccount_id" => 130837,
-        //         "trades" => array(
+        //     "result": {
+        //         "subaccount_id": 130837,
+        //         "trades": [
         //             {
-        //                 "subaccount_id" => 130837,
-        //                 "order_id" => "30c48194-8d48-43ac-ad00-0d5ba29eddc9",
-        //                 "instrument_name" => "BTC-PERP",
-        //                 "direction" => "sell",
-        //                 "label" => "test1234",
-        //                 "quote_id" => null,
-        //                 "trade_id" => "f8a30740-488c-4c2d-905d-e17057bafde1",
-        //                 "timestamp" => 1738065303708,
-        //                 "mark_price" => "102740.137375457314192317",
-        //                 "index_price" => "102741.553409299981533184",
-        //                 "trade_price" => "102700.6",
-        //                 "trade_amount" => "0.01",
-        //                 "liquidity_role" => "taker",
-        //                 "realized_pnl" => "0",
-        //                 "realized_pnl_excl_fees" => "0",
-        //                 "is_transfer" => false,
-        //                 "tx_status" => "settled",
-        //                 "trade_fee" => "1.127415534092999815",
-        //                 "tx_hash" => "0xc55df1f07330faf86579bd8a6385391fbe9e73089301149d8550e9d29c9ead74",
-        //                 "transaction_id" => "e18b9426-3fa5-41bb-99d3-8b54fb4d51bb"
+        //                 "subaccount_id": 130837,
+        //                 "order_id": "30c48194-8d48-43ac-ad00-0d5ba29eddc9",
+        //                 "instrument_name": "BTC-PERP",
+        //                 "direction": "sell",
+        //                 "label": "test1234",
+        //                 "quote_id": null,
+        //                 "trade_id": "f8a30740-488c-4c2d-905d-e17057bafde1",
+        //                 "timestamp": 1738065303708,
+        //                 "mark_price": "102740.137375457314192317",
+        //                 "index_price": "102741.553409299981533184",
+        //                 "trade_price": "102700.6",
+        //                 "trade_amount": "0.01",
+        //                 "liquidity_role": "taker",
+        //                 "realized_pnl": "0",
+        //                 "realized_pnl_excl_fees": "0",
+        //                 "is_transfer": false,
+        //                 "tx_status": "settled",
+        //                 "trade_fee": "1.127415534092999815",
+        //                 "tx_hash": "0xc55df1f07330faf86579bd8a6385391fbe9e73089301149d8550e9d29c9ead74",
+        //                 "transaction_id": "e18b9426-3fa5-41bb-99d3-8b54fb4d51bb"
         //             }
-        //         ),
-        //         "pagination" => array(
-        //             "num_pages" => 1,
-        //             "count" => 1
+        //         ],
+        //         "pagination": {
+        //             "num_pages": 1,
+        //             "count": 1
         //         }
-        //     ),
-        //     "id" => "a16f798c-a121-44e2-b77e-c38a063f8a99"
+        //     },
+        //     "id": "a16f798c-a121-44e2-b77e-c38a063f8a99"
         // }
         //
         $result = $this->safe_dict($response, 'result', array());
@@ -2244,40 +2244,40 @@ class derive extends Exchange {
         $response = $this->privatePostGetPositions($this->extend($request, $params));
         //
         // {
-        //     "result" => {
-        //         "subaccount_id" => 130837,
-        //         "positions" => array(
-        //             array(
-        //                 "instrument_type" => "perp",
-        //                 "instrument_name" => "BTC-PERP",
-        //                 "amount" => "-0.02",
-        //                 "average_price" => "102632.9105389869500088",
-        //                 "realized_pnl" => "0",
-        //                 "unrealized_pnl" => "-2.6455959784245548835819950103759765625",
-        //                 "total_fees" => "2.255789220260999824",
-        //                 "average_price_excl_fees" => "102745.7",
-        //                 "realized_pnl_excl_fees" => "0",
-        //                 "unrealized_pnl_excl_fees" => "-0.3898067581635550595819950103759765625",
-        //                 "net_settlements" => "-4.032902047219498639",
-        //                 "cumulative_funding" => "-0.004677736347850093",
-        //                 "pending_funding" => "0",
-        //                 "mark_price" => "102765.190337908177752979099750518798828125",
-        //                 "index_price" => "102767.657193800017641472",
-        //                 "delta" => "1",
-        //                 "gamma" => "0",
-        //                 "vega" => "0",
-        //                 "theta" => "0",
-        //                 "mark_value" => "1.38730606879471451975405216217041015625",
-        //                 "maintenance_margin" => "-101.37788426911356509663164615631103515625",
-        //                 "initial_margin" => "-132.2074413704858670826070010662078857421875",
-        //                 "open_orders_margin" => "264.116085900726830004714429378509521484375",
-        //                 "leverage" => "8.6954476205089299495699106539379941746377322586618",
-        //                 "liquidation_price" => "109125.705451984322280623018741607666015625",
-        //                 "creation_timestamp" => 1738065303840
+        //     "result": {
+        //         "subaccount_id": 130837,
+        //         "positions": [
+        //             {
+        //                 "instrument_type": "perp",
+        //                 "instrument_name": "BTC-PERP",
+        //                 "amount": "-0.02",
+        //                 "average_price": "102632.9105389869500088",
+        //                 "realized_pnl": "0",
+        //                 "unrealized_pnl": "-2.6455959784245548835819950103759765625",
+        //                 "total_fees": "2.255789220260999824",
+        //                 "average_price_excl_fees": "102745.7",
+        //                 "realized_pnl_excl_fees": "0",
+        //                 "unrealized_pnl_excl_fees": "-0.3898067581635550595819950103759765625",
+        //                 "net_settlements": "-4.032902047219498639",
+        //                 "cumulative_funding": "-0.004677736347850093",
+        //                 "pending_funding": "0",
+        //                 "mark_price": "102765.190337908177752979099750518798828125",
+        //                 "index_price": "102767.657193800017641472",
+        //                 "delta": "1",
+        //                 "gamma": "0",
+        //                 "vega": "0",
+        //                 "theta": "0",
+        //                 "mark_value": "1.38730606879471451975405216217041015625",
+        //                 "maintenance_margin": "-101.37788426911356509663164615631103515625",
+        //                 "initial_margin": "-132.2074413704858670826070010662078857421875",
+        //                 "open_orders_margin": "264.116085900726830004714429378509521484375",
+        //                 "leverage": "8.6954476205089299495699106539379941746377322586618",
+        //                 "liquidation_price": "109125.705451984322280623018741607666015625",
+        //                 "creation_timestamp": 1738065303840
         //             }
-        //         )
-        //     ),
-        //     "id" => "167350f1-d9fc-41d4-9797-1c78f83fda8e"
+        //         ]
+        //     },
+        //     "id": "167350f1-d9fc-41d4-9797-1c78f83fda8e"
         // }
         //
         $result = $this->safe_dict($response, 'result', array());
@@ -2288,32 +2288,32 @@ class derive extends Exchange {
     public function parse_position(array $position, ?array $market = null) {
         //
         // {
-        //     "instrument_type" => "perp",
-        //     "instrument_name" => "BTC-PERP",
-        //     "amount" => "-0.02",
-        //     "average_price" => "102632.9105389869500088",
-        //     "realized_pnl" => "0",
-        //     "unrealized_pnl" => "-2.6455959784245548835819950103759765625",
-        //     "total_fees" => "2.255789220260999824",
-        //     "average_price_excl_fees" => "102745.7",
-        //     "realized_pnl_excl_fees" => "0",
-        //     "unrealized_pnl_excl_fees" => "-0.3898067581635550595819950103759765625",
-        //     "net_settlements" => "-4.032902047219498639",
-        //     "cumulative_funding" => "-0.004677736347850093",
-        //     "pending_funding" => "0",
-        //     "mark_price" => "102765.190337908177752979099750518798828125",
-        //     "index_price" => "102767.657193800017641472",
-        //     "delta" => "1",
-        //     "gamma" => "0",
-        //     "vega" => "0",
-        //     "theta" => "0",
-        //     "mark_value" => "1.38730606879471451975405216217041015625",
-        //     "maintenance_margin" => "-101.37788426911356509663164615631103515625",
-        //     "initial_margin" => "-132.2074413704858670826070010662078857421875",
-        //     "open_orders_margin" => "264.116085900726830004714429378509521484375",
-        //     "leverage" => "8.6954476205089299495699106539379941746377322586618",
-        //     "liquidation_price" => "109125.705451984322280623018741607666015625",
-        //     "creation_timestamp" => 1738065303840
+        //     "instrument_type": "perp",
+        //     "instrument_name": "BTC-PERP",
+        //     "amount": "-0.02",
+        //     "average_price": "102632.9105389869500088",
+        //     "realized_pnl": "0",
+        //     "unrealized_pnl": "-2.6455959784245548835819950103759765625",
+        //     "total_fees": "2.255789220260999824",
+        //     "average_price_excl_fees": "102745.7",
+        //     "realized_pnl_excl_fees": "0",
+        //     "unrealized_pnl_excl_fees": "-0.3898067581635550595819950103759765625",
+        //     "net_settlements": "-4.032902047219498639",
+        //     "cumulative_funding": "-0.004677736347850093",
+        //     "pending_funding": "0",
+        //     "mark_price": "102765.190337908177752979099750518798828125",
+        //     "index_price": "102767.657193800017641472",
+        //     "delta": "1",
+        //     "gamma": "0",
+        //     "vega": "0",
+        //     "theta": "0",
+        //     "mark_value": "1.38730606879471451975405216217041015625",
+        //     "maintenance_margin": "-101.37788426911356509663164615631103515625",
+        //     "initial_margin": "-132.2074413704858670826070010662078857421875",
+        //     "open_orders_margin": "264.116085900726830004714429378509521484375",
+        //     "leverage": "8.6954476205089299495699106539379941746377322586618",
+        //     "liquidation_price": "109125.705451984322280623018741607666015625",
+        //     "creation_timestamp": 1738065303840
         // }
         //
         $contract = $this->safe_string($position, 'instrument_name');
@@ -2402,33 +2402,33 @@ class derive extends Exchange {
         $response = $this->privatePostGetFundingHistory($this->extend($request, $params));
         //
         // {
-        //     "result" => {
-        //         "events" => array(
-        //             array(
-        //                 "instrument_name" => "BTC-PERP",
-        //                 "timestamp" => 1738066618272,
-        //                 "funding" => "-0.004677736347850093",
-        //                 "pnl" => "-0.944081615774632967"
-        //             ),
-        //             array(
-        //                 "instrument_name" => "BTC-PERP",
-        //                 "timestamp" => 1738066617964,
-        //                 "funding" => "0",
-        //                 "pnl" => "-0.437556413479249408"
-        //             ),
+        //     "result": {
+        //         "events": [
         //             {
-        //                 "instrument_name" => "BTC-PERP",
-        //                 "timestamp" => 1738065307565,
-        //                 "funding" => "0",
-        //                 "pnl" => "-0.39547479770461644"
+        //                 "instrument_name": "BTC-PERP",
+        //                 "timestamp": 1738066618272,
+        //                 "funding": "-0.004677736347850093",
+        //                 "pnl": "-0.944081615774632967"
+        //             },
+        //             {
+        //                 "instrument_name": "BTC-PERP",
+        //                 "timestamp": 1738066617964,
+        //                 "funding": "0",
+        //                 "pnl": "-0.437556413479249408"
+        //             },
+        //             {
+        //                 "instrument_name": "BTC-PERP",
+        //                 "timestamp": 1738065307565,
+        //                 "funding": "0",
+        //                 "pnl": "-0.39547479770461644"
         //             }
-        //         ),
-        //         "pagination" => array(
-        //             "num_pages" => 1,
-        //             "count" => 3
+        //         ],
+        //         "pagination": {
+        //             "num_pages": 1,
+        //             "count": 3
         //         }
-        //     ),
-        //     "id" => "524b817f-2108-467f-8795-511066f4acec"
+        //     },
+        //     "id": "524b817f-2108-467f-8795-511066f4acec"
         // }
         //
         $result = $this->safe_dict($response, 'result', array());
@@ -2447,10 +2447,10 @@ class derive extends Exchange {
     public function parse_income(mixed $income, ?array $market = null) {
         //
         // {
-        //     "instrument_name" => "BTC-PERP",
-        //     "timestamp" => 1738065307565,
-        //     "funding" => "0",
-        //     "pnl" => "-0.39547479770461644"
+        //     "instrument_name": "BTC-PERP",
+        //     "timestamp": 1738065307565,
+        //     "funding": "0",
+        //     "pnl": "-0.39547479770461644"
         // }
         //
         $marketId = $this->safe_string($income, 'instrument_name');
@@ -2490,50 +2490,50 @@ class derive extends Exchange {
         $response = $this->privatePostGetAllPortfolios($this->extend($request, $params));
         //
         // {
-        //     "result" => [{
-        //             "subaccount_id" => 130837,
-        //             "label" => "",
-        //             "currency" => "all",
-        //             "margin_type" => "SM",
-        //             "is_under_liquidation" => false,
-        //             "positions_value" => "0",
-        //             "collaterals_value" => "318.0760325000001103035174310207366943359375",
-        //             "subaccount_value" => "318.0760325000001103035174310207366943359375",
-        //             "positions_maintenance_margin" => "0",
-        //             "positions_initial_margin" => "0",
-        //             "collaterals_maintenance_margin" => "238.557024375000082727638073265552520751953125",
-        //             "collaterals_initial_margin" => "190.845619500000083235136116854846477508544921875",
-        //             "maintenance_margin" => "238.557024375000082727638073265552520751953125",
-        //             "initial_margin" => "190.845619500000083235136116854846477508544921875",
-        //             "open_orders_margin" => "0",
-        //             "projected_margin_change" => "0",
-        //             "open_orders" => array(),
-        //             "positions" => array(),
-        //             "collaterals" => array(
-        //                 array(
-        //                     "asset_type" => "erc20",
-        //                     "asset_name" => "ETH",
-        //                     "currency" => "ETH",
-        //                     "amount" => "0.1",
-        //                     "mark_price" => "3180.760325000000438272",
-        //                     "mark_value" => "318.0760325000001103035174310207366943359375",
-        //                     "cumulative_interest" => "0",
-        //                     "pending_interest" => "0",
-        //                     "initial_margin" => "190.845619500000083235136116854846477508544921875",
-        //                     "maintenance_margin" => "238.557024375000082727638073265552520751953125",
-        //                     "realized_pnl" => "0",
-        //                     "average_price" => "3184.891931",
-        //                     "unrealized_pnl" => "-0.413161",
-        //                     "total_fees" => "0",
-        //                     "average_price_excl_fees" => "3184.891931",
-        //                     "realized_pnl_excl_fees" => "0",
-        //                     "unrealized_pnl_excl_fees" => "-0.413161",
-        //                     "open_orders_margin" => "0",
-        //                     "creation_timestamp" => 1736860533493
+        //     "result": [{
+        //             "subaccount_id": 130837,
+        //             "label": "",
+        //             "currency": "all",
+        //             "margin_type": "SM",
+        //             "is_under_liquidation": false,
+        //             "positions_value": "0",
+        //             "collaterals_value": "318.0760325000001103035174310207366943359375",
+        //             "subaccount_value": "318.0760325000001103035174310207366943359375",
+        //             "positions_maintenance_margin": "0",
+        //             "positions_initial_margin": "0",
+        //             "collaterals_maintenance_margin": "238.557024375000082727638073265552520751953125",
+        //             "collaterals_initial_margin": "190.845619500000083235136116854846477508544921875",
+        //             "maintenance_margin": "238.557024375000082727638073265552520751953125",
+        //             "initial_margin": "190.845619500000083235136116854846477508544921875",
+        //             "open_orders_margin": "0",
+        //             "projected_margin_change": "0",
+        //             "open_orders": [],
+        //             "positions": [],
+        //             "collaterals": [
+        //                 {
+        //                     "asset_type": "erc20",
+        //                     "asset_name": "ETH",
+        //                     "currency": "ETH",
+        //                     "amount": "0.1",
+        //                     "mark_price": "3180.760325000000438272",
+        //                     "mark_value": "318.0760325000001103035174310207366943359375",
+        //                     "cumulative_interest": "0",
+        //                     "pending_interest": "0",
+        //                     "initial_margin": "190.845619500000083235136116854846477508544921875",
+        //                     "maintenance_margin": "238.557024375000082727638073265552520751953125",
+        //                     "realized_pnl": "0",
+        //                     "average_price": "3184.891931",
+        //                     "unrealized_pnl": "-0.413161",
+        //                     "total_fees": "0",
+        //                     "average_price_excl_fees": "3184.891931",
+        //                     "realized_pnl_excl_fees": "0",
+        //                     "unrealized_pnl_excl_fees": "-0.413161",
+        //                     "open_orders_margin": "0",
+        //                     "creation_timestamp": 1736860533493
         //                 }
-        //             )
-        //     )],
-        //     "id" => "27b9a64e-3379-4ce6-a126-9fb941c4a970"
+        //             ]
+        //     }],
+        //     "id": "27b9a64e-3379-4ce6-a126-9fb941c4a970"
         // }
         //
         $result = $this->safe_list($response, 'result');
@@ -2593,20 +2593,20 @@ class derive extends Exchange {
         $response = $this->privatePostGetDepositHistory($this->extend($request, $params));
         //
         // {
-        //     "result" => {
-        //         "events" => array(
-        //             array(
-        //                 "timestamp" => 1736860533599,
-        //                 "transaction_id" => "f2069395-ec00-49f5-925a-87202a5d240f",
-        //                 "asset" => "ETH",
-        //                 "amount" => "0.1",
-        //                 "tx_status" => "settled",
-        //                 "tx_hash" => "0xeda21a315c59302a19c42049b4cef05a10b685302b6cc3edbaf49102d91166d4",
-        //                 "error_log" => array()
+        //     "result": {
+        //         "events": [
+        //             {
+        //                 "timestamp": 1736860533599,
+        //                 "transaction_id": "f2069395-ec00-49f5-925a-87202a5d240f",
+        //                 "asset": "ETH",
+        //                 "amount": "0.1",
+        //                 "tx_status": "settled",
+        //                 "tx_hash": "0xeda21a315c59302a19c42049b4cef05a10b685302b6cc3edbaf49102d91166d4",
+        //                 "error_log": {}
         //             }
-        //         )
-        //     ),
-        //     "id" => "ceebc730-22ab-40cd-9941-33ceb2a74389"
+        //         ]
+        //     },
+        //     "id": "ceebc730-22ab-40cd-9941-33ceb2a74389"
         // }
         //
         $currency = $this->safe_currency($code);
@@ -2642,20 +2642,20 @@ class derive extends Exchange {
         $response = $this->privatePostGetWithdrawalHistory($this->extend($request, $params));
         //
         // {
-        //     "result" => {
-        //         "events" => array(
-        //             array(
-        //                 "timestamp" => 1736860533599,
-        //                 "transaction_id" => "f2069395-ec00-49f5-925a-87202a5d240f",
-        //                 "asset" => "ETH",
-        //                 "amount" => "0.1",
-        //                 "tx_status" => "settled",
-        //                 "tx_hash" => "0xeda21a315c59302a19c42049b4cef05a10b685302b6cc3edbaf49102d91166d4",
-        //                 "error_log" => array()
+        //     "result": {
+        //         "events": [
+        //             {
+        //                 "timestamp": 1736860533599,
+        //                 "transaction_id": "f2069395-ec00-49f5-925a-87202a5d240f",
+        //                 "asset": "ETH",
+        //                 "amount": "0.1",
+        //                 "tx_status": "settled",
+        //                 "tx_hash": "0xeda21a315c59302a19c42049b4cef05a10b685302b6cc3edbaf49102d91166d4",
+        //                 "error_log": {}
         //             }
-        //         )
-        //     ),
-        //     "id" => "ceebc730-22ab-40cd-9941-33ceb2a74389"
+        //         ]
+        //     },
+        //     "id": "ceebc730-22ab-40cd-9941-33ceb2a74389"
         // }
         //
         $currency = $this->safe_currency($code);
@@ -2667,13 +2667,13 @@ class derive extends Exchange {
     public function parse_transaction(array $transaction, ?array $currency = null): array {
         //
         // {
-        //     "timestamp" => 1736860533599,
-        //     "transaction_id" => "f2069395-ec00-49f5-925a-87202a5d240f",
-        //     "asset" => "ETH",
-        //     "amount" => "0.1",
-        //     "tx_status" => "settled",
-        //     "tx_hash" => "0xeda21a315c59302a19c42049b4cef05a10b685302b6cc3edbaf49102d91166d4",
-        //     "error_log" => array()
+        //     "timestamp": 1736860533599,
+        //     "transaction_id": "f2069395-ec00-49f5-925a-87202a5d240f",
+        //     "asset": "ETH",
+        //     "amount": "0.1",
+        //     "tx_status": "settled",
+        //     "tx_hash": "0xeda21a315c59302a19c42049b4cef05a10b685302b6cc3edbaf49102d91166d4",
+        //     "error_log": {}
         // }
         //
         $code = $this->safe_string($transaction, 'asset');
@@ -2744,7 +2744,7 @@ class derive extends Exchange {
 
     public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         if ($response === null) {
-            return null; // fallback to default $error handler
+            return null; // fallback to default error handler
         }
         $error = $this->safe_dict($response, 'error');
         if ($error !== null) {

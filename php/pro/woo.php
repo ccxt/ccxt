@@ -212,23 +212,23 @@ class woo extends \ccxt\async\woo {
     public function handle_order_book(Client $client, mixed $message) {
         //
         //     {
-        //         "topic" => "PERP_BTC_USDT@orderbookupdate",
-        //         "ts" => 1722500373999,
-        //         "data" => {
-        //             "symbol" => "PERP_BTC_USDT",
-        //             "prevTs" => 1722500373799,
-        //             "bids" => array(
-        //                 array(
+        //         "topic": "PERP_BTC_USDT@orderbookupdate",
+        //         "ts": 1722500373999,
+        //         "data": {
+        //             "symbol": "PERP_BTC_USDT",
+        //             "prevTs": 1722500373799,
+        //             "bids": [
+        //                 [
         //                     0.30891,
         //                     2469.98
-        //                 )
-        //             ),
-        //             "asks" => array(
-        //                 array(
+        //                 ]
+        //             ],
+        //             "asks": [
+        //                 [
         //                     0.31075,
         //                     2379.63
-        //                 )
-        //             )
+        //                 ]
+        //             ]
         //         }
         //     }
         //
@@ -309,7 +309,7 @@ class woo extends \ccxt\async\woo {
             $params = $this->safe_value($subscription, 'params');
             $snapshot = Async\await($this->fetch_rest_order_book_safe($symbol, $limit, $params));
             if ($this->safe_value($this->orderbooks, $symbol) === null) {
-                // if the $orderbook is dropped before the $snapshot is received
+                // if the orderbook is dropped before the snapshot is received
                 return;
             }
             $orderbook = $this->safe_value($this->orderbooks, $symbol);
@@ -412,14 +412,14 @@ class woo extends \ccxt\async\woo {
     public function parse_ws_ticker(array $ticker, ?array $market = null) {
         //
         //     {
-        //         "symbol" => "PERP_BTC_USDT",
-        //         "open" => 19441.5,
-        //         "close" => 20147.07,
-        //         "high" => 20761.87,
-        //         "low" => 19320.54,
-        //         "volume" => 2481.103,
-        //         "amount" => 50037935.0286,
-        //         "count" => 3689
+        //         "symbol": "PERP_BTC_USDT",
+        //         "open": 19441.5,
+        //         "close": 20147.07,
+        //         "high": 20761.87,
+        //         "low": 19320.54,
+        //         "volume": 2481.103,
+        //         "amount": 50037935.0286,
+        //         "count": 3689
         //     }
         //
         return $this->safe_ticker(array(
@@ -449,17 +449,17 @@ class woo extends \ccxt\async\woo {
     public function handle_ticker(Client $client, mixed $message) {
         //
         //     {
-        //         "topic" => "PERP_BTC_USDT@$ticker",
-        //         "ts" => 1657120017000,
-        //         "data" => {
-        //             "symbol" => "PERP_BTC_USDT",
-        //             "open" => 19441.5,
-        //             "close" => 20147.07,
-        //             "high" => 20761.87,
-        //             "low" => 19320.54,
-        //             "volume" => 2481.103,
-        //             "amount" => 50037935.0286,
-        //             "count" => 3689
+        //         "topic": "PERP_BTC_USDT@ticker",
+        //         "ts": 1657120017000,
+        //         "data": {
+        //             "symbol": "PERP_BTC_USDT",
+        //             "open": 19441.5,
+        //             "close": 20147.07,
+        //             "high": 20761.87,
+        //             "low": 19320.54,
+        //             "volume": 2481.103,
+        //             "amount": 50037935.0286,
+        //             "count": 3689
         //         }
         //     }
         //
@@ -535,8 +535,8 @@ class woo extends \ccxt\async\woo {
         //     {
         //         "topic":"tickers",
         //         "ts":1618820615000,
-        //         "data":array(
-        //             array(
+        //         "data":[
+        //             {
         //                 "symbol":"SPOT_OKB_USDT",
         //                 "open":16.297,
         //                 "close":17.183,
@@ -545,8 +545,8 @@ class woo extends \ccxt\async\woo {
         //                 "volume":0,
         //                 "amount":0,
         //                 "count":0
-        //             ),
-        //             array(
+        //             },
+        //             {
         //                 "symbol":"SPOT_XRP_USDT",
         //                 "open":1.3515,
         //                 "close":1.43794,
@@ -555,9 +555,9 @@ class woo extends \ccxt\async\woo {
         //                 "volume":750127.1,
         //                 "amount":985440.5122,
         //                 "count":396
-        //             ),
+        //             },
         //         ...
-        //         )
+        //         ]
         //     }
         //
         $topic = $this->safe_value($message, 'topic');
@@ -634,17 +634,17 @@ class woo extends \ccxt\async\woo {
     public function handle_bid_ask(Client $client, mixed $message) {
         //
         //     {
-        //         "topic" => "bbos",
-        //         "ts" => 1618822376000,
-        //         "data" => array(
+        //         "topic": "bbos",
+        //         "ts": 1618822376000,
+        //         "data": [
         //             {
-        //                 "symbol" => "SPOT_FIL_USDT",
-        //                 "ask" => 159.0318,
-        //                 "askSize" => 370.43,
-        //                 "bid" => 158.9158,
-        //                 "bidSize" => 16
+        //                 "symbol": "SPOT_FIL_USDT",
+        //                 "ask": 159.0318,
+        //                 "askSize": 370.43,
+        //                 "bid": 158.9158,
+        //                 "bidSize": 16
         //             }
-        //         )
+        //         ]
         //     }
         //
         $topic = $this->safe_string($message, 'topic');
@@ -860,7 +860,7 @@ class woo extends \ccxt\async\woo {
     public function handle_trade(Client $client, mixed $message) {
         //
         // {
-        //     "topic":"SPOT_ADA_USDT@$trade",
+        //     "topic":"SPOT_ADA_USDT@trade",
         //     "ts":1618820361552,
         //     "data":{
         //         "symbol":"SPOT_ADA_USDT",
@@ -898,34 +898,34 @@ class woo extends \ccxt\async\woo {
         //         "side":"BUY",
         //         "source":0
         //     }
-        // private $trade
+        // private trade
         //    {
-        //     "msgType" => 0,  // execution report
-        //     "symbol" => "SPOT_BTC_USDT",
-        //     "clientOrderId" => 0,
-        //     "orderId" => 54774393,
-        //     "type" => "MARKET",
-        //     "side" => "BUY",
-        //     "quantity" => 0.0,
-        //     "price" => 0.0,
-        //     "tradeId" => 56201985,
-        //     "executedPrice" => 23534.06,
-        //     "executedQuantity" => 0.00040791,
-        //     "fee" => 2.1E-7,
-        //     "feeAsset" => "BTC",
-        //     "totalExecutedQuantity" => 0.00040791,
-        //     "avgPrice" => 23534.06,
-        //     "status" => "FILLED",
-        //     "reason" => "",
-        //     "orderTag" => "default",
-        //     "totalFee" => 2.1E-7,
-        //     "feeCurrency" => "BTC",
-        //     "totalRebate" => 0,
-        //     "rebateCurrency" => "USDT",
-        //     "visible" => 0.0,
-        //     "timestamp" => 1675406261689,
-        //     "reduceOnly" => false,
-        //     "maker" => false
+        //     "msgType": 0,  // execution report
+        //     "symbol": "SPOT_BTC_USDT",
+        //     "clientOrderId": 0,
+        //     "orderId": 54774393,
+        //     "type": "MARKET",
+        //     "side": "BUY",
+        //     "quantity": 0.0,
+        //     "price": 0.0,
+        //     "tradeId": 56201985,
+        //     "executedPrice": 23534.06,
+        //     "executedQuantity": 0.00040791,
+        //     "fee": 2.1E-7,
+        //     "feeAsset": "BTC",
+        //     "totalExecutedQuantity": 0.00040791,
+        //     "avgPrice": 23534.06,
+        //     "status": "FILLED",
+        //     "reason": "",
+        //     "orderTag": "default",
+        //     "totalFee": 2.1E-7,
+        //     "feeCurrency": "BTC",
+        //     "totalRebate": 0,
+        //     "rebateCurrency": "USDT",
+        //     "visible": 0.0,
+        //     "timestamp": 1675406261689,
+        //     "reduceOnly": false,
+        //     "maker": false
         //   }
         //
         $marketId = $this->safe_string($trade, 'symbol');
@@ -1125,69 +1125,69 @@ class woo extends \ccxt\async\woo {
     public function parse_ws_order(mixed $order, ?array $market = null) {
         //
         //     {
-        //         "symbol" => "PERP_BTC_USDT",
-        //         "clientOrderId" => 0,
-        //         "orderId" => 52952826,
-        //         "type" => "LIMIT",
-        //         "side" => "SELL",
-        //         "quantity" => 0.01,
-        //         "price" => 22000,
-        //         "tradeId" => 0,
-        //         "executedPrice" => 0,
-        //         "executedQuantity" => 0,
-        //         "fee" => 0,
-        //         "feeAsset" => "USDT",
-        //         "totalExecutedQuantity" => 0,
-        //         "status" => "NEW",
-        //         "reason" => '',
-        //         "orderTag" => "default",
-        //         "totalFee" => 0,
-        //         "visible" => 0.01,
-        //         "timestamp" => 1657515556798,
-        //         "reduceOnly" => false,
-        //         "maker" => false
+        //         "symbol": "PERP_BTC_USDT",
+        //         "clientOrderId": 0,
+        //         "orderId": 52952826,
+        //         "type": "LIMIT",
+        //         "side": "SELL",
+        //         "quantity": 0.01,
+        //         "price": 22000,
+        //         "tradeId": 0,
+        //         "executedPrice": 0,
+        //         "executedQuantity": 0,
+        //         "fee": 0,
+        //         "feeAsset": "USDT",
+        //         "totalExecutedQuantity": 0,
+        //         "status": "NEW",
+        //         "reason": '',
+        //         "orderTag": "default",
+        //         "totalFee": 0,
+        //         "visible": 0.01,
+        //         "timestamp": 1657515556798,
+        //         "reduceOnly": false,
+        //         "maker": false
         //     }
         //     {
-        //      "symbol" => "SPOT_BTC_USDT",
-        //      "rootAlgoOrderId" => 2573778,
-        //      "parentAlgoOrderId" => 0,
-        //      "algoOrderId" => 2573778,
-        //      "clientOrderId" => 0,
-        //      "orderTag" => "default",
-        //      "algoType" => "STOP_LOSS",
-        //      "side" => "SELL",
-        //      "quantity" => 0.00011,
-        //      "triggerPrice" => 98566.67,
-        //      "triggerStatus" => "USELESS",
-        //      "price" => 0,
-        //      "type" => "MARKET",
-        //      "triggerTradePrice" => 0,
-        //      "triggerTime" => 0,
-        //      "tradeId" => 0,
-        //      "executedPrice" => 0,
-        //      "executedQuantity" => 0,
-        //      "fee" => 0,
-        //      "reason" => "",
-        //      "feeAsset" => "",
-        //      "totalExecutedQuantity" => 0,
-        //      "averageExecutedPrice" => 0,
-        //      "totalFee" => 0,
-        //      "timestamp" => 1761030467426,
-        //      "visibleQuantity" => 0,
-        //      "reduceOnly" => false,
-        //      "triggerPriceType" => "MARKET_PRICE",
-        //      "positionSide" => "BOTH",
-        //      "feeCurrency" => "",
-        //      "totalRebate" => 0.0,
-        //      "rebateCurrency" => "",
-        //      "triggered" => false,
-        //      "maker" => false,
-        //      "activated" => false,
-        //      "isTriggered" => false,
-        //      "isMaker" => false,
-        //      "isActivated" => false,
-        //      "rootAlgoStatus" => "NEW",
-        //      "algoStatus" => "NEW"
+        //      "symbol": "SPOT_BTC_USDT",
+        //      "rootAlgoOrderId": 2573778,
+        //      "parentAlgoOrderId": 0,
+        //      "algoOrderId": 2573778,
+        //      "clientOrderId": 0,
+        //      "orderTag": "default",
+        //      "algoType": "STOP_LOSS",
+        //      "side": "SELL",
+        //      "quantity": 0.00011,
+        //      "triggerPrice": 98566.67,
+        //      "triggerStatus": "USELESS",
+        //      "price": 0,
+        //      "type": "MARKET",
+        //      "triggerTradePrice": 0,
+        //      "triggerTime": 0,
+        //      "tradeId": 0,
+        //      "executedPrice": 0,
+        //      "executedQuantity": 0,
+        //      "fee": 0,
+        //      "reason": "",
+        //      "feeAsset": "",
+        //      "totalExecutedQuantity": 0,
+        //      "averageExecutedPrice": 0,
+        //      "totalFee": 0,
+        //      "timestamp": 1761030467426,
+        //      "visibleQuantity": 0,
+        //      "reduceOnly": false,
+        //      "triggerPriceType": "MARKET_PRICE",
+        //      "positionSide": "BOTH",
+        //      "feeCurrency": "",
+        //      "totalRebate": 0.0,
+        //      "rebateCurrency": "",
+        //      "triggered": false,
+        //      "maker": false,
+        //      "activated": false,
+        //      "isTriggered": false,
+        //      "isMaker": false,
+        //      "isActivated": false,
+        //      "rootAlgoStatus": "NEW",
+        //      "algoStatus": "NEW"
         // }
         //
         $orderId = $this->safe_string_2($order, 'orderId', 'algoOrderId');
@@ -1244,30 +1244,30 @@ class woo extends \ccxt\async\woo {
     public function handle_order_update(Client $client, mixed $message) {
         //
         //     {
-        //         "topic" => "executionreport",
-        //         "ts" => 1657515556799,
-        //         "data" => {
-        //             "symbol" => "PERP_BTC_USDT",
-        //             "clientOrderId" => 0,
-        //             "orderId" => 52952826,
-        //             "type" => "LIMIT",
-        //             "side" => "SELL",
-        //             "quantity" => 0.01,
-        //             "price" => 22000,
-        //             "tradeId" => 0,
-        //             "executedPrice" => 0,
-        //             "executedQuantity" => 0,
-        //             "fee" => 0,
-        //             "feeAsset" => "USDT",
-        //             "totalExecutedQuantity" => 0,
-        //             "status" => "NEW",
-        //             "reason" => '',
-        //             "orderTag" => "default",
-        //             "totalFee" => 0,
-        //             "visible" => 0.01,
-        //             "timestamp" => 1657515556799,
-        //             "reduceOnly" => false,
-        //             "maker" => false
+        //         "topic": "executionreport",
+        //         "ts": 1657515556799,
+        //         "data": {
+        //             "symbol": "PERP_BTC_USDT",
+        //             "clientOrderId": 0,
+        //             "orderId": 52952826,
+        //             "type": "LIMIT",
+        //             "side": "SELL",
+        //             "quantity": 0.01,
+        //             "price": 22000,
+        //             "tradeId": 0,
+        //             "executedPrice": 0,
+        //             "executedQuantity": 0,
+        //             "fee": 0,
+        //             "feeAsset": "USDT",
+        //             "totalExecutedQuantity": 0,
+        //             "status": "NEW",
+        //             "reason": '',
+        //             "orderTag": "default",
+        //             "totalFee": 0,
+        //             "visible": 0.01,
+        //             "timestamp": 1657515556799,
+        //             "reduceOnly": false,
+        //             "maker": false
         //         }
         //     }
         //
@@ -1328,32 +1328,32 @@ class woo extends \ccxt\async\woo {
     public function handle_my_trade(Client $client, mixed $message) {
         //
         //    {
-        //     "msgType" => 0,  // execution report
-        //     "symbol" => "SPOT_BTC_USDT",
-        //     "clientOrderId" => 0,
-        //     "orderId" => 54774393,
-        //     "type" => "MARKET",
-        //     "side" => "BUY",
-        //     "quantity" => 0.0,
-        //     "price" => 0.0,
-        //     "tradeId" => 56201985,
-        //     "executedPrice" => 23534.06,
-        //     "executedQuantity" => 0.00040791,
-        //     "fee" => 2.1E-7,
-        //     "feeAsset" => "BTC",
-        //     "totalExecutedQuantity" => 0.00040791,
-        //     "avgPrice" => 23534.06,
-        //     "status" => "FILLED",
-        //     "reason" => "",
-        //     "orderTag" => "default",
-        //     "totalFee" => 2.1E-7,
-        //     "feeCurrency" => "BTC",
-        //     "totalRebate" => 0,
-        //     "rebateCurrency" => "USDT",
-        //     "visible" => 0.0,
-        //     "timestamp" => 1675406261689,
-        //     "reduceOnly" => false,
-        //     "maker" => false
+        //     "msgType": 0,  // execution report
+        //     "symbol": "SPOT_BTC_USDT",
+        //     "clientOrderId": 0,
+        //     "orderId": 54774393,
+        //     "type": "MARKET",
+        //     "side": "BUY",
+        //     "quantity": 0.0,
+        //     "price": 0.0,
+        //     "tradeId": 56201985,
+        //     "executedPrice": 23534.06,
+        //     "executedQuantity": 0.00040791,
+        //     "fee": 2.1E-7,
+        //     "feeAsset": "BTC",
+        //     "totalExecutedQuantity": 0.00040791,
+        //     "avgPrice": 23534.06,
+        //     "status": "FILLED",
+        //     "reason": "",
+        //     "orderTag": "default",
+        //     "totalFee": 2.1E-7,
+        //     "feeCurrency": "BTC",
+        //     "totalRebate": 0,
+        //     "rebateCurrency": "USDT",
+        //     "visible": 0.0,
+        //     "timestamp": 1675406261689,
+        //     "reduceOnly": false,
+        //     "maker": false
         //   }
         //
         $myTrades = $this->myTrades;
@@ -1452,7 +1452,7 @@ class woo extends \ccxt\async\woo {
                 $cache->append($position);
             }
         }
-        // don't remove the $future from the .futures $cache
+        // don't remove the future from the .futures cache
         if (is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures)) {
             $future = $client->futures[$messageHash];
             $future->resolve($cache);
@@ -1536,27 +1536,27 @@ class woo extends \ccxt\async\woo {
     public function handle_balance(mixed $client, mixed $message) {
         //
         //   {
-        //       "topic" => "balance",
-        //       "ts" => 1695716888789,
-        //       "data" => {
-        //          "balances" => {
-        //             "USDT" => {
-        //                "holding" => 266.56059176,
-        //                "frozen" => 0,
-        //                "interest" => 0,
-        //                "pendingShortQty" => 0,
-        //                "pendingExposure" => 0,
-        //                "pendingLongQty" => 0,
-        //                "pendingLongExposure" => 0,
-        //                "version" => 37,
-        //                "staked" => 0,
-        //                "unbonding" => 0,
-        //                "vault" => 0,
-        //                "averageOpenPrice" => 0,
-        //                "pnl24H" => 0,
-        //                "fee24H" => 0,
-        //                "markPrice" => 1,
-        //                "pnl24HPercentage" => 0
+        //       "topic": "balance",
+        //       "ts": 1695716888789,
+        //       "data": {
+        //          "balances": {
+        //             "USDT": {
+        //                "holding": 266.56059176,
+        //                "frozen": 0,
+        //                "interest": 0,
+        //                "pendingShortQty": 0,
+        //                "pendingExposure": 0,
+        //                "pendingLongQty": 0,
+        //                "pendingLongExposure": 0,
+        //                "version": 37,
+        //                "staked": 0,
+        //                "unbonding": 0,
+        //                "vault": 0,
+        //                "averageOpenPrice": 0,
+        //                "pnl24H": 0,
+        //                "fee24H": 0,
+        //                "markPrice": 1,
+        //                "pnl24HPercentage": 0
         //             }
         //          }
         //
@@ -1621,12 +1621,12 @@ class woo extends \ccxt\async\woo {
     public function handle_funding_rate(Client $client, mixed $message) {
         //
         //     {
-        //         "topic" => "PERP_BTC_USDT@estfundingrate",
-        //         "ts" => 1771484159016,
-        //         "data" => {
-        //             "symbol" => "PERP_BTC_USDT",
-        //             "fundingRate" => 0.0001,
-        //             "fundingTs" => 1771488000000
+        //         "topic": "PERP_BTC_USDT@estfundingrate",
+        //         "ts": 1771484159016,
+        //         "data": {
+        //             "symbol": "PERP_BTC_USDT",
+        //             "fundingRate": 0.0001,
+        //             "fundingTs": 1771488000000
         //         }
         //     }
         //
@@ -1642,7 +1642,7 @@ class woo extends \ccxt\async\woo {
 
     public function handle_error_message(Client $client, mixed $message): ?bool {
         //
-        // array("id":"1","event":"subscribe","success":false,"ts":1710780997216,"errorMsg":"Auth is needed.")
+        // {"id":"1","event":"subscribe","success":false,"ts":1710780997216,"errorMsg":"Auth is needed."}
         //
         if (!(is_array($message) && array_key_exists('success' ?? '', $message))) {
             return false;
@@ -1675,11 +1675,11 @@ class woo extends \ccxt\async\woo {
     public function handle_un_subscription(Client $client, mixed $message) {
         //
         //     {
-        //         "id" => "2",
-        //         "event" => "unsubscribe",
-        //         "success" => true,
-        //         "ts" => 1759568478343,
-        //         "data" => "SPOT_BTC_USDT@orderbook"
+        //         "id": "2",
+        //         "event": "unsubscribe",
+        //         "success": true,
+        //         "ts": 1759568478343,
+        //         "data": "SPOT_BTC_USDT@orderbook"
         //     }
         //
         $subscribeHash = $this->safe_string($message, 'data');
@@ -1773,7 +1773,7 @@ class woo extends \ccxt\async\woo {
 
     public function handle_pong(Client $client, mixed $message) {
         //
-        // array( event => "pong", ts => 1657117026090 )
+        // { event: "pong", ts: 1657117026090 }
         //
         $client->lastPong = $this->milliseconds();
         return $message;
@@ -1782,10 +1782,10 @@ class woo extends \ccxt\async\woo {
     public function handle_subscribe(Client $client, mixed $message) {
         //
         //     {
-        //         "id" => "666888",
-        //         "event" => "subscribe",
-        //         "success" => true,
-        //         "ts" => 1657117712212
+        //         "id": "666888",
+        //         "event": "subscribe",
+        //         "success": true,
+        //         "ts": 1657117712212
         //     }
         //
         $id = $this->safe_string($message, 'id');
@@ -1801,15 +1801,15 @@ class woo extends \ccxt\async\woo {
     public function handle_auth(Client $client, mixed $message) {
         //
         //     {
-        //         "event" => "auth",
-        //         "success" => true,
-        //         "ts" => 1657463158812
+        //         "event": "auth",
+        //         "success": true,
+        //         "ts": 1657463158812
         //     }
         //
         $messageHash = 'authenticated';
         $success = $this->safe_value($message, 'success');
         if ($success === true) {
-            // $client->resolve($message, $messageHash);
+            // client.resolve (message, messageHash);
             $future = $this->safe_value($client->futures, 'authenticated');
             $future->resolve(true);
         } else {

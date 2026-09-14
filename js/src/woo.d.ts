@@ -1,5 +1,5 @@
 import Exchange from './abstract/woo.js';
-import type { ADL, Account, Balances, Conversion, Currencies, Currency, CurrencyInterface, DepositAddress, Dict, FundingHistory, FundingRate, FundingRateHistory, FundingRates, Int, LedgerEntry, Leverage, MarginModification, Market, Num, NullableDict, FeeString, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry, int, Status, MarginLoan } from './base/types.js';
+import type { ADL, Account, Balances, Conversion, Currencies, Currency, CurrencyInterface, DepositAddress, Dict, FundingHistory, FundingRate, FundingRateHistory, FundingRates, Int, LedgerEntry, Leverage, MarginModification, Market, Num, NullableDict, FeeString, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry, int, Status, MarginLoan } from './base/types.js';
 /**
  * @class woo
  * @augments Exchange
@@ -301,6 +301,28 @@ export default class woo extends Exchange {
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
+    parseTicker(ticker: Dict, market?: Market): Ticker;
+    /**
+     * @method
+     * @name woo#fetchTicker
+     * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market, swap markets only
+     * @see https://developer.woox.io/api-reference/endpoint/public_data/futures
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
+    /**
+     * @method
+     * @name woo#fetchTickers
+     * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market, only swap markets are supported
+     * @see https://developer.woox.io/api-reference/endpoint/public_data/futures
+     * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, swap markets only, all swap tickers are returned when not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.type] market type, must be 'swap' when no symbols are provided
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    fetchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
     /**
      * @method
      * @name woo#fetchOHLCV

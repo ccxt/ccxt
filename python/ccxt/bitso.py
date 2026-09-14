@@ -292,7 +292,7 @@ class bitso(Exchange, ImplicitAPI):
             'exceptions': {
                 '0201': AuthenticationError,  # Invalid Nonce or Invalid Credentials
                 '104': InvalidNonce,  # Cannot perform request - nonce must be higher than 1520307203724237
-                '0304': BadRequest,  # {"success":false,"error":{"code":"0304","message":"The field time_bucket() is either invalid or missing"}}
+                '0304': BadRequest,  # {"success":false,"error":{"code":"0304","message":"The field time_bucket () is either invalid or missing"}}
             },
         })
 
@@ -311,7 +311,7 @@ class bitso(Exchange, ImplicitAPI):
         response = self.privateGetLedger(self.extend(request, params))
         #
         #     {
-        #         "success": True,
+        #         "success": true,
         #         "payload": [{
         #             "eid": "2510b3e2bc1c87f584500a18084f35ed",
         #             "created_at": "2022-06-08T12:21:42+0000",
@@ -608,7 +608,7 @@ class bitso(Exchange, ImplicitAPI):
         #                     },
         #                     {
         #                         "code": "usdt",
-        #                         "full_name": "USDT(Digital Dollars)",
+        #                         "full_name": "USDT (Digital Dollars)",
         #                         "color": "50AF95",
         #                         "precision": 2,
         #                         "display_ticker": "USDT",
@@ -686,7 +686,7 @@ class bitso(Exchange, ImplicitAPI):
         response = self.privateGetBalance(params)
         #
         #     {
-        #       "success": True,
+        #       "success": true,
         #       "payload": {
         #         "balances": [
         #           {
@@ -889,7 +889,7 @@ class bitso(Exchange, ImplicitAPI):
 
     def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #
-        # fetchTrades(public)
+        # fetchTrades (public)
         #
         #      {
         #          "book": "btc_usdt",
@@ -900,7 +900,7 @@ class bitso(Exchange, ImplicitAPI):
         #          "tid": "52557338"
         #      }
         #
-        # fetchMyTrades(private)
+        # fetchMyTrades (private)
         #
         #      {
         #          "book": "btc_usdt",
@@ -918,7 +918,7 @@ class bitso(Exchange, ImplicitAPI):
         #          "maker_side": "buy"
         #      }
         #
-        # fetchOrderTrades(private)
+        # fetchOrderTrades (private)
         #
         #      {
         #          "book": "btc_usdt",
@@ -1022,7 +1022,7 @@ class bitso(Exchange, ImplicitAPI):
         response = self.privateGetFees(params)
         #
         #    {
-        #        "success": True,
+        #        "success": true,
         #        "payload": {
         #            "fees": [
         #                {
@@ -1049,7 +1049,7 @@ class bitso(Exchange, ImplicitAPI):
         #                    "currency": "btc",
         #                    "method": "rewards",
         #                    "fee": "0.00",
-        #                    "is_fixed": False
+        #                    "is_fixed": false
         #                },
         #                ...
         #            ],
@@ -1097,7 +1097,7 @@ class bitso(Exchange, ImplicitAPI):
         market = self.market(symbol)
         # the don't support fetching trades starting from a date yet
         # use the `marker` extra param for that
-        # self is not a typo, the variable name is 'marker'(don't confuse with 'market')
+        # this is not a typo, the variable name is 'marker' (don't confuse with 'market')
         markerInParams = ('marker' in params)
         # warn the user with an exception if the user wants to filter
         # starting from since timestamp, but does not set the trade id with an extra 'marker' param
@@ -1112,8 +1112,8 @@ class bitso(Exchange, ImplicitAPI):
         request = {
             'book': market['id'],
             'limit': limit,  # default = 25, max = 100
-            # 'sort': 'desc',  # default = desc
-            # 'marker': id,  # integer id to start from
+            # 'sort': 'desc', // default = desc
+            # 'marker': id, // integer id to start from
         }
         response = self.privateGetUserTrades(self.extend(request, params))
         payload = self.safe_list(response, 'payload', [])
@@ -1171,7 +1171,7 @@ class bitso(Exchange, ImplicitAPI):
         response = self.privateDeleteOrdersOid(self.extend(request, params))
         #
         #     {
-        #         "success": True,
+        #         "success": true,
         #         "payload": ["yWTQGxDMZ0VimZgZ"]
         #     }
         #
@@ -1205,7 +1205,7 @@ class bitso(Exchange, ImplicitAPI):
         response = self.privateDeleteOrders(self.extend(request, params))
         #
         #     {
-        #         "success": True,
+        #         "success": true,
         #         "payload": ["yWTQGxDMZ0VimZgZ"]
         #     }
         #
@@ -1231,7 +1231,7 @@ class bitso(Exchange, ImplicitAPI):
         response = self.privateDeleteOrdersAll(params)
         #
         #     {
-        #         "success": True,
+        #         "success": true,
         #         "payload": ["NWUZUYNT12ljwzDT", "kZUkZmQ2TTjkkYTY"]
         #     }
         #
@@ -1244,7 +1244,7 @@ class bitso(Exchange, ImplicitAPI):
 
     def parse_order_status(self, status: Str):
         statuses = {
-            'partial-fill': 'open',  # self is a common substitution in ccxt
+            'partial-fill': 'open',  # this is a common substitution in ccxt
             'partially filled': 'open',
             'queued': 'open',
             'completed': 'closed',
@@ -1313,7 +1313,7 @@ class bitso(Exchange, ImplicitAPI):
         market = self.market(symbol)
         # the don't support fetching trades starting from a date yet
         # use the `marker` extra param for that
-        # self is not a typo, the variable name is 'marker'(don't confuse with 'market')
+        # this is not a typo, the variable name is 'marker' (don't confuse with 'market')
         markerInParams = ('marker' in params)
         # warn the user with an exception if the user wants to filter
         # starting from since timestamp, but does not set the trade id with an extra 'marker' param
@@ -1328,8 +1328,8 @@ class bitso(Exchange, ImplicitAPI):
         request = {
             'book': market['id'],
             'limit': limit,  # default = 25, max = 100
-            # 'sort': 'desc',  # default = desc
-            # 'marker': id,  # integer id to start from
+            # 'sort': 'desc', // default = desc
+            # 'marker': id, // integer id to start from
         }
         response = self.privateGetOpenOrders(self.extend(request, params))
         payload = self.safe_list(response, 'payload', [])
@@ -1401,7 +1401,7 @@ class bitso(Exchange, ImplicitAPI):
         response = self.privateGetFundingsFid(self.extend(request, params))
         #
         #     {
-        #         "success": True,
+        #         "success": true,
         #         "payload": [{
         #             "fid": "6112c6369100d6ecceb7f54f17cf0511",
         #             "status": "complete",
@@ -1446,7 +1446,7 @@ class bitso(Exchange, ImplicitAPI):
         response = self.privateGetFundings(params)
         #
         #     {
-        #         "success": True,
+        #         "success": true,
         #         "payload": [{
         #             "fid": "6112c6369100d6ecceb7f54f17cf0511",
         #             "status": "complete",
@@ -1516,7 +1516,7 @@ class bitso(Exchange, ImplicitAPI):
         response = self.privateGetFees(params)
         #
         #    {
-        #        "success": True,
+        #        "success": true,
         #        "payload": {
         #            "fees": [
         #                {
@@ -1543,7 +1543,7 @@ class bitso(Exchange, ImplicitAPI):
         #                    "currency": "btc",
         #                    "method": "rewards",
         #                    "fee": "0.00",
-        #                    "is_fixed": False
+        #                    "is_fixed": false
         #                },
         #                ...
         #            ],
@@ -1608,7 +1608,7 @@ class bitso(Exchange, ImplicitAPI):
         response = self.privateGetFees(params)
         #
         #    {
-        #        "success": True,
+        #        "success": true,
         #        "payload": {
         #            "fees": [
         #                {
@@ -1635,7 +1635,7 @@ class bitso(Exchange, ImplicitAPI):
         #                    "currency": "btc",
         #                    "method": "rewards",
         #                    "fee": "0.00",
-        #                    "is_fixed": False
+        #                    "is_fixed": false
         #                },
         #                ...
         #            ],
@@ -1680,7 +1680,7 @@ class bitso(Exchange, ImplicitAPI):
         #                "currency": "btc",
         #                "method": "rewards",
         #                "fee": "0.00",
-        #                "is_fixed": False
+        #                "is_fixed": false
         #            },
         #            ...
         #        ],
@@ -1761,7 +1761,7 @@ class bitso(Exchange, ImplicitAPI):
         response = getattr(self, classMethod)(self.extend(request, params))
         #
         #     {
-        #         "success": True,
+        #         "success": true,
         #         "payload": [
         #             {
         #                 "wid": "c5b8d7f0768ee91d3b33bee648318688",

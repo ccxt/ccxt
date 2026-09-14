@@ -95,7 +95,7 @@ func (this *Weex) Describe() any {
 			"fetchDepositsWithdrawals":             false,
 			"fetchDepositWithdrawFee":              false,
 			"fetchDepositWithdrawFees":             false,
-			"fetchFundingHistory":                  false,
+			"fetchFundingHistory":                  true,
 			"fetchFundingInterval":                 false,
 			"fetchFundingIntervals":                false,
 			"fetchFundingRate":                     true,
@@ -4334,10 +4334,7 @@ func (this *Weex) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 		currency = this.Currency(code)
 	}
 	if IsTrue(IsEqual(accountType, "contract")) {
-		if IsTrue(IsEqual(currency, nil)) {
-			panic(ExchangeError(Add(this.Id, " fetchLedger() could not resolve currency")))
-		}
-		if IsTrue(!IsEqual(code, nil)) {
+		if IsTrue(!IsEqual(currency, nil)) {
 			AddElementToObject(request, "currency", GetValue(currency, "id"))
 		}
 		if IsTrue(!IsEqual(since, nil)) {
@@ -4493,6 +4490,136 @@ func (this *Weex) ParseLedgerType(typeVar any) any {
 
 /**
  * @method
+ * @name weex#fetchFundingHistory
+ * @description fetch the history of funding payments paid and received on this account
+ * @see https://www.weex.com/api-doc/contract/Account_API/GetContractBills
+ * @param {string} [symbol] unified market symbol
+ * @param {int} [since] the earliest time in ms to fetch funding history for
+ * @param {int} [limit] the maximum number of funding history structures to retrieve (default 20, max 100)
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {int} [params.until] timestamp in ms of the latest funding history entry, requires since to be set, the span may not exceed 100 days
+ * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+ * @returns {object[]} a list of [funding history structures]{@link https://docs.ccxt.com/?id=funding-history-structure}
+ */
+func (this *Weex) FetchFundingHistoryAsync(optionalArgs ...any) <-chan any {
+	ch := make(chan any, 1)
+	go this.fetchFundingHistoryBody(ch, optionalArgs...)
+	return ch
+}
+func (this *Weex) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbol := GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	since := GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes360512 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes360512)
+	}
+	var paginate any = false
+	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchFundingHistory", "paginate", false)
+	paginate = GetValue(paginateparamsVariable, 0)
+	params = GetValue(paginateparamsVariable, 1)
+	if IsTrue(paginate) {
+
+		retRes361019 := (<-this.FetchPaginatedCallDynamicAsync("fetchFundingHistory", symbol, since, limit, params, 100))
+		PanicOnError(retRes361019)
+		ch <- retRes361019
+		return nil
+	}
+	var market any = nil
+	var request any = map[string]any{
+		"incomeType": "position_funding",
+	}
+	if IsTrue(!IsEqual(symbol, nil)) {
+		market = this.Market(symbol)
+		if IsTrue(!IsEqual(GetValue(market, "swap"), true)) {
+			panic(NotSupported(Add(this.Id, " fetchFundingHistory() supports swap contracts only")))
+		}
+		AddElementToObject(request, "symbol", GetValue(market, "id"))
+	}
+	if IsTrue(!IsEqual(since, nil)) {
+		AddElementToObject(request, "startTime", since)
+	}
+	if IsTrue(!IsEqual(limit, nil)) {
+		AddElementToObject(request, "limit", limit)
+	}
+	requestparamsVariable := this.HandleUntilOption("endTime", request, params)
+	request = GetValue(requestparamsVariable, 0)
+	params = GetValue(requestparamsVariable, 1)
+	// the exchange rejects startTime and endTime when either is sent alone, they only work as a pair
+	var hasSince bool = (InOp(request, "startTime"))
+	var hasUntil bool = (InOp(request, "endTime"))
+	if IsTrue(IsTrue(hasSince) && !IsTrue(hasUntil)) {
+		AddElementToObject(request, "endTime", this.Milliseconds())
+	} else if IsTrue(IsTrue(hasUntil) && !IsTrue(hasSince)) {
+		panic(ArgumentsRequired(Add(this.Id, " fetchFundingHistory() requires since to be set when until is used")))
+	}
+
+	response := (<-this.ContractPrivatePostCapiV3AccountIncome(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	//     {
+	//         "hasNextPage": false,
+	//         "nextKey": null,
+	//         "items": [
+	//             {
+	//                 "billId": "793622764958253481",
+	//                 "asset": "USDT",
+	//                 "symbol": "VIRTUALUSDT",
+	//                 "income": "0.00000378",
+	//                 "incomeType": "position_funding",
+	//                 "balance": "29.36239410",
+	//                 "fillFee": "0",
+	//                 "time": "1789214411964",
+	//                 "transferReason": "UNKNOWN_TRANSFER_REASON"
+	//             }
+	//         ]
+	//     }
+	//
+	var items any = this.SafeList(response, "items", []any{})
+
+	ch <- this.ParseIncomes(items, market, since, limit)
+	return nil
+}
+func (this *Weex) ParseIncome(income any, optionalArgs ...any) any {
+	//
+	//     {
+	//         "billId": "793622764958253481",
+	//         "asset": "USDT",
+	//         "symbol": "VIRTUALUSDT",
+	//         "income": "0.00000378",
+	//         "incomeType": "position_funding",
+	//         "balance": "29.36239410",
+	//         "fillFee": "0",
+	//         "time": "1789214411964",
+	//         "transferReason": "UNKNOWN_TRANSFER_REASON"
+	//     }
+	//
+	market := GetArg(optionalArgs, 0, nil)
+	_ = market
+	var marketId any = this.SafeString(income, "symbol")
+	var currencyId any = this.SafeString(income, "asset")
+	var timestamp any = this.SafeInteger(income, "time")
+	return map[string]any{
+		"info":      income,
+		"symbol":    this.SafeSymbol(marketId, market, nil, "swap"),
+		"code":      this.SafeCurrencyCode(currencyId),
+		"timestamp": timestamp,
+		"datetime":  this.Iso8601(timestamp),
+		"id":        this.SafeString(income, "billId"),
+		"amount":    this.SafeNumber(income, "income"),
+	}
+}
+
+/**
+ * @method
  * @name weex#fetchPositions
  * @description fetch all open positions
  * @see https://www.weex.com/api-doc/contract/Account_API/GetAllPositions
@@ -4515,8 +4642,8 @@ func (this *Weex) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes360512 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes360512)
+		retRes370212 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes370212)
 	}
 	symbols = this.MarketSymbols(symbols)
 	var sandboxMode any = this.SafeBool(this.Options, "sandboxMode", false)
@@ -4584,17 +4711,17 @@ func (this *Weex) fetchPositionsForSymbolBody(ch chan any, symbol any, optionalA
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes364412 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes364412)
+		retRes374112 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes374112)
 	}
 	var market any = this.Market(symbol)
 	var sandboxMode any = this.SafeBool(this.Options, "sandboxMode", false)
 	if IsTrue(IsEqual(sandboxMode, true)) {
 
-		retRes365019 := (<-this.FetchPositionsAsync([]any{GetValue(market, "symbol")}, params))
-		PanicOnError(retRes365019)
+		retRes374719 := (<-this.FetchPositionsAsync([]any{GetValue(market, "symbol")}, params))
+		PanicOnError(retRes374719)
 		// the demo trading API does not provide a single-position endpoint
-		ch <- retRes365019
+		ch <- retRes374719
 		return nil
 	}
 	var request map[string]any = map[string]any{
@@ -4748,8 +4875,8 @@ func (this *Weex) closeAllPositionsBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes378812 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes378812)
+		retRes388512 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes388512)
 	}
 
 	response := (<-this.ContractPrivatePostCapiV3ClosePositions(params))
@@ -4793,8 +4920,8 @@ func (this *Weex) closePositionBody(ch chan any, symbol any, optionalArgs ...any
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes381612 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes381612)
+		retRes391312 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes391312)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -4830,8 +4957,8 @@ func (this *Weex) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs ...a
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes383812 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes383812)
+		retRes393512 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes393512)
 	}
 	var market any = this.Market(symbol)
 	if IsTrue(IsEqual(GetValue(market, "spot"), true)) {
@@ -4897,8 +5024,8 @@ func (this *Weex) fetchMarginModeBody(ch chan any, symbol any, optionalArgs ...a
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes389012 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes389012)
+		retRes398712 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes398712)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -4948,8 +5075,8 @@ func (this *Weex) fetchMarginModesBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes392412 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes392412)
+		retRes402112 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes402112)
 	}
 	symbols = this.MarketSymbols(symbols)
 
@@ -5005,8 +5132,8 @@ func (this *Weex) setMarginModeBody(ch chan any, marginMode any, optionalArgs ..
 	}
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes396412 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes396412)
+		retRes406112 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes406112)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -5014,9 +5141,9 @@ func (this *Weex) setMarginModeBody(ch chan any, marginMode any, optionalArgs ..
 		"marginType": this.EncodeMarginMode(marginMode),
 	}
 
-	retRes397115 := (<-this.ContractPrivatePostCapiV3AccountMarginType(this.Extend(request, params)))
-	PanicOnError(retRes397115)
-	ch <- retRes397115
+	retRes406815 := (<-this.ContractPrivatePostCapiV3AccountMarginType(this.Extend(request, params)))
+	PanicOnError(retRes406815)
+	ch <- retRes406815
 	return nil
 }
 func (this *Weex) EncodeMarginMode(marginMode any) any {
@@ -5052,8 +5179,8 @@ func (this *Weex) fetchLeverageBody(ch chan any, symbol any, optionalArgs ...any
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes399712 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes399712)
+		retRes409412 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes409412)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -5091,8 +5218,8 @@ func (this *Weex) fetchLeveragesBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes401912 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes401912)
+		retRes411612 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes411612)
 	}
 	symbols = this.MarketSymbols(symbols)
 
@@ -5160,8 +5287,8 @@ func (this *Weex) setLeverageBody(ch chan any, leverage any, optionalArgs ...any
 	}
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes407012 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes407012)
+		retRes416712 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes416712)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -5186,9 +5313,9 @@ func (this *Weex) setLeverageBody(ch chan any, leverage any, optionalArgs ...any
 		}
 	}
 
-	retRes409215 := (<-this.ContractPrivatePostCapiV3AccountLeverage(this.Extend(request, params)))
-	PanicOnError(retRes409215)
-	ch <- retRes409215
+	retRes418915 := (<-this.ContractPrivatePostCapiV3AccountLeverage(this.Extend(request, params)))
+	PanicOnError(retRes418915)
+	ch <- retRes418915
 	return nil
 }
 
@@ -5215,8 +5342,8 @@ func (this *Weex) fetchPositionModeBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes410612 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes410612)
+		retRes420312 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes420312)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -5263,8 +5390,8 @@ func (this *Weex) setPositionModeBody(ch chan any, hedged any, optionalArgs ...a
 	}
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes413712 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes413712)
+		retRes423412 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes423412)
 	}
 	var market any = this.Market(symbol)
 	var marginMode any = nil
@@ -5281,9 +5408,9 @@ func (this *Weex) setPositionModeBody(ch chan any, hedged any, optionalArgs ...a
 		"separatedType": separatedType,
 	}
 
-	retRes415115 := (<-this.ContractPrivatePostCapiV3AccountMarginType(this.Extend(request, params)))
-	PanicOnError(retRes415115)
-	ch <- retRes415115
+	retRes424815 := (<-this.ContractPrivatePostCapiV3AccountMarginType(this.Extend(request, params)))
+	PanicOnError(retRes424815)
+	ch <- retRes424815
 	return nil
 }
 func (this *Weex) ModifyMarginHelperAsync(symbol any, amount any, typeVar any, optionalArgs ...any) <-chan any {
@@ -5298,8 +5425,8 @@ func (this *Weex) modifyMarginHelperBody(ch chan any, symbol any, amount any, ty
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes415612 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes415612)
+		retRes425312 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes425312)
 	}
 	var isolatedPositionId any = this.SafeStringN(params, []any{"positionId", "id", "isolatedPositionId"})
 	if IsTrue(IsEqual(isolatedPositionId, nil)) {
@@ -5372,9 +5499,9 @@ func (this *Weex) reduceMarginBody(ch chan any, symbol any, amount any, optional
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	retRes421415 := (<-this.ModifyMarginHelperAsync(symbol, amount, 2, params))
-	PanicOnError(retRes421415)
-	ch <- retRes421415
+	retRes431115 := (<-this.ModifyMarginHelperAsync(symbol, amount, 2, params))
+	PanicOnError(retRes431115)
+	ch <- retRes431115
 	return nil
 }
 
@@ -5400,9 +5527,9 @@ func (this *Weex) addMarginBody(ch chan any, symbol any, amount any, optionalArg
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	retRes422915 := (<-this.ModifyMarginHelperAsync(symbol, amount, 1, params))
-	PanicOnError(retRes422915)
-	ch <- retRes422915
+	retRes432615 := (<-this.ModifyMarginHelperAsync(symbol, amount, 1, params))
+	PanicOnError(retRes432615)
+	ch <- retRes432615
 	return nil
 }
 
@@ -5622,11 +5749,7 @@ func (this *Weex) FetchTickers(options ...FetchTickersOptions) (Tickers, error) 
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var symbols *[]string = opts.Symbols
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchTickersAsync(symbols, params)
+	res := <-this.FetchTickersAsync(opts.Symbols, opts.Params)
 	if IsError(res) {
 		return Tickers{}, CreateReturnError(res)
 	}
@@ -5651,11 +5774,7 @@ func (this *Weex) FetchBidsAsks(options ...FetchBidsAsksOptions) (Tickers, error
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var symbols *[]string = opts.Symbols
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchBidsAsksAsync(symbols, params)
+	res := <-this.FetchBidsAsksAsync(opts.Symbols, opts.Params)
 	if IsError(res) {
 		return Tickers{}, CreateReturnError(res)
 	}
@@ -5678,11 +5797,7 @@ func (this *Weex) FetchLastPrices(options ...FetchLastPricesOptions) (LastPrices
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var symbols *[]string = opts.Symbols
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchLastPricesAsync(symbols, params)
+	res := <-this.FetchLastPricesAsync(opts.Symbols, opts.Params)
 	if IsError(res) {
 		return LastPrices{}, CreateReturnError(res)
 	}
@@ -5706,9 +5821,7 @@ func (this *Weex) FetchMarkPrice(symbol string, options ...FetchMarkPriceOptions
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchMarkPriceAsync(symbol, params)
+	res := <-this.FetchMarkPriceAsync(symbol, opts.Params)
 	if IsError(res) {
 		return Ticker{}, CreateReturnError(res)
 	}
@@ -5731,11 +5844,7 @@ func (this *Weex) FetchMarkPrices(options ...FetchMarkPricesOptions) (Tickers, e
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var symbols *[]string = opts.Symbols
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchMarkPricesAsync(symbols, params)
+	res := <-this.FetchMarkPricesAsync(opts.Symbols, opts.Params)
 	if IsError(res) {
 		return Tickers{}, CreateReturnError(res)
 	}
@@ -5760,11 +5869,7 @@ func (this *Weex) FetchOrderBook(symbol string, options ...FetchOrderBookOptions
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var limit *int64 = opts.Limit
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchOrderBookAsync(symbol, limit, params)
+	res := <-this.FetchOrderBookAsync(symbol, opts.Limit, opts.Params)
 	if IsError(res) {
 		return OrderBook{}, CreateReturnError(res)
 	}
@@ -5795,15 +5900,7 @@ func (this *Weex) FetchOHLCV(symbol string, options ...FetchOHLCVOptions) ([]OHL
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var timeframe *string = opts.Timeframe
-
-	var since *int64 = opts.Since
-
-	var limit *int64 = opts.Limit
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchOHLCVAsync(symbol, timeframe, since, limit, params)
+	res := <-this.FetchOHLCVAsync(symbol, opts.Timeframe, opts.Since, opts.Limit, opts.Params)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
@@ -5830,15 +5927,7 @@ func (this *Weex) FetchSpotOHLCV(symbol string, options ...FetchSpotOHLCVOptions
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var timeframe *string = opts.Timeframe
-
-	var since *int64 = opts.Since
-
-	var limit *int64 = opts.Limit
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchSpotOHLCVAsync(symbol, timeframe, since, limit, params)
+	res := <-this.FetchSpotOHLCVAsync(symbol, opts.Timeframe, opts.Since, opts.Limit, opts.Params)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
@@ -5871,15 +5960,7 @@ func (this *Weex) FetchContractOHLCV(symbol string, options ...FetchContractOHLC
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var timeframe *string = opts.Timeframe
-
-	var since *int64 = opts.Since
-
-	var limit *int64 = opts.Limit
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchContractOHLCVAsync(symbol, timeframe, since, limit, params)
+	res := <-this.FetchContractOHLCVAsync(symbol, opts.Timeframe, opts.Since, opts.Limit, opts.Params)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
@@ -5905,13 +5986,7 @@ func (this *Weex) FetchTrades(symbol string, options ...FetchTradesOptions) ([]T
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var since *int64 = opts.Since
-
-	var limit *int64 = opts.Limit
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchTradesAsync(symbol, since, limit, params)
+	res := <-this.FetchTradesAsync(symbol, opts.Since, opts.Limit, opts.Params)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
@@ -5934,9 +6009,7 @@ func (this *Weex) FetchOpenInterest(symbol string, options ...FetchOpenInterestO
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchOpenInterestAsync(symbol, params)
+	res := <-this.FetchOpenInterestAsync(symbol, opts.Params)
 	if IsError(res) {
 		return OpenInterest{}, CreateReturnError(res)
 	}
@@ -5960,11 +6033,7 @@ func (this *Weex) FetchFundingRates(options ...FetchFundingRatesOptions) (Fundin
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var symbols *[]string = opts.Symbols
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchFundingRatesAsync(symbols, params)
+	res := <-this.FetchFundingRatesAsync(opts.Symbols, opts.Params)
 	if IsError(res) {
 		return FundingRates{}, CreateReturnError(res)
 	}
@@ -5990,15 +6059,7 @@ func (this *Weex) FetchFundingRateHistory(options ...FetchFundingRateHistoryOpti
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var symbol *string = opts.Symbol
-
-	var since *int64 = opts.Since
-
-	var limit *int64 = opts.Limit
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchFundingRateHistoryAsync(symbol, since, limit, params)
+	res := <-this.FetchFundingRateHistoryAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
@@ -6043,15 +6104,7 @@ func (this *Weex) FetchTransfers(options ...FetchTransfersOptions) ([]TransferEn
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var code *string = opts.Code
-
-	var since *int64 = opts.Since
-
-	var limit *int64 = opts.Limit
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchTransfersAsync(code, since, limit, params)
+	res := <-this.FetchTransfersAsync(opts.Code, opts.Since, opts.Limit, opts.Params)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
@@ -6083,11 +6136,7 @@ func (this *Weex) CreateOrder(symbol string, typeVar string, side string, amount
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var price *float64 = opts.Price
-
-	var params *map[string]any = opts.Params
-	res := <-this.CreateOrderAsync(symbol, typeVar, side, amount, price, params)
+	res := <-this.CreateOrderAsync(symbol, typeVar, side, amount, opts.Price, opts.Params)
 	if IsError(res) {
 		return Order{}, CreateReturnError(res)
 	}
@@ -6115,11 +6164,7 @@ func (this *Weex) CancelOrder(id string, options ...CancelOrderOptions) (Order, 
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var symbol *string = opts.Symbol
-
-	var params *map[string]any = opts.Params
-	res := <-this.CancelOrderAsync(id, symbol, params)
+	res := <-this.CancelOrderAsync(id, opts.Symbol, opts.Params)
 	if IsError(res) {
 		return Order{}, CreateReturnError(res)
 	}
@@ -6146,11 +6191,7 @@ func (this *Weex) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order, e
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var symbol *string = opts.Symbol
-
-	var params *map[string]any = opts.Params
-	res := <-this.CancelAllOrdersAsync(symbol, params)
+	res := <-this.CancelAllOrdersAsync(opts.Symbol, opts.Params)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
@@ -6177,11 +6218,7 @@ func (this *Weex) CancelOrders(ids []string, options ...CancelOrdersOptions) ([]
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var symbol *string = opts.Symbol
-
-	var params *map[string]any = opts.Params
-	res := <-this.CancelOrdersAsync(ids, symbol, params)
+	res := <-this.CancelOrdersAsync(ids, opts.Symbol, opts.Params)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
@@ -6208,11 +6245,7 @@ func (this *Weex) FetchOrder(id string, options ...FetchOrderOptions) (Order, er
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var symbol *string = opts.Symbol
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchOrderAsync(id, symbol, params)
+	res := <-this.FetchOrderAsync(id, opts.Symbol, opts.Params)
 	if IsError(res) {
 		return Order{}, CreateReturnError(res)
 	}
@@ -6241,15 +6274,7 @@ func (this *Weex) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Order, e
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var symbol *string = opts.Symbol
-
-	var since *int64 = opts.Since
-
-	var limit *int64 = opts.Limit
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchOpenOrdersAsync(symbol, since, limit, params)
+	res := <-this.FetchOpenOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
@@ -6278,15 +6303,7 @@ func (this *Weex) FetchClosedOrders(options ...FetchClosedOrdersOptions) ([]Orde
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var symbol *string = opts.Symbol
-
-	var since *int64 = opts.Since
-
-	var limit *int64 = opts.Limit
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchClosedOrdersAsync(symbol, since, limit, params)
+	res := <-this.FetchClosedOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
@@ -6315,15 +6332,7 @@ func (this *Weex) FetchCanceledOrders(options ...FetchCanceledOrdersOptions) ([]
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var symbol *string = opts.Symbol
-
-	var since *int64 = opts.Since
-
-	var limit *int64 = opts.Limit
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchCanceledOrdersAsync(symbol, since, limit, params)
+	res := <-this.FetchCanceledOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
@@ -6350,15 +6359,7 @@ func (this *Weex) FetchOrders(options ...FetchOrdersOptions) ([]Order, error) {
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var symbol *string = opts.Symbol
-
-	var since *int64 = opts.Since
-
-	var limit *int64 = opts.Limit
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchOrdersAsync(symbol, since, limit, params)
+	res := <-this.FetchOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
@@ -6387,15 +6388,7 @@ func (this *Weex) FetchCanceledAndClosedOrders(options ...FetchCanceledAndClosed
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var symbol *string = opts.Symbol
-
-	var since *int64 = opts.Since
-
-	var limit *int64 = opts.Limit
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchCanceledAndClosedOrdersAsync(symbol, since, limit, params)
+	res := <-this.FetchCanceledAndClosedOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
@@ -6422,15 +6415,7 @@ func (this *Weex) FetchOrderTrades(id string, options ...FetchOrderTradesOptions
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var symbol *string = opts.Symbol
-
-	var since *int64 = opts.Since
-
-	var limit *int64 = opts.Limit
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchOrderTradesAsync(id, symbol, since, limit, params)
+	res := <-this.FetchOrderTradesAsync(id, opts.Symbol, opts.Since, opts.Limit, opts.Params)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
@@ -6458,15 +6443,7 @@ func (this *Weex) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, error
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var symbol *string = opts.Symbol
-
-	var since *int64 = opts.Since
-
-	var limit *int64 = opts.Limit
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchMyTradesAsync(symbol, since, limit, params)
+	res := <-this.FetchMyTradesAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
@@ -6496,19 +6473,38 @@ func (this *Weex) FetchLedger(options ...FetchLedgerOptions) ([]LedgerEntry, err
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var code *string = opts.Code
-
-	var since *int64 = opts.Since
-
-	var limit *int64 = opts.Limit
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchLedgerAsync(code, since, limit, params)
+	res := <-this.FetchLedgerAsync(opts.Code, opts.Since, opts.Limit, opts.Params)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
 	return NewLedgerEntryArray(res), nil
+}
+
+/**
+ * @method
+ * @name weex#fetchFundingHistory
+ * @description fetch the history of funding payments paid and received on this account
+ * @see https://www.weex.com/api-doc/contract/Account_API/GetContractBills
+ * @param {string} [symbol] unified market symbol
+ * @param {int} [since] the earliest time in ms to fetch funding history for
+ * @param {int} [limit] the maximum number of funding history structures to retrieve (default 20, max 100)
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {int} [params.until] timestamp in ms of the latest funding history entry, requires since to be set, the span may not exceed 100 days
+ * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+ * @returns {object[]} a list of [funding history structures]{@link https://docs.ccxt.com/?id=funding-history-structure}
+ */
+func (this *Weex) FetchFundingHistory(options ...FetchFundingHistoryOptions) ([]FundingHistory, error) {
+
+	opts := FetchFundingHistoryOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+	res := <-this.FetchFundingHistoryAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
+	if IsError(res) {
+		return nil, CreateReturnError(res)
+	}
+	return NewFundingHistoryArray(res), nil
 }
 
 /**
@@ -6528,11 +6524,7 @@ func (this *Weex) FetchPositions(options ...FetchPositionsOptions) ([]Position, 
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var symbols *[]string = opts.Symbols
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchPositionsAsync(symbols, params)
+	res := <-this.FetchPositionsAsync(opts.Symbols, opts.Params)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
@@ -6555,9 +6547,7 @@ func (this *Weex) FetchPosition(symbol string, options ...FetchPositionOptions) 
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchPositionAsync(symbol, params)
+	res := <-this.FetchPositionAsync(symbol, opts.Params)
 	if IsError(res) {
 		return Position{}, CreateReturnError(res)
 	}
@@ -6581,9 +6571,7 @@ func (this *Weex) FetchPositionsForSymbol(symbol string, options ...FetchPositio
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchPositionsForSymbolAsync(symbol, params)
+	res := <-this.FetchPositionsForSymbolAsync(symbol, opts.Params)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
@@ -6606,9 +6594,7 @@ func (this *Weex) FetchTradingFee(symbol string, options ...FetchTradingFeeOptio
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchTradingFeeAsync(symbol, params)
+	res := <-this.FetchTradingFeeAsync(symbol, opts.Params)
 	if IsError(res) {
 		return TradingFeeInterface{}, CreateReturnError(res)
 	}
@@ -6631,9 +6617,7 @@ func (this *Weex) FetchMarginMode(symbol string, options ...FetchMarginModeOptio
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchMarginModeAsync(symbol, params)
+	res := <-this.FetchMarginModeAsync(symbol, opts.Params)
 	if IsError(res) {
 		return MarginMode{}, CreateReturnError(res)
 	}
@@ -6656,11 +6640,7 @@ func (this *Weex) FetchMarginModes(options ...FetchMarginModesOptions) (MarginMo
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var symbols *[]string = opts.Symbols
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchMarginModesAsync(symbols, params)
+	res := <-this.FetchMarginModesAsync(opts.Symbols, opts.Params)
 	if IsError(res) {
 		return MarginModes{}, CreateReturnError(res)
 	}
@@ -6684,11 +6664,7 @@ func (this *Weex) SetMarginMode(marginMode string, options ...SetMarginModeOptio
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var symbol *string = opts.Symbol
-
-	var params *map[string]any = opts.Params
-	res := <-this.SetMarginModeAsync(marginMode, symbol, params)
+	res := <-this.SetMarginModeAsync(marginMode, opts.Symbol, opts.Params)
 	if IsError(res) {
 		return map[string]any{}, CreateReturnError(res)
 	}
@@ -6711,9 +6687,7 @@ func (this *Weex) FetchLeverage(symbol string, options ...FetchLeverageOptions) 
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchLeverageAsync(symbol, params)
+	res := <-this.FetchLeverageAsync(symbol, opts.Params)
 	if IsError(res) {
 		return Leverage{}, CreateReturnError(res)
 	}
@@ -6736,11 +6710,7 @@ func (this *Weex) FetchLeverages(options ...FetchLeveragesOptions) (Leverages, e
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var symbols *[]string = opts.Symbols
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchLeveragesAsync(symbols, params)
+	res := <-this.FetchLeveragesAsync(opts.Symbols, opts.Params)
 	if IsError(res) {
 		return Leverages{}, CreateReturnError(res)
 	}
@@ -6773,11 +6743,7 @@ func (this *Weex) SetLeverage(leverage int64, options ...SetLeverageOptions) (ma
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var symbol *string = opts.Symbol
-
-	var params *map[string]any = opts.Params
-	res := <-this.SetLeverageAsync(leverage, symbol, params)
+	res := <-this.SetLeverageAsync(leverage, opts.Symbol, opts.Params)
 	if IsError(res) {
 		return map[string]any{}, CreateReturnError(res)
 	}
@@ -6800,11 +6766,7 @@ func (this *Weex) FetchPositionMode(options ...FetchPositionModeOptions) (Positi
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var symbol *string = opts.Symbol
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchPositionModeAsync(symbol, params)
+	res := <-this.FetchPositionModeAsync(opts.Symbol, opts.Params)
 	if IsError(res) {
 		return PositionModeInfo{}, CreateReturnError(res)
 	}
@@ -6829,11 +6791,7 @@ func (this *Weex) SetPositionMode(hedged bool, options ...SetPositionModeOptions
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var symbol *string = opts.Symbol
-
-	var params *map[string]any = opts.Params
-	res := <-this.SetPositionModeAsync(hedged, symbol, params)
+	res := <-this.SetPositionModeAsync(hedged, opts.Symbol, opts.Params)
 	if IsError(res) {
 		return map[string]any{}, CreateReturnError(res)
 	}
@@ -6997,9 +6955,6 @@ func (this *Weex) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOp
 }
 func (this *Weex) FetchFreeBalance(params ...any) (Balance, error) {
 	return this.exchangeTyped.FetchFreeBalance(params...)
-}
-func (this *Weex) FetchFundingHistory(options ...FetchFundingHistoryOptions) ([]FundingHistory, error) {
-	return this.exchangeTyped.FetchFundingHistory(options...)
 }
 func (this *Weex) FetchFundingInterval(symbol string, options ...FetchFundingIntervalOptions) (FundingRate, error) {
 	return this.exchangeTyped.FetchFundingInterval(symbol, options...)

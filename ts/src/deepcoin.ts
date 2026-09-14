@@ -1862,7 +1862,7 @@ export default class deepcoin extends Exchange {
         //                 "instId": "ETH-USDT",
         //                 "tgtCcy": "",
         //                 "ccy": "",
-        //                 "ordId": "1001434573319675",
+        //                 "ordId": "1001434573319676",
         //                 "clOrdId": "",
         //                 "tag": "",
         //                 "px": "4056.620000000000",

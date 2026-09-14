@@ -4287,9 +4287,7 @@ func (this *Kucoin) WatchTicker(symbol string, options ...ccxt.WatchTickerOption
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var params = opts.Params
-	res := <-this.WatchTickerAsync(symbol, params)
+	res := <-this.WatchTickerAsync(symbol, opts.Params)
 	if ccxt.IsError(res) {
 		return ccxt.Ticker{}, ccxt.CreateReturnError(res)
 	}
@@ -4315,9 +4313,7 @@ func (this *Kucoin) UnWatchTicker(symbol string, options ...ccxt.UnWatchTickerOp
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var params = opts.Params
-	res := <-this.UnWatchTickerAsync(symbol, params)
+	res := <-this.UnWatchTickerAsync(symbol, opts.Params)
 	if ccxt.IsError(res) {
 		return nil, ccxt.CreateReturnError(res)
 	}
@@ -4345,11 +4341,7 @@ func (this *Kucoin) WatchTickers(options ...ccxt.WatchTickersOptions) (ccxt.Tick
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var symbols = opts.Symbols
-
-	var params = opts.Params
-	res := <-this.WatchTickersAsync(symbols, params)
+	res := <-this.WatchTickersAsync(opts.Symbols, opts.Params)
 	if ccxt.IsError(res) {
 		return ccxt.Tickers{}, ccxt.CreateReturnError(res)
 	}
@@ -4373,11 +4365,7 @@ func (this *Kucoin) WatchBidsAsks(options ...ccxt.WatchBidsAsksOptions) (ccxt.Ti
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var symbols = opts.Symbols
-
-	var params = opts.Params
-	res := <-this.WatchBidsAsksAsync(symbols, params)
+	res := <-this.WatchBidsAsksAsync(opts.Symbols, opts.Params)
 	if ccxt.IsError(res) {
 		return ccxt.Tickers{}, ccxt.CreateReturnError(res)
 	}
@@ -4406,15 +4394,7 @@ func (this *Kucoin) WatchOHLCV(symbol string, options ...ccxt.WatchOHLCVOptions)
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var timeframe = opts.Timeframe
-
-	var since = opts.Since
-
-	var limit = opts.Limit
-
-	var params = opts.Params
-	res := <-this.WatchOHLCVAsync(symbol, timeframe, since, limit, params)
+	res := <-this.WatchOHLCVAsync(symbol, opts.Timeframe, opts.Since, opts.Limit, opts.Params)
 	if ccxt.IsError(res) {
 		return nil, ccxt.CreateReturnError(res)
 	}
@@ -4441,11 +4421,7 @@ func (this *Kucoin) UnWatchOHLCV(symbol string, options ...ccxt.UnWatchOHLCVOpti
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var timeframe = opts.Timeframe
-
-	var params = opts.Params
-	res := <-this.UnWatchOHLCVAsync(symbol, timeframe, params)
+	res := <-this.UnWatchOHLCVAsync(symbol, opts.Timeframe, opts.Params)
 	if ccxt.IsError(res) {
 		return nil, ccxt.CreateReturnError(res)
 	}
@@ -4473,13 +4449,7 @@ func (this *Kucoin) WatchTrades(symbol string, options ...ccxt.WatchTradesOption
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var since = opts.Since
-
-	var limit = opts.Limit
-
-	var params = opts.Params
-	res := <-this.WatchTradesAsync(symbol, since, limit, params)
+	res := <-this.WatchTradesAsync(symbol, opts.Since, opts.Limit, opts.Params)
 	if ccxt.IsError(res) {
 		return nil, ccxt.CreateReturnError(res)
 	}
@@ -4505,13 +4475,7 @@ func (this *Kucoin) WatchTradesForSymbols(symbols []string, options ...ccxt.Watc
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var since = opts.Since
-
-	var limit = opts.Limit
-
-	var params = opts.Params
-	res := <-this.WatchTradesForSymbolsAsync(symbols, since, limit, params)
+	res := <-this.WatchTradesForSymbolsAsync(symbols, opts.Since, opts.Limit, opts.Params)
 	if ccxt.IsError(res) {
 		return nil, ccxt.CreateReturnError(res)
 	}
@@ -4535,9 +4499,7 @@ func (this *Kucoin) UnWatchTradesForSymbols(symbols []string, options ...ccxt.Un
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var params = opts.Params
-	res := <-this.UnWatchTradesForSymbolsAsync(symbols, params)
+	res := <-this.UnWatchTradesForSymbolsAsync(symbols, opts.Params)
 	if ccxt.IsError(res) {
 		return nil, ccxt.CreateReturnError(res)
 	}
@@ -4563,9 +4525,7 @@ func (this *Kucoin) UnWatchTrades(symbol string, options ...ccxt.UnWatchTradesOp
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var params = opts.Params
-	res := <-this.UnWatchTradesAsync(symbol, params)
+	res := <-this.UnWatchTradesAsync(symbol, opts.Params)
 	if ccxt.IsError(res) {
 		return nil, ccxt.CreateReturnError(res)
 	}
@@ -4597,11 +4557,7 @@ func (this *Kucoin) WatchOrderBook(symbol string, options ...ccxt.WatchOrderBook
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var limit = opts.Limit
-
-	var params = opts.Params
-	res := <-this.WatchOrderBookAsync(symbol, limit, params)
+	res := <-this.WatchOrderBookAsync(symbol, opts.Limit, opts.Params)
 	if ccxt.IsError(res) {
 		return ccxt.OrderBook{}, ccxt.CreateReturnError(res)
 	}
@@ -4632,9 +4588,7 @@ func (this *Kucoin) UnWatchOrderBook(symbol string, options ...ccxt.UnWatchOrder
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var params = opts.Params
-	res := <-this.UnWatchOrderBookAsync(symbol, params)
+	res := <-this.UnWatchOrderBookAsync(symbol, opts.Params)
 	if ccxt.IsError(res) {
 		return nil, ccxt.CreateReturnError(res)
 	}
@@ -4664,11 +4618,7 @@ func (this *Kucoin) WatchOrderBookForSymbols(symbols []string, options ...ccxt.W
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var limit = opts.Limit
-
-	var params = opts.Params
-	res := <-this.WatchOrderBookForSymbolsAsync(symbols, limit, params)
+	res := <-this.WatchOrderBookForSymbolsAsync(symbols, opts.Limit, opts.Params)
 	if ccxt.IsError(res) {
 		return ccxt.OrderBook{}, ccxt.CreateReturnError(res)
 	}
@@ -4697,9 +4647,7 @@ func (this *Kucoin) UnWatchOrderBookForSymbols(symbols []string, options ...ccxt
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var params = opts.Params
-	res := <-this.UnWatchOrderBookForSymbolsAsync(symbols, params)
+	res := <-this.UnWatchOrderBookForSymbolsAsync(symbols, opts.Params)
 	if ccxt.IsError(res) {
 		return nil, ccxt.CreateReturnError(res)
 	}
@@ -4731,15 +4679,7 @@ func (this *Kucoin) WatchOrders(options ...ccxt.WatchOrdersOptions) ([]ccxt.Orde
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var symbol = opts.Symbol
-
-	var since = opts.Since
-
-	var limit = opts.Limit
-
-	var params = opts.Params
-	res := <-this.WatchOrdersAsync(symbol, since, limit, params)
+	res := <-this.WatchOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
 	if ccxt.IsError(res) {
 		return nil, ccxt.CreateReturnError(res)
 	}
@@ -4768,15 +4708,7 @@ func (this *Kucoin) WatchMyTrades(options ...ccxt.WatchMyTradesOptions) ([]ccxt.
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var symbol = opts.Symbol
-
-	var since = opts.Since
-
-	var limit = opts.Limit
-
-	var params = opts.Params
-	res := <-this.WatchMyTradesAsync(symbol, since, limit, params)
+	res := <-this.WatchMyTradesAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
 	if ccxt.IsError(res) {
 		return nil, ccxt.CreateReturnError(res)
 	}
@@ -4819,11 +4751,7 @@ func (this *Kucoin) WatchPosition(options ...ccxt.WatchPositionOptions) (ccxt.Po
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var symbol = opts.Symbol
-
-	var params = opts.Params
-	res := <-this.WatchPositionAsync(symbol, params)
+	res := <-this.WatchPositionAsync(opts.Symbol, opts.Params)
 	if ccxt.IsError(res) {
 		return ccxt.Position{}, ccxt.CreateReturnError(res)
 	}
@@ -4849,15 +4777,7 @@ func (this *Kucoin) WatchPositions(options ...ccxt.WatchPositionsOptions) ([]ccx
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var symbols = opts.Symbols
-
-	var since = opts.Since
-
-	var limit = opts.Limit
-
-	var params = opts.Params
-	res := <-this.WatchPositionsAsync(symbols, since, limit, params)
+	res := <-this.WatchPositionsAsync(opts.Symbols, opts.Since, opts.Limit, opts.Params)
 	if ccxt.IsError(res) {
 		return nil, ccxt.CreateReturnError(res)
 	}
@@ -4880,9 +4800,7 @@ func (this *Kucoin) WatchFundingRate(symbol string, options ...ccxt.WatchFunding
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var params = opts.Params
-	res := <-this.WatchFundingRateAsync(symbol, params)
+	res := <-this.WatchFundingRateAsync(symbol, opts.Params)
 	if ccxt.IsError(res) {
 		return ccxt.FundingRate{}, ccxt.CreateReturnError(res)
 	}
@@ -4905,9 +4823,7 @@ func (this *Kucoin) UnWatchFundingRate(symbol string, options ...ccxt.UnWatchFun
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var params = opts.Params
-	res := <-this.UnWatchFundingRateAsync(symbol, params)
+	res := <-this.UnWatchFundingRateAsync(symbol, opts.Params)
 	if ccxt.IsError(res) {
 		return nil, ccxt.CreateReturnError(res)
 	}
@@ -4930,9 +4846,7 @@ func (this *Kucoin) WatchMarkPrice(symbol string, options ...ccxt.WatchMarkPrice
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var params = opts.Params
-	res := <-this.WatchMarkPriceAsync(symbol, params)
+	res := <-this.WatchMarkPriceAsync(symbol, opts.Params)
 	if ccxt.IsError(res) {
 		return ccxt.Ticker{}, ccxt.CreateReturnError(res)
 	}
@@ -4955,9 +4869,7 @@ func (this *Kucoin) UnWatchMarkPrice(symbol string, options ...ccxt.UnWatchMarkP
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var params = opts.Params
-	res := <-this.UnWatchMarkPriceAsync(symbol, params)
+	res := <-this.UnWatchMarkPriceAsync(symbol, opts.Params)
 	if ccxt.IsError(res) {
 		return nil, ccxt.CreateReturnError(res)
 	}
