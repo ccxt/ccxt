@@ -555,6 +555,7 @@ export default class blofin extends Exchange {
                     'Optimism': 'OP',
                     'APT (APT)': 'APT',
                     'TON (Toncoin)': 'TON',
+                    'KAIA': 'KAIA',
                 },
                 'fetchOpenInterestHistory': {
                     'timeframes': {
@@ -2150,6 +2151,9 @@ export default class blofin extends Exchange {
         // history rows carry the SHORT chain forms ('TRC20') while the
         // currencies registry and withdrawal-apply use display names
         // ('Tron (TRC20)') - options['networksById'] maps both families
+        // back to unified codes here
+        const networkId = this.safeString (transaction, 'chain');
+        const networkCode = this.networkIdToCode (networkId);
         const txid = this.safeString (transaction, 'txId');
         const timestamp = this.safeInteger (transaction, 'ts');
         const feeCurrencyId = this.safeString (transaction, 'feeCurrency');
@@ -2160,7 +2164,7 @@ export default class blofin extends Exchange {
             'id': id,
             'currency': code,
             'amount': amount,
-            'network': undefined,
+            'network': networkCode,
             'addressFrom': undefined,
             'addressTo': addressTo,
             'address': address,
