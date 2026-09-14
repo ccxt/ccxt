@@ -60,6 +60,10 @@ export default class nado extends nadoRest {
                 'watchOrderBook': {
                     'maxRetries': 3,
                 },
+                // book_depth chain markers per symbol - the venue's nanosecond
+                // sequence values overflow the numeric orderbook nonce and the
+                // typed ports drop custom orderbook fields, so the markers live
+                // here following the binance requestId-per-url options pattern
                 'orderBookMaxTimestamps': {},
             },
             'urls': {
