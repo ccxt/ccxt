@@ -61,9 +61,6 @@ jobs:
         run: |
           # Self-hosted runners can share storage. Each attempt must own its binaries.
           echo "CARGO_TARGET_DIR=$RUNNER_TEMP/ccxt-rust-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT" >> "$GITHUB_ENV"
-          printf 'runner=%s run=%s attempt=%s\n' "$RUNNER_NAME" "$GITHUB_RUN_ID" "$GITHUB_RUN_ATTEMPT"
-          git rev-parse HEAD
-          rustc --version --verbose
       - name: Setup Node.js
         uses: actions/setup-node@v3
       - name: Install npm dependencies
@@ -111,7 +108,6 @@ jobs:
         run: |
           cargo build --manifest-path rust/Cargo.toml -p ccxt_tests --bin ti-rust
           cp "$CARGO_TARGET_DIR/debug/ti-rust" rust/tests.bin
-          sha256sum "$CARGO_TARGET_DIR/debug/ti-rust" rust/tests.bin
       - name: Cargo test
         if: github.ref == 'refs/heads/master' && env.important_modified == 'true'
         run: |
@@ -163,7 +159,6 @@ jobs:
         if: env.prediction_modified == 'true'
         run: npm run response-rust-prediction
       - name: Upload Rust Files
-        if: success() || failure()
         uses: actions/upload-artifact@v4
         with:
           name: rust-files
@@ -171,14 +166,6 @@ jobs:
             rust/
             !rust/target
             !rust/target/**
-          retention-days: 1
-      - name: Upload failed Rust test binary
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: rust-failed-test-binary
-          path: ${{ env.CARGO_TARGET_DIR }}/debug/ti-rust
-          if-no-files-found: ignore
           retention-days: 1
       - name: Upload shared_env.txt
         uses: actions/upload-artifact@v4
