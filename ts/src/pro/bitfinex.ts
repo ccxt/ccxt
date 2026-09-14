@@ -627,7 +627,7 @@ export default class bitfinex extends bitfinexRest {
             'last': last,
             'previousClose': undefined,
             'change': change,
-            'percentage': this.safeString (ticker, 5),
+            'percentage': Precise.stringMul (this.safeString (ticker, 5), '100'),
             'average': undefined,
             'baseVolume': this.safeString (ticker, 7),
             'quoteVolume': undefined,

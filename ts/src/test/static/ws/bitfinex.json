@@ -1,0 +1,457 @@
+{
+    "exchange": "bitfinex",
+    "skipKeys": [],
+    "options": {},
+    "methods": {
+        "watchTicker": [
+            {
+                "description": "positive relative change",
+                "input": [
+                    "BTC/USD"
+                ],
+                "url": "wss://api-pub.bitfinex.com/ws/2",
+                "messages": [
+                    {
+                        "event": "subscribed",
+                        "channel": "ticker",
+                        "chanId": 100,
+                        "symbol": "tBTCUSD"
+                    },
+                    [
+                        100,
+                        [
+                            104,
+                            1,
+                            106,
+                            2,
+                            5,
+                            0.05,
+                            105,
+                            10,
+                            110,
+                            90
+                        ]
+                    ]
+                ],
+                "sentMessages": [
+                    {
+                        "event": "subscribe",
+                        "channel": "ticker",
+                        "symbol": "tBTCUSD"
+                    }
+                ],
+                "parsedResponses": [
+                    {
+                        "symbol": "BTC/USD",
+                        "timestamp": null,
+                        "datetime": null,
+                        "high": 110,
+                        "low": 90,
+                        "bid": 104,
+                        "bidVolume": 1,
+                        "ask": 106,
+                        "askVolume": 2,
+                        "vwap": null,
+                        "open": 100,
+                        "close": 105,
+                        "last": 105,
+                        "previousClose": null,
+                        "change": 5,
+                        "percentage": 5,
+                        "average": 102.5,
+                        "baseVolume": 10,
+                        "quoteVolume": null,
+                        "info": [
+                            104,
+                            1,
+                            106,
+                            2,
+                            5,
+                            0.05,
+                            105,
+                            10,
+                            110,
+                            90
+                        ],
+                        "indexPrice": null,
+                        "markPrice": null
+                    }
+                ]
+            },
+            {
+                "description": "negative relative change",
+                "input": [
+                    "BTC/USD"
+                ],
+                "url": "wss://api-pub.bitfinex.com/ws/2",
+                "messages": [
+                    {
+                        "event": "subscribed",
+                        "channel": "ticker",
+                        "chanId": 101,
+                        "symbol": "tBTCUSD"
+                    },
+                    [
+                        101,
+                        [
+                            94,
+                            1,
+                            96,
+                            2,
+                            -5,
+                            -0.05,
+                            95,
+                            10,
+                            110,
+                            90
+                        ]
+                    ]
+                ],
+                "sentMessages": [
+                    {
+                        "event": "subscribe",
+                        "channel": "ticker",
+                        "symbol": "tBTCUSD"
+                    }
+                ],
+                "parsedResponses": [
+                    {
+                        "symbol": "BTC/USD",
+                        "timestamp": null,
+                        "datetime": null,
+                        "high": 110,
+                        "low": 90,
+                        "bid": 94,
+                        "bidVolume": 1,
+                        "ask": 96,
+                        "askVolume": 2,
+                        "vwap": null,
+                        "open": 100,
+                        "close": 95,
+                        "last": 95,
+                        "previousClose": null,
+                        "change": -5,
+                        "percentage": -5,
+                        "average": 97.5,
+                        "baseVolume": 10,
+                        "quoteVolume": null,
+                        "info": [
+                            94,
+                            1,
+                            96,
+                            2,
+                            -5,
+                            -0.05,
+                            95,
+                            10,
+                            110,
+                            90
+                        ],
+                        "indexPrice": null,
+                        "markPrice": null
+                    }
+                ]
+            },
+            {
+                "description": "zero relative change",
+                "input": [
+                    "BTC/USD"
+                ],
+                "url": "wss://api-pub.bitfinex.com/ws/2",
+                "messages": [
+                    {
+                        "event": "subscribed",
+                        "channel": "ticker",
+                        "chanId": 102,
+                        "symbol": "tBTCUSD"
+                    },
+                    [
+                        102,
+                        [
+                            99,
+                            1,
+                            101,
+                            2,
+                            0,
+                            0,
+                            100,
+                            10,
+                            110,
+                            90
+                        ]
+                    ]
+                ],
+                "sentMessages": [
+                    {
+                        "event": "subscribe",
+                        "channel": "ticker",
+                        "symbol": "tBTCUSD"
+                    }
+                ],
+                "parsedResponses": [
+                    {
+                        "symbol": "BTC/USD",
+                        "timestamp": null,
+                        "datetime": null,
+                        "high": 110,
+                        "low": 90,
+                        "bid": 99,
+                        "bidVolume": 1,
+                        "ask": 101,
+                        "askVolume": 2,
+                        "vwap": null,
+                        "open": 100,
+                        "close": 100,
+                        "last": 100,
+                        "previousClose": null,
+                        "change": 0,
+                        "percentage": 0,
+                        "average": 100,
+                        "baseVolume": 10,
+                        "quoteVolume": null,
+                        "info": [
+                            99,
+                            1,
+                            101,
+                            2,
+                            0,
+                            0,
+                            100,
+                            10,
+                            110,
+                            90
+                        ],
+                        "indexPrice": null,
+                        "markPrice": null
+                    }
+                ]
+            },
+            {
+                "description": "missing relative change falls back to open and last",
+                "input": [
+                    "BTC/USD"
+                ],
+                "url": "wss://api-pub.bitfinex.com/ws/2",
+                "messages": [
+                    {
+                        "event": "subscribed",
+                        "channel": "ticker",
+                        "chanId": 103,
+                        "symbol": "tBTCUSD"
+                    },
+                    [
+                        103,
+                        [
+                            104,
+                            1,
+                            106,
+                            2,
+                            5,
+                            null,
+                            105,
+                            10,
+                            110,
+                            90
+                        ]
+                    ]
+                ],
+                "sentMessages": [
+                    {
+                        "event": "subscribe",
+                        "channel": "ticker",
+                        "symbol": "tBTCUSD"
+                    }
+                ],
+                "parsedResponses": [
+                    {
+                        "symbol": "BTC/USD",
+                        "timestamp": null,
+                        "datetime": null,
+                        "high": 110,
+                        "low": 90,
+                        "bid": 104,
+                        "bidVolume": 1,
+                        "ask": 106,
+                        "askVolume": 2,
+                        "vwap": null,
+                        "open": 100,
+                        "close": 105,
+                        "last": 105,
+                        "previousClose": null,
+                        "change": 5,
+                        "percentage": 5,
+                        "average": 102.5,
+                        "baseVolume": 10,
+                        "quoteVolume": null,
+                        "info": [
+                            104,
+                            1,
+                            106,
+                            2,
+                            5,
+                            null,
+                            105,
+                            10,
+                            110,
+                            90
+                        ],
+                        "indexPrice": null,
+                        "markPrice": null
+                    }
+                ]
+            },
+            {
+                "description": "captured ETH/USDT ticker",
+                "input": [
+                    "ETH/USDT"
+                ],
+                "url": "wss://api-pub.bitfinex.com/ws/2",
+                "messages": [
+                    {
+                        "event": "subscribed",
+                        "channel": "ticker",
+                        "chanId": 104,
+                        "symbol": "tETHUST"
+                    },
+                    [
+                        104,
+                        [
+                            2504.1,
+                            89.39691507,
+                            2504.6,
+                            95.67402604,
+                            13.5,
+                            0.00541864,
+                            2504.9,
+                            22581.92240769,
+                            2533.2,
+                            2461.4,
+                            null
+                        ]
+                    ]
+                ],
+                "sentMessages": [
+                    {
+                        "event": "subscribe",
+                        "channel": "ticker",
+                        "symbol": "tETHUST"
+                    }
+                ],
+                "parsedResponses": [
+                    {
+                        "symbol": "ETH/USDT",
+                        "timestamp": null,
+                        "datetime": null,
+                        "high": 2533.2,
+                        "low": 2461.4,
+                        "bid": 2504.1,
+                        "bidVolume": 89.39691507,
+                        "ask": 2504.6,
+                        "askVolume": 95.67402604,
+                        "vwap": null,
+                        "open": 2491.4,
+                        "close": 2504.9,
+                        "last": 2504.9,
+                        "previousClose": null,
+                        "change": 13.5,
+                        "percentage": 0.541864,
+                        "average": 2498.15,
+                        "baseVolume": 22581.92240769,
+                        "quoteVolume": null,
+                        "info": [
+                            2504.1,
+                            89.39691507,
+                            2504.6,
+                            95.67402604,
+                            13.5,
+                            0.00541864,
+                            2504.9,
+                            22581.92240769,
+                            2533.2,
+                            2461.4,
+                            null
+                        ],
+                        "indexPrice": null,
+                        "markPrice": null
+                    }
+                ]
+            },
+            {
+                "description": "captured BTC/USDT:USDT ticker",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "url": "wss://api-pub.bitfinex.com/ws/2",
+                "messages": [
+                    {
+                        "event": "subscribed",
+                        "channel": "ticker",
+                        "chanId": 105,
+                        "symbol": "tBTCF0:USTF0"
+                    },
+                    [
+                        105,
+                        [
+                            78544,
+                            7.22403957,
+                            78564,
+                            11.4544057,
+                            1354,
+                            0.01753818,
+                            78557,
+                            182.3244794,
+                            78740,
+                            76418,
+                            null
+                        ]
+                    ]
+                ],
+                "sentMessages": [
+                    {
+                        "event": "subscribe",
+                        "channel": "ticker",
+                        "symbol": "tBTCF0:USTF0"
+                    }
+                ],
+                "parsedResponses": [
+                    {
+                        "symbol": "BTC/USDT:USDT",
+                        "timestamp": null,
+                        "datetime": null,
+                        "high": 78740,
+                        "low": 76418,
+                        "bid": 78544,
+                        "bidVolume": 7.22403957,
+                        "ask": 78564,
+                        "askVolume": 11.4544057,
+                        "vwap": null,
+                        "open": 77203,
+                        "close": 78557,
+                        "last": 78557,
+                        "previousClose": null,
+                        "change": 1354,
+                        "percentage": 1.753818,
+                        "average": 77880,
+                        "baseVolume": 182.3244794,
+                        "quoteVolume": null,
+                        "info": [
+                            78544,
+                            7.22403957,
+                            78564,
+                            11.4544057,
+                            1354,
+                            0.01753818,
+                            78557,
+                            182.3244794,
+                            78740,
+                            76418,
+                            null
+                        ],
+                        "indexPrice": null,
+                        "markPrice": null
+                    }
+                ]
+            }
+        ]
+    }
+}
