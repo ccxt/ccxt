@@ -10131,15 +10131,7 @@ export default class kucoin extends Exchange {
         //     }
         //
         const data = this.safeList (response, 'data', []);
-        const rates: List = [];
-        for (let i = 0; i < data.length; i++) {
-            const entry = data[i];
-            const marketId = this.safeString (entry, 'symbol');
-            if ((marketId !== undefined) && (this.markets_by_id !== undefined) && (marketId in this.markets_by_id)) {
-                rates.push (entry);
-            }
-        }
-        return this.parseFundingRates (rates, symbols);
+        return this.parseFundingRates (data, symbols);
     }
 
     override parseFundingRate (data: any, market: Market = undefined): FundingRate {
