@@ -153,7 +153,7 @@
                 ]
             },
             {
-                "description": "zero relative change",
+                "description": "zero relative change preserves safeTicker fallback",
                 "input": [
                     "BTC/USD"
                 ],
