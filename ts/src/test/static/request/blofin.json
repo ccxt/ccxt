@@ -620,7 +620,7 @@
                 "method": "withdraw",
                 "url": "https://openapi.blofin.com/api/v1/asset/withdrawal-apply",
                 "input": ["USDT", 50, "TDddRvFVTkiJZBCsvbhZQmYtCDe45BfCC6", null, {"network": "TRC20", "clientId": "ccxt-test-0001"}],
-                "output": "{\"currency\":\"USDT\",\"address\":\"TDddRvFVTkiJZBCsvbhZQmYtCDe45BfCC6\",\"amount\":\"50\",\"dest\":\"onchain\",\"chain\":\"TRC20\",\"clientId\":\"ccxt-test-0001\"}"
+                "output": "{\"currency\":\"USDT\",\"address\":\"TDddRvFVTkiJZBCsvbhZQmYtCDe45BfCC6\",\"amount\":\"50\",\"dest\":\"onchain\",\"addrType\":\"1\",\"chain\":\"TRC20\",\"clientId\":\"ccxt-test-0001\"}"
             },
             {
                 "description": "internal transfer to a UID",
@@ -634,7 +634,7 @@
                 "method": "withdraw",
                 "url": "https://openapi.blofin.com/api/v1/asset/withdrawal-apply",
                 "input": ["USDT", 50, "TDddRvFVTkiJZBCsvbhZQmYtCDe45BfCC6", null, {"network": "TRC20", "chain": "Tron", "clientId": "ccxt-test-0001"}],
-                "output": "{\"currency\":\"USDT\",\"address\":\"TDddRvFVTkiJZBCsvbhZQmYtCDe45BfCC6\",\"amount\":\"50\",\"dest\":\"onchain\",\"chain\":\"Tron\",\"clientId\":\"ccxt-test-0001\"}"
+                "output": "{\"currency\":\"USDT\",\"address\":\"TDddRvFVTkiJZBCsvbhZQmYtCDe45BfCC6\",\"amount\":\"50\",\"dest\":\"onchain\",\"addrType\":\"1\",\"chain\":\"Tron\",\"clientId\":\"ccxt-test-0001\"}"
             }
         ]
     }

@@ -3,7 +3,7 @@
 
 import { sha256 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/blofin.js';
-import { ExchangeError, ExchangeNotAvailable, ArgumentsRequired, BadRequest, InvalidOrder, AuthenticationError, RateLimitExceeded, InsufficientFunds, NullResponse } from './base/errors.js';
+import { ExchangeError, ExchangeNotAvailable, ArgumentsRequired, BadRequest, InvalidOrder, AuthenticationError, RateLimitExceeded, InsufficientFunds, NullResponse, PermissionDenied, InvalidNonce, InvalidAddress, OrderNotFound, DuplicateOrderId } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, Str, Transaction, Ticker, OrderBook, Balances, Tickers, Market, Strings, Currency, Position, TransferEntry, Leverage, Leverages, MarginMode, Num, TradingFeeInterface, Dict, int, LedgerEntry, FundingRate, ADL, Fee, FeeString, Bool, List, NullableDict, IndexType, PositionModeInfo, Endpoint } from './base/types.js';
@@ -445,6 +445,46 @@ export default class blofin extends Exchange {
                     '102065': BadRequest,  // Sell price is not within the price limit
                     '102068': BadRequest,  // Cancel failed as the order has been filled, triggered, canceled or does not exist
                     '103013': ExchangeError,  // Internal error; unable to process your request. Please try again.
+                    '102067': OrderNotFound,  // Order modification failed as the order has been filled, triggered, canceled or does not exist.
+                    '102089': BadRequest,  // Position mode mismatch
+                    '102148': DuplicateOrderId,  // Duplicate requestId, request ignored.
+                    '103003': InsufficientFunds,  // Order failed. Insufficient USDT margin in account
+                    '110006': InvalidOrder,  // You have pending cross orders. Please cancel them before adjusting your leverage.
+                    '110019': InvalidOrder,  // Setting failed. Cancel any open orders, and close positions first.
+                    '148082': BadRequest,  // Callback percentage range 0.1% - 100%
+                    '148083': BadRequest,  // Callback constant range
+                    '152011': PermissionDenied,  // Transaction API Key does not support brokerId
+                    '152012': BadRequest,  // BrokerId is required
+                    '152013': PermissionDenied,  // Unmatched brokerId, please check your API key's bound broker
+                    '152014': BadRequest,  // Instrument ID does not exist
+                    '152015': BadRequest,  // Number of instId values exceeds the maximum limit of 20
+                    '152020': InvalidAddress,  // Address binding not found.
+                    '152022': BadRequest,  // Current network is not available.
+                    '152023': PermissionDenied,  // This address is still within the 24-hour withdrawal lock period.
+                    '152024': PermissionDenied,  // Your account now can only withdraw to whitelist addresses.
+                    '152025': PermissionDenied,  // Deposits not supported yet, contact customer support for details.
+                    '152026': BadRequest,  // Amount precision error.
+                    '152027': BadRequest,  // The withdrawal must exceed the minimum limit.
+                    '152028': InsufficientFunds,  // Insufficient balance.
+                    '152029': PermissionDenied,  // The maximum daily withdrawal amount has been reached.
+                    '152030': DuplicateOrderId,  // Duplicated clientId.
+                    '152031': InvalidAddress,  // This address is not marked as verification-free.
+                    '152032': PermissionDenied,  // Quick withdrawal daily limit exceeded. Please complete 2FA verification.
+                    '152401': AuthenticationError,  // Access key does not exist
+                    '152402': AuthenticationError,  // Access key has expired
+                    '152404': PermissionDenied,  // This operation is not supported, Please check the requestPath or API key permissions.
+                    '152405': InvalidNonce,  // Timestamp in header or signature has expired, need to be within 60s
+                    '152406': PermissionDenied,  // Your IP is not included in your API key's IP whitelist
+                    '152407': InvalidNonce,  // Repeated nonce, Reusing within 60 seconds is not allowed.
+                    '152408': AuthenticationError,  // Passphrase error
+                    '152409': AuthenticationError,  // Signature verification failed
+                    '152410': InvalidNonce,  // The value of ACCESS-TIMESTAMP needs to be a millisecond timestamp
+                    '152420': DuplicateOrderId,  // Duplicate order in batch request
+                    '152421': DuplicateOrderId,  // requestId already exists, please try again later
+                    '152422': BadRequest,  // Exactly one of callbackRatio and callbackSpread must be provided
+                    '152423': InvalidOrder,  // New size cannot be less than filled size
+                    '152428': BadRequest,  // Invalid trigger price type
+                    '152429': BadRequest,  // Request expired, ttl exceeded
                     'Order failed. Insufficient USDT margin in account': InsufficientFunds,  // Insufficient USDT margin in account
                 },
                 'broad': {
@@ -1928,6 +1968,11 @@ export default class blofin extends Exchange {
         params = this.omit (params, 'dest');
         if (dest === 'onchain') {
             this.checkAddress (address);
+            // the doc marks addrType optional but the live venue rejects
+            // on-chain withdrawals without it (152001 "Parameter addrType
+            // cannot be empty"), so default to 1 = wallet address
+            request['addrType'] = this.safeString (params, 'addrType', '1');
+            params = this.omit (params, 'addrType');
         }
         if (tag !== undefined) {
             request['tag'] = tag;
