@@ -772,6 +772,7 @@ class bingx extends Exchange {
                 ),
                 'defaultForInverse' => array(
                     'extends' => 'defaultForLinear',
+                    'sandbox' => false,
                     'createOrders' => null,
                     'fetchOHLCV' => array(
                         'limit' => 1000,
@@ -786,6 +787,7 @@ class bingx extends Exchange {
                 //
                 'spot' => array(
                     'extends' => 'defaultForLinear',
+                    'sandbox' => false,
                     'fetchCurrencies' => array(
                         'private' => true,
                     ),
@@ -811,18 +813,6 @@ class bingx extends Exchange {
                     ),
                     'inverse' => array(
                         'extends' => 'defaultForInverse',
-                    ),
-                ),
-                'defaultForFuture' => array(
-                    'extends' => 'defaultForLinear',
-                    'fetchOrders' => null,
-                ),
-                'future' => array(
-                    'linear' => array(
-                        'extends' => 'defaultForFuture',
-                    ),
-                    'inverse' => array(
-                        'extends' => 'defaultForFuture',
                     ),
                 ),
             ),
@@ -4124,7 +4114,8 @@ class bingx extends Exchange {
             'stopLossPrice' => $stopLossPrice,
             'takeProfitPrice' => $takeProfitPrice,
             'average' => $this->safe_string_2($order, 'avgPrice', 'ap'),
-            'cost' => $this->safe_string($order, 'cummulativeQuoteQty'),
+            // Spot WS: Z is cumulative quote amount; Y is last-fill quote amount.
+            'cost' => $this->safe_string_2($order, 'cummulativeQuoteQty', 'Z'),
             'amount' => $this->safe_string_n($order, array( 'origQty', 'q', 'quantity', 'totalAmount' )),
             'filled' => $this->safe_string_2($order, 'executedQty', 'z'),
             'remaining' => null,
