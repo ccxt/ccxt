@@ -690,7 +690,7 @@ class CppTranspilerDriver {
             '      const ccxt::dict valueDict = std::any_cast<ccxt::dict>(value);',
             '      for (const auto& valueKv : valueDict.entries()) {',
             '        if (isTrue(!isEqual(valueKv.second, std::any{}))) {',
-            '          ::setValue(valueDefined, valueKv.first, valueKv.second);',
+            '          ::setValue(valueDefined, std::string (valueKv.first), valueKv.second);',
             '        }',
             '      }',
             '    }',
