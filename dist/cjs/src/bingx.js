@@ -766,6 +766,7 @@ class bingx extends bingx$1["default"] {
                 },
                 'defaultForInverse': {
                     'extends': 'defaultForLinear',
+                    'sandbox': false,
                     'createOrders': undefined,
                     'fetchOHLCV': {
                         'limit': 1000,
@@ -780,6 +781,7 @@ class bingx extends bingx$1["default"] {
                 //
                 'spot': {
                     'extends': 'defaultForLinear',
+                    'sandbox': false,
                     'fetchCurrencies': {
                         'private': true,
                     },
@@ -805,18 +807,6 @@ class bingx extends bingx$1["default"] {
                     },
                     'inverse': {
                         'extends': 'defaultForInverse',
-                    },
-                },
-                'defaultForFuture': {
-                    'extends': 'defaultForLinear',
-                    'fetchOrders': undefined,
-                },
-                'future': {
-                    'linear': {
-                        'extends': 'defaultForFuture',
-                    },
-                    'inverse': {
-                        'extends': 'defaultForFuture',
                     },
                 },
             },
@@ -4049,7 +4039,8 @@ class bingx extends bingx$1["default"] {
             'stopLossPrice': stopLossPrice,
             'takeProfitPrice': takeProfitPrice,
             'average': this.safeString2(order, 'avgPrice', 'ap'),
-            'cost': this.safeString(order, 'cummulativeQuoteQty'),
+            // Spot WS: Z is cumulative quote amount; Y is last-fill quote amount.
+            'cost': this.safeString2(order, 'cummulativeQuoteQty', 'Z'),
             'amount': this.safeStringN(order, ['origQty', 'q', 'quantity', 'totalAmount']),
             'filled': this.safeString2(order, 'executedQty', 'z'),
             'remaining': undefined,
