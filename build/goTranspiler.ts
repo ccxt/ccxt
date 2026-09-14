@@ -539,6 +539,7 @@ const VIRTUAL_BASE_METHODS: { [key: string]: boolean} = {
     "safeCurrencyCode": false,
     "parseConversion": false,
     "sign": false,
+    "nonce": false, // venues override nonce() (e.g. hyperliquid); base incrementingNonce() must reach the override, matching Rust
     "signIn": true,
     // ws methods
     'cancelAllOrdersWs': true,
