@@ -2397,7 +2397,7 @@ export default class woo extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        if (!market['swap']) {
+        if (market['swap'] !== true) {
             throw new NotSupported (this.id + ' fetchTicker() supports swap markets only, there is no spot ticker endpoint');
         }
         const request: Dict = {
@@ -2461,7 +2461,7 @@ export default class woo extends Exchange {
                 // type" apart from a malformed request, marketSymbols still enforces that the
                 // rest of the list matches
                 const firstMarket = this.market (symbols[0]);
-                if (!firstMarket['swap']) {
+                if (firstMarket['swap'] !== true) {
                     throw new NotSupported (this.id + ' fetchTickers() supports swap markets only');
                 }
             }
