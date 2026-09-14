@@ -405,15 +405,15 @@ class blofin extends Exchange {
                     '405' => '\\ccxt\\BadRequest',  // Method Not Allowed
                     '406' => '\\ccxt\\BadRequest',  // Not Acceptable
                     '429' => '\\ccxt\\RateLimitExceeded',  // Too Many Requests
-                    '152001' => '\\ccxt\\BadRequest',  // Parameter array() cannot be empty
-                    '152002' => '\\ccxt\\BadRequest',  // Parameter array() error
-                    '152003' => '\\ccxt\\BadRequest',  // Either parameter array() or array() is required
+                    '152001' => '\\ccxt\\BadRequest',  // Parameter {} cannot be empty
+                    '152002' => '\\ccxt\\BadRequest',  // Parameter {} error
+                    '152003' => '\\ccxt\\BadRequest',  // Either parameter {} or {} is required
                     '152004' => '\\ccxt\\BadRequest',  // JSON syntax error
-                    '152005' => '\\ccxt\\BadRequest',  // Parameter error => wrong or empty
+                    '152005' => '\\ccxt\\BadRequest',  // Parameter error: wrong or empty
                     '152006' => '\\ccxt\\InvalidOrder',  // Batch orders can be placed for up to 20 at once
                     '152007' => '\\ccxt\\InvalidOrder',  // Batch orders can only be placed with the same instId and marginMode
                     '152008' => '\\ccxt\\InvalidOrder',  // Only the same field is allowed for bulk cancellation of orders, orderId is preferred
-                    '152009' => '\\ccxt\\InvalidOrder',  // array() must be a combination of numbers, letters, or underscores, and the maximum length of characters is 32
+                    '152009' => '\\ccxt\\InvalidOrder',  // {} must be a combination of numbers, letters, or underscores, and the maximum length of characters is 32
                     '150003' => '\\ccxt\\InvalidOrder',  // clientId already exist
                     '150004' => '\\ccxt\\InvalidOrder',  // Insufficient balance. please adjust the amount and try again
                     '542' => '\\ccxt\\InvalidOrder',  // Exceeded the maximum order size limit
@@ -435,15 +435,15 @@ class blofin extends Exchange {
                     '102053' => '\\ccxt\\InvalidOrder',  // take profit trigger price should be lower than the best bid price
                     '102054' => '\\ccxt\\InvalidOrder',  // take profit trigger price should be higher than the best ask price
                     '102055' => '\\ccxt\\InvalidOrder',  // stop loss trigger price should be lower than the best ask price
-                    '102064' => '\\ccxt\\BadRequest',  // Buy price is not within the price limit (Minimum => 310.40; Maximum:1,629.40)
+                    '102064' => '\\ccxt\\BadRequest',  // Buy price is not within the price limit (Minimum: 310.40; Maximum:1,629.40)
                     '102065' => '\\ccxt\\BadRequest',  // Sell price is not within the price limit
                     '102068' => '\\ccxt\\BadRequest',  // Cancel failed as the order has been filled, triggered, canceled or does not exist
                     '103013' => '\\ccxt\\ExchangeError',  // Internal error; unable to process your request. Please try again.
                     'Order failed. Insufficient USDT margin in account' => '\\ccxt\\InsufficientFunds',  // Insufficient USDT margin in account
                 ),
                 'broad' => array(
-                    'Internal Server Error' => '\\ccxt\\ExchangeNotAvailable', // array("code":500,"data":array(),"detailMsg":"","error_code":"500","error_message":"Internal Server Error","msg":"Internal Server Error")
-                    'server error' => '\\ccxt\\ExchangeNotAvailable', // array("code":500,"data":array(),"detailMsg":"","error_code":"500","error_message":"server error 1236805249","msg":"server error 1236805249")
+                    'Internal Server Error' => '\\ccxt\\ExchangeNotAvailable', // {"code":500,"data":{},"detailMsg":"","error_code":"500","error_message":"Internal Server Error","msg":"Internal Server Error"}
+                    'server error' => '\\ccxt\\ExchangeNotAvailable', // {"code":500,"data":{},"detailMsg":"","error_code":"500","error_message":"server error 1236805249","msg":"server error 1236805249"}
                 ),
             ),
             'httpExceptions' => array(
@@ -562,7 +562,7 @@ class blofin extends Exchange {
         $isMargin = $spot && (Precise::string_gt($maxLeverage, '1'));
         $contractType = $this->safe_string($market, 'contractType');
         $maxLimitAmount = $this->safe_number($market, 'maxLimitSize');
-        $maxSpotCost = $this->safe_number($market, 'maxMarketSize'); // for $spot, $market-buy size is denominated in the $quote currency, i.e. cost
+        $maxSpotCost = $this->safe_number($market, 'maxMarketSize'); // for spot, market-buy size is denominated in the quote currency, i.e. cost
         return $this->safe_market_structure(array(
             'id' => $id,
             'symbol' => $symbol,
@@ -641,23 +641,23 @@ class blofin extends Exchange {
         $response = $this->publicGetMarketBooks($this->extend($request, $params));
         //
         //     {
-        //         "code" => "0",
-        //         "msg" => "",
-        //         "data" => array(
+        //         "code": "0",
+        //         "msg": "",
+        //         "data": [
         //             {
-        //                 "asks" => array(
+        //                 "asks": [
         //                     ["0.07228","4.211619","0","2"], // price, amount, liquidated orders, total open orders
         //                     ["0.0723","299.880364","0","2"],
         //                     ["0.07231","3.72832","0","1"],
-        //                 ),
-        //                 "bids" => array(
+        //                 ],
+        //                 "bids": [
         //                     ["0.07221","18.5","0","1"],
         //                     ["0.0722","18.5","0","1"],
         //                     ["0.07219","0.505407","0","1"],
-        //                 ),
-        //                 "ts" => "1621438475342"
+        //                 ],
+        //                 "ts": "1621438475342"
         //             }
-        //         )
+        //         ]
         //     }
         //
         $data = $this->safe_list($response, 'data', array());
@@ -671,19 +671,19 @@ class blofin extends Exchange {
         // response similar for REST & WS
         //
         //     {
-        //         instId => "ADA-USDT",
-        //         ts => "1707736811486",
-        //         $last => "0.5315",
-        //         lastSize => "4",
-        //         askPrice => "0.5318",
-        //         askSize => "248",
-        //         bidPrice => "0.5315",
-        //         bidSize => "63",
-        //         open24h => "0.5555",
-        //         high24h => "0.5563",
-        //         low24h => "0.5315",
-        //         volCurrency24h => "198560100",
-        //         vol24h => "1985601",
+        //         instId: "ADA-USDT",
+        //         ts: "1707736811486",
+        //         last: "0.5315",
+        //         lastSize: "4",
+        //         askPrice: "0.5318",
+        //         askSize: "248",
+        //         bidPrice: "0.5315",
+        //         bidSize: "63",
+        //         open24h: "0.5555",
+        //         high24h: "0.5563",
+        //         low24h: "0.5315",
+        //         volCurrency24h: "198560100",
+        //         vol24h: "1985601",
         //     }
         //
         $timestamp = $this->safe_integer($ticker, 'ts');
@@ -794,42 +794,42 @@ class blofin extends Exchange {
         // fetch trades (response similar for REST & WS)
         //
         //   {
-        //       "tradeId" => "3263934920",
-        //       "instId" => "LTC-USDT",
-        //       "price" => "67.87",
-        //       "size" => "1",
-        //       "side" => "buy",
-        //       "ts" => "1707232020854"
+        //       "tradeId": "3263934920",
+        //       "instId": "LTC-USDT",
+        //       "price": "67.87",
+        //       "size": "1",
+        //       "side": "buy",
+        //       "ts": "1707232020854"
         //   }
         //
         // my trades
         //   {
-        //       "instId" => "LTC-USDT",
-        //       "tradeId" => "1440847",
-        //       "orderId" => "2075705202",
-        //       "fillPrice" => "67.850000000000000000",
-        //       "fillSize" => "1.000000000000000000",
-        //       "fillPnl" => "0.000000000000000000",
-        //       "side" => "buy",
-        //       "positionSide" => "net",
-        //       "fee" => "0.040710000000000000",
-        //       "ts" => "1707224678878",
-        //       "brokerId" => ""
+        //       "instId": "LTC-USDT",
+        //       "tradeId": "1440847",
+        //       "orderId": "2075705202",
+        //       "fillPrice": "67.850000000000000000",
+        //       "fillSize": "1.000000000000000000",
+        //       "fillPnl": "0.000000000000000000",
+        //       "side": "buy",
+        //       "positionSide": "net",
+        //       "fee": "0.040710000000000000",
+        //       "ts": "1707224678878",
+        //       "brokerId": ""
         //   }
         //
         // fetchMyTrades spot
         //     {
-        //         "instId" => "DOGE-USDT",
-        //         "tradeId" => "6000001623870",
-        //         "orderId" => "6000011777113",
-        //         "fillPrice" => "0.091480000000000000",
-        //         "fillSize" => "30.000000000000000000",
-        //         "fillPnl" => null,
-        //         "side" => "buy",
-        //         "fee" => "0.030000000000000000",
-        //         "ts" => "1775213753407",
-        //         "brokerId" => null,
-        //         "feeCurrency" => "base_currency"
+        //         "instId": "DOGE-USDT",
+        //         "tradeId": "6000001623870",
+        //         "orderId": "6000011777113",
+        //         "fillPrice": "0.091480000000000000",
+        //         "fillSize": "30.000000000000000000",
+        //         "fillPnl": null,
+        //         "side": "buy",
+        //         "fee": "0.030000000000000000",
+        //         "ts": "1775213753407",
+        //         "brokerId": null,
+        //         "feeCurrency": "base_currency"
         //     }
         //
         $id = $this->safe_string($trade, 'tradeId');
@@ -939,7 +939,7 @@ class blofin extends Exchange {
 
     public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
         //
-        //     array(
+        //     [
         //         "1678928760000", // timestamp
         //         "24341.4", // open
         //         "24344", // high
@@ -949,7 +949,7 @@ class blofin extends Exchange {
         //         "2.5819", // base volume
         //         "62800", // quote volume
         //         "0" // candlestick state
-        //     )
+        //     ]
         //
         return array(
             $this->safe_integer($ohlcv, 0),
@@ -1064,9 +1064,9 @@ class blofin extends Exchange {
     public function parse_funding_rate(mixed $contract, ?array $market = null): array {
         //
         //    {
-        //        "fundingRate" => "0.00027815",
-        //        "fundingTime" => "1634256000000",
-        //        "instId" => "BTC-USD-SWAP",
+        //        "fundingRate": "0.00027815",
+        //        "fundingTime": "1634256000000",
+        //        "instId": "BTC-USD-SWAP",
         //    }
         //
         $marketId = $this->safe_string($contract, 'instId');
@@ -1118,15 +1118,15 @@ class blofin extends Exchange {
         $response = $this->publicGetMarketFundingRate($this->extend($request, $params));
         //
         //    {
-        //        "code" => "0",
-        //        "data" => array(
+        //        "code": "0",
+        //        "data": [
         //            {
-        //                "fundingRate" => "0.00027815",
-        //                "fundingTime" => "1634256000000",
-        //                "instId" => "BTC-USD-SWAP",
+        //                "fundingRate": "0.00027815",
+        //                "fundingTime": "1634256000000",
+        //                "instId": "BTC-USD-SWAP",
         //            }
-        //        ),
-        //        "msg" => ""
+        //        ],
+        //        "msg": ""
         //    }
         //
         $data = $this->safe_list($response, 'data', array());
@@ -1148,29 +1148,29 @@ class blofin extends Exchange {
         // "data" similar for REST & WS
         //
         // {
-        //     "code" => "0",
-        //     "msg" => "success",
-        //     "data" => {
-        //         "ts" => "1697021343571",
-        //         "totalEquity" => "10011254.077985990315787910",
-        //         "isolatedEquity" => "861.763132108800000000",
-        //         "details" => array(
+        //     "code": "0",
+        //     "msg": "success",
+        //     "data": {
+        //         "ts": "1697021343571",
+        //         "totalEquity": "10011254.077985990315787910",
+        //         "isolatedEquity": "861.763132108800000000",
+        //         "details": [
         //             {
-        //                 "currency" => "USDT",
-        //                 "equity" => "10014042.988958415234430699548",
-        //                 "balance" => "10013119.885958415234430699",
-        //                 "ts" => "1697021343571",
-        //                 "isolatedEquity" => "862.003200000000000000048",
-        //                 "available" => "9996399.4708691159703362725",
-        //                 "availableEquity" => "9996399.4708691159703362725",
-        //                 "frozen" => "15805.149672632597427761",
-        //                 "orderFrozen" => "14920.994472632597427761",
-        //                 "equityUsd" => "10011254.077985990315787910",
-        //                 "isolatedUnrealizedPnl" => "-22.151999999999999999952",
-        //                 "bonus" => "0" // present only in REST
-        //                 "unrealizedPnl" => "0" // present only in WS
+        //                 "currency": "USDT",
+        //                 "equity": "10014042.988958415234430699548",
+        //                 "balance": "10013119.885958415234430699",
+        //                 "ts": "1697021343571",
+        //                 "isolatedEquity": "862.003200000000000000048",
+        //                 "available": "9996399.4708691159703362725",
+        //                 "availableEquity": "9996399.4708691159703362725",
+        //                 "frozen": "15805.149672632597427761",
+        //                 "orderFrozen": "14920.994472632597427761",
+        //                 "equityUsd": "10011254.077985990315787910",
+        //                 "isolatedUnrealizedPnl": "-22.151999999999999999952",
+        //                 "bonus": "0" // present only in REST
+        //                 "unrealizedPnl": "0" // present only in WS
         //             }
-        //         )
+        //         ]
         //     }
         // }
         //
@@ -1203,17 +1203,17 @@ class blofin extends Exchange {
     public function parse_funding_balance(mixed $response) {
         //
         //  {
-        //      "code" => "0",
-        //      "msg" => "success",
-        //      "data" => array(
+        //      "code": "0",
+        //      "msg": "success",
+        //      "data": [
         //          {
-        //              "currency" => "USDT",
-        //              "balance" => "10012514.919418081548717298",
-        //              "available" => "9872132.414278782284622898",
-        //              "frozen" => "138556.471805965930761067",
-        //              "bonus" => "0"
+        //              "currency": "USDT",
+        //              "balance": "10012514.919418081548717298",
+        //              "available": "9872132.414278782284622898",
+        //              "frozen": "138556.471805965930761067",
+        //              "bonus": "0"
         //          }
-        //      )
+        //      ]
         //  }
         //
         $result = array( 'info' => $response );
@@ -1362,35 +1362,35 @@ class blofin extends Exchange {
         // response similar for REST & WS
         //
         // {
-        //     "orderId" => "2075628533",
-        //     "clientOrderId" => "",
-        //     "instId" => "LTC-USDT",
-        //     "marginMode" => "cross",
-        //     "positionSide" => "net",
-        //     "side" => "buy",
-        //     "orderType" => "market",
-        //     "price" => "0.000000000000000000",
-        //     "size" => "1.000000000000000000",
-        //     "reduceOnly" => "true",
-        //     "leverage" => "3",
-        //     "state" => "filled",
-        //     "filledSize" => "1.000000000000000000",
-        //     "pnl" => "-0.050000000000000000",
-        //     "averagePrice" => "68.110000000000000000",
-        //     "fee" => "0.040866000000000000",
-        //     "createTime" => "1706891359010",
-        //     "updateTime" => "1706891359098",
-        //     "orderCategory" => "normal",
-        //     "tpTriggerPrice" => null,
-        //     "tpOrderPrice" => null,
-        //     "slTriggerPrice" => null,
-        //     "slOrderPrice" => null,
-        //     "cancelSource" => "not_canceled",
-        //     "cancelSourceReason" => null,
-        //     "brokerId" => "ec6dd3a7dd982d0b"
-        //     "filled_amount" => "1.000000000000000000", // filledAmount in "ws" watchOrders
-        //     "cancelSource" => "", // only in WS
-        //     "instType" => "SWAP", // only in WS
+        //     "orderId": "2075628533",
+        //     "clientOrderId": "",
+        //     "instId": "LTC-USDT",
+        //     "marginMode": "cross",
+        //     "positionSide": "net",
+        //     "side": "buy",
+        //     "orderType": "market",
+        //     "price": "0.000000000000000000",
+        //     "size": "1.000000000000000000",
+        //     "reduceOnly": "true",
+        //     "leverage": "3",
+        //     "state": "filled",
+        //     "filledSize": "1.000000000000000000",
+        //     "pnl": "-0.050000000000000000",
+        //     "averagePrice": "68.110000000000000000",
+        //     "fee": "0.040866000000000000",
+        //     "createTime": "1706891359010",
+        //     "updateTime": "1706891359098",
+        //     "orderCategory": "normal",
+        //     "tpTriggerPrice": null,
+        //     "tpOrderPrice": null,
+        //     "slTriggerPrice": null,
+        //     "slOrderPrice": null,
+        //     "cancelSource": "not_canceled",
+        //     "cancelSourceReason": null,
+        //     "brokerId": "ec6dd3a7dd982d0b"
+        //     "filled_amount": "1.000000000000000000", // filledAmount in "ws" watchOrders
+        //     "cancelSource": "", // only in WS
+        //     "instType": "SWAP", // only in WS
         // }
         //
         $id = $this->safe_string_n($order, array( 'tpslId', 'orderId', 'algoId' ));
@@ -1428,7 +1428,7 @@ class blofin extends Exchange {
         if ($average !== null) {
             $cost = Precise::string_mul($average, $baseAmount);
         }
-        // spot $market buy => "sz" can refer either to base currency units or to quote currency units
+        // spot market buy: "sz" can refer either to base currency units or to quote currency units
         $fee = null;
         if ($feeCostString !== null) {
             $feeCostSigned = Precise::string_abs($feeCostString);
@@ -1441,7 +1441,7 @@ class blofin extends Exchange {
         }
         $clientOrderId = $this->safe_string($order, 'clientOrderId');
         if (($clientOrderId !== null) && (strlen($clientOrderId) < 1)) {
-            $clientOrderId = null; // fix empty $clientOrderId string
+            $clientOrderId = null; // fix empty clientOrderId string
         }
         $stopLossTriggerPrice = $this->safe_number($order, 'slTriggerPrice');
         $stopLossPrice = $this->safe_number($order, 'slOrderPrice');
@@ -1677,7 +1677,7 @@ class blofin extends Exchange {
             $amount = $this->safe_value($rawOrder, 'amount');
             $price = $this->safe_value($rawOrder, 'price');
             $orderParams = $this->safe_dict($rawOrder, 'params', array());
-            $extendedParams = $this->extend($orderParams, $params); // the request does not accept extra $params since it's a list, so we're extending each order with the common $params
+            $extendedParams = $this->extend($orderParams, $params); // the request does not accept extra params since it's a list, so we're extending each order with the common params
             $orderRequest = $this->create_order_request($marketId, $type, $side, $amount, $price, $extendedParams);
             $ordersRequests[] = $orderRequest;
         }
@@ -1778,23 +1778,23 @@ class blofin extends Exchange {
             $request['instType'] = 'SPOT';
             //
             //     {
-            //         "code" => "0",
-            //         "msg" => "success",
-            //         "data" => array(
+            //         "code": "0",
+            //         "msg": "success",
+            //         "data": [
             //             {
-            //                 "instId" => "DOGE-USDT",
-            //                 "tradeId" => "6000001623870",
-            //                 "orderId" => "6000011777113",
-            //                 "fillPrice" => "0.091480000000000000",
-            //                 "fillSize" => "30.000000000000000000",
-            //                 "fillPnl" => null,
-            //                 "side" => "buy",
-            //                 "fee" => "0.030000000000000000",
-            //                 "ts" => "1775213753407",
-            //                 "brokerId" => null,
-            //                 "feeCurrency" => "base_currency"
+            //                 "instId": "DOGE-USDT",
+            //                 "tradeId": "6000001623870",
+            //                 "orderId": "6000011777113",
+            //                 "fillPrice": "0.091480000000000000",
+            //                 "fillSize": "30.000000000000000000",
+            //                 "fillPnl": null,
+            //                 "side": "buy",
+            //                 "fee": "0.030000000000000000",
+            //                 "ts": "1775213753407",
+            //                 "brokerId": null,
+            //                 "feeCurrency": "base_currency"
             //             }
-            //         )
+            //         ]
             //     }
             //
             $response = $this->privateGetSpotTradeFillsHistory($this->extend($request, $params));
@@ -1932,34 +1932,34 @@ class blofin extends Exchange {
         // fetchDeposits
         //
         //     {
-        //         "currency" => "USDT",
-        //         "chain" => "TRC20",
-        //         "address" => "TGfJLtnsh3B9EqekFEBZ1nR14QanBUf5Be",
-        //         "txId" => "892f4e0c32268b29b2e541ef30d32a30bbf10f902adcc4b1428319ed7c3758fd",
-        //         "type" => "0",
-        //         "amount" => "86.975843",
-        //         "state" => "1",
-        //         "ts" => "1703163304153",
-        //         "tag" => null,
-        //         "confirm" => "16",
-        //         "depositId" => "36c8e2a7ea184a219de72215a696acaf"
+        //         "currency": "USDT",
+        //         "chain": "TRC20",
+        //         "address": "TGfJLtnsh3B9EqekFEBZ1nR14QanBUf5Be",
+        //         "txId": "892f4e0c32268b29b2e541ef30d32a30bbf10f902adcc4b1428319ed7c3758fd",
+        //         "type": "0",
+        //         "amount": "86.975843",
+        //         "state": "1",
+        //         "ts": "1703163304153",
+        //         "tag": null,
+        //         "confirm": "16",
+        //         "depositId": "36c8e2a7ea184a219de72215a696acaf"
         //     }
         // fetchWithdrawals
         //    {
-        //       "currency" => "USDT",
-        //        "chain" => "TRC20",
-        //        "address" => "TYgB3sVXHPEDQUu288EG1uMFh9Pk2swLgW",
-        //        "txId" => "1fd5ac52df414d7ea66194cadd9a5b4d2422c2b9720037f66d98207f9858fd96",
-        //        "type" => "0",
-        //        "amount" => "9",
-        //        "fee" => "1",
-        //        "feeCurrency" => "USDT",
-        //        "state" => "3",
-        //        "clientId" => null,
-        //        "ts" => "1707217439351",
-        //        "tag" => null,
-        //        "memo" => null,
-        //        "withdrawId" => "e0768698cfdf4aee8e54654c3775914b"
+        //       "currency": "USDT",
+        //        "chain": "TRC20",
+        //        "address": "TYgB3sVXHPEDQUu288EG1uMFh9Pk2swLgW",
+        //        "txId": "1fd5ac52df414d7ea66194cadd9a5b4d2422c2b9720037f66d98207f9858fd96",
+        //        "type": "0",
+        //        "amount": "9",
+        //        "fee": "1",
+        //        "feeCurrency": "USDT",
+        //        "state": "3",
+        //        "clientId": null,
+        //        "ts": "1707217439351",
+        //        "tag": null,
+        //        "memo": null,
+        //        "withdrawId": "e0768698cfdf4aee8e54654c3775914b"
         //    }
         //
         $type = null;
@@ -2102,7 +2102,7 @@ class blofin extends Exchange {
          * @param {boolean} [$params->trigger] whether the order is a stop/trigger order
          * @return {array} an list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
-        // TODO : the original endpoint signature differs, according to that you can skip individual $symbol and assign $ids in batch. At this moment, `$params` is not being used too.
+        // TODO : the original endpoint signature differs, according to that you can skip individual symbol and assign ids in batch. At this moment, `params` is not being used too.
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' cancelOrders() requires a $symbol argument');
         }
@@ -2150,9 +2150,9 @@ class blofin extends Exchange {
             }
         }
         if ($method === 'privatePostTradeCancelTpsl') {
-            $response = $this->privatePostTradeCancelTpsl($request); // * dont extend with $params, otherwise ARRAY will be turned into OBJECT
+            $response = $this->privatePostTradeCancelTpsl($request); // * dont extend with params, otherwise ARRAY will be turned into OBJECT
         } else {
-            $response = $this->privatePostTradeCancelBatchOrders($request); // * dont extend with $params, otherwise ARRAY will be turned into OBJECT
+            $response = $this->privatePostTradeCancelBatchOrders($request); // * dont extend with params, otherwise ARRAY will be turned into OBJECT
         }
         $ordersData = $this->safe_list($response, 'data', array());
         return $this->parse_orders($ordersData, $market, null, null, $params);
@@ -2289,29 +2289,29 @@ class blofin extends Exchange {
         $response = $this->privateGetAccountPositionsHistory($this->extend($request, $params));
         //
         //    {
-        //        "code" => "0",
-        //        "msg" => "success",
-        //        "data" => array(
-        //            array(
-        //                "historyId" => "110307402",
-        //                "positionId" => "1000000722711",
-        //                "instId" => "BTC-USDT",
-        //                "instType" => "SWAP",
-        //                "marginMode" => "cross",
-        //                "positionSide" => "net",
-        //                "closePositions" => "0.0006",
-        //                "maxPositions" => "0.0006",
-        //                "liquidationPositions" => "0",
-        //                "openAveragePrice" => "81550.1",
-        //                "closeAveragePrice" => "81550",
-        //                "createTime" => "1777995583329",
-        //                "updateTime" => "1777995588333",
-        //                "leverage" => "50",
-        //                "realizedPnl" => "-0.058776036",
-        //                "realizedPnlRatio" => "-0.060061275216094155",
-        //                "fee" => "-0.058716036"
-        //            ),
-        //        )
+        //        "code": "0",
+        //        "msg": "success",
+        //        "data": [
+        //            {
+        //                "historyId": "110307402",
+        //                "positionId": "1000000722711",
+        //                "instId": "BTC-USDT",
+        //                "instType": "SWAP",
+        //                "marginMode": "cross",
+        //                "positionSide": "net",
+        //                "closePositions": "0.0006",
+        //                "maxPositions": "0.0006",
+        //                "liquidationPositions": "0",
+        //                "openAveragePrice": "81550.1",
+        //                "closeAveragePrice": "81550",
+        //                "createTime": "1777995583329",
+        //                "updateTime": "1777995588333",
+        //                "leverage": "50",
+        //                "realizedPnl": "-0.058776036",
+        //                "realizedPnlRatio": "-0.060061275216094155",
+        //                "fee": "-0.058716036"
+        //            },
+        //        ]
         //    }
         //
         $data = $this->safe_list($response, 'data', array());
@@ -2324,50 +2324,50 @@ class blofin extends Exchange {
         // response similar for REST & WS
         //
         //     {
-        //         instType => 'SWAP',
-        //         instId => 'LTC-USDT',
-        //         $marginMode => 'cross',
-        //         positionId => '644159',
-        //         positionSide => 'net',
-        //         positions => '1',
-        //         availablePositions => '1',
-        //         averagePrice => '68.16',
-        //         unrealizedPnl => '0.80631223',
-        //         unrealizedPnlRatio => '0.03548909463028169',
-        //         leverage => '3',
-        //         $liquidationPrice => '10.116655172370356435',
-        //         markPrice => '68.96',
-        //         initialMargin => '22.988770743333333333',
-        //         margin => '', // this field might not exist in rest response
-        //         $marginRatio => '152.523509620342499273',
-        //         $maintenanceMargin => '0.34483156115',
-        //         adl => '4',
-        //         createTime => '1707235776528',
-        //         updateTime => '1707235776528'
+        //         instType: 'SWAP',
+        //         instId: 'LTC-USDT',
+        //         marginMode: 'cross',
+        //         positionId: '644159',
+        //         positionSide: 'net',
+        //         positions: '1',
+        //         availablePositions: '1',
+        //         averagePrice: '68.16',
+        //         unrealizedPnl: '0.80631223',
+        //         unrealizedPnlRatio: '0.03548909463028169',
+        //         leverage: '3',
+        //         liquidationPrice: '10.116655172370356435',
+        //         markPrice: '68.96',
+        //         initialMargin: '22.988770743333333333',
+        //         margin: '', // this field might not exist in rest response
+        //         marginRatio: '152.523509620342499273',
+        //         maintenanceMargin: '0.34483156115',
+        //         adl: '4',
+        //         createTime: '1707235776528',
+        //         updateTime: '1707235776528'
         //     }
         //
         //
         //    positions-history
         //
-        //            array(
-        //                "positionId" => "1000000722711",
-        //                "instId" => "BTC-USDT",
-        //                "instType" => "SWAP",
-        //                "marginMode" => "cross",
-        //                "positionSide" => "net",
-        //                "createTime" => "1777995583329",
-        //                "updateTime" => "1777995588333",
-        //                "leverage" => "50",
-        //                "realizedPnl" => "-0.058776036",
-        //                "realizedPnlRatio" => "-0.060061275216094155",
-        //                "fee" => "-0.058716036"
-        //                "historyId" => "110307402",
-        //                "closePositions" => "0.0006",
-        //                "maxPositions" => "0.0006",
-        //                "liquidationPositions" => "0",
-        //                "openAveragePrice" => "81550.1",
-        //                "closeAveragePrice" => "81550",
-        //            ),
+        //            {
+        //                "positionId": "1000000722711",
+        //                "instId": "BTC-USDT",
+        //                "instType": "SWAP",
+        //                "marginMode": "cross",
+        //                "positionSide": "net",
+        //                "createTime": "1777995583329",
+        //                "updateTime": "1777995588333",
+        //                "leverage": "50",
+        //                "realizedPnl": "-0.058776036",
+        //                "realizedPnlRatio": "-0.060061275216094155",
+        //                "fee": "-0.058716036"
+        //                "historyId": "110307402",
+        //                "closePositions": "0.0006",
+        //                "maxPositions": "0.0006",
+        //                "liquidationPositions": "0",
+        //                "openAveragePrice": "81550.1",
+        //                "closeAveragePrice": "81550",
+        //            },
         //
         $marketId = $this->safe_string($position, 'instId');
         $market = $this->safe_market($marketId, $market);
@@ -2479,7 +2479,7 @@ class blofin extends Exchange {
         $marginMode = null;
         list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchLeverages', $params);
         if ($marginMode === null) {
-            $marginMode = $this->safe_string($params, 'marginMode', 'cross'); // cross as default $marginMode
+            $marginMode = $this->safe_string($params, 'marginMode', 'cross'); // cross as default marginMode
         }
         if (($marginMode !== 'cross') && ($marginMode !== 'isolated')) {
             throw new BadRequest($this->id . ' fetchLeverages() requires a $marginMode parameter that must be either cross or isolated');
@@ -2503,15 +2503,15 @@ class blofin extends Exchange {
         $response = $this->privateGetAccountBatchLeverageInfo($this->extend($request, $params));
         //
         //     {
-        //         "code" => "0",
-        //         "msg" => "success",
-        //         "data" => array(
-        //             array(
-        //                 "leverage" => "3",
-        //                 "marginMode" => "cross",
-        //                 "instId" => "BTC-USDT"
-        //             ),
-        //         )
+        //         "code": "0",
+        //         "msg": "success",
+        //         "data": [
+        //             {
+        //                 "leverage": "3",
+        //                 "marginMode": "cross",
+        //                 "instId": "BTC-USDT"
+        //             },
+        //         ]
         //     }
         //
         $leverages = $this->safe_list($response, 'data', array());
@@ -2535,7 +2535,7 @@ class blofin extends Exchange {
         $marginMode = null;
         list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchLeverage', $params);
         if ($marginMode === null) {
-            $marginMode = $this->safe_string($params, 'marginMode', 'cross'); // cross as default $marginMode
+            $marginMode = $this->safe_string($params, 'marginMode', 'cross'); // cross as default marginMode
         }
         if (($marginMode !== 'cross') && ($marginMode !== 'isolated')) {
             throw new BadRequest($this->id . ' fetchLeverage() requires a $marginMode parameter that must be either cross or isolated');
@@ -2548,12 +2548,12 @@ class blofin extends Exchange {
         $response = $this->privateGetAccountLeverageInfo($this->extend($request, $params));
         //
         //     {
-        //         "code" => "0",
-        //         "msg" => "success",
-        //         "data" => {
-        //             "leverage" => "3",
-        //             "marginMode" => "cross",
-        //             "instId" => "BTC-USDT"
+        //         "code": "0",
+        //         "msg": "success",
+        //         "data": {
+        //             "leverage": "3",
+        //             "marginMode": "cross",
+        //             "instId": "BTC-USDT"
         //         }
         //     }
         //
@@ -2589,7 +2589,7 @@ class blofin extends Exchange {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' setLeverage() requires a $symbol argument');
         }
-        // WARNING => THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
+        // WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
         // AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
         if (($leverage < 1) || ($leverage > 125)) {
             throw new BadRequest($this->id . ' setLeverage() $leverage should be between 1 and 125');
@@ -2714,10 +2714,10 @@ class blofin extends Exchange {
         $response = $this->privateGetAccountMarginMode($params);
         //
         //     {
-        //         "code" => "0",
-        //         "msg" => "success",
-        //         "data" => {
-        //             "marginMode" => "cross"
+        //         "code": "0",
+        //         "msg": "success",
+        //         "data": {
+        //             "marginMode": "cross"
         //         }
         //     }
         //
@@ -2758,15 +2758,15 @@ class blofin extends Exchange {
         $response = $this->privatePostAccountSetMarginMode($this->extend($request, $params));
         //
         //     {
-        //         "code" => "0",
-        //         "msg" => "success",
-        //         "data" => {
-        //             "marginMode" => "isolated"
+        //         "code": "0",
+        //         "msg": "success",
+        //         "data": {
+        //             "marginMode": "isolated"
         //         }
         //     }
         //
         $data = $this->safe_dict($response, 'data', array());
-        return $this->parse_margin_mode($data, $market); // Dict, not MarginMode => this override has no explicit return annotation, so the Go/C#/Java wrappers infer it — MarginMode would emit MarginMode instead of the map[string]any required by IExchange.SetMarginMode
+        return $this->parse_margin_mode($data, $market); // Dict, not MarginMode: this override has no explicit return annotation, so the Go/C#/Java wrappers infer it — MarginMode would emit MarginMode instead of the map[string]any required by IExchange.SetMarginMode
     }
 
     public function fetch_position_mode(?string $symbol = null, $params = array()): array {
@@ -2784,10 +2784,10 @@ class blofin extends Exchange {
         $positionMode = $this->safe_string($data, 'positionMode');
         //
         //     {
-        //         "code" => "0",
-        //         "msg" => "success",
-        //         "data" => {
-        //             "positionMode" => "long_short_mode"
+        //         "code": "0",
+        //         "msg": "success",
+        //         "data": {
+        //             "positionMode": "long_short_mode"
         //         }
         //     }
         //
@@ -2813,10 +2813,10 @@ class blofin extends Exchange {
         );
         //
         //     {
-        //         "code" => "0",
-        //         "msg" => "success",
-        //         "data" => {
-        //             "positionMode" => "net_mode"
+        //         "code": "0",
+        //         "msg": "success",
+        //         "data": {
+        //             "positionMode": "net_mode"
         //         }
         //     }
         //
@@ -2840,31 +2840,31 @@ class blofin extends Exchange {
         $response = $this->privateGetAccountPositions($params);
         //
         //     {
-        //         "code" => "0",
-        //         "msg" => "success",
-        //         "data" => array(
+        //         "code": "0",
+        //         "msg": "success",
+        //         "data": [
         //             {
-        //                 "positionId" => "756786",
-        //                 "instId" => "BTC-USDT",
-        //                 "instType" => "SWAP",
-        //                 "marginMode" => "cross",
-        //                 "positionSide" => "net",
-        //                 "adl" => "1",
-        //                 "positions" => "0.1",
-        //                 "availablePositions" => "0.1",
-        //                 "averagePrice" => "88564.9",
-        //                 "markPrice" => "88546.3696492756",
-        //                 "marginRatio" => "822.305183525552961566",
-        //                 "liquidationPrice" => "",
-        //                 "unrealizedPnl" => "-0.00185303507244",
-        //                 "unrealizedPnlRatio" => "-0.000627687178252332",
-        //                 "initialMargin" => "2.951545654975853333",
-        //                 "maintenanceMargin" => "0.02656391089478268",
-        //                 "createTime" => "1767169876207",
-        //                 "updateTime" => "1767169876207",
-        //                 "leverage" => "3"
+        //                 "positionId": "756786",
+        //                 "instId": "BTC-USDT",
+        //                 "instType": "SWAP",
+        //                 "marginMode": "cross",
+        //                 "positionSide": "net",
+        //                 "adl": "1",
+        //                 "positions": "0.1",
+        //                 "availablePositions": "0.1",
+        //                 "averagePrice": "88564.9",
+        //                 "markPrice": "88546.3696492756",
+        //                 "marginRatio": "822.305183525552961566",
+        //                 "liquidationPrice": "",
+        //                 "unrealizedPnl": "-0.00185303507244",
+        //                 "unrealizedPnlRatio": "-0.000627687178252332",
+        //                 "initialMargin": "2.951545654975853333",
+        //                 "maintenanceMargin": "0.02656391089478268",
+        //                 "createTime": "1767169876207",
+        //                 "updateTime": "1767169876207",
+        //                 "leverage": "3"
         //             }
-        //         )
+        //         ]
         //     }
         //
         $data = $this->safe_list($response, 'data', array());
@@ -2876,25 +2876,25 @@ class blofin extends Exchange {
         // fetchPositionsADLRank
         //
         //     {
-        //         "positionId" => "756786",
-        //         "instId" => "BTC-USDT",
-        //         "instType" => "SWAP",
-        //         "marginMode" => "cross",
-        //         "positionSide" => "net",
-        //         "adl" => "1",
-        //         "positions" => "0.1",
-        //         "availablePositions" => "0.1",
-        //         "averagePrice" => "88564.9",
-        //         "markPrice" => "88546.3696492756",
-        //         "marginRatio" => "822.305183525552961566",
-        //         "liquidationPrice" => "",
-        //         "unrealizedPnl" => "-0.00185303507244",
-        //         "unrealizedPnlRatio" => "-0.000627687178252332",
-        //         "initialMargin" => "2.951545654975853333",
-        //         "maintenanceMargin" => "0.02656391089478268",
-        //         "createTime" => "1767169876207",
-        //         "updateTime" => "1767169876207",
-        //         "leverage" => "3"
+        //         "positionId": "756786",
+        //         "instId": "BTC-USDT",
+        //         "instType": "SWAP",
+        //         "marginMode": "cross",
+        //         "positionSide": "net",
+        //         "adl": "1",
+        //         "positions": "0.1",
+        //         "availablePositions": "0.1",
+        //         "averagePrice": "88564.9",
+        //         "markPrice": "88546.3696492756",
+        //         "marginRatio": "822.305183525552961566",
+        //         "liquidationPrice": "",
+        //         "unrealizedPnl": "-0.00185303507244",
+        //         "unrealizedPnlRatio": "-0.000627687178252332",
+        //         "initialMargin": "2.951545654975853333",
+        //         "maintenanceMargin": "0.02656391089478268",
+        //         "createTime": "1767169876207",
+        //         "updateTime": "1767169876207",
+        //         "leverage": "3"
         //     }
         //
         $marketId = $this->safe_string($info, 'instId');
@@ -2915,7 +2915,7 @@ class blofin extends Exchange {
             return null; // fallback to default error handler
         }
         //
-        // array("code":"152002","msg":"Parameter bar error.")
+        // {"code":"152002","msg":"Parameter bar error."}
         //
         $code = $this->safe_string($response, 'code');
         $message = $this->safe_string($response, 'msg');
@@ -2924,14 +2924,14 @@ class blofin extends Exchange {
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $feedback);
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $code, $feedback);
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);
-            throw new ExchangeError($feedback); // unknown $message
+            throw new ExchangeError($feedback); // unknown message
         }
         //
         //  {
-        //      orderId => null,
-        //      clientOrderId => '',
-        //      msg => 'Order failed. Insufficient USDT margin in account',
-        //      $code => '103003'
+        //      orderId: null,
+        //      clientOrderId: '',
+        //      msg: 'Order failed. Insufficient USDT margin in account',
+        //      code: '103003'
         //  }
         //
         $data = $this->safe_list($response, 'data');
@@ -2950,7 +2950,7 @@ class blofin extends Exchange {
         $request = '/api/' . $this->version . '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         $url = $this->urls['api']['rest'] . $request;
-        // $type = $this->getPathAuthenticationType($path);
+        // const type = this.getPathAuthenticationType (path);
         if ($api === 'public') {
             if (!$this->is_empty($query)) {
                 $url .= '?' . $this->urlencode($query);

@@ -38,10 +38,10 @@ class hollaex extends \ccxt\async\hollaex {
             ),
             'options' => array(
                 'watchBalance' => array(
-                    // 'api-expires' => null,
+                    // 'api-expires': undefined,
                 ),
                 'watchOrders' => array(
-                    // 'api-expires' => null,
+                    // 'api-expires': undefined,
                 ),
             ),
             'streaming' => array(
@@ -50,8 +50,8 @@ class hollaex extends \ccxt\async\hollaex {
             'exceptions' => array(
                 'ws' => array(
                     'exact' => array(
-                        'Bearer or HMAC authentication required' => '\\ccxt\\BadSymbol', // array( error => 'Bearer or HMAC authentication required' )
-                        'Error => wrong input' => '\\ccxt\\BadRequest', // array( error => 'Error => wrong input' )
+                        'Bearer or HMAC authentication required' => '\\ccxt\\BadSymbol', // { error: 'Bearer or HMAC authentication required' }
+                        'Error => wrong input' => '\\ccxt\\BadRequest', // { error: 'Error: wrong input' }
                     ),
                 ),
             ),
@@ -88,19 +88,19 @@ class hollaex extends \ccxt\async\hollaex {
         //         "topic":"orderbook",
         //         "action":"partial",
         //         "symbol":"ltc-usdt",
-        //         "data":array(
-        //             "bids":array(
+        //         "data":{
+        //             "bids":[
         //                 [104.29, 5.2264],
         //                 [103.86,1.3629],
         //                 [101.82,0.5942]
-        //             ),
-        //             "asks":array(
+        //             ],
+        //             "asks":[
         //                 [104.81,9.5531],
         //                 [105.54,0.6416],
         //                 [106.18,1.4141],
-        //             ),
+        //             ],
         //             "timestamp":"2022-04-12T08:17:05.932Z"
-        //         ),
+        //         },
         //         "time":1649751425
         //     }
         //
@@ -162,17 +162,17 @@ class hollaex extends \ccxt\async\hollaex {
     public function handle_trades(Client $client, mixed $message) {
         //
         //     {
-        //         "topic" => "trade",
-        //         "action" => "partial",
-        //         "symbol" => "btc-usdt",
-        //         "data" => array(
-        //             array(
-        //                 "size" => 0.05145,
-        //                 "price" => 41977.9,
-        //                 "side" => "buy",
-        //                 "timestamp" => "2022-04-11T09:40:10.881Z"
-        //             ),
-        //         )
+        //         "topic": "trade",
+        //         "action": "partial",
+        //         "symbol": "btc-usdt",
+        //         "data": [
+        //             {
+        //                 "size": 0.05145,
+        //                 "price": 41977.9,
+        //                 "side": "buy",
+        //                 "timestamp": "2022-04-11T09:40:10.881Z"
+        //             },
+        //         ]
         //     }
         //
         $channel = $this->safe_string($message, 'topic');
@@ -235,7 +235,7 @@ class hollaex extends \ccxt\async\hollaex {
         //     "action":"insert",
         //     "user_id":"103",
         //     "symbol":"xht-usdt",
-        //     "data":array(
+        //     "data":[
         //        {
         //           "size":1,
         //           "side":"buy",
@@ -247,13 +247,13 @@ class hollaex extends \ccxt\async\hollaex {
         //           "fee_coin":"xht",
         //           "is_same":true
         //        }
-        //     ),
+        //     ],
         //     "time":1652434215
         // }
         //
         $channel = $this->safe_string($message, 'topic');
         $rawTrades = $this->safe_value($message, 'data');
-        // usually the first $message is an empty array
+        // usually the first message is an empty array
         // when the user does not have any trades yet
         $dataLength = count($rawTrades);
         if ($dataLength === 0) {
@@ -276,7 +276,7 @@ class hollaex extends \ccxt\async\hollaex {
                 $marketIds[$marketId] = true;
             }
         }
-        // non-$symbol specific
+        // non-symbol specific
         $client->resolve($this->myTrades, $channel);
         $keys = is_array($marketIds) ? array_keys($marketIds) : array();
         for ($i = 0; $i < count($keys); $i++) {
@@ -322,49 +322,49 @@ class hollaex extends \ccxt\async\hollaex {
     public function handle_order(Client $client, mixed $message, ?array $subscription = null) {
         //
         //     {
-        //         "topic" => "order",
-        //         "action" => "insert",
-        //         "user_id" => 155328,
-        //         "symbol" => "ltc-usdt",
-        //         "data" => array(
-        //             "symbol" => "ltc-usdt",
-        //             "side" => "buy",
-        //             "size" => 0.05,
-        //             "type" => "market",
-        //             "price" => 0,
-        //             "fee_structure" => array( maker => 0.1, taker => 0.1 ),
-        //             "fee_coin" => "ltc",
-        //             "id" => "ce38fd48-b336-400b-812b-60c636454231",
-        //             "created_by" => 155328,
-        //             "filled" => 0.05,
-        //             "method" => "market",
-        //             "created_at" => "2022-04-11T14:09:00.760Z",
-        //             "updated_at" => "2022-04-11T14:09:00.760Z",
-        //             "status" => "filled"
-        //         ),
-        //         "time" => 1649686140
+        //         "topic": "order",
+        //         "action": "insert",
+        //         "user_id": 155328,
+        //         "symbol": "ltc-usdt",
+        //         "data": {
+        //             "symbol": "ltc-usdt",
+        //             "side": "buy",
+        //             "size": 0.05,
+        //             "type": "market",
+        //             "price": 0,
+        //             "fee_structure": { maker: 0.1, taker: 0.1 },
+        //             "fee_coin": "ltc",
+        //             "id": "ce38fd48-b336-400b-812b-60c636454231",
+        //             "created_by": 155328,
+        //             "filled": 0.05,
+        //             "method": "market",
+        //             "created_at": "2022-04-11T14:09:00.760Z",
+        //             "updated_at": "2022-04-11T14:09:00.760Z",
+        //             "status": "filled"
+        //         },
+        //         "time": 1649686140
         //     }
         //
         //    {
         //        "topic":"order",
         //        "action":"partial",
         //        "user_id":155328,
-        //        "data":array(
+        //        "data":[
         //           {
         //              "created_at":"2022-05-13T08:19:07.694Z",
         //              "fee":0,
-        //              "meta":array(
+        //              "meta":{
         //
-        //              ),
+        //              },
         //              "symbol":"ltc-usdt",
         //              "side":"buy",
         //              "size":0.1,
         //              "type":"limit",
         //              "price":55,
-        //              "fee_structure":array(
+        //              "fee_structure":{
         //                 "maker":0.1,
         //                 "taker":0.1
-        //              ),
+        //              },
         //              "fee_coin":"ltc",
         //              "id":"d5e77182-ad4c-4ac9-8ce4-a97f9b43e33c",
         //              "created_by":155328,
@@ -373,13 +373,13 @@ class hollaex extends \ccxt\async\hollaex {
         //              "updated_at":"2022-05-13T08:19:07.694Z",
         //              "stop":null
         //           }
-        //        ),
+        //        ],
         //        "time":1652430035
         //       }
         //
         $channel = $this->safe_string($message, 'topic');
         $data = $this->safe_value($message, 'data', array());
-        // usually the first $message is an empty array
+        // usually the first message is an empty array
         $dataLength = count($data);
         if ($dataLength === 0) {
             return;
@@ -407,7 +407,7 @@ class hollaex extends \ccxt\async\hollaex {
                 $marketIds[$marketId] = true;
             }
         }
-        // non-$symbol specific
+        // non-symbol specific
         $client->resolve($this->orders, $channel);
         $keys = is_array($marketIds) ? array_keys($marketIds) : array();
         for ($i = 0; $i < count($keys); $i++) {
@@ -437,18 +437,18 @@ class hollaex extends \ccxt\async\hollaex {
     public function handle_balance(Client $client, mixed $message) {
         //
         //     {
-        //         "topic" => "wallet",
-        //         "action" => "partial",
-        //         "user_id" => 155328,
-        //         "data" => array(
-        //             "eth_balance" => 0,
-        //             "eth_available" => 0,
-        //             "usdt_balance" => 18.94344188,
-        //             "usdt_available" => 18.94344188,
-        //             "ltc_balance" => 0.00005,
-        //             "ltc_available" => 0.00005,
-        //         ),
-        //         "time" => 1649687396
+        //         "topic": "wallet",
+        //         "action": "partial",
+        //         "user_id": 155328,
+        //         "data": {
+        //             "eth_balance": 0,
+        //             "eth_available": 0,
+        //             "usdt_balance": 18.94344188,
+        //             "usdt_available": 18.94344188,
+        //             "ltc_balance": 0.00005,
+        //             "ltc_available": 0.00005,
+        //         },
+        //         "time": 1649687396
         //     }
         //
         $messageHash = $this->safe_string($message, 'topic');
@@ -506,8 +506,8 @@ class hollaex extends \ccxt\async\hollaex {
                 throw new ArgumentsRequired($this->id . ' watchPrivate() $expires is required');
             }
             $expires = (string) $expires;
-            // we need to memoize these values to avoid generating a new $url on each method execution
-            // that would trigger a new connection on each received $message
+            // we need to memoize these values to avoid generating a new url on each method execution
+            // that would trigger a new connection on each received message
             $this->options['ws-expires'] = $expires;
         }
         $url = $this->urls['api']['ws'];
@@ -529,8 +529,8 @@ class hollaex extends \ccxt\async\hollaex {
 
     public function handle_error_message(Client $client, mixed $message): ?bool {
         //
-        //     array( $error => "Bearer or HMAC authentication required" )
-        //     array( $error => "Error => wrong input" )
+        //     { error: "Bearer or HMAC authentication required" }
+        //     { error: "Error: wrong input" }
         //
         $error = $this->safe_integer($message, 'error');
         try {
@@ -550,85 +550,85 @@ class hollaex extends \ccxt\async\hollaex {
         //
         // pong
         //
-        //     array( $message => "pong" )
+        //     { message: "pong" }
         //
         // trade
         //
         //     {
-        //         "topic" => "trade",
-        //         "action" => "partial",
-        //         "symbol" => "btc-usdt",
-        //         "data" => array(
-        //             array(
-        //                 "size" => 0.05145,
-        //                 "price" => 41977.9,
-        //                 "side" => "buy",
-        //                 "timestamp" => "2022-04-11T09:40:10.881Z"
-        //             ),
-        //         )
+        //         "topic": "trade",
+        //         "action": "partial",
+        //         "symbol": "btc-usdt",
+        //         "data": [
+        //             {
+        //                 "size": 0.05145,
+        //                 "price": 41977.9,
+        //                 "side": "buy",
+        //                 "timestamp": "2022-04-11T09:40:10.881Z"
+        //             },
+        //         ]
         //     }
         //
         // orderbook
         //
         //     {
-        //         "topic" => "orderbook",
-        //         "action" => "partial",
-        //         "symbol" => "ltc-usdt",
-        //         "data" => array(
-        //             "bids" => array(
+        //         "topic": "orderbook",
+        //         "action": "partial",
+        //         "symbol": "ltc-usdt",
+        //         "data": {
+        //             "bids": [
         //                 [104.29, 5.2264],
         //                 [103.86,1.3629],
         //                 [101.82,0.5942]
-        //             ),
-        //             "asks" => array(
+        //             ],
+        //             "asks": [
         //                 [104.81,9.5531],
         //                 [105.54,0.6416],
         //                 [106.18,1.4141],
-        //             ),
-        //             "timestamp" => "2022-04-11T10:37:01.227Z"
-        //         ),
-        //         "time" => 1649673421
+        //             ],
+        //             "timestamp": "2022-04-11T10:37:01.227Z"
+        //         },
+        //         "time": 1649673421
         //     }
         //
         // order
         //
         //     {
-        //         "topic" => "order",
-        //         "action" => "insert",
-        //         "user_id" => 155328,
-        //         "symbol" => "ltc-usdt",
-        //         "data" => array(
-        //             "symbol" => "ltc-usdt",
-        //             "side" => "buy",
-        //             "size" => 0.05,
-        //             "type" => "market",
-        //             "price" => 0,
-        //             "fee_structure" => array( maker => 0.1, taker => 0.1 ),
-        //             "fee_coin" => "ltc",
-        //             "id" => "ce38fd48-b336-400b-812b-60c636454231",
-        //             "created_by" => 155328,
-        //             "filled" => 0.05,
-        //             "method" => "market",
-        //             "created_at" => "2022-04-11T14:09:00.760Z",
-        //             "updated_at" => "2022-04-11T14:09:00.760Z",
-        //             "status" => "filled"
-        //         ),
-        //         "time" => 1649686140
+        //         "topic": "order",
+        //         "action": "insert",
+        //         "user_id": 155328,
+        //         "symbol": "ltc-usdt",
+        //         "data": {
+        //             "symbol": "ltc-usdt",
+        //             "side": "buy",
+        //             "size": 0.05,
+        //             "type": "market",
+        //             "price": 0,
+        //             "fee_structure": { maker: 0.1, taker: 0.1 },
+        //             "fee_coin": "ltc",
+        //             "id": "ce38fd48-b336-400b-812b-60c636454231",
+        //             "created_by": 155328,
+        //             "filled": 0.05,
+        //             "method": "market",
+        //             "created_at": "2022-04-11T14:09:00.760Z",
+        //             "updated_at": "2022-04-11T14:09:00.760Z",
+        //             "status": "filled"
+        //         },
+        //         "time": 1649686140
         //     }
         //
         // balance
         //
         //     {
-        //         "topic" => "wallet",
-        //         "action" => "partial",
-        //         "user_id" => 155328,
-        //         "data" => {
-        //             "eth_balance" => 0,
-        //             "eth_available" => 0,
-        //             "usdt_balance" => 18.94344188,
-        //             "usdt_available" => 18.94344188,
-        //             "ltc_balance" => 0.00005,
-        //             "ltc_available" => 0.00005,
+        //         "topic": "wallet",
+        //         "action": "partial",
+        //         "user_id": 155328,
+        //         "data": {
+        //             "eth_balance": 0,
+        //             "eth_available": 0,
+        //             "usdt_balance": 18.94344188,
+        //             "usdt_available": 18.94344188,
+        //             "ltc_balance": 0.00005,
+        //             "ltc_available": 0.00005,
         //         }
         //     }
         //
