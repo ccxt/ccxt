@@ -3,6 +3,8 @@ package base
 import (
 	"fmt"
 	"reflect"
+	"runtime/debug"
+	"strings"
 	"sync"
 	"time"
 
@@ -427,7 +429,22 @@ func Print(v ...interface{}) {
 }
 
 func ReturnPanicError(ch chan interface{}) {
-	ccxt.ReturnPanicError(ch)
+	// recover() only stops a panic when called directly by the deferred function —
+	// delegating to ccxt.ReturnPanicError made its recover() a nested call that
+	// returned nil, so any panic in a test goroutine killed the whole binary
+	if r := recover(); r != nil {
+		if r != "break" {
+			stack := debug.Stack()
+			strErr := ToString(r)
+			var panicMsg string
+			if !strings.HasPrefix(strErr, "panic:") {
+				panicMsg = fmt.Sprintf("panic:%s\nStack trace:\n%s", strErr, stack)
+			} else {
+				panicMsg = fmt.Sprintf("%s\nStack trace:\n%s", strErr, stack)
+			}
+			ch <- panicMsg
+		}
+	}
 }
 
 func callDynamically(name2 interface{}, args ...interface{}) <-chan interface{} {
