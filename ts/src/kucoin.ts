@@ -10131,7 +10131,17 @@ export default class kucoin extends Exchange {
         //     }
         //
         const data = this.safeList (response, 'data', []);
-        return this.parseFundingRates (data, symbols);
+        const rates: List = [];
+        for (let i = 0; i < data.length; i++) {
+            const entry = data[i];
+            const marketId = this.safeString (entry, 'symbol');
+            // kucoin returns funding index symbols (e.g. .ETHUSDTMFPI8H) alongside tradeable contracts
+            const isFundingIndex = (marketId !== undefined) && (marketId.startsWith ('.'));
+            if (!isFundingIndex) {
+                rates.push (entry);
+            }
+        }
+        return this.parseFundingRates (rates, symbols);
     }
 
     override parseFundingRate (data: any, market: Market = undefined): FundingRate {
