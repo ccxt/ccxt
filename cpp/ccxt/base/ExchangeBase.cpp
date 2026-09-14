@@ -6,6 +6,9 @@
 
 #include <curl/curl.h>
 
+#include <mutex>
+#include <unordered_map>
+
 #include <openssl/sha.h>
 #include <openssl/evp.h>
 #include <openssl/rand.h>
@@ -156,9 +159,26 @@ ccxt::any simdToAny (simdjson::ondemand::value v) {
     case json_type::object: {
         dict out;
         for (auto field : v.get_object ()) {
-            out.set (
-                std::string (std::string_view (field.unescaped_key ().value ())),
-                simdToAny (field.value ()));
+            // fast path: the RAW key token spans [raw(), closing quote) with no
+            // allocation; when it carries no escape, intern it directly and
+            // skip both the unescape allocation and the intermediate string
+            const auto rawTok = field.key ().value ();
+            const char* k = rawTok.raw ();
+            const char* q = static_cast<const char*> (std::memchr (k, '"', 256));
+            if (q != nullptr) {
+                const std::string_view rawKey (k, static_cast<std::size_t> (q - k));
+                if (rawKey.find ('\\') == std::string_view::npos) {
+                    out.set (InternedKey (rawKey), simdToAny (field.value ()));
+                } else {
+                    out.set (
+                        std::string (std::string_view (field.unescaped_key ().value ())),
+                        simdToAny (field.value ()));
+                }
+            } else {
+                out.set (
+                    std::string (std::string_view (field.unescaped_key ().value ())),
+                    simdToAny (field.value ()));
+            }
         }
         return ccxt::any (out);
     }
@@ -1699,6 +1719,53 @@ std::shared_future<ccxt::any> ExchangeBase::throttle (ccxt::any) {
 // network — deliberately unimplemented in iteration 1
 // ---------------------------------------------------------------------------
 
+// ---------------------------------------------------------------------------
+// Curl connection pool. One easy handle per (origin, proxy) key, returned to
+// the pool with curl_easy_reset after each request — reset KEEPS the live
+// connections, the TLS session-id cache, and the DNS cache (curl documents
+// those as surviving), so a warm exchange never pays a fresh TCP+TLS
+// handshake (~150-250ms per fetch without it; Python's urllib3 pools the same
+// way). Handles are exclusively used: acquire/release under one mutex, one
+// request at a time per handle.
+// ---------------------------------------------------------------------------
+namespace {
+    struct CurlPool {
+        std::mutex mutex;
+        std::unordered_map<std::string, std::vector<CURL*>> idle;
+
+        CURL* acquire (const std::string& key) {
+            std::lock_guard<std::mutex> guard (this->mutex);
+            auto it = this->idle.find (key);
+            if (it == this->idle.end () || it->second.empty ()) return nullptr;
+            CURL* c = it->second.back ();
+            it->second.pop_back ();
+            return c;
+        }
+        void release (const std::string& key, CURL* c) {
+            std::lock_guard<std::mutex> guard (this->mutex);
+            this->idle[key].push_back (c);
+        }
+        ~CurlPool () {
+            for (auto& kv : this->idle) {
+                for (CURL* c : kv.second) curl_easy_cleanup (c);
+            }
+        }
+    };
+    CurlPool& curlPool () {
+        static CurlPool pool;
+        return pool;
+    }
+    // scheme://host[:port] plus the effective proxy — the path is NOT part of
+    // the key (curl's own connection cache keys by host/port/proxy, so every
+    // endpoint on an origin shares one pooled connection)
+    std::string originKey (const std::string& url, const std::string& proxy) {
+        const std::size_t schemeEnd = url.find ("://");
+        const std::size_t start = (schemeEnd == std::string::npos) ? 0 : schemeEnd + 3;
+        const std::size_t slash = url.find ('/', start);
+        return url.substr (0, slash == std::string::npos ? url.size () : slash) + "|" + proxy;
+    }
+}
+
 std::shared_future<ccxt::any> ExchangeBase::fetch (ccxt::any url, ccxt::any method,
                                                   ccxt::any headers, ccxt::any body) {
     // Record what sign() built BEFORE failing. The static request tests assert on
@@ -1743,10 +1810,48 @@ std::shared_future<ccxt::any> ExchangeBase::fetch (ccxt::any url, ccxt::any meth
             };
         }
 
-        CURL* curl = curl_easy_init ();
-        if (!curl) {
-            throw NetworkError (this->id.has_value () ? str (this->id) : std::string ("ccxt")
-                                + " " + verb + " " + target + " curl_easy_init failed");
+        CURL* curl = nullptr;
+        std::string poolKey;
+        bool proxyApplied = false;
+        std::string proxyValue;
+        {
+            // effective proxy: exchange options first, then the environment —
+            // the pool key must carry whichever applies or pooled connections
+            // would be reused across different proxy routes
+            if (this->options.has_value () && isDict (this->options)) {
+                const auto& opts = ccxt::any_cast<dict> (this->options);
+                const auto pick = [&opts] (const char* key) -> std::string {
+                    if (opts.has (std::string (key))) {
+                        const ccxt::any v = opts.get (std::string (key));
+                        if (isStr (v)) {
+                            return str (v);
+                        }
+                    }
+                    return std::string {};
+                };
+                const bool httpsTarget = target.rfind ("https://", 0) == 0;
+                proxyValue = httpsTarget ? (pick ("httpsProxy").empty () ? pick ("httpProxy") : pick ("httpsProxy"))
+                                          : (pick ("httpProxy").empty () ? pick ("httpsProxy") : pick ("httpProxy"));
+                if (!proxyValue.empty ()) proxyApplied = true;
+            }
+            if (!proxyApplied) {
+                if (const char* p = std::getenv ("https_proxy")) { proxyValue = p; }
+                else if (const char* p2 = std::getenv ("http_proxy")) { proxyValue = p2; }
+            }
+
+            curl = curlPool ().acquire (poolKey = originKey (target, proxyValue));
+            if (!curl) {
+                curl = curl_easy_init ();
+                if (!curl) {
+                    throw NetworkError (this->id.has_value () ? str (this->id) : std::string ("ccxt")
+                                        + " " + verb + " " + target + " curl_easy_init failed");
+                }
+            }
+            // (re)apply the proxy after the pool handoff: curl_easy_reset clears
+            // it, and the connection cache inside the handle belongs to this key
+            if (!proxyValue.empty ()) {
+                curl_easy_setopt (curl, CURLOPT_PROXY, proxyValue.c_str ());
+            }
         }
 
         curl_easy_setopt (curl, CURLOPT_URL, target.c_str ());
@@ -1758,36 +1863,7 @@ std::shared_future<ccxt::any> ExchangeBase::fetch (ccxt::any url, ccxt::any meth
             ? std::max (1000LL, toLong (this->timeout)) : 10000LL;
         curl_easy_setopt (curl, CURLOPT_TIMEOUT_MS, timeoutMs);
 
-        // honour the standard proxy environment variables, then the exchange
-        // options (httpProxy/httpsProxy) — the static test harness relies on the
-        // latter: initOfflineExchange installs a deliberately unreachable proxy so
-        // request tests fail with InvalidProxySettings instead of hitting the
-        // network (see the "proxy 2 times" comment in ts/src/test/tests.ts).
-        bool proxyApplied = false;
-        std::string proxyValue;
-        if (this->options.has_value () && isDict (this->options)) {
-            const auto& opts = ccxt::any_cast<dict> (this->options);
-            const auto pick = [&opts] (const char* key) -> std::string {
-                if (opts.has (std::string (key))) {
-                    const ccxt::any v = opts.get (std::string (key));
-                    if (isStr (v)) {
-                        return str (v);
-                    }
-                }
-                return std::string {};
-            };
-            const bool httpsTarget = target.rfind ("https://", 0) == 0;
-            proxyValue = httpsTarget ? (pick ("httpsProxy").empty () ? pick ("httpProxy") : pick ("httpsProxy"))
-                                      : (pick ("httpProxy").empty () ? pick ("httpsProxy") : pick ("httpProxy"));
-            if (!proxyValue.empty ()) {
-                curl_easy_setopt (curl, CURLOPT_PROXY, proxyValue.c_str ());
-                proxyApplied = true;
-            }
-        }
-        if (!proxyApplied) {
-            if (const char* p = std::getenv ("https_proxy")) { curl_easy_setopt (curl, CURLOPT_PROXY, p); }
-            else if (const char* p2 = std::getenv ("http_proxy")) { curl_easy_setopt (curl, CURLOPT_PROXY, p2); }
-        }
+        // (proxy selection happened above, before the pool handoff)
 
         if (verb == "GET") {
             curl_easy_setopt (curl, CURLOPT_HTTPGET, 1L);
@@ -1825,7 +1901,11 @@ std::shared_future<ccxt::any> ExchangeBase::fetch (ccxt::any url, ccxt::any meth
         long status = 0;
         curl_easy_getinfo (curl, CURLINFO_RESPONSE_CODE, &status);
         if (hdrs) { curl_slist_free_all (hdrs); }
-        curl_easy_cleanup (curl);
+        // keep the connection: reset preserves live connections, the TLS
+        // session-id cache and the DNS cache; the handle returns to the pool
+        // for the next fetch on this origin
+        curl_easy_reset (curl);
+        curlPool ().release (poolKey, curl);
 
         if (res != CURLE_OK) {
             // A failing configured proxy is a proxy-settings error in ccxt's error
