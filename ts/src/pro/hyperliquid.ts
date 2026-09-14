@@ -247,7 +247,7 @@ export default class hyperliquid extends hyperliquidRest {
             },
         };
         const message = this.extend (request, params);
-        await this.waitForPendingUnsubscribe (url,messageHash);
+        await this.waitForPendingUnsubscribe (url, messageHash);
         const orderbook = await this.watch (url, messageHash, message, messageHash);
         return orderbook.limit ();
     }
@@ -362,7 +362,7 @@ export default class hyperliquid extends hyperliquidRest {
                 'coin': (market['swap'] === true) ? (market as Dict)['baseName'] : market['id'],
             },
         };
-        await this.waitForPendingUnsubscribe (url,messageHash);
+        await this.waitForPendingUnsubscribe (url, messageHash);
         return await this.watch (url, messageHash, this.extend (request, params), messageHash);
     }
 
@@ -433,7 +433,7 @@ export default class hyperliquid extends hyperliquidRest {
             request['subscription']['dex'] = defaultDex;
         }
         // unWatchTickers always registers the bare 'unsubscribe:tickers' hash, dex-scoped or not
-        await this.waitForPendingUnsubscribe (url,'tickers');
+        await this.waitForPendingUnsubscribe (url, 'tickers');
         const tickers = await this.watch (url, messageHash, this.extend (request, params), messageHash);
         if (this.newUpdates) {
             return this.filterByArrayTickers (tickers, 'symbol', symbols);
@@ -506,7 +506,7 @@ export default class hyperliquid extends hyperliquidRest {
         }
         const subscribeHash = 'subscribe:userFills::' + userAddress.toLowerCase ();
         // unWatchMyTrades registers 'unsubscribe:myTrades', not the per-user dedup hash
-        await this.waitForPendingUnsubscribe (url,'myTrades');
+        await this.waitForPendingUnsubscribe (url, 'myTrades');
         const trades = await this.watch (url, messageHash, message, subscribeHash);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
@@ -713,7 +713,7 @@ export default class hyperliquid extends hyperliquidRest {
             },
         };
         const message = this.extend (request, params);
-        await this.waitForPendingUnsubscribe (url,messageHash);
+        await this.waitForPendingUnsubscribe (url, messageHash);
         const trades = await this.watch (url, messageHash, message, messageHash);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
@@ -885,7 +885,7 @@ export default class hyperliquid extends hyperliquidRest {
         };
         const messageHash = 'candles:' + timeframe + ':' + symbol;
         const message = this.extend (request, params);
-        await this.waitForPendingUnsubscribe (url,messageHash);
+        await this.waitForPendingUnsubscribe (url, messageHash);
         const ohlcv = await this.watch (url, messageHash, message, messageHash);
         if (this.newUpdates) {
             limit = ohlcv.getLimit (symbol, limit);
@@ -1028,7 +1028,7 @@ export default class hyperliquid extends hyperliquidRest {
         // the swap topic 'clearinghouseState' is one server subscription shared
         // with watchPositions, so a pending unWatchPositions delays this watch
         // too - its ack tears the shared stream down and sweeps both futures
-        await this.waitForPendingUnsubscribe (url,topic);
+        await this.waitForPendingUnsubscribe (url, topic);
         return await this.watch (url, messageHash, message, topic);
     }
 
@@ -1261,7 +1261,7 @@ export default class hyperliquid extends hyperliquidRest {
         // the topic 'clearinghouseState' is one server subscription shared with
         // the swap watchBalance, so a pending unWatchBalance delays this watch
         // too - its ack tears the shared stream down and sweeps both futures
-        await this.waitForPendingUnsubscribe (url,topic);
+        await this.waitForPendingUnsubscribe (url, topic);
         const client = this.client (url);
         this.setPositionsCache (client, symbols);
         const cache = this.positions;
@@ -1392,7 +1392,7 @@ export default class hyperliquid extends hyperliquidRest {
         }
         const subscribeHash = 'subscribe:orderUpdates::' + userAddress.toLowerCase ();
         // unWatchOrders registers 'unsubscribe:order', not the per-user dedup hash
-        await this.waitForPendingUnsubscribe (url,'order');
+        await this.waitForPendingUnsubscribe (url, 'order');
         const orders = await this.watch (url, messageHash, message, subscribeHash);
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
