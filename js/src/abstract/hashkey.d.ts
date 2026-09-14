@@ -46,6 +46,7 @@ interface Exchange {
     privateGetApiV1AccountDepositAddress(params?: {}): Promise<Dict>;
     privateGetApiV1AccountDepositOrders(params?: {}): Promise<List>;
     privateGetApiV1AccountWithdrawOrders(params?: {}): Promise<List>;
+    privateGetApiV1AffiliateInviteeInfo(params?: {}): Promise<List>;
     privatePostApiV1UserDataStream(params?: {}): Promise<Dict>;
     privatePostApiV1SpotOrderTest(params?: {}): Promise<Dict>;
     privatePostApiV1SpotOrder(params?: {}): Promise<Dict>;
@@ -64,9 +65,11 @@ interface Exchange {
     privateDeleteApiV1SpotOrder(params?: {}): Promise<Dict>;
     privateDeleteApiV1SpotOpenOrders(params?: {}): Promise<List>;
     privateDeleteApiV1SpotCancelOrderByIds(params?: {}): Promise<Dict>;
+    privateDeleteApiV1SpotCancelAllOpenOrders(params?: {}): Promise<Dict>;
     privateDeleteApiV1FuturesOrder(params?: {}): Promise<Dict>;
     privateDeleteApiV1FuturesBatchOrders(params?: {}): Promise<Dict>;
     privateDeleteApiV1FuturesCancelOrderByIds(params?: {}): Promise<Dict>;
+    privateDeleteApiV1FuturesCancelAllOpenOrders(params?: {}): Promise<Dict>;
     privateDeleteApiV1UserDataStream(params?: {}): Promise<Dict>;
 }
 declare abstract class Exchange extends _Exchange {

@@ -253,13 +253,13 @@ class pacifica(ccxt.async_support.pacifica):
         #   "data": {
         #     "results": [
         #       {
-        #         "success": True,
+        #         "success": true,
         #         "order_id": 645953,
         #         "client_order_id": "57a5efb1-bb96-49a5-8bfd-f25d5f22bc7e",
         #         "symbol": "BTC"
         #       },
         #       {
-        #         "success": True,
+        #         "success": true,
         #         "order_id": 645954,
         #         "symbol": "ETH"
         #       }
@@ -282,7 +282,7 @@ class pacifica(ccxt.async_support.pacifica):
             orderId = self.safe_string(order, 'i')
             clientOrderId = self.safe_string(order, 'I')
             status = None
-            if (error is not None) or (not success):
+            if (error is not None) or (success is not True):
                 status = 'closed'
             else:
                 status = 'canceled'
@@ -464,7 +464,7 @@ class pacifica(ccxt.async_support.pacifica):
         #           "n": 4,
         #           "p": "157.47"
         #         },
-        #         # ... other aggegated bid levels
+        #         // ... other aggegated bid levels
         #       ],
         #       [
         #         {
@@ -477,12 +477,12 @@ class pacifica(ccxt.async_support.pacifica):
         #           "n": 3,
         #           "p": "157.5"
         #         },
-        #         # ... other aggregated ask levels
+        #         // ... other aggregated ask levels
         #       ]
         #     ],
         #     "s": "SOL",
         #     "t": 1749051881187,
-        #     "li": 1559885104  # sequence id - last order id
+        #     "li": 1559885104 // sequence id - last order id
         #   }
         # }
         #
@@ -498,7 +498,7 @@ class pacifica(ccxt.async_support.pacifica):
         timestamp = self.safe_integer(entry, 't')
         snapshot = self.parse_order_book(result, symbol, timestamp, 'bids', 'asks', 'p', 'a')
         nonce = self.safe_integer(entry, 'li')
-        if nonce:
+        if (nonce is not None) and (nonce != 0):
             snapshot['nonce'] = nonce
         if not (symbol in self.orderbooks):
             ob = self.order_book(snapshot)
@@ -644,7 +644,7 @@ class pacifica(ccxt.async_support.pacifica):
         message = self.extend(request, params)
         return await self.watch(url, messageHash, message, messageHash)
 
-    def handle_ws_tickers(self, client: Client, message: object):
+    def handle_ws_tickers(self, client: Client, message: object) -> bool:
         #
         # {
         #     "channel": "prices",
@@ -661,7 +661,7 @@ class pacifica(ccxt.async_support.pacifica):
         #             "volume_24h": "63265.87522",
         #             "yesterday_price": "955476"
         #         }
-        #         # ... other symbol prices
+        #         // ... other symbol prices
         #     ],
         # }
         #
@@ -688,19 +688,19 @@ class pacifica(ccxt.async_support.pacifica):
         #   "channel": "account_trades",
         #   "data": [
         #     {
-        #       "h": 80063441,  # history id
-        #       "i": 1559912767,  # oid
-        #       "I": null,  # cloid
-        #       "u": "BrZp5bidJ3WUvceSq7X78bhjTfZXeezzGvGEV4hAYKTa",  # account address
-        #       "s": "BTC",  # symbol
-        #       "p": "89477",  # price
-        #       "o": "89505",  # entry price
-        #       "a": "0.00036",  # amount
+        #       "h": 80063441, // history id
+        #       "i": 1559912767, // oid
+        #       "I": null, // cloid
+        #       "u": "BrZp5bidJ3WUvceSq7X78bhjTfZXeezzGvGEV4hAYKTa", // account address
+        #       "s": "BTC",  // symbol
+        #       "p": "89477", // price
+        #       "o": "89505", // entry price
+        #       "a": "0.00036", // amount
         #       "te": "fulfill_taker",
         #       "ts": "close_long",
-        #       "tc": "normal",  # trade type
-        #       "f": "0.012885",  # fee
-        #       "n": "-0.022965",  # pnl
+        #       "tc": "normal", // trade type
+        #       "f": "0.012885", // fee
+        #       "n": "-0.022965", // pnl
         #       "t": 1765018588190,
         #       "li": 1559912767
         #     }
@@ -833,19 +833,19 @@ class pacifica(ccxt.async_support.pacifica):
         # fetchMyTrades
         #
         #    {
-        #       "h": 80063441,  # history id
-        #       "i": 1559912767,  # oid
-        #       "I": null,  # cloid
-        #       "u": "BrZp5bidJ3WUvceSq7X78bhjTfZXeezzGvGEV4hAYKTa",  # account address
-        #       "s": "BTC",  # symbol
-        #       "p": "89477",  # price
-        #       "o": "89505",  # entry price
-        #       "a": "0.00036",  # amount
+        #       "h": 80063441, // history id
+        #       "i": 1559912767, // oid
+        #       "I": null, // cloid
+        #       "u": "BrZp5bidJ3WUvceSq7X78bhjTfZXeezzGvGEV4hAYKTa", // account address
+        #       "s": "BTC",  // symbol
+        #       "p": "89477", // price
+        #       "o": "89505", // entry price
+        #       "a": "0.00036", // amount
         #       "te": "fulfill_taker",
         #       "ts": "close_long",
-        #       "tc": "normal",  # trade type
-        #       "f": "0.012885",  # fee
-        #       "n": "-0.022965",  # pnl
+        #       "tc": "normal", // trade type
+        #       "f": "0.012885", // fee
+        #       "n": "-0.022965", // pnl
         #       "t": 1765018588190,
         #       "li": 1559912767
         #     }
@@ -915,7 +915,7 @@ class pacifica(ccxt.async_support.pacifica):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()
@@ -949,7 +949,7 @@ class pacifica(ccxt.async_support.pacifica):
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()
@@ -1100,7 +1100,7 @@ class pacifica(ccxt.async_support.pacifica):
         #       "ot": "limit",
         #       "sp": null,
         #       "si": null,
-        #       "r": False,
+        #       "r": false,
         #       "ct": 1765017049008,
         #       "ut": 1765017219639,
         #       "li": 1559696133
@@ -1262,7 +1262,7 @@ class pacifica(ccxt.async_support.pacifica):
         #     }
         # }
         #
-        if self.handle_error_message(client, message):
+        if self.handle_error_message(client, message) is True:
             return
         postType = self.safe_string(message, 'type')
         topic = self.safe_string(message, 'channel', '')

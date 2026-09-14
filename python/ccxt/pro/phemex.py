@@ -280,7 +280,7 @@ class phemex(ccxt.async_support.phemex):
             ticker = self.safe_value(message, 'spot_market24h')
             tickers.append(self.parse_ticker(ticker))
         elif 'data' in message:
-            data = self.safe_value(message, 'data', [])
+            data = self.safe_list(message, 'data', [])
             for i in range(0, len(data)):
                 tickers.append(self.parse_perpetual_ticker(data[i]))
         for i in range(0, len(tickers)):
@@ -391,9 +391,9 @@ class phemex(ccxt.async_support.phemex):
         #         "sequence": 1795484727,
         #         "symbol": "sBTCUSDT",
         #         "trades": [
-        #             [1592891002064516600, "Buy", 964020000000, 1431000],
-        #             [1592890978987934500, "Sell", 963704000000, 1401800],
-        #             [1592890972918701800, "Buy", 963938000000, 2018600],
+        #             [ 1592891002064516600, "Buy", 964020000000, 1431000 ],
+        #             [ 1592890978987934500, "Sell", 963704000000, 1401800 ],
+        #             [ 1592890972918701800, "Buy", 963938000000, 2018600 ],
         #         ],
         #         "type": "snapshot"
         #     }
@@ -432,9 +432,9 @@ class phemex(ccxt.async_support.phemex):
         #
         #     {
         #         "kline": [
-        #             [1592905200, 60, 960688000000, 960709000000, 960709000000, 960400000000, 960400000000, 848100, 8146756046],
-        #             [1592905140, 60, 960718000000, 960716000000, 960717000000, 960560000000, 960688000000, 4284900, 41163743512],
-        #             [1592905080, 60, 960513000000, 960684000000, 960718000000, 960684000000, 960718000000, 4880500, 46887494349],
+        #             [ 1592905200, 60, 960688000000, 960709000000, 960709000000, 960400000000, 960400000000, 848100, 8146756046 ],
+        #             [ 1592905140, 60, 960718000000, 960716000000, 960717000000, 960560000000, 960688000000, 4284900, 41163743512 ],
+        #             [ 1592905080, 60, 960513000000, 960684000000, 960718000000, 960684000000, 960718000000, 4880500, 46887494349 ],
         #         ],
         #         "sequence": 1804401474,
         #         "symbol": "sBTCUSDT",
@@ -500,7 +500,7 @@ class phemex(ccxt.async_support.phemex):
         isSwap = market['swap']
         settleIsUSDT = market['settle'] == 'USDT'
         name = 'spot_market24h'
-        if isSwap:
+        if isSwap is True:
             name = 'perp_market24h_pack_p' if settleIsUSDT else 'market24h'
         url = self.urls['api']['ws']
         requestId = self.request_id()
@@ -535,7 +535,7 @@ class phemex(ccxt.async_support.phemex):
         isSwap = market['swap']
         settleIsUSDT = market['settle'] == 'USDT'
         name = 'spot_market24h'
-        if isSwap:
+        if isSwap is True:
             name = 'perp_market24h_pack_p' if settleIsUSDT else 'market24h'
         url = self.urls['api']['ws']
         requestId = self.request_id()
@@ -578,7 +578,8 @@ class phemex(ccxt.async_support.phemex):
         requestId = self.request_id()
         isSwap = market['swap']
         settleIsUSDT = market['settle'] == 'USDT'
-        name = 'trade_p' if (isSwap and settleIsUSDT) else 'trade'
+        isUsdtSwap = (isSwap is True) and settleIsUSDT
+        name = 'trade_p' if isUsdtSwap else 'trade'
         messageHash = 'trade:' + symbol
         method = name + '.subscribe'
         subscribe = {
@@ -616,7 +617,8 @@ class phemex(ccxt.async_support.phemex):
         requestId = self.request_id()
         isSwap = market['swap']
         settleIsUSDT = market['settle'] == 'USDT'
-        name = 'orderbook_p' if (isSwap and settleIsUSDT) else 'orderbook'
+        isUsdtSwap = (isSwap is True) and settleIsUSDT
+        name = 'orderbook_p' if isUsdtSwap else 'orderbook'
         messageHash = 'orderbook:' + symbol
         method = name + '.subscribe'
         subscribe = {
@@ -643,7 +645,7 @@ class phemex(ccxt.async_support.phemex):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()
@@ -653,7 +655,8 @@ class phemex(ccxt.async_support.phemex):
         requestId = self.request_id()
         isSwap = market['swap']
         settleIsUSDT = market['settle'] == 'USDT'
-        name = 'kline_p' if (isSwap and settleIsUSDT) else 'kline'
+        isUsdtSwap = (isSwap is True) and settleIsUSDT
+        name = 'kline_p' if isUsdtSwap else 'kline'
         messageHash = 'kline:' + timeframe + ':' + symbol
         method = name + '.subscribe'
         subscribe = {
@@ -683,14 +686,14 @@ class phemex(ccxt.async_support.phemex):
         #     {
         #         "book": {
         #             "asks": [
-        #                 [960316000000, 6993800],
-        #                 [960318000000, 13183000],
-        #                 [960319000000, 9170200],
+        #                 [ 960316000000, 6993800 ],
+        #                 [ 960318000000, 13183000 ],
+        #                 [ 960319000000, 9170200 ],
         #             ],
         #             "bids": [
-        #                 [959941000000, 8385300],
-        #                 [959939000000, 10296600],
-        #                 [959930000000, 3672400],
+        #                 [ 959941000000, 8385300 ],
+        #                 [ 959939000000, 10296600 ],
+        #                 [ 959930000000, 3672400 ],
         #             ]
         #         },
         #         "depth": 30,
@@ -1104,7 +1107,7 @@ class phemex(ccxt.async_support.phemex):
             ordersLength = len(orders)
             if ordersLength == 0:
                 return
-            trades = self.safe_value(message, 'fills', [])
+            trades = self.safe_list(message, 'fills', [])
             for i in range(0, len(orders)):
                 rawOrder = orders[i]
                 parsedOrder = self.parse_order(rawOrder)
@@ -1141,7 +1144,7 @@ class phemex(ccxt.async_support.phemex):
         for i in range(0, len(keys)):
             currentMessageHash = 'orders' + ':' + keys[i]
             client.resolve(self.orders, currentMessageHash)
-        # resolve generic subscription(spot or swap)
+        # resolve generic subscription (spot or swap)
         messageHash = 'orders:' + type
         client.resolve(self.orders, messageHash)
 
@@ -1319,7 +1322,7 @@ class phemex(ccxt.async_support.phemex):
     def handle_message(self, client: Client, message: object):
         # private spot update
         # {
-        #     "orders": {closed: [], fills: [], open: []},
+        #     "orders": { closed: [ ], fills: [ ], open: [] },
         #     "sequence": 40435835,
         #     "timestamp": "1650443245600839241",
         #     "type": "snapshot",

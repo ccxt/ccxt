@@ -62,7 +62,7 @@ function testTicker (exchange: Exchange, skippedProperties: object, method: stri
         }
     }
     if ('skipNonActiveMarkets' in skippedProperties) {
-        if (market === undefined || !market['active']) {
+        if (market === undefined || (market['active'] !== true)) {
             return;
         }
     }
@@ -107,7 +107,7 @@ function testTicker (exchange: Exchange, skippedProperties: object, method: stri
         // far above baseVolume * high), so the spot-derived invariant does not hold there,
         // see https://github.com/ccxt/ccxt/pull/29563
         const isInverse = exchange.safeBool (market, 'inverse', false);
-        if ((baseVolume !== undefined) && (quoteVolume !== undefined) && (high !== undefined) && (low !== undefined) && !isInverse) {
+        if ((baseVolume !== undefined) && (quoteVolume !== undefined) && (high !== undefined) && (low !== undefined) && (isInverse !== true)) {
             let baseLow = Precise.stringMul (baseVolume, low);
             let baseHigh = Precise.stringMul (baseVolume, high);
             // to avoid abnormal long precision issues (like https://discord.com/channels/690203284119617602/1338828283902689280/1338846071278927912 )
@@ -141,6 +141,46 @@ function testTicker (exchange: Exchange, skippedProperties: object, method: stri
             assert (Precise.stringGe (quoteVolume, baseLow), 'quoteVolume should be => baseVolume * low' + logText);
             assert (Precise.stringLe (quoteVolume, baseHigh), 'quoteVolume should be <= baseVolume * high' + logText);
         }
+    }
+    //
+    // change & percentage
+    //
+    // the Manual defines both against open: change is `last - open`, and
+    // percentage is `(change/open) * 100`
+    const changeString = exchange.safeString (entry, 'change');
+    const percentageString = exchange.safeString (entry, 'percentage');
+    if ((changeString !== undefined) && (open !== undefined) && (close !== undefined) && !('compareChange' in skippedProperties)) {
+        // the window is the larger of two roundings: float residue on a change
+        // safeTicker derived, which needs a part per million of the price, and an
+        // exchange's own rounding, which its reported decimals reveal
+        const pricePart = Precise.stringDiv (Precise.stringAbs (close), '1000000');
+        const changeDecimals = exchange.precisionFromString (changeString);
+        // exponent notation ("1e4") makes `precisionFromString` return a negative
+        // count, which `parsePrecision` would turn into a step of 10000 - a string
+        // like that reveals no rounding at all, so fall back to the price part
+        // instead of letting it widen the window
+        let changeWindow = pricePart;
+        if (changeDecimals >= 0) {
+            let changeQuantum = exchange.parsePrecision (exchange.numberToString (changeDecimals));
+            // a change of "0" prints no decimals, so its apparent step is a whole unit
+            // and accepts anything on a micro-priced asset. a per cent of the price
+            // caps it, and covers whole units on a price in the tens of thousands
+            const quantumCap = Precise.stringDiv (Precise.stringAbs (close), '100');
+            changeQuantum = Precise.stringMin (changeQuantum, quantumCap);
+            changeWindow = Precise.stringMax (pricePart, changeQuantum);
+        }
+        const difference = Precise.stringAbs (Precise.stringSub (changeString, Precise.stringSub (close, open)));
+        assert (Precise.stringLe (difference, changeWindow), '`change` should be `last - open`' + logText);
+    }
+    if ((changeString !== undefined) && (percentageString !== undefined) && (open !== undefined) && !('comparePercentage' in skippedProperties)) {
+        const derived = Precise.stringMul (Precise.stringDiv (changeString, open), '100');
+        // exchanges round the percentage, so allow one part in fifty of the derived
+        // value plus a floor for moves near zero. a ratio where a percentage
+        // belongs is out by a hundred and clears that by three orders of magnitude
+        const relative = Precise.stringDiv (Precise.stringAbs (derived), '50');
+        const allowed = Precise.stringMax (relative, '0.01');
+        const gap = Precise.stringAbs (Precise.stringSub (percentageString, derived));
+        assert (Precise.stringLe (gap, allowed), '`percentage` should be `(change/open) * 100`' + logText);
     }
     // open and close should be between High & Low
     if (high !== undefined && low !== undefined && !('compareOHLC' in skippedProperties)) {
@@ -202,7 +242,7 @@ function testTicker (exchange: Exchange, skippedProperties: object, method: stri
         if (percentage !== undefined) {
         // - should be above -100 and (for non-options) below MAX
             assert (Precise.stringGe (percentage, '-100'), 'percentage should be above -100% ' + logText);
-            if (!isOptionMarket) {
+            if (isOptionMarket !== true) {
                 assert (Precise.stringLe (percentage, Precise.stringMul ('+100', maxIncrease)), 'percentage should be below ' + maxIncrease + '00% ' + logText);
             }
         }
@@ -213,7 +253,7 @@ function testTicker (exchange: Exchange, skippedProperties: object, method: stri
         if (change !== undefined) {
             // - should be above -price and (for non-options) below +price*maxIncrease
             assert (Precise.stringGe (change, Precise.stringNeg (approxValue)), 'change should be above -price ' + logText);
-            if (!isOptionMarket) {
+            if (isOptionMarket !== true) {
                 assert (Precise.stringLe (change, Precise.stringMul (approxValue, maxIncrease)), 'change should be below ' + maxIncrease + 'x price ' + logText);
             }
         }

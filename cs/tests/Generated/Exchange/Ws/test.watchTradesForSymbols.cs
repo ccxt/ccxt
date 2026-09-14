@@ -10,20 +10,20 @@ public partial class testMainClass : BaseTest
 {
     async static public Task<object> testWatchTradesForSymbols(Exchange exchange, object skippedProperties, object symbols)
     {
-        object method = "watchTradesForSymbols";
-        object now = exchange.milliseconds();
+        string method = "watchTradesForSymbols";
+        Int64 now = exchange.milliseconds();
         object ends = add(now, 15000);
-        object maxIdleTime = 5000;
-        object idle = false;
-        object returnedSymbols = new List<object>() {};
+        int maxIdleTime = 5000;
+        bool idle = false;
+        List<object> returnedSymbols = new List<object>() {};
         while (isTrue((isLessThan(now, ends))) && !isTrue(idle))
         {
             object response = null;
-            object success = true;
-            object startTime = exchange.milliseconds();
+            bool success = true;
+            Int64 startTime = exchange.milliseconds();
             try
             {
-                response = await exchange.watchTradesForSymbols(symbols);
+                response = detypeForComparison(await exchange.WatchTradesForSymbols(symbols));
             } catch(Exception e)
             {
                 if (!isTrue(testSharedMethods.isTemporaryFailure(e)))
@@ -37,7 +37,7 @@ public partial class testMainClass : BaseTest
             {
                 assert(((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))), add(add(add(add(add(add(exchange.id, " "), method), " "), exchange.json(symbols)), " must return an array. "), exchange.json(response)));
                 object symbol = null;
-                for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+                for (int i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
                 {
                     object trade = getValue(response, i);
                     symbol = getValue(trade, "symbol");

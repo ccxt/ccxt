@@ -124,6 +124,12 @@ abstract class cex extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function private_post_get_ticker($params = array()) {
+        return $this->request('get_ticker', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function private_post_get_candles($params = array()) {
         return $this->request('get_candles', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
@@ -288,6 +294,12 @@ abstract class cex extends \ccxt\Exchange {
      */
     public function privatePostGetOrderBook($params = array()) {
         return $this->request('get_order_book', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privatePostGetTicker($params = array()) {
+        return $this->request('get_ticker', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>

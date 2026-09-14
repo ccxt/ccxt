@@ -607,7 +607,7 @@ export default class woofipro extends woofiproRest {
         //
         const messageHash = 'authenticated';
         const success = this.safeValue (message, 'success');
-        if (success) {
+        if (success === true) {
             // client.resolve (message, messageHash);
             const future = this.safeValue (client.futures, 'authenticated');
             future.resolve (true);
@@ -692,7 +692,7 @@ export default class woofipro extends woofiproRest {
             await this.loadMarkets ();
         }
         const trigger = this.safeBool2 (params, 'stop', 'trigger', false);
-        const topic = (trigger) ? 'algoexecutionreport' : 'executionreport';
+        const topic = (trigger === true) ? 'algoexecutionreport' : 'executionreport';
         params = this.omit (params, [ 'stop', 'trigger' ]);
         let messageHash = topic;
         if (symbol !== undefined) {
@@ -730,7 +730,7 @@ export default class woofipro extends woofiproRest {
             await this.loadMarkets ();
         }
         const trigger = this.safeBool2 (params, 'stop', 'trigger', false);
-        const topic = (trigger) ? 'algoexecutionreport' : 'executionreport';
+        const topic = (trigger === true) ? 'algoexecutionreport' : 'executionreport';
         params = this.omit (params, 'stop');
         let messageHash = 'myTrades';
         if (symbol !== undefined) {
@@ -1036,7 +1036,7 @@ export default class woofipro extends woofiproRest {
         this.setPositionsCache (client, symbols);
         const fetchPositionsSnapshot = this.handleOption ('watchPositions', 'fetchPositionsSnapshot', true);
         const awaitPositionsSnapshot = this.handleOption ('watchPositions', 'awaitPositionsSnapshot', true);
-        if (fetchPositionsSnapshot && awaitPositionsSnapshot && this.positions === undefined) {
+        if ((fetchPositionsSnapshot === true) && (awaitPositionsSnapshot === true) && (this.positions === undefined)) {
             const snapshot = await client.future ('fetchPositionsSnapshot');
             return this.filterBySymbolsSinceLimit (snapshot, symbols, since, limit, true);
         }
@@ -1053,7 +1053,7 @@ export default class woofipro extends woofiproRest {
 
     setPositionsCache (client: Client, symbols: Strings = undefined) {
         const fetchPositionsSnapshot = this.handleOption ('watchPositions', 'fetchPositionsSnapshot', false);
-        if (fetchPositionsSnapshot) {
+        if (fetchPositionsSnapshot === true) {
             const messageHash = 'fetchPositionsSnapshot';
             if (!(messageHash in client.futures)) {
                 client.future (messageHash);
@@ -1295,7 +1295,7 @@ export default class woofipro extends woofiproRest {
             return false;
         }
         const success = this.safeBool (message, 'success');
-        if (success) {
+        if (success === true) {
             return false;
         }
         const errorMessage = this.safeString (message, 'errorMsg');
@@ -1320,7 +1320,7 @@ export default class woofipro extends woofiproRest {
     }
 
     override handleMessage (client: Client, message: any) {
-        if (this.handleErrorMessage (client, message)) {
+        if (this.handleErrorMessage (client, message) === true) {
             return;
         }
         const methods: Dict = {

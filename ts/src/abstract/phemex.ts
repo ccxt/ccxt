@@ -32,6 +32,7 @@ interface Exchange {
     v1GetApiDataPublicDataFundingRateHistory (params?: {}): Promise<Dict>;
     v2GetPublicProducts (params?: {}): Promise<Dict>;
     v2GetPublicProductsPlus (params?: {}): Promise<Dict>;
+    v2GetPublicIndexSources (params?: {}): Promise<Dict>;
     v2GetMdV2Orderbook (params?: {}): Promise<Dict>;
     v2GetMdV2Trade (params?: {}): Promise<Dict>;
     v2GetMdV2Ticker24hr (params?: {}): Promise<Dict>;
@@ -90,6 +91,14 @@ interface Exchange {
     privateGetAssetsSpotsSubAccountsTransfer (params?: {}): Promise<List>;
     privateGetAssetsFuturesSubAccountsTransfer (params?: {}): Promise<List>;
     privateGetAssetsQuote (params?: {}): Promise<Dict>;
+    privateGetPhemexLbPublicApiTraderPerformanceInfo (params?: {}): Promise<Dict>;
+    privateGetUtaApiRiskRiskMode (params?: {}): Promise<Dict>;
+    privateGetUtaApiRiskRiskUnits (params?: {}): Promise<Dict>;
+    privateGetUtaBizAssets (params?: {}): Promise<Dict>;
+    privateGetUtaFundsContractBorrow (params?: {}): Promise<Dict>;
+    privateGetUtaFundsContractPayback (params?: {}): Promise<Dict>;
+    privateGetUtaFundsContractBorrowInterests (params?: {}): Promise<Dict>;
+    privateGetUtaExchangerAssetsConvert (params?: {}): Promise<Dict>;
     privatePostSpotOrders (params?: {}): Promise<Dict>;
     privatePostOrders (params?: {}): Promise<Dict>;
     privatePostGOrders (params?: {}): Promise<Dict>;
@@ -107,6 +116,8 @@ interface Exchange {
     privatePostAssetsConvert (params?: {}): Promise<Dict>;
     privatePostPhemexWithdrawWalletsApiCreateWithdraw (params?: {}): Promise<Dict>;
     privatePostPhemexWithdrawWalletsApiCancelWithdraw (params?: {}): Promise<Dict>;
+    privatePostUtaAccountSwitchMode (params?: {}): Promise<Dict>;
+    privatePostUtaFundsContractPayback (params?: {}): Promise<Dict>;
     privatePutSpotOrdersCreate (params?: {}): Promise<Dict>;
     privatePutSpotOrders (params?: {}): Promise<Dict>;
     privatePutOrdersReplace (params?: {}): Promise<Dict>;

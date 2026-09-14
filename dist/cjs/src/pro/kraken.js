@@ -129,7 +129,7 @@ class kraken extends kraken$1["default"] {
         const isMarket = (type === 'market');
         let postOnly = undefined;
         [postOnly, params] = this.handlePostOnly(isMarket, false, params);
-        if (postOnly) {
+        if (postOnly === true) {
             request['params']['post_only'] = true;
         }
         const clientOrderId = this.safeString(params, 'clientOrderId');
@@ -168,7 +168,7 @@ class kraken extends kraken$1["default"] {
         const priceType = (isTrailingPercentOrder || isTrailingLimitPercentOrder) ? 'pct' : 'quote';
         if (method === 'createOrderWs') {
             const reduceOnly = this.safeBool(params, 'reduceOnly');
-            if (reduceOnly) {
+            if (reduceOnly === true) {
                 request['params']['reduce_only'] = true;
             }
             const timeInForce = this.safeStringLower(params, 'timeInForce');
@@ -924,7 +924,7 @@ class kraken extends kraken$1["default"] {
         const data = this.safeList(message, 'data', []);
         const first = this.safeDict(data, 0, {});
         const symbol = this.safeString(first, 'symbol');
-        const a = this.safeValue(first, 'asks', []);
+        const a = this.safeList(first, 'asks', []);
         const b = this.safeValue(first, 'bids', []);
         const c = this.safeInteger(first, 'checksum');
         const messageHash = this.getMessageHash('orderbook', undefined, symbol);
@@ -953,7 +953,7 @@ class kraken extends kraken$1["default"] {
             for (let i = 0; i < keys.length; i++) {
                 const key = keys[i];
                 const bookside = orderbook[key];
-                const deltas = this.safeValue(first, key, []);
+                const deltas = this.safeList(first, key, []);
                 const deltasLength = deltas.length;
                 if (deltasLength > 0) {
                     this.customHandleDeltas(bookside, deltas);
@@ -964,7 +964,7 @@ class kraken extends kraken$1["default"] {
         orderbook.limit();
         // checksum temporarily disabled because the exchange checksum was not reliable
         const checksum = this.handleOption('watchOrderBook', 'checksum', false);
-        if (checksum) {
+        if (checksum === true) {
             const payloadArray = [];
             if (c !== undefined) {
                 const checkAsks = orderbook['asks'];
@@ -1342,7 +1342,7 @@ class kraken extends kraken$1["default"] {
                 const length = stored.length;
                 if (length === limit && (previousOrder === undefined)) {
                     const first = stored[0];
-                    const symbolsByOrderId = this.safeValue(this.options, 'symbolsByOrderId', {});
+                    const symbolsByOrderId = this.safeDict(this.options, 'symbolsByOrderId', {});
                     if (first['id'] in symbolsByOrderId) {
                         delete symbolsByOrderId[first['id']];
                     }
@@ -1638,7 +1638,7 @@ class kraken extends kraken$1["default"] {
                 method.call(this, client, message);
             }
         }
-        if (this.handleErrorMessage(client, message)) {
+        if (this.handleErrorMessage(client, message) === true) {
             const event = this.safeString2(message, 'event', 'method');
             const methods = {
                 'heartbeat': this.handleHeartbeat,

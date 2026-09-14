@@ -89,6 +89,7 @@ class TradingFeeInterface(TypedDict):
     taker: Num
     percentage: Bool
     tierBased: Bool
+    tiers: dict[str, Any]
 
 
 class DepositWithdrawFeeNetwork(TypedDict):
@@ -371,6 +372,9 @@ class Greeks(TypedDict):
     info: dict[str, Any]
 
 
+AllGreeks = dict[str, Greeks]
+
+
 class Conversion(TypedDict):
     info: dict[str, Any]
     timestamp: Int
@@ -426,6 +430,8 @@ class Precision(TypedDict):
     amount: Num
     price: Num
     cost: Num
+    base: Num
+    quote: Num
 
 
 class MarketInterface(TypedDict):
@@ -446,6 +452,7 @@ class MarketInterface(TypedDict):
     swap: Bool
     future: Bool
     option: Bool
+    index: Bool
     stock: Bool
     prediction: Bool
     contract: Bool
@@ -636,6 +643,9 @@ class DepositAddress(TypedDict):
     network: Str
     address: Str
     tag: Str
+
+
+DepositAddresses = dict[str, DepositAddress]
 
 
 class LongShortRatio(TypedDict):

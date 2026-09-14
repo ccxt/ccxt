@@ -224,22 +224,22 @@ class bitget(Exchange, ImplicitAPI):
                     },
                     'spot': {
                         'get': {
-                            'spot/v1/notice/queryAllNotices': {'cost': 1},  # 20 times/1s(IP) => 20/20 = 1
+                            'spot/v1/notice/queryAllNotices': {'cost': 1},  # 20 times/1s (IP) => 20/20 = 1
                             'spot/v1/public/time': {'cost': 1},
-                            'spot/v1/public/currencies': {'cost': 6.6667},  # 3 times/1s(IP) => 20/3 = 6.6667
+                            'spot/v1/public/currencies': {'cost': 6.6667},  # 3 times/1s (IP) => 20/3 = 6.6667
                             'spot/v1/public/products': {'cost': 1},
                             'spot/v1/public/product': {'cost': 1},
                             'spot/v1/market/ticker': {'cost': 1},
                             'spot/v1/market/tickers': {'cost': 1},
-                            'spot/v1/market/fills': {'cost': 2},  # 10 times/1s(IP) => 20/10 = 2
+                            'spot/v1/market/fills': {'cost': 2},  # 10 times/1s (IP) => 20/10 = 2
                             'spot/v1/market/fills-history': {'cost': 2},
                             'spot/v1/market/candles': {'cost': 1},
                             'spot/v1/market/depth': {'cost': 1},
                             'spot/v1/market/spot-vip-level': {'cost': 2},
                             'spot/v1/market/merge-depth': {'cost': 1},
                             'spot/v1/market/history-candles': {'cost': 1},
-                            'spot/v1/public/loan/coinInfos': {'cost': 2},  # 10 times/1s(IP) => 20/10 = 2
-                            'spot/v1/public/loan/hour-interest': {'cost': 2},  # 10 times/1s(IP) => 20/10 = 2
+                            'spot/v1/public/loan/coinInfos': {'cost': 2},  # 10 times/1s (IP) => 20/10 = 2
+                            'spot/v1/public/loan/hour-interest': {'cost': 2},  # 10 times/1s (IP) => 20/10 = 2
                             'v2/spot/public/coins': {'cost': 6.6667},
                             'v2/spot/public/symbols': {'cost': 1},
                             'v2/spot/market/vip-fee-rate': {'cost': 2},
@@ -301,11 +301,11 @@ class bitget(Exchange, ImplicitAPI):
                     },
                     'margin': {
                         'get': {
-                            'margin/v1/cross/public/interestRateAndLimit': {'cost': 2},  # 10 times/1s(IP) => 20/10 = 2
-                            'margin/v1/isolated/public/interestRateAndLimit': {'cost': 2},  # 10 times/1s(IP) => 20/10 = 2
-                            'margin/v1/cross/public/tierData': {'cost': 2},  # 10 times/1s(IP) => 20/10 = 2
-                            'margin/v1/isolated/public/tierData': {'cost': 2},  # 10 times/1s(IP) => 20/10 = 2
-                            'margin/v1/public/currencies': {'cost': 1},  # 20 times/1s(IP) => 20/20 = 1
+                            'margin/v1/cross/public/interestRateAndLimit': {'cost': 2},  # 10 times/1s (IP) => 20/10 = 2
+                            'margin/v1/isolated/public/interestRateAndLimit': {'cost': 2},  # 10 times/1s (IP) => 20/10 = 2
+                            'margin/v1/cross/public/tierData': {'cost': 2},  # 10 times/1s (IP) => 20/10 = 2
+                            'margin/v1/isolated/public/tierData': {'cost': 2},  # 10 times/1s (IP) => 20/10 = 2
+                            'margin/v1/public/currencies': {'cost': 1},  # 20 times/1s (IP) => 20/20 = 1
                             'v2/margin/currencies': {'cost': 2},
                             'v2/margin/market/long-short-ratio': {'cost': 20},
                         },
@@ -334,6 +334,38 @@ class bitget(Exchange, ImplicitAPI):
                             'v3/market/position-tier': {'cost': 1},
                             'v3/market/oi-limit': {'cost': 2},
                             'v3/market/index-components': {'cost': 2},
+                            'v3/market/risk-reserve-all': {'cost': 6.6667},  # 3 times/1s (IP) => 20/3 = 6.6667
+                            'v3/market/risk-reserve-hour': {'cost': 1},
+                            'v3/market/score-weights': {'cost': 4},
+                            'v3/market/fee-group': {'cost': 4},
+                            'v3/market/cash-dividend-records': {'cost': 2},
+                            'v3/market/split-records': {'cost': 4},
+                            'v3/market/liquidations': {'cost': 4},
+                            'v3/market/rpi-orderbook': {'cost': 2},
+                            'v3/market/rpi-symbols': {'cost': 2},
+                            'v3/market/spot-whale-flow': {'cost': 20},
+                            'v3/market/spot-fund-flow': {'cost': 20},
+                            'v3/market/spot-net-flow': {'cost': 20},
+                            'v3/market/margin-long-short': {'cost': 20},
+                            'v3/market/margin-loan-growth': {'cost': 20},
+                            'v3/market/margin-isolated-borrow': {'cost': 20},
+                            'v3/market/futures-active-buy-sell': {'cost': 20},
+                            'v3/market/futures-long-short': {'cost': 20},
+                            'v3/market/futures-position-long-short': {'cost': 20},
+                            'v3/market/futures-account-long-short': {'cost': 20},
+                            'v3/reality/market/stock-info': {'cost': 20},
+                            'v3/reality/market/states': {'cost': 20},
+                            'v3/reality/market/calendar': {'cost': 20},
+                            'v3/reality/market/company-overview': {'cost': 20},
+                            'v3/reality/market/valuation-indicators': {'cost': 20},
+                            'v3/reality/market/earnings-forecast': {'cost': 20},
+                            'v3/reality/market/suspension-resumption-info': {'cost': 20},
+                            'v3/reality/market/dividends': {'cost': 20},
+                            'v3/reality/market/share-capital-change': {'cost': 20},
+                            'v3/reality/market/inner-trades': {'cost': 20},
+                            'v3/reality/market/executive-shareholdings': {'cost': 20},
+                            'v3/reality/market/sharehold-detail': {'cost': 20},
+                            'v3/account/custom-collateral-coins': {'cost': 2},
                         },
                     },
                 },
@@ -345,15 +377,15 @@ class bitget(Exchange, ImplicitAPI):
                             'spot/v1/wallet/deposit-list': {'cost': 1},
                             'spot/v1/account/getInfo': {'cost': 20},
                             'spot/v1/account/assets': {'cost': 2},
-                            'spot/v1/account/assets-lite': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
-                            'spot/v1/account/transferRecords': {'cost': 1},  # 20 times/1s(UID) => 20/20 = 1
+                            'spot/v1/account/assets-lite': {'cost': 2},  # 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/account/transferRecords': {'cost': 1},  # 20 times/1s (UID) => 20/20 = 1
                             'spot/v1/convert/currencies': {'cost': 2},
                             'spot/v1/convert/convert-record': {'cost': 2},
-                            'spot/v1/loan/ongoing-orders': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
-                            'spot/v1/loan/repay-history': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
-                            'spot/v1/loan/revise-history': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
-                            'spot/v1/loan/borrow-history': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
-                            'spot/v1/loan/debts': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
+                            'spot/v1/loan/ongoing-orders': {'cost': 2},  # 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/loan/repay-history': {'cost': 2},  # 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/loan/revise-history': {'cost': 2},  # 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/loan/borrow-history': {'cost': 2},  # 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/loan/debts': {'cost': 2},  # 10 times/1s (UID) => 20/10 = 2
                             'v2/spot/trade/orderInfo': {'cost': 1},
                             'v2/spot/trade/unfilled-orders': {'cost': 1},
                             'v2/spot/trade/history-orders': {'cost': 1},
@@ -399,33 +431,33 @@ class bitget(Exchange, ImplicitAPI):
                             'spot/v1/plan/cancelPlan': {'cost': 1},
                             'spot/v1/plan/currentPlan': {'cost': 1},
                             'spot/v1/plan/historyPlan': {'cost': 1},
-                            'spot/v1/plan/batchCancelPlan': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
+                            'spot/v1/plan/batchCancelPlan': {'cost': 2},  # 10 times/1s (UID) => 20/10 = 2
                             'spot/v1/convert/quoted-price': {'cost': 4},
                             'spot/v1/convert/trade': {'cost': 4},
-                            'spot/v1/loan/borrow': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
-                            'spot/v1/loan/repay': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
-                            'spot/v1/loan/revise-pledge': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
-                            'spot/v1/trace/order/orderCurrentList': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
-                            'spot/v1/trace/order/orderHistoryList': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
-                            'spot/v1/trace/order/closeTrackingOrder': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
-                            'spot/v1/trace/order/updateTpsl': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
-                            'spot/v1/trace/order/followerEndOrder': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
-                            'spot/v1/trace/order/spotInfoList': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
-                            'spot/v1/trace/config/getTraderSettings': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
-                            'spot/v1/trace/config/getFollowerSettings': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
-                            'spot/v1/trace/user/myTraders': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
-                            'spot/v1/trace/config/setFollowerConfig': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
-                            'spot/v1/trace/user/myFollowers': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
-                            'spot/v1/trace/config/setProductCode': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
-                            'spot/v1/trace/user/removeTrader': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
+                            'spot/v1/loan/borrow': {'cost': 2},  # 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/loan/repay': {'cost': 2},  # 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/loan/revise-pledge': {'cost': 2},  # 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/trace/order/orderCurrentList': {'cost': 2},  # 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/trace/order/orderHistoryList': {'cost': 2},  # 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/trace/order/closeTrackingOrder': {'cost': 2},  # 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/trace/order/updateTpsl': {'cost': 2},  # 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/trace/order/followerEndOrder': {'cost': 2},  # 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/trace/order/spotInfoList': {'cost': 2},  # 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/trace/config/getTraderSettings': {'cost': 2},  # 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/trace/config/getFollowerSettings': {'cost': 2},  # 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/trace/user/myTraders': {'cost': 2},  # 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/trace/config/setFollowerConfig': {'cost': 2},  # 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/trace/user/myFollowers': {'cost': 2},  # 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/trace/config/setProductCode': {'cost': 2},  # 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/trace/user/removeTrader': {'cost': 2},  # 10 times/1s (UID) => 20/10 = 2
                             'spot/v1/trace/getRemovableFollower': {'cost': 2},
                             'spot/v1/trace/user/removeFollower': {'cost': 2},
-                            'spot/v1/trace/profit/totalProfitInfo': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
-                            'spot/v1/trace/profit/totalProfitList': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
-                            'spot/v1/trace/profit/profitHisList': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
-                            'spot/v1/trace/profit/profitHisDetailList': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
-                            'spot/v1/trace/profit/waitProfitDetailList': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
-                            'spot/v1/trace/user/getTraderInfo': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
+                            'spot/v1/trace/profit/totalProfitInfo': {'cost': 2},  # 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/trace/profit/totalProfitList': {'cost': 2},  # 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/trace/profit/profitHisList': {'cost': 2},  # 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/trace/profit/profitHisDetailList': {'cost': 2},  # 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/trace/profit/waitProfitDetailList': {'cost': 2},  # 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/trace/user/getTraderInfo': {'cost': 2},  # 10 times/1s (UID) => 20/10 = 2
                             'v2/spot/trade/place-order': {'cost': 2},
                             'v2/spot/trade/cancel-order': {'cost': 2},
                             'v2/spot/trade/batch-orders': {'cost': 20},
@@ -450,32 +482,32 @@ class bitget(Exchange, ImplicitAPI):
                             'mix/v1/account/accounts': {'cost': 2},
                             'mix/v1/position/singlePosition': {'cost': 2},
                             'mix/v1/position/singlePosition-v2': {'cost': 2},
-                            'mix/v1/position/allPosition': {'cost': 4},  # 5 times/1s(UID) => 20/5 = 4
-                            'mix/v1/position/allPosition-v2': {'cost': 4},  # 5 times/1s(UID) => 20/5 = 4
+                            'mix/v1/position/allPosition': {'cost': 4},  # 5 times/1s (UID) => 20/5 = 4
+                            'mix/v1/position/allPosition-v2': {'cost': 4},  # 5 times/1s (UID) => 20/5 = 4
                             'mix/v1/position/history-position': {'cost': 1},
                             'mix/v1/account/accountBill': {'cost': 2},
                             'mix/v1/account/accountBusinessBill': {'cost': 4},
-                            'mix/v1/order/current': {'cost': 1},  # 20 times/1s(UID) => 20/20 = 1
-                            'mix/v1/order/marginCoinCurrent': {'cost': 1},  # 20 times/1s(UID) => 20/20 = 1
+                            'mix/v1/order/current': {'cost': 1},  # 20 times/1s (UID) => 20/20 = 1
+                            'mix/v1/order/marginCoinCurrent': {'cost': 1},  # 20 times/1s (UID) => 20/20 = 1
                             'mix/v1/order/history': {'cost': 2},
-                            'mix/v1/order/historyProductType': {'cost': 4},  # 5 times/1s(UID) => 20/5 = 4
+                            'mix/v1/order/historyProductType': {'cost': 4},  # 5 times/1s (UID) => 20/5 = 4
                             'mix/v1/order/detail': {'cost': 2},
                             'mix/v1/order/fills': {'cost': 2},
                             'mix/v1/order/allFills': {'cost': 2},
-                            'mix/v1/plan/currentPlan': {'cost': 1},  # 20 times/1s(UID) => 20/20 = 1
+                            'mix/v1/plan/currentPlan': {'cost': 1},  # 20 times/1s (UID) => 20/20 = 1
                             'mix/v1/plan/historyPlan': {'cost': 2},
                             'mix/v1/trace/currentTrack': {'cost': 2},
                             'mix/v1/trace/followerOrder': {'cost': 2},
                             'mix/v1/trace/followerHistoryOrders': {'cost': 2},
                             'mix/v1/trace/historyTrack': {'cost': 2},
-                            'mix/v1/trace/summary': {'cost': 1},  # 20 times/1s(UID) => 20/20 = 1
-                            'mix/v1/trace/profitSettleTokenIdGroup': {'cost': 1},  # 20 times/1s(UID) => 20/20 = 1
-                            'mix/v1/trace/profitDateGroupList': {'cost': 1},  # 20 times/1s(UID) => 20/20 = 1
+                            'mix/v1/trace/summary': {'cost': 1},  # 20 times/1s (UID) => 20/20 = 1
+                            'mix/v1/trace/profitSettleTokenIdGroup': {'cost': 1},  # 20 times/1s (UID) => 20/20 = 1
+                            'mix/v1/trace/profitDateGroupList': {'cost': 1},  # 20 times/1s (UID) => 20/20 = 1
                             'mix/v1/trade/profitDateList': {'cost': 2},
-                            'mix/v1/trace/waitProfitDateList': {'cost': 1},  # 20 times/1s(UID) => 20/20 = 1
-                            'mix/v1/trace/traderSymbols': {'cost': 1},  # 20 times/1s(UID) => 20/20 = 1
+                            'mix/v1/trace/waitProfitDateList': {'cost': 1},  # 20 times/1s (UID) => 20/20 = 1
+                            'mix/v1/trace/traderSymbols': {'cost': 1},  # 20 times/1s (UID) => 20/20 = 1
                             'mix/v1/trace/traderList': {'cost': 2},
-                            'mix/v1/trace/traderDetail': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
+                            'mix/v1/trace/traderDetail': {'cost': 2},  # 10 times/1s (UID) => 20/10 = 2
                             'mix/v1/trace/queryTraceConfig': {'cost': 2},
                             'v2/mix/account/account': {'cost': 2},
                             'v2/mix/account/accounts': {'cost': 2},
@@ -505,17 +537,17 @@ class bitget(Exchange, ImplicitAPI):
                             'v2/mix/market/position-long-short': {'cost': 20},
                         },
                         'post': {
-                            'mix/v1/account/sub-account-contract-assets': {'cost': 200},  # 0.1 times/1s(UID) => 20/0.1 = 200
+                            'mix/v1/account/sub-account-contract-assets': {'cost': 200},  # 0.1 times/1s (UID) => 20/0.1 = 200
                             'mix/v1/account/open-count': {'cost': 1},
-                            'mix/v1/account/setLeverage': {'cost': 4},  # 5 times/1s(UID) => 20/5 = 4
-                            'mix/v1/account/setMargin': {'cost': 4},  # 5 times/1s(UID) => 20/5 = 4
-                            'mix/v1/account/setMarginMode': {'cost': 4},  # 5 times/1s(UID) => 20/5 = 4
-                            'mix/v1/account/setPositionMode': {'cost': 4},  # 5 times/1s(UID) => 20/5 = 4
+                            'mix/v1/account/setLeverage': {'cost': 4},  # 5 times/1s (UID) => 20/5 = 4
+                            'mix/v1/account/setMargin': {'cost': 4},  # 5 times/1s (UID) => 20/5 = 4
+                            'mix/v1/account/setMarginMode': {'cost': 4},  # 5 times/1s (UID) => 20/5 = 4
+                            'mix/v1/account/setPositionMode': {'cost': 4},  # 5 times/1s (UID) => 20/5 = 4
                             'mix/v1/order/placeOrder': {'cost': 2},
                             'mix/v1/order/batch-orders': {'cost': 2},
                             'mix/v1/order/cancel-order': {'cost': 2},
                             'mix/v1/order/cancel-batch-orders': {'cost': 2},
-                            'mix/v1/order/modifyOrder': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
+                            'mix/v1/order/modifyOrder': {'cost': 2},  # 10 times/1s (UID) => 20/10 = 2
                             'mix/v1/order/cancel-symbol-orders': {'cost': 2},
                             'mix/v1/order/cancel-all-orders': {'cost': 2},
                             'mix/v1/order/close-all-positions': {'cost': 20},
@@ -530,23 +562,23 @@ class bitget(Exchange, ImplicitAPI):
                             'mix/v1/plan/cancelSymbolPlan': {'cost': 2},
                             'mix/v1/plan/cancelAllPlan': {'cost': 2},
                             'mix/v1/trace/closeTrackOrder': {'cost': 2},
-                            'mix/v1/trace/modifyTPSL': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
+                            'mix/v1/trace/modifyTPSL': {'cost': 2},  # 10 times/1s (UID) => 20/10 = 2
                             'mix/v1/trace/closeTrackOrderBySymbol': {'cost': 2},
                             'mix/v1/trace/setUpCopySymbols': {'cost': 2},
                             'mix/v1/trace/followerSetBatchTraceConfig': {'cost': 2},
                             'mix/v1/trace/followerCloseByTrackingNo': {'cost': 2},
                             'mix/v1/trace/followerCloseByAll': {'cost': 2},
                             'mix/v1/trace/followerSetTpsl': {'cost': 2},
-                            'mix/v1/trace/cancelCopyTrader': {'cost': 4},  # 5 times/1s(UID) => 20/5 = 4
-                            'mix/v1/trace/traderUpdateConfig': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
-                            'mix/v1/trace/myTraderList': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
-                            'mix/v1/trace/myFollowerList': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
-                            'mix/v1/trace/removeFollower': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
-                            'mix/v1/trace/public/getFollowerConfig': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
-                            'mix/v1/trace/report/order/historyList': {'cost': 2},  # 10 times/1s(IP) => 20/10 = 2
-                            'mix/v1/trace/report/order/currentList': {'cost': 2},  # 10 times/1s(IP) => 20/10 = 2
-                            'mix/v1/trace/queryTraderTpslRatioConfig': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
-                            'mix/v1/trace/traderUpdateTpslRatioConfig': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
+                            'mix/v1/trace/cancelCopyTrader': {'cost': 4},  # 5 times/1s (UID) => 20/5 = 4
+                            'mix/v1/trace/traderUpdateConfig': {'cost': 2},  # 10 times/1s (UID) => 20/10 = 2
+                            'mix/v1/trace/myTraderList': {'cost': 2},  # 10 times/1s (UID) => 20/10 = 2
+                            'mix/v1/trace/myFollowerList': {'cost': 2},  # 10 times/1s (UID) => 20/10 = 2
+                            'mix/v1/trace/removeFollower': {'cost': 2},  # 10 times/1s (UID) => 20/10 = 2
+                            'mix/v1/trace/public/getFollowerConfig': {'cost': 2},  # 10 times/1s (UID) => 20/10 = 2
+                            'mix/v1/trace/report/order/historyList': {'cost': 2},  # 10 times/1s (IP) => 20/10 = 2
+                            'mix/v1/trace/report/order/currentList': {'cost': 2},  # 10 times/1s (IP) => 20/10 = 2
+                            'mix/v1/trace/queryTraderTpslRatioConfig': {'cost': 2},  # 10 times/1s (UID) => 20/10 = 2
+                            'mix/v1/trace/traderUpdateTpslRatioConfig': {'cost': 2},  # 10 times/1s (UID) => 20/10 = 2
                             'v2/mix/account/set-auto-margin': {'cost': 4},
                             'v2/mix/account/set-leverage': {'cost': 4},
                             'v2/mix/account/set-all-leverage': {'cost': 4},
@@ -586,7 +618,7 @@ class bitget(Exchange, ImplicitAPI):
                         'post': {
                             'user/v1/sub/virtual-create': {'cost': 4},
                             'user/v1/sub/virtual-modify': {'cost': 4},
-                            'user/v1/sub/virtual-api-batch-create': {'cost': 20},  # 1 times/1s(UID) => 20/1 = 20
+                            'user/v1/sub/virtual-api-batch-create': {'cost': 20},  # 1 times/1s (UID) => 20/1 = 20
                             'user/v1/sub/virtual-api-create': {'cost': 4},
                             'user/v1/sub/virtual-api-modify': {'cost': 4},
                             'v2/user/create-virtual-subaccount': {'cost': 4},
@@ -594,14 +626,15 @@ class bitget(Exchange, ImplicitAPI):
                             'v2/user/batch-create-subaccount-and-apikey': {'cost': 20},
                             'v2/user/create-virtual-subaccount-apikey': {'cost': 4},
                             'v2/user/modify-virtual-subaccount-apikey': {'cost': 4},
+                            'v2/user/create-agent-subaccount': {'cost': 20},
                         },
                     },
                     'p2p': {
                         'get': {
-                            'p2p/v1/merchant/merchantList': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
-                            'p2p/v1/merchant/merchantInfo': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
-                            'p2p/v1/merchant/advList': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
-                            'p2p/v1/merchant/orderList': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
+                            'p2p/v1/merchant/merchantList': {'cost': 2},  # 10 times/1s (UID) => 20/10 = 2
+                            'p2p/v1/merchant/merchantInfo': {'cost': 2},  # 10 times/1s (UID) => 20/10 = 2
+                            'p2p/v1/merchant/advList': {'cost': 2},  # 10 times/1s (UID) => 20/10 = 2
+                            'p2p/v1/merchant/orderList': {'cost': 2},  # 10 times/1s (UID) => 20/10 = 2
                             'v2/p2p/merchantList': {'cost': 2},
                             'v2/p2p/merchantInfo': {'cost': 2},
                             'v2/p2p/orderList': {'cost': 2},
@@ -610,31 +643,38 @@ class bitget(Exchange, ImplicitAPI):
                     },
                     'broker': {
                         'get': {
-                            'broker/v1/account/info': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
-                            'broker/v1/account/sub-list': {'cost': 20},  # 1 times/1s(UID) => 20/1 = 20
-                            'broker/v1/account/sub-email': {'cost': 20},  # 1 times/1s(UID) => 20/1 = 20
-                            'broker/v1/account/sub-spot-assets': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
-                            'broker/v1/account/sub-future-assets': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
+                            'broker/v1/account/info': {'cost': 2},  # 10 times/1s (UID) => 20/10 = 2
+                            'broker/v1/account/sub-list': {'cost': 20},  # 1 times/1s (UID) => 20/1 = 20
+                            'broker/v1/account/sub-email': {'cost': 20},  # 1 times/1s (UID) => 20/1 = 20
+                            'broker/v1/account/sub-spot-assets': {'cost': 2},  # 10 times/1s (UID) => 20/10 = 2
+                            'broker/v1/account/sub-future-assets': {'cost': 2},  # 10 times/1s (UID) => 20/10 = 2
                             'broker/v1/account/subaccount-transfer': {'cost': 1},  # unknown
                             'broker/v1/account/subaccount-deposit': {'cost': 1},  # unknown
                             'broker/v1/account/subaccount-withdrawal': {'cost': 1},  # unknown
-                            'broker/v1/account/sub-api-list': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
+                            'broker/v1/account/sub-api-list': {'cost': 2},  # 10 times/1s (UID) => 20/10 = 2
                             'v2/broker/account/info': {'cost': 2},
                             'v2/broker/account/subaccount-list': {'cost': 20},
                             'v2/broker/account/subaccount-email': {'cost': 2},
                             'v2/broker/account/subaccount-spot-assets': {'cost': 2},
                             'v2/broker/account/subaccount-future-assets': {'cost': 2},
                             'v2/broker/manage/subaccount-apikey-list': {'cost': 2},
+                            'v2/broker/sub-customer-list': {'cost': 2},
+                            'v2/broker/agent-commission': {'cost': 2},
+                            'v2/broker/customer-commissions': {'cost': 2},
+                            'v2/broker/customer-kyc-result': {'cost': 2},
+                            'v2/broker/order-commission': {'cost': 1},
+                            'v2/broker/rebate-info': {'cost': 1},
+                            'v2/broker/total-commission': {'cost': 1},
                         },
                         'post': {
-                            'broker/v1/account/sub-create': {'cost': 20},  # 1 times/1s(UID) => 20/1 = 20
-                            'broker/v1/account/sub-modify': {'cost': 20},  # 1 times/1s(UID) => 20/1 = 20
-                            'broker/v1/account/sub-modify-email': {'cost': 20},  # 1 times/1s(UID) => 20/1 = 20
-                            'broker/v1/account/sub-address': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
-                            'broker/v1/account/sub-withdrawal': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
-                            'broker/v1/account/sub-auto-transfer': {'cost': 4},  # 5 times/1s(UID) => 20/5 = 4
-                            'broker/v1/account/sub-api-create': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
-                            'broker/v1/account/sub-api-modify': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
+                            'broker/v1/account/sub-create': {'cost': 20},  # 1 times/1s (UID) => 20/1 = 20
+                            'broker/v1/account/sub-modify': {'cost': 20},  # 1 times/1s (UID) => 20/1 = 20
+                            'broker/v1/account/sub-modify-email': {'cost': 20},  # 1 times/1s (UID) => 20/1 = 20
+                            'broker/v1/account/sub-address': {'cost': 2},  # 10 times/1s (UID) => 20/10 = 2
+                            'broker/v1/account/sub-withdrawal': {'cost': 2},  # 10 times/1s (UID) => 20/10 = 2
+                            'broker/v1/account/sub-auto-transfer': {'cost': 4},  # 5 times/1s (UID) => 20/5 = 4
+                            'broker/v1/account/sub-api-create': {'cost': 2},  # 10 times/1s (UID) => 20/10 = 2
+                            'broker/v1/account/sub-api-modify': {'cost': 2},  # 10 times/1s (UID) => 20/10 = 2
                             'v2/broker/account/modify-subaccount-email': {'cost': 2},
                             'v2/broker/account/create-subaccount': {'cost': 20},
                             'v2/broker/account/modify-subaccount': {'cost': 20},
@@ -643,31 +683,35 @@ class bitget(Exchange, ImplicitAPI):
                             'v2/broker/account/set-subaccount-autotransfer': {'cost': 2},
                             'v2/broker/manage/create-subaccount-apikey': {'cost': 2},
                             'v2/broker/manage/modify-subaccount-apikey': {'cost': 2},
+                            'v2/broker/customer-asset': {'cost': 2},
+                            'v2/broker/customer-deposit': {'cost': 2},
+                            'v2/broker/customer-list': {'cost': 2},
+                            'v2/broker/customer-trade-volume': {'cost': 2},
                         },
                     },
                     'margin': {
                         'get': {
-                            'margin/v1/cross/account/riskRate': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
-                            'margin/v1/cross/account/maxTransferOutAmount': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
-                            'margin/v1/isolated/account/maxTransferOutAmount': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
-                            'margin/v1/isolated/order/openOrders': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
-                            'margin/v1/isolated/order/history': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
-                            'margin/v1/isolated/order/fills': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
-                            'margin/v1/isolated/loan/list': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
-                            'margin/v1/isolated/repay/list': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
-                            'margin/v1/isolated/interest/list': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
-                            'margin/v1/isolated/liquidation/list': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
-                            'margin/v1/isolated/fin/list': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
-                            'margin/v1/cross/order/openOrders': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
-                            'margin/v1/cross/order/history': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
-                            'margin/v1/cross/order/fills': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
-                            'margin/v1/cross/loan/list': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
-                            'margin/v1/cross/repay/list': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
-                            'margin/v1/cross/interest/list': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
-                            'margin/v1/cross/liquidation/list': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
-                            'margin/v1/cross/fin/list': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
-                            'margin/v1/cross/account/assets': {'cost': 2},  # 10 times/1s(IP) => 20/10 = 2
-                            'margin/v1/isolated/account/assets': {'cost': 2},  # 10 times/1s(IP) => 20/10 = 2
+                            'margin/v1/cross/account/riskRate': {'cost': 2},  # 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/cross/account/maxTransferOutAmount': {'cost': 2},  # 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/isolated/account/maxTransferOutAmount': {'cost': 2},  # 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/isolated/order/openOrders': {'cost': 2},  # 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/isolated/order/history': {'cost': 2},  # 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/isolated/order/fills': {'cost': 2},  # 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/isolated/loan/list': {'cost': 2},  # 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/isolated/repay/list': {'cost': 2},  # 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/isolated/interest/list': {'cost': 2},  # 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/isolated/liquidation/list': {'cost': 2},  # 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/isolated/fin/list': {'cost': 2},  # 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/cross/order/openOrders': {'cost': 2},  # 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/cross/order/history': {'cost': 2},  # 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/cross/order/fills': {'cost': 2},  # 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/cross/loan/list': {'cost': 2},  # 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/cross/repay/list': {'cost': 2},  # 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/cross/interest/list': {'cost': 2},  # 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/cross/liquidation/list': {'cost': 2},  # 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/cross/fin/list': {'cost': 2},  # 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/cross/account/assets': {'cost': 2},  # 10 times/1s (IP) => 20/10 = 2
+                            'margin/v1/isolated/account/assets': {'cost': 2},  # 10 times/1s (IP) => 20/10 = 2
                             'v2/margin/crossed/borrow-history': {'cost': 2},
                             'v2/margin/crossed/repay-history': {'cost': 2},
                             'v2/margin/crossed/interest-history': {'cost': 2},
@@ -698,25 +742,25 @@ class bitget(Exchange, ImplicitAPI):
                             'v2/margin/isolated/fills': {'cost': 2},
                         },
                         'post': {
-                            'margin/v1/cross/account/borrow': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
-                            'margin/v1/isolated/account/borrow': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
-                            'margin/v1/cross/account/repay': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
-                            'margin/v1/isolated/account/repay': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
-                            'margin/v1/isolated/account/riskRate': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
-                            'margin/v1/cross/account/maxBorrowableAmount': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
-                            'margin/v1/isolated/account/maxBorrowableAmount': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
-                            'margin/v1/isolated/account/flashRepay': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
-                            'margin/v1/isolated/account/queryFlashRepayStatus': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
-                            'margin/v1/cross/account/flashRepay': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
-                            'margin/v1/cross/account/queryFlashRepayStatus': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
-                            'margin/v1/isolated/order/placeOrder': {'cost': 4},  # 5 times/1s(UID) => 20/5 = 4
-                            'margin/v1/isolated/order/batchPlaceOrder': {'cost': 4},  # 5 times/1s(UID) => 20/5 = 4
-                            'margin/v1/isolated/order/cancelOrder': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
-                            'margin/v1/isolated/order/batchCancelOrder': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
-                            'margin/v1/cross/order/placeOrder': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
-                            'margin/v1/cross/order/batchPlaceOrder': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
-                            'margin/v1/cross/order/cancelOrder': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
-                            'margin/v1/cross/order/batchCancelOrder': {'cost': 2},  # 10 times/1s(UID) => 20/10 = 2
+                            'margin/v1/cross/account/borrow': {'cost': 2},  # 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/isolated/account/borrow': {'cost': 2},  # 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/cross/account/repay': {'cost': 2},  # 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/isolated/account/repay': {'cost': 2},  # 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/isolated/account/riskRate': {'cost': 2},  # 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/cross/account/maxBorrowableAmount': {'cost': 2},  # 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/isolated/account/maxBorrowableAmount': {'cost': 2},  # 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/isolated/account/flashRepay': {'cost': 2},  # 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/isolated/account/queryFlashRepayStatus': {'cost': 2},  # 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/cross/account/flashRepay': {'cost': 2},  # 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/cross/account/queryFlashRepayStatus': {'cost': 2},  # 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/isolated/order/placeOrder': {'cost': 4},  # 5 times/1s (UID) => 20/5 = 4
+                            'margin/v1/isolated/order/batchPlaceOrder': {'cost': 4},  # 5 times/1s (UID) => 20/5 = 4
+                            'margin/v1/isolated/order/cancelOrder': {'cost': 2},  # 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/isolated/order/batchCancelOrder': {'cost': 2},  # 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/cross/order/placeOrder': {'cost': 2},  # 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/cross/order/batchPlaceOrder': {'cost': 2},  # 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/cross/order/cancelOrder': {'cost': 2},  # 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/cross/order/batchCancelOrder': {'cost': 2},  # 10 times/1s (UID) => 20/10 = 2
                             'v2/margin/crossed/account/borrow': {'cost': 2},
                             'v2/margin/crossed/account/repay': {'cost': 2},
                             'v2/margin/crossed/account/flash-repay': {'cost': 2},
@@ -832,6 +876,12 @@ class bitget(Exchange, ImplicitAPI):
                             'v2/earn/loan/debts': {'cost': 2},
                             'v2/earn/loan/reduces': {'cost': 2},
                             'v2/earn/account/assets': {'cost': 2},
+                            'v2/earn/elite/product': {'cost': 4},
+                            'v2/earn/elite/assets': {'cost': 4},
+                            'v2/earn/elite/records': {'cost': 4},
+                            'v2/earn/elite/subscribe-info': {'cost': 4},
+                            'v2/earn/elite/subscribe-result': {'cost': 4},
+                            'v2/earn/elite/redeem-info': {'cost': 4},
                         },
                         'post': {
                             'v2/earn/savings/subscribe': {'cost': 2},
@@ -840,6 +890,8 @@ class bitget(Exchange, ImplicitAPI):
                             'v2/earn/loan/borrow': {'cost': 2},
                             'v2/earn/loan/repay': {'cost': 2},
                             'v2/earn/loan/revise-pledge': {'cost': 2},
+                            'v2/earn/elite/subscribe': {'cost': 4},
+                            'v2/earn/elite/redeem': {'cost': 4},
                         },
                     },
                     'common': {
@@ -901,6 +953,76 @@ class bitget(Exchange, ImplicitAPI):
                             'v3/trade/fills': {'cost': 1},
                             'v3/user/sub-list': {'cost': 2},
                             'v3/user/sub-api-list': {'cost': 2},
+                            'v3/account/info': {'cost': 4},
+                            'v3/account/all-fee-rate': {'cost': 6.6667},  # 3 times/1s (UID) => 20/3 = 6.6667
+                            'v3/account/delta-info': {'cost': 1},
+                            'v3/account/withdraw-address': {'cost': 20},
+                            'v3/account/max-withdrawal': {'cost': 2},
+                            'v3/account/move-position-history': {'cost': 4},
+                            'v3/account/collateral-type': {'cost': 2},
+                            'v3/account/pre-set-leverage': {'cost': 2},
+                            'v3/account/eligible-symbols': {'cost': 2},
+                            'v3/account/eligible-margin-tier': {'cost': 2},
+                            'v3/account/eligible-loan-info': {'cost': 2},
+                            'v3/account/eligible-discount-rate': {'cost': 1},
+                            'v3/account/funding-financial-records': {'cost': 2},
+                            'v3/account/reality-orderbook': {'cost': 2},
+                            'v3/account/reality-fills': {'cost': 2},
+                            'v3/copy/futures/trading-pairs': {'cost': 4},
+                            'v3/copy/futures/position-summary': {'cost': 4},
+                            'v3/copy/futures/max-transferable': {'cost': 20},
+                            'v3/copy/futures/transfer-record': {'cost': 20},
+                            'v3/copy/futures/current-follower': {'cost': 20},
+                            'v3/copy/futures/history-follower': {'cost': 20},
+                            'v3/copy/futures/profit-summary': {'cost': 20},
+                            'v3/copy/futures/profit-details': {'cost': 20},
+                            'v3/convert/small-assets': {'cost': 2},
+                            'v3/convert/small-assets-history': {'cost': 2},
+                            'v3/earn/elite-product': {'cost': 4},
+                            'v3/earn/elite-assets': {'cost': 4},
+                            'v3/earn/elite-subscribe-info': {'cost': 4},
+                            'v3/earn/elite-records': {'cost': 4},
+                            'v3/earn/elite-subscribe-result': {'cost': 4},
+                            'v3/earn/elite-redeem-info': {'cost': 4},
+                            'v3/trade/loan-data': {'cost': 2},
+                            'v3/trade/strategy-sub-orders': {'cost': 2},
+                            'v3/trade/grid/bot-detail': {'cost': 2},
+                            'v3/trade/grid/list-details': {'cost': 20},
+                            'v3/trade/grid/neutral-bot-detail': {'cost': 2},
+                            'v3/trade/grid/neutral-list-details': {'cost': 20},
+                            'v3/user/rate-limit-quota': {'cost': 2},
+                            'v3/stockplus/market/option-quote': {'cost': 2},
+                            'v3/stockplus/market/option-chain-info': {'cost': 2},
+                            'v3/stockplus/market/option-expiry-date': {'cost': 2},
+                            'v3/stockplus/market/option-volume': {'cost': 2},
+                            'v3/stockplus/market/depth': {'cost': 2},
+                            'v3/stockplus/market/static': {'cost': 2},
+                            'v3/stockplus/market/quote': {'cost': 2},
+                            'v3/stockplus/market/trade': {'cost': 2},
+                            'v3/stockplus/market/intraday': {'cost': 2},
+                            'v3/stockplus/market/history-candlestick': {'cost': 2},
+                            'v3/stockplus/market/candlestick': {'cost': 2},
+                            'v3/stockplus/trade/today-orders': {'cost': 20},
+                            'v3/stockplus/trade/history-orders': {'cost': 20},
+                            'v3/stockplus/trade/order-detail': {'cost': 20},
+                            'v3/stockplus/trade/today-executions': {'cost': 20},
+                            'v3/stockplus/trade/history-executions': {'cost': 20},
+                            'v3/stockplus/asset/account': {'cost': 2},
+                            'v3/stockplus/asset/cash-flow': {'cost': 2},
+                            'v3/stockplus/asset/stock-position': {'cost': 2},
+                            'v3/stockplus/asset/transfer-records': {'cost': 2},
+                            'v3/p2p/ad-list': {'cost': 2},
+                            'v3/p2p/ad-info': {'cost': 2},
+                            'v3/p2p/ad-limit': {'cost': 2},
+                            'v3/p2p/my-ads': {'cost': 2},
+                            'v3/p2p/pending-orders': {'cost': 2},
+                            'v3/p2p/all-orders': {'cost': 2},
+                            'v3/p2p/order-info': {'cost': 2},
+                            'v3/p2p/user-info': {'cost': 2},
+                            'v3/p2p/currencies': {'cost': 2},
+                            'v3/p2p/pay-method': {'cost': 2},
+                            'v3/p2p/balance': {'cost': 2},
+                            'v3/p2p/exchange-rate': {'cost': 2},
                         },
                         'post': {
                             'v3/account/set-leverage': {'cost': 2},
@@ -943,6 +1065,38 @@ class bitget(Exchange, ImplicitAPI):
                             'v3/user/create-sub-api': {'cost': 2},
                             'v3/user/update-sub-api': {'cost': 2},
                             'v3/user/delete-sub-api': {'cost': 2},
+                            'v3/account/move-positions': {'cost': 20},
+                            'v3/account/cancel-withdrawal': {'cost': 20},
+                            'v3/account/set-margin': {'cost': 2},
+                            'v3/account/set-collateral-type': {'cost': 10},
+                            'v3/copy/futures/transfer': {'cost': 20},
+                            'v3/convert/small-assets-trade': {'cost': 2},
+                            'v3/earn/elite-subscribe': {'cost': 4},
+                            'v3/earn/elite-redeem': {'cost': 4},
+                            'v3/trade/place-reality-order': {'cost': 2},
+                            'v3/trade/cancel-reality-order': {'cost': 2},
+                            'v3/trade/grid/validate': {'cost': 20},
+                            'v3/trade/grid/create-bot': {'cost': 20},
+                            'v3/trade/grid/modify-bot': {'cost': 20},
+                            'v3/trade/grid/modify-grid-interval': {'cost': 20},
+                            'v3/trade/grid/add-investment': {'cost': 20},
+                            'v3/trade/grid/close-bot': {'cost': 20},
+                            'v3/trade/grid/validate-neutral': {'cost': 20},
+                            'v3/trade/grid/create-neutral-bot': {'cost': 20},
+                            'v3/trade/grid/modify-neutral-bot': {'cost': 20},
+                            'v3/trade/grid/modify-neutral-grid-interval': {'cost': 20},
+                            'v3/user/set-rate-limit-quota': {'cost': 4},
+                            'v3/user/sub-account/agent-create': {'cost': 20},
+                            'v3/stockplus/trade/place-order': {'cost': 20},
+                            'v3/stockplus/trade/cancel-order': {'cost': 20},
+                            'v3/stockplus/trade/modify-order': {'cost': 20},
+                            'v3/stockplus/asset/transfer': {'cost': 4},
+                            'v3/p2p/ad-create': {'cost': 2},
+                            'v3/p2p/ad-update': {'cost': 2},
+                            'v3/p2p/ad-operate': {'cost': 2},
+                            'v3/p2p/fee-simulate': {'cost': 2},
+                            'v3/p2p/order-pay': {'cost': 2},
+                            'v3/p2p/order-release': {'cost': 2},
                         },
                     },
                 },
@@ -970,98 +1124,98 @@ class bitget(Exchange, ImplicitAPI):
                 # 404 Not Found
                 # 500 Internal Server Error — We had a problem with our server
                 'exact': {
-                    '1': ExchangeError,  # {"code": 1, "message": "System error"}
+                    '1': ExchangeError,  # { "code": 1, "message": "System error" }
                     # undocumented
-                    'failure to get a peer from the ring-balancer': ExchangeNotAvailable,  # {"message": "failure to get a peer from the ring-balancer"}
-                    '4010': PermissionDenied,  # {"code": 4010, "message": "For the security of your funds, withdrawals are not permitted within 24 hours after changing fund password  / mobile number / Google Authenticator settings "}
+                    'failure to get a peer from the ring-balancer': ExchangeNotAvailable,  # { "message": "failure to get a peer from the ring-balancer" }
+                    '4010': PermissionDenied,  # { "code": 4010, "message": "For the security of your funds, withdrawals are not permitted within 24 hours after changing fund password  / mobile number / Google Authenticator settings " }
                     # common
-                    # '0': ExchangeError,  # 200 successful,when the order placement / cancellation / operation is successful
+                    # '0': ExchangeError, // 200 successful,when the order placement / cancellation / operation is successful
                     '4001': ExchangeError,  # no data received in 30s
                     '4002': ExchangeError,  # Buffer full. cannot write data
                     '40020': BadRequest,  # {"code":"40020","msg":"Parameter orderId error","requestTime":1754305078588,"data":null}
                     # --------------------------------------------------------
-                    '30001': AuthenticationError,  # {"code": 30001, "message": 'request header "OK_ACCESS_KEY" cannot be blank'}
-                    '30002': AuthenticationError,  # {"code": 30002, "message": 'request header "OK_ACCESS_SIGN" cannot be blank'}
-                    '30003': AuthenticationError,  # {"code": 30003, "message": 'request header "OK_ACCESS_TIMESTAMP" cannot be blank'}
-                    '30004': AuthenticationError,  # {"code": 30004, "message": 'request header "OK_ACCESS_PASSPHRASE" cannot be blank'}
-                    '30005': InvalidNonce,  # {"code": 30005, "message": "invalid OK_ACCESS_TIMESTAMP"}
-                    '30006': AuthenticationError,  # {"code": 30006, "message": "invalid OK_ACCESS_KEY"}
-                    '30007': BadRequest,  # {"code": 30007, "message": 'invalid Content_Type, please use "application/json" format'}
-                    '30008': RequestTimeout,  # {"code": 30008, "message": "timestamp request expired"}
-                    '30009': ExchangeError,  # {"code": 30009, "message": "system error"}
-                    '30010': AuthenticationError,  # {"code": 30010, "message": "API validation failed"}
-                    '30011': PermissionDenied,  # {"code": 30011, "message": "invalid IP"}
-                    '30012': AuthenticationError,  # {"code": 30012, "message": "invalid authorization"}
-                    '30013': AuthenticationError,  # {"code": 30013, "message": "invalid sign"}
-                    '30014': DDoSProtection,  # {"code": 30014, "message": "request too frequent"}
-                    '30015': AuthenticationError,  # {"code": 30015, "message": 'request header "OK_ACCESS_PASSPHRASE" incorrect'}
-                    '30016': ExchangeError,  # {"code": 30015, "message": "you are using v1 apiKey, please use v1 endpoint. If you would like to use v3 endpoint, please subscribe to v3 apiKey"}
-                    '30017': ExchangeError,  # {"code": 30017, "message": "apikey's broker id does not match"}
-                    '30018': ExchangeError,  # {"code": 30018, "message": "apikey's domain does not match"}
-                    '30019': ExchangeNotAvailable,  # {"code": 30019, "message": "Api is offline or unavailable"}
-                    '30020': BadRequest,  # {"code": 30020, "message": "body cannot be blank"}
-                    '30021': BadRequest,  # {"code": 30021, "message": "Json data format error"}, {"code": 30021, "message": "json data format error"}
-                    '30022': PermissionDenied,  # {"code": 30022, "message": "Api has been frozen"}
-                    '30023': BadRequest,  # {"code": 30023, "message": "{0} parameter cannot be blank"}
+                    '30001': AuthenticationError,  # { "code": 30001, "message": 'request header "OK_ACCESS_KEY" cannot be blank'}
+                    '30002': AuthenticationError,  # { "code": 30002, "message": 'request header "OK_ACCESS_SIGN" cannot be blank'}
+                    '30003': AuthenticationError,  # { "code": 30003, "message": 'request header "OK_ACCESS_TIMESTAMP" cannot be blank'}
+                    '30004': AuthenticationError,  # { "code": 30004, "message": 'request header "OK_ACCESS_PASSPHRASE" cannot be blank'}
+                    '30005': InvalidNonce,  # { "code": 30005, "message": "invalid OK_ACCESS_TIMESTAMP" }
+                    '30006': AuthenticationError,  # { "code": 30006, "message": "invalid OK_ACCESS_KEY" }
+                    '30007': BadRequest,  # { "code": 30007, "message": 'invalid Content_Type, please use "application/json" format'}
+                    '30008': RequestTimeout,  # { "code": 30008, "message": "timestamp request expired" }
+                    '30009': ExchangeError,  # { "code": 30009, "message": "system error" }
+                    '30010': AuthenticationError,  # { "code": 30010, "message": "API validation failed" }
+                    '30011': PermissionDenied,  # { "code": 30011, "message": "invalid IP" }
+                    '30012': AuthenticationError,  # { "code": 30012, "message": "invalid authorization" }
+                    '30013': AuthenticationError,  # { "code": 30013, "message": "invalid sign" }
+                    '30014': DDoSProtection,  # { "code": 30014, "message": "request too frequent" }
+                    '30015': AuthenticationError,  # { "code": 30015, "message": 'request header "OK_ACCESS_PASSPHRASE" incorrect'}
+                    '30016': ExchangeError,  # { "code": 30015, "message": "you are using v1 apiKey, please use v1 endpoint. If you would like to use v3 endpoint, please subscribe to v3 apiKey" }
+                    '30017': ExchangeError,  # { "code": 30017, "message": "apikey's broker id does not match" }
+                    '30018': ExchangeError,  # { "code": 30018, "message": "apikey's domain does not match" }
+                    '30019': ExchangeNotAvailable,  # { "code": 30019, "message": "Api is offline or unavailable" }
+                    '30020': BadRequest,  # { "code": 30020, "message": "body cannot be blank" }
+                    '30021': BadRequest,  # { "code": 30021, "message": "Json data format error" }, { "code": 30021, "message": "json data format error" }
+                    '30022': PermissionDenied,  # { "code": 30022, "message": "Api has been frozen" }
+                    '30023': BadRequest,  # { "code": 30023, "message": "{0} parameter cannot be blank" }
                     '30024': BadSymbol,  # {"code":30024,"message":"\"instrument_id\" is an invalid parameter"}
-                    '30025': BadRequest,  # {"code": 30025, "message": "{0} parameter category error"}
-                    '30026': DDoSProtection,  # {"code": 30026, "message": "requested too frequent"}
-                    '30027': AuthenticationError,  # {"code": 30027, "message": "login failure"}
-                    '30028': PermissionDenied,  # {"code": 30028, "message": "unauthorized execution"}
-                    '30029': AccountSuspended,  # {"code": 30029, "message": "account suspended"}
-                    '30030': ExchangeError,  # {"code": 30030, "message": "endpoint request failed. Please try again"}
-                    '30031': BadRequest,  # {"code": 30031, "message": "token does not exist"}
-                    '30032': BadSymbol,  # {"code": 30032, "message": "pair does not exist"}
-                    '30033': BadRequest,  # {"code": 30033, "message": "exchange domain does not exist"}
-                    '30034': ExchangeError,  # {"code": 30034, "message": "exchange ID does not exist"}
-                    '30035': ExchangeError,  # {"code": 30035, "message": "trading is not hasattr(self, supported) website"}
-                    '30036': ExchangeError,  # {"code": 30036, "message": "no relevant data"}
-                    '30037': ExchangeNotAvailable,  # {"code": 30037, "message": "endpoint is offline or unavailable"}
-                    # '30038': AuthenticationError,  # {"code": 30038, "message": "user does not exist"}
+                    '30025': BadRequest,  # { "code": 30025, "message": "{0} parameter category error" }
+                    '30026': DDoSProtection,  # { "code": 30026, "message": "requested too frequent" }
+                    '30027': AuthenticationError,  # { "code": 30027, "message": "login failure" }
+                    '30028': PermissionDenied,  # { "code": 30028, "message": "unauthorized execution" }
+                    '30029': AccountSuspended,  # { "code": 30029, "message": "account suspended" }
+                    '30030': ExchangeError,  # { "code": 30030, "message": "endpoint request failed. Please try again" }
+                    '30031': BadRequest,  # { "code": 30031, "message": "token does not exist" }
+                    '30032': BadSymbol,  # { "code": 30032, "message": "pair does not exist" }
+                    '30033': BadRequest,  # { "code": 30033, "message": "exchange domain does not exist" }
+                    '30034': ExchangeError,  # { "code": 30034, "message": "exchange ID does not exist" }
+                    '30035': ExchangeError,  # { "code": 30035, "message": "trading is not supported in this website" }
+                    '30036': ExchangeError,  # { "code": 30036, "message": "no relevant data" }
+                    '30037': ExchangeNotAvailable,  # { "code": 30037, "message": "endpoint is offline or unavailable" }
+                    # '30038': AuthenticationError, // { "code": 30038, "message": "user does not exist" }
                     '30038': OnMaintenance,  # {"client_oid":"","code":"30038","error_code":"30038","error_message":"Matching engine is being upgraded. Please try in about 1 minute.","message":"Matching engine is being upgraded. Please try in about 1 minute.","order_id":"-1","result":false}
                     # futures
-                    '32001': AccountSuspended,  # {"code": 32001, "message": "futures account suspended"}
-                    '32002': PermissionDenied,  # {"code": 32002, "message": "futures account does not exist"}
-                    '32003': CancelPending,  # {"code": 32003, "message": "canceling, please wait"}
-                    '32004': ExchangeError,  # {"code": 32004, "message": "you have no unfilled orders"}
-                    '32005': InvalidOrder,  # {"code": 32005, "message": "max order quantity"}
-                    '32006': InvalidOrder,  # {"code": 32006, "message": "the order price or trigger price exceeds USD 1 million"}
-                    '32007': InvalidOrder,  # {"code": 32007, "message": "leverage level must be the same for orders on the same side of the contract"}
-                    '32008': InvalidOrder,  # {"code": 32008, "message": "Max. positions to open(cross margin)"}
-                    '32009': InvalidOrder,  # {"code": 32009, "message": "Max. positions to open(fixed margin)"}
-                    '32010': ExchangeError,  # {"code": 32010, "message": "leverage cannot be changed with open positions"}
-                    '32011': ExchangeError,  # {"code": 32011, "message": "futures status error"}
-                    '32012': ExchangeError,  # {"code": 32012, "message": "futures order update error"}
-                    '32013': ExchangeError,  # {"code": 32013, "message": "token type is blank"}
-                    '32014': ExchangeError,  # {"code": 32014, "message": "your number of contracts closing is larger than the number of contracts available"}
-                    '32015': ExchangeError,  # {"code": 32015, "message": "margin ratio is lower than 100% before opening positions"}
-                    '32016': ExchangeError,  # {"code": 32016, "message": "margin ratio is lower than 100% after opening position"}
-                    '32017': ExchangeError,  # {"code": 32017, "message": "no BBO"}
-                    '32018': ExchangeError,  # {"code": 32018, "message": "the order quantity is less than 1, please try again"}
-                    '32019': ExchangeError,  # {"code": 32019, "message": "the order price deviates from the price of the previous minute by more than 3%"}
-                    '32020': ExchangeError,  # {"code": 32020, "message": "the price is not in the range of the price limit"}
-                    '32021': ExchangeError,  # {"code": 32021, "message": "leverage error"}
-                    '32022': ExchangeError,  # {"code": 32022, "message": "self function is not supported in your country or region according to the regulations"}
-                    '32023': ExchangeError,  # {"code": 32023, "message": "self account has outstanding loan"}
-                    '32024': ExchangeError,  # {"code": 32024, "message": "order cannot be placed during delivery"}
-                    '32025': ExchangeError,  # {"code": 32025, "message": "order cannot be placed during settlement"}
-                    '32026': ExchangeError,  # {"code": 32026, "message": "your account is restricted from opening positions"}
-                    '32027': ExchangeError,  # {"code": 32027, "message": "cancelled over 20 orders"}
-                    '32028': AccountSuspended,  # {"code": 32028, "message": "account is suspended and liquidated"}
-                    '32029': ExchangeError,  # {"code": 32029, "message": "order info does not exist"}
+                    '32001': AccountSuspended,  # { "code": 32001, "message": "futures account suspended" }
+                    '32002': PermissionDenied,  # { "code": 32002, "message": "futures account does not exist" }
+                    '32003': CancelPending,  # { "code": 32003, "message": "canceling, please wait" }
+                    '32004': ExchangeError,  # { "code": 32004, "message": "you have no unfilled orders" }
+                    '32005': InvalidOrder,  # { "code": 32005, "message": "max order quantity" }
+                    '32006': InvalidOrder,  # { "code": 32006, "message": "the order price or trigger price exceeds USD 1 million" }
+                    '32007': InvalidOrder,  # { "code": 32007, "message": "leverage level must be the same for orders on the same side of the contract" }
+                    '32008': InvalidOrder,  # { "code": 32008, "message": "Max. positions to open (cross margin)" }
+                    '32009': InvalidOrder,  # { "code": 32009, "message": "Max. positions to open (fixed margin)" }
+                    '32010': ExchangeError,  # { "code": 32010, "message": "leverage cannot be changed with open positions" }
+                    '32011': ExchangeError,  # { "code": 32011, "message": "futures status error" }
+                    '32012': ExchangeError,  # { "code": 32012, "message": "futures order update error" }
+                    '32013': ExchangeError,  # { "code": 32013, "message": "token type is blank" }
+                    '32014': ExchangeError,  # { "code": 32014, "message": "your number of contracts closing is larger than the number of contracts available" }
+                    '32015': ExchangeError,  # { "code": 32015, "message": "margin ratio is lower than 100% before opening positions" }
+                    '32016': ExchangeError,  # { "code": 32016, "message": "margin ratio is lower than 100% after opening position" }
+                    '32017': ExchangeError,  # { "code": 32017, "message": "no BBO" }
+                    '32018': ExchangeError,  # { "code": 32018, "message": "the order quantity is less than 1, please try again" }
+                    '32019': ExchangeError,  # { "code": 32019, "message": "the order price deviates from the price of the previous minute by more than 3%" }
+                    '32020': ExchangeError,  # { "code": 32020, "message": "the price is not in the range of the price limit" }
+                    '32021': ExchangeError,  # { "code": 32021, "message": "leverage error" }
+                    '32022': ExchangeError,  # { "code": 32022, "message": "this function is not supported in your country or region according to the regulations" }
+                    '32023': ExchangeError,  # { "code": 32023, "message": "this account has outstanding loan" }
+                    '32024': ExchangeError,  # { "code": 32024, "message": "order cannot be placed during delivery" }
+                    '32025': ExchangeError,  # { "code": 32025, "message": "order cannot be placed during settlement" }
+                    '32026': ExchangeError,  # { "code": 32026, "message": "your account is restricted from opening positions" }
+                    '32027': ExchangeError,  # { "code": 32027, "message": "cancelled over 20 orders" }
+                    '32028': AccountSuspended,  # { "code": 32028, "message": "account is suspended and liquidated" }
+                    '32029': ExchangeError,  # { "code": 32029, "message": "order info does not exist" }
                     '32030': InvalidOrder,  # The order cannot be cancelled
                     '32031': ArgumentsRequired,  # client_oid or order_id is required.
                     '32038': AuthenticationError,  # User does not exist
                     '32040': ExchangeError,  # User have open contract orders or position
-                    '32044': ExchangeError,  # {"code": 32044, "message": "The margin ratio after submitting self order is lower than the minimum requirement({0}) for your tier."}
-                    '32045': ExchangeError,  # str of commission over 1 million
+                    '32044': ExchangeError,  # { "code": 32044, "message": "The margin ratio after submitting this order is lower than the minimum requirement ({0}) for your tier." }
+                    '32045': ExchangeError,  # String of commission over 1 million
                     '32046': ExchangeError,  # Each user can hold up to 10 trade plans at the same time
                     '32047': ExchangeError,  # system error
                     '32048': InvalidOrder,  # Order strategy track range error
                     '32049': ExchangeError,  # Each user can hold up to 10 track plans at the same time
                     '32050': InvalidOrder,  # Order strategy rang error
                     '32051': InvalidOrder,  # Order strategy ice depth error
-                    '32052': ExchangeError,  # str of commission over 100 thousand
+                    '32052': ExchangeError,  # String of commission over 100 thousand
                     '32053': ExchangeError,  # Each user can hold up to 6 ice plans at the same time
                     '32057': ExchangeError,  # The order price is zero. Market-close-all function cannot be executed
                     '32054': ExchangeError,  # Trade not allow
@@ -1074,53 +1228,53 @@ class bitget(Exchange, ImplicitAPI):
                     '32062': InvalidOrder,  # Order strategy initiative range error
                     '32063': InvalidOrder,  # Order strategy initiative rate error
                     '32064': ExchangeError,  # Time Stringerval of orders should set between 5-120s
-                    '32065': ExchangeError,  # Close amount exceeds the limit of Market-close-all(999 for BTC, and 9999 for the rest tokens)
+                    '32065': ExchangeError,  # Close amount exceeds the limit of Market-close-all (999 for BTC, and 9999 for the rest tokens)
                     '32066': ExchangeError,  # You have open orders. Please cancel all open orders before changing your leverage level.
-                    '32067': ExchangeError,  # Account equity < required hasattr(self, margin) setting. Please adjust your leverage level again.
-                    '32068': ExchangeError,  # The margin for self position will fall short of the required hasattr(self, margin) setting. Please adjust your leverage level or increase your margin to proceed.
+                    '32067': ExchangeError,  # Account equity < required margin in this setting. Please adjust your leverage level again.
+                    '32068': ExchangeError,  # The margin for this position will fall short of the required margin in this setting. Please adjust your leverage level or increase your margin to proceed.
                     '32069': ExchangeError,  # Target leverage level too low. Your account balance is insufficient to cover the margin required. Please adjust the leverage level again.
                     '32070': ExchangeError,  # Please check open position or unfilled order
-                    '32071': ExchangeError,  # Your current liquidation mode does not support self action.
+                    '32071': ExchangeError,  # Your current liquidation mode does not support this action.
                     '32072': ExchangeError,  # The highest available margin for your order’s tier is {0}. Please edit your margin and place a new order.
                     '32073': ExchangeError,  # The action does not apply to the token
-                    '32074': ExchangeError,  # The number of contracts of your position, open orders, and the current order has exceeded the maximum order limit of self asset.
+                    '32074': ExchangeError,  # The number of contracts of your position, open orders, and the current order has exceeded the maximum order limit of this asset.
                     '32075': ExchangeError,  # Account risk rate breach
                     '32076': ExchangeError,  # Liquidation of the holding position(s) at market price will require cancellation of all pending close orders of the contracts.
-                    '32077': ExchangeError,  # Your margin for self asset in futures account is insufficient and the position has been taken over for liquidation.(You will not be able to place orders, close positions, transfer funds, or add margin during self period of time. Your account will be restored after the liquidation is complete.)
+                    '32077': ExchangeError,  # Your margin for this asset in futures account is insufficient and the position has been taken over for liquidation. (You will not be able to place orders, close positions, transfer funds, or add margin during this period of time. Your account will be restored after the liquidation is complete.)
                     '32078': ExchangeError,  # Please cancel all open orders before switching the liquidation mode(Please cancel all open orders before switching the liquidation mode)
                     '32079': ExchangeError,  # Your open positions are at high risk.(Please add margin or reduce positions before switching the mode)
                     '32080': ExchangeError,  # Funds cannot be transferred out within 30 minutes after futures settlement
                     '32083': ExchangeError,  # The number of contracts should be a positive multiple of %%. Please place your order again
                     # token and margin trading
-                    '33001': PermissionDenied,  # {"code": 33001, "message": "margin account for self pair is not enabled yet"}
-                    '33002': AccountSuspended,  # {"code": 33002, "message": "margin account for self pair is suspended"}
-                    '33003': InsufficientFunds,  # {"code": 33003, "message": "no loan balance"}
-                    '33004': ExchangeError,  # {"code": 33004, "message": "loan amount cannot be smaller than the minimum limit"}
-                    '33005': ExchangeError,  # {"code": 33005, "message": "repayment amount must exceed 0"}
-                    '33006': ExchangeError,  # {"code": 33006, "message": "loan order not found"}
-                    '33007': ExchangeError,  # {"code": 33007, "message": "status not found"}
-                    '33008': InsufficientFunds,  # {"code": 33008, "message": "loan amount cannot exceed the maximum limit"}
-                    '33009': ExchangeError,  # {"code": 33009, "message": "user ID is blank"}
-                    '33010': ExchangeError,  # {"code": 33010, "message": "you cannot cancel an order during session 2 of call auction"}
-                    '33011': ExchangeError,  # {"code": 33011, "message": "no new market data"}
-                    '33012': ExchangeError,  # {"code": 33012, "message": "order cancellation failed"}
-                    '33013': InvalidOrder,  # {"code": 33013, "message": "order placement failed"}
-                    '33014': OrderNotFound,  # {"code": 33014, "message": "order does not exist"}
-                    '33015': InvalidOrder,  # {"code": 33015, "message": "exceeded maximum limit"}
-                    '33016': ExchangeError,  # {"code": 33016, "message": "margin trading is not open for self token"}
-                    '33017': InsufficientFunds,  # {"code": 33017, "message": "insufficient balance"}
-                    '33018': ExchangeError,  # {"code": 33018, "message": "self parameter must be smaller than 1"}
-                    '33020': ExchangeError,  # {"code": 33020, "message": "request not supported"}
-                    '33021': BadRequest,  # {"code": 33021, "message": "token and the pair do not match"}
-                    '33022': InvalidOrder,  # {"code": 33022, "message": "pair and the order do not match"}
-                    '33023': ExchangeError,  # {"code": 33023, "message": "you can only place market orders during call auction"}
-                    '33024': InvalidOrder,  # {"code": 33024, "message": "trading amount too small"}
-                    '33025': InvalidOrder,  # {"code": 33025, "message": "base token amount is blank"}
-                    '33026': ExchangeError,  # {"code": 33026, "message": "transaction completed"}
-                    '33027': InvalidOrder,  # {"code": 33027, "message": "cancelled order or order cancelling"}
-                    '33028': InvalidOrder,  # {"code": 33028, "message": "the decimal places of the trading price exceeded the limit"}
-                    '33029': InvalidOrder,  # {"code": 33029, "message": "the decimal places of the trading size exceeded the limit"}
-                    '33034': ExchangeError,  # {"code": 33034, "message": "You can only place limit order after Call Auction has started"}
+                    '33001': PermissionDenied,  # { "code": 33001, "message": "margin account for this pair is not enabled yet" }
+                    '33002': AccountSuspended,  # { "code": 33002, "message": "margin account for this pair is suspended" }
+                    '33003': InsufficientFunds,  # { "code": 33003, "message": "no loan balance" }
+                    '33004': ExchangeError,  # { "code": 33004, "message": "loan amount cannot be smaller than the minimum limit" }
+                    '33005': ExchangeError,  # { "code": 33005, "message": "repayment amount must exceed 0" }
+                    '33006': ExchangeError,  # { "code": 33006, "message": "loan order not found" }
+                    '33007': ExchangeError,  # { "code": 33007, "message": "status not found" }
+                    '33008': InsufficientFunds,  # { "code": 33008, "message": "loan amount cannot exceed the maximum limit" }
+                    '33009': ExchangeError,  # { "code": 33009, "message": "user ID is blank" }
+                    '33010': ExchangeError,  # { "code": 33010, "message": "you cannot cancel an order during session 2 of call auction" }
+                    '33011': ExchangeError,  # { "code": 33011, "message": "no new market data" }
+                    '33012': ExchangeError,  # { "code": 33012, "message": "order cancellation failed" }
+                    '33013': InvalidOrder,  # { "code": 33013, "message": "order placement failed" }
+                    '33014': OrderNotFound,  # { "code": 33014, "message": "order does not exist" }
+                    '33015': InvalidOrder,  # { "code": 33015, "message": "exceeded maximum limit" }
+                    '33016': ExchangeError,  # { "code": 33016, "message": "margin trading is not open for this token" }
+                    '33017': InsufficientFunds,  # { "code": 33017, "message": "insufficient balance" }
+                    '33018': ExchangeError,  # { "code": 33018, "message": "this parameter must be smaller than 1" }
+                    '33020': ExchangeError,  # { "code": 33020, "message": "request not supported" }
+                    '33021': BadRequest,  # { "code": 33021, "message": "token and the pair do not match" }
+                    '33022': InvalidOrder,  # { "code": 33022, "message": "pair and the order do not match" }
+                    '33023': ExchangeError,  # { "code": 33023, "message": "you can only place market orders during call auction" }
+                    '33024': InvalidOrder,  # { "code": 33024, "message": "trading amount too small" }
+                    '33025': InvalidOrder,  # { "code": 33025, "message": "base token amount is blank" }
+                    '33026': ExchangeError,  # { "code": 33026, "message": "transaction completed" }
+                    '33027': InvalidOrder,  # { "code": 33027, "message": "cancelled order or order cancelling" }
+                    '33028': InvalidOrder,  # { "code": 33028, "message": "the decimal places of the trading price exceeded the limit" }
+                    '33029': InvalidOrder,  # { "code": 33029, "message": "the decimal places of the trading size exceeded the limit" }
+                    '33034': ExchangeError,  # { "code": 33034, "message": "You can only place limit order after Call Auction has started" }
                     '33035': ExchangeError,  # This type of order cannot be canceled(This type of order cannot be canceled)
                     '33036': ExchangeError,  # Exceeding the limit of entrust order
                     '33037': ExchangeError,  # The buy order price should be lower than 130% of the trigger price
@@ -1138,86 +1292,86 @@ class bitget(Exchange, ImplicitAPI):
                     '33049': ExchangeError,  # Total amount should be X > 0
                     '33050': ExchangeError,  # Time interval should be 5 <= x <= 120s
                     '33051': ExchangeError,  # cancel order number not higher limit: plan and track entrust no more than 10, ice and time entrust no more than 6
-                    '33059': BadRequest,  # {"code": 33059, "message": "client_oid or order_id is required"}
-                    '33060': BadRequest,  # {"code": 33060, "message": "Only fill in either parameter client_oid or order_id"}
+                    '33059': BadRequest,  # { "code": 33059, "message": "client_oid or order_id is required" }
+                    '33060': BadRequest,  # { "code": 33060, "message": "Only fill in either parameter client_oid or order_id" }
                     '33061': ExchangeError,  # Value of a single market price order cannot exceed 100,000 USD
-                    '33062': ExchangeError,  # The leverage ratio is too high. The borrowed position has exceeded the maximum position of self leverage ratio. Please readjust the leverage ratio
+                    '33062': ExchangeError,  # The leverage ratio is too high. The borrowed position has exceeded the maximum position of this leverage ratio. Please readjust the leverage ratio
                     '33063': ExchangeError,  # Leverage multiple is too low, there is insufficient margin in the account, please readjust the leverage ratio
                     '33064': ExchangeError,  # The setting of the leverage ratio cannot be less than 2, please readjust the leverage ratio
                     '33065': ExchangeError,  # Leverage ratio exceeds maximum leverage ratio, please readjust leverage ratio
                     # account
                     '21009': ExchangeError,  # Funds cannot be transferred out within 30 minutes after swap settlement(Funds cannot be transferred out within 30 minutes after swap settlement)
-                    '34001': PermissionDenied,  # {"code": 34001, "message": "withdrawal suspended"}
-                    '34002': InvalidAddress,  # {"code": 34002, "message": "please add a withdrawal address"}
-                    '34003': ExchangeError,  # {"code": 34003, "message": "sorry, self token cannot be withdrawn to xx at the moment"}
-                    '34004': ExchangeError,  # {"code": 34004, "message": "withdrawal fee is smaller than minimum limit"}
-                    '34005': ExchangeError,  # {"code": 34005, "message": "withdrawal fee exceeds the maximum limit"}
-                    '34006': ExchangeError,  # {"code": 34006, "message": "withdrawal amount is lower than the minimum limit"}
-                    '34007': ExchangeError,  # {"code": 34007, "message": "withdrawal amount exceeds the maximum limit"}
-                    '34008': InsufficientFunds,  # {"code": 34008, "message": "insufficient balance"}
-                    '34009': ExchangeError,  # {"code": 34009, "message": "your withdrawal amount exceeds the daily limit"}
-                    '34010': ExchangeError,  # {"code": 34010, "message": "transfer amount must be larger than 0"}
-                    '34011': ExchangeError,  # {"code": 34011, "message": "conditions not met"}
-                    '34012': ExchangeError,  # {"code": 34012, "message": "the minimum withdrawal amount for NEO is 1, and the amount must be an integer"}
-                    '34013': ExchangeError,  # {"code": 34013, "message": "please transfer"}
-                    '34014': ExchangeError,  # {"code": 34014, "message": "transfer limited"}
-                    '34015': ExchangeError,  # {"code": 34015, "message": "subaccount does not exist"}
-                    '34016': PermissionDenied,  # {"code": 34016, "message": "transfer suspended"}
-                    '34017': AccountSuspended,  # {"code": 34017, "message": "account suspended"}
-                    '34018': AuthenticationError,  # {"code": 34018, "message": "incorrect trades password"}
-                    '34019': PermissionDenied,  # {"code": 34019, "message": "please bind your email before withdrawal"}
-                    '34020': PermissionDenied,  # {"code": 34020, "message": "please bind your funds password before withdrawal"}
-                    '34021': InvalidAddress,  # {"code": 34021, "message": "Not verified address"}
-                    '34022': ExchangeError,  # {"code": 34022, "message": "Withdrawals are not available for sub accounts"}
-                    '34023': PermissionDenied,  # {"code": 34023, "message": "Please enable futures trading before transferring your funds"}
+                    '34001': PermissionDenied,  # { "code": 34001, "message": "withdrawal suspended" }
+                    '34002': InvalidAddress,  # { "code": 34002, "message": "please add a withdrawal address" }
+                    '34003': ExchangeError,  # { "code": 34003, "message": "sorry, this token cannot be withdrawn to xx at the moment" }
+                    '34004': ExchangeError,  # { "code": 34004, "message": "withdrawal fee is smaller than minimum limit" }
+                    '34005': ExchangeError,  # { "code": 34005, "message": "withdrawal fee exceeds the maximum limit" }
+                    '34006': ExchangeError,  # { "code": 34006, "message": "withdrawal amount is lower than the minimum limit" }
+                    '34007': ExchangeError,  # { "code": 34007, "message": "withdrawal amount exceeds the maximum limit" }
+                    '34008': InsufficientFunds,  # { "code": 34008, "message": "insufficient balance" }
+                    '34009': ExchangeError,  # { "code": 34009, "message": "your withdrawal amount exceeds the daily limit" }
+                    '34010': ExchangeError,  # { "code": 34010, "message": "transfer amount must be larger than 0" }
+                    '34011': ExchangeError,  # { "code": 34011, "message": "conditions not met" }
+                    '34012': ExchangeError,  # { "code": 34012, "message": "the minimum withdrawal amount for NEO is 1, and the amount must be an integer" }
+                    '34013': ExchangeError,  # { "code": 34013, "message": "please transfer" }
+                    '34014': ExchangeError,  # { "code": 34014, "message": "transfer limited" }
+                    '34015': ExchangeError,  # { "code": 34015, "message": "subaccount does not exist" }
+                    '34016': PermissionDenied,  # { "code": 34016, "message": "transfer suspended" }
+                    '34017': AccountSuspended,  # { "code": 34017, "message": "account suspended" }
+                    '34018': AuthenticationError,  # { "code": 34018, "message": "incorrect trades password" }
+                    '34019': PermissionDenied,  # { "code": 34019, "message": "please bind your email before withdrawal" }
+                    '34020': PermissionDenied,  # { "code": 34020, "message": "please bind your funds password before withdrawal" }
+                    '34021': InvalidAddress,  # { "code": 34021, "message": "Not verified address" }
+                    '34022': ExchangeError,  # { "code": 34022, "message": "Withdrawals are not available for sub accounts" }
+                    '34023': PermissionDenied,  # { "code": 34023, "message": "Please enable futures trading before transferring your funds" }
                     '34026': ExchangeError,  # transfer too frequently(transfer too frequently)
                     '34036': ExchangeError,  # Parameter is incorrect, please refer to API documentation
                     '34037': ExchangeError,  # Get the sub-account balance interface, account type is not supported
                     '34038': ExchangeError,  # Since your C2C transaction is unusual, you are restricted from fund transfer. Please contact our customer support to cancel the restriction
                     '34039': ExchangeError,  # You are now restricted from transferring out your funds due to abnormal trades on C2C Market. Please transfer your fund on our website or app instead to verify your identity
                     # swap
-                    '35001': ExchangeError,  # {"code": 35001, "message": "Contract does not exist"}
-                    '35002': ExchangeError,  # {"code": 35002, "message": "Contract settling"}
-                    '35003': ExchangeError,  # {"code": 35003, "message": "Contract paused"}
-                    '35004': ExchangeError,  # {"code": 35004, "message": "Contract pending settlement"}
-                    '35005': AuthenticationError,  # {"code": 35005, "message": "User does not exist"}
-                    '35008': InvalidOrder,  # {"code": 35008, "message": "Risk ratio too high"}
-                    '35010': InvalidOrder,  # {"code": 35010, "message": "Position closing too large"}
-                    '35012': InvalidOrder,  # {"code": 35012, "message": "Incorrect order size"}
-                    '35014': InvalidOrder,  # {"code": 35014, "message": "Order price is not within limit"}
-                    '35015': InvalidOrder,  # {"code": 35015, "message": "Invalid leverage level"}
-                    '35017': ExchangeError,  # {"code": 35017, "message": "Open orders exist"}
-                    '35019': InvalidOrder,  # {"code": 35019, "message": "Order size too large"}
-                    '35020': InvalidOrder,  # {"code": 35020, "message": "Order price too high"}
-                    '35021': InvalidOrder,  # {"code": 35021, "message": "Order size exceeded current tier limit"}
-                    '35022': ExchangeError,  # {"code": 35022, "message": "Contract status error"}
-                    '35024': ExchangeError,  # {"code": 35024, "message": "Contract not initialized"}
-                    '35025': InsufficientFunds,  # {"code": 35025, "message": "No account balance"}
-                    '35026': ExchangeError,  # {"code": 35026, "message": "Contract settings not initialized"}
-                    '35029': OrderNotFound,  # {"code": 35029, "message": "Order does not exist"}
-                    '35030': InvalidOrder,  # {"code": 35030, "message": "Order size too large"}
-                    '35031': InvalidOrder,  # {"code": 35031, "message": "Cancel order size too large"}
-                    '35032': ExchangeError,  # {"code": 35032, "message": "Invalid user status"}
+                    '35001': ExchangeError,  # { "code": 35001, "message": "Contract does not exist" }
+                    '35002': ExchangeError,  # { "code": 35002, "message": "Contract settling" }
+                    '35003': ExchangeError,  # { "code": 35003, "message": "Contract paused" }
+                    '35004': ExchangeError,  # { "code": 35004, "message": "Contract pending settlement" }
+                    '35005': AuthenticationError,  # { "code": 35005, "message": "User does not exist" }
+                    '35008': InvalidOrder,  # { "code": 35008, "message": "Risk ratio too high" }
+                    '35010': InvalidOrder,  # { "code": 35010, "message": "Position closing too large" }
+                    '35012': InvalidOrder,  # { "code": 35012, "message": "Incorrect order size" }
+                    '35014': InvalidOrder,  # { "code": 35014, "message": "Order price is not within limit" }
+                    '35015': InvalidOrder,  # { "code": 35015, "message": "Invalid leverage level" }
+                    '35017': ExchangeError,  # { "code": 35017, "message": "Open orders exist" }
+                    '35019': InvalidOrder,  # { "code": 35019, "message": "Order size too large" }
+                    '35020': InvalidOrder,  # { "code": 35020, "message": "Order price too high" }
+                    '35021': InvalidOrder,  # { "code": 35021, "message": "Order size exceeded current tier limit" }
+                    '35022': ExchangeError,  # { "code": 35022, "message": "Contract status error" }
+                    '35024': ExchangeError,  # { "code": 35024, "message": "Contract not initialized" }
+                    '35025': InsufficientFunds,  # { "code": 35025, "message": "No account balance" }
+                    '35026': ExchangeError,  # { "code": 35026, "message": "Contract settings not initialized" }
+                    '35029': OrderNotFound,  # { "code": 35029, "message": "Order does not exist" }
+                    '35030': InvalidOrder,  # { "code": 35030, "message": "Order size too large" }
+                    '35031': InvalidOrder,  # { "code": 35031, "message": "Cancel order size too large" }
+                    '35032': ExchangeError,  # { "code": 35032, "message": "Invalid user status" }
                     '35037': ExchangeError,  # No last traded price in cache
-                    '35039': ExchangeError,  # {"code": 35039, "message": "Open order quantity exceeds limit"}
+                    '35039': ExchangeError,  # { "code": 35039, "message": "Open order quantity exceeds limit" }
                     '35040': InvalidOrder,  # {"error_message":"Invalid order type","result":"true","error_code":"35040","order_id":"-1"}
-                    '35044': ExchangeError,  # {"code": 35044, "message": "Invalid order status"}
-                    '35046': InsufficientFunds,  # {"code": 35046, "message": "Negative account balance"}
-                    '35047': InsufficientFunds,  # {"code": 35047, "message": "Insufficient account balance"}
-                    '35048': ExchangeError,  # {"code": 35048, "message": "User contract is frozen and liquidating"}
-                    '35049': InvalidOrder,  # {"code": 35049, "message": "Invalid order type"}
-                    '35050': InvalidOrder,  # {"code": 35050, "message": "Position settings are blank"}
-                    '35052': InsufficientFunds,  # {"code": 35052, "message": "Insufficient cross margin"}
-                    '35053': ExchangeError,  # {"code": 35053, "message": "Account risk too high"}
-                    '35055': InsufficientFunds,  # {"code": 35055, "message": "Insufficient account balance"}
-                    '35057': ExchangeError,  # {"code": 35057, "message": "No last traded price"}
-                    '35058': ExchangeError,  # {"code": 35058, "message": "No limit"}
-                    '35059': BadRequest,  # {"code": 35059, "message": "client_oid or order_id is required"}
-                    '35060': BadRequest,  # {"code": 35060, "message": "Only fill in either parameter client_oid or order_id"}
-                    '35061': BadRequest,  # {"code": 35061, "message": "Invalid instrument_id"}
-                    '35062': InvalidOrder,  # {"code": 35062, "message": "Invalid match_price"}
-                    '35063': InvalidOrder,  # {"code": 35063, "message": "Invalid order_size"}
-                    '35064': InvalidOrder,  # {"code": 35064, "message": "Invalid client_oid"}
+                    '35044': ExchangeError,  # { "code": 35044, "message": "Invalid order status" }
+                    '35046': InsufficientFunds,  # { "code": 35046, "message": "Negative account balance" }
+                    '35047': InsufficientFunds,  # { "code": 35047, "message": "Insufficient account balance" }
+                    '35048': ExchangeError,  # { "code": 35048, "message": "User contract is frozen and liquidating" }
+                    '35049': InvalidOrder,  # { "code": 35049, "message": "Invalid order type" }
+                    '35050': InvalidOrder,  # { "code": 35050, "message": "Position settings are blank" }
+                    '35052': InsufficientFunds,  # { "code": 35052, "message": "Insufficient cross margin" }
+                    '35053': ExchangeError,  # { "code": 35053, "message": "Account risk too high" }
+                    '35055': InsufficientFunds,  # { "code": 35055, "message": "Insufficient account balance" }
+                    '35057': ExchangeError,  # { "code": 35057, "message": "No last traded price" }
+                    '35058': ExchangeError,  # { "code": 35058, "message": "No limit" }
+                    '35059': BadRequest,  # { "code": 35059, "message": "client_oid or order_id is required" }
+                    '35060': BadRequest,  # { "code": 35060, "message": "Only fill in either parameter client_oid or order_id" }
+                    '35061': BadRequest,  # { "code": 35061, "message": "Invalid instrument_id" }
+                    '35062': InvalidOrder,  # { "code": 35062, "message": "Invalid match_price" }
+                    '35063': InvalidOrder,  # { "code": 35063, "message": "Invalid order_size" }
+                    '35064': InvalidOrder,  # { "code": 35064, "message": "Invalid client_oid" }
                     '35066': InvalidOrder,  # Order interval error
                     '35067': InvalidOrder,  # Time-weighted order ratio error
                     '35068': InvalidOrder,  # Time-weighted order range error
@@ -1261,9 +1415,9 @@ class bitget(Exchange, ImplicitAPI):
                     '36103': AccountSuspended,  # Account is suspended due to ongoing liquidation.
                     '36104': PermissionDenied,  # Account is not enabled for options trading.
                     '36105': PermissionDenied,  # Please enable the account for option contract.
-                    '36106': AccountSuspended,  # Funds cannot be transferred in or out, is suspended.
+                    '36106': AccountSuspended,  # Funds cannot be transferred in or out, as account is suspended.
                     '36107': PermissionDenied,  # Funds cannot be transferred out within 30 minutes after option exercising or settlement.
-                    '36108': InsufficientFunds,  # Funds cannot be transferred in or out, of the account is less than zero.
+                    '36108': InsufficientFunds,  # Funds cannot be transferred in or out, as equity of the account is less than zero.
                     '36109': PermissionDenied,  # Funds cannot be transferred in or out during option exercising or settlement.
                     '36201': PermissionDenied,  # New order function is blocked.
                     '36202': PermissionDenied,  # Account does not have permission to short option.
@@ -1307,7 +1461,7 @@ class bitget(Exchange, ImplicitAPI):
                     '1001': RateLimitExceeded,  # The request is too frequent and has been throttled
                     '1002': ExchangeError,  # {0} verifications within 24 hours
                     '1003': ExchangeError,  # You failed more than {0} times today, the current operation is locked, please try again in 24 hours
-                    # '00000': ExchangeError,  # success
+                    # '00000': ExchangeError, // success
                     '40001': AuthenticationError,  # ACCESS_KEY cannot be empty
                     '40002': AuthenticationError,  # SECRET_KEY cannot be empty
                     '40003': AuthenticationError,  # Signature cannot be empty
@@ -1324,7 +1478,8 @@ class bitget(Exchange, ImplicitAPI):
                     '40014': PermissionDenied,  # Incorrect permissions
                     '40015': ExchangeError,  # System is abnormal, please try again later
                     '40016': PermissionDenied,  # The user must bind the phone or Google
-                    '40017': ExchangeError,  # Parameter verification failed
+                    '40017': BadRequest,  # Parameter verification failed
+                    '400172': BadRequest,  # {"code":"400172","msg":"Parameter verification failed","requestTime":1789206270550,"data":null} - v3 uta twin of 40017
                     '40018': PermissionDenied,  # Invalid IP
                     '40019': BadRequest,  # {"code":"40019","msg":"Parameter QLCUSDT_SPBL cannot be empty","requestTime":1679196063659,"data":null}
                     '40031': AccountSuspended,  # The account has been cancelled and cannot be used again
@@ -1371,7 +1526,7 @@ class bitget(Exchange, ImplicitAPI):
                     '40502': ExchangeError,  # If it is a copy user, you must pass the copy to whom
                     '40503': ExchangeError,  # With the single type
                     '40504': ExchangeError,  # Platform code must pass
-                    '40505': ExchangeError,  # Not the same type
+                    '40505': ExchangeError,  # Not the same as single type
                     '40506': AuthenticationError,  # Platform signature error
                     '40507': AuthenticationError,  # Api signature error
                     '40508': ExchangeError,  # KOL is not authorized
@@ -1395,7 +1550,7 @@ class bitget(Exchange, ImplicitAPI):
                     '40706': InvalidOrder,  # Wrong order price
                     '40707': BadRequest,  # Start time is greater than end time
                     '40708': BadRequest,  # Parameter verification is abnormal
-                    '40709': ExchangeError,  # There is no hasattr(self, position) position, and no automatic margin call can be set
+                    '40709': ExchangeError,  # There is no position in this position, and no automatic margin call can be set
                     '40710': ExchangeError,  # Abnormal account status
                     '40711': InsufficientFunds,  # Insufficient contract account balance
                     '40712': InsufficientFunds,  # Insufficient margin
@@ -1500,13 +1655,13 @@ class bitget(Exchange, ImplicitAPI):
                 'timeDifference': 0,  # the difference between system clock and exchange clock
                 'adjustForTimeDifference': False,  # controls the adjustment logic upon instantiation
                 'fetchMarkets': {
-                    'types': ['spot', 'swap'],  # there is future markets but they use the same endpoints
+                    'types': ['spot', 'swap'],  # there is future markets but they use the same endpoints as swap
                 },
                 'defaultType': 'spot',  # 'spot', 'swap', 'future'
                 'defaultSubType': 'linear',  # 'linear', 'inverse'
                 'createOrder': {
                     'createMarketBuyOrderRequiresPrice': True,
-                    'timeInForce': 'GTC',  # 'GTC' = Good To Cancel(default), 'IOC' = Immediate Or Cancel
+                    'timeInForce': 'GTC',  # 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
                 },
                 'broker': 'p4sve',
                 'withdraw': {
@@ -1559,7 +1714,7 @@ class bitget(Exchange, ImplicitAPI):
                             '1d': '1D',
                         },
                     },
-                    #  ### Timeframe settings  ###
+                    # ### Timeframe settings ###
                     # after testing, the below values are real ones, because the values provided by API DOCS are wrong
                     # so, start timestamp should be within these thresholds to be able to call "recent" candles endpoint
                     'maxRecentDaysPerTimeframe': {
@@ -1635,12 +1790,12 @@ class bitget(Exchange, ImplicitAPI):
                 },
                 'sandboxMode': False,
                 'networks': {
-                    # 'TRX': 'TRX',  # different code for mainnet
+                    # 'TRX': 'TRX', // different code for mainnet
                     'TRC20': 'TRC20',
-                    # 'ETH': 'ETH',  # different code for mainnet
+                    # 'ETH': 'ETH', // different code for mainnet
                     'ERC20': 'ERC20',
                     'BEP20': 'BSC',
-                    # 'BEP20': 'BEP20',  # different for BEP20
+                    # 'BEP20': 'BEP20', // different for BEP20
                     'ATOM': 'ATOM',
                     'ACA': 'AcalaToken',
                     'APT': 'Aptos',
@@ -1721,10 +1876,10 @@ class bitget(Exchange, ImplicitAPI):
                     'JUNO': 'JUNO',
                     # undetected: USDSP, more info at https://www.bitget.com/v1/spot/public/coinChainList
                     # todo: uncomment below after unification
-                    # 'TERRACLASSIC': 'Terra',  # tbd, that network id is also assigned to TERRANEW network
+                    # 'TERRACLASSIC': 'Terra', // tbd, that network id is also assigned to TERRANEW network
                     # 'CUBENETWORK': 'CUBE',
                     # 'CADUCEUS': 'CMP',
-                    # 'CONFLUX': 'CFX',  # CFXeSpace is different
+                    # 'CONFLUX': 'CFX', // CFXeSpace is different
                     # 'CERE': 'CERE',
                     'CANTO': 'CANTO-EVM',  # live-verified raw chain id, see https://github.com/ccxt/ccxt/issues/23989
                     'ZKSYNC': 'zkSyncEra',
@@ -1775,10 +1930,10 @@ class bitget(Exchange, ImplicitAPI):
                         'marketBuyRequiresPrice': True,
                         'marketBuyByCost': True,
                         # exchange-supported features
-                        # 'selfTradePrevention': True,
-                        # 'twap': False,
-                        # 'iceberg': False,
-                        # 'oco': False,
+                        # 'selfTradePrevention': true,
+                        # 'twap': false,
+                        # 'iceberg': false,
+                        # 'oco': false,
                     },
                     'createOrders': {
                         'max': 50,
@@ -1849,11 +2004,11 @@ class bitget(Exchange, ImplicitAPI):
                         'marketBuyRequiresPrice': False,
                         'marketBuyByCost': False,
                         # exchange-supported features
-                        # 'selfTradePrevention': True,
-                        # 'trailing': True,
-                        # 'twap': False,
-                        # 'iceberg': False,
-                        # 'oco': False,
+                        # 'selfTradePrevention': true,
+                        # 'trailing': true,
+                        # 'twap': false,
+                        # 'iceberg': false,
+                        # 'oco': false,
                     },
                     'fetchMyTrades': {
                         'untilDays': 7,
@@ -1901,16 +2056,16 @@ class bitget(Exchange, ImplicitAPI):
         defaultProductType = None
         if (subType is not None) and (market is None):
             # set default only if subType is defined and market is not defined, since there is also USDC productTypes which are also linear
-            # sandboxMode = self.safe_bool(self.options, 'sandboxMode', False)
-            # if sandboxMode:
-            #     defaultProductType = 'SUSDT-FUTURES' if (subType == 'linear') else 'SCOIN-FUTURES'
-            # else:
+            # const sandboxMode = this.safeBool (this.options, 'sandboxMode', false);
+            # if (sandboxMode) {
+            #     defaultProductType = (subType === 'linear') ? 'SUSDT-FUTURES' : 'SCOIN-FUTURES';
+            # } else {
             defaultProductType = 'USDT-FUTURES' if (subType == 'linear') else 'COIN-FUTURES'
             # }
         productType = self.safe_string_2(params, 'productType', 'category', defaultProductType)
         if (productType is None) and (market is not None):
             settle = market['settle']
-            if market['spot']:
+            if market['spot'] is True:
                 marginMode = None
                 marginMode, params = self.handle_margin_mode_and_params('handleProductTypeAndParams', params)
                 if marginMode is not None:
@@ -1943,7 +2098,7 @@ class bitget(Exchange, ImplicitAPI):
             # use the api to determine if the account is uta or not
             accountIsUTa = False
             try:
-                await self.privateUtaGetV3AccountSettings(params)
+                await self.privateUtaGetV3AccountSettings()
                 accountIsUTa = True
             except Exception as e:
                 accountIsUTa = False
@@ -1987,11 +2142,11 @@ class bitget(Exchange, ImplicitAPI):
         :param boolean [params.uta]: set to True for the unified trading account(uta), defaults to False
         :returns dict[]: an array of objects representing market data
         """
-        if self.options['adjustForTimeDifference']:
+        if self.options['adjustForTimeDifference'] is True:
             await self.load_time_difference()
         uta = None
         uta, params = await self.handle_uta_and_params(params, 'fetchMarkets', False)
-        if uta:
+        if uta is True:
             return await self.fetch_uta_markets(params)
         return await self.fetch_default_markets(params)
 
@@ -2031,7 +2186,7 @@ class bitget(Exchange, ImplicitAPI):
             isBorrowable = self.safe_bool(firstData, 'isBorrowable')
             if fetchMargins and isBorrowable is not None:
                 # cross and isolated availability are per-symbol - a coin can be listed by
-                # v2/margin/currencies yet have cross disabled(isCrossBorrowable False,
+                # v2/margin/currencies yet have cross disabled (isCrossBorrowable false,
                 # maxCrossedLeverage "0"), e.g. KAITOUSDT, which makes fetchCrossBorrowRate
                 # fail with bitget error 50001 "coin does not support cross"
                 crossKeys = []
@@ -2040,11 +2195,11 @@ class bitget(Exchange, ImplicitAPI):
                     entry = self.safe_dict(data, j, {})
                     entrySymbol = self.safe_string(entry, 'symbol')
                     entryBorrowable = self.safe_bool(entry, 'isBorrowable', True)
-                    if entryBorrowable and self.safe_bool(entry, 'isCrossBorrowable', True):
+                    if (entryBorrowable is True) and self.safe_bool(entry, 'isCrossBorrowable', True):
                         crossKeys.append(entrySymbol)
                     isolatedBase = self.safe_bool(entry, 'isIsolatedBaseBorrowable', True)
                     isolatedQuote = self.safe_bool_2(entry, 'isIsolatedQuotedBorrowable', 'isIsolatedQuoteBorrowable', True)
-                    if entryBorrowable and (isolatedBase or isolatedQuote):
+                    if (entryBorrowable is True) and ((isolatedBase is True) or (isolatedQuote is True)):
                         isolatedKeys.append(entrySymbol)
                 self.options['crossMarginPairsData'] = crossKeys
                 self.options['isolatedMarginPairsData'] = isolatedKeys
@@ -2539,7 +2694,7 @@ class bitget(Exchange, ImplicitAPI):
     def parse_currency(self, rawCurrency: dict) -> CurrencyInterface:
         fiatCurrencies = self.handle_option('fetchCurrencies', 'fiatCurrencies', [])
         entry = rawCurrency
-        id = self.safe_string(entry, 'coin')  # we don't use 'coinId' has no use. it is 'coin' field that needs to be used in currency related endpoints(deposit, withdraw, etc..)
+        id = self.safe_string(entry, 'coin')  # we don't use 'coinId' as it has no use. it is 'coin' field that needs to be used in currency related endpoints (deposit, withdraw, etc..)
         code = self.safe_currency_code(id)
         chains = self.safe_list(entry, 'chains', [])
         networks = {}
@@ -2580,7 +2735,7 @@ class bitget(Exchange, ImplicitAPI):
                 'fee': self.safe_number(chain, 'withdrawFee'),
                 'precision': self.parse_number(self.parse_precision(self.safe_string(chain, 'withdrawMinScale'))),
             }
-        active = withdraw and deposit
+        active = (withdraw is True) and (deposit is True)
         isFiat = self.in_array(code, fiatCurrencies)
         return self.safe_currency_structure({
             'info': entry,
@@ -2639,14 +2794,14 @@ class bitget(Exchange, ImplicitAPI):
         marginMode, params = self.handle_margin_mode_and_params('fetchMarketLeverageTiers', params, 'isolated')
         productType, params = self.handle_product_type_and_params(market, params)
         uta, params = await self.handle_uta_and_params(params, 'fetchMarketLeverageTiers', False)
-        if uta:
+        if uta is True:
             if productType == 'SPOT':
                 if marginMode is not None:
                     productType = 'MARGIN'
             request['symbol'] = market['id']
             request['category'] = productType
             response = await self.publicUtaGetV3MarketPositionTier(self.extend(request, params))
-        elif (market['swap']) or (market['future']):
+        elif (market['swap'] is True) or (market['future'] is True):
             request['productType'] = productType
             request['symbol'] = market['id']
             response = await self.publicMixGetV2MixMarketQueryPositionLever(self.extend(request, params))
@@ -2816,24 +2971,33 @@ class bitget(Exchange, ImplicitAPI):
         fetch all deposits made to an account
 
         https://www.bitget.com/api-doc/spot/account/Get-Deposit-Record
+        https://www.bitget.com/api-doc/uta/account/deposit/Get-Deposit-Records
 
         :param str code: unified currency code
-        :param int [since]: the earliest time in ms to fetch deposits for
+        :param int [since]: the earliest time in ms to fetch deposits for, the window between since and until must not exceed 30 days for uta accounts
         :param int [limit]: the maximum number of deposits structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: end time in milliseconds
-        :param str [params.idLessThan]: return records with id less than the provided value
+        :param str [params.idLessThan]: *non-uta only* return records with id less than the provided value
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        :param boolean [params.uta]: set to True for the unified trading account(uta), defaults to False
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
         if self.markets is None:
             await self.load_markets()
+        uta = None
+        uta, params = await self.handle_uta_and_params(params, 'fetchDeposits', False)
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchDeposits', 'paginate')
         if paginate:
+            if uta is True:
+                return await self.fetch_paginated_call_cursor('fetchDeposits', None, since, limit, params, 'orderId', 'cursor', None, 100)
             return await self.fetch_paginated_call_cursor('fetchDeposits', None, since, limit, params, 'idLessThan', 'idLessThan', None, 100)
         if since is None:
-            since = self.milliseconds() - 7776000000  # 90 days
+            if uta is True:
+                since = self.milliseconds() - 2592000000  # uta allows a window of 30 days at most
+            else:
+                since = self.milliseconds() - 7776000000  # 90 days
         request = {
             'startTime': since,
             'endTime': self.milliseconds(),
@@ -2845,7 +3009,11 @@ class bitget(Exchange, ImplicitAPI):
         if limit is not None:
             request['limit'] = limit
         request, params = self.handle_until_option('endTime', request, params)
-        response = await self.privateSpotGetV2SpotWalletDepositRecords(self.extend(request, params))
+        response = None
+        if uta is True:
+            response = await self.privateUtaGetV3AccountDepositRecords(self.extend(request, params))
+        else:
+            response = await self.privateSpotGetV2SpotWalletDepositRecords(self.extend(request, params))
         #
         #     {
         #         "code": "00000",
@@ -2869,6 +3037,31 @@ class bitget(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
+        # uta
+        #
+        #     {
+        #         "code": "00000",
+        #         "msg": "success",
+        #         "requestTime": 1787918939871,
+        #         "data": [
+        #             {
+        #                 "orderId": "1477183242218870001",
+        #                 "recordId": "0999e9fc8dfa7d65e5a9e3d7b9c9c9cf7c283621442dd0be6feb502b89545e95",
+        #                 "coin": "USDT",
+        #                 "type": "deposit",
+        #                 "size": "30",
+        #                 "status": "success",
+        #                 "toAddress": "TKtjsywjRu4HechtABGJBVhkDJtwYcMVfc",
+        #                 "dest": "on_chain",
+        #                 "chain": "TRC20",
+        #                 "createdTime": "1787913850359",
+        #                 "updatedTime": "1787913880178",
+        #                 "fromAddress": "TFcWfiw5p5DDZ6vi6Bktf7yK1asRYLpN33",
+        #                 "clientOid": null
+        #             }
+        #         ]
+        #     }
+        #
         rawTransactions = self.safe_list(response, 'data', [])
         return self.parse_transactions(rawTransactions, None, since, limit)
 
@@ -2877,6 +3070,7 @@ class bitget(Exchange, ImplicitAPI):
         make a withdrawal
 
         https://www.bitget.com/api-doc/spot/account/Wallet-Withdrawal
+        https://www.bitget.com/api-doc/uta/account/withdrawal/
 
         :param str code: unified currency code
         :param float amount: the amount to withdraw
@@ -2884,6 +3078,7 @@ class bitget(Exchange, ImplicitAPI):
         :param str tag:
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.chain]: the blockchain network the withdrawal is taking place on
+        :param boolean [params.uta]: set to True for the unified trading account(uta), defaults to False
         :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
         self.check_address(address)
@@ -2893,6 +3088,8 @@ class bitget(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' withdraw() requires a "network" parameter')
         if self.markets is None:
             await self.load_markets()
+        uta = None
+        uta, params = await self.handle_uta_and_params(params, 'withdraw', False)
         currency = self.currency(code)
         networkId = self.network_code_to_id(networkCode, code)
         request = {
@@ -2904,7 +3101,11 @@ class bitget(Exchange, ImplicitAPI):
         }
         if tag is not None:
             request['tag'] = tag
-        response = await self.privateSpotPostV2SpotWalletWithdrawal(self.extend(request, params))
+        response = None
+        if uta is True:
+            response = await self.privateUtaPostV3AccountWithdrawal(self.extend(request, params))
+        else:
+            response = await self.privateSpotPostV2SpotWalletWithdrawal(self.extend(request, params))
         #
         #     {
         #          "code":"00000",
@@ -2921,7 +3122,7 @@ class bitget(Exchange, ImplicitAPI):
         result['type'] = 'withdrawal'
         withdrawOptions = self.safe_value(self.options, 'withdraw', {})
         fillResponseFromRequest = self.safe_bool(withdrawOptions, 'fillResponseFromRequest', True)
-        if fillResponseFromRequest:
+        if fillResponseFromRequest is True:
             result['currency'] = code
             result['amount'] = amount
             result['tag'] = tag
@@ -2935,27 +3136,36 @@ class bitget(Exchange, ImplicitAPI):
         fetch all withdrawals made from an account
 
         https://www.bitget.com/api-doc/spot/account/Get-Withdraw-Record
+        https://www.bitget.com/api-doc/uta/account/withdrawal/Get-Withdrawal-Records
 
         :param str code: unified currency code
-        :param int [since]: the earliest time in ms to fetch withdrawals for
+        :param int [since]: the earliest time in ms to fetch withdrawals for, the window between since and until must not exceed 30 days for uta accounts
         :param int [limit]: the maximum number of withdrawals structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: end time in milliseconds
-        :param str [params.idLessThan]: return records with id less than the provided value
+        :param str [params.idLessThan]: *non-uta only* return records with id less than the provided value
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        :param boolean [params.uta]: set to True for the unified trading account(uta), defaults to False
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
         if self.markets is None:
             await self.load_markets()
+        uta = None
+        uta, params = await self.handle_uta_and_params(params, 'fetchWithdrawals', False)
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchWithdrawals', 'paginate')
         if paginate:
+            if uta is True:
+                return await self.fetch_paginated_call_cursor('fetchWithdrawals', None, since, limit, params, 'orderId', 'cursor', None, 100)
             return await self.fetch_paginated_call_cursor('fetchWithdrawals', None, since, limit, params, 'idLessThan', 'idLessThan', None, 100)
         currency = None
         if code is not None:
             currency = self.currency(code)
         if since is None:
-            since = self.milliseconds() - 7776000000  # 90 days
+            if uta is True:
+                since = self.milliseconds() - 2592000000  # uta allows a window of 30 days at most
+            else:
+                since = self.milliseconds() - 7776000000  # 90 days
         request = {
             'startTime': since,
             'endTime': self.milliseconds(),
@@ -2965,7 +3175,11 @@ class bitget(Exchange, ImplicitAPI):
         request, params = self.handle_until_option('endTime', request, params)
         if limit is not None:
             request['limit'] = limit
-        response = await self.privateSpotGetV2SpotWalletWithdrawalRecords(self.extend(request, params))
+        response = None
+        if uta is True:
+            response = await self.privateUtaGetV3AccountWithdrawalRecords(self.extend(request, params))
+        else:
+            response = await self.privateSpotGetV2SpotWalletWithdrawalRecords(self.extend(request, params))
         #
         #     {
         #         "code": "00000",
@@ -2988,6 +3202,33 @@ class bitget(Exchange, ImplicitAPI):
         #                 "fromAddress": null,
         #                 "cTime": "1694131668281",
         #                 "uTime": "1694131680247"
+        #             }
+        #         ]
+        #     }
+        #
+        # uta
+        #
+        #     {
+        #         "code": "00000",
+        #         "msg": "success",
+        #         "requestTime": 1787918941219,
+        #         "data": [
+        #             {
+        #                 "orderId": "1477203433330230002",
+        #                 "recordId": "855182adcdbf968e6c0854de1d9ef04f9542ae27337f87ccbe2f6d1e995ec01b",
+        #                 "coin": "USDT",
+        #                 "type": "withdraw",
+        #                 "size": "30",
+        #                 "status": "success",
+        #                 "toAddress": "TFcWfiw5p5DDZ6vi6Bktf7yK1asRYLpN33",
+        #                 "dest": "on_chain",
+        #                 "chain": "TRC20",
+        #                 "createdTime": "1787918664295",
+        #                 "updatedTime": "1787918826202",
+        #                 "fromAddress": "TU8P3KLsV7YhkUvF9nWxjigMqv2c2mqNC9",
+        #                 "fee": "-1.5",
+        #                 "confirm": "5",
+        #                 "clientOid": null
         #             }
         #         ]
         #     }
@@ -3034,12 +3275,25 @@ class bitget(Exchange, ImplicitAPI):
         #         "uTime": "1694131680247"
         #     }
         #
+        # fetchDeposits & fetchWithdrawals uta rows use the same fields, except
+        #
+        #     {
+        #         "recordId": "63dbe57f0f0a5f6d3e74ff1b07e4c4f5332b96fec74c14190a52e0cea1726364",
+        #         "createdTime": "1787913850359",
+        #         "updatedTime": "1787913880178"
+        #     }
+        #
         currencyId = self.safe_string(transaction, 'coin')
         code = self.safe_currency_code(currencyId, currency)
-        timestamp = self.safe_integer(transaction, 'cTime')
+        timestamp = self.safe_integer_2(transaction, 'cTime', 'createdTime')
         networkId = self.safe_string(transaction, 'chain')
         status = self.safe_string(transaction, 'status')
         tag = self.safe_string(transaction, 'tag')
+        txid = self.safe_string(transaction, 'tradeId')
+        if txid is None:
+            dest = self.safe_string(transaction, 'dest')
+            if dest == 'on_chain':
+                txid = self.safe_string(transaction, 'recordId')  # uta on-chain rows expose the tx hash as recordId
         feeCostString = self.safe_string(transaction, 'fee')
         feeCostAbsString = None
         if feeCostString is not None:
@@ -3052,7 +3306,7 @@ class bitget(Exchange, ImplicitAPI):
         return {
             'id': self.safe_string(transaction, 'orderId'),
             'info': transaction,
-            'txid': self.safe_string(transaction, 'tradeId'),
+            'txid': txid,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'network': self.network_id_to_code(networkId, code),
@@ -3060,10 +3314,10 @@ class bitget(Exchange, ImplicitAPI):
             'address': self.safe_string(transaction, 'toAddress'),
             'addressTo': self.safe_string(transaction, 'toAddress'),
             'amount': self.parse_number(amountString),
-            'type': self.safe_string(transaction, 'type'),
+            'type': self.parse_transaction_type(self.safe_string(transaction, 'type')),
             'currency': code,
             'status': self.parse_transaction_status(status),
-            'updated': self.safe_integer(transaction, 'uTime'),
+            'updated': self.safe_integer_2(transaction, 'uTime', 'updatedTime'),
             'tagFrom': None,
             'tag': tag,
             'tagTo': tag,
@@ -3072,12 +3326,21 @@ class bitget(Exchange, ImplicitAPI):
             'fee': fee,
         }
 
+    def parse_transaction_type(self, type: Str):
+        # the wire says withdraw, and a unified transaction says withdrawal
+        types = {
+            'withdraw': 'withdrawal',
+        }
+        return self.safe_string(types, type, type)
+
     def parse_transaction_status(self, status: Str):
         statuses = {
             'success': 'ok',
             'Pending': 'pending',
+            'pending': 'pending',
             'pending_review': 'pending',
             'pending_review_fail': 'failed',
+            'fail': 'failed',
             'reject': 'failed',
         }
         return self.safe_string(statuses, status, status)
@@ -3087,13 +3350,17 @@ class bitget(Exchange, ImplicitAPI):
         fetch the deposit address for a currency associated with self account
 
         https://www.bitget.com/api-doc/spot/account/Get-Deposit-Address
+        https://www.bitget.com/api-doc/uta/account/deposit/Get-Deposit-Address
 
         :param str code: unified currency code
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param boolean [params.uta]: set to True for the unified trading account(uta), defaults to False
         :returns dict: an `address structure <https://docs.ccxt.com/?id=address-structure>`
         """
         if self.markets is None:
             await self.load_markets()
+        uta = None
+        uta, params = await self.handle_uta_and_params(params, 'fetchDepositAddress', False)
         networkCode = None
         networkCode, params = self.handle_network_code_and_params(params)
         currency = self.currency(code)
@@ -3102,7 +3369,11 @@ class bitget(Exchange, ImplicitAPI):
         }
         if networkCode is not None:
             request['chain'] = self.network_code_to_id(networkCode, code)
-        response = await self.privateSpotGetV2SpotWalletDepositAddress(self.extend(request, params))
+        response = None
+        if uta is True:
+            response = await self.privateUtaGetV3AccountDepositAddress(self.extend(request, params))
+        else:
+            response = await self.privateSpotGetV2SpotWalletDepositAddress(self.extend(request, params))
         #
         #     {
         #         "code": "00000",
@@ -3171,10 +3442,10 @@ class bitget(Exchange, ImplicitAPI):
         response = None
         uta = None
         uta, params = await self.handle_uta_and_params(params, 'fetchOrderBook', False)
-        if uta:
+        if uta is True:
             request['category'] = productType
             response = await self.publicUtaGetV3MarketOrderbook(self.extend(request, params))
-        elif market['spot']:
+        elif market['spot'] is True:
             response = await self.publicSpotGetV2SpotMarketOrderbook(self.extend(request, params))
         else:
             request['productType'] = productType
@@ -3185,8 +3456,8 @@ class bitget(Exchange, ImplicitAPI):
         #       "msg": "success",
         #       "requestTime": 1645854610294,
         #       "data": {
-        #         "asks": [["39102", "11.026"]],
-        #         "bids": [['39100.5', "1.773"]],
+        #         "asks": [ [ "39102", "11.026" ] ],
+        #         "bids": [ [ '39100.5', "1.773" ] ],
         #         "ts": "1645854610294"
         #       }
         #     }
@@ -3198,15 +3469,15 @@ class bitget(Exchange, ImplicitAPI):
         #         "msg": "success",
         #         "requestTime": 1750329437753,
         #         "data": {
-        #             "a": [[104992.60, 0.018411]],
-        #             "b":[[104927.40, 0.229914]],
+        #             "a": [ [ 104992.60, 0.018411 ] ],
+        #             "b":[ [104927.40, 0.229914 ] ],
         #             "ts": "1750329437763"
         #         }
         #     }
         #
         data = self.safe_value(response, 'data', {})
-        bidsKey = 'b' if uta else 'bids'
-        asksKey = 'a' if uta else 'asks'
+        bidsKey = 'b' if (uta is True) else 'bids'
+        asksKey = 'a' if (uta is True) else 'asks'
         timestamp = self.safe_integer(data, 'ts')
         return self.parse_order_book(data, market['symbol'], timestamp, bidsKey, asksKey)
 
@@ -3324,7 +3595,7 @@ class bitget(Exchange, ImplicitAPI):
             marketType = 'contract'
         else:
             marketType = 'spot'
-        # both fields are ratios, and a ticker reports(change/open) * 100
+        # both fields are ratios, and a ticker reports (change/open) * 100
         percentage = Precise.string_mul(self.safe_string_2(ticker, 'price24hPcnt', 'change24h'), '100')
         return self.safe_ticker({
             'symbol': self.safe_symbol(marketId, market, None, marketType),
@@ -3375,10 +3646,10 @@ class bitget(Exchange, ImplicitAPI):
         response = None
         uta = None
         uta, params = await self.handle_uta_and_params(params, 'fetchTicker', False)
-        if uta:
+        if uta is True:
             request['category'] = productType
             response = await self.publicUtaGetV3MarketTickers(self.extend(request, params))
-        elif market['spot']:
+        elif market['spot'] is True:
             response = await self.publicSpotGetV2SpotMarketTickers(self.extend(request, params))
         else:
             request['productType'] = productType
@@ -3526,7 +3797,7 @@ class bitget(Exchange, ImplicitAPI):
             'symbol': market['id'],
         }
         response = None
-        if market['spot']:
+        if market['spot'] is True:
             raise NotSupported(self.id + ' fetchMarkPrice() is not supported for spot markets')
         else:
             productType = None
@@ -3561,16 +3832,16 @@ class bitget(Exchange, ImplicitAPI):
         request = {}
         type = None
         type, params = self.handle_market_type_and_params('fetchTickers', market, params)
-        # Calls like `.fetchTickers(None, {subType:'inverse'})` should be supported for self exchange, so
+        # Calls like `.fetchTickers (undefined, {subType:'inverse'})` should be supported for this exchange, so
         # as "options.defaultSubType" is also set in exchange options, we should consider `params.subType`
         # with higher priority and only default to spot, if `subType` is not set in params
         passedSubType = self.safe_string(params, 'subType')
         productType = None
         productType, params = self.handle_product_type_and_params(market, params)
-        # only if passedSubType and productType is None, then use spot
+        # only if passedSubType && productType is undefined, then use spot
         uta = None
         uta, params = await self.handle_uta_and_params(params, 'fetchTickers', False)
-        if uta:
+        if uta is True:
             if symbols is not None:
                 symbolsLength = len(symbols)
                 if symbolsLength == 1:
@@ -3884,9 +4155,9 @@ class bitget(Exchange, ImplicitAPI):
         uta = None
         uta, params = await self.handle_uta_and_params(params, 'fetchTrades', False)
         if limit is not None:
-            if uta:
+            if uta is True:
                 request['limit'] = min(limit, 100)
-            elif market['contract']:
+            elif market['contract'] is True:
                 request['limit'] = min(limit, 1000)
             else:
                 request['limit'] = limit
@@ -3894,7 +4165,7 @@ class bitget(Exchange, ImplicitAPI):
         response = None
         productType = None
         productType, params = self.handle_product_type_and_params(market, params)
-        if uta:
+        if uta is True:
             if productType == 'SPOT':
                 marginMode = None
                 marginMode, params = self.handle_margin_mode_and_params('fetchTrades', params)
@@ -3902,7 +4173,7 @@ class bitget(Exchange, ImplicitAPI):
                     productType = 'MARGIN'
             request['category'] = productType
             response = await self.publicUtaGetV3MarketFills(self.extend(request, params))
-        elif market['spot']:
+        elif market['spot'] is True:
             spotOptions = self.safe_value(options, 'spot', {})
             defaultSpotMethod = self.safe_string(spotOptions, 'method', 'publicSpotGetV2SpotMarketFillsHistory')
             spotMethod = self.safe_string(params, 'method', defaultSpotMethod)
@@ -3989,10 +4260,12 @@ class bitget(Exchange, ImplicitAPI):
         fetch the trading fees for a market
 
         https://www.bitget.com/api-doc/common/public/Get-Trade-Rate
+        https://www.bitget.com/docs/catalog/account/assets-balance#get-account-fee-rate
 
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.marginMode]: 'isolated' or 'cross', for finding the fee rate of spot margin trading pairs
+        :param boolean [params.uta]: set to True for the unified trading account(uta), defaults to False
         :returns dict: a `fee structure <https://docs.ccxt.com/?id=fee-structure>`
         """
         if self.markets is None:
@@ -4001,9 +4274,29 @@ class bitget(Exchange, ImplicitAPI):
         request = {
             'symbol': market['id'],
         }
+        uta = None
+        uta, params = await self.handle_uta_and_params(params, 'fetchTradingFee', False)
+        if uta is True:
+            productType = None
+            productType, params = self.handle_product_type_and_params(market, params)
+            request['category'] = productType
+            utaResponse = await self.privateUtaGetV3AccountFeeRate(self.extend(request, params))
+            #
+            #     {
+            #         "code": "00000",
+            #         "msg": "success",
+            #         "requestTime": 1789206261241,
+            #         "data": {
+            #             "makerFeeRate": "0.001",
+            #             "takerFeeRate": "0.001"
+            #         }
+            #     }
+            #
+            utaData = self.safe_dict(utaResponse, 'data', {})
+            return self.parse_trading_fee(utaData, market)
         marginMode = None
         marginMode, params = self.handle_margin_mode_and_params('fetchTradingFee', params)
-        if market['spot']:
+        if market['spot'] is True:
             if marginMode is not None:
                 request['businessType'] = 'margin'
             else:
@@ -4032,10 +4325,12 @@ class bitget(Exchange, ImplicitAPI):
         https://www.bitget.com/api-doc/spot/market/Get-Symbols
         https://www.bitget.com/api-doc/contract/market/Get-All-Symbols-Contracts
         https://www.bitget.com/api-doc/margin/common/support-currencies
+        https://www.bitget.com/docs/catalog/account/risk-position#get-all-symbol-fee-rates
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.productType]: *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
         :param boolean [params.margin]: set to True for spot margin
+        :param boolean [params.uta]: set to True for the unified trading account(uta), defaults to False
         :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/?id=fee-structure>` indexed by market symbols
         """
         if self.markets is None:
@@ -4045,10 +4340,55 @@ class bitget(Exchange, ImplicitAPI):
         marketType = None
         marginMode, params = self.handle_margin_mode_and_params('fetchTradingFees', params)
         marketType, params = self.handle_market_type_and_params('fetchTradingFees', None, params)
+        uta = None
+        uta, params = await self.handle_uta_and_params(params, 'fetchTradingFees', False)
+        if uta is True:
+            utaMargin = self.safe_bool(params, 'margin', False)
+            params = self.omit(params, 'margin')
+            request = {}
+            if marketType == 'spot':
+                if (marginMode is not None) or (utaMargin is True):
+                    request['category'] = 'MARGIN'
+                else:
+                    request['category'] = 'SPOT'
+            elif (marketType == 'swap') or (marketType == 'future'):
+                productType = None
+                productType, params = self.handle_product_type_and_params(None, params)
+                request['category'] = productType
+            else:
+                raise NotSupported(self.id + ' does not support ' + marketType + ' market')
+            utaResponse = await self.privateUtaGetV3AccountAllFeeRate(self.extend(request, params))
+            #
+            #     {
+            #         "code": "00000",
+            #         "msg": "success",
+            #         "requestTime": 1789206286428,
+            #         "data": [
+            #             {
+            #                 "makerFeeRate": "0.00036",
+            #                 "takerFeeRate": "0.001",
+            #                 "symbol": "BTCUSDT"
+            #             }
+            #         ]
+            #     }
+            #
+            rows = self.safe_list(utaResponse, 'data', [])
+            utaResult = {}
+            for i in range(0, len(rows)):
+                entry = rows[i]
+                entryMarketId = self.safe_string(entry, 'symbol')
+                if (entryMarketId is None) or (self.markets_by_id is None) or not (entryMarketId in self.markets_by_id):
+                    continue  # skip ids missing from the loaded market map, a raw id must not become a unified symbol key
+                entryMarket = self.safe_market(entryMarketId, None, None, marketType)
+                entrySymbol = self.safe_string(entryMarket, 'symbol')
+                if (entrySymbol is None) or (entrySymbol == entryMarketId):
+                    continue  # safeMarket found no market of this type and fell back to a raw-id structure
+                utaResult[entrySymbol] = self.parse_trading_fee(entry, entryMarket)
+            return utaResult
         if marketType == 'spot':
             margin = self.safe_bool(params, 'margin', False)
             params = self.omit(params, 'margin')
-            if (marginMode is not None) or margin:
+            if (marginMode is not None) or (margin is True):
                 response = await self.publicMarginGetV2MarginCurrencies(params)
             else:
                 response = await self.publicSpotGetV2SpotPublicSymbols(params)
@@ -4130,7 +4470,7 @@ class bitget(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        data = self.safe_value(response, 'data', [])
+        data = self.safe_list(response, 'data', [])
         result = {}
         for i in range(0, len(data)):
             entry = data[i]
@@ -4165,7 +4505,7 @@ class bitget(Exchange, ImplicitAPI):
         #     ]
         #
         inverse = self.safe_bool(market, 'inverse')
-        volumeIndex = 6 if inverse else 5
+        volumeIndex = 6 if (inverse is True) else 5
         return [
             self.safe_integer(ohlcv, 0),
             self.safe_number(ohlcv, 1),
@@ -4198,7 +4538,7 @@ class bitget(Exchange, ImplicitAPI):
         :param boolean [params.useHistoryEndpointForPagination]: whether to force to use historical endpoint for pagination(default True)
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :param str [params.price]: *swap only* "mark"(to fetch mark price candles) or "index"(to fetch index price candles)
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()
@@ -4210,7 +4550,7 @@ class bitget(Exchange, ImplicitAPI):
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchOHLCV', 'paginate')
         if paginate:
-            limitForPagination = maxLimitForHistoryEndpoint if useHistoryEndpointForPagination else maxLimitForRecentEndpoint
+            limitForPagination = maxLimitForHistoryEndpoint if (useHistoryEndpointForPagination is True) else maxLimitForRecentEndpoint
             return await self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, params, limitForPagination)
         market = self.market(symbol)
         request = {
@@ -4221,11 +4561,11 @@ class bitget(Exchange, ImplicitAPI):
         timeframesOption = self.handle_option('fetchOHLCV', 'timeframes')
         uta = None
         uta, params = await self.handle_uta_and_params(params, 'fetchOHLCV', False)
-        if uta:
+        if uta is True:
             timeframes = timeframesOption['uta']
             request['interval'] = self.safe_string(timeframes, timeframe, timeframe)
         else:
-            marketType = 'spot' if market['spot'] else 'swap'
+            marketType = 'spot' if (market['spot'] is True) else 'swap'
             timeframes = timeframesOption[marketType]
             request['granularity'] = self.safe_string(timeframes, timeframe, timeframe)
         msInDay = 86400000
@@ -4239,7 +4579,7 @@ class bitget(Exchange, ImplicitAPI):
         # retrievable periods listed here:
         # - https://www.bitget.com/api-doc/spot/market/Get-Candle-Data#request-parameters
         # - https://www.bitget.com/api-doc/contract/market/Get-Candle-Data#description
-        key = 'spot' if market['spot'] else 'swap'
+        key = 'spot' if (market['spot'] is True) else 'swap'
         ohlcOptions = self.safe_dict(self.options['fetchOHLCV'], key, {})
         maxLimitPerTimeframe = self.safe_dict(ohlcOptions, 'maxLimitPerTimeframe', {})
         maxLimitForThisTimeframe = self.safe_integer(maxLimitPerTimeframe, timeframe, limit)
@@ -4274,7 +4614,7 @@ class bitget(Exchange, ImplicitAPI):
                 # we do not need to set "startTime" here
         # if historical endpoint is needed, we should re-set the variables
         historicalEndpointNeeded = False
-        if (calculatedStartTime is not None and calculatedStartTime <= recentEndpointBoundaryTs) or useHistoryEndpoint:
+        if (calculatedStartTime is not None and calculatedStartTime <= recentEndpointBoundaryTs) or (useHistoryEndpoint is True):
             historicalEndpointNeeded = True
             # only for "historical-candles" - ensure we use correct max limit
             limit = min(limit, maxLimitForHistoryEndpoint)
@@ -4282,7 +4622,7 @@ class bitget(Exchange, ImplicitAPI):
             calculatedStartTime = calculatedEndTime - limitMultipliedDuration
             request['startTime'] = calculatedStartTime
             # for contract, maximum 90 days allowed between start-end times
-            if not market['spot']:
+            if market['spot'] is not True:
                 maxDistanceDaysForContracts = 90
                 # only correct if request is larger
                 if calculatedEndTime - calculatedStartTime > maxDistanceDaysForContracts * msInDay:
@@ -4296,7 +4636,7 @@ class bitget(Exchange, ImplicitAPI):
         priceType = None
         priceType, params = self.handle_param_string(params, 'price')
         productType, params = self.handle_product_type_and_params(market, params)
-        if uta:
+        if uta is True:
             if priceType is not None:
                 if priceType == 'mark':
                     request['type'] = 'MARK'
@@ -4304,7 +4644,7 @@ class bitget(Exchange, ImplicitAPI):
                     request['type'] = 'INDEX'
             request['category'] = productType
             response = await self.publicUtaGetV3MarketCandles(self.extend(request, params))
-        elif market['spot']:
+        elif market['spot'] is True:
             # checks if we need history endpoint
             if historicalEndpointNeeded:
                 response = await self.publicSpotGetV2SpotMarketHistoryCandles(self.extend(request, params))
@@ -4337,7 +4677,7 @@ class bitget(Exchange, ImplicitAPI):
                     response = await self.publicMixGetV2MixMarketCandles(extended)
         if response == '':
             return []  # happens when a new token is listed
-        #  [["1645911960000","39406","39407","39374.5","39379","35.526","1399132.341"]]
+        #  [ ["1645911960000","39406","39407","39374.5","39379","35.526","1399132.341"] ]
         candles = []
         if isinstance(response, list):
             candles = response
@@ -4374,7 +4714,7 @@ class bitget(Exchange, ImplicitAPI):
         uta, params = await self.handle_uta_and_params(params, 'fetchBalance', False)
         marketType, params = self.handle_market_type_and_params('fetchBalance', None, params)
         marginMode, params = self.handle_margin_mode_and_params('fetchBalance', params)
-        if uta:
+        if uta is True:
             assets = None
             if marketType == 'funding':
                 response = await self.privateUtaGetV3AccountFundingAssets(self.extend(request, params))
@@ -4547,7 +4887,8 @@ class bitget(Exchange, ImplicitAPI):
         #         "balance": "6.19300826",
         #         "available": "6.19300826",
         #         "debt": "0",
-        #         "locked": "0"
+        #         "locked": "0",
+        #         "bonus": "10"
         #     }
         #
         # funding uta
@@ -4567,7 +4908,7 @@ class bitget(Exchange, ImplicitAPI):
             account['debt'] = self.safe_string(entry, 'debt')
             account['used'] = self.safe_string_2(entry, 'locked', 'frozen')
             account['free'] = self.safe_string(entry, 'available')
-            account['total'] = self.safe_string(entry, 'balance')
+            account['total'] = self.safe_string_2(entry, 'equity', 'balance')
             if code is not None:
                 result[code] = account
         return self.safe_balance(result)
@@ -4618,7 +4959,7 @@ class bitget(Exchange, ImplicitAPI):
         #           "coupon": "0",
         #           "cTime": "1759828511592",
         #           "uTime": "1759828511592"
-        #           # "symbol": "BTCUSDT"  # only for isolated margin
+        #           // "symbol": "BTCUSDT" // only for isolated margin
         #       }
         #
         for i in range(0, len(balance)):
@@ -4713,25 +5054,25 @@ class bitget(Exchange, ImplicitAPI):
         #         "symbol": "BTCUSDT",
         #         "orderId": "1111499608327360513",
         #         "clientOid": "d0d4dad5-18d0-4869-a074-ec40bb47cba6",
-        #         "size": "0.0002000000000000",  # COST for 'buy market' order! AMOUNT in all other cases
-        #         "price": "0",  # in fetchOrder: 0 for market order, otherwise limit price(field not present in fetchOpenOrders
+        #         "size": "0.0002000000000000", // COST for 'buy market' order! AMOUNT in all other cases
+        #         "price": "0", // in fetchOrder: 0 for market order, otherwise limit price (field not present in fetchOpenOrders
         #         "orderType": "limit",
         #         "side": "buy",
         #         "status": "live",
         #         "basePrice": "0",
-        #         "priceAvg": "25000.0000000000000000",   # 0 if nothing filled
-        #         "baseVolume": "0.0000000000000000",     # 0 if nothing filled
-        #         "quoteVolume": "0.0000000000000000",    # 0 if nothing filled
+        #         "priceAvg": "25000.0000000000000000",   // 0 if nothing filled
+        #         "baseVolume": "0.0000000000000000",     // 0 if nothing filled
+        #         "quoteVolume": "0.0000000000000000",    // 0 if nothing filled
         #         "enterPointSource": "WEB",
         #         "orderSource": "normal",
         #         "cTime": "1700728077966",
         #         "uTime": "1700728077966"
-        #         "feeDetail": "{\\"newFees\\":{\\"c\\":0,\\"d\\":0,\\"deduction\\":false,\\"r\\":-0.0064699886,\\"t\\":-0.0064699886,\\"totalDeductionFee\\":0},\\"USDT\\":{\\"deduction\\":false,\\"feeCoinCode\\":\\"USDT\\",\\"totalDeductionFee\\":0,\\"totalFee\\":-0.0064699886000000}}",  # might not be present in fetchOpenOrders
+        #         "feeDetail": "{\\"newFees\\":{\\"c\\":0,\\"d\\":0,\\"deduction\\":false,\\"r\\":-0.0064699886,\\"t\\":-0.0064699886,\\"totalDeductionFee\\":0},\\"USDT\\":{\\"deduction\\":false,\\"feeCoinCode\\":\\"USDT\\",\\"totalDeductionFee\\":0,\\"totalFee\\":-0.0064699886000000}}", // might not be present in fetchOpenOrders
         #         "triggerPrice": null,
         #         "tpslType": "normal",
-        #         "quoteCoin": "USDT",  # not present in fetchOpenOrders
-        #         "baseCoin": "DOT",    # not present in fetchOpenOrders
-        #         "cancelReason": "",   # not present in fetchOpenOrders
+        #         "quoteCoin": "USDT",  // not present in fetchOpenOrders
+        #         "baseCoin": "DOT",    // not present in fetchOpenOrders
+        #         "cancelReason": "",   // not present in fetchOpenOrders
         #     }
         #
         # spot trigger: fetchOpenOrders, fetchCanceledAndClosedOrders
@@ -4787,7 +5128,7 @@ class bitget(Exchange, ImplicitAPI):
         #         "price": "27000",
         #         "priceAvg": "",
         #         "state": "live",
-        #         # "status": "live",  # key for fetchOpenOrders, fetchClosedOrders
+        #         // "status": "live", // key for fetchOpenOrders, fetchClosedOrders
         #         "side": "buy",
         #         "force": "gtc",
         #         "totalProfits": "0",
@@ -4962,14 +5303,14 @@ class bitget(Exchange, ImplicitAPI):
             filled = self.safe_string_2(order, 'baseVolume', 'cumExecQty')
         side = self.safe_string(order, 'side')
         posMode = self.safe_string(order, 'posMode')
-        if posMode == 'hedge_mode' and reduceOnly:
+        if posMode == 'hedge_mode' and (reduceOnly is True):
             side = 'sell' if (side == 'buy') else 'buy'
             # on bitget hedge mode if the position is long the side is always buy, and if the position is short the side is always sell
             # so the side of the reduceOnly order is inversed
         orderType = self.safe_string(order, 'orderType')
         isBuyMarket = (side == 'buy') and (orderType == 'market')
-        if market['spot'] and isBuyMarket:
-            # in top comment, for 'buy market' the 'size' field is COST, not AMOUNT
+        if (market['spot'] is True) and isBuyMarket:
+            # as noted in top comment, for 'buy market' the 'size' field is COST, not AMOUNT
             size = self.safe_string(order, 'baseVolume')
         return self.safe_order({
             'info': order,
@@ -5015,7 +5356,7 @@ class bitget(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        if not market['spot']:
+        if market['spot'] is not True:
             raise NotSupported(self.id + ' createMarketBuyOrderWithCost() supports spot orders only')
         req = {
             'createMarketBuyOrderRequiresPrice': False,
@@ -5040,7 +5381,7 @@ class bitget(Exchange, ImplicitAPI):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much you want to trade in units of the base currency
-        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders, and used execution price for contract stop-loss / take-profit orders
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders, and used as the execution price for contract stop-loss / take-profit orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param float [params.cost]: *spot only* how much you want to trade in units of the quote currency, for market buy orders only
         :param float [params.triggerPrice]: *swap only* The price at which a trigger order is triggered at
@@ -5061,7 +5402,7 @@ class bitget(Exchange, ImplicitAPI):
         :param str [params.trailingPercent]: *swap and future only* the percent to trail away from the current market price, rate can not be greater than 10
         :param str [params.trailingTriggerPrice]: *swap and future only* the price to trigger a trailing stop order, default uses the price argument
         :param str [params.triggerType]: *swap and future only* 'fill_price', 'mark_price' or 'index_price'
-        :param boolean [params.oneWayMode]: *swap and future only* required to set self to True in one_way_mode and you can leave self in hedge_mode, can adjust the mode using the setPositionMode() method
+        :param boolean [params.oneWayMode]: *swap and future only* required to set self to True in one_way_mode and you can leave self as None in hedge_mode, can adjust the mode using the setPositionMode() method
         :param bool [params.hedged]: *swap and future only* True for hedged mode, False for one way mode, default is False
         :param bool [params.reduceOnly]: True or False whether the order is reduce-only
         :param boolean [params.uta]: set to True for the unified trading account(uta), defaults to False
@@ -5085,7 +5426,7 @@ class bitget(Exchange, ImplicitAPI):
         response = None
         uta = None
         uta, params = await self.handle_uta_and_params(params, 'createOrder', False)
-        if uta:
+        if uta is True:
             request = self.create_uta_order_request(symbol, type, side, amount, price, params)
             if isStopLossOrTakeProfitTrigger:
                 response = await self.privateUtaPostV3TradePlaceStrategyOrder(request)
@@ -5093,7 +5434,7 @@ class bitget(Exchange, ImplicitAPI):
                 response = await self.privateUtaPostV3TradePlaceOrder(request)
         else:
             request = self.create_order_request(symbol, type, side, amount, price, params)
-            if market['spot']:
+            if market['spot'] is True:
                 if isTriggerOrder:
                     response = await self.privateSpotPostV2SpotTradePlacePlanOrder(request)
                 elif marginMode == 'isolated':
@@ -5205,7 +5546,7 @@ class bitget(Exchange, ImplicitAPI):
             timeInForce, params = self.handle_option_and_params(params, 'createOrder', 'timeInForce')
             if timeInForce is not None:
                 timeInForce = timeInForce.upper()
-            if postOnly:
+            if postOnly is True:
                 request['timeInForce'] = 'post_only'
             elif timeInForce == 'GTC':
                 request['timeInForce'] = 'gtc'
@@ -5216,14 +5557,14 @@ class bitget(Exchange, ImplicitAPI):
         reduceOnly = self.safe_bool(params, 'reduceOnly', False)
         hedged = None
         hedged, params = self.handle_param_bool(params, 'hedged', False)
-        if reduceOnly:
-            if hedged or isStopLossOrTakeProfitTrigger:
+        if reduceOnly is True:
+            if (hedged is True) or isStopLossOrTakeProfitTrigger:
                 reduceOnlyPosSide = 'long' if (side == 'sell') else 'short'
                 request['posSide'] = reduceOnlyPosSide
             elif not isStopLossOrTakeProfitTrigger:
                 request['reduceOnly'] = 'yes'
         else:
-            if hedged:
+            if hedged is True:
                 posSide = 'long' if (side == 'buy') else 'short'
                 request['posSide'] = posSide
         params = self.omit(params, ['stopLoss', 'takeProfit', 'postOnly', 'reduceOnly', 'hedged'])
@@ -5266,11 +5607,11 @@ class bitget(Exchange, ImplicitAPI):
         trailingTriggerPrice = self.safe_string(params, 'trailingTriggerPrice', self.number_to_string(price))
         trailingPercent = self.safe_string_2(params, 'trailingPercent', 'callbackRatio')
         isTrailingPercentOrder = trailingPercent is not None
-        # multipleTriggers = (isTriggerOrder and (isStopLossTriggerOrder or isTakeProfitTriggerOrder or isTrailingPercentOrder))
-        #     or (isStopLossTriggerOrder and (isTakeProfitTriggerOrder or isTrailingPercentOrder))
-        #     or (isTakeProfitTriggerOrder and isTrailingPercentOrder)
-        # if multipleTriggers:
-        #     raise ExchangeError(self.id + ' createOrder() params can only contain one of triggerPrice, stopLossPrice, takeProfitPrice, trailingPercent')
+        # const multipleTriggers = (isTriggerOrder && (isStopLossTriggerOrder || isTakeProfitTriggerOrder || isTrailingPercentOrder))
+        #     || (isStopLossTriggerOrder && (isTakeProfitTriggerOrder || isTrailingPercentOrder))
+        #     || (isTakeProfitTriggerOrder && isTrailingPercentOrder);
+        # if (multipleTriggers) {
+        #     throw new ExchangeError (this.id + ' createOrder() params can only contain one of triggerPrice, stopLossPrice, takeProfitPrice, trailingPercent');
         # }
         #
         if self.sum(isTriggerOrder, isStopLossTriggerOrder, isTakeProfitTriggerOrder, isTrailingPercentOrder) > 1:
@@ -5287,7 +5628,7 @@ class bitget(Exchange, ImplicitAPI):
         timeInForce, params = self.handle_option_and_params(params, 'createOrder', 'timeInForce')
         if timeInForce is not None:
             timeInForce = timeInForce.upper()
-        if postOnly:
+        if postOnly is True:
             request['force'] = 'post_only'
         elif timeInForce == 'GTC':
             request['force'] = 'GTC'
@@ -5338,7 +5679,7 @@ class bitget(Exchange, ImplicitAPI):
                     request['executePrice'] = self.price_to_precision(symbol, price)
                     if 'price' in request:
                         del request['price']
-                if hedged:
+                if hedged is True:
                     request['holdSide'] = 'long' if (side == 'sell') else 'short'
                 else:
                     request['holdSide'] = 'buy' if (side == 'sell') else 'sell'
@@ -5373,15 +5714,15 @@ class bitget(Exchange, ImplicitAPI):
                 marginModeRequest = 'crossed' if (marginMode == 'cross') else 'isolated'
                 request['marginMode'] = marginModeRequest
                 requestSide = side
-                if reduceOnly:
-                    if not hedged:
+                if reduceOnly is True:
+                    if hedged is not True:
                         request['reduceOnly'] = 'YES'
                     else:
                         # on bitget hedge mode if the position is long the side is always buy, and if the position is short the side is always sell
                         requestSide = 'sell' if (side == 'buy') else 'buy'
                         request['tradeSide'] = 'Close'
                 else:
-                    if hedged:
+                    if hedged is True:
                         request['tradeSide'] = 'Open'
                 request['side'] = requestSide
         elif marketType == 'spot':
@@ -5432,7 +5773,7 @@ class bitget(Exchange, ImplicitAPI):
             raise NotSupported(self.id + ' createOrder() does not support ' + marketType + ' orders')
         return self.extend(request, params)
 
-    async def create_uta_orders(self, orders: list[OrderRequest], params={}):
+    async def create_uta_orders(self, orders: list[OrderRequest], params={}) -> list[Order]:
         if self.markets is None:
             await self.load_markets()
         ordersRequests = []
@@ -5498,7 +5839,7 @@ class bitget(Exchange, ImplicitAPI):
             await self.load_markets()
         uta = None
         uta, params = await self.handle_uta_and_params(params, 'createOrders', False)
-        if uta:
+        if uta is True:
             return await self.create_uta_orders(orders, params)
         ordersRequests = []
         symbol = None
@@ -5532,7 +5873,7 @@ class bitget(Exchange, ImplicitAPI):
             'orderList': ordersRequests,
         }
         response = None
-        if (market['swap']) or (market['future']):
+        if (market['swap'] is True) or (market['future'] is True):
             if marginMode is None:
                 marginMode = 'cross'
             marginModeRequest = 'crossed' if (marginMode == 'cross') else 'isolated'
@@ -5639,11 +5980,11 @@ class bitget(Exchange, ImplicitAPI):
         trailingTriggerPrice = self.safe_string(params, 'trailingTriggerPrice', self.number_to_string(price))
         trailingPercent = self.safe_string_2(params, 'trailingPercent', 'newCallbackRatio')
         isTrailingPercentOrder = trailingPercent is not None
-        # multipleTriggers = (isTriggerOrder and (isStopLossOrder or isTakeProfitOrder or isTrailingPercentOrder))
-        #     or (isStopLossOrder and (isTakeProfitOrder or isTrailingPercentOrder))
-        #     or (isTakeProfitOrder and isTrailingPercentOrder)
-        # if multipleTriggers:
-        #     raise ExchangeError(self.id + ' editOrder() params can only contain one of triggerPrice, stopLossPrice, takeProfitPrice, trailingPercent')
+        # const multipleTriggers = (isTriggerOrder && (isStopLossOrder || isTakeProfitOrder || isTrailingPercentOrder))
+        #     || (isStopLossOrder && (isTakeProfitOrder || isTrailingPercentOrder))
+        #     || (isTakeProfitOrder && isTrailingPercentOrder);
+        # if (multipleTriggers) {
+        #     throw new ExchangeError (this.id + ' editOrder() params can only contain one of triggerPrice, stopLossPrice, takeProfitPrice, trailingPercent');
         # }
         if self.sum(isTriggerOrder, isStopLossOrder, isTakeProfitOrder, isTrailingPercentOrder) > 1:
             raise ExchangeError(self.id + ' editOrder() params can only contain one of triggerPrice, stopLossPrice, takeProfitPrice, trailingPercent')
@@ -5653,7 +5994,7 @@ class bitget(Exchange, ImplicitAPI):
         uta = None
         productType, params = self.handle_product_type_and_params(market, params)
         uta, params = await self.handle_uta_and_params(params, 'editOrder', False)
-        if uta:
+        if uta is True:
             if amount is not None:
                 request['qty'] = self.amount_to_precision(symbol, amount)
             if isStopLossOrder or isTakeProfitOrder:
@@ -5681,11 +6022,11 @@ class bitget(Exchange, ImplicitAPI):
                 if price is not None:
                     request['price'] = self.price_to_precision(symbol, price)
                 response = await self.privateUtaPostV3TradeModifyOrder(self.extend(request, params))
-        elif market['spot']:
+        elif market['spot'] is True:
             cost = self.safe_string(params, 'cost')
             params = self.omit(params, 'cost')
             editMarketBuyOrderRequiresPrice = self.safe_bool(self.options, 'editMarketBuyOrderRequiresPrice', True)
-            if (editMarketBuyOrderRequiresPrice or (cost is not None)) and isMarketOrder and (side == 'buy'):
+            if ((editMarketBuyOrderRequiresPrice is True) or (cost is not None)) and isMarketOrder and (side == 'buy'):
                 if price is None and cost is None:
                     raise InvalidOrder(self.id + ' editOrder() requires price argument for market buy orders on spot markets to calculate the total amount to spend(amount * price), alternatively provide `cost` in the params')
                 else:
@@ -5710,7 +6051,7 @@ class bitget(Exchange, ImplicitAPI):
                 request['symbol'] = market['id']
                 response = await self.privateSpotPostV2SpotTradeCancelReplaceOrder(self.extend(request, params))
         else:
-            if (not market['swap']) and (not market['future']):
+            if (market['swap'] is not True) and (market['future'] is not True):
                 raise NotSupported(self.id + ' editOrder() does not support ' + market['type'] + ' orders')
             request['symbol'] = market['id']
             request['productType'] = productType
@@ -5815,13 +6156,13 @@ class bitget(Exchange, ImplicitAPI):
         trailing = self.safe_value(params, 'trailing')
         trigger = self.safe_value_2(params, 'stop', 'trigger')
         params = self.omit(params, ['stop', 'trigger', 'trailing'])
-        if not (market['spot'] and trigger):
+        if not ((market['spot'] is True) and (trigger is True)):
             request['symbol'] = market['id']
         uta = None
         uta, params = await self.handle_uta_and_params(params, 'cancelOrder', False)
-        isPlanOrder = trigger or trailing
-        isContract = market['swap'] or market['future']
-        isContractTriggerEndpoint = isContract and isPlanOrder and not uta
+        isPlanOrder = (trigger is True) or (trailing is True)
+        isContract = (market['swap'] is True) or (market['future'] is True)
+        isContractTriggerEndpoint = isContract and isPlanOrder and (uta is not True)
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'clientOid')
         if isContractTriggerEndpoint:
             orderIdList = []
@@ -5839,31 +6180,31 @@ class bitget(Exchange, ImplicitAPI):
                 request['clientOid'] = clientOrderId
             else:
                 request['orderId'] = id
-        if uta:
-            if trigger:
+        if uta is True:
+            if trigger is True:
                 response = await self.privateUtaPostV3TradeCancelStrategyOrder(self.extend(request, params))
             else:
                 response = await self.privateUtaPostV3TradeCancelOrder(self.extend(request, params))
-        elif (market['swap']) or (market['future']):
+        elif (market['swap'] is True) or (market['future'] is True):
             productType = None
             productType, params = self.handle_product_type_and_params(market, params)
             request['productType'] = productType
-            if trailing:
+            if trailing is True:
                 planType = self.safe_string(params, 'planType', 'track_plan')
                 request['planType'] = planType
                 response = await self.privateMixPostV2MixOrderCancelPlanOrder(self.extend(request, params))
-            elif trigger:
+            elif trigger is True:
                 response = await self.privateMixPostV2MixOrderCancelPlanOrder(self.extend(request, params))
             else:
                 response = await self.privateMixPostV2MixOrderCancelOrder(self.extend(request, params))
-        elif market['spot']:
+        elif market['spot'] is True:
             if marginMode is not None:
                 if marginMode == 'isolated':
                     response = await self.privateMarginPostV2MarginIsolatedCancelOrder(self.extend(request, params))
                 elif marginMode == 'cross':
                     response = await self.privateMarginPostV2MarginCrossedCancelOrder(self.extend(request, params))
             else:
-                if trigger:
+                if trigger is True:
                     response = await self.privateSpotPostV2SpotTradeCancelPlanOrder(self.extend(request, params))
                 else:
                     response = await self.privateSpotPostV2SpotTradeCancelOrder(self.extend(request, params))
@@ -5925,13 +6266,13 @@ class bitget(Exchange, ImplicitAPI):
             orderInfo = self.safe_value(data, 'successList', [])
             order = self.safe_dict(orderInfo, 0, {})
         else:
-            if uta and trigger:
+            if (uta is True) and (trigger is True):
                 order = response
             else:
                 order = data
         return self.parse_order(order, market)
 
-    async def cancel_uta_orders(self, ids: object, symbol: Str = None, params={}):
+    async def cancel_uta_orders(self, ids: object, symbol: Str = None, params={}) -> list[Order]:
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelOrders() requires a symbol argument')
         if self.markets is None:
@@ -5991,7 +6332,7 @@ class bitget(Exchange, ImplicitAPI):
         market = self.market(symbol)
         uta = None
         uta, params = await self.handle_uta_and_params(params, 'cancelOrders', False)
-        if uta:
+        if uta is True:
             return await self.cancel_uta_orders(ids, symbol, params)
         marginMode = None
         marginMode, params = self.handle_margin_mode_and_params('cancelOrders', params)
@@ -6007,12 +6348,12 @@ class bitget(Exchange, ImplicitAPI):
         request = {
             'symbol': market['id'],
         }
-        if market['spot'] and (marginMode is None):
+        if (market['spot'] is True) and (marginMode is None):
             request['orderList'] = orderIdList
         else:
             request['orderIdList'] = orderIdList
         response = None
-        if market['spot']:
+        if market['spot'] is True:
             if marginMode is not None:
                 if marginMode == 'cross':
                     response = await self.privateMarginPostV2MarginCrossedBatchCancelOrder(self.extend(request, params))
@@ -6024,7 +6365,7 @@ class bitget(Exchange, ImplicitAPI):
             productType = None
             productType, params = self.handle_product_type_and_params(market, params)
             request['productType'] = productType
-            if trigger:
+            if trigger is True:
                 response = await self.privateMixPostV2MixOrderCancelPlanOrder(self.extend(request, params))
             else:
                 response = await self.privateMixPostV2MixOrderBatchCancelOrders(self.extend(request, params))
@@ -6082,7 +6423,7 @@ class bitget(Exchange, ImplicitAPI):
         response = None
         uta = None
         uta, params = await self.handle_uta_and_params(params, 'cancelAllOrders', False)
-        if uta:
+        if uta is True:
             if productType == 'SPOT':
                 if marginMode is not None:
                     productType = 'MARGIN'
@@ -6103,11 +6444,11 @@ class bitget(Exchange, ImplicitAPI):
             #         }
             #     }
             #
-        elif market['spot']:
+        elif market['spot'] is True:
             if marginMode is not None:
                 raise NotSupported(self.id + ' cancelAllOrders() does not support margin markets, you can use cancelOrders() instead')
             else:
-                if trigger:
+                if trigger is True:
                     stopRequest = {
                         'symbolList': [market['id']],
                     }
@@ -6137,7 +6478,7 @@ class bitget(Exchange, ImplicitAPI):
                 ]
         else:
             request['productType'] = productType
-            if trigger:
+            if trigger is True:
                 response = await self.privateMixPostV2MixOrderCancelPlanOrder(self.extend(request, params))
             else:
                 response = await self.privateMixPostV2MixOrderBatchCancelOrders(self.extend(request, params))
@@ -6197,11 +6538,11 @@ class bitget(Exchange, ImplicitAPI):
         response = None
         uta = None
         uta, params = await self.handle_uta_and_params(params, 'fetchOrder', False)
-        if uta:
+        if uta is True:
             response = await self.privateUtaGetV3TradeOrderInfo(self.extend(request, params))
-        elif market['spot']:
+        elif market['spot'] is True:
             response = await self.privateSpotGetV2SpotTradeOrderInfo(self.extend(request, params))
-        elif market['swap'] or market['future']:
+        elif (market['swap'] is True) or (market['future'] is True):
             request['symbol'] = market['id']
             productType = None
             productType, params = self.handle_product_type_and_params(market, params)
@@ -6320,7 +6661,7 @@ class bitget(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        if not uta and (isinstance(response, str)):
+        if (uta is not True) and (isinstance(response, str)):
             response = json.loads(response)
         data = self.safe_dict(response, 'data')
         if (data is not None):
@@ -6332,8 +6673,8 @@ class bitget(Exchange, ImplicitAPI):
             raise OrderNotFound(self.id + ' fetchOrder() could not find order id ' + id + ' in ' + self.json(response))
         first = self.safe_dict(dataList, 0, {})
         return self.parse_order(first, market)
-        # first = self.safe_dict(data, 0, data)
-        # return self.parse_order(first, market)
+        # const first = this.safeDict (data, 0, data);
+        # return this.parseOrder (first, market);
 
     async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
@@ -6383,7 +6724,7 @@ class bitget(Exchange, ImplicitAPI):
         if paginate:
             cursorReceived = None
             cursorSent = None
-            if uta:
+            if uta is True:
                 cursorReceived = 'cursor'
                 cursorSent = 'cursor'
             elif type == 'spot':
@@ -6398,13 +6739,13 @@ class bitget(Exchange, ImplicitAPI):
         trailing = self.safe_bool(params, 'trailing')
         trigger = self.safe_bool_2(params, 'stop', 'trigger')
         planTypeDefined = self.safe_string(params, 'planType') is not None
-        isTrigger = (trigger or planTypeDefined)
+        isTrigger = (trigger is True) or planTypeDefined
         request, params = self.handle_until_option('endTime', request, params)
         if since is not None:
             request['startTime'] = since
         if limit is not None:
             request['limit'] = limit
-        if not uta and ((type == 'swap') or (type == 'future') or (marginMode is not None)):
+        if (uta is not True) and ((type == 'swap') or (type == 'future') or (marginMode is not None)):
             clientOrderId = self.safe_string_2(params, 'clientOid', 'clientOrderId')
             params = self.omit(params, 'clientOrderId')
             if clientOrderId is not None:
@@ -6412,12 +6753,14 @@ class bitget(Exchange, ImplicitAPI):
         productType = None
         productType, params = self.handle_product_type_and_params(market, params)
         params = self.omit(params, ['type', 'stop', 'trigger', 'trailing'])
-        if uta:
+        if uta is True:
             if type == 'spot':
                 if marginMode is not None:
                     productType = 'MARGIN'
+                else:
+                    productType = 'SPOT'
             request['category'] = productType
-            if trigger:
+            if trigger is True:
                 response = await self.privateUtaGetV3TradeUnfilledStrategyOrders(self.extend(request, params))
             else:
                 response = await self.privateUtaGetV3TradeUnfilledOrders(self.extend(request, params))
@@ -6431,13 +6774,13 @@ class bitget(Exchange, ImplicitAPI):
                 elif marginMode == 'cross':
                     response = await self.privateMarginGetV2MarginCrossedOpenOrders(self.extend(request, params))
             else:
-                if trigger:
+                if trigger is True:
                     response = await self.privateSpotGetV2SpotTradeCurrentPlanOrder(self.extend(request, params))
                 else:
                     response = await self.privateSpotGetV2SpotTradeUnfilledOrders(self.extend(request, params))
         else:
             request['productType'] = productType
-            if trailing:
+            if trailing is True:
                 planType = self.safe_string(params, 'planType', 'track_plan')
                 request['planType'] = planType
                 response = await self.privateMixGetV2MixOrderOrdersPlanPending(self.extend(request, params))
@@ -6483,7 +6826,7 @@ class bitget(Exchange, ImplicitAPI):
         #         "msg": "success",
         #         "requestTime": 1700729361609,
         #         "data": {
-        #             "nextFlag": False,
+        #             "nextFlag": false,
         #             "idLessThan": "1111503385931620352",
         #             "orderList": [
         #                 {
@@ -6700,15 +7043,15 @@ class bitget(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_value(response, 'data')
-        if uta:
+        if uta is True:
             result = None
-            if trigger:
+            if trigger is True:
                 result = self.safe_list(response, 'data', [])
             else:
                 result = self.safe_list(data, 'list', [])
             return self.parse_orders(result, market, since, limit)
         elif type == 'spot':
-            if (marginMode is not None) or trigger:
+            if (marginMode is not None) or (trigger is True):
                 resultList = self.safe_list(data, 'orderList', [])
                 return self.parse_orders(resultList, market, since, limit)
         else:
@@ -6802,7 +7145,7 @@ class bitget(Exchange, ImplicitAPI):
         """
         uta = None
         uta, params = await self.handle_uta_and_params(params, 'fetchCanceledAndClosedOrders', False)
-        if uta:
+        if uta is True:
             return await self.fetch_uta_canceled_and_closed_orders(symbol, since, limit, params)
         if self.markets is None:
             await self.load_markets()
@@ -6849,7 +7192,7 @@ class bitget(Exchange, ImplicitAPI):
                     response = await self.privateMarginGetV2MarginIsolatedHistoryOrders(self.extend(request, params))
                 elif marginMode == 'cross':
                     response = await self.privateMarginGetV2MarginCrossedHistoryOrders(self.extend(request, params))
-            elif trigger:
+            elif trigger is True:
                 if symbol is None:
                     raise ArgumentsRequired(self.id + ' fetchCanceledAndClosedOrders() requires a symbol argument')
                 endTime = self.safe_integer_2(params, 'endTime', 'until')
@@ -6867,11 +7210,11 @@ class bitget(Exchange, ImplicitAPI):
             productType, params = self.handle_product_type_and_params(market, params)
             request['productType'] = productType
             planTypeDefined = self.safe_string(params, 'planType') is not None
-            if trailing:
+            if trailing is True:
                 planType = self.safe_string(params, 'planType', 'track_plan')
                 request['planType'] = planType
                 response = await self.privateMixGetV2MixOrderOrdersPlanHistory(self.extend(request, params))
-            elif trigger or planTypeDefined:
+            elif (trigger is True) or planTypeDefined:
                 planType = self.safe_string(params, 'planType', 'normal_plan')
                 request['planType'] = planType
                 response = await self.privateMixGetV2MixOrderOrdersPlanHistory(self.extend(request, params))
@@ -6914,7 +7257,7 @@ class bitget(Exchange, ImplicitAPI):
         #         "msg": "success",
         #         "requestTime": 1700792099146,
         #         "data": {
-        #             "nextFlag": False,
+        #             "nextFlag": false,
         #             "idLessThan": "1098757597417775104",
         #             "orderList": [
         #                 {
@@ -7057,7 +7400,7 @@ class bitget(Exchange, ImplicitAPI):
         #
         data = self.safe_value(response, 'data', {})
         if marketType == 'spot':
-            if (marginMode is not None) or trigger:
+            if (marginMode is not None) or (trigger is True):
                 return self.parse_orders(self.safe_value(data, 'orderList', []), market, since, limit)
         else:
             return self.parse_orders(self.safe_value(data, 'entrustedList', []), market, since, limit)
@@ -7066,7 +7409,7 @@ class bitget(Exchange, ImplicitAPI):
         orders = self.safe_list(response, 'data', [])
         return self.parse_orders(orders, market, since, limit)
 
-    async def fetch_uta_canceled_and_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_uta_canceled_and_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         if self.markets is None:
             await self.load_markets()
         market = None
@@ -7094,7 +7437,7 @@ class bitget(Exchange, ImplicitAPI):
         response = None
         trigger = self.safe_bool_2(params, 'stop', 'trigger')
         params = self.omit(params, ['stop', 'trigger'])
-        if trigger:
+        if trigger is True:
             response = await self.privateUtaGetV3TradeHistoryStrategyOrders(self.extend(request, params))
         else:
             response = await self.privateUtaGetV3TradeHistoryOrders(self.extend(request, params))
@@ -7414,7 +7757,7 @@ class bitget(Exchange, ImplicitAPI):
         """
         uta = None
         uta, params = await self.handle_uta_and_params(params, 'fetchMyTrades', False)
-        if not uta and (symbol is None):
+        if (uta is not True) and (symbol is None):
             raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
         if self.markets is None:
             await self.load_markets()
@@ -7432,10 +7775,10 @@ class bitget(Exchange, ImplicitAPI):
         if paginate:
             cursorReceived = None
             cursorSent = None
-            if uta:
+            if uta is True:
                 cursorReceived = 'cursor'
                 cursorSent = 'cursor'
-            elif market['spot']:
+            elif market['spot'] is True:
                 if marginMode is not None:
                     cursorReceived = 'minId'
                     cursorSent = 'idLessThan'
@@ -7444,11 +7787,11 @@ class bitget(Exchange, ImplicitAPI):
                 cursorSent = 'idLessThan'
             return await self.fetch_paginated_call_cursor('fetchMyTrades', symbol, since, limit, params, cursorReceived, cursorSent)
         response = None
-        if uta:
+        if uta is True:
             response = await self.privateUtaGetV3TradeFills(self.extend(request, params))
         else:
             request['symbol'] = market['id']
-            if market['spot']:
+            if market['spot'] is True:
                 if marginMode is not None:
                     if since is None:
                         request['startTime'] = self.milliseconds() - 7776000000
@@ -7595,10 +7938,10 @@ class bitget(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_value(response, 'data')
-        if uta:
+        if uta is True:
             fills = self.safe_list(data, 'list', [])
             return self.parse_trades(fills, market, since, limit)
-        elif (market['swap'] or (market['future'])):
+        elif ((market['swap'] is True) or (market['future'] is True)):
             fills = self.safe_list(data, 'fillList', [])
             return self.parse_trades(fills, market, since, limit)
         elif marginMode is not None:
@@ -7630,7 +7973,7 @@ class bitget(Exchange, ImplicitAPI):
         uta = None
         result = None
         uta, params = await self.handle_uta_and_params(params, 'fetchPosition', False)
-        if uta:
+        if uta is True:
             request['category'] = productType
             response = await self.privateUtaGetV3PositionCurrentPosition(self.extend(request, params))
             #
@@ -7737,14 +8080,14 @@ class bitget(Exchange, ImplicitAPI):
             return await self.fetch_paginated_call_cursor('fetchPositions', None, None, None, params, 'endId', 'idLessThan')
         method = None
         useHistoryEndpoint = self.safe_bool(params, 'useHistoryEndpoint', False)
-        if useHistoryEndpoint:
+        if useHistoryEndpoint is True:
             method = 'privateMixGetV2MixPositionHistoryPosition'
         else:
             method, params = self.handle_option_and_params(params, 'fetchPositions', 'method', 'privateMixGetV2MixPositionAllPosition')
         market = None
         if symbols is not None:
             first = self.safe_string(symbols, 0)
-            # symbols can be None or []
+            # symbols can be undefined or []
             if first is not None:
                 market = self.market(first)
         productType = None
@@ -7754,7 +8097,7 @@ class bitget(Exchange, ImplicitAPI):
         isHistory = False
         uta = None
         uta, params = await self.handle_uta_and_params(params, 'fetchPositions', False)
-        if uta:
+        if uta is True:
             request['category'] = productType
             response = await self.privateUtaGetV3PositionCurrentPosition(self.extend(request, params))
         elif method == 'privateMixGetV2MixPositionAllPosition':
@@ -7883,7 +8226,7 @@ class bitget(Exchange, ImplicitAPI):
         #     }
         #
         position = []
-        if uta or isHistory:
+        if (uta is True) or isHistory:
             data = self.safe_dict(response, 'data', {})
             position = self.safe_list(data, 'list', [])
         else:
@@ -8139,7 +8482,7 @@ class bitget(Exchange, ImplicitAPI):
         result = None
         productType, params = self.handle_product_type_and_params(market, params)
         uta, params = await self.handle_uta_and_params(params, 'fetchFundingRateHistory', False)
-        if uta:
+        if uta is True:
             if limit is not None:
                 request['limit'] = limit
             request['category'] = productType
@@ -8219,7 +8562,7 @@ class bitget(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        if not market['swap']:
+        if market['swap'] is not True:
             raise BadSymbol(self.id + ' fetchFundingRate() supports swap contracts only')
         productType = None
         productType, params = self.handle_product_type_and_params(market, params)
@@ -8229,7 +8572,7 @@ class bitget(Exchange, ImplicitAPI):
         uta = None
         response = None
         uta, params = await self.handle_uta_and_params(params, 'fetchFundingRate', False)
-        if uta:
+        if uta is True:
             response = await self.publicUtaGetV3MarketCurrentFundRate(self.extend(request, params))
             #
             #     {
@@ -8500,11 +8843,11 @@ class bitget(Exchange, ImplicitAPI):
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchFundingHistory', 'paginate')
         if paginate:
-            if uta:
+            if uta is True:
                 return await self.fetch_paginated_call_cursor('fetchFundingHistory', symbol, since, limit, params, 'cursor', 'cursor')
             return await self.fetch_paginated_call_cursor('fetchFundingHistory', symbol, since, limit, params, 'endId', 'idLessThan')
         market = self.market(symbol)
-        if not market['swap']:
+        if market['swap'] is not True:
             raise BadSymbol(self.id + ' fetchFundingHistory() supports swap contracts only')
         productType = None
         productType, params = self.handle_product_type_and_params(market, params)
@@ -8515,7 +8858,7 @@ class bitget(Exchange, ImplicitAPI):
         if limit is not None:
             request['limit'] = limit
         response = None
-        if uta:
+        if uta is True:
             request['coin'] = market['settleId']
             request['category'] = productType
             response = await self.privateUtaGetV3AccountFinancialRecords(self.extend(request, params))
@@ -8572,7 +8915,7 @@ class bitget(Exchange, ImplicitAPI):
             #
         data = self.safe_value(response, 'data', {})
         bills = self.safe_list_2(data, 'bills', 'list', [])
-        if uta:
+        if uta is True:
             bills = self.filter_by_array(bills, 'type', ['CONTRACT_MAIN_SETTLE_FEE_USER_IN', 'CONTRACT_MAIN_SETTLE_FEE_USER_OUT'], False)
         return self.parse_funding_histories(bills, market, since, limit)
 
@@ -8618,10 +8961,10 @@ class bitget(Exchange, ImplicitAPI):
         result = []
         for i in range(0, len(contracts)):
             contract = contracts[i]
-            # for non-uta, we've set bussinessType in request payload. Not sure why self existed.
-            # business = self.safe_string(contract, 'businessType')
-            # if business != 'contract_settle_fee':
-            #     continue
+            # for non-uta, we've set bussinessType in request payload. Not sure why this existed.
+            # const business = this.safeString (contract, 'businessType');
+            # if (business !== 'contract_settle_fee') {
+            #     continue;
             # }
             result.append(self.parse_funding_history(contract, market))
         sorted = self.sort_by(result, 'timestamp')
@@ -8812,7 +9155,7 @@ class bitget(Exchange, ImplicitAPI):
         uta = None
         response = {}
         uta, params = await self.handle_uta_and_params(params, 'setLeverage', False)
-        if uta:
+        if uta is True:
             if productType == 'SPOT':
                 marginMode = None
                 marginMode, params = self.handle_margin_mode_and_params('setLeverage', params)
@@ -8922,7 +9265,7 @@ class bitget(Exchange, ImplicitAPI):
         response = {}
         productType, params = self.handle_product_type_and_params(market, params)
         uta, params = await self.handle_uta_and_params(params, 'setPositionMode', False)
-        if uta:
+        if uta is True:
             request['holdMode'] = posMode
             response = await self.privateUtaPostV3AccountSetHoldMode(self.extend(request, params))
             #
@@ -8964,7 +9307,7 @@ class bitget(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        if not market['contract']:
+        if market['contract'] is not True:
             raise BadRequest(self.id + ' fetchOpenInterest() supports contract markets only')
         productType = None
         productType, params = self.handle_product_type_and_params(market, params)
@@ -8974,7 +9317,7 @@ class bitget(Exchange, ImplicitAPI):
         uta = None
         response = None
         uta, params = await self.handle_uta_and_params(params, 'fetchOpenInterest', False)
-        if uta:
+        if uta is True:
             request['category'] = productType
             response = await self.publicUtaGetV3MarketOpenInterest(self.extend(request, params))
             #
@@ -9149,7 +9492,7 @@ class bitget(Exchange, ImplicitAPI):
             market = self.market(symbol)
             request['symbol'] = market['id']
         response = None
-        if uta:
+        if uta is True:
             response = await self.privateUtaPostV3AccountTransfer(self.extend(request, params))
         else:
             response = await self.privateSpotPostV2SpotWalletTransfer(self.extend(request, params))
@@ -9164,7 +9507,7 @@ class bitget(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        data = self.safe_value(response, 'data', {})
+        data = self.safe_dict(response, 'data', {})
         data['ts'] = self.safe_integer(response, 'requestTime')
         return self.parse_transfer(data, currency)
 
@@ -9242,7 +9585,7 @@ class bitget(Exchange, ImplicitAPI):
         #         "transfer": "true""
         #     }
         #
-        chains = self.safe_value(fee, 'chains', [])
+        chains = self.safe_list(fee, 'chains', [])
         chainsLength = len(chains)
         result = {
             'info': fee,
@@ -9693,8 +10036,8 @@ class bitget(Exchange, ImplicitAPI):
         #                 "symbol": "BTCUSDT",
         #                 "leverage": "10",
         #                 "baseCoin": "BTC",
-        #                 "baseTransferable": True,
-        #                 "baseBorrowable": True,
+        #                 "baseTransferable": true,
+        #                 "baseBorrowable": true,
         #                 "baseDailyInterestRate": "0.00007",
         #                 "baseAnnuallyInterestRate": "0.02555",
         #                 "baseMaxBorrowableAmount": "27",
@@ -9707,8 +10050,8 @@ class bitget(Exchange, ImplicitAPI):
         #                     {"level":"5","dailyInterestRate":"0.000042","limit":"44.82","annuallyInterestRate":"0.01533","discountRate":"0.6"}
         #                 ],
         #                 "quoteCoin": "USDT",
-        #                 "quoteTransferable": True,
-        #                 "quoteBorrowable": True,
+        #                 "quoteTransferable": true,
+        #                 "quoteBorrowable": true,
         #                 "quoteDailyInterestRate": "0.00041095",
         #                 "quoteAnnuallyInterestRate": "0.14999675",
         #                 "quoteMaxBorrowableAmount": "300000",
@@ -9726,7 +10069,7 @@ class bitget(Exchange, ImplicitAPI):
         #
         timestamp = self.safe_integer(response, 'requestTime')
         data = self.safe_value(response, 'data', [])
-        first = self.safe_value(data, 0, {})
+        first = self.safe_dict(data, 0, {})
         first['timestamp'] = timestamp
         return self.parse_isolated_borrow_rate(first, market)
 
@@ -9736,8 +10079,8 @@ class bitget(Exchange, ImplicitAPI):
         #         "symbol": "BTCUSDT",
         #         "leverage": "10",
         #         "baseCoin": "BTC",
-        #         "baseTransferable": True,
-        #         "baseBorrowable": True,
+        #         "baseTransferable": true,
+        #         "baseBorrowable": true,
         #         "baseDailyInterestRate": "0.00007",
         #         "baseAnnuallyInterestRate": "0.02555",
         #         "baseMaxBorrowableAmount": "27",
@@ -9750,8 +10093,8 @@ class bitget(Exchange, ImplicitAPI):
         #             {"level":"5","dailyInterestRate":"0.000042","limit":"44.82","annuallyInterestRate":"0.01533","discountRate":"0.6"}
         #         ],
         #         "quoteCoin": "USDT",
-        #         "quoteTransferable": True,
-        #         "quoteBorrowable": True,
+        #         "quoteTransferable": true,
+        #         "quoteBorrowable": true,
         #         "quoteDailyInterestRate": "0.00041095",
         #         "quoteAnnuallyInterestRate": "0.14999675",
         #         "quoteMaxBorrowableAmount": "300000",
@@ -9804,7 +10147,7 @@ class bitget(Exchange, ImplicitAPI):
         response = None
         result = {}
         uta, params = await self.handle_uta_and_params(params, 'fetchCrossBorrowRate', False)
-        if uta:
+        if uta is True:
             response = await self.publicUtaGetV3MarketMarginLoans(self.extend(request, params))
             #
             #     {
@@ -9830,8 +10173,8 @@ class bitget(Exchange, ImplicitAPI):
             #             {
             #                 "coin": "BTC",
             #                 "leverage": "3",
-            #                 "transferable": True,
-            #                 "borrowable": True,
+            #                 "transferable": true,
+            #                 "borrowable": true,
             #                 "dailyInterestRate": "0.00007",
             #                 "annualInterestRate": "0.02555",
             #                 "maxBorrowableAmount": "26",
@@ -9848,7 +10191,7 @@ class bitget(Exchange, ImplicitAPI):
             #     }
             #
             data = self.safe_value(response, 'data', [])
-            result = self.safe_value(data, 0, {})
+            result = self.safe_dict(data, 0, {})
         timestamp = self.safe_integer(response, 'requestTime')
         result['timestamp'] = timestamp
         return self.parse_borrow_rate(result, currency)
@@ -9860,8 +10203,8 @@ class bitget(Exchange, ImplicitAPI):
         #     {
         #         "coin": "BTC",
         #         "leverage": "3",
-        #         "transferable": True,
-        #         "borrowable": True,
+        #         "transferable": true,
+        #         "borrowable": true,
         #         "dailyInterestRate": "0.00007",
         #         "annualInterestRate": "0.02555",
         #         "maxBorrowableAmount": "26",
@@ -10063,7 +10406,7 @@ class bitget(Exchange, ImplicitAPI):
         response = None
         productType, params = self.handle_product_type_and_params(market, params)
         uta, params = await self.handle_uta_and_params(params, 'closePosition', False)
-        if uta:
+        if uta is True:
             if side is not None:
                 request['posSide'] = side
             request['category'] = productType
@@ -10101,7 +10444,7 @@ class bitget(Exchange, ImplicitAPI):
             #                 }
             #             ],
             #             "failureList": [],
-            #             "result": False
+            #             "result": false
             #         }
             #     }
             #
@@ -10129,7 +10472,7 @@ class bitget(Exchange, ImplicitAPI):
         response = None
         productType, params = self.handle_product_type_and_params(None, params)
         uta, params = await self.handle_uta_and_params(params, 'closeAllPositions', False)
-        if uta:
+        if uta is True:
             request['category'] = productType
             response = await self.privateUtaPostV3TradeClosePositions(self.extend(request, params))
             #
@@ -10163,7 +10506,7 @@ class bitget(Exchange, ImplicitAPI):
             #                 }
             #             ],
             #             "failureList": [],
-            #             "result": False
+            #             "result": false
             #         }
             #     }
             #
@@ -10267,7 +10610,7 @@ class bitget(Exchange, ImplicitAPI):
         request, params = self.handle_until_option('endTime', request, params)
         productType, params = self.handle_product_type_and_params(market, params)
         uta, params = await self.handle_uta_and_params(params, 'fetchPositionsHistory', False)
-        if uta:
+        if uta is True:
             request['category'] = productType
             response = await self.privateUtaGetV3PositionHistoryPosition(self.extend(request, params))
             #
@@ -10629,7 +10972,7 @@ class bitget(Exchange, ImplicitAPI):
         response = None
         uta = None
         uta, params = await self.handle_uta_and_params(params, 'fetchFundingInterval', False)
-        if uta:
+        if uta is True:
             response = await self.publicUtaGetV3MarketCurrentFundRate(self.extend(request, params))
             #
             #     {
@@ -10692,7 +11035,7 @@ class bitget(Exchange, ImplicitAPI):
         if timeframe is not None:
             request['period'] = timeframe
         response = None
-        if market['swap'] or market['future']:
+        if (market['swap'] is True) or (market['future'] is True):
             response = await self.publicMixGetV2MixMarketAccountLongShort(self.extend(request, params))
             #
             #     {
@@ -10740,7 +11083,7 @@ class bitget(Exchange, ImplicitAPI):
         }
 
     def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
-        if not response:
+        if (response is None) or (response is None):
             return None  # fallback to default error handler
         #
         # spot
@@ -10806,17 +11149,17 @@ class bitget(Exchange, ImplicitAPI):
                 body = self.json(params)
                 auth += body
             else:
-                if params:
+                if len(params) > 0:
                     sortedParams = self.keysort(params)
                     queryInner = '?' + self.urlencode(sortedParams, True)
-                    # check  #21169 pr
+                    # check #21169 pr
                     if queryInner.find('%24') > -1:
                         queryInner = queryInner.replace('%24', '$')
                     url += queryInner
-                    # bitget signs the raw(non-percent-encoded) query string, so the
-                    # signature must use the decoded values(e.g. non-ascii market ids).
-                    # sort explicitly(True) so the signed order matches the url order in Go,
-                    # where map iteration is not ordered(keysort's order is otherwise lost)
+                    # bitget signs the raw (non-percent-encoded) query string, so the
+                    # signature must use the decoded values (e.g. non-ascii market ids).
+                    # sort explicitly (true) so the signed order matches the url order in Go,
+                    # where map iteration is not ordered (keysort's order is otherwise lost)
                     auth += '?' + self.rawencode(sortedParams, True)
             signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256, 'base64')
             broker = self.safe_string(self.options, 'broker')
@@ -10830,7 +11173,7 @@ class bitget(Exchange, ImplicitAPI):
             if method == 'POST':
                 headers['Content-Type'] = 'application/json'
         sandboxMode = self.safe_bool_2(self.options, 'sandboxMode', 'sandbox', False)
-        if sandboxMode and (path != 'v2/public/time') and (path != 'v3/market/current-fund-rate'):
+        if (sandboxMode is True) and (path != 'v2/public/time') and (path != 'v3/market/current-fund-rate'):
             # https://github.com/ccxt/ccxt/issues/25252#issuecomment-2662742336
             if headers is None:
                 headers = {}

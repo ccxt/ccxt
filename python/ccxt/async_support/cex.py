@@ -170,6 +170,7 @@ class cex(Exchange, ImplicitAPI):
                         'do_cancel_my_order': {'cost': 1},
                         'do_cancel_all_orders': {'cost': 5},
                         'get_order_book': {'cost': 1},
+                        'get_ticker': {'cost': 1},
                         'get_candles': {'cost': 1},
                         'get_trade_history': {'cost': 1},
                         'get_my_transaction_history': {'cost': 1},
@@ -308,9 +309,9 @@ class cex(Exchange, ImplicitAPI):
                     # 'OSM': 'osmosis',
                     'NEO': 'neo',
                     'NEO3': 'neo3',
-                    # 'TERRAOLD': 'terra',  # tbd
-                    # 'TERRA': 'terra2',  # tbd
-                    # 'EVER': 'everscale',  # tbd
+                    # 'TERRAOLD': 'terra', // tbd
+                    # 'TERRA': 'terra2', // tbd
+                    # 'EVER': 'everscale', // tbd
                     'XDC': 'xdc',
                 },
             },
@@ -333,11 +334,11 @@ class cex(Exchange, ImplicitAPI):
         #        "data": [
         #            {
         #                "currency": "ZAP",
-        #                "fiat": False,
+        #                "fiat": false,
         #                "precision": "8",
         #                "walletPrecision": "6",
-        #                "walletDeposit": True,
-        #                "walletWithdrawal": True
+        #                "walletDeposit": true,
+        #                "walletWithdrawal": true
         #            },
         #            ...
         #
@@ -373,7 +374,8 @@ class cex(Exchange, ImplicitAPI):
     def parse_currency(self, rawCurrency: dict) -> CurrencyInterface:
         id = self.safe_string(rawCurrency, 'currency')
         code = self.safe_currency_code(id)
-        type = 'fiat' if self.safe_bool(rawCurrency, 'fiat') else 'crypto'
+        isFiat = (self.safe_bool(rawCurrency, 'fiat') is True)
+        type = 'fiat' if isFiat else 'crypto'
         currencyPrecision = self.parse_number(self.parse_precision(self.safe_string(rawCurrency, 'precision')))
         networks = {}
         rawNetworks = self.safe_dict(rawCurrency, 'blockchains', {})
@@ -469,7 +471,7 @@ class cex(Exchange, ImplicitAPI):
         base = self.safe_currency_code(baseId)
         quoteId = self.safe_string(market, 'quote')
         quote = self.safe_currency_code(quoteId)
-        id = base + '-' + quote  # not actual id, but for self exchange we can use self abbreviation, because e.g. tickers have hyphen in between
+        id = base + '-' + quote  # not actual id, but for this exchange we can use this abbreviation, because e.g. tickers have hyphen in between
         symbol = base + '/' + quote
         return self.safe_market_structure({
             'id': id,
@@ -515,7 +517,7 @@ class cex(Exchange, ImplicitAPI):
             'precision': {
                 'amount': self.safe_string(market, 'baseLotSize'),
                 'price': self.parse_number(self.parse_precision(self.safe_string(market, 'pricePrecision'))),
-                # 'cost': self.parse_number(self.parse_precision(self.safe_string(market, 'quoteLotSize'))),  # buggy, doesn't reflect their documentation
+                # 'cost': this.parseNumber (this.parsePrecision (this.safeString (market, 'quoteLotSize'))), // buggy, doesn't reflect their documentation
                 'base': self.parse_number(self.parse_precision(self.safe_string(market, 'basePrecision'))),
                 'quote': self.parse_number(self.parse_precision(self.safe_string(market, 'quotePrecision'))),
             },
@@ -622,7 +624,7 @@ class cex(Exchange, ImplicitAPI):
             'askVolume': None,
             'vwap': None,
             'open': None,
-            'close': self.safe_string(ticker, 'last'),  # last indicative price per api docs(difference also seen here: https://github.com/ccxt/ccxt/actions/runs/14593899575/job/40935513901?pr=25767#step:11:456 )
+            'close': self.safe_string(ticker, 'last'),  # last indicative price per api docs (difference also seen here: https://github.com/ccxt/ccxt/actions/runs/14593899575/job/40935513901?pr=25767#step:11:456 )
             'previousClose': None,
             'change': self.safe_number(ticker, 'priceChange'),
             'percentage': self.safe_number(ticker, 'priceChangePercentage'),
@@ -762,7 +764,7 @@ class cex(Exchange, ImplicitAPI):
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: timestamp in ms of the latest entry
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         dataType = None
         dataType, params = self.handle_option_and_params(params, 'fetchOHLCV', 'dataType')
@@ -804,7 +806,7 @@ class cex(Exchange, ImplicitAPI):
         #                "close": "61087.8",
         #                "volume": "0",
         #                "resolution": "1m",
-        #                "isClosed": True,
+        #                "isClosed": true,
         #                "timestampISO": "2024-10-11T10:42:00.000Z"
         #            },
         #            ...
@@ -1030,7 +1032,7 @@ class cex(Exchange, ImplicitAPI):
         #                "clientId": "up421412345",
         #                "accountId": null,
         #                "status": "FILLED",
-        #                "statusIsFinal": True,
+        #                "statusIsFinal": true,
         #                "currency1": "AI",
         #                "currency2": "USDT",
         #                "side": "BUY",
@@ -1147,7 +1149,7 @@ class cex(Exchange, ImplicitAPI):
         #                "clientId": "up421412345",
         #                "accountId": null,
         #                "status": "FILLED",
-        #                "statusIsFinal": True,
+        #                "statusIsFinal": true,
         #                "currency1": "AI",
         #                "currency2": "USDT",
         #                "side": "BUY",
@@ -1191,7 +1193,7 @@ class cex(Exchange, ImplicitAPI):
         timestamp = self.safe_integer(order, 'serverCreateTimestamp')
         requestedBase = self.safe_number(order, 'requestedAmountCcy1')
         executedBase = self.safe_number(order, 'executedAmountCcy1')
-        # requestedQuote = self.safe_number(order, 'requestedAmountCcy2')
+        # const requestedQuote = this.safeNumber (order, 'requestedAmountCcy2');
         executedQuote = self.safe_number(order, 'executedAmountCcy2')
         return self.safe_order({
             'id': self.safe_string(order, 'orderId'),
@@ -1310,7 +1312,7 @@ class cex(Exchange, ImplicitAPI):
         #             "requestedAmountCcy1": null,
         #             "orderRejectReason": "{\\" code \\ ":405,\\" reason \\ ":\\" Either AmountCcy1(OrderQty)or AmountCcy2(CashOrderQty)should be specified for market order not both \\ "}",
         #             "rejectCode": 405,
-        #             "rejectReason": "Either AmountCcy1(OrderQty) or AmountCcy2(CashOrderQty) should be specified for market order not both",
+        #             "rejectReason": "Either AmountCcy1 (OrderQty) or AmountCcy2 (CashOrderQty) should be specified for market order not both",
         #
         data = self.safe_dict(response, 'data', {})
         return self.parse_order(data, market)
@@ -1566,7 +1568,7 @@ class cex(Exchange, ImplicitAPI):
         else:
             transfer = await self.transfer_between_main_and_sub_account(code, amount, fromAccount, toAccount, params)
         fillResponseFromRequest = self.handle_option('transfer', 'fillResponseFromRequest', True)
-        if fillResponseFromRequest:
+        if fillResponseFromRequest is True:
             transfer['fromAccount'] = fromAccount
             transfer['toAccount'] = toAccount
         return transfer
@@ -1686,7 +1688,7 @@ class cex(Exchange, ImplicitAPI):
         currency = self.currency(code)
         request = {
             'accountId': accountId,
-            'currency': currency['id'],  # documentation is wrong about self param
+            'currency': currency['id'],  # documentation is wrong about this param
             'blockchain': self.network_code_to_id(networkCode, currency['code']),
         }
         response = await self.privatePostGetDepositAddress(self.extend(request, params))
@@ -1722,7 +1724,7 @@ class cex(Exchange, ImplicitAPI):
         query = self.omit(params, self.extract_params(path))
         if api == 'public':
             if method == 'GET':
-                if query:
+                if len(query) > 0:
                     url += '?' + self.urlencode(query)
             else:
                 body = self.json(query)
@@ -1745,7 +1747,7 @@ class cex(Exchange, ImplicitAPI):
 
     def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         # in some cases, like from createOrder, exchange returns nested escaped JSON string:
-        #      {"ok":"ok","data":{"messageType":"executionReport", "orderRejectReason":"{\"code\":405}"}}
+        #      {"ok":"ok","data":{"messageType":"executionReport", "orderRejectReason":"{\"code\":405}"} }
         # and because of `.parseJson` bug, we need extra fix
         if response is None:
             if body is None:
@@ -1761,7 +1763,7 @@ class cex(Exchange, ImplicitAPI):
             self.throw_exactly_matched_exception(self.exceptions['exact'], error, feedback)
             self.throw_broadly_matched_exception(self.exceptions['broad'], error, feedback)
             raise ExchangeError(feedback)
-        # check errors in order-engine(the responses are not standard, so we parse here)
+        # check errors in order-engine (the responses are not standard, so we parse here)
         if url.find('do_my_new_order') >= 0:
             data = self.safe_dict(response, 'data', {})
             rejectReason = self.safe_string(data, 'rejectReason')

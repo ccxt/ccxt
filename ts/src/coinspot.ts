@@ -184,7 +184,9 @@ export default class coinspot extends Exchange {
                             'my/sell': { 'cost': 1 } as Endpoint<Dict>,
                             'my/sell/edit': { 'cost': 1 } as Endpoint<Dict>,
                             'my/buy/now': { 'cost': 1 } as Endpoint<Dict>,
+                            'my/buy/now/coinlist': { 'cost': 1 } as Endpoint<Dict>,
                             'my/sell/now': { 'cost': 1 } as Endpoint<Dict>,
+                            'my/sell/now/coinlist': { 'cost': 1 } as Endpoint<Dict>,
                             'my/swap/now': { 'cost': 1 } as Endpoint<Dict>,
                             'my/buy/cancel': { 'cost': 1 } as Endpoint<Dict>,
                             'my/buy/cancel/all': { 'cost': 1 } as Endpoint<Dict>,
@@ -192,6 +194,8 @@ export default class coinspot extends Exchange {
                             'my/sell/cancel/all': { 'cost': 1 } as Endpoint<Dict>,
                             'my/coin/withdraw/senddetails': { 'cost': 1 } as Endpoint<Dict>,
                             'my/coin/withdraw/send': { 'cost': 1 } as Endpoint<Dict>,
+                            'my/coin/withdraw/send/async': { 'cost': 1 } as Endpoint<Dict>,
+                            'my/coin/withdraw/send/status': { 'cost': 1 } as Endpoint<Dict>,
                             'ro/status': { 'cost': 1 } as Endpoint<Dict>,
                             'ro/orders/market/open': { 'cost': 1 } as Endpoint<Dict>,
                             'ro/orders/market/completed': { 'cost': 1 } as Endpoint<Dict>,
@@ -487,7 +491,7 @@ export default class coinspot extends Exchange {
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
             const market = this.safeMarket (id);
-            if (market['spot']) {
+            if (market['spot'] === true) {
                 const symbol = market['symbol'];
                 const ticker = prices[id];
                 result[symbol] = this.parseTicker (ticker, market);
@@ -741,7 +745,7 @@ export default class coinspot extends Exchange {
     }
 
     override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
-        if (!response) {
+        if (response === undefined) {
             return undefined; // fallback to default error handler
         }
         const status = this.safeString (response, 'status');

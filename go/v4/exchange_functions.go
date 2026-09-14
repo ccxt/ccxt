@@ -209,28 +209,6 @@ func (this *BaseExchange) Contains(slice []any, elem string) bool {
 	return false
 }
 
-// toArray converts a map to a slice of its values.
-// func (this *BaseExchange) ToArray(a any) []any {
-// 	if a == nil {
-// 		return nil
-// 	}
-
-// 	if reflect.TypeOf(a).Kind() == reflect.Slice {
-// 		return a.([]any)
-// 	}
-
-// 	if reflect.TypeOf(a).Kind() == reflect.Map {
-// 		b := a.(map[string]any)
-// 		outList := make([]any, 0, len(b))
-// 		for _, value := range b {
-// 			outList = append(outList, value)
-// 		}
-// 		return outList
-// 	}
-
-// 	return nil
-// }
-
 func (this *BaseExchange) ToArray(a any) []any {
 	if a == nil {
 		return nil

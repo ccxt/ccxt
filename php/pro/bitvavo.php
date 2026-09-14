@@ -172,28 +172,28 @@ class bitvavo extends \ccxt\async\bitvavo {
     public function handle_ticker(Client $client, mixed $message) {
         //
         //     {
-        //         "event" => "ticker24h",
-        //         "data" => array(
+        //         "event": "ticker24h",
+        //         "data": [
         //             {
-        //                 "market" => "ETH-EUR",
-        //                 "open" => "193.5",
-        //                 "high" => "202.72",
-        //                 "low" => "192.46",
-        //                 "last" => "199.01",
-        //                 "volume" => "3587.05020246",
-        //                 "volumeQuote" => "708030.17",
-        //                 "bid" => "199.56",
-        //                 "bidSize" => "4.14730802",
-        //                 "ask" => "199.57",
-        //                 "askSize" => "6.13642074",
-        //                 "timestamp" => 1590770885217
+        //                 "market": "ETH-EUR",
+        //                 "open": "193.5",
+        //                 "high": "202.72",
+        //                 "low": "192.46",
+        //                 "last": "199.01",
+        //                 "volume": "3587.05020246",
+        //                 "volumeQuote": "708030.17",
+        //                 "bid": "199.56",
+        //                 "bidSize": "4.14730802",
+        //                 "ask": "199.57",
+        //                 "askSize": "6.13642074",
+        //                 "timestamp": 1590770885217
         //             }
-        //         )
+        //         ]
         //     }
         //
         $this->handle_bid_ask($client, $message);
         $event = $this->safe_string($message, 'event');
-        $tickers = $this->safe_value($message, 'data', array());
+        $tickers = $this->safe_list($message, 'data', array());
         $result = array();
         for ($i = 0; $i < count($tickers); $i++) {
             $data = $tickers[$i];
@@ -234,7 +234,7 @@ class bitvavo extends \ccxt\async\bitvavo {
 
     public function handle_bid_ask(Client $client, mixed $message) {
         $event = 'bidask';
-        $tickers = $this->safe_value($message, 'data', array());
+        $tickers = $this->safe_list($message, 'data', array());
         $result = array();
         for ($i = 0; $i < count($tickers); $i++) {
             $data = $tickers[$i];
@@ -292,13 +292,13 @@ class bitvavo extends \ccxt\async\bitvavo {
     public function handle_trade(Client $client, mixed $message) {
         //
         //     {
-        //         "event" => "trade",
-        //         "timestamp" => 1590779594547,
-        //         "market" => "ETH-EUR",
-        //         "id" => "450c3298-f082-4461-9e2c-a0262cc7cc2e",
-        //         "amount" => "0.05026233",
-        //         "price" => "198.46",
-        //         "side" => "buy"
+        //         "event": "trade",
+        //         "timestamp": 1590779594547,
+        //         "market": "ETH-EUR",
+        //         "id": "450c3298-f082-4461-9e2c-a0262cc7cc2e",
+        //         "amount": "0.05026233",
+        //         "price": "198.46",
+        //         "side": "buy"
         //     }
         //
         $marketId = $this->safe_string($message, 'market');
@@ -432,7 +432,7 @@ class bitvavo extends \ccxt\async\bitvavo {
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -465,11 +465,11 @@ class bitvavo extends \ccxt\async\bitvavo {
     public function handle_fetch_ohlcv(Client $client, mixed $message) {
         //
         //    {
-        //        action => 'getCandles',
-        //        $response => array(
+        //        action: 'getCandles',
+        //        response: [
         //            [1690325820000, '26453', '26453', '26436', '26447', '0.01626246'],
         //            [1690325760000, '26454', '26454', '26453', '26453', '0.00037707']
-        //        )
+        //        ]
         //    }
         //
         $response = $this->safe_value($message, 'response');
@@ -481,19 +481,19 @@ class bitvavo extends \ccxt\async\bitvavo {
     public function handle_ohlcv(Client $client, mixed $message) {
         //
         //     {
-        //         "event" => "candle",
-        //         "market" => "BTC-EUR",
-        //         "interval" => "1m",
-        //         "candle" => array(
-        //             array(
+        //         "event": "candle",
+        //         "market": "BTC-EUR",
+        //         "interval": "1m",
+        //         "candle": [
+        //             [
         //                 1590797160000,
         //                 "8480.9",
         //                 "8480.9",
         //                 "8480.9",
         //                 "8480.9",
         //                 "0.01038628"
-        //             )
-        //         )
+        //             ]
+        //         ]
         //     }
         //
         $name = 'candles';
@@ -518,7 +518,7 @@ class bitvavo extends \ccxt\async\bitvavo {
             $stored->append($parsed);
         }
         $client->resolve($stored, $messageHash);
-        // watchOHLCVForSymbols needs the $symbol and $timeframe to assemble its result
+        // watchOHLCVForSymbols needs the symbol and timeframe to assemble its result
         $client->resolve(array( $symbol, $timeframe, $stored ), 'multi:' . $messageHash);
     }
 
@@ -536,7 +536,7 @@ class bitvavo extends \ccxt\async\bitvavo {
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of $candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a dictionary of [$symbol, $timeframe] keyed arrays of $candles ordered, open, high, low, close, volume
+         * @return {array} a dictionary of [$symbol, $timeframe] keyed arrays of $candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -730,8 +730,8 @@ class bitvavo extends \ccxt\async\bitvavo {
                 ),
             ),
         );
-        // the per-$market snapshot machinery reads the marketId from the buffered
-        // delta messages, so the shared $subscription only carries the common fields
+        // the per-market snapshot machinery reads the marketId from the buffered
+        // delta messages, so the shared subscription only carries the common fields
         $subscription = array(
             'name' => $name,
             'symbols' => $symbols,
@@ -813,15 +813,15 @@ class bitvavo extends \ccxt\async\bitvavo {
     public function handle_order_book_message(Client $client, mixed $message, mixed $orderbook) {
         //
         //     {
-        //         "event" => "book",
-        //         "market" => "BTC-EUR",
-        //         "nonce" => 36947383,
-        //         "bids" => array(
-        //             array( "8477.8", "0" )
-        //         ),
-        //         "asks" => array(
-        //             array( "8550.9", "0" )
-        //         )
+        //         "event": "book",
+        //         "market": "BTC-EUR",
+        //         "nonce": 36947383,
+        //         "bids": [
+        //             [ "8477.8", "0" ]
+        //         ],
+        //         "asks": [
+        //             [ "8550.9", "0" ]
+        //         ]
         //     }
         //
         $nonce = $this->safe_integer($message, 'nonce');
@@ -836,15 +836,15 @@ class bitvavo extends \ccxt\async\bitvavo {
     public function handle_order_book(Client $client, mixed $message) {
         //
         //     {
-        //         "event" => "book",
-        //         "market" => "BTC-EUR",
-        //         "nonce" => 36729561,
-        //         "bids" => array(
-        //             array( "8513.3", "0" ),
-        //             array( '8518.8', "0.64236203" ),
-        //             array( '8513.6', "0.32435481" ),
-        //         ),
-        //         "asks" => array()
+        //         "event": "book",
+        //         "market": "BTC-EUR",
+        //         "nonce": 36729561,
+        //         "bids": [
+        //             [ "8513.3", "0" ],
+        //             [ '8518.8', "0.64236203" ],
+        //             [ '8513.6', "0.32435481" ],
+        //         ],
+        //         "asks": []
         //     }
         //
         $event = $this->safe_string($message, 'event');
@@ -858,8 +858,8 @@ class bitvavo extends \ccxt\async\bitvavo {
         }
         if ($orderbook['nonce'] === null) {
             $subscription = $this->safe_value($client->subscriptions, $messageHash, array());
-            // multi-$symbol watches share one $subscription object, so the
-            // snapshot-in-flight flag must be tracked per $market
+            // multi-symbol watches share one subscription object, so the
+            // snapshot-in-flight flag must be tracked per market
             $flagKey = 'watchingOrderBookSnapshot@' . $marketId;
             $watchingOrderBookSnapshot = $this->safe_value($subscription, $flagKey);
             if ($watchingOrderBookSnapshot === null) {
@@ -867,7 +867,7 @@ class bitvavo extends \ccxt\async\bitvavo {
                 $client->subscriptions[$messageHash] = $subscription;
                 $options = $this->safe_value($this->options, 'watchOrderBookSnapshot', array());
                 $delay = $this->safe_integer($options, 'delay', $this->rateLimit);
-                // fetch the snapshot in a separate async call after a warmup $delay
+                // fetch the snapshot in a separate async call after a warmup delay
                 $this->delay($delay, array($this, 'watch_order_book_snapshot'), $client, $message, $subscription);
             }
             $orderbook->cache[] = $message;
@@ -883,13 +883,13 @@ class bitvavo extends \ccxt\async\bitvavo {
 
     private function do_watch_order_book_snapshot(mixed $client, mixed $message, mixed $subscription) {
         $params = $this->safe_value($subscription, 'params');
-        // multi-symbol watches share one $subscription object without a $marketId,
-        // in that case the buffered delta $message identifies the market
+        // multi-symbol watches share one subscription object without a marketId,
+        // in that case the buffered delta message identifies the market
         $marketId = $this->safe_string_2($subscription, 'marketId', 'market', $this->safe_string($message, 'market'));
         $snapshotSymbol = $this->safe_symbol($marketId, null, '-');
         if (!(is_array($this->orderbooks) && array_key_exists($snapshotSymbol ?? '', $this->orderbooks))) {
             // this snapshot fetch was scheduled before an unsubscribe removed the
-            // order book - skip it so the getBook $request is not sent for a dead market
+            // order book - skip it so the getBook request is not sent for a dead market
             return null;
         }
         $name = 'getBook';
@@ -906,20 +906,20 @@ class bitvavo extends \ccxt\async\bitvavo {
     public function handle_order_book_snapshot(Client $client, mixed $message) {
         //
         //     {
-        //         "action" => "getBook",
-        //         "response" => {
-        //             "market" => "BTC-EUR",
-        //             "nonce" => 36946120,
-        //             "bids" => array(
-        //                 array( '8494.9', "0.24399521" ),
-        //                 array( '8494.8', "0.34884085" ),
-        //                 array( '8493.9', "0.14535128" ),
-        //             ),
-        //             "asks" => array(
-        //                 array( "8495", "0.46982463" ),
-        //                 array( '8495.1', "0.12178267" ),
-        //                 array( '8496.2', "0.21924143" ),
-        //             )
+        //         "action": "getBook",
+        //         "response": {
+        //             "market": "BTC-EUR",
+        //             "nonce": 36946120,
+        //             "bids": [
+        //                 [ '8494.9', "0.24399521" ],
+        //                 [ '8494.8', "0.34884085" ],
+        //                 [ '8493.9', "0.14535128" ],
+        //             ],
+        //             "asks": [
+        //                 [ "8495", "0.46982463" ],
+        //                 [ '8495.1', "0.12178267" ],
+        //                 [ '8496.2', "0.21924143" ],
+        //             ]
         //         }
         //     }
         //
@@ -933,7 +933,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         $messageHash = $name . '@' . $marketId;
         $orderbook = $this->safe_value($this->orderbooks, $symbol);
         if ($orderbook === null) {
-            // the market was unsubscribed while this $snapshot request was in flight
+            // the market was unsubscribed while this snapshot request was in flight
             return;
         }
         $snapshot = $this->parse_order_book($response, $symbol);
@@ -947,9 +947,9 @@ class bitvavo extends \ccxt\async\bitvavo {
         }
         $this->orderbooks[$symbol] = $orderbook;
         $client->resolve($orderbook, $messageHash);
-        // getBook is a one-shot request but array($this, 'watch') tracks it persistent
-        // subscription - drop it so a later unsubscribe/subscribe re-fetches the $snapshot
-        // instead of suppressing the request already-active subscription
+        // getBook is a one-shot request but this.watch tracks it as a persistent
+        // subscription - drop it so a later unsubscribe/subscribe re-fetches the snapshot
+        // instead of suppressing the request as an already-active subscription
         $snapshotHash = 'getBook@' . $marketId;
         if (is_array($client->subscriptions) && array_key_exists($snapshotHash ?? '', $client->subscriptions)) {
             unset($client->subscriptions[$snapshotHash]);
@@ -977,8 +977,8 @@ class bitvavo extends \ccxt\async\bitvavo {
                 if ($method !== null) {
                     $method($client, $message, $subscription);
                 } elseif ($subscription !== null) {
-                    // multi-$symbol watches share one $subscription object without a
-                    // per-market $method - initialize the order book directly
+                    // multi-symbol watches share one subscription object without a
+                    // per-market method - initialize the order book directly
                     $limit = $this->safe_integer($subscription, 'limit');
                     $this->orderbooks[$symbol] = $this->order_book(array(), $limit);
                 }
@@ -1012,8 +1012,8 @@ class bitvavo extends \ccxt\async\bitvavo {
     public function handle_unsubscription_status(Client $client, mixed $message) {
         //
         //     {
-        //         "event" => "unsubscribed",
-        //         "subscriptions" => array()
+        //         "event": "unsubscribed",
+        //         "subscriptions": {}
         //     }
         //
         // the confirmation carries the remaining subscriptions without identifying
@@ -1031,9 +1031,9 @@ class bitvavo extends \ccxt\async\bitvavo {
             $subHash = str_replace('unsubscribe:', '', $key);
             $this->clean_cache($subscription);
             $this->clean_unsubscription($client, $subHash, $key);
-            // bitvavo resolves-and-deletes the data futures on every $message, so at
+            // bitvavo resolves-and-deletes the data futures on every message, so at
             // unsubscribe time the sub future is usually already gone and cleanUnsubscription
-            // stashes the error in $client->rejections instead - that stale entry
+            // stashes the error in client.rejections instead - that stale entry
             // would immediately reject the next subscribe's fresh future, so clear it here
             if (is_array($client->rejections) && array_key_exists($subHash ?? '', $client->rejections)) {
                 unset($client->rejections[$subHash]);
@@ -1250,20 +1250,20 @@ class bitvavo extends \ccxt\async\bitvavo {
     public function handle_multiple_orders(Client $client, mixed $message) {
         //
         //    {
-        //        $action => 'privateCancelOrders',
-        //        $response => [array(
-        //            orderId => 'd71df826-1130-478a-8741-d219128675b0'
-        //        )]
+        //        action: 'privateCancelOrders',
+        //        response: [{
+        //            orderId: 'd71df826-1130-478a-8741-d219128675b0'
+        //        }]
         //    }
         //
-        // $action = $this->safe_string($message, 'action');
+        // const action = this.safeString (message, 'action');
         $response = $this->safe_list($message, 'response');
-        // $firstRawOrder = $this->safe_value($response, 0, array());
-        // $marketId = $this->safe_string($firstRawOrder, 'market');
+        // const firstRawOrder = this.safeValue (response, 0, {});
+        // const marketId = this.safeString (firstRawOrder, 'market');
         $orders = $this->parse_orders($response);
-        // $messageHash = $this->build_message_hash($action, array( 'market' => $marketId ));
-        // $client->resolve($orders, $messageHash);
-        // $messageHash = $this->build_message_hash($action, $message);
+        // let messageHash = this.buildMessageHash (action, { 'market': marketId });
+        // client.resolve (orders, messageHash);
+        // messageHash = this.buildMessageHash (action, message);
         $messageHash = $this->safe_string($message, 'requestId');
         $client->resolve($orders, $messageHash);
     }
@@ -1364,7 +1364,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         }
         Async\await($this->authenticate());
         $request = array(
-            // 'market' => $market['id'], // rate $limit 25 without a $market, 1 with $market specified
+            // 'market': market['id'], // rate limit 25 without a market, 1 with market specified
         );
         $market = null;
         if ($symbol !== null) {
@@ -1406,30 +1406,30 @@ class bitvavo extends \ccxt\async\bitvavo {
     public function handle_my_trades(Client $client, mixed $message) {
         //
         //    {
-        //        $action => 'privateGetTrades',
-        //        $response => array(
+        //        action: 'privateGetTrades',
+        //        response: [
         //            {
-        //                "id" => "108c3633-0276-4480-a902-17a01829deae",
-        //                "orderId" => "1d671998-3d44-4df4-965f-0d48bd129a1b",
-        //                "timestamp" => 1542967486256,
-        //                "market" => "BTC-EUR",
-        //                "side" => "buy",
-        //                "amount" => "0.005",
-        //                "price" => "5000.1",
-        //                "taker" => true,
-        //                "fee" => "0.03",
-        //                "feeCurrency" => "EUR",
-        //                "settled" => true
+        //                "id": "108c3633-0276-4480-a902-17a01829deae",
+        //                "orderId": "1d671998-3d44-4df4-965f-0d48bd129a1b",
+        //                "timestamp": 1542967486256,
+        //                "market": "BTC-EUR",
+        //                "side": "buy",
+        //                "amount": "0.005",
+        //                "price": "5000.1",
+        //                "taker": true,
+        //                "fee": "0.03",
+        //                "feeCurrency": "EUR",
+        //                "settled": true
         //            }
-        //        )
+        //        ]
         //    }
         //
         //
-        // $action = $this->safe_string($message, 'action');
+        // const action = this.safeString (message, 'action');
         $response = $this->safe_list($message, 'response');
-        // $marketId = $this->safe_string(firstRawTrade, 'market');
+        // const marketId = this.safeString (firstRawTrade, 'market');
         $trades = $this->parse_trades($response, null, null, null);
-        // $messageHash = $this->build_message_hash($action, array( 'market' => $marketId ));
+        // const messageHash = this.buildMessageHash (action, { 'market': marketId });
         $messageHash = $this->safe_string($message, 'requestId');
         $client->resolve($trades, $messageHash);
     }
@@ -1461,16 +1461,16 @@ class bitvavo extends \ccxt\async\bitvavo {
     public function handle_withdraw(Client $client, mixed $message) {
         //
         //    {
-        //        $action => 'privateWithdrawAssets',
-        //        $response => {
-        //         "success" => true,
-        //         "symbol" => "BTC",
-        //         "amount" => "1.5"
+        //        action: 'privateWithdrawAssets',
+        //        response: {
+        //         "success": true,
+        //         "symbol": "BTC",
+        //         "amount": "1.5"
         //        }
         //    }
         //
-        // $action = $this->safe_string($message, 'action');
-        // $messageHash = $this->build_message_hash($action, $message);
+        // const action = this.safeString (message, 'action');
+        // const messageHash = this.buildMessageHash (action, message);
         $messageHash = $this->safe_string($message, 'requestId');
         $response = $this->safe_value($message, 'response');
         $withdraw = $this->parse_transaction($response);
@@ -1505,21 +1505,21 @@ class bitvavo extends \ccxt\async\bitvavo {
     public function handle_withdraws(Client $client, mixed $message) {
         //
         //    {
-        //        $action => 'privateGetWithdrawalHistory',
-        //        $response => [array(
-        //                timestamp => 1689792085000,
-        //                symbol => 'BTC',
-        //                amount => '0.0009',
-        //                fee => '0',
-        //                status => 'completed',
-        //                txId => '7dbadc658d7d59c129de1332c55ee8e08d0ab74432faae03b417b9809c819d1f'
-        //            ),
+        //        action: 'privateGetWithdrawalHistory',
+        //        response: [{
+        //                timestamp: 1689792085000,
+        //                symbol: 'BTC',
+        //                amount: '0.0009',
+        //                fee: '0',
+        //                status: 'completed',
+        //                txId: '7dbadc658d7d59c129de1332c55ee8e08d0ab74432faae03b417b9809c819d1f'
+        //            },
         //            ...
         //        ]
         //    }
         //
-        // $action = $this->safe_string($message, 'action');
-        // $messageHash = $this->build_message_hash($action, $message);
+        // const action = this.safeString (message, 'action');
+        // const messageHash = this.buildMessageHash (action, message);
         $response = $this->safe_list($message, 'response');
         $messageHash = $this->safe_string($message, 'requestId');
         $withdrawals = $this->parse_transactions($response, null, null, null, array( 'type' => 'withdrawal' ));
@@ -1541,7 +1541,7 @@ class bitvavo extends \ccxt\async\bitvavo {
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -1580,15 +1580,15 @@ class bitvavo extends \ccxt\async\bitvavo {
     public function handle_deposits(Client $client, mixed $message) {
         //
         //    {
-        //        action => 'privateGetDepositHistory',
-        //        $response => [array(
-        //                timestamp => 1689792085000,
-        //                symbol => 'BTC',
-        //                amount => '0.0009',
-        //                fee => '0',
-        //                status => 'completed',
-        //                txId => '7dbadc658d7d59c129de1332c55ee8e08d0ab74432faae03b417b9809c819d1f'
-        //            ),
+        //        action: 'privateGetDepositHistory',
+        //        response: [{
+        //                timestamp: 1689792085000,
+        //                symbol: 'BTC',
+        //                amount: '0.0009',
+        //                fee: '0',
+        //                status: 'completed',
+        //                txId: '7dbadc658d7d59c129de1332c55ee8e08d0ab74432faae03b417b9809c819d1f'
+        //            },
         //            ...
         //        ]
         //    }
@@ -1653,20 +1653,20 @@ class bitvavo extends \ccxt\async\bitvavo {
     public function handle_fetch_currencies(Client $client, mixed $message) {
         //
         //    {
-        //        action => 'getAssets',
-        //        $response => [array(
-        //                symbol => '1INCH',
-        //                name => '1inch',
-        //                decimals => 8,
-        //                depositFee => '0',
-        //                depositConfirmations => 64,
-        //                depositStatus => 'OK',
-        //                withdrawalFee => '13',
-        //                withdrawalMinAmount => '13',
-        //                withdrawalStatus => 'OK',
-        //                networks => [Array],
-        //                $message => ''
-        //            ),
+        //        action: 'getAssets',
+        //        response: [{
+        //                symbol: '1INCH',
+        //                name: '1inch',
+        //                decimals: 8,
+        //                depositFee: '0',
+        //                depositConfirmations: 64,
+        //                depositStatus: 'OK',
+        //                withdrawalFee: '13',
+        //                withdrawalMinAmount: '13',
+        //                withdrawalStatus: 'OK',
+        //                networks: [Array],
+        //                message: ''
+        //            },
         //            ...
         //        ]
         //    }
@@ -1680,12 +1680,12 @@ class bitvavo extends \ccxt\async\bitvavo {
     public function handle_trading_fees(Client $client, mixed $message) {
         //
         //    {
-        //        action => 'privateGetAccount',
-        //        $response => {
-        //            $fees => {
-        //                taker => '0.0025',
-        //                maker => '0.0015',
-        //                volume => '1693.74'
+        //        action: 'privateGetAccount',
+        //        response: {
+        //            fees: {
+        //                taker: '0.0025',
+        //                maker: '0.0015',
+        //                volume: '1693.74'
         //            }
         //        }
         //    }
@@ -1719,12 +1719,12 @@ class bitvavo extends \ccxt\async\bitvavo {
     public function handle_fetch_balance(Client $client, mixed $message) {
         //
         //    {
-        //        action => 'privateGetBalance',
-        //        $response => [array(
-        //                symbol => 'ADA',
-        //                available => '0',
-        //                inOrder => '0'
-        //            ),
+        //        action: 'privateGetBalance',
+        //        response: [{
+        //                symbol: 'ADA',
+        //                available: '0',
+        //                inOrder: '0'
+        //            },
         //            ...
         //        ]
         //    }
@@ -1738,29 +1738,29 @@ class bitvavo extends \ccxt\async\bitvavo {
     public function handle_single_order(Client $client, mixed $message) {
         //
         //    {
-        //        action => 'privateCreateOrder',
-        //        $response => {
-        //            orderId => 'd71df826-1130-478a-8741-d219128675b0',
-        //            market => 'BTC-EUR',
-        //            created => 1689792749748,
-        //            updated => 1689792749748,
-        //            status => 'new',
-        //            side => 'sell',
-        //            orderType => 'limit',
-        //            amount => '0.0002',
-        //            amountRemaining => '0.0002',
-        //            price => '37000',
-        //            onHold => '0.0002',
-        //            onHoldCurrency => 'BTC',
-        //            filledAmount => '0',
-        //            filledAmountQuote => '0',
-        //            feePaid => '0',
-        //            feeCurrency => 'EUR',
-        //            fills => array(),
-        //            selfTradePrevention => 'decrementAndCancel',
-        //            visible => true,
-        //            timeInForce => 'GTC',
-        //            postOnly => false
+        //        action: 'privateCreateOrder',
+        //        response: {
+        //            orderId: 'd71df826-1130-478a-8741-d219128675b0',
+        //            market: 'BTC-EUR',
+        //            created: 1689792749748,
+        //            updated: 1689792749748,
+        //            status: 'new',
+        //            side: 'sell',
+        //            orderType: 'limit',
+        //            amount: '0.0002',
+        //            amountRemaining: '0.0002',
+        //            price: '37000',
+        //            onHold: '0.0002',
+        //            onHoldCurrency: 'BTC',
+        //            filledAmount: '0',
+        //            filledAmountQuote: '0',
+        //            feePaid: '0',
+        //            feeCurrency: 'EUR',
+        //            fills: [],
+        //            selfTradePrevention: 'decrementAndCancel',
+        //            visible: true,
+        //            timeInForce: 'GTC',
+        //            postOnly: false
         //        }
         //    }
         //
@@ -1773,19 +1773,19 @@ class bitvavo extends \ccxt\async\bitvavo {
     public function handle_markets(Client $client, mixed $message) {
         //
         //    {
-        //        action => 'getMarkets',
-        //        $response => [array(
-        //                market => '1INCH-EUR',
-        //                status => 'trading',
-        //                base => '1INCH',
-        //                quote => 'EUR',
-        //                pricePrecision => 5,
-        //                minOrderInBaseAsset => '2',
-        //                minOrderInQuoteAsset => '5',
-        //                maxOrderInBaseAsset => '1000000000',
-        //                maxOrderInQuoteAsset => '1000000000',
-        //                orderTypes => [Array]
-        //            ),
+        //        action: 'getMarkets',
+        //        response: [{
+        //                market: '1INCH-EUR',
+        //                status: 'trading',
+        //                base: '1INCH',
+        //                quote: 'EUR',
+        //                pricePrecision: 5,
+        //                minOrderInBaseAsset: '2',
+        //                minOrderInQuoteAsset: '5',
+        //                maxOrderInBaseAsset: '1000000000',
+        //                maxOrderInQuoteAsset: '1000000000',
+        //                orderTypes: [Array]
+        //            },
         //            ...
         //        ]
         //    }
@@ -1828,23 +1828,23 @@ class bitvavo extends \ccxt\async\bitvavo {
     public function handle_order(Client $client, mixed $message) {
         //
         //     {
-        //         "event" => "order",
-        //         "orderId" => "f0e5180f-9497-4d05-9dc2-7056e8a2de9b",
-        //         "market" => "ETH-EUR",
-        //         "created" => 1590948500319,
-        //         "updated" => 1590948500319,
-        //         "status" => "new",
-        //         "side" => "sell",
-        //         "orderType" => "limit",
-        //         "amount" => "0.1",
-        //         "amountRemaining" => "0.1",
-        //         "price" => "300",
-        //         "onHold" => "0.1",
-        //         "onHoldCurrency" => "ETH",
-        //         "selfTradePrevention" => "decrementAndCancel",
-        //         "visible" => true,
-        //         "timeInForce" => "GTC",
-        //         "postOnly" => false
+        //         "event": "order",
+        //         "orderId": "f0e5180f-9497-4d05-9dc2-7056e8a2de9b",
+        //         "market": "ETH-EUR",
+        //         "created": 1590948500319,
+        //         "updated": 1590948500319,
+        //         "status": "new",
+        //         "side": "sell",
+        //         "orderType": "limit",
+        //         "amount": "0.1",
+        //         "amountRemaining": "0.1",
+        //         "price": "300",
+        //         "onHold": "0.1",
+        //         "onHoldCurrency": "ETH",
+        //         "selfTradePrevention": "decrementAndCancel",
+        //         "visible": true,
+        //         "timeInForce": "GTC",
+        //         "postOnly": false
         //     }
         //
         $marketId = $this->safe_string($message, 'market');
@@ -1864,17 +1864,17 @@ class bitvavo extends \ccxt\async\bitvavo {
     public function handle_my_trade(Client $client, mixed $message) {
         //
         //     {
-        //         "event" => "fill",
-        //         "timestamp" => 1590964470132,
-        //         "market" => "ETH-EUR",
-        //         "orderId" => "85d082e1-eda4-4209-9580-248281a29a9a",
-        //         "fillId" => "861d2da5-aa93-475c-8d9a-dce431bd4211",
-        //         "side" => "sell",
-        //         "amount" => "0.1",
-        //         "price" => "211.46",
-        //         "taker" => true,
-        //         "fee" => "0.056",
-        //         "feeCurrency" => "EUR"
+        //         "event": "fill",
+        //         "timestamp": 1590964470132,
+        //         "market": "ETH-EUR",
+        //         "orderId": "85d082e1-eda4-4209-9580-248281a29a9a",
+        //         "fillId": "861d2da5-aa93-475c-8d9a-dce431bd4211",
+        //         "side": "sell",
+        //         "amount": "0.1",
+        //         "price": "211.46",
+        //         "taker": true,
+        //         "fee": "0.056",
+        //         "feeCurrency": "EUR"
         //     }
         //
         $marketId = $this->safe_string($message, 'market');
@@ -1894,13 +1894,13 @@ class bitvavo extends \ccxt\async\bitvavo {
     public function handle_subscription_status(Client $client, mixed $message) {
         //
         //     {
-        //         "event" => "subscribed",
-        //         "subscriptions" => {
-        //             "book" => array( "BTC-EUR" )
+        //         "event": "subscribed",
+        //         "subscriptions": {
+        //             "book": [ "BTC-EUR" ]
         //         }
         //     }
         //
-        $subscriptions = $this->safe_value($message, 'subscriptions', array());
+        $subscriptions = $this->safe_dict($message, 'subscriptions', array());
         $methods = array(
             'book' => array($this, 'handle_order_book_subscriptions'),
         );
@@ -1947,13 +1947,13 @@ class bitvavo extends \ccxt\async\bitvavo {
     public function handle_authentication_message(Client $client, mixed $message) {
         //
         //     {
-        //         "event" => "authenticate",
-        //         "authenticated" => true
+        //         "event": "authenticate",
+        //         "authenticated": true
         //     }
         //
         $messageHash = 'authenticated';
         $authenticated = $this->safe_bool($message, 'authenticated', false);
-        if ($authenticated) {
+        if ($authenticated === true) {
             // we resolve the future here permanently so authentication only happens once
             $client->resolve($message, $messageHash);
         } else {
@@ -1969,17 +1969,17 @@ class bitvavo extends \ccxt\async\bitvavo {
     public function handle_error_message(Client $client, mixed $message): ?bool {
         //
         //    {
-        //        $action => 'privateCreateOrder',
-        //        market => 'BTC-EUR',
-        //        errorCode => 217,
-        //        $error => 'Minimum order size in quote currency is 5 EUR or 0.001 BTC.'
+        //        action: 'privateCreateOrder',
+        //        market: 'BTC-EUR',
+        //        errorCode: 217,
+        //        error: 'Minimum order size in quote currency is 5 EUR or 0.001 BTC.'
         //    }
         //    {
-        //        $action => 'privateCreateOrder',
-        //        requestId => '17317539426571916',
-        //        market => 'USDT-EUR',
-        //        errorCode => 216,
-        //        $error => 'You do not have sufficient balance to complete this operation.'
+        //        action: 'privateCreateOrder',
+        //        requestId: '17317539426571916',
+        //        market: 'USDT-EUR',
+        //        errorCode: 216,
+        //        error: 'You do not have sufficient balance to complete this operation.'
         //    }
         //
         $error = $this->safe_string($message, 'error');
@@ -2004,45 +2004,45 @@ class bitvavo extends \ccxt\async\bitvavo {
     public function handle_message(Client $client, mixed $message) {
         //
         //     {
-        //         "event" => "subscribed",
-        //         "subscriptions" => {
-        //             "book" => array( "BTC-EUR" )
+        //         "event": "subscribed",
+        //         "subscriptions": {
+        //             "book": [ "BTC-EUR" ]
         //         }
         //     }
         //
         //     {
-        //         "event" => "book",
-        //         "market" => "BTC-EUR",
-        //         "nonce" => 36729561,
-        //         "bids" => array(
-        //             array( "8513.3", "0" ),
-        //             array( '8518.8', "0.64236203" ),
-        //             array( '8513.6', "0.32435481" ),
-        //         ),
-        //         "asks" => array()
+        //         "event": "book",
+        //         "market": "BTC-EUR",
+        //         "nonce": 36729561,
+        //         "bids": [
+        //             [ "8513.3", "0" ],
+        //             [ '8518.8', "0.64236203" ],
+        //             [ '8513.6', "0.32435481" ],
+        //         ],
+        //         "asks": []
         //     }
         //
         //     {
-        //         "action" => "getBook",
-        //         "response" => {
-        //             "market" => "BTC-EUR",
-        //             "nonce" => 36946120,
-        //             "bids" => array(
-        //                 array( '8494.9', "0.24399521" ),
-        //                 array( '8494.8', "0.34884085" ),
-        //                 array( '8493.9', "0.14535128" ),
-        //             ),
-        //             "asks" => array(
-        //                 array( "8495", "0.46982463" ),
-        //                 array( '8495.1', "0.12178267" ),
-        //                 array( '8496.2', "0.21924143" ),
-        //             )
+        //         "action": "getBook",
+        //         "response": {
+        //             "market": "BTC-EUR",
+        //             "nonce": 36946120,
+        //             "bids": [
+        //                 [ '8494.9', "0.24399521" ],
+        //                 [ '8494.8', "0.34884085" ],
+        //                 [ '8493.9', "0.14535128" ],
+        //             ],
+        //             "asks": [
+        //                 [ "8495", "0.46982463" ],
+        //                 [ '8495.1', "0.12178267" ],
+        //                 [ '8496.2', "0.21924143" ],
+        //             ]
         //         }
         //     }
         //
         //     {
-        //         "event" => "authenticate",
-        //         "authenticated" => true
+        //         "event": "authenticate",
+        //         "authenticated": true
         //     }
         //
         $error = $this->safe_string($message, 'error');

@@ -636,7 +636,7 @@ export default class xt extends xtRest {
         const fetchPositionsSnapshot = this.handleOption('watchPositions', 'fetchPositionsSnapshot', true);
         const awaitPositionsSnapshot = this.handleOption('watchPositions', 'awaitPositionsSnapshot', true);
         const cache = this.positions;
-        if (fetchPositionsSnapshot && awaitPositionsSnapshot && this.isEmpty(cache)) {
+        if ((fetchPositionsSnapshot === true) && (awaitPositionsSnapshot === true) && this.isEmpty(cache)) {
             const snapshot = await client.future('fetchPositionsSnapshot');
             return this.filterBySymbolsSinceLimit(snapshot, symbols, since, limit, true);
         }
@@ -661,7 +661,7 @@ export default class xt extends xtRest {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (!market['swap']) {
+        if (market['swap'] !== true) {
             throw new NotSupported(this.id + ' watchFundingRate() supports swap contracts only');
         }
         const name = 'fund_rate@' + market['id'];
@@ -681,7 +681,7 @@ export default class xt extends xtRest {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (!market['swap']) {
+        if (market['swap'] !== true) {
             throw new NotSupported(this.id + ' unWatchFundingRate() supports swap contracts only');
         }
         const name = 'fund_rate@' + market['id'];
@@ -724,7 +724,7 @@ export default class xt extends xtRest {
             this.positions = new ArrayCacheBySymbolBySide();
         }
         const fetchPositionsSnapshot = this.handleOption('watchPositions', 'fetchPositionsSnapshot');
-        if (fetchPositionsSnapshot) {
+        if (fetchPositionsSnapshot === true) {
             const messageHash = 'fetchPositionsSnapshot';
             if (!(messageHash in client.futures)) {
                 client.future(messageHash);
@@ -1498,7 +1498,7 @@ export default class xt extends xtRest {
         }
         const market = this.market(tradeSymbol);
         stored.append(parsedTrade);
-        const tradeType = market['contract'] ? 'contract' : 'spot';
+        const tradeType = (market['contract'] === true) ? 'contract' : 'spot';
         client.resolve(stored, 'trade::' + tradeType);
     }
     handleMessage(client, message) {
@@ -1565,7 +1565,7 @@ export default class xt extends xtRest {
         if (id !== undefined) {
             const subscription = this.safeDict(subscriptionsById, id, {});
             unsubscribe = this.safeBool(subscription, 'unsubscribe', false);
-            if (unsubscribe) {
+            if (unsubscribe === true) {
                 this.handleUnSubscription(client, subscription);
             }
         }

@@ -10,22 +10,22 @@ public partial class testMainClass : BaseTest
 {
     async static public Task<object> testWatchOrderBookForSymbols(Exchange exchange, object skippedProperties, object symbols)
     {
-        object method = "watchOrderBookForSymbols";
+        string method = "watchOrderBookForSymbols";
         // as in `watchOrderBook`, a pending subscription can not be cancelled, so the
         // loop has to be bounded by the deadline alone. waiting for every requested
         // symbol to be seen would hang forever whenever one of them stays idle.
-        object maxIdleTime = 5000;
-        object currentTime = exchange.milliseconds();
+        int maxIdleTime = 5000;
+        Int64 currentTime = exchange.milliseconds();
         object deadline = add(currentTime, 15000);
-        object idle = false;
+        bool idle = false;
         while (isTrue((isLessThan(currentTime, deadline))) && !isTrue(idle))
         {
             object response = null;
-            object succeeded = true;
-            object startTime = exchange.milliseconds();
+            bool succeeded = true;
+            Int64 startTime = exchange.milliseconds();
             try
             {
-                response = ((IOrderBook)(await exchange.watchOrderBookForSymbols(symbols))).Copy();
+                response = ((IOrderBook)(await exchange.WatchOrderBookForSymbols(symbols))).Copy();
             } catch(Exception e)
             {
                 // interim workaround for InvalidNonce raised by the c# runtime
@@ -40,7 +40,7 @@ public partial class testMainClass : BaseTest
             {
                 testOrderBook(exchange, skippedProperties, method, response, null);
                 testSharedMethods.assertInArray(exchange, skippedProperties, method, response, "symbol", symbols);
-                object elapsed = subtract(currentTime, startTime);
+                Int64 elapsed = subtract(currentTime, startTime);
                 if (isTrue(isGreaterThan(elapsed, maxIdleTime)))
                 {
                     idle = true;

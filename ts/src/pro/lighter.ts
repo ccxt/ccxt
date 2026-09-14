@@ -1,6 +1,7 @@
 //  ---------------------------------------------------------------------------
 
 import Precise from '../base/Precise.js';
+import { ExchangeError } from '../base/errors.js';
 import type { Balances, Dict, FeeString, Int, Liquidation, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade, Market, OrderType, OrderSide, Num } from '../base/types.js';
 import { ArrayCache } from '../base/ws/Cache.js';
 import Client from '../base/ws/Client.js';
@@ -494,7 +495,7 @@ export default class lighter extends lighterRest {
         const priceString = this.safeString (trade, 'price');
         const amountString = this.safeString (trade, 'size');
         const isMakerAsk = this.safeBool (trade, 'is_maker_ask');
-        const side = isMakerAsk ? 'buy' : 'sell';
+        const side = (isMakerAsk === true) ? 'buy' : 'sell';
         return this.safeTrade ({
             'info': trade,
             'id': tradeId,
@@ -667,16 +668,16 @@ export default class lighter extends lighterRest {
                 // Own trades should use the account's order side
                 side = 'buy';
                 order = this.safeString (trade, 'bid_id');
-                takerOrMaker = isMakerAsk ? 'taker' : 'maker';
+                takerOrMaker = (isMakerAsk === true) ? 'taker' : 'maker';
             } else if (askAccountId === accountIndex) {
                 side = 'sell';
                 order = this.safeString (trade, 'ask_id');
-                takerOrMaker = isMakerAsk ? 'maker' : 'taker';
+                takerOrMaker = (isMakerAsk === true) ? 'maker' : 'taker';
             }
         }
         // public trades use Lighter's taker-side convention
         if (side === undefined) {
-            side = isMakerAsk ? 'buy' : 'sell';
+            side = (isMakerAsk === true) ? 'buy' : 'sell';
         }
         let fee: FeeString = undefined;
         if (takerOrMaker !== undefined) {
@@ -706,7 +707,7 @@ export default class lighter extends lighterRest {
         }, market);
     }
 
-    handleMyTrades (client: Client, message: any) {
+    handleMyTrades (client: Client, message: any): boolean {
         //
         //     {
         //         "channel": "account_all_trades:723310",
@@ -867,7 +868,7 @@ export default class lighter extends lighterRest {
         //
         const timestamp = this.safeInteger (liquidation, 'timestamp');
         const isMakerAsk = this.safeBool (liquidation, 'is_maker_ask');
-        const side = isMakerAsk ? 'buy' : 'sell';
+        const side = (isMakerAsk === true) ? 'buy' : 'sell';
         const contracts = this.safeString (liquidation, 'size');
         const contractSize = this.safeString (market, 'contractSize');
         const price = this.safeString (liquidation, 'price');
@@ -1001,7 +1002,7 @@ export default class lighter extends lighterRest {
         }
     }
 
-    handleBalance (client: Client, message: any) {
+    handleBalance (client: Client, message: any): boolean {
         //
         //    spot balance
         //    {
@@ -1278,7 +1279,7 @@ export default class lighter extends lighterRest {
         client.resolve (message, 'jsonapi/sendtx:' + id);
     }
 
-    handleOrders (client: Client, message: any) {
+    handleOrders (client: Client, message: any): boolean {
         //
         //    {
         //        "account": {ACCOUNT_INDEX},
@@ -1328,7 +1329,7 @@ export default class lighter extends lighterRest {
         return true;
     }
 
-    handleErrorMessage (client: Client, message: any) {
+    handleErrorMessage (client: Client, message: any): boolean {
         //
         //     {
         //         "error": {
@@ -1341,13 +1342,18 @@ export default class lighter extends lighterRest {
         try {
             if (error !== undefined) {
                 const code = this.safeString (error, 'code');
-                if (code !== undefined) {
-                    const feedback = this.id + ' ' + this.json (message);
-                    this.throwExactlyMatchedException (this.exceptions['exact'], code, feedback);
-                }
+                const errorMessage = this.safeString (error, 'message');
+                const feedback = this.id + ' ' + this.json (message);
+                this.throwExactlyMatchedException (this.exceptions['exact'], code, feedback);
+                this.throwBroadlyMatchedException (this.exceptions['broad'], errorMessage, feedback);
+                // the rest handler ends with the same unconditional throw. without it an
+                // unmapped code raises nothing and is dropped by the routing below,
+                // leaving the request that caused it awaiting a response that never comes
+                throw new ExchangeError (feedback);
             }
         } catch (e) {
             const id = this.safeString (message, 'id');
+            let handled = false;
             if (id !== undefined) {
                 const subscriptionKeys = Object.keys (client.subscriptions);
                 for (let i = 0; i < subscriptionKeys.length; i++) {
@@ -1356,13 +1362,16 @@ export default class lighter extends lighterRest {
                     const subscription = this.safeString (client.subscriptions[subscriptionHash], 'subscription');
                     if (id === subscriptionId) {
                         client.reject (e, subscriptionHash);
+                        handled = true;
                         if (subscription !== undefined) {
                             delete client.subscriptions[subscription];
                         }
                     }
                 }
             }
-            client.reject (e);
+            if (!handled) {
+                client.reject (e);
+            }
         }
         return true;
     }

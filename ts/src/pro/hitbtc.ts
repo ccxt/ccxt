@@ -275,7 +275,7 @@ export default class hitbtc extends hitbtcRest {
         //
         const snapshot = this.safeDict (message, 'snapshot');
         const data = this.safeDict2 (message, 'snapshot', 'update', {});
-        const type = snapshot ? 'snapshot' : 'update';
+        const type = (snapshot !== undefined && snapshot !== null) ? 'snapshot' : 'update';
         const marketIds = Object.keys (data);
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
@@ -427,7 +427,7 @@ export default class hitbtc extends hitbtcRest {
         //        }
         //    }
         //
-        const data = this.safeValue (message, 'data', {});
+        const data = this.safeDict (message, 'data', {});
         const marketIds = Object.keys (data);
         const result: Ticker[] = [];
         const topic = 'tickers';
@@ -658,7 +658,7 @@ export default class hitbtc extends hitbtcRest {
         //        }
         //    }
         //
-        const data = this.safeValue2 (message, 'snapshot', 'update', {});
+        const data = this.safeDict2 (message, 'snapshot', 'update', {});
         const marketIds = Object.keys (data);
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
@@ -785,7 +785,7 @@ export default class hitbtc extends hitbtcRest {
         //        }
         //    }
         //
-        const data = this.safeValue2 (message, 'snapshot', 'update', {});
+        const data = this.safeDict2 (message, 'snapshot', 'update', {});
         const marketIds = Object.keys (data);
         const channel = this.safeString (message, 'ch', '');
         const splitChannel = channel.split ('/');
@@ -1386,7 +1386,7 @@ export default class hitbtc extends hitbtcRest {
             }
             if (Array.isArray (result)) {
                 // to do improve this, not very reliable right now
-                const first = this.safeValue (result, 0, {});
+                const first = this.safeDict (result, 0, {});
                 const arrayLength = result.length;
                 if ((arrayLength === 0) || ('client_order_id' in first)) {
                     this.handleOrderRequest (client, message);
@@ -1404,7 +1404,7 @@ export default class hitbtc extends hitbtcRest {
         //
         const success = this.safeValue (message, 'result');
         const messageHash = 'authenticated';
-        if (success) {
+        if (success === true) {
             const future = this.safeValue (client.futures, messageHash);
             future.resolve (true);
         } else {
@@ -1417,7 +1417,7 @@ export default class hitbtc extends hitbtcRest {
         return message;
     }
 
-    handleError (client: Client, message: any) {
+    handleError (client: Client, message: any): boolean {
         //
         //    {
         //        jsonrpc: '2.0',
@@ -1453,6 +1453,6 @@ export default class hitbtc extends hitbtcRest {
                 return true;
             }
         }
-        return undefined;
+        return false;
     }
 }

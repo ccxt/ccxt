@@ -90,7 +90,7 @@ class weex extends Exchange {
                 'fetchDepositsWithdrawals' => false,
                 'fetchDepositWithdrawFee' => false,
                 'fetchDepositWithdrawFees' => false,
-                'fetchFundingHistory' => false,
+                'fetchFundingHistory' => true,
                 'fetchFundingInterval' => false,
                 'fetchFundingIntervals' => false,
                 'fetchFundingRate' => true,
@@ -236,13 +236,21 @@ class weex extends Exchange {
                         'api/v3/agency/verifyReferrals' => array( 'cost' => 20 ), // not unified
                         'api/v3/agency/getAssert' => array( 'cost' => 20 ), // not unified
                         'api/v3/agency/getDealData' => array( 'cost' => 20 ), // not unified
+                        'api/v3/apiReferral/checkUserEligibility' => array( 'cost' => 5 ), // not unified - broker access
+                        'api/v3/apiReferral/rebate/recentRecord' => array( 'cost' => 5 ), // not unified - broker access
+                        'api/v3/apiReferral/rebateRatio' => array( 'cost' => 5 ), // not unified - broker access
+                        'api/v3/content/articles/detail' => array( 'cost' => 1 ), // not unified - partner content
+                        'api/v3/content/articles/list' => array( 'cost' => 1 ), // not unified - partner content
+                        'api/v3/content/articles/listByCoin' => array( 'cost' => 1 ), // not unified - partner content
+                        'api/v3/content/banners/latest' => array( 'cost' => 1 ), // not unified - partner content
                     ),
                     'post' => array(
                         'api/v3/account/bills' => array( 'cost' => 5 ), // done
                         'api/v3/account/fundingBills' => array( 'cost' => 5 ), // done
                         'api/v3/order' => array( 'cost' => 5 ), // done
-                        'api/v3/order/batch' => array( 'cost' => 50 ), // not supported, returns array("code":-1150,"msg":"Request method 'POST' not supported")
+                        'api/v3/order/batch' => array( 'cost' => 50 ), // not supported, returns {"code":-1150,"msg":"Request method 'POST' not supported"}
                         'api/v3/rebate/affiliate/internalWithdrawal' => array( 'cost' => 100 ), // not unified
+                        'api/v3/tax/income' => array( 'cost' => 5 ), // not unified - tax reporting
                     ),
                     'delete' => array(
                         'api/v3/order' => array( 'cost' => 1 ), // done
@@ -287,6 +295,15 @@ class weex extends Exchange {
                         'capi/v3/sim/balance' => array( 'cost' => 10 ), // done - demo trading variant of capi/v3/account/balance
                         'capi/v3/sim/position/allPosition' => array( 'cost' => 15 ), // done - demo trading variant of capi/v3/account/position/allPosition
                         'capi/v3/sim/order/history' => array( 'cost' => 10 ), // done - demo trading variant of capi/v3/order/history
+                        'capi/v3/copy/follower/historyOrders' => array( 'cost' => 10 ), // not unified - copy trading
+                        'capi/v3/copy/follower/myTraders' => array( 'cost' => 10 ), // not unified - copy trading
+                        'capi/v3/copy/follower/openOrders' => array( 'cost' => 10 ), // not unified - copy trading
+                        'capi/v3/copy/follower/settings' => array( 'cost' => 10 ), // not unified - copy trading
+                        'capi/v3/copy/trader/historyOrders' => array( 'cost' => 10 ), // not unified - copy trading
+                        'capi/v3/copy/trader/openOrders' => array( 'cost' => 10 ), // not unified - copy trading
+                        'capi/v3/copy/trader/pairs' => array( 'cost' => 1 ), // not unified - copy trading
+                        'capi/v3/trailing/openOrders' => array( 'cost' => 2 ), // not unified - trailing orders
+                        'capi/v3/trailing/historyOrders' => array( 'cost' => 10 ), // not unified - trailing orders
                     ),
                     'post' => array(
                         'capi/v3/account/income' => array( 'cost' => 5 ), // done
@@ -295,12 +312,15 @@ class weex extends Exchange {
                         'capi/v3/account/positionMargin' => array( 'cost' => 30 ), // done
                         'capi/v3/account/modifyAutoAppendMargin' => array( 'cost' => 30 ), // not unified
                         'capi/v3/order' => array( 'cost' => 5 ), // done
-                        'capi/v3/batchOrders' => array( 'cost' => 10 ), // not supported, returns array("code":-1150,"msg":"Request method 'POST' not supported")
+                        'capi/v3/batchOrders' => array( 'cost' => 10 ), // not supported, returns {"code":-1150,"msg":"Request method 'POST' not supported"}
                         'capi/v3/closePositions' => array( 'cost' => 50 ), // done
                         'capi/v3/algoOrder' => array( 'cost' => 5 ), // done
                         'capi/v3/placeTpSlOrder' => array( 'cost' => 5 ), // not unified
                         'capi/v3/modifyTpSlOrder' => array( 'cost' => 5 ), // not unified
                         'capi/v3/sim/order' => array( 'cost' => 5 ), // done - demo trading variant of capi/v3/order
+                        'capi/v3/copy/follower/closePos' => array( 'cost' => 50 ), // not unified - copy trading
+                        'capi/v3/copy/follower/settings' => array( 'cost' => 10 ), // not unified - copy trading
+                        'capi/v3/copy/follower/stopCopy' => array( 'cost' => 10 ), // not unified - copy trading
                     ),
                     'delete' => array(
                         'capi/v3/order' => array( 'cost' => 3 ), // done
@@ -376,12 +396,12 @@ class weex extends Exchange {
                     '-3235' => '\\ccxt\\PermissionDenied', // CONTRACT_NO_PERMISSION_TRADE_PAIR No permission for this trading pair.
                     '-3236' => '\\ccxt\\PermissionDenied', // CONTRACT_NO_PERMISSION_API No permission to access this API.
                     '-3313' => '\\ccxt\\InvalidOrder', // CONTRACT_LEVERAGE_ERROR Leverage exceeds maximum limit.
-                    '-3613' => '\\ccxt\\ExchangeError', // CONTRACT_FATAL_TOKEN_NOT_SUPPORT Fatal => token ID not supported for symbol.
-                    'FAILED_ORDER_NOT_FOUND' => '\\ccxt\\OrderNotFound', // array("orderId":121231,"status":"FAILED","errorMsg":"FAILED_ORDER_NOT_FOUND")
+                    '-3613' => '\\ccxt\\ExchangeError', // CONTRACT_FATAL_TOKEN_NOT_SUPPORT Fatal: token ID not supported for symbol.
+                    'FAILED_ORDER_NOT_FOUND' => '\\ccxt\\OrderNotFound', // {"orderId":121231,"status":"FAILED","errorMsg":"FAILED_ORDER_NOT_FOUND"}
                 ),
                 'broad' => array(
-                    'amount not enough' => '\\ccxt\\InsufficientFunds', // array("code":-1054,"msg":"FAILED_PRECONDITION => Move margin available amount not enough. Move out available amount is 6.98296375, move out amount is 200.00000000")
-                    'INVALID_ARGUMENT' => '\\ccxt\\BadRequest', // array("result":false,"id":1,"msg":"INVALID_ARGUMENT => invalid symbol : ASDFS_SPBL")
+                    'amount not enough' => '\\ccxt\\InsufficientFunds', // {"code":-1054,"msg":"FAILED_PRECONDITION: Move margin available amount not enough. Move out available amount is 6.98296375, move out amount is 200.00000000"}
+                    'INVALID_ARGUMENT' => '\\ccxt\\BadRequest', // {"result":false,"id":1,"msg":"INVALID_ARGUMENT: invalid symbol : ASDFS_SPBL"}
                 ),
             ),
             'fees' => array(
@@ -702,7 +722,7 @@ class weex extends Exchange {
          * @return {array} a ~@link https://docs.ccxt.com/?id=exchange-status-structure status structure~
          */
         $response = $this->publicGetApiV3Ping($params);
-        // returns an empty $response if the exchange is alive, otherwise will trigger an error
+        // returns an empty response if the exchange is alive, otherwise will trigger an error
         return array(
             'status' => 'ok',
             'updated' => null,
@@ -733,7 +753,7 @@ class weex extends Exchange {
         }
         //
         //     {
-        //         "serverTime" => 1764505776347
+        //         "serverTime": 1764505776347
         //     }
         //
         return $this->safe_integer($response, 'serverTime');
@@ -750,114 +770,114 @@ class weex extends Exchange {
          */
         $response = $this->publicGetApiV3Coins($params);
         //
-        //     array(
+        //     [
         //         {
-        //             "coin" => "BTC",
-        //             "depositAllEnable" => true,
-        //             "withdrawAllEnable" => true,
-        //             "name" => "BTC",
-        //             "networkList" => array(
-        //                 array(
-        //                     "network" => "BTC",
-        //                     "coin" => "BTC",
-        //                     "withdrawIntegerMultiple" => 1E-8,
-        //                     "isDefault" => true,
-        //                     "depositEnable" => true,
-        //                     "withdrawEnable" => true,
-        //                     "depositDesc" => null,
-        //                     "withdrawDesc" => null,
-        //                     "name" => "BTC",
-        //                     "withdrawFee" => "0.00016",
-        //                     "withdrawMin" => "0.002",
-        //                     "depositDust" => "0.00001",
-        //                     "minConfirm" => 3,
-        //                     "withdrawTag" => false,
-        //                     "contractAddressUrl" => "https://www.blockchain.com/explorer/mempool/",
-        //                     "contractAddress" => "btc"
-        //                 ),
-        //                 array(
-        //                     "network" => "BEP20(BSC)",
-        //                     "coin" => "BTC",
-        //                     "withdrawIntegerMultiple" => 1E-8,
-        //                     "isDefault" => false,
-        //                     "depositEnable" => true,
-        //                     "withdrawEnable" => false,
-        //                     "depositDesc" => null,
-        //                     "withdrawDesc" => null,
-        //                     "name" => "BEP20(BSC)",
-        //                     "withdrawFee" => "0.00001",
-        //                     "withdrawMin" => "0.00006",
-        //                     "depositDust" => "0.00003",
-        //                     "minConfirm" => 61,
-        //                     "withdrawTag" => false,
-        //                     "contractAddressUrl" => "",
-        //                     "contractAddress" => ""
-        //                 }
-        //             )
-        //         ),
-        //         {
-        //             "coin" => "USDT",
-        //             "depositAllEnable" => true,
-        //             "withdrawAllEnable" => true,
-        //             "name" => "USDT",
-        //             "networkList" => array(
-        //                 array(
-        //                     "network" => "TRC20",
-        //                     "coin" => "USDT",
-        //                     "withdrawIntegerMultiple" => 1E-8,
-        //                     "isDefault" => true,
-        //                     "depositEnable" => true,
-        //                     "withdrawEnable" => true,
-        //                     "depositDesc" => null,
-        //                     "withdrawDesc" => null,
-        //                     "name" => "TRC20",
-        //                     "withdrawFee" => "1.5",
-        //                     "withdrawMin" => "10",
-        //                     "depositDust" => "0.1",
-        //                     "minConfirm" => 20,
-        //                     "withdrawTag" => false,
-        //                     "contractAddressUrl" => "https://tronscan.org/#/token20/",
-        //                     "contractAddress" => "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t"
-        //                 ),
-        //                 array(
-        //                     "network" => "ERC20",
-        //                     "coin" => "USDT",
-        //                     "withdrawIntegerMultiple" => 1E-8,
-        //                     "isDefault" => false,
-        //                     "depositEnable" => true,
-        //                     "withdrawEnable" => true,
-        //                     "depositDesc" => null,
-        //                     "withdrawDesc" => null,
-        //                     "name" => "ERC20",
-        //                     "withdrawFee" => "1",
-        //                     "withdrawMin" => "20",
-        //                     "depositDust" => "0.1",
-        //                     "minConfirm" => 12,
-        //                     "withdrawTag" => false,
-        //                     "contractAddressUrl" => "https://etherscan.io/token/",
-        //                     "contractAddress" => "0xdac17f958d2ee523a2206206994597c13d831ec7"
-        //                 ),
+        //             "coin": "BTC",
+        //             "depositAllEnable": true,
+        //             "withdrawAllEnable": true,
+        //             "name": "BTC",
+        //             "networkList": [
         //                 {
-        //                     "network" => "AVALANCHE_C(AVAX_C)",
-        //                     "coin" => "USDT",
-        //                     "withdrawIntegerMultiple" => 1E-8,
-        //                     "isDefault" => false,
-        //                     "depositEnable" => true,
-        //                     "withdrawEnable" => true,
-        //                     "depositDesc" => null,
-        //                     "withdrawDesc" => null,
-        //                     "name" => "AVALANCHE_C(AVAX_C)",
-        //                     "withdrawFee" => "0.5",
-        //                     "withdrawMin" => "10",
-        //                     "depositDust" => "0.1",
-        //                     "minConfirm" => 35,
-        //                     "withdrawTag" => false,
-        //                     "contractAddressUrl" => "https://avascan.info/blockchain/c/token/",
-        //                     "contractAddress" => "0x9702230A8Ea53601f5cD2dc00fDBc13d4dF4A8c7"
+        //                     "network": "BTC",
+        //                     "coin": "BTC",
+        //                     "withdrawIntegerMultiple": 1E-8,
+        //                     "isDefault": true,
+        //                     "depositEnable": true,
+        //                     "withdrawEnable": true,
+        //                     "depositDesc": null,
+        //                     "withdrawDesc": null,
+        //                     "name": "BTC",
+        //                     "withdrawFee": "0.00016",
+        //                     "withdrawMin": "0.002",
+        //                     "depositDust": "0.00001",
+        //                     "minConfirm": 3,
+        //                     "withdrawTag": false,
+        //                     "contractAddressUrl": "https://www.blockchain.com/explorer/mempool/",
+        //                     "contractAddress": "btc"
+        //                 },
+        //                 {
+        //                     "network": "BEP20(BSC)",
+        //                     "coin": "BTC",
+        //                     "withdrawIntegerMultiple": 1E-8,
+        //                     "isDefault": false,
+        //                     "depositEnable": true,
+        //                     "withdrawEnable": false,
+        //                     "depositDesc": null,
+        //                     "withdrawDesc": null,
+        //                     "name": "BEP20(BSC)",
+        //                     "withdrawFee": "0.00001",
+        //                     "withdrawMin": "0.00006",
+        //                     "depositDust": "0.00003",
+        //                     "minConfirm": 61,
+        //                     "withdrawTag": false,
+        //                     "contractAddressUrl": "",
+        //                     "contractAddress": ""
         //                 }
-        //             )
+        //             ]
+        //         },
+        //         {
+        //             "coin": "USDT",
+        //             "depositAllEnable": true,
+        //             "withdrawAllEnable": true,
+        //             "name": "USDT",
+        //             "networkList": [
+        //                 {
+        //                     "network": "TRC20",
+        //                     "coin": "USDT",
+        //                     "withdrawIntegerMultiple": 1E-8,
+        //                     "isDefault": true,
+        //                     "depositEnable": true,
+        //                     "withdrawEnable": true,
+        //                     "depositDesc": null,
+        //                     "withdrawDesc": null,
+        //                     "name": "TRC20",
+        //                     "withdrawFee": "1.5",
+        //                     "withdrawMin": "10",
+        //                     "depositDust": "0.1",
+        //                     "minConfirm": 20,
+        //                     "withdrawTag": false,
+        //                     "contractAddressUrl": "https://tronscan.org/#/token20/",
+        //                     "contractAddress": "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t"
+        //                 },
+        //                 {
+        //                     "network": "ERC20",
+        //                     "coin": "USDT",
+        //                     "withdrawIntegerMultiple": 1E-8,
+        //                     "isDefault": false,
+        //                     "depositEnable": true,
+        //                     "withdrawEnable": true,
+        //                     "depositDesc": null,
+        //                     "withdrawDesc": null,
+        //                     "name": "ERC20",
+        //                     "withdrawFee": "1",
+        //                     "withdrawMin": "20",
+        //                     "depositDust": "0.1",
+        //                     "minConfirm": 12,
+        //                     "withdrawTag": false,
+        //                     "contractAddressUrl": "https://etherscan.io/token/",
+        //                     "contractAddress": "0xdac17f958d2ee523a2206206994597c13d831ec7"
+        //                 },
+        //                 {
+        //                     "network": "AVALANCHE_C(AVAX_C)",
+        //                     "coin": "USDT",
+        //                     "withdrawIntegerMultiple": 1E-8,
+        //                     "isDefault": false,
+        //                     "depositEnable": true,
+        //                     "withdrawEnable": true,
+        //                     "depositDesc": null,
+        //                     "withdrawDesc": null,
+        //                     "name": "AVALANCHE_C(AVAX_C)",
+        //                     "withdrawFee": "0.5",
+        //                     "withdrawMin": "10",
+        //                     "depositDust": "0.1",
+        //                     "minConfirm": 35,
+        //                     "withdrawTag": false,
+        //                     "contractAddressUrl": "https://avascan.info/blockchain/c/token/",
+        //                     "contractAddress": "0x9702230A8Ea53601f5cD2dc00fDBc13d4dF4A8c7"
+        //                 }
+        //             ]
         //         }
-        //     )
+        //     ]
         //
         return $this->parse_currencies($response);
     }
@@ -939,7 +959,7 @@ class weex extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of objects representing market data
          */
-        if ($this->options['adjustForTimeDifference']) {
+        if ($this->options['adjustForTimeDifference'] === true) {
             $this->load_time_difference();
         }
         $promises = array(
@@ -957,57 +977,57 @@ class weex extends Exchange {
         //
         // spot
         //     {
-        //         "symbol" => "ETHUSDT",
-        //         "status" => "TRADING",
-        //         "baseAsset" => "ETH",
-        //         "baseAssetPrecision" => "8",
-        //         "quoteAsset" => "USDT",
-        //         "quoteAssetPrecision" => "8",
-        //         "tickSize" => "0.01",
-        //         "stepSize" => "0.00001",
-        //         "minTradeAmount" => "0.0001",
-        //         "maxTradeAmount" => "99999",
-        //         "takerFeeRate" => "0.001",
-        //         "makerFeeRate" => "0.001",
-        //         "buyLimitPriceRatio" => "0.1",
-        //         "sellLimitPriceRatio" => "0.1",
-        //         "marketBuyLimitSize" => "99999",
-        //         "marketSellLimitSize" => "99999",
-        //         "marketFallbackPriceRatio" => "0",
-        //         "enableTrade" => true,
-        //         "enableDisplay" => true,
-        //         "displayDigitMerge" => "0.01,0.1,0.5,1,5",
-        //         "displayNew" => false,
-        //         "displayHot" => false
+        //         "symbol": "ETHUSDT",
+        //         "status": "TRADING",
+        //         "baseAsset": "ETH",
+        //         "baseAssetPrecision": "8",
+        //         "quoteAsset": "USDT",
+        //         "quoteAssetPrecision": "8",
+        //         "tickSize": "0.01",
+        //         "stepSize": "0.00001",
+        //         "minTradeAmount": "0.0001",
+        //         "maxTradeAmount": "99999",
+        //         "takerFeeRate": "0.001",
+        //         "makerFeeRate": "0.001",
+        //         "buyLimitPriceRatio": "0.1",
+        //         "sellLimitPriceRatio": "0.1",
+        //         "marketBuyLimitSize": "99999",
+        //         "marketSellLimitSize": "99999",
+        //         "marketFallbackPriceRatio": "0",
+        //         "enableTrade": true,
+        //         "enableDisplay": true,
+        //         "displayDigitMerge": "0.01,0.1,0.5,1,5",
+        //         "displayNew": false,
+        //         "displayHot": false
         //     }
         //
         // contract
         //     {
-        //         "symbol" => "ETHUSDT",
-        //         "baseAsset" => "ETH",
-        //         "quoteAsset" => "USDT",
-        //         "marginAsset" => "USDT",
-        //         "pricePrecision" => "2",
-        //         "quantityPrecision" => "3",
-        //         "baseAssetPrecision" => "2",
-        //         "quotePrecision" => "8",
-        //         "contractVal" => "0.001",
-        //         "delivery" => array(
+        //         "symbol": "ETHUSDT",
+        //         "baseAsset": "ETH",
+        //         "quoteAsset": "USDT",
+        //         "marginAsset": "USDT",
+        //         "pricePrecision": "2",
+        //         "quantityPrecision": "3",
+        //         "baseAssetPrecision": "2",
+        //         "quotePrecision": "8",
+        //         "contractVal": "0.001",
+        //         "delivery": [
         //             "00:00:00",
         //             "08:00:00",
         //             "16:00:00"
-        //         ),
-        //         "forwardContractFlag" => true,
-        //         "minLeverage" => "1",
-        //         "maxLeverage" => "400",
-        //         "buyLimitPriceRatio" => "0.01",
-        //         "sellLimitPriceRatio" => "0.01",
-        //         "makerFeeRate" => "0.0002",
-        //         "takerFeeRate" => "0.0008",
-        //         "minOrderSize" => "0.001",
-        //         "maxOrderSize" => "1000000",
-        //         "maxPositionSize" => "5000000",
-        //         "marketOpenLimitSize" => "2300"
+        //         ],
+        //         "forwardContractFlag": true,
+        //         "minLeverage": "1",
+        //         "maxLeverage": "400",
+        //         "buyLimitPriceRatio": "0.01",
+        //         "sellLimitPriceRatio": "0.01",
+        //         "makerFeeRate": "0.0002",
+        //         "takerFeeRate": "0.0008",
+        //         "minOrderSize": "0.001",
+        //         "maxOrderSize": "1000000",
+        //         "maxPositionSize": "5000000",
+        //         "marketOpenLimitSize": "2300"
         //     }
         //
         $id = $this->safe_string($market, 'symbol');
@@ -1033,7 +1053,7 @@ class weex extends Exchange {
                 $isInverse = true;
             }
         } else {
-            $active = $this->safe_bool($market, 'enableTrade', false) === true;
+            $active = $this->safe_bool($market, 'enableTrade', false);
         }
         $amountPrecision = $this->safe_number($market, 'stepSize');
         $pricePrecision = $this->safe_number($market, 'tickSize');
@@ -1136,47 +1156,47 @@ class weex extends Exchange {
         $response = null;
         if ($marketType === 'spot') {
             //
-            //     array(
+            //     [
             //         {
-            //             "symbol" => "ETHUSDT",
-            //             "priceChange" => "-72.98",
-            //             "priceChangePercent" => "-0.033811",
-            //             "lastPrice" => "2085.46",
-            //             "bidPrice" => "2085.44",
-            //             "bidQty" => "1.53848",
-            //             "askPrice" => "2085.47",
-            //             "askQty" => "1.87504",
-            //             "openPrice" => "2158.44",
-            //             "highPrice" => "2168.40",
-            //             "lowPrice" => "2061.12",
-            //             "volume" => "157359.56105",
-            //             "quoteVolume" => "331284305.7193626",
-            //             "openTime" => 1775493000000,
-            //             "closeTime" => 1775579400000,
-            //             "count" => 59727
+            //             "symbol": "ETHUSDT",
+            //             "priceChange": "-72.98",
+            //             "priceChangePercent": "-0.033811",
+            //             "lastPrice": "2085.46",
+            //             "bidPrice": "2085.44",
+            //             "bidQty": "1.53848",
+            //             "askPrice": "2085.47",
+            //             "askQty": "1.87504",
+            //             "openPrice": "2158.44",
+            //             "highPrice": "2168.40",
+            //             "lowPrice": "2061.12",
+            //             "volume": "157359.56105",
+            //             "quoteVolume": "331284305.7193626",
+            //             "openTime": 1775493000000,
+            //             "closeTime": 1775579400000,
+            //             "count": 59727
             //         }
-            //     )
+            //     ]
             //
             $response = $this->publicGetApiV3MarketTicker24hr($this->extend($request, $params));
         } else {
             //
-            //     array(
+            //     [
             //         {
-            //             "symbol" => "ETHUSDT",
-            //             "priceChange" => "-75.49",
-            //             "priceChangePercent" => "-0.034992",
-            //             "lastPrice" => "2081.80",
-            //             "openPrice" => "2157.29",
-            //             "highPrice" => "2167.51",
-            //             "lowPrice" => "2059.17",
-            //             "volume" => "623160.426",
-            //             "quoteVolume" => "1310647345.19346",
-            //             "openTime" => 1775493000000,
-            //             "closeTime" => 1775579400000,
-            //             "markPrice" => "2081.8",
-            //             "indexPrice" => "2082.75"
+            //             "symbol": "ETHUSDT",
+            //             "priceChange": "-75.49",
+            //             "priceChangePercent": "-0.034992",
+            //             "lastPrice": "2081.80",
+            //             "openPrice": "2157.29",
+            //             "highPrice": "2167.51",
+            //             "lowPrice": "2059.17",
+            //             "volume": "623160.426",
+            //             "quoteVolume": "1310647345.19346",
+            //             "openTime": 1775493000000,
+            //             "closeTime": 1775579400000,
+            //             "markPrice": "2081.8",
+            //             "indexPrice": "2082.75"
             //         }
-            //     )
+            //     ]
             //
             $response = $this->contractGetCapiV3MarketTicker24hr($this->extend($request, $params));
         }
@@ -1217,7 +1237,7 @@ class weex extends Exchange {
         $results = array();
         for ($i = 0; $i < count($response); $i++) {
             $rawTicker = $response[$i];
-            // book tickers have no markPrice, so resolve the $market from the endpoint type to disambiguate the spot/swap $market id in parseTicker
+            // book tickers have no markPrice, so resolve the market from the endpoint type to disambiguate the spot/swap market id in parseTicker
             $marketId = $this->safe_string($rawTicker, 'symbol');
             $tickerMarket = $this->safe_market($marketId, null, null, $marketType);
             $results[] = $this->parse_ticker($rawTicker, $tickerMarket);
@@ -1229,67 +1249,67 @@ class weex extends Exchange {
         //
         // spot
         //     {
-        //         "symbol" => "ETHUSDT",
-        //         "priceChange" => "-72.98",
-        //         "priceChangePercent" => "-0.033811",
-        //         "lastPrice" => "2085.46",
-        //         "bidPrice" => "2085.44",
-        //         "bidQty" => "1.53848",
-        //         "askPrice" => "2085.47",
-        //         "askQty" => "1.87504",
-        //         "openPrice" => "2158.44",
-        //         "highPrice" => "2168.40",
-        //         "lowPrice" => "2061.12",
-        //         "volume" => "157359.56105",
-        //         "quoteVolume" => "331284305.7193626",
-        //         "openTime" => 1775493000000,
-        //         "closeTime" => 1775579400000,
-        //         "count" => 59727
+        //         "symbol": "ETHUSDT",
+        //         "priceChange": "-72.98",
+        //         "priceChangePercent": "-0.033811",
+        //         "lastPrice": "2085.46",
+        //         "bidPrice": "2085.44",
+        //         "bidQty": "1.53848",
+        //         "askPrice": "2085.47",
+        //         "askQty": "1.87504",
+        //         "openPrice": "2158.44",
+        //         "highPrice": "2168.40",
+        //         "lowPrice": "2061.12",
+        //         "volume": "157359.56105",
+        //         "quoteVolume": "331284305.7193626",
+        //         "openTime": 1775493000000,
+        //         "closeTime": 1775579400000,
+        //         "count": 59727
         //     }
         //
         // swap
         //     {
-        //         "symbol" => "ETHUSDT",
-        //         "priceChange" => "-75.49",
-        //         "priceChangePercent" => "-0.034992",
-        //         "lastPrice" => "2081.80",
-        //         "openPrice" => "2157.29",
-        //         "highPrice" => "2167.51",
-        //         "lowPrice" => "2059.17",
-        //         "volume" => "623160.426",
-        //         "quoteVolume" => "1310647345.19346",
-        //         "openTime" => 1775493000000,
-        //         "closeTime" => 1775579400000,
-        //         "markPrice" => "2081.8",
-        //         "indexPrice" => "2082.75"
+        //         "symbol": "ETHUSDT",
+        //         "priceChange": "-75.49",
+        //         "priceChangePercent": "-0.034992",
+        //         "lastPrice": "2081.80",
+        //         "openPrice": "2157.29",
+        //         "highPrice": "2167.51",
+        //         "lowPrice": "2059.17",
+        //         "volume": "623160.426",
+        //         "quoteVolume": "1310647345.19346",
+        //         "openTime": 1775493000000,
+        //         "closeTime": 1775579400000,
+        //         "markPrice": "2081.8",
+        //         "indexPrice": "2082.75"
         //     }
         //
-        // fetchMarkPrice ($markPrice or indexPrice is copied from the raw 'price' field by fetchMarkPrice before parsing, depending on the requested priceType)
+        // fetchMarkPrice (markPrice or indexPrice is copied from the raw 'price' field by fetchMarkPrice before parsing, depending on the requested priceType)
         //     {
-        //         "symbol" => "ETHUSDT",
-        //         "price" => "1929.18",
-        //         "markPrice" => "1929.18",
-        //         "time" => 1786347445044
+        //         "symbol": "ETHUSDT",
+        //         "price": "1929.18",
+        //         "markPrice": "1929.18",
+        //         "time": 1786347445044
         //     }
         //
         // fetchMarkPrices
         //     {
-        //         "symbol" => "ETHUSDT",
-        //         "markPrice" => "1929.88",
-        //         "indexPrice" => "1930.15",
-        //         "forecastFundingRate" => "0.00003489",
-        //         "lastFundingRate" => "0.00004879",
-        //         "interestRate" => "0.001",
-        //         "nextFundingTime" => 1786348800000,
-        //         "time" => 1786347284100,
-        //         "collectCycle" => 480
+        //         "symbol": "ETHUSDT",
+        //         "markPrice": "1929.88",
+        //         "indexPrice": "1930.15",
+        //         "forecastFundingRate": "0.00003489",
+        //         "lastFundingRate": "0.00004879",
+        //         "interestRate": "0.001",
+        //         "nextFundingTime": 1786348800000,
+        //         "time": 1786347284100,
+        //         "collectCycle": 480
         //     }
         //
         $marketId = $this->safe_string($ticker, 'symbol');
         $markPrice = $this->safe_string($ticker, 'markPrice');
         $marketType = 'spot';
-        if (($markPrice !== null) || (($market !== null) && $market['contract'])) {
-            // 24hr swap tickers carry $markPrice, but book tickers do not, so also honor the $market resolved by the caller
+        if (($markPrice !== null) || (($market !== null) && ($market['contract'] === true))) {
+            // 24hr swap tickers carry markPrice, but book tickers do not, so also honor the market resolved by the caller
             $marketType = 'swap';
         }
         $market = $this->safe_market($marketId, $market, null, $marketType);
@@ -1343,12 +1363,12 @@ class weex extends Exchange {
         }
         $response = $this->publicGetApiV3MarketTickerPrice($params);
         //
-        //     array(
+        //     [
         //         {
-        //             "symbol" => "ETHUSDT",
-        //             "price" => "1929.67"
+        //             "symbol": "ETHUSDT",
+        //             "price": "1929.67"
         //         }
-        //     )
+        //     ]
         //
         return $this->parse_last_prices($response, $symbols);
     }
@@ -1356,8 +1376,8 @@ class weex extends Exchange {
     public function parse_last_price(mixed $entry, ?array $market = null): array {
         //
         //     {
-        //         "symbol" => "ETHUSDT",
-        //         "price" => "1929.67"
+        //         "symbol": "ETHUSDT",
+        //         "price": "1929.67"
         //     }
         //
         $marketId = $this->safe_string($entry, 'symbol');
@@ -1380,14 +1400,14 @@ class weex extends Exchange {
          *
          * @param {string} $symbol unified $symbol of the $market to fetch the mark price for
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {string} [$params->priceType] "MARK" (default) or "INDEX", with "INDEX" the price is returned indexPrice of the $ticker
+         * @param {string} [$params->priceType] "MARK" (default) or "INDEX", with "INDEX" the price is returned as the indexPrice of the $ticker
          * @return {array} a ~@link https://docs.ccxt.com/?id=$ticker-structure $ticker structure~
          */
         if ($this->markets === null) {
             $this->load_markets();
         }
         $market = $this->market($symbol);
-        if (!$market['contract']) {
+        if ($market['contract'] !== true) {
             throw new NotSupported($this->id . ' fetchMarkPrice() supports contract markets only');
         }
         $priceType = null;
@@ -1399,9 +1419,9 @@ class weex extends Exchange {
         $response = $this->contractGetCapiV3MarketSymbolPrice($this->extend($request, $params));
         //
         //     {
-        //         "symbol" => "ETHUSDT",
-        //         "price" => "1929.18",
-        //         "time" => 1786347445044
+        //         "symbol": "ETHUSDT",
+        //         "price": "1929.18",
+        //         "time": 1786347445044
         //     }
         //
         // normalize here instead of falling back to 'price' in parseTicker, so a bare 'price' field in other payloads can never silently become the mark price
@@ -1427,22 +1447,22 @@ class weex extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $symbols = $this->market_symbols($symbols, 'swap'); // reject non-contract $symbols instead of silently filtering the result to an empty dict
+        $symbols = $this->market_symbols($symbols, 'swap'); // reject non-contract symbols instead of silently filtering the result to an empty dict
         $response = $this->contractGetCapiV3MarketPremiumIndex($params);
         //
-        //     array(
+        //     [
         //         {
-        //             "symbol" => "ETHUSDT",
-        //             "markPrice" => "1929.88",
-        //             "indexPrice" => "1930.15",
-        //             "forecastFundingRate" => "0.00003489",
-        //             "lastFundingRate" => "0.00004879",
-        //             "interestRate" => "0.001",
-        //             "nextFundingTime" => 1786348800000,
-        //             "time" => 1786347284100,
-        //             "collectCycle" => 480
+        //             "symbol": "ETHUSDT",
+        //             "markPrice": "1929.88",
+        //             "indexPrice": "1930.15",
+        //             "forecastFundingRate": "0.00003489",
+        //             "lastFundingRate": "0.00004879",
+        //             "interestRate": "0.001",
+        //             "nextFundingTime": 1786348800000,
+        //             "time": 1786347284100,
+        //             "collectCycle": 480
         //         }
-        //     )
+        //     ]
         //
         return $this->parse_tickers($response, $symbols);
     }
@@ -1470,26 +1490,26 @@ class weex extends Exchange {
             $request['limit'] = 200; // default is 15, max is 200
         }
         $response = null;
-        if ($market['spot']) {
+        if ($market['spot'] === true) {
             $response = $this->publicGetApiV3MarketDepth($this->extend($request, $params));
         } else {
             $response = $this->contractGetCapiV3MarketDepth($this->extend($request, $params));
         }
         //
         //     {
-        //         "asks" => array(
-        //             array(
+        //         "asks": [
+        //             [
         //                 "2096.77",
         //                 "45.592"
-        //             )
-        //         ),
-        //         "bids" => array(
-        //             array(
+        //             ]
+        //         ],
+        //         "bids": [
+        //             [
         //                 "2096.76",
         //                 "49.162"
-        //             )
-        //         ),
-        //         "lastUpdateId" => 14138610208
+        //             ]
+        //         ],
+        //         "lastUpdateId": 14138610208
         //     }
         //
         $orderbook = $this->parse_order_book($response, $symbol);
@@ -1513,13 +1533,13 @@ class weex extends Exchange {
          * @param {int} [$limit] the maximum amount of candles to fetch (default 100, max 300)
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * Check fetchSpotOHLCV() and fetchContractOHLCV() for more details on the extra parameters that can be used in $params
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             $this->load_markets();
         }
         $market = $this->market($symbol);
-        if ($market['spot']) {
+        if ($market['spot'] === true) {
             return $this->fetch_spot_ohlcv($symbol, $timeframe, $since, $limit, $params);
         } else {
             return $this->fetch_contract_ohlcv($symbol, $timeframe, $since, $limit, $params);
@@ -1538,7 +1558,7 @@ class weex extends Exchange {
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             $this->load_markets();
@@ -1560,7 +1580,7 @@ class weex extends Exchange {
          * @see https://www.weex.com/api-doc/contract/Market_API/GetKlines // contract last price
          * @see https://www.weex.com/api-doc/contract/Market_API/GetIndexPriceKlines // contract index price
          * @see https://www.weex.com/api-doc/contract/Market_API/GetMarkPriceKlines // contract mark price
-         * @see https://www.weex.com/api-doc/contract/Market_API/GetHistoryKlines // contract $historical klines
+         * @see https://www.weex.com/api-doc/contract/Market_API/GetHistoryKlines // contract historical klines
          *
          * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
          * @param {string} $timeframe the length of time each candle represents
@@ -1570,7 +1590,7 @@ class weex extends Exchange {
          * @param {int} [$params->until] timestamp in ms of the latest candle to fetch
          * @param {boolean} [$params->paginate] whether to automatically $paginate requests $until the required number of candles is returned
          * @param {boolean} [$params->historical] whether to fetch $historical klines (default is false). If false, will fetch last price klines
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             $this->load_markets();
@@ -1607,7 +1627,7 @@ class weex extends Exchange {
             if (($since === null) || ($until === null)) {
                 $now = $this->milliseconds();
                 $duration = $this->parse_timeframe($timeframe) * 1000;
-                $numberOfCandles = $limit ? $limit : $maxHistoricalLimit;
+                $numberOfCandles = ($limit !== null && $limit !== null && $limit !== 0) ? $limit : $maxHistoricalLimit;
                 $timeDelta = $numberOfCandles * $duration;
                 if (($since === null) && ($until === null)) {
                     $endTime = $now;
@@ -1674,23 +1694,23 @@ class weex extends Exchange {
             $request['limit'] = min($limit, 1000);
         }
         $response = null;
-        if ($market['spot']) {
+        if ($market['spot'] === true) {
             $response = $this->publicGetApiV3MarketTrades($this->extend($request, $params));
         } else {
             $response = $this->contractGetCapiV3MarketTrades($this->extend($request, $params));
         }
         //
-        //     array(
+        //     [
         //         {
-        //             "id" => "875fba11-f8a1-42ad-915d-012ccb375e8a",
-        //             "price" => "2114.77",
-        //             "qty" => "0.01000",
-        //             "quoteQty" => "21.1477000",
-        //             "time" => 1775594995485,
-        //             "isBuyerMaker" => false,
-        //             "isBestMatch" => true
+        //             "id": "875fba11-f8a1-42ad-915d-012ccb375e8a",
+        //             "price": "2114.77",
+        //             "qty": "0.01000",
+        //             "quoteQty": "21.1477000",
+        //             "time": 1775594995485,
+        //             "isBuyerMaker": false,
+        //             "isBestMatch": true
         //         }
-        //     )
+        //     ]
         //
         $responseList = array();
         if ($response !== null) {
@@ -1703,44 +1723,44 @@ class weex extends Exchange {
         //
         // fetchTrades
         //     {
-        //         "id" => "875fba11-f8a1-42ad-915d-012ccb375e8a",
-        //         "price" => "2114.77",
-        //         "qty" => "0.01000",
-        //         "quoteQty" => "21.1477000",
-        //         "time" => 1775594995485,
-        //         "isBuyerMaker" => false,
-        //         "isBestMatch" => true
+        //         "id": "875fba11-f8a1-42ad-915d-012ccb375e8a",
+        //         "price": "2114.77",
+        //         "qty": "0.01000",
+        //         "quoteQty": "21.1477000",
+        //         "time": 1775594995485,
+        //         "isBuyerMaker": false,
+        //         "isBestMatch": true
         //     }
         //
         // fetchMyTrades (spot)
         //     {
-        //         "symbol" => "DOGEUSDT",
-        //         "id" => 736825748291060702,
-        //         "orderId" => 736825748215563230,
-        //         "price" => "0.09349",
-        //         "qty" => "250.0",
-        //         "quoteQty" => "23.3725",
-        //         "commission" => "0.0233725",
-        //         "time" => 1775672947953,
-        //         "isBuyer" => false
+        //         "symbol": "DOGEUSDT",
+        //         "id": 736825748291060702,
+        //         "orderId": 736825748215563230,
+        //         "price": "0.09349",
+        //         "qty": "250.0",
+        //         "quoteQty": "23.3725",
+        //         "commission": "0.0233725",
+        //         "time": 1775672947953,
+        //         "isBuyer": false
         //     }
         //
         // fetchMyTrades (contract)
         //     {
-        //         "id" => 737074389731770728,
-        //         "orderId" => 737074043320009064,
-        //         "symbol" => "DOGEUSDT",
-        //         "buyer" => true,
-        //         "commission" => "0.00183500",
-        //         "commissionAsset" => "USDT",
-        //         "maker" => true,
-        //         "price" => "0.09175",
-        //         "qty" => "100",
-        //         "quoteQty" => "9.17500",
-        //         "realizedPnl" => "0",
-        //         "side" => "BUY",
-        //         "positionSide" => "LONG",
-        //         "time" => 1775732228692
+        //         "id": 737074389731770728,
+        //         "orderId": 737074043320009064,
+        //         "symbol": "DOGEUSDT",
+        //         "buyer": true,
+        //         "commission": "0.00183500",
+        //         "commissionAsset": "USDT",
+        //         "maker": true,
+        //         "price": "0.09175",
+        //         "qty": "100",
+        //         "quoteQty": "9.17500",
+        //         "realizedPnl": "0",
+        //         "side": "BUY",
+        //         "positionSide": "LONG",
+        //         "time": 1775732228692
         //     }
         //
         $timestamp = $this->safe_integer($trade, 'time');
@@ -1767,7 +1787,7 @@ class weex extends Exchange {
         if ($commission !== null) {
             $commissionAsset = $this->safe_string($trade, 'commissionAsset');
             $feeCurrency = $this->safe_currency_code($commissionAsset);
-            if ($isSpot) {
+            if ($isSpot === true) {
                 if ($side === 'buy') {
                     $feeCurrency = $market['base'];
                 } else {
@@ -1827,9 +1847,9 @@ class weex extends Exchange {
     public function parse_open_interest(mixed $interest, ?array $market = null) {
         //
         //     {
-        //         "symbol" => "ETHUSDT",
-        //         "openInterest" => "1772356.352",
-        //         "time" => 1775595582598
+        //         "symbol": "ETHUSDT",
+        //         "openInterest": "1772356.352",
+        //         "time": 1775595582598
         //     }
         //
         $marketId = $this->safe_string($interest, 'symbol');
@@ -1871,19 +1891,19 @@ class weex extends Exchange {
         }
         $response = $this->contractGetCapiV3MarketPremiumIndex($this->extend($request, $params));
         //
-        //     array(
+        //     [
         //         {
-        //             "symbol" => "ETHUSDT",
-        //             "markPrice" => "2133.71",
-        //             "indexPrice" => "2134.44",
-        //             "forecastFundingRate" => "0.00005618",
-        //             "lastFundingRate" => "0.00001031",
-        //             "interestRate" => "0.001",
-        //             "nextFundingTime" => 1775606400000,
-        //             "time" => 1775597594265,
-        //             "collectCycle" => 480
+        //             "symbol": "ETHUSDT",
+        //             "markPrice": "2133.71",
+        //             "indexPrice": "2134.44",
+        //             "forecastFundingRate": "0.00005618",
+        //             "lastFundingRate": "0.00001031",
+        //             "interestRate": "0.001",
+        //             "nextFundingTime": 1775606400000,
+        //             "time": 1775597594265,
+        //             "collectCycle": 480
         //         }
-        //     )
+        //     ]
         //
         return $this->parse_funding_rates($response, $symbols);
     }
@@ -1958,10 +1978,10 @@ class weex extends Exchange {
     public function parse_funding_rate_history(mixed $contract, ?array $market = null) {
         //
         //     {
-        //         "symbol" => "ETHUSDT",
-        //         "fundingRate" => "0.00001031",
-        //         "fundingTime" => 1775577600000,
-        //         "markPrice" => "2079.26"
+        //         "symbol": "ETHUSDT",
+        //         "fundingRate": "0.00001031",
+        //         "fundingTime": 1775577600000,
+        //         "markPrice": "2079.26"
         //     }
         //
         $marketId = $this->safe_string($contract, 'symbol');
@@ -1983,8 +2003,8 @@ class weex extends Exchange {
          * @see https://www.weex.com/api-doc/contract/Account_API/GetAccountBalance // contract
          * @see https://www.weex.com/api-doc/contract/demo/GetAccountBalance // contract in sandbox mode
          *
-         * query for balance and get $the amount of funds available for trading or funds locked in positions
-         * @param {array} [$params] extra parameters specific to $the exchange API endpoint
+         * query for balance and get the amount of funds available for trading or funds locked in positions
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->type] 'spot' or 'swap' (default is 'spot', in sandbox mode only 'swap' is available and is used by default)
          * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
          */
@@ -1992,54 +2012,54 @@ class weex extends Exchange {
         $type = null;
         list($type, $params) = $this->handle_market_type_and_params('fetchBalance', null, $params);
         $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
-        if ($sandboxMode && ($requestedType === null)) {
-            $type = 'swap'; // $the demo trading API only provides $the swap account, don't $the default spot $type break a bare fetchBalance() call
+        if (($sandboxMode === true) && ($requestedType === null)) {
+            $type = 'swap'; // the demo trading API only provides the swap account, don't let the default spot type break a bare fetchBalance() call
         }
         $response = null;
         if ($type === 'spot') {
-            if ($sandboxMode) {
-                throw new NotSupported($this->id . ' fetchBalance() only supports $the swap account in sandbox mode, use $params["type"] = "swap"');
+            if ($sandboxMode === true) {
+                throw new NotSupported($this->id . ' fetchBalance() only supports the swap account in sandbox mode, use $params["type"] = "swap"');
             }
             //
             //     {
-            //         "makerCommission" => 0,
-            //         "takerCommission" => 0,
-            //         "commissionRates" => array(
-            //             "maker" => "0.00000000",
-            //             "taker" => "0.00000000"
-            //         ),
-            //         "canTrade" => true,
-            //         "canWithdraw" => true,
-            //         "canDeposit" => true,
-            //         "updateTime" => 1775601317093,
-            //         "accountType" => "SPOT",
-            //         "balances" => array(
+            //         "makerCommission": 0,
+            //         "takerCommission": 0,
+            //         "commissionRates": {
+            //             "maker": "0.00000000",
+            //             "taker": "0.00000000"
+            //         },
+            //         "canTrade": true,
+            //         "canWithdraw": true,
+            //         "canDeposit": true,
+            //         "updateTime": 1775601317093,
+            //         "accountType": "SPOT",
+            //         "balances": [
             //             {
-            //                 "asset" => "USDT",
-            //                 "free" => "20.00000000",
-            //                 "locked" => "0"
+            //                 "asset": "USDT",
+            //                 "free": "20.00000000",
+            //                 "locked": "0"
             //             }
-            //         ),
-            //         "permissions" => array(
+            //         ],
+            //         "permissions": [
             //             "SPOT"
-            //         ),
-            //         "uid" => 8886281669
+            //         ],
+            //         "uid": 8886281669
             //     }
             //
             $response = $this->privateGetApiV3Account($params);
         } else {
             //
-            //     array(
+            //     [
             //         {
-            //             "asset" => "USDT", // SUSDT in sandbox mode
-            //             "balance" => "20.00000000",
-            //             "availableBalance" => "20.00000000",
-            //             "frozen" => "0",
-            //             "unrealizePnl" => "0"
+            //             "asset": "USDT", // SUSDT in sandbox mode
+            //             "balance": "20.00000000",
+            //             "availableBalance": "20.00000000",
+            //             "frozen": "0",
+            //             "unrealizePnl": "0"
             //         }
-            //     )
+            //     ]
             //
-            if ($sandboxMode) {
+            if ($sandboxMode === true) {
                 $response = $this->contractPrivateGetCapiV3SimBalance($params);
             } else {
                 $response = $this->contractPrivateGetCapiV3AccountBalance($params);
@@ -2057,8 +2077,8 @@ class weex extends Exchange {
         for ($i = 0; $i < count($balances); $i++) {
             $entry = $this->safe_dict($balances, $i);
             $currencyId = $this->safe_string($entry, 'asset');
-            if ($sandboxMode && ($currencyId === 'SUSDT')) {
-                $currencyId = 'USDT'; // demo trading $balances are denominated in the demo asset SUSDT
+            if (($sandboxMode === true) && ($currencyId === 'SUSDT')) {
+                $currencyId = 'USDT'; // demo trading balances are denominated in the demo asset SUSDT
             }
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
@@ -2108,18 +2128,18 @@ class weex extends Exchange {
         list($request, $params) = $this->handle_until_option('before', $request, $params);
         $response = $this->privateGetApiV3AccountTransferRecords($this->extend($request, $params));
         //
-        //     array(
+        //     [
         //         {
-        //             "coinName" => "USDT",
-        //             "status" => "Successful",
-        //             "toType" => "",
-        //             "toSymbol" => "",
-        //             "fromType" => "",
-        //             "fromSymbol" => "",
-        //             "amount" => "20.00000000",
-        //             "tradeTime" => "1775605824252"
+        //             "coinName": "USDT",
+        //             "status": "Successful",
+        //             "toType": "",
+        //             "toSymbol": "",
+        //             "fromType": "",
+        //             "fromSymbol": "",
+        //             "amount": "20.00000000",
+        //             "tradeTime": "1775605824252"
         //         }
-        //     )
+        //     ]
         //
         return $this->parse_transfers($response, $currency, $since, $limit);
     }
@@ -2172,18 +2192,18 @@ class weex extends Exchange {
             $this->load_markets();
         }
         $market = $this->market($symbol);
-        if ($market['contract']) {
+        if ($market['contract'] === true) {
             return $this->create_contract_order($symbol, $type, $side, $amount, $price, $params);
         } else {
             $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
-            if ($sandboxMode) {
+            if ($sandboxMode === true) {
                 throw new NotSupported($this->id . ' createOrder() only supports swap markets in sandbox mode');
             }
             return $this->create_spot_order($symbol, $type, $side, $amount, $price, $params);
         }
     }
 
-    public function create_spot_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+    public function create_spot_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): array {
         /**
          * helper method for creating spot orders
          *
@@ -2207,10 +2227,10 @@ class weex extends Exchange {
         $response = $this->privatePostApiV3Order($request);
         //
         //     {
-        //         "symbol" => "DOGEUSDT",
-        //         "orderId" => 736557215397183592,
-        //         "clientOrderId" => "c4551206d34641efbeb64abaa066946d",
-        //         "transactTime" => 1775608924724
+        //         "symbol": "DOGEUSDT",
+        //         "orderId": 736557215397183592,
+        //         "clientOrderId": "c4551206d34641efbeb64abaa066946d",
+        //         "transactTime": 1775608924724
         //     }
         //
         if ($response === null) {
@@ -2246,11 +2266,11 @@ class weex extends Exchange {
             $clientOrderId = $partner . '-' . $this->uuid22();
         }
         $request['newClientOrderId'] = $clientOrderId;
-        // timeInForce is passed directly from $params
+        // timeInForce is passed directly from params
         return $this->extend($request, $params);
     }
 
-    public function create_contract_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+    public function create_contract_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): array {
         /**
          * helper method for creating contract orders
          *
@@ -2266,16 +2286,16 @@ class weex extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->clientOrderId] client order id
          * @param {array} [$params->takeProfit] *takeProfit object in $params* containing the $triggerPrice at which the attached take profit order will be triggered and the triggerPriceType
-         * @param {float} [$params->takeProfit.triggerPrice] The $price at which the take profit order will be triggered, takeProfit.stopPrice is supported alias
+         * @param {float} [$params->takeProfit.triggerPrice] The $price at which the take profit order will be triggered, takeProfit.stopPrice is supported as an alias
          * @param {string} [$params->takeProfit.triggerPriceType] The $type of the trigger $price for the take profit order, either 'last' or 'mark' (default is 'last')
          * @param {float} [$params->takeProfit.price] not supported, the attached take profit always executes at $market $price
          * @param {array} [$params->stopLoss] *stopLoss object in $params* containing the $triggerPrice at which the attached stop loss order will be triggered and the triggerPriceType
-         * @param {float} [$params->stopLoss.triggerPrice] The $price at which the stop loss order will be triggered, stopLoss.stopPrice is supported alias
+         * @param {float} [$params->stopLoss.triggerPrice] The $price at which the stop loss order will be triggered, stopLoss.stopPrice is supported as an alias
          * @param {string} [$params->stopLoss.triggerPriceType] The $type of the trigger $price for the stop loss order, either 'last' or 'mark' (default is 'last')
          * @param {float} [$params->stopLoss.price] not supported, the attached stop loss always executes at $market $price
-         * @param {float} [$params->stopLossPrice] $price to trigger a standalone stop-loss order on an open position, the $price argument is used execution $price for limit orders
+         * @param {float} [$params->stopLossPrice] $price to trigger a standalone stop-loss order on an open position, the $price argument is used as its execution $price for limit orders
          * @param {string} [$params->stopLossPriceType] The $type of the trigger $price for the stop loss order, either 'last' or 'mark' (default is 'last')
-         * @param {float} [$params->takeProfitPrice] $price to trigger a standalone take-profit order on an open position, the $price argument is used execution $price for limit orders
+         * @param {float} [$params->takeProfitPrice] $price to trigger a standalone take-profit order on an open position, the $price argument is used as its execution $price for limit orders
          * @param {string} [$params->takeProfitPriceType] The $type of the trigger $price for the take profit order, either 'last' or 'mark' (default is 'last')
          * @param {float} [$params->triggerPrice] the $price at which a trigger (entry conditional) order is triggered, cannot be used together with stopLossPrice or takeProfitPrice
          * @param {bool} [$params->reduceOnly] A mark to reduce the position size only. Set to false by default. Need to set the position size when reduceOnly is true.
@@ -2291,11 +2311,11 @@ class weex extends Exchange {
         $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
         $response = null;
         if ($triggerPrice !== null) {
-            if ($sandboxMode) {
+            if ($sandboxMode === true) {
                 throw new NotSupported($this->id . ' createOrder() does not support stopLossPrice or takeProfitPrice orders in sandbox mode');
             }
             $response = $this->contractPrivatePostCapiV3AlgoOrder($request);
-        } elseif ($sandboxMode) {
+        } elseif ($sandboxMode === true) {
             $response = $this->contractPrivatePostCapiV3SimOrder($request);
         } else {
             $response = $this->contractPrivatePostCapiV3Order($request);
@@ -2352,7 +2372,7 @@ class weex extends Exchange {
         $hasTakeProfit = ($takeProfit !== null);
         $stopLoss = $this->safe_dict($params, 'stopLoss');
         $hasStopLoss = ($stopLoss !== null);
-        // the exchange accepts but silently ignores execution prices for attached take profit / stop loss, they always execute at $market $price
+        // the exchange accepts but silently ignores execution prices for attached take profit / stop loss, they always execute at market price
         if ($hasTakeProfit && ($this->safe_number($takeProfit, 'price') !== null)) {
             throw new NotSupported($this->id . ' createOrder() does not support the $price field inside the $takeProfit $params, the attached take profit executes at $market price');
         }
@@ -2367,7 +2387,7 @@ class weex extends Exchange {
         }
         $callerMethodName = $this->safe_string($params, 'callerMethodName');
         if ($isTrigger) {
-            // entry conditional order, triggers a regular order when the trigger $price is reached
+            // entry conditional order, triggers a regular order when the trigger price is reached
             if ($callerMethodName === 'createOrders') {
                 throw new NotSupported($this->id . ' createOrders() does not support trigger orders');
             }
@@ -2496,7 +2516,7 @@ class weex extends Exchange {
         $type = null;
         list($type, $params) = $this->handle_market_type_and_params('cancelOrder', $market, $params);
         $trigger = $this->safe_bool($params, 'trigger', false);
-        if ($trigger && $id === null) {
+        if (($trigger === true) && $id === null) {
             throw new ArgumentsRequired($this->id . ' cancelOrder() requires an $id argument for $trigger orders');
         }
         $request = array();
@@ -2513,18 +2533,18 @@ class weex extends Exchange {
         if ($type === 'spot') {
             // by orderId
             //     {
-            //         "orderId" => 736775987680772200,
-            //         "status" => "CANCELED"
+            //         "orderId": 736775987680772200,
+            //         "status": "CANCELED"
             //     }
             //
-            // by $clientOrderId
+            // by clientOrderId
             //     {
-            //         "origClientOrderId" => "test_cancel_order",
-            //         "status" => "CANCELED"
+            //         "origClientOrderId": "test_cancel_order",
+            //         "status": "CANCELED"
             //     }
             //
             $response = $this->privateDeleteApiV3Order($this->extend($request, $params));
-        } elseif ($trigger) {
+        } elseif ($trigger === true) {
             $response = $this->contractPrivateDeleteCapiV3AlgoOrder($this->extend($request, $params));
         } else {
             $response = $this->contractPrivateDeleteCapiV3Order($this->extend($request, $params));
@@ -2543,7 +2563,7 @@ class weex extends Exchange {
          *
          * @see https://www.weex.com/api-doc/spot/orderApi/Cancel-Symbol-Orders // spot
          * @see https://www.weex.com/api-doc/contract/Transaction_API/CancelAllOrders // contract
-         * @see https://www.weex.com/api-doc/contract/Transaction_API/CancelAllPendingOrders // contract $trigger
+         * @see https://www.weex.com/api-doc/contract/Transaction_API/CancelAllPendingOrders // contract trigger
          *
          * @param {string} $symbol unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -2570,7 +2590,7 @@ class weex extends Exchange {
                 throw new ArgumentsRequired($this->id . ' cancelAllOrders() requires a $symbol argument for spot markets');
             }
             $response = $this->privateDeleteApiV3OpenOrders($this->extend($request, $params));
-        } elseif ($trigger) {
+        } elseif ($trigger === true) {
             $response = $this->contractPrivateDeleteCapiV3AlgoOpenOrders($this->extend($request, $params));
         } else {
             $response = $this->contractPrivateDeleteCapiV3AllOpenOrders($this->extend($request, $params));
@@ -2677,20 +2697,20 @@ class weex extends Exchange {
         if ($isSpot) {
             //
             //     {
-            //         "symbol" => "DOGEUSDT",
-            //         "orderId" => 736800333186991070,
-            //         "clientOrderId" => "082007092f624a18bb7af2ab42e7c8e8",
-            //         "price" => "0.08500",
-            //         "origQty" => "300.0",
-            //         "executedQty" => "0",
-            //         "cummulativeQuoteQty" => "0",
-            //         "status" => "NEW",
-            //         "timeInForce" => "GTC",
-            //         "type" => "LIMIT",
-            //         "side" => "BUY",
-            //         "time" => 1775666888520,
-            //         "updateTime" => 1775666888536,
-            //         "isWorking" => true
+            //         "symbol": "DOGEUSDT",
+            //         "orderId": 736800333186991070,
+            //         "clientOrderId": "082007092f624a18bb7af2ab42e7c8e8",
+            //         "price": "0.08500",
+            //         "origQty": "300.0",
+            //         "executedQty": "0",
+            //         "cummulativeQuoteQty": "0",
+            //         "status": "NEW",
+            //         "timeInForce": "GTC",
+            //         "type": "LIMIT",
+            //         "side": "BUY",
+            //         "time": 1775666888520,
+            //         "updateTime": 1775666888536,
+            //         "isWorking": true
             //     }
             //
             $response = $this->privateGetApiV3Order($this->extend($request, $params));
@@ -2708,7 +2728,7 @@ class weex extends Exchange {
          *
          * @see https://www.weex.com/api-doc/spot/orderApi/UnfinishedOrders // spot
          * @see https://www.weex.com/api-doc/contract/Transaction_API/GetCurrentOrderStatus // contract
-         * @see https://www.weex.com/api-doc/contract/Transaction_API/GetCurrentPendingOrders // contract $trigger
+         * @see https://www.weex.com/api-doc/contract/Transaction_API/GetCurrentPendingOrders // contract trigger
          *
          * fetch all unfilled currently open orders
          * @param {string} $symbol unified $market $symbol
@@ -2745,24 +2765,24 @@ class weex extends Exchange {
         $response = null;
         if ($isSpot) {
             //
-            //     array(
+            //     [
             //         {
-            //             "symbol" => "DOGEUSDT",
-            //             "orderId" => 736807745679786974,
-            //             "clientOrderId" => "e6dc41082bf342f580a19264d82dab31",
-            //             "price" => "0.12000",
-            //             "origQty" => "299.0",
-            //             "executedQty" => "0",
-            //             "cummulativeQuoteQty" => "0",
-            //             "status" => "NEW",
-            //             "timeInForce" => "GTC",
-            //             "type" => "LIMIT",
-            //             "side" => "SELL",
-            //             "time" => 1775668655796,
-            //             "updateTime" => 1775668655810,
-            //             "isWorking" => true
+            //             "symbol": "DOGEUSDT",
+            //             "orderId": 736807745679786974,
+            //             "clientOrderId": "e6dc41082bf342f580a19264d82dab31",
+            //             "price": "0.12000",
+            //             "origQty": "299.0",
+            //             "executedQty": "0",
+            //             "cummulativeQuoteQty": "0",
+            //             "status": "NEW",
+            //             "timeInForce": "GTC",
+            //             "type": "LIMIT",
+            //             "side": "SELL",
+            //             "time": 1775668655796,
+            //             "updateTime": 1775668655810,
+            //             "isWorking": true
             //         }
-            //     )
+            //     ]
             //
             $response = $this->privateGetApiV3OpenOrders($this->extend($request, $params));
         } else {
@@ -2774,64 +2794,64 @@ class weex extends Exchange {
             }
             list($request, $params) = $this->handle_until_option('endTime', $request, $params);
             $trigger = $this->safe_bool($params, 'trigger', false);
-            if ($trigger) {
+            if ($trigger === true) {
                 $params = $this->omit($params, 'trigger');
                 //
-                //     array(
+                //     [
                 //         {
-                //             "algoId" => 737074389748547944,
-                //             "clientAlgoId" => "d574f517-cea5-433e-b029-415590d3bb80",
-                //             "algoType" => "CONDITIONAL",
-                //             "orderType" => "STOP_MARKET",
-                //             "symbol" => "DOGEUSDT",
-                //             "side" => "SELL",
-                //             "positionSide" => "LONG",
-                //             "timeInForce" => "IOC",
-                //             "quantity" => "100",
-                //             "algoStatus" => "UNTRIGGERED",
-                //             "actualOrderId" => 737074043320009064,
-                //             "actualPrice" => "0.00000",
-                //             "triggerPrice" => "0.02000",
-                //             "price" => "0.00000",
-                //             "tpTriggerPrice" => null,
-                //             "tpPrice" => null,
-                //             "slTriggerPrice" => null,
-                //             "slPrice" => null,
-                //             "tpOrderType" => null,
-                //             "workingType" => "CONTRACT_PRICE",
-                //             "closePosition" => false,
-                //             "reduceOnly" => true,
-                //             "createTime" => 1775732228695,
-                //             "updateTime" => 1775732228695,
-                //             "triggerTime" => 0
+                //             "algoId": 737074389748547944,
+                //             "clientAlgoId": "d574f517-cea5-433e-b029-415590d3bb80",
+                //             "algoType": "CONDITIONAL",
+                //             "orderType": "STOP_MARKET",
+                //             "symbol": "DOGEUSDT",
+                //             "side": "SELL",
+                //             "positionSide": "LONG",
+                //             "timeInForce": "IOC",
+                //             "quantity": "100",
+                //             "algoStatus": "UNTRIGGERED",
+                //             "actualOrderId": 737074043320009064,
+                //             "actualPrice": "0.00000",
+                //             "triggerPrice": "0.02000",
+                //             "price": "0.00000",
+                //             "tpTriggerPrice": null,
+                //             "tpPrice": null,
+                //             "slTriggerPrice": null,
+                //             "slPrice": null,
+                //             "tpOrderType": null,
+                //             "workingType": "CONTRACT_PRICE",
+                //             "closePosition": false,
+                //             "reduceOnly": true,
+                //             "createTime": 1775732228695,
+                //             "updateTime": 1775732228695,
+                //             "triggerTime": 0
                 //         }
-                //     )
+                //     ]
                 //
                 $response = $this->contractPrivateGetCapiV3OpenAlgoOrders($this->extend($request, $params));
             } else {
                 //
-                //     array(
+                //     [
                 //         {
-                //             "avgPrice" => "0.00000",
-                //             "clientOrderId" => "857e1482-3225-44ce-bc0a-947714c5cabc",
-                //             "cumQuote" => "0",
-                //             "executedQty" => "0",
-                //             "orderId" => 737185556881998184,
-                //             "origQty" => "1400",
-                //             "price" => "0.05000",
-                //             "reduceOnly" => false,
-                //             "side" => "BUY",
-                //             "positionSide" => "LONG",
-                //             "status" => "NEW",
-                //             "stopPrice" => "0",
-                //             "symbol" => "DOGEUSDT",
-                //             "time" => 1775758733006,
-                //             "timeInForce" => "GTC",
-                //             "type" => "LIMIT",
-                //             "updateTime" => 1775758733006,
-                //             "workingType" => "UNKNOWN_PRICE_TYPE"
+                //             "avgPrice": "0.00000",
+                //             "clientOrderId": "857e1482-3225-44ce-bc0a-947714c5cabc",
+                //             "cumQuote": "0",
+                //             "executedQty": "0",
+                //             "orderId": 737185556881998184,
+                //             "origQty": "1400",
+                //             "price": "0.05000",
+                //             "reduceOnly": false,
+                //             "side": "BUY",
+                //             "positionSide": "LONG",
+                //             "status": "NEW",
+                //             "stopPrice": "0",
+                //             "symbol": "DOGEUSDT",
+                //             "time": 1775758733006,
+                //             "timeInForce": "GTC",
+                //             "type": "LIMIT",
+                //             "updateTime": 1775758733006,
+                //             "workingType": "UNKNOWN_PRICE_TYPE"
                 //         }
-                //     )
+                //     ]
                 //
                 $response = $this->contractPrivateGetCapiV3OpenOrders($this->extend($request, $params));
             }
@@ -2937,7 +2957,7 @@ class weex extends Exchange {
             $this->load_markets();
         }
         $market = $this->market($symbol);
-        if (!$market['spot']) {
+        if ($market['spot'] !== true) {
             throw new NotSupported($this->id . ' fetchOrders() supports spot markets only');
         }
         $maxLimit = 1000;
@@ -2958,24 +2978,24 @@ class weex extends Exchange {
         list($request, $params) = $this->handle_until_option('endTime', $request, $params);
         $response = $this->privateGetApiV3AllOrders($this->extend($request, $params));
         //
-        //     array(
+        //     [
         //         {
-        //             "symbol" => "DOGEUSDT",
-        //             "orderId" => 736806838401500126,
-        //             "clientOrderId" => "e93fcb1423fc4b4982fd02eb3bc4955c",
-        //             "price" => "0.09365",
-        //             "origQty" => "300.0",
-        //             "executedQty" => "300.0",
-        //             "cummulativeQuoteQty" => "28.095",
-        //             "status" => "FILLED",
-        //             "timeInForce" => "IOC",
-        //             "type" => "MARKET",
-        //             "side" => "BUY",
-        //             "time" => 1775668439484,
-        //             "updateTime" => 1775668439498,
-        //             "isWorking" => false
+        //             "symbol": "DOGEUSDT",
+        //             "orderId": 736806838401500126,
+        //             "clientOrderId": "e93fcb1423fc4b4982fd02eb3bc4955c",
+        //             "price": "0.09365",
+        //             "origQty": "300.0",
+        //             "executedQty": "300.0",
+        //             "cummulativeQuoteQty": "28.095",
+        //             "status": "FILLED",
+        //             "timeInForce": "IOC",
+        //             "type": "MARKET",
+        //             "side": "BUY",
+        //             "time": 1775668439484,
+        //             "updateTime": 1775668439498,
+        //             "isWorking": false
         //         }
-        //     )
+        //     ]
         //
         return $this->parse_orders($response, $market, $since, $limit);
     }
@@ -3027,34 +3047,34 @@ class weex extends Exchange {
         list($request, $params) = $this->handle_until_option('endTime', $request, $params);
         $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
         $response = null;
-        if ($sandboxMode) {
+        if ($sandboxMode === true) {
             $response = $this->contractPrivateGetCapiV3SimOrderHistory($this->extend($request, $params));
         } else {
             $response = $this->contractPrivateGetCapiV3OrderHistory($this->extend($request, $params));
         }
         //
-        //     array(
+        //     [
         //         {
-        //             "avgPrice" => "0.00000",
-        //             "clientOrderId" => "7bd80776-0c3f-4ed9-ab9c-a616d66fac5e",
-        //             "cumQuote" => "0",
-        //             "executedQty" => "0",
-        //             "orderId" => 737074389744353640,
-        //             "origQty" => "100",
-        //             "price" => "0.00000",
-        //             "reduceOnly" => true,
-        //             "side" => "SELL",
-        //             "positionSide" => "LONG",
-        //             "status" => "CANCELED",
-        //             "stopPrice" => "1.00000",
-        //             "symbol" => "DOGEUSDT",
-        //             "time" => 1775732228695,
-        //             "timeInForce" => "IOC",
-        //             "type" => "TAKE_PROFIT_MARKET",
-        //             "updateTime" => 1775732228695,
-        //             "workingType" => "CONTRACT_PRICE"
+        //             "avgPrice": "0.00000",
+        //             "clientOrderId": "7bd80776-0c3f-4ed9-ab9c-a616d66fac5e",
+        //             "cumQuote": "0",
+        //             "executedQty": "0",
+        //             "orderId": 737074389744353640,
+        //             "origQty": "100",
+        //             "price": "0.00000",
+        //             "reduceOnly": true,
+        //             "side": "SELL",
+        //             "positionSide": "LONG",
+        //             "status": "CANCELED",
+        //             "stopPrice": "1.00000",
+        //             "symbol": "DOGEUSDT",
+        //             "time": 1775732228695,
+        //             "timeInForce": "IOC",
+        //             "type": "TAKE_PROFIT_MARKET",
+        //             "updateTime": 1775732228695,
+        //             "workingType": "CONTRACT_PRICE"
         //         }
-        //     )
+        //     ]
         //
         return $this->parse_orders($response, $market, $since, $limit);
     }
@@ -3063,101 +3083,101 @@ class weex extends Exchange {
         //
         // createOrder (spot)
         //     {
-        //         "symbol" => "DOGEUSDT",
-        //         "orderId" => 736557215397183592,
-        //         "clientOrderId" => "c4551206d34641efbeb64abaa066946d",
-        //         "transactTime" => 1775608924724
+        //         "symbol": "DOGEUSDT",
+        //         "orderId": 736557215397183592,
+        //         "clientOrderId": "c4551206d34641efbeb64abaa066946d",
+        //         "transactTime": 1775608924724
         //     }
         //
         // fetchOpenOrders / fetchOrders / fetchOrder (spot)
         //     {
-        //         "symbol" => "DOGEUSDT",
-        //         "orderId" => 736800333186991070,
-        //         "clientOrderId" => "082007092f624a18bb7af2ab42e7c8e8",
-        //         "price" => "0.08500",
-        //         "origQty" => "300.0",
-        //         "executedQty" => "0",
-        //         "cummulativeQuoteQty" => "0",
-        //         "status" => "NEW",
-        //         "timeInForce" => "GTC",
-        //         "type" => "LIMIT",
-        //         "side" => "BUY",
-        //         "time" => 1775666888520,
-        //         "updateTime" => 1775666888536,
-        //         "isWorking" => true
+        //         "symbol": "DOGEUSDT",
+        //         "orderId": 736800333186991070,
+        //         "clientOrderId": "082007092f624a18bb7af2ab42e7c8e8",
+        //         "price": "0.08500",
+        //         "origQty": "300.0",
+        //         "executedQty": "0",
+        //         "cummulativeQuoteQty": "0",
+        //         "status": "NEW",
+        //         "timeInForce": "GTC",
+        //         "type": "LIMIT",
+        //         "side": "BUY",
+        //         "time": 1775666888520,
+        //         "updateTime": 1775666888536,
+        //         "isWorking": true
         //     }
         //
         // fetchOpenOrders (contract)
         //     {
-        //         "avgPrice" => "0.00000",
-        //         "clientOrderId" => "857e1482-3225-44ce-bc0a-947714c5cabc",
-        //         "cumQuote" => "0",
-        //         "executedQty" => "0",
-        //         "orderId" => 737185556881998184,
-        //         "origQty" => "1400",
-        //         "price" => "0.05000",
-        //         "reduceOnly" => false,
-        //         "side" => "BUY",
-        //         "positionSide" => "LONG",
-        //         "status" => "NEW",
-        //         "stopPrice" => "0",
-        //         "symbol" => "DOGEUSDT",
-        //         "time" => 1775758733006,
-        //         "timeInForce" => "GTC",
-        //         "type" => "LIMIT",
-        //         "updateTime" => 1775758733006,
-        //         "workingType" => "UNKNOWN_PRICE_TYPE"
+        //         "avgPrice": "0.00000",
+        //         "clientOrderId": "857e1482-3225-44ce-bc0a-947714c5cabc",
+        //         "cumQuote": "0",
+        //         "executedQty": "0",
+        //         "orderId": 737185556881998184,
+        //         "origQty": "1400",
+        //         "price": "0.05000",
+        //         "reduceOnly": false,
+        //         "side": "BUY",
+        //         "positionSide": "LONG",
+        //         "status": "NEW",
+        //         "stopPrice": "0",
+        //         "symbol": "DOGEUSDT",
+        //         "time": 1775758733006,
+        //         "timeInForce": "GTC",
+        //         "type": "LIMIT",
+        //         "updateTime": 1775758733006,
+        //         "workingType": "UNKNOWN_PRICE_TYPE"
         //     }
         //
         // fetchOpenOrders (contract-trigger)
         //     {
-        //         "algoId" => 737074389748547944,
-        //         "clientAlgoId" => "d574f517-cea5-433e-b029-415590d3bb80",
-        //         "algoType" => "CONDITIONAL",
-        //         "orderType" => "STOP_MARKET",
-        //         "symbol" => "DOGEUSDT",
-        //         "side" => "SELL",
-        //         "positionSide" => "LONG",
-        //         "timeInForce" => "IOC",
-        //         "quantity" => "100",
-        //         "algoStatus" => "UNTRIGGERED",
-        //         "actualOrderId" => 737074043320009064,
-        //         "actualPrice" => "0.00000",
-        //         "triggerPrice" => "0.02000",
-        //         "price" => "0.00000",
-        //         "tpTriggerPrice" => null,
-        //         "tpPrice" => null,
-        //         "slTriggerPrice" => null,
-        //         "slPrice" => null,
-        //         "tpOrderType" => null,
-        //         "workingType" => "CONTRACT_PRICE",
-        //         "closePosition" => false,
-        //         "reduceOnly" => true,
-        //         "createTime" => 1775732228695,
-        //         "updateTime" => 1775732228695,
-        //         "triggerTime" => 0
+        //         "algoId": 737074389748547944,
+        //         "clientAlgoId": "d574f517-cea5-433e-b029-415590d3bb80",
+        //         "algoType": "CONDITIONAL",
+        //         "orderType": "STOP_MARKET",
+        //         "symbol": "DOGEUSDT",
+        //         "side": "SELL",
+        //         "positionSide": "LONG",
+        //         "timeInForce": "IOC",
+        //         "quantity": "100",
+        //         "algoStatus": "UNTRIGGERED",
+        //         "actualOrderId": 737074043320009064,
+        //         "actualPrice": "0.00000",
+        //         "triggerPrice": "0.02000",
+        //         "price": "0.00000",
+        //         "tpTriggerPrice": null,
+        //         "tpPrice": null,
+        //         "slTriggerPrice": null,
+        //         "slPrice": null,
+        //         "tpOrderType": null,
+        //         "workingType": "CONTRACT_PRICE",
+        //         "closePosition": false,
+        //         "reduceOnly": true,
+        //         "createTime": 1775732228695,
+        //         "updateTime": 1775732228695,
+        //         "triggerTime": 0
         //     }
         //
         // fetchCanceledAndClosedOrders (swap only)
         //     {
-        //         "avgPrice" => "0.00000",
-        //         "clientOrderId" => "7bd80776-0c3f-4ed9-ab9c-a616d66fac5e",
-        //         "cumQuote" => "0",
-        //         "executedQty" => "0",
-        //         "orderId" => 737074389744353640,
-        //         "origQty" => "100",
-        //         "price" => "0.00000",
-        //         "reduceOnly" => true,
-        //         "side" => "SELL",
-        //         "positionSide" => "LONG",
-        //         "status" => "CANCELED",
-        //         "stopPrice" => "1.00000",
-        //         "symbol" => "DOGEUSDT",
-        //         "time" => 1775732228695,
-        //         "timeInForce" => "IOC",
-        //         "type" => "TAKE_PROFIT_MARKET",
-        //         "updateTime" => 1775732228695,
-        //         "workingType" => "CONTRACT_PRICE"
+        //         "avgPrice": "0.00000",
+        //         "clientOrderId": "7bd80776-0c3f-4ed9-ab9c-a616d66fac5e",
+        //         "cumQuote": "0",
+        //         "executedQty": "0",
+        //         "orderId": 737074389744353640,
+        //         "origQty": "100",
+        //         "price": "0.00000",
+        //         "reduceOnly": true,
+        //         "side": "SELL",
+        //         "positionSide": "LONG",
+        //         "status": "CANCELED",
+        //         "stopPrice": "1.00000",
+        //         "symbol": "DOGEUSDT",
+        //         "time": 1775732228695,
+        //         "timeInForce": "IOC",
+        //         "type": "TAKE_PROFIT_MARKET",
+        //         "updateTime": 1775732228695,
+        //         "workingType": "CONTRACT_PRICE"
         //     }
         //
         $errorCode = $this->safe_string($order, 'errorCode');
@@ -3172,13 +3192,13 @@ class weex extends Exchange {
             $market = $this->safe_market($marketId, null, null, $marketType);
         }
         $timestamp = $this->safe_integer_n($order, array( 'transactTime', 'time', 'createTime' ));
-        $rawStatus = $this->safe_string_lower_2($order, 'status', 'algoStatus'); // algo (trigger) $order payloads carry algoStatus instead of status
+        $rawStatus = $this->safe_string_lower_2($order, 'status', 'algoStatus'); // algo (trigger) order payloads carry algoStatus instead of status
         $triggerPrice = $this->omit_zero($this->safe_string_2($order, 'triggerPrice', 'stopPrice'));
         $rawType = $this->safe_string_upper_2($order, 'type', 'orderType');
         $isReduceOnly = $this->safe_bool($order, 'reduceOnly');
         // entry conditional orders reuse the STOP/TAKE_PROFIT types with reduceOnly set to false, their trigger price is not a stop loss / take profit price
-        // a missing reduceOnly counts-only to keep the legacy mapping for responses that omit the field
-        $isEntryTrigger = !($this->safe_bool($order, 'reduceOnly', true));
+        // a missing reduceOnly counts as reduce-only to keep the legacy mapping for responses that omit the field
+        $isEntryTrigger = !$this->safe_bool($order, 'reduceOnly', true);
         $takeProfitPrice = null;
         $stopLossPrice = null;
         if (!$isEntryTrigger) {
@@ -3189,10 +3209,10 @@ class weex extends Exchange {
             }
         }
         if ($takeProfitPrice === null) {
-            $takeProfitPrice = $this->omit_zero($this->safe_string($order, 'tpTriggerPrice')); // attached take profit of a regular or conditional $order
+            $takeProfitPrice = $this->omit_zero($this->safe_string($order, 'tpTriggerPrice')); // attached take profit of a regular or conditional order
         }
         if ($stopLossPrice === null) {
-            $stopLossPrice = $this->omit_zero($this->safe_string($order, 'slTriggerPrice')); // attached stop loss of a regular or conditional $order
+            $stopLossPrice = $this->omit_zero($this->safe_string($order, 'slTriggerPrice')); // attached stop loss of a regular or conditional order
         }
         return $this->safe_order(array(
             'id' => $this->safe_string_n($order, array( 'orderId', 'algoId', 'successOrderId' )),
@@ -3340,41 +3360,41 @@ class weex extends Exchange {
         $response = null;
         if ($isSpot) {
             //
-            //     array(
+            //     [
             //         {
-            //             "symbol" => "DOGEUSDT",
-            //             "id" => 736825748291060702,
-            //             "orderId" => 736825748215563230,
-            //             "price" => "0.09349",
-            //             "qty" => "250.0",
-            //             "quoteQty" => "23.3725",
-            //             "commission" => "0.0233725",
-            //             "time" => 1775672947953,
-            //             "isBuyer" => false
+            //             "symbol": "DOGEUSDT",
+            //             "id": 736825748291060702,
+            //             "orderId": 736825748215563230,
+            //             "price": "0.09349",
+            //             "qty": "250.0",
+            //             "quoteQty": "23.3725",
+            //             "commission": "0.0233725",
+            //             "time": 1775672947953,
+            //             "isBuyer": false
             //         }
-            //     )
+            //     ]
             //
             $response = $this->privateGetApiV3MyTrades($this->extend($request, $params));
         } else {
             //
-            //     array(
+            //     [
             //         {
-            //             "id" => 737074389731770728,
-            //             "orderId" => 737074043320009064,
-            //             "symbol" => "DOGEUSDT",
-            //             "buyer" => true,
-            //             "commission" => "0.00183500",
-            //             "commissionAsset" => "USDT",
-            //             "maker" => true,
-            //             "price" => "0.09175",
-            //             "qty" => "100",
-            //             "quoteQty" => "9.17500",
-            //             "realizedPnl" => "0",
-            //             "side" => "BUY",
-            //             "positionSide" => "LONG",
-            //             "time" => 1775732228692
+            //             "id": 737074389731770728,
+            //             "orderId": 737074043320009064,
+            //             "symbol": "DOGEUSDT",
+            //             "buyer": true,
+            //             "commission": "0.00183500",
+            //             "commissionAsset": "USDT",
+            //             "maker": true,
+            //             "price": "0.09175",
+            //             "qty": "100",
+            //             "quoteQty": "9.17500",
+            //             "realizedPnl": "0",
+            //             "side": "BUY",
+            //             "positionSide": "LONG",
+            //             "time": 1775732228692
             //         }
-            //     )
+            //     ]
             //
             $response = $this->contractPrivateGetCapiV3UserTrades($this->extend($request, $params));
         }
@@ -3422,10 +3442,7 @@ class weex extends Exchange {
             $currency = $this->currency($code);
         }
         if ($accountType === 'contract') {
-            if ($currency === null) {
-                throw new ExchangeError($this->id . ' fetchLedger() could not resolve currency');
-            }
-            if ($code !== null) {
+            if ($currency !== null) {
                 $request['currency'] = $currency['id'];
             }
             if ($since !== null) {
@@ -3465,43 +3482,43 @@ class weex extends Exchange {
         //
         // spot
         //     {
-        //         "billId" => "736825748291061726",
-        //         "coinId" => 82,
-        //         "coinName" => "DOGE",
-        //         "bizType" => "trade_out",
-        //         "fillSize" => "250.0",
-        //         "fillValue" => "23.372500",
-        //         "deltaAmount" => "-250.0",
-        //         "afterAmount" => "49.70000000",
-        //         "fees" => "0",
-        //         "cTime" => "1775672947953"
+        //         "billId": "736825748291061726",
+        //         "coinId": 82,
+        //         "coinName": "DOGE",
+        //         "bizType": "trade_out",
+        //         "fillSize": "250.0",
+        //         "fillValue": "23.372500",
+        //         "deltaAmount": "-250.0",
+        //         "afterAmount": "49.70000000",
+        //         "fees": "0",
+        //         "cTime": "1775672947953"
         //     }
         //
         // contract
         //     {
-        //         "billId" => 736791763716407518,
-        //         "asset" => "USDT",
-        //         "symbol" => null,
-        //         "income" => "-90.00000000",
-        //         "incomeType" => "withdraw",
-        //         "balance" => "106.00000000",
-        //         "fillFee" => "0",
-        //         "time" => 1775664845399,
-        //         "transferReason" => "UNKNOWN_TRANSFER_REASON"
+        //         "billId": 736791763716407518,
+        //         "asset": "USDT",
+        //         "symbol": null,
+        //         "income": "-90.00000000",
+        //         "incomeType": "withdraw",
+        //         "balance": "106.00000000",
+        //         "fillFee": "0",
+        //         "time": 1775664845399,
+        //         "transferReason": "UNKNOWN_TRANSFER_REASON"
         //     }
         //
         // funding
         //     {
-        //         "billId" => "16502414",
-        //         "coinId" => 2,
-        //         "coinName" => "USDT",
-        //         "bizType" => "transfer_out",
-        //         "fillSize" => null,
-        //         "fillValue" => null,
-        //         "deltaAmount" => "-100.00000000",
-        //         "afterAmount" => "0.00000000",
-        //         "fees" => "0.00000000",
-        //         "cTime" => "1775664588931"
+        //         "billId": "16502414",
+        //         "coinId": 2,
+        //         "coinName": "USDT",
+        //         "bizType": "transfer_out",
+        //         "fillSize": null,
+        //         "fillValue": null,
+        //         "deltaAmount": "-100.00000000",
+        //         "afterAmount": "0.00000000",
+        //         "fees": "0.00000000",
+        //         "cTime": "1775664588931"
         //     }
         //
         $currencyId = $this->safe_string_2($item, 'coinName', 'asset');
@@ -3565,6 +3582,106 @@ class weex extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
+    public function fetch_funding_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
+        /**
+         * fetch the history of funding payments paid and received on this account
+         *
+         * @see https://www.weex.com/api-doc/contract/Account_API/GetContractBills
+         *
+         * @param {string} [$symbol] unified $market $symbol
+         * @param {int} [$since] the earliest time in ms to fetch funding history for
+         * @param {int} [$limit] the maximum number of funding history structures to retrieve (default 20, max 100)
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {int} [$params->until] timestamp in ms of the latest funding history entry, requires $since to be set, the span may not exceed 100 days
+         * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-history-structure funding history structures~
+         */
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
+        $paginate = false;
+        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchFundingHistory', 'paginate', false);
+        if ($paginate) {
+            return $this->fetch_paginated_call_dynamic('fetchFundingHistory', $symbol, $since, $limit, $params, 100);
+        }
+        $market = null;
+        $request = array(
+            'incomeType' => 'position_funding', // deposit, withdraw, transfer_in, transfer_out, margin_move_in, margin_move_out, position_open_long, position_open_short, position_close_long, position_close_short, position_funding, order_fill_fee_income, order_liquidate_fee_income, start_liquidate, finish_liquidate, order_fix_margin_amount, tracking_follow_pay, tracking_system_pre_receive, tracking_follow_back, tracking_trader_income, tracking_third_party_share
+        );
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            if ($market['swap'] !== true) {
+                throw new NotSupported($this->id . ' fetchFundingHistory() supports swap contracts only');
+            }
+            $request['symbol'] = $market['id'];
+        }
+        if ($since !== null) {
+            $request['startTime'] = $since;
+        }
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
+        list($request, $params) = $this->handle_until_option('endTime', $request, $params);
+        // the exchange rejects startTime and endTime when either is sent alone, they only work as a pair
+        $hasSince = (is_array($request) && array_key_exists('startTime' ?? '', $request));
+        $hasUntil = (is_array($request) && array_key_exists('endTime' ?? '', $request));
+        if ($hasSince && !$hasUntil) {
+            $request['endTime'] = $this->milliseconds();
+        } elseif ($hasUntil && !$hasSince) {
+            throw new ArgumentsRequired($this->id . ' fetchFundingHistory() requires $since to be set when until is used');
+        }
+        $response = $this->contractPrivatePostCapiV3AccountIncome($this->extend($request, $params));
+        //
+        //     {
+        //         "hasNextPage": false,
+        //         "nextKey": null,
+        //         "items": [
+        //             {
+        //                 "billId": "793622764958253481",
+        //                 "asset": "USDT",
+        //                 "symbol": "VIRTUALUSDT",
+        //                 "income": "0.00000378",
+        //                 "incomeType": "position_funding",
+        //                 "balance": "29.36239410",
+        //                 "fillFee": "0",
+        //                 "time": "1789214411964",
+        //                 "transferReason": "UNKNOWN_TRANSFER_REASON"
+        //             }
+        //         ]
+        //     }
+        //
+        $items = $this->safe_list($response, 'items', array());
+        return $this->parse_incomes($items, $market, $since, $limit);
+    }
+
+    public function parse_income(mixed $income, ?array $market = null): array {
+        //
+        //     {
+        //         "billId": "793622764958253481",
+        //         "asset": "USDT",
+        //         "symbol": "VIRTUALUSDT",
+        //         "income": "0.00000378",
+        //         "incomeType": "position_funding",
+        //         "balance": "29.36239410",
+        //         "fillFee": "0",
+        //         "time": "1789214411964",
+        //         "transferReason": "UNKNOWN_TRANSFER_REASON"
+        //     }
+        //
+        $marketId = $this->safe_string($income, 'symbol');
+        $currencyId = $this->safe_string($income, 'asset');
+        $timestamp = $this->safe_integer($income, 'time');
+        return array(
+            'info' => $income,
+            'symbol' => $this->safe_symbol($marketId, $market, null, 'swap'),
+            'code' => $this->safe_currency_code($currencyId),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'id' => $this->safe_string($income, 'billId'),
+            'amount' => $this->safe_number($income, 'income'),
+        );
+    }
+
     public function fetch_positions(?array $symbols = null, $params = array()): array {
         /**
          * fetch all open positions
@@ -3582,7 +3699,7 @@ class weex extends Exchange {
         $symbols = $this->market_symbols($symbols);
         $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
         $response = null;
-        if ($sandboxMode) {
+        if ($sandboxMode === true) {
             $response = $this->contractPrivateGetCapiV3SimPositionAllPosition($params);
         } else {
             $response = $this->contractPrivateGetCapiV3AccountPositionAllPosition($params);
@@ -3620,7 +3737,7 @@ class weex extends Exchange {
         }
         $market = $this->market($symbol);
         $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
-        if ($sandboxMode) {
+        if ($sandboxMode === true) {
             // the demo trading API does not provide a single-position endpoint
             return $this->fetch_positions(array( $market['symbol'] ), $params);
         }
@@ -3634,65 +3751,65 @@ class weex extends Exchange {
     public function parse_position(array $position, ?array $market = null) {
         //
         //     {
-        //         "id" => 737191855967437160,
-        //         "asset" => "USDT",
-        //         "symbol" => "DOGEUSDT",
-        //         "side" => "LONG",
-        //         "marginType" => "CROSSED",
-        //         "separatedMode" => "COMBINED",
-        //         "separatedOpenOrderId" => 0,
-        //         "leverage" => "20.00",
-        //         "size" => "300",
-        //         "openValue" => "27.96900",
-        //         "openFee" => "0.02237520",
-        //         "fundingFee" => "0",
-        //         "marginSize" => "100",
-        //         "isolatedMargin" => "0",
-        //         "isAutoAppendIsolatedMargin" => false,
-        //         "cumOpenSize" => "300",
-        //         "cumOpenValue" => "27.96900",
-        //         "cumOpenFee" => "0.02237520",
-        //         "cumCloseSize" => "0",
-        //         "cumCloseValue" => "0",
-        //         "cumCloseFee" => "0",
-        //         "cumFundingFee" => "0",
-        //         "cumLiquidateFee" => "0",
-        //         "createdMatchSequenceId" => 5762536243,
-        //         "updatedMatchSequenceId" => 5762741613,
-        //         "createdTime" => 1775760234825,
-        //         "updatedTime" => 1775763170789,
-        //         "unrealizePnl" => "0.00600",
-        //         "liquidatePrice" => "0"
+        //         "id": 737191855967437160,
+        //         "asset": "USDT",
+        //         "symbol": "DOGEUSDT",
+        //         "side": "LONG",
+        //         "marginType": "CROSSED",
+        //         "separatedMode": "COMBINED",
+        //         "separatedOpenOrderId": 0,
+        //         "leverage": "20.00",
+        //         "size": "300",
+        //         "openValue": "27.96900",
+        //         "openFee": "0.02237520",
+        //         "fundingFee": "0",
+        //         "marginSize": "100",
+        //         "isolatedMargin": "0",
+        //         "isAutoAppendIsolatedMargin": false,
+        //         "cumOpenSize": "300",
+        //         "cumOpenValue": "27.96900",
+        //         "cumOpenFee": "0.02237520",
+        //         "cumCloseSize": "0",
+        //         "cumCloseValue": "0",
+        //         "cumCloseFee": "0",
+        //         "cumFundingFee": "0",
+        //         "cumLiquidateFee": "0",
+        //         "createdMatchSequenceId": 5762536243,
+        //         "updatedMatchSequenceId": 5762741613,
+        //         "createdTime": 1775760234825,
+        //         "updatedTime": 1775763170789,
+        //         "unrealizePnl": "0.00600",
+        //         "liquidatePrice": "0"
         //     }
         //
         // watchPoisions
         //     {
-        //         "id" => "739004481374519656",
-        //         "coin" => "USDT",
-        //         "symbol" => "DOGEUSDT",
-        //         "side" => "LONG",
-        //         "marginMode" => "CROSSED",
-        //         "separatedMode" => "COMBINED",
-        //         "separatedOpenOrderId" => "0",
-        //         "leverage" => "11",
-        //         "size" => "100",
-        //         "openValue" => "9.31100",
-        //         "openFee" => "0.00744880",
-        //         "fundingFee" => "0",
-        //         "isolatedMargin" => "0",
-        //         "autoAppendIsolatedMargin" => false,
-        //         "cumOpenSize" => "100",
-        //         "cumOpenValue" => "9.31100",
-        //         "cumOpenFee" => "0.00744880",
-        //         "cumCloseSize" => "0",
-        //         "cumCloseValue" => "0",
-        //         "cumCloseFee" => "0",
-        //         "cumFundingFee" => "0",
-        //         "cumLiquidateFee" => "0",
-        //         "createdMatchSequenceId" => "5792711540",
-        //         "updatedMatchSequenceId" => "5792711540",
-        //         "createdTime" => "1776192398399",
-        //         "updatedTime" => "1776192398399"
+        //         "id": "739004481374519656",
+        //         "coin": "USDT",
+        //         "symbol": "DOGEUSDT",
+        //         "side": "LONG",
+        //         "marginMode": "CROSSED",
+        //         "separatedMode": "COMBINED",
+        //         "separatedOpenOrderId": "0",
+        //         "leverage": "11",
+        //         "size": "100",
+        //         "openValue": "9.31100",
+        //         "openFee": "0.00744880",
+        //         "fundingFee": "0",
+        //         "isolatedMargin": "0",
+        //         "autoAppendIsolatedMargin": false,
+        //         "cumOpenSize": "100",
+        //         "cumOpenValue": "9.31100",
+        //         "cumOpenFee": "0.00744880",
+        //         "cumCloseSize": "0",
+        //         "cumCloseValue": "0",
+        //         "cumCloseFee": "0",
+        //         "cumFundingFee": "0",
+        //         "cumLiquidateFee": "0",
+        //         "createdMatchSequenceId": "5792711540",
+        //         "updatedMatchSequenceId": "5792711540",
+        //         "createdTime": "1776192398399",
+        //         "updatedTime": "1776192398399"
         //     }
         //
         $errorMessage = $this->safe_string($position, 'errorMsg');
@@ -3700,7 +3817,7 @@ class weex extends Exchange {
         if ($errorMessage !== null) {
             $this->handle_order_or_position_error($errorCode, $errorMessage, $position);
         }
-        $marketId = $this->from_sandbox_market_id($this->safe_string_2($position, 'symbol', 'coinId')); // coinId might be used in testnet => https://github.com/ccxt/ccxt/issues/28576#issuecomment-4439400273
+        $marketId = $this->from_sandbox_market_id($this->safe_string_2($position, 'symbol', 'coinId')); // coinId might be used in testnet: https://github.com/ccxt/ccxt/issues/28576#issuecomment-4439400273
         $market = $this->safe_market($marketId, $market, null, 'contract');
         $timestamp = $this->safe_integer($position, 'createdTime');
         $marginType = $this->safe_string_2($position, 'marginType', 'marginMode');
@@ -3764,14 +3881,14 @@ class weex extends Exchange {
         }
         $response = $this->contractPrivatePostCapiV3ClosePositions($params);
         //
-        //     array(
+        //     [
         //         {
-        //             "positionId" => 737191855967437160,
-        //             "successOrderId" => 737215340433375592,
-        //             "errorMessage" => "",
-        //             "success" => true
+        //             "positionId": 737191855967437160,
+        //             "successOrderId": 737215340433375592,
+        //             "errorMessage": "",
+        //             "success": true
         //         }
-        //     )
+        //     ]
         //
         return $this->parse_positions($response);
     }
@@ -3813,7 +3930,7 @@ class weex extends Exchange {
             $this->load_markets();
         }
         $market = $this->market($symbol);
-        if ($market['spot']) {
+        if ($market['spot'] === true) {
             // spot markets return 0 for fees
             throw new NotSupported($this->id . ' fetchTradingFee() is not supported for spot markets');
         }
@@ -3823,9 +3940,9 @@ class weex extends Exchange {
         $response = $this->contractPrivateGetCapiV3AccountCommissionRate($this->extend($request, $params));
         //
         //     {
-        //         "symbol" => "DOGEUSDT",
-        //         "makerCommissionRate" => "0.0002",
-        //         "takerCommissionRate" => "0.0008"
+        //         "symbol": "DOGEUSDT",
+        //         "makerCommissionRate": "0.0002",
+        //         "takerCommissionRate": "0.0008"
         //     }
         //
         return $this->parse_trading_fee($response, $market);
@@ -3835,9 +3952,9 @@ class weex extends Exchange {
         //
         // contract
         //     {
-        //         "symbol" => "DOGEUSDT",
-        //         "makerCommissionRate" => "0.0002",
-        //         "takerCommissionRate" => "0.0008"
+        //         "symbol": "DOGEUSDT",
+        //         "makerCommissionRate": "0.0002",
+        //         "takerCommissionRate": "0.0008"
         //     }
         //
         $marketId = $this->safe_string($fee, 'symbol');
@@ -3870,16 +3987,16 @@ class weex extends Exchange {
         );
         $response = $this->contractPrivateGetCapiV3AccountSymbolConfig($this->extend($request, $params));
         //
-        //     array(
+        //     [
         //         {
-        //             "symbol" => "DOGEUSDT",
-        //             "marginType" => "CROSSED",
-        //             "separatedType" => "COMBINED",
-        //             "crossLeverage" => "20.00",
-        //             "isolatedLongLeverage" => "20.00",
-        //             "isolatedShortLeverage" => "20.00"
+        //             "symbol": "DOGEUSDT",
+        //             "marginType": "CROSSED",
+        //             "separatedType": "COMBINED",
+        //             "crossLeverage": "20.00",
+        //             "isolatedLongLeverage": "20.00",
+        //             "isolatedShortLeverage": "20.00"
         //         }
-        //     )
+        //     ]
         //
         $marginMode = $this->safe_dict($response, 0, array());
         return $this->parse_margin_mode($marginMode, $market);
@@ -4152,9 +4269,9 @@ class weex extends Exchange {
     public function parse_margin_modification(array $data, ?array $market = null): array {
         //
         //     {
-        //         "code" => "200",
-        //         "msg" => "success",
-        //         "requestTime" => 1764505776347
+        //         "code": "200",
+        //         "msg": "success",
+        //         "requestTime": 1764505776347
         //     }
         //
         $msg = $this->safe_string($data, 'msg');
@@ -4213,7 +4330,7 @@ class weex extends Exchange {
          */
         $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
         $baseId = $this->safe_string($market, 'baseId');
-        if ($sandboxMode && ($baseId !== null)) {
+        if (($sandboxMode === true) && ($baseId !== null)) {
             // demo trading only has USDT-margined linear markets quoted in the demo asset SUSDT (e.g. BTCSUSDT), revisit if weex ever adds a non-USDT settle
             return $baseId . 'SUSDT';
         }
@@ -4228,7 +4345,7 @@ class weex extends Exchange {
          * @return {string} the live market id
          */
         $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
-        if (!$sandboxMode || ($marketId === null)) {
+        if (($sandboxMode !== true) || ($marketId === null)) {
             return $marketId;
         }
         if (($this->markets_by_id !== null) && (is_array($this->markets_by_id) && array_key_exists($marketId ?? '', $this->markets_by_id))) {
@@ -4251,13 +4368,13 @@ class weex extends Exchange {
         $query = $this->omit($params, $this->extract_params($path));
         $isBatch = (mb_strpos($path, 'batch') !== false);
         if (!$isBatch && (($method === 'GET') || ($method === 'DELETE'))) {
-            if ($query) {
+            if (count($query) > 0) {
                 $endpoint .= '?' . $this->urlencode($query);
             }
         }
         if (($api === 'private') || ($api === 'contractPrivate')) {
             $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
-            if ($sandboxMode && (mb_strpos($path, 'capi/v3/sim/') !== 0)) {
+            if (($sandboxMode === true) && (mb_strpos($path, 'capi/v3/sim/') !== 0)) {
                 // guard against accidental live private calls with sandbox mode enabled, the demo trading API only provides the capi/v3/sim/ endpoints
                 throw new NotSupported($this->id . ' ' . $path . ' is not available in sandbox mode, demo trading only supports fetchBalance, createOrder, fetchPositions, fetchClosedOrders and fetchCanceledOrders for swap markets');
             }
@@ -4290,8 +4407,8 @@ class weex extends Exchange {
     public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         //
         //     {
-        //         "code" => -1140,
-        //         "msg" => "Either orderId or origClientOrderId must be sent."
+        //         "code": -1140,
+        //         "msg": "Either orderId or origClientOrderId must be sent."
         //     }
         //
         $message = $this->safe_string($response, 'msg');

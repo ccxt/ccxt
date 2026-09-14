@@ -118,8 +118,20 @@ abstract class latoken extends \ccxt\Exchange {
     /**
      * @return list<mixed>
      */
+    public function private_get_auth_account_filtered($params = array()) {
+        return $this->request('auth/account/filtered', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return list<mixed>
+     */
     public function private_get_auth_order($params = array()) {
         return $this->request('auth/order', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return list<mixed>
+     */
+    public function private_get_auth_order_active($params = array()) {
+        return $this->request('auth/order/active', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
@@ -232,8 +244,20 @@ abstract class latoken extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function private_post_auth_order_cancelbulk($params = array()) {
+        return $this->request('auth/order/cancelBulk', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function private_post_auth_order_place($params = array()) {
         return $this->request('auth/order/place', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_post_auth_order_placebulk($params = array()) {
+        return $this->request('auth/order/placeBulk', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
@@ -430,8 +454,20 @@ abstract class latoken extends \ccxt\Exchange {
     /**
      * @return list<mixed>
      */
+    public function privateGetAuthAccountFiltered($params = array()) {
+        return $this->request('auth/account/filtered', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return list<mixed>
+     */
     public function privateGetAuthOrder($params = array()) {
         return $this->request('auth/order', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return list<mixed>
+     */
+    public function privateGetAuthOrderActive($params = array()) {
+        return $this->request('auth/order/active', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
@@ -544,8 +580,20 @@ abstract class latoken extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function privatePostAuthOrderCancelBulk($params = array()) {
+        return $this->request('auth/order/cancelBulk', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function privatePostAuthOrderPlace($params = array()) {
         return $this->request('auth/order/place', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privatePostAuthOrderPlaceBulk($params = array()) {
+        return $this->request('auth/order/placeBulk', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>

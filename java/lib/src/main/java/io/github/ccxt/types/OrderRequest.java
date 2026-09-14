@@ -5,7 +5,7 @@ package io.github.ccxt.types;
 
 import java.util.Map;
 
-public final class OrderRequest {
+public final class OrderRequest extends TypedMap {
     public String symbol;
     public String type;
     public String side;
@@ -15,6 +15,7 @@ public final class OrderRequest {
 
     @SuppressWarnings("unchecked")
     public OrderRequest(Object raw) {
+        super(raw);
         Map<String, Object> data = TypeHelper.toMap(raw);
         this.symbol = TypeHelper.safeString(data, "symbol");
         this.type = TypeHelper.safeString(data, "type");

@@ -17,20 +17,20 @@ public partial class testMainClass : BaseTest
     async static public Task<object> testWatchBidsAsksHelper(Exchange exchange, object skippedProperties, object argSymbols, object argParams = null)
     {
         argParams ??= new Dictionary<string, object>();
-        object method = "watchBidsAsks";
-        object now = exchange.milliseconds();
+        string method = "watchBidsAsks";
+        Int64 now = exchange.milliseconds();
         object ends = add(now, 15000);
-        object maxIdleTime = 5000;
-        object idle = false;
+        int maxIdleTime = 5000;
+        bool idle = false;
         while (isTrue((isLessThan(now, ends))) && !isTrue(idle))
         {
-            object success = true;
-            object shouldReturn = false;
+            bool success = true;
+            bool shouldReturn = false;
             object response = new Dictionary<string, object>() {};
-            object startTime = exchange.milliseconds();
+            Int64 startTime = exchange.milliseconds();
             try
             {
-                response = await exchange.watchBidsAsks(argSymbols, argParams);
+                response = detypeForComparison(await exchange.WatchBidsAsks(argSymbols, argParams));
             } catch(Exception e)
             {
                 // for some exchanges, multi symbol methods might require symbols array to be present, so
@@ -55,14 +55,14 @@ public partial class testMainClass : BaseTest
             if (isTrue(isEqual(success, true)))
             {
                 assert(exchange.isDictionary(response), add(add(add(add(add(add(exchange.id, " "), method), " "), exchange.json(argSymbols)), " must return a dictionary. "), exchange.json(response)));
-                object values = new List<object>(((IDictionary<string,object>)response).Values);
+                List<object> values = new List<object>(((IDictionary<string,object>)response).Values);
                 object checkedSymbol = null;
                 if (isTrue(isTrue(!isEqual(argSymbols, null)) && isTrue(isEqual(getArrayLength(argSymbols), 1))))
                 {
                     checkedSymbol = getValue(argSymbols, 0);
                 }
                 testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, values, checkedSymbol);
-                for (object i = 0; isLessThan(i, getArrayLength(values)); postFixIncrement(ref i))
+                for (int i = 0; isLessThan(i, getArrayLength(values)); postFixIncrement(ref i))
                 {
                     object ticker = getValue(values, i);
                     testTicker(exchange, skippedProperties, method, ticker, checkedSymbol);

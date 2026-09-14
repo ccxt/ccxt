@@ -26,7 +26,7 @@ type WsOrderBook struct {
 	Cache     any            `json:"-"`
 	Asks      IOrderBookSide `json:"asks"`
 	Bids      IOrderBookSide `json:"bids"`
-	Timestamp int64          `json:"timestamp"`
+	Timestamp *int64         `json:"timestamp"`
 	Datetime  any            `json:"datetime"`
 	Nonce     any            `json:"nonce"`
 	Symbol    string         `json:"symbol"`
@@ -44,26 +44,18 @@ func strOrNil(s string) any {
 	return s
 }
 
-func createOb(Obtype string) OrderBookInterface {
-	switch strings.ToLower(Obtype) {
-	case "counted":
-		return &CountedOrderBook{}
-	case "indexed":
-		return &IndexedOrderBook{}
-	// case "incremental":
-	// 	return &IncrementalOrderBook{}
-	// case "incrementalindexed":
-	// 	return &IncrementalIndexedOrderBook{}
-	default:
-		return &WsOrderBook{}
+func int64OrNil(v *int64) any {
+	if v == nil {
+		return nil
 	}
+	return *v
 }
 
 func (this *WsOrderBook) ToMap() map[string]any {
 	result := map[string]any{
 		"asks":      this.Asks.GetDataCopy(),
 		"bids":      this.Bids.GetDataCopy(),
-		"timestamp": this.Timestamp,
+		"timestamp": int64OrNil(this.Timestamp),
 		"datetime":  this.Datetime,
 		"nonce":     this.Nonce,
 		"symbol":    strOrNil(this.Symbol),
@@ -88,7 +80,7 @@ func (this *WsOrderBook) GetValue(key string, defaultValue any) any {
 	case "bids":
 		return this.Bids
 	case "timestamp":
-		return this.Timestamp
+		return int64OrNil(this.Timestamp)
 	case "datetime":
 		return this.Datetime
 	case "symbol":
@@ -114,14 +106,19 @@ func NewWsOrderBook(snapshot any, depth any) *WsOrderBook {
 	// Sanitize snapshot to ensure asks and bids are always [][]float64
 	asks, bids := getAsksBids(snapshot)
 	snapshotMap := snapshot.(map[string]any)
-	timestamp := SafeInt64(snapshotMap, "timestamp", 0).(int64)
+	var timestamp *int64
+	var datetime any
+	if ts, ok := SafeInt64(snapshotMap, "timestamp", nil).(int64); ok {
+		timestamp = &ts
+		datetime = Iso8601(ts)
+	}
 
 	return &WsOrderBook{
 		Cache:     SafeValue(snapshotMap, "cache", []any{}),
 		Asks:      NewAsks(asks, depth),
 		Bids:      NewBids(bids, depth),
 		Timestamp: timestamp,
-		Datetime:  Iso8601(timestamp),
+		Datetime:  datetime,
 		Nonce:     SafeInteger(snapshotMap, "nonce", nil),
 		Symbol:    SafeString(snapshotMap, "symbol", "").(string),
 	}
@@ -135,21 +132,24 @@ func (this *WsOrderBook) Limit() any {
 }
 
 func (this *WsOrderBook) Update(snapshot any) any {
-	// Convert JavaScript logic to Go
-	nonce := this.Nonce
-	if nonce == nil {
-		nonce = 0
+	// mirrors the JS base OrderBook.update: bail out only when the incoming
+	// snapshot is not newer than the current one, otherwise delegate everything
+	// (nonce, timestamp, datetime, symbol) to reset(snapshot) below
+	snapshotMap, ok := snapshot.(map[string]any)
+	if !ok {
+		return this
 	}
-	if snapshotNonce, ok := snapshot.(map[string]any)["nonce"]; ok {
-		if nonce != 0 && snapshotNonce.(int64) <= nonce.(int64) {
+	// ws messages are parsed with encoding/json, so numeric fields arrive as
+	// float64 / json.Number / string depending on the transport — normalize both
+	// sides through ParseInt, ignoring the MinInt64 "not a number" sentinel so a
+	// non-numeric value never masquerades as an older nonce
+	snapshotNonce := SafeValue(snapshotMap, "nonce", nil)
+	if snapshotNonce != nil && this.Nonce != nil {
+		newNonce := ParseInt(snapshotNonce)
+		currentNonce := ParseInt(this.Nonce)
+		if newNonce != math.MinInt64 && currentNonce != math.MinInt64 && newNonce <= currentNonce {
 			return this
 		}
-		this.Nonce = snapshotNonce.(int64)
-	}
-
-	if timestamp, ok := snapshot.(map[string]any)["timestamp"]; ok {
-		this.Timestamp = timestamp.(int64)
-		this.Datetime = Iso8601(timestamp.(int64))
 	}
 
 	return this.Reset(snapshot)
@@ -182,8 +182,15 @@ func (this *WsOrderBook) Reset(optionalArgs ...any) any {
 		this.Bids.StoreArray(bid)
 	}
 	this.Nonce = SafeInteger(snapshotMap, "nonce", nil)
-	this.Timestamp = SafeInt64(snapshotMap, "timestamp", 0).(int64)
-	this.Datetime = Iso8601(this.Timestamp)
+	if ts, ok := SafeInt64(snapshotMap, "timestamp", nil).(int64); ok {
+		this.Timestamp = &ts
+		this.Datetime = Iso8601(ts)
+	} else {
+		// the JS base reassigns timestamp/datetime from the snapshot unconditionally,
+		// so a snapshot without a timestamp must clear any stale pointer value here
+		this.Timestamp = nil
+		this.Datetime = nil
+	}
 	this.Symbol = SafeString(snapshotMap, "symbol", "").(string)
 	this.Outcome = SafeString(snapshotMap, "outcome", nil)
 	this.OutcomeId = SafeString(snapshotMap, "outcomeId", nil)
@@ -210,8 +217,8 @@ func (this *WsOrderBook) String() string {
 		result.WriteString(fmt.Sprintf(" Symbol:%s", this.Symbol))
 	}
 
-	if this.Timestamp != 0 {
-		result.WriteString(fmt.Sprintf(" Timestamp:%d", this.Timestamp))
+	if this.Timestamp != nil {
+		result.WriteString(fmt.Sprintf(" Timestamp:%d", *this.Timestamp))
 	}
 
 	if this.Datetime != nil {
@@ -303,39 +310,6 @@ func getIndexedAsksBids(snapshot any) ([][]any, [][]any) {
 	return newAsks, newBids
 }
 
-// Replace toAsksBids with this if snapshot is coming from json.Unmarshal
-// func getAsksBids(snapshot any) ([][]float64, [][]float64) {
-// 	asks := toFloat64SliceSlice(snapshot["asks"])
-// 	bids := toFloat64SliceSlice(snapshot["bids"])
-// 	return asks, bids
-// }
-
-// func toFloat64SliceSlice(value any) [][]float64 {
-// 	raw, ok := value.([]any)
-// 	if !ok {
-// 		return [][]float64{}
-// 	}
-// 	result := make([][]float64, 0, len(raw))
-// 	for _, row := range raw {
-// 		rowArr, ok := row.([]any)
-// 		if !ok {
-// 			continue
-// 		}
-// 		floatRow := make([]float64, 0, len(rowArr))
-// 		for _, num := range rowArr {
-// 			if f, ok := num.(float64); ok {
-// 				floatRow = append(floatRow, f)
-// 			}
-// 		}
-// 		result = append(result, floatRow)
-// 	}
-// 	return result
-// }
-
-// ----------------------------------------------------------------------------
-// overwrites absolute volumes at price levels
-// or deletes price levels based on order counts (3rd value in a bidask delta)
-
 type CountedOrderBook struct {
 	*WsOrderBook
 }
@@ -350,7 +324,12 @@ func NewCountedOrderBook(snapshot any, depth any) *CountedOrderBook {
 	// Sanitize snapshot to ensure asks and bids are always [][]float64
 	asks, bids := getIndexedAsksBids(snapshot)
 	snapshotMap := snapshot.(map[string]any)
-	timestamp := SafeInt64(snapshotMap, "timestamp", 0).(int64)
+	var timestamp *int64
+	var datetime any
+	if ts, ok := SafeInt64(snapshotMap, "timestamp", nil).(int64); ok {
+		timestamp = &ts
+		datetime = Iso8601(ts)
+	}
 
 	return &CountedOrderBook{
 		WsOrderBook: &WsOrderBook{
@@ -358,7 +337,7 @@ func NewCountedOrderBook(snapshot any, depth any) *CountedOrderBook {
 			Asks:      NewCountedAsks(asks, depth),
 			Bids:      NewCountedBids(bids, depth),
 			Timestamp: timestamp,
-			Datetime:  Iso8601(timestamp),
+			Datetime:  datetime,
 			Nonce:     SafeInteger(snapshotMap, "nonce", nil),
 			Symbol:    SafeString(snapshotMap, "symbol", "").(string),
 		},
@@ -369,7 +348,7 @@ func (this *CountedOrderBook) ToMap() map[string]any {
 	return map[string]any{
 		"asks":      this.Asks.GetDataCopy(),
 		"bids":      this.Bids.GetDataCopy(),
-		"timestamp": this.Timestamp,
+		"timestamp": int64OrNil(this.Timestamp),
 		"datetime":  this.Datetime,
 		"nonce":     this.Nonce,
 		"symbol":    strOrNil(this.Symbol),
@@ -391,7 +370,12 @@ func NewIndexedOrderBook(snapshot any, depth any) *IndexedOrderBook {
 	// Sanitize snapshot to ensure asks and bids are always [][]float64
 	asks, bids := getIndexedAsksBids(snapshot)
 	snapshotMap := snapshot.(map[string]any)
-	timestamp := SafeInt64(snapshotMap, "timestamp", 0).(int64)
+	var timestamp *int64
+	var datetime any
+	if ts, ok := SafeInt64(snapshotMap, "timestamp", nil).(int64); ok {
+		timestamp = &ts
+		datetime = Iso8601(ts)
+	}
 
 	return &IndexedOrderBook{
 		WsOrderBook: &WsOrderBook{
@@ -399,7 +383,7 @@ func NewIndexedOrderBook(snapshot any, depth any) *IndexedOrderBook {
 			Asks:      NewIndexedAsks(asks, depth),
 			Bids:      NewIndexedBids(bids, depth),
 			Timestamp: timestamp,
-			Datetime:  Iso8601(timestamp),
+			Datetime:  datetime,
 			Nonce:     SafeInteger(snapshotMap, "nonce", nil),
 			Symbol:    SafeString(snapshotMap, "symbol", "").(string),
 		},
@@ -410,90 +394,12 @@ func (this *IndexedOrderBook) ToMap() map[string]any {
 	return map[string]any{
 		"asks":      this.Asks.GetDataCopy(),
 		"bids":      this.Bids.GetDataCopy(),
-		"timestamp": this.Timestamp,
+		"timestamp": int64OrNil(this.Timestamp),
 		"datetime":  this.Datetime,
 		"nonce":     this.Nonce,
 		"symbol":    strOrNil(this.Symbol),
 	}
 }
-
-// ----------------------------------------------------------------------------
-// adjusts the volumes by positive or negative relative changes or differences
-
-// type IncrementalOrderBook struct {
-// 	*WsOrderBook
-// }
-
-// func NewIncrementalOrderBook(snapshot any, depth any) *IncrementalOrderBook {
-// 	asks, bids := getAsksBids(snapshot)
-// 	return &IncrementalOrderBook{
-// 		WsOrderBook: NewWsOrderBook(
-// 			DeepExtend(snapshot, map[string]any{
-// 				"asks": NewIncrementalAsks(asks, depth),
-// 				"bids": NewIncrementalBids(bids, depth),
-// 			}),
-// 			depth,
-// 		),
-// 	}
-// }
-
-// func (this *IncrementalOrderBook) Limit() any {
-// 	return this.WsOrderBook.Limit()
-// }
-
-// func (this *IncrementalOrderBook) Update(snapshot any) any {
-// 	return this.WsOrderBook.Update(snapshot)
-// }
-
-// func (this *IncrementalOrderBook) Reset(snapshot any) any {
-// 	return this.WsOrderBook.Reset(snapshot)
-// }
-
-// func (this *IncrementalOrderBook) GetCache() *any {
-// 	return &this.WsOrderBook.GetCache()
-// }
-
-// func (this *IncrementalOrderBook) SetCache(cache any) {
-// 	this.WsOrderBook.SetCache(cache)
-// }
-
-// // incremental and indexed (2 in 1)
-// type IncrementalIndexedOrderBook struct {
-// 	*WsOrderBook
-// }
-
-// func NewIncrementalIndexedOrderBook(snapshot any, depth any) *IncrementalIndexedOrderBook {
-// 	asks, bids := getAsksBids(snapshot)
-// 	return &IncrementalIndexedOrderBook{
-// 		WsOrderBook: NewWsOrderBook(
-// 			DeepExtend(snapshot, map[string]any{
-// 				"asks": NewIncrementalIndexedAsks(asks, depth),
-// 				"bids": NewIncrementalIndexedBids(bids, depth),
-// 			}),
-// 			depth,
-// 		),
-// 	}
-// }
-
-// func (this *IncrementalIndexedOrderBook) Limit() any {
-// 	return this.WsOrderBook.Limit()
-// }
-
-// func (this *IncrementalIndexedOrderBook) Update(snapshot any) any {
-// 	return this.WsOrderBook.Update(snapshot)
-// }
-
-// func (this *IncrementalIndexedOrderBook) Reset(snapshot any) any {
-// 	return this.WsOrderBook.Reset(snapshot)
-// }
-
-// func (this *IncrementalIndexedOrderBook) GetCache() *any {
-// 	return &this.WsOrderBook.GetCache()
-// }
-
-// func (this *IncrementalIndexedOrderBook) SetCache(cache any) {
-// 	this.WsOrderBook.SetCache(cache)
-// }
 
 func (this *WsOrderBook) Copy() OrderBookInterface {
 	snapshot := make(map[string]any)

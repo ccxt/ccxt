@@ -214,6 +214,7 @@ class whitebit extends whitebit$1["default"] {
                             'collateral-account/positions/history': { 'cost': 1 },
                             'collateral-account/leverage': { 'cost': 1 },
                             'collateral-account/positions/open': { 'cost': 1 },
+                            'collateral-account/positions/closed-pnl': { 'cost': 1 },
                             'collateral-account/summary': { 'cost': 1 },
                             'collateral-account/funding-history': { 'cost': 1 },
                             'main-account/address': { 'cost': 1 },
@@ -227,6 +228,7 @@ class whitebit extends whitebit$1["default"] {
                             'main-account/history': { 'cost': 1 },
                             'main-account/withdraw': { 'cost': 1 },
                             'main-account/withdraw-pay': { 'cost': 1 },
+                            'main-account/express-withdraw/token': { 'cost': 1 },
                             'main-account/transfer': { 'cost': 1 },
                             'main-account/smart/plans': { 'cost': 1 },
                             'main-account/smart/investment': { 'cost': 1 },
@@ -234,10 +236,19 @@ class whitebit extends whitebit$1["default"] {
                             'main-account/smart/investments': { 'cost': 1 },
                             'main-account/fee': { 'cost': 1 },
                             'main-account/smart/interest-payment-history': { 'cost': 1 },
+                            'main-account/smart-flex/plans': { 'cost': 1 },
+                            'main-account/smart-flex/investments': { 'cost': 1 },
+                            'main-account/smart-flex/investments/history': { 'cost': 1 },
+                            'main-account/smart-flex/investments/payment-history': { 'cost': 1 },
+                            'main-account/smart-flex/investments/invest': { 'cost': 1 },
+                            'main-account/smart-flex/investments/withdraw': { 'cost': 1 },
+                            'main-account/smart-flex/investments/close': { 'cost': 1 },
+                            'main-account/smart-flex/investments/auto-invest': { 'cost': 1 },
                             'trade-account/balance': { 'cost': 1 },
                             // answers with a list when a market is set and a dict of lists otherwise — no shape assertion
                             'trade-account/executed-history': { 'cost': 1 },
                             'trade-account/order/history': { 'cost': 1 },
+                            'trade-account/order/history/query': { 'cost': 1 },
                             'trade-account/order': { 'cost': 1 },
                             'order/collateral/limit': { 'cost': 1 },
                             'order/collateral/market': { 'cost': 1 },
@@ -251,6 +262,7 @@ class whitebit extends whitebit$1["default"] {
                             'order/stop_market': { 'cost': 1 },
                             'order/cancel': { 'cost': 1 },
                             'order/cancel/all': { 'cost': 1 },
+                            'order/cancel/bulk': { 'cost': 1 },
                             'order/kill-switch': { 'cost': 1 },
                             'order/kill-switch/status': { 'cost': 1 },
                             'order/bulk': { 'cost': 1 },
@@ -283,8 +295,22 @@ class whitebit extends whitebit$1["default"] {
                             'sub-account/api-key/ip-address/create': { 'cost': 1 },
                             'sub-account/api-key/ip-address/delete': { 'cost': 1 },
                             'mining/rewards': { 'cost': 1 },
+                            'mining/hashrate': { 'cost': 1 },
+                            'mining/payout-destination': { 'cost': 1 },
+                            'mining/payout-destination/edit': { 'cost': 1 },
+                            'mining/miners/info': { 'cost': 1 },
+                            'mining/workers/names': { 'cost': 1 },
+                            'mining/workers/hashrate': { 'cost': 1 },
+                            'mining/watcher-links/create': { 'cost': 1 },
+                            'mining/watcher-links/list': { 'cost': 1 },
+                            'mining/accounts/create': { 'cost': 1 },
+                            'mining/accounts': { 'cost': 1 },
                             'market/fee': { 'cost': 1 },
+                            'market/fee/single': { 'cost': 1 },
                             'conditional-orders': { 'cost': 1 },
+                            'travel-rule/vasps': { 'cost': 1 },
+                            'travel-rule/deposit/verification': { 'cost': 1 },
+                            'jwt': { 'cost': 1 },
                         },
                     },
                 },
@@ -452,7 +478,7 @@ class whitebit extends whitebit$1["default"] {
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets(params = {}) {
-        if (this.options['adjustForTimeDifference']) {
+        if (this.options['adjustForTimeDifference'] === true) {
             await this.loadTimeDifference();
         }
         const markets = await this.v4PublicGetMarkets();
@@ -495,8 +521,8 @@ class whitebit extends whitebit$1["default"] {
         let settle = undefined;
         let settleId = undefined;
         let symbol = base + '/' + quote;
-        const swap = typeId === 'futures';
-        const margin = isCollateral && !swap;
+        const swap = (typeId === 'futures') || (typeId === 'tradfiFutures');
+        const margin = (isCollateral === true) && !swap;
         let contract = false;
         const amountPrecision = this.parseNumber(this.parsePrecision(this.safeString(market, 'stockPrec')));
         let linear = undefined;
@@ -1050,12 +1076,13 @@ class whitebit extends whitebit$1["default"] {
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
             const market = markets[marketId];
-            if (!market || !market['symbol']) {
+            const marketSymbol = this.safeString(market, 'symbol');
+            if ((market === undefined) || (market === null) || (marketSymbol === undefined) || (marketSymbol === '')) {
                 continue; // Skip invalid markets silently
             }
             const symbol = market['symbol'];
             // Filter by symbols if specified
-            if (symbols) {
+            if (symbols !== undefined) {
                 let symbolFound = false;
                 for (let j = 0; j < symbols.length; j++) {
                     if (symbols[j] === symbol) {
@@ -1073,10 +1100,10 @@ class whitebit extends whitebit$1["default"] {
             const priceLimits = this.safeDict(limits, 'price');
             const costLimits = this.safeDict(limits, 'cost');
             // Validate that all required limits exist and are valid numbers
-            const hasAmountLimits = amountLimits && this.safeNumber(amountLimits, 'min') !== undefined && this.safeNumber(amountLimits, 'max') !== undefined;
-            const hasPriceLimits = priceLimits && this.safeNumber(priceLimits, 'min') !== undefined && this.safeNumber(priceLimits, 'max') !== undefined;
-            const hasCostLimits = costLimits && this.safeNumber(costLimits, 'min') !== undefined && this.safeNumber(costLimits, 'max') !== undefined;
-            if (hasAmountLimits && hasPriceLimits && hasCostLimits) {
+            const hasAmountLimits = (amountLimits !== undefined) && (amountLimits !== null) && this.safeNumber(amountLimits, 'min') !== undefined && this.safeNumber(amountLimits, 'max') !== undefined;
+            const hasPriceLimits = (priceLimits !== undefined) && (priceLimits !== null) && this.safeNumber(priceLimits, 'min') !== undefined && this.safeNumber(priceLimits, 'max') !== undefined;
+            const hasCostLimits = (costLimits !== undefined) && (costLimits !== null) && this.safeNumber(costLimits, 'min') !== undefined && this.safeNumber(costLimits, 'max') !== undefined;
+            if ((hasAmountLimits === true) && (hasPriceLimits === true) && (hasCostLimits === true)) {
                 result[symbol] = {
                     'info': market,
                     'limits': {
@@ -1178,7 +1205,7 @@ class whitebit extends whitebit$1["default"] {
         for (let i = 0; i < currencyKeys.length; i++) {
             const code = currencyKeys[i];
             const currency = currenciesData[code];
-            if (!currency) {
+            if (currency === undefined) {
                 // Skip invalid currency silently
                 continue;
             }
@@ -1192,7 +1219,7 @@ class whitebit extends whitebit$1["default"] {
             for (let j = 0; j < feeKeys.length; j++) {
                 const feeKey = feeKeys[j];
                 const fee = this.safeDict(feesData, feeKey);
-                if (fee && fee['ticker'] === code) {
+                if ((fee !== undefined && fee !== null) && fee['ticker'] === code) {
                     feeData = fee;
                     break;
                 }
@@ -1210,14 +1237,14 @@ class whitebit extends whitebit$1["default"] {
                 },
             };
             // Add fee information if available
-            if (feeData) {
+            if (feeData !== undefined) {
                 const depositFee = feeData['deposit'];
                 const withdrawFee = feeData['withdraw'];
-                if (depositFee) {
+                if ((depositFee !== undefined) && (depositFee !== null)) {
                     const depositFeeData = {
                         'fixed': this.safeNumber(depositFee, 'fixed'),
                     };
-                    if (depositFee['flex']) {
+                    if ((depositFee['flex'] !== undefined) && (depositFee['flex'] !== null)) {
                         depositFeeData['flex'] = {
                             'min': this.safeNumber(depositFee['flex'], 'min_fee'),
                             'max': this.safeNumber(depositFee['flex'], 'max_fee'),
@@ -1226,11 +1253,11 @@ class whitebit extends whitebit$1["default"] {
                     }
                     limits['deposit']['fee'] = depositFeeData;
                 }
-                if (withdrawFee) {
+                if ((withdrawFee !== undefined) && (withdrawFee !== null)) {
                     const withdrawFeeData = {
                         'fixed': this.safeNumber(withdrawFee, 'fixed'),
                     };
-                    if (withdrawFee['flex']) {
+                    if ((withdrawFee['flex'] !== undefined) && (withdrawFee['flex'] !== null)) {
                         withdrawFeeData['flex'] = {
                             'min': this.safeNumber(withdrawFee['flex'], 'min_fee'),
                             'max': this.safeNumber(withdrawFee['flex'], 'max_fee'),
@@ -1241,7 +1268,7 @@ class whitebit extends whitebit$1["default"] {
                 }
             }
             // Add network-specific limits if available
-            if (currency['networks']) {
+            if (currency['networks'] !== undefined) {
                 limits['networks'] = currency['networks'];
             }
             result[code] = {
@@ -1434,7 +1461,7 @@ class whitebit extends whitebit$1["default"] {
             request['market'] = market['id'];
         }
         // Try active orders first (if enabled)
-        if (checkActive) {
+        if (checkActive === true) {
             try {
                 const response = await this.v4PrivatePostOrders(this.extend(request, params));
                 // Search for order in active orders response (array format)
@@ -1456,7 +1483,7 @@ class whitebit extends whitebit$1["default"] {
             }
         }
         // Try executed orders (if enabled)
-        if (checkExecuted) {
+        if (checkExecuted === true) {
             try {
                 const response = await this.v4PrivatePostTradeAccountOrderHistory(this.extend(request, params));
                 // Search for order in executed orders response (object format)
@@ -1504,7 +1531,7 @@ class whitebit extends whitebit$1["default"] {
             for (let i = 0; i < symbols.length; i++) {
                 const symbol = symbols[i];
                 const market = this.market(symbol);
-                if (!(market['contract'])) {
+                if (market['contract'] !== true) {
                     onlyContractSymbols = false;
                     break;
                 }
@@ -4210,7 +4237,7 @@ class whitebit extends whitebit$1["default"] {
         const pathWithParams = '/' + this.implodeParams(path, params);
         let url = this.urls['api'][version][accessibility] + pathWithParams;
         if (accessibility === 'public') {
-            if (Object.keys(query).length) {
+            if (Object.keys(query).length > 0) {
                 url += '?' + this.urlencode(query);
             }
         }
@@ -4262,7 +4289,7 @@ class whitebit extends whitebit$1["default"] {
                     const errorsLength = errorKeys.length;
                     if (errorsLength > 0) {
                         const errorKey = errorKeys[0];
-                        const errorMessageArray = this.safeValue(errorObject, errorKey, []);
+                        const errorMessageArray = this.safeList(errorObject, errorKey, []);
                         const errorMessageLength = errorMessageArray.length;
                         errorInfo = (errorMessageLength > 0) ? errorMessageArray[0] : body;
                     }
@@ -4273,7 +4300,7 @@ class whitebit extends whitebit$1["default"] {
             }
             // {"success":false,"message":{"limit":["limit must be less than or equal to 100"]},"result":null}
             const success = this.safeBool(response, 'success', true);
-            if (!success) {
+            if (success !== true) {
                 const errMsg = this.safeDict(response, 'message', {});
                 const errKeys = Object.keys(errMsg);
                 const errKeysLength = errKeys.length;

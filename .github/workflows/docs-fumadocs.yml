@@ -59,14 +59,16 @@ jobs:
           client-id: ${{ secrets.CCXT_APP_CLIENT_ID }}
           private-key: ${{ secrets.CCXT_APP_PRIVATE_KEY }}
           owner: ccxt
-          repositories: ccxt.wiki
+          # the GitHub wiki is NOT a repository — it is the wiki backing store of
+          # ccxt/ccxt, reachable only as the git remote ccxt/ccxt.wiki.git. Tokens
+          # cannot be scoped to it by name (that 404s); wiki pushes are authorized
+          # by the parent repo's contents permission instead.
+          repositories: ccxt
           permission-contents: write
-      - name: Checkout ccxt.wiki
-        uses: actions/checkout@v6
-        with:
-          repository: ccxt/ccxt.wiki
-          token: ${{ steps.app-token.outputs.token }}
-          path: build/ccxt.wiki
+      - name: Clone ccxt.wiki
+        # plain git clone: actions/checkout resolves repos through the API, which
+        # has no entry for a wiki backing store, so it cannot fetch this remote
+        run: git clone --depth 1 "https://x-access-token:${{ steps.app-token.outputs.token }}@github.com/ccxt/ccxt.wiki.git" build/ccxt.wiki
       - name: Copy and push
         run: |
           cp -R wiki/* build/ccxt.wiki/

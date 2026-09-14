@@ -79,7 +79,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | symbol | <code>string</code> | Yes | unified symbol of the market to fetch the order book for |
-| limit | <code>int</code> | No | the maximum amount of order book entries to return |
+| limit | <code>int</code> | No | the maximum amount of order book entries to return, symbol type 3 markets accept 5, 10, 20, 50, 100, 500 or 1000 only |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 

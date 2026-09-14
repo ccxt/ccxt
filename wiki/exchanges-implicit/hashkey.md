@@ -55,7 +55,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 📚 **Official hashkey API documentation:** [hashkeyglobal-apidoc.readme.io](https://hashkeyglobal-apidoc.readme.io/)
 
-> 67 implicit endpoints across 2 access groups.
+> 70 implicit endpoints across 2 access groups.
 
 ## public
 
@@ -115,6 +115,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privateGetApiV1AccountDepositAddress` | GET | `api/v1/account/deposit/address` | 1 |
 | `privateGetApiV1AccountDepositOrders` | GET | `api/v1/account/depositOrders` | 1 |
 | `privateGetApiV1AccountWithdrawOrders` | GET | `api/v1/account/withdrawOrders` | 1 |
+| `privateGetApiV1AffiliateInviteeInfo` | GET | `api/v1/affiliate/inviteeInfo` | 1 |
 | `privatePostApiV1UserDataStream` | POST | `api/v1/userDataStream` | 1 |
 | `privatePostApiV1SpotOrderTest` | POST | `api/v1/spot/orderTest` | 1 |
 | `privatePostApiV1SpotOrder` | POST | `api/v1/spot/order` | 1 |
@@ -133,8 +134,10 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privateDeleteApiV1SpotOrder` | DELETE | `api/v1/spot/order` | 1 |
 | `privateDeleteApiV1SpotOpenOrders` | DELETE | `api/v1/spot/openOrders` | 5 |
 | `privateDeleteApiV1SpotCancelOrderByIds` | DELETE | `api/v1/spot/cancelOrderByIds` | 5 |
+| `privateDeleteApiV1SpotCancelAllOpenOrders` | DELETE | `api/v1/spot/cancelAllOpenOrders` | 5 |
 | `privateDeleteApiV1FuturesOrder` | DELETE | `api/v1/futures/order` | 1 |
 | `privateDeleteApiV1FuturesBatchOrders` | DELETE | `api/v1/futures/batchOrders` | 1 |
 | `privateDeleteApiV1FuturesCancelOrderByIds` | DELETE | `api/v1/futures/cancelOrderByIds` | 1 |
+| `privateDeleteApiV1FuturesCancelAllOpenOrders` | DELETE | `api/v1/futures/cancelAllOpenOrders` | 1 |
 | `privateDeleteApiV1UserDataStream` | DELETE | `api/v1/userDataStream` | 1 |
 

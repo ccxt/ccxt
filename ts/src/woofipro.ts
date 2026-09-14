@@ -202,6 +202,8 @@ export default class woofipro extends Exchange {
                             'client/points': { 'cost': 1 } as Endpoint<Dict>,
                             'public/points/epoch': { 'cost': 1 } as Endpoint<Dict>,
                             'public/points/epoch_dates': { 'cost': 1 } as Endpoint<Dict>,
+                            'public/points/rankings': { 'cost': 1 } as Endpoint<Dict>,
+                            'public/points/stages': { 'cost': 1 } as Endpoint<Dict>,
                             'public/referral/check_ref_code': { 'cost': 1 } as Endpoint<Dict>,
                             'public/referral/verify_ref_code': { 'cost': 1 } as Endpoint<Dict>,
                             'referral/admin_info': { 'cost': 1 } as Endpoint<Dict>,
@@ -215,6 +217,7 @@ export default class woofipro extends Exchange {
                             'tv/config': { 'cost': 1 } as Endpoint<Dict>,
                             'tv/history': { 'cost': 1 } as Endpoint<Dict>,
                             'tv/symbol_info': { 'cost': 1 } as Endpoint<Dict>,
+                            'tv/kline_history': { 'cost': 1 } as Endpoint<Dict>,
                             'public/funding_rate_history': { 'cost': 1 } as Endpoint<Dict>,
                             'public/funding_rate/{symbol}': { 'cost': 0.33 } as Endpoint<Dict>,
                             'public/funding_rates': { 'cost': 1 } as Endpoint<Dict>,
@@ -224,6 +227,9 @@ export default class woofipro extends Exchange {
                             'public/token': { 'cost': 1 } as Endpoint<Dict>,
                             'public/futures': { 'cost': 1 } as Endpoint<Dict>,
                             'public/futures/{symbol}': { 'cost': 1 } as Endpoint<Dict>,
+                            'staking/valor2/batch_info': { 'cost': 1 } as Endpoint<Dict>,
+                            'staking/valor2/pool_info': { 'cost': 1 } as Endpoint<Dict>,
+                            'staking/valor2/revenue_buyback': { 'cost': 1 } as Endpoint<Dict>,
                         },
                         'post': {
                             'register_account': { 'cost': 1 } as Endpoint<Dict>,
@@ -248,6 +254,7 @@ export default class woofipro extends Exchange {
                             'client/holding': { 'cost': 1 } as Endpoint<Dict>,
                             'withdraw_nonce': { 'cost': 1 } as Endpoint<Dict>,
                             'settle_nonce': { 'cost': 1 } as Endpoint<Dict>,
+                            'transfer_nonce': { 'cost': 1 } as Endpoint<Dict>,
                             'pnl_settlement/history': { 'cost': 1 } as Endpoint<Dict>,
                             'volume/user/daily': { 'cost': 60 } as Endpoint<Dict>,
                             'volume/user/stats': { 'cost': 60 } as Endpoint<Dict>,
@@ -262,9 +269,22 @@ export default class woofipro extends Exchange {
                             'volume/broker/daily': { 'cost': 60 } as Endpoint<Dict>,
                             'broker/fee_rate/default': { 'cost': 10 } as Endpoint<Dict>,
                             'broker/user_info': { 'cost': 10 } as Endpoint<Dict>,
+                            'broker/daily_fee_revenue': { 'cost': 10 } as Endpoint<Dict>,
                             'orderbook/{symbol}': { 'cost': 1 } as Endpoint<Dict>,
                             'kline': { 'cost': 1 } as Endpoint<Dict>,
                             'client/margin_modes': { 'cost': 1 } as Endpoint<Dict>,
+                            'client/leverages': { 'cost': 1 } as Endpoint<Dict>,
+                            'client/points/user_statistics': { 'cost': 1 } as Endpoint<Dict>,
+                            'staking/valor2/redeem': { 'cost': 1 } as Endpoint<Dict>,
+                            'referral/multi_level/admin': { 'cost': 1 } as Endpoint<Dict>,
+                            'referral/multi_level/admin/info': { 'cost': 1 } as Endpoint<Dict>,
+                            'referral/multi_level/admin/referee_list': { 'cost': 1 } as Endpoint<Dict>,
+                            'referral/multi_level/admin/summary': { 'cost': 1 } as Endpoint<Dict>,
+                            'referral/multi_level/max_rebate_rate': { 'cost': 1 } as Endpoint<Dict>,
+                            'referral/multi_level/rebate_info': { 'cost': 1 } as Endpoint<Dict>,
+                            'referral/multi_level/referee_list': { 'cost': 1 } as Endpoint<Dict>,
+                            'referral/multi_level/statistics': { 'cost': 1 } as Endpoint<Dict>,
+                            'referral/multi_level/volume_prerequisite': { 'cost': 1 } as Endpoint<Dict>,
                         },
                         'post': {
                             'orderly_key': { 'cost': 1 } as Endpoint<Dict>,
@@ -280,6 +300,7 @@ export default class woofipro extends Exchange {
                             'notification/inbox/mark_read': { 'cost': 60 } as Endpoint<Dict>,
                             'notification/inbox/mark_read_all': { 'cost': 60 } as Endpoint<Dict>,
                             'client/leverage': { 'cost': 120 } as Endpoint<Dict>,
+                            'client/leverages': { 'cost': 120 } as Endpoint<Dict>,
                             'client/margin_mode': { 'cost': 1 } as Endpoint<Dict>,
                             'position_margin': { 'cost': 1 } as Endpoint<Dict>,
                             'client/maintenance_config': { 'cost': 60 } as Endpoint<Dict>,
@@ -294,6 +315,15 @@ export default class woofipro extends Exchange {
                             'referral/update': { 'cost': 10 } as Endpoint<Dict>,
                             'referral/bind': { 'cost': 10 } as Endpoint<Dict>,
                             'referral/edit_split': { 'cost': 10 } as Endpoint<Dict>,
+                            'referral/edit_referee_description': { 'cost': 10 } as Endpoint<Dict>,
+                            'referral/multi_level/admin': { 'cost': 10 } as Endpoint<Dict>,
+                            'referral/multi_level/admin/create/affiliate': { 'cost': 10 } as Endpoint<Dict>,
+                            'referral/multi_level/admin/reset/affiliate': { 'cost': 10 } as Endpoint<Dict>,
+                            'referral/multi_level/admin/update': { 'cost': 10 } as Endpoint<Dict>,
+                            'referral/multi_level/admin/update/affiliate': { 'cost': 10 } as Endpoint<Dict>,
+                            'referral/multi_level/claim_code': { 'cost': 10 } as Endpoint<Dict>,
+                            'referral/multi_level/rebate_rate/set_default': { 'cost': 10 } as Endpoint<Dict>,
+                            'referral/multi_level/rebate_rate/update': { 'cost': 10 } as Endpoint<Dict>,
                         },
                         'put': {
                             'order': { 'cost': 1 } as Endpoint<Dict>,
@@ -308,6 +338,13 @@ export default class woofipro extends Exchange {
                             'orders': { 'cost': 1 } as Endpoint<List>,
                             'batch-order': { 'cost': 1 } as Endpoint<Dict>,
                             'client/batch-order': { 'cost': 1 } as Endpoint<Dict>,
+                        },
+                    },
+                },
+                'v2': {
+                    'private': {
+                        'post': {
+                            'internal_transfer': { 'cost': 1 } as Endpoint<Dict>,
                         },
                     },
                 },
@@ -1709,7 +1746,7 @@ export default class woofipro extends Exchange {
         const childOrders = this.safeValue (order, 'childOrders');
         if (childOrders !== undefined) {
             const first = this.safeValue (childOrders, 0);
-            const innerChildOrders = this.safeValue (first, 'childOrders', []);
+            const innerChildOrders = this.safeList (first, 'childOrders', []);
             const innerChildOrdersLength = innerChildOrders.length;
             if (innerChildOrdersLength > 0) {
                 const takeProfitOrder = this.safeValue (innerChildOrders, 0);
@@ -1775,7 +1812,7 @@ export default class woofipro extends Exchange {
             };
             return this.safeString (statuses, status, status);
         }
-        return status;
+        return undefined;
     }
 
     parseOrderType (type: Str) {
@@ -1841,7 +1878,7 @@ export default class woofipro extends Exchange {
                 request['order_type'] = 'IOC';
             }
         }
-        if (reduceOnly) {
+        if (reduceOnly === true) {
             request['reduce_only'] = reduceOnly;
         }
         if (price !== undefined) {
@@ -2130,7 +2167,7 @@ export default class woofipro extends Exchange {
     override async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
         const trigger = this.safeBool2 (params, 'stop', 'trigger', false);
         params = this.omit (params, [ 'stop', 'trigger' ]);
-        if (!trigger && (symbol === undefined)) {
+        if ((trigger !== true) && (symbol === undefined)) {
             throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
         }
         if (this.markets === undefined) {
@@ -2147,7 +2184,7 @@ export default class woofipro extends Exchange {
         const clientOrderIdExchangeSpecific = this.safeString (params, 'client_order_id', clientOrderIdUnified);
         const isByClientOrder = clientOrderIdExchangeSpecific !== undefined;
         let response: NullableDict = undefined;
-        if (trigger) {
+        if (trigger === true) {
             if (isByClientOrder) {
                 request['client_order_id'] = clientOrderIdExchangeSpecific;
                 params = this.omit (params, [ 'clOrdID', 'clientOrderId', 'client_order_id' ]);
@@ -2187,7 +2224,7 @@ export default class woofipro extends Exchange {
         } else {
             extendParams['id'] = id;
         }
-        if (trigger) {
+        if (trigger === true) {
             const parsedResponse = (response === undefined) ? {} : response;
             return this.extend (this.parseOrder (parsedResponse), extendParams) as Order;
         }
@@ -2215,7 +2252,7 @@ export default class woofipro extends Exchange {
         params = this.omit (params, [ 'clOrdIDs', 'clientOrderIds', 'client_order_ids' ]);
         const request: Dict = {};
         let response: NullableDict = undefined;
-        if (clientOrderIds) {
+        if (clientOrderIds !== undefined) {
             request['client_order_ids'] = clientOrderIds.join (',');
             response = await this.v1PrivateDeleteClientBatchOrder (this.extend (request, params));
         } else {
@@ -2259,7 +2296,7 @@ export default class woofipro extends Exchange {
             request['symbol'] = market['id'];
         }
         let response: NullableDict = undefined;
-        if (trigger) {
+        if (trigger === true) {
             response = await this.v1PrivateDeleteAlgoOrders (this.extend (request, params));
         } else {
             response = await this.v1PrivateDeleteOrders (this.extend (request, params));
@@ -2314,8 +2351,8 @@ export default class woofipro extends Exchange {
         const clientOrderId = this.safeStringN (params, [ 'clOrdID', 'clientOrderId', 'client_order_id' ]);
         params = this.omit (params, [ 'stop', 'trigger', 'clOrdID', 'clientOrderId', 'client_order_id' ]);
         let response: NullableDict = undefined;
-        if (trigger) {
-            if (clientOrderId) {
+        if (trigger === true) {
+            if (clientOrderId !== undefined && clientOrderId !== '') {
                 request['client_order_id'] = clientOrderId;
                 response = await this.v1PrivateGetAlgoClientOrderClientOrderId (this.extend (request, params));
             } else {
@@ -2323,7 +2360,7 @@ export default class woofipro extends Exchange {
                 response = await this.v1PrivateGetAlgoOrderOid (this.extend (request, params));
             }
         } else {
-            if (clientOrderId) {
+            if ((clientOrderId !== undefined) && (clientOrderId !== '')) {
                 request['client_order_id'] = clientOrderId;
                 response = await this.v1PrivateGetClientOrderClientOrderId (this.extend (request, params));
             } else {
@@ -2386,7 +2423,7 @@ export default class woofipro extends Exchange {
         }
         let paginate = false;
         const isTrigger = this.safeBool2 (params, 'stop', 'trigger', false);
-        const maxLimit = (isTrigger) ? 100 : 500;
+        const maxLimit = (isTrigger === true) ? 100 : 500;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOrders', 'paginate');
         if (paginate) {
             return await this.fetchPaginatedCallIncremental ('fetchOrders', symbol, since, limit, params, 'page', maxLimit) as Order[];
@@ -2406,12 +2443,12 @@ export default class woofipro extends Exchange {
         } else {
             request['size'] = maxLimit;
         }
-        if (isTrigger) {
+        if (isTrigger === true) {
             request['algo_type'] = 'STOP';
         }
         [ request, params ] = this.handleUntilOption ('end_t', request, params);
         let response: NullableDict = undefined;
-        if (isTrigger) {
+        if (isTrigger === true) {
             response = await this.v1PrivateGetAlgoOrders (this.extend (request, params));
         } else {
             response = await this.v1PrivateGetOrders (this.extend (request, params));
@@ -3131,7 +3168,7 @@ export default class woofipro extends Exchange {
             'amount': undefined,
             'total': undefined,
             'code': this.safeString (market, 'settle'),
-            'status': (success) ? 'ok' : 'failed',
+            'status': (success === true) ? 'ok' : 'failed',
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
         } as MarginModification;
@@ -3469,14 +3506,14 @@ export default class woofipro extends Exchange {
         params = this.keysort (params);
         if (access === 'public') {
             url += pathWithParams;
-            if (Object.keys (params).length) {
+            if (Object.keys (params).length > 0) {
                 url += '?' + this.urlencode (params);
             }
         } else {
             this.checkRequiredCredentials ();
             if ((method === 'POST' || method === 'PUT') && (path === 'algo/order' || path === 'order' || path === 'batch-order')) {
                 const isSandboxMode = this.safeBool (this.options, 'sandboxMode', false);
-                if (!isSandboxMode) {
+                if (isSandboxMode !== true) {
                     const brokerId = this.safeString (this.options, 'brokerId', 'CCXT');
                     if (path === 'batch-order') {
                         const ordersList = this.safeList (params, 'orders', []);
@@ -3507,7 +3544,7 @@ export default class woofipro extends Exchange {
                 auth += body;
                 headers['content-type'] = 'application/json';
             } else {
-                if (Object.keys (params).length) {
+                if (Object.keys (params).length > 0) {
                     url += '?' + this.urlencode (params);
                     auth += '?' + this.rawencode (params);
                 }
@@ -3528,7 +3565,7 @@ export default class woofipro extends Exchange {
     }
 
     override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
-        if (!response) {
+        if (response === undefined) {
             return undefined; // fallback to default error handler
         }
         //
@@ -3537,7 +3574,7 @@ export default class woofipro extends Exchange {
         //
         const success = this.safeBool (response, 'success');
         const errorCode = this.safeString (response, 'code');
-        if (!success) {
+        if (success !== true) {
             const feedback = this.id + ' ' + this.json (response);
             this.throwBroadlyMatchedException (this.exceptions['broad'], body, feedback);
             this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);

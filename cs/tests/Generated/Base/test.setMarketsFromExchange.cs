@@ -13,9 +13,9 @@ public partial class BaseTest
                 { "id", "sample0" },
             });
             // @SKIP_START_GO
-            object methodName = "setMarketsFromExchange";
-            object trueClause = isEqual(emptyExchange.safeString(null, null), null);
-            object sampleMarket = new Dictionary<string, object>() {
+            string methodName = "setMarketsFromExchange";
+            bool trueClause = isEqual(emptyExchange.safeString(null, null), null);
+            Dictionary<string, object> sampleMarket = new Dictionary<string, object>() {
                 { "BTC/USD", new Dictionary<string, object>() {
                     { "id", "BtcUsd" },
                     { "symbol", "BTC/USD" },
@@ -63,8 +63,8 @@ public partial class BaseTest
             // Test the new setMarketsFromExchange method
             exchange2.setMarketsFromExchange(exchange1);
             // Verify shared markets work
-            object neededProps = new List<object>() {"symbols", "currencies", "codes", "markets", "ids", "markets_by_id", "currencies_by_id", "baseCurrencies", "quoteCurrencies"};
-            for (object i = 0; isLessThan(i, getArrayLength(neededProps)); postFixIncrement(ref i))
+            List<object> neededProps = new List<object>() {"symbols", "currencies", "codes", "markets", "ids", "markets_by_id", "currencies_by_id", "baseCurrencies", "quoteCurrencies"};
+            for (int i = 0; isLessThan(i, getArrayLength(neededProps)); postFixIncrement(ref i))
             {
                 AssertDeepEqual(emptyExchange, new Dictionary<string, object>() {}, methodName, emptyExchange.getProperty(exchange1, getValue(neededProps, i)), emptyExchange.getProperty(exchange2, getValue(neededProps, i)));
             }
@@ -72,11 +72,11 @@ public partial class BaseTest
             // exchange1.markets['ETH/USD'] = { 'id': 'EthUsd', 'symbol': 'ETH/USD', 'base': 'ETH', 'quote': 'USD', 'baseId': 'Eth', 'quoteId': 'Usd', 'type': 'spot', 'spot': true };
             // Assert ('ETH/USD' in exchange2.markets, 'Modifying exchange1 markets should reflect in exchange2');
             // Test 2: loadMarkets on shared markets should not make API call and be very fast
-            object startTime = emptyExchange.milliseconds();
+            Int64 startTime = emptyExchange.milliseconds();
             await exchange2.loadMarkets();
-            object endTime = emptyExchange.milliseconds();
+            Int64 endTime = emptyExchange.milliseconds();
             // Should be very fast since no API call is made
-            object timeTaken = subtract(endTime, startTime);
+            Int64 timeTaken = subtract(endTime, startTime);
             Assert(isLessThan(timeTaken, 10), "loadMarkets on shared markets should be fast");
             // @SKIP_END_GO
             emptyExchange.describe(); // avoid unused var

@@ -204,6 +204,8 @@ export default class coinmate extends Exchange {
                         'solDepositAddresses': { 'cost': 1 },
                         'unconfirmedSolDeposits': { 'cost': 1 },
                         'bankWireWithdrawal': { 'cost': 1 },
+                        'lightningDeposit': { 'cost': 1 },
+                        'lightningWithdraw': { 'cost': 1 },
                     },
                 },
             },
@@ -382,7 +384,7 @@ export default class coinmate extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         const result = [];
         for (let i = 0; i < data.length; i++) {
             const market = data[i];
@@ -445,7 +447,7 @@ export default class coinmate extends Exchange {
         return result;
     }
     parseBalance(response) {
-        const balances = this.safeValue(response, 'data', {});
+        const balances = this.safeDict(response, 'data', {});
         const result = { 'info': response };
         const currencyIds = Object.keys(balances);
         for (let i = 0; i < currencyIds.length; i++) {
@@ -571,7 +573,7 @@ export default class coinmate extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeDict(response, 'data', {});
         const keys = Object.keys(data);
         const result = {};
         for (let i = 0; i < keys.length; i++) {
@@ -760,7 +762,7 @@ export default class coinmate extends Exchange {
         }
         const currency = this.currency(code);
         const withdrawOptions = this.safeValue(this.options, 'withdraw', {});
-        const methods = this.safeValue(withdrawOptions, 'methods', {});
+        const methods = this.safeDict(withdrawOptions, 'methods', {});
         const method = this.safeString(methods, code);
         if (method === undefined) {
             const allowedCurrencies = Object.keys(methods);
@@ -817,7 +819,7 @@ export default class coinmate extends Exchange {
         const data = this.safeValue(response, 'data');
         const transaction = this.parseTransaction(data, currency);
         const fillResponseFromRequest = this.safeBool(withdrawOptions, 'fillResponseFromRequest', true);
-        if (fillResponseFromRequest) {
+        if (fillResponseFromRequest === true) {
             transaction['amount'] = amount;
             transaction['currency'] = code;
             transaction['address'] = address;
@@ -1231,7 +1233,7 @@ export default class coinmate extends Exchange {
             'orderId': id,
         };
         let market = undefined;
-        if (symbol) {
+        if ((symbol !== undefined) && (symbol !== '')) {
             market = this.market(symbol);
         }
         const response = await this.privatePostOrderById(this.extend(request, params));
@@ -1271,7 +1273,7 @@ export default class coinmate extends Exchange {
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api']['rest'] + '/' + path;
         if (api === 'public') {
-            if (Object.keys(params).length) {
+            if (Object.keys(params).length > 0) {
                 url += '?' + this.urlencode(params);
             }
         }

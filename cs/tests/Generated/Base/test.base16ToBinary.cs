@@ -42,7 +42,7 @@ public partial class BaseTest
             Assert(isEqual(exchange.binaryToBase16(binary7), "deadbeef"));
             Assert(isEqual(exchange.binaryLength(binary7), 4));
             // Test 8: roundtrip binaryToBase16 -> base16ToBinary
-            object hex8 = "cafebabe";
+            string hex8 = "cafebabe";
             object binary8 = exchange.base16ToBinary(hex8);
             Assert(isEqual(exchange.binaryToBase16(binary8), hex8));
         }

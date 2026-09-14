@@ -55,7 +55,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 📚 **Official whitebit API documentation:** [github.com](https://github.com/whitebit-exchange/api-docs)
 
-> 111 implicit endpoints across 4 access groups.
+> 137 implicit endpoints across 4 access groups.
 
 ## web
 
@@ -117,6 +117,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `v4PrivatePostCollateralAccountPositionsHistory` | POST | `collateral-account/positions/history` | 1 |
 | `v4PrivatePostCollateralAccountLeverage` | POST | `collateral-account/leverage` | 1 |
 | `v4PrivatePostCollateralAccountPositionsOpen` | POST | `collateral-account/positions/open` | 1 |
+| `v4PrivatePostCollateralAccountPositionsClosedPnl` | POST | `collateral-account/positions/closed-pnl` | 1 |
 | `v4PrivatePostCollateralAccountSummary` | POST | `collateral-account/summary` | 1 |
 | `v4PrivatePostCollateralAccountFundingHistory` | POST | `collateral-account/funding-history` | 1 |
 | `v4PrivatePostMainAccountAddress` | POST | `main-account/address` | 1 |
@@ -130,6 +131,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `v4PrivatePostMainAccountHistory` | POST | `main-account/history` | 1 |
 | `v4PrivatePostMainAccountWithdraw` | POST | `main-account/withdraw` | 1 |
 | `v4PrivatePostMainAccountWithdrawPay` | POST | `main-account/withdraw-pay` | 1 |
+| `v4PrivatePostMainAccountExpressWithdrawToken` | POST | `main-account/express-withdraw/token` | 1 |
 | `v4PrivatePostMainAccountTransfer` | POST | `main-account/transfer` | 1 |
 | `v4PrivatePostMainAccountSmartPlans` | POST | `main-account/smart/plans` | 1 |
 | `v4PrivatePostMainAccountSmartInvestment` | POST | `main-account/smart/investment` | 1 |
@@ -137,9 +139,18 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `v4PrivatePostMainAccountSmartInvestments` | POST | `main-account/smart/investments` | 1 |
 | `v4PrivatePostMainAccountFee` | POST | `main-account/fee` | 1 |
 | `v4PrivatePostMainAccountSmartInterestPaymentHistory` | POST | `main-account/smart/interest-payment-history` | 1 |
+| `v4PrivatePostMainAccountSmartFlexPlans` | POST | `main-account/smart-flex/plans` | 1 |
+| `v4PrivatePostMainAccountSmartFlexInvestments` | POST | `main-account/smart-flex/investments` | 1 |
+| `v4PrivatePostMainAccountSmartFlexInvestmentsHistory` | POST | `main-account/smart-flex/investments/history` | 1 |
+| `v4PrivatePostMainAccountSmartFlexInvestmentsPaymentHistory` | POST | `main-account/smart-flex/investments/payment-history` | 1 |
+| `v4PrivatePostMainAccountSmartFlexInvestmentsInvest` | POST | `main-account/smart-flex/investments/invest` | 1 |
+| `v4PrivatePostMainAccountSmartFlexInvestmentsWithdraw` | POST | `main-account/smart-flex/investments/withdraw` | 1 |
+| `v4PrivatePostMainAccountSmartFlexInvestmentsClose` | POST | `main-account/smart-flex/investments/close` | 1 |
+| `v4PrivatePostMainAccountSmartFlexInvestmentsAutoInvest` | POST | `main-account/smart-flex/investments/auto-invest` | 1 |
 | `v4PrivatePostTradeAccountBalance` | POST | `trade-account/balance` | 1 |
 | `v4PrivatePostTradeAccountExecutedHistory` | POST | `trade-account/executed-history` | 1 |
 | `v4PrivatePostTradeAccountOrderHistory` | POST | `trade-account/order/history` | 1 |
+| `v4PrivatePostTradeAccountOrderHistoryQuery` | POST | `trade-account/order/history/query` | 1 |
 | `v4PrivatePostTradeAccountOrder` | POST | `trade-account/order` | 1 |
 | `v4PrivatePostOrderCollateralLimit` | POST | `order/collateral/limit` | 1 |
 | `v4PrivatePostOrderCollateralMarket` | POST | `order/collateral/market` | 1 |
@@ -153,6 +164,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `v4PrivatePostOrderStopMarket` | POST | `order/stop_market` | 1 |
 | `v4PrivatePostOrderCancel` | POST | `order/cancel` | 1 |
 | `v4PrivatePostOrderCancelAll` | POST | `order/cancel/all` | 1 |
+| `v4PrivatePostOrderCancelBulk` | POST | `order/cancel/bulk` | 1 |
 | `v4PrivatePostOrderKillSwitch` | POST | `order/kill-switch` | 1 |
 | `v4PrivatePostOrderKillSwitchStatus` | POST | `order/kill-switch/status` | 1 |
 | `v4PrivatePostOrderBulk` | POST | `order/bulk` | 1 |
@@ -185,6 +197,20 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `v4PrivatePostSubAccountApiKeyIpAddressCreate` | POST | `sub-account/api-key/ip-address/create` | 1 |
 | `v4PrivatePostSubAccountApiKeyIpAddressDelete` | POST | `sub-account/api-key/ip-address/delete` | 1 |
 | `v4PrivatePostMiningRewards` | POST | `mining/rewards` | 1 |
+| `v4PrivatePostMiningHashrate` | POST | `mining/hashrate` | 1 |
+| `v4PrivatePostMiningPayoutDestination` | POST | `mining/payout-destination` | 1 |
+| `v4PrivatePostMiningPayoutDestinationEdit` | POST | `mining/payout-destination/edit` | 1 |
+| `v4PrivatePostMiningMinersInfo` | POST | `mining/miners/info` | 1 |
+| `v4PrivatePostMiningWorkersNames` | POST | `mining/workers/names` | 1 |
+| `v4PrivatePostMiningWorkersHashrate` | POST | `mining/workers/hashrate` | 1 |
+| `v4PrivatePostMiningWatcherLinksCreate` | POST | `mining/watcher-links/create` | 1 |
+| `v4PrivatePostMiningWatcherLinksList` | POST | `mining/watcher-links/list` | 1 |
+| `v4PrivatePostMiningAccountsCreate` | POST | `mining/accounts/create` | 1 |
+| `v4PrivatePostMiningAccounts` | POST | `mining/accounts` | 1 |
 | `v4PrivatePostMarketFee` | POST | `market/fee` | 1 |
+| `v4PrivatePostMarketFeeSingle` | POST | `market/fee/single` | 1 |
 | `v4PrivatePostConditionalOrders` | POST | `conditional-orders` | 1 |
+| `v4PrivatePostTravelRuleVasps` | POST | `travel-rule/vasps` | 1 |
+| `v4PrivatePostTravelRuleDepositVerification` | POST | `travel-rule/deposit/verification` | 1 |
+| `v4PrivatePostJwt` | POST | `jwt` | 1 |
 

@@ -46,8 +46,8 @@ class kraken(ccxt.async_support.kraken):
                 'cancelOrderWs': True,
                 'cancelOrdersWs': True,
                 'cancelAllOrdersWs': True,
-                # 'watchHeartbeat': True,
-                # 'watchStatus': True,
+                # 'watchHeartbeat': true,
+                # 'watchStatus': true,
             },
             'urls': {
                 'api': {
@@ -143,7 +143,7 @@ class kraken(ccxt.async_support.kraken):
         isMarket = (type == 'market')
         postOnly = None
         postOnly, params = self.handle_post_only(isMarket, False, params)
-        if postOnly:
+        if postOnly is True:
             request['params']['post_only'] = True
         clientOrderId = self.safe_string(params, 'clientOrderId')
         if clientOrderId is not None:
@@ -171,7 +171,7 @@ class kraken(ccxt.async_support.kraken):
         isTrailingPercentOrder = trailingPercent is not None
         isTrailingLimitAmountOrder = trailingLimitAmount is not None
         isTrailingLimitPercentOrder = trailingLimitPercent is not None
-        offset = self.safe_string(params, 'offset', '')  # can set self to - for minus
+        offset = self.safe_string(params, 'offset', '')  # can set this to - for minus
         trailingAmountString = offset + self.number_to_string(trailingAmount) if (trailingAmount is not None) else None
         trailingPercentString = offset + self.number_to_string(trailingPercent) if (trailingPercent is not None) else None
         trailingLimitAmountString = offset + self.number_to_string(trailingLimitAmount) if (trailingLimitAmount is not None) else None
@@ -179,7 +179,7 @@ class kraken(ccxt.async_support.kraken):
         priceType = 'pct' if (isTrailingPercentOrder or isTrailingLimitPercentOrder) else 'quote'
         if method == 'createOrderWs':
             reduceOnly = self.safe_bool(params, 'reduceOnly')
-            if reduceOnly:
+            if reduceOnly is True:
                 request['params']['reduce_only'] = True
             timeInForce = self.safe_string_lower(params, 'timeInForce')
             if timeInForce is not None:
@@ -298,7 +298,7 @@ class kraken(ccxt.async_support.kraken):
         #         "result": {
         #             "order_id": "OXM2QD-EALR2-YBAVEU"
         #         },
-        #         "success": True,
+        #         "success": true,
         #         "time_in": "2025-05-13T10:12:13.876173Z",
         #         "time_out": "2025-05-13T10:12:13.890137Z"
         #     }
@@ -311,7 +311,7 @@ class kraken(ccxt.async_support.kraken):
         #             "amend_id": "TYDLSQ-OYNYU-3MNRER",
         #             "order_id": "OGL7HR-SWFO4-NRQTHO"
         #         },
-        #         "success": True,
+        #         "success": true,
         #         "time_in": "2025-05-14T13:54:10.840342Z",
         #         "time_out": "2025-05-14T13:54:10.855046Z"
         #     }
@@ -417,7 +417,7 @@ class kraken(ccxt.async_support.kraken):
         #         "result": {
         #             "order_id": "OKAGJC-YHIWK-WIOZWG"
         #         },
-        #         "success": True,
+        #         "success": true,
         #         "time_in": "2023-09-21T14:36:57.428972Z",
         #         "time_out": "2023-09-21T14:36:57.437952Z"
         #     }
@@ -459,7 +459,7 @@ class kraken(ccxt.async_support.kraken):
         #         "result": {
         #             "count": 1
         #         },
-        #         "success": True,
+        #         "success": true,
         #         "time_in": "2023-09-21T14:36:57.428972Z",
         #         "time_out": "2023-09-21T14:36:57.437952Z"
         #     }
@@ -751,7 +751,7 @@ class kraken(ccxt.async_support.kraken):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         await self.load_markets()
         name = 'ohlc'
@@ -780,7 +780,7 @@ class kraken(ccxt.async_support.kraken):
         marketsByWsName = self.safe_value(self.options, 'marketsByWsName')
         if (marketsByWsName is None) or reload:
             marketsByWsName = {}
-            symbols = self.symbols  # do not cast `as string[]`: self.symbols is List<Object> in Java, and List<Object>->List<str> is an illegal cast
+            symbols = self.symbols  # do not cast `as string[]`: this.symbols is List<Object> in Java, and List<Object>->List<String> is an illegal cast
             if symbols is not None:
                 for i in range(0, len(symbols)):
                     symbol = symbols[i]
@@ -812,16 +812,16 @@ class kraken(ccxt.async_support.kraken):
 
     def handle_heartbeat(self, client: Client, message: object):
         #
-        # every second(approx) if no other updates are sent
+        # every second (approx) if no other updates are sent
         #
-        #     {"channel": "heartbeat"}
+        #     { "channel": "heartbeat" }
         #
         event = self.safe_string(message, 'channel')
         client.resolve(message, event)
 
     def handle_order_book(self, client: Client, message: object):
         #
-        # first message(snapshot)
+        # first message (snapshot)
         #
         #     {
         #         "channel": "book",
@@ -879,7 +879,7 @@ class kraken(ccxt.async_support.kraken):
         data = self.safe_list(message, 'data', [])
         first = self.safe_dict(data, 0, {})
         symbol = self.safe_string(first, 'symbol')
-        a = self.safe_value(first, 'asks', [])
+        a = self.safe_list(first, 'asks', [])
         b = self.safe_value(first, 'bids', [])
         c = self.safe_integer(first, 'checksum')
         messageHash = self.get_message_hash('orderbook', None, symbol)
@@ -905,7 +905,7 @@ class kraken(ccxt.async_support.kraken):
             for i in range(0, len(keys)):
                 key = keys[i]
                 bookside = orderbook[key]
-                deltas = self.safe_value(first, key, [])
+                deltas = self.safe_list(first, key, [])
                 deltasLength = len(deltas)
                 if deltasLength > 0:
                     self.custom_handle_deltas(bookside, deltas)
@@ -913,13 +913,13 @@ class kraken(ccxt.async_support.kraken):
         orderbook.limit()
         # checksum temporarily disabled because the exchange checksum was not reliable
         checksum = self.handle_option('watchOrderBook', 'checksum', False)
-        if checksum:
+        if checksum is True:
             payloadArray = []
             if c is not None:
                 checkAsks = orderbook['asks']
                 checkBids = orderbook['bids']
-                # checkAsks = asks.map((elem) => [elem['price'], elem['qty']])
-                # checkBids = bids.map((elem) => [elem['price'], elem['qty']])
+                # const checkAsks = asks.map ((elem) => [ elem['price'], elem['qty'] ]);
+                # const checkBids = bids.map ((elem) => [ elem['price'], elem['qty'] ]);
                 for i in range(0, 10):
                     currentAsk = self.safe_value(checkAsks, i, {})
                     formattedAsk = self.format_number(currentAsk[0]) + self.format_number(currentAsk[1])
@@ -939,20 +939,20 @@ class kraken(ccxt.async_support.kraken):
         client.resolve(orderbook, messageHash)
 
     def custom_handle_deltas(self, bookside: object, deltas: object):
-        # sortOrder = True if (key == 'bids') else False
+        # const sortOrder = (key === 'bids') ? true : false;
         for j in range(0, len(deltas)):
             delta = deltas[j]
             price = self.safe_number(delta, 'price')
             amount = self.safe_number(delta, 'qty')
             bookside.store(price, amount)
-            # if amount == 0:
-            #     index = bookside.findIndex((x: Int) => x[0] == price)
-            #     bookside.splice(index, 1)
-            # else:
-            #     bookside.store(price, amount)
+            # if (amount === 0) {
+            #     const index = bookside.findIndex ((x: Int) => x[0] === price);
+            #     bookside.splice (index, 1);
+            # } else {
+            #     bookside.store (price, amount);
             # }
-            # bookside = self.sort_by(bookside, 0, sortOrder)
-            # bookside[0:9]
+            # bookside = this.sortBy (bookside, 0, sortOrder);
+            # bookside.slice (0, 9);
 
     def format_number(self, data: object):
         parts = data.split('.')
@@ -969,13 +969,13 @@ class kraken(ccxt.async_support.kraken):
     def handle_system_status(self, client: Client, message: object):
         #
         # todo: answer the question whether handleSystemStatus should be renamed
-        # and unified for any usage pattern that
+        # and unified as handleStatus for any usage pattern that
         # involves system status and maintenance updates
         #
         #     {
         #         "connectionID": 15527282728335292000,
         #         "event": "systemStatus",
-        #         "status": "online",  # online|maintenance|(custom status tbd)
+        #         "status": "online", // online|maintenance|(custom status tbd)
         #         "version": "0.2.0"
         #     }
         #
@@ -1006,13 +1006,13 @@ class kraken(ccxt.async_support.kraken):
         if (subscription is None) or ((subscription is not None) and (start + expires) <= now):
             # single-flight leader election, see
             # https://github.com/ccxt/ccxt/issues/29393: the staleness gate
-            # above is followed by an awaited privatePostGetWebSocketsToken(),
-            # so N concurrent watchPrivate() calls on a cold instance each
+            # above is followed by an awaited privatePostGetWebSocketsToken (),
+            # so N concurrent watchPrivate () calls on a cold instance each
             # pass the gate and each burn a rate-limited private REST call to
             # mint a separate token. client.futures is the flight registry
             # itself, namespaced away from the real subscription keys on the
             # same client that already caches the token, and settlement goes
-            # through client.resolve() / client.reject() so every write to
+            # through client.resolve () / client.reject () so every write to
             # that map stays behind the client's own lock
             messageHash = 'authenticateFlight'
             if messageHash in client.futures:
@@ -1042,11 +1042,11 @@ class kraken(ccxt.async_support.kraken):
                     raise AuthenticationError(self.id + ' authenticate() received an empty token')
                 subscription['start'] = now
                 client.subscriptions[authenticated] = subscription
-                # settle the flight and wake every waiter - resolve() also
+                # settle the flight and wake every waiter - resolve () also
                 # clears the registry entry, so the next refresh re-leads
                 client.resolve(token, messageHash)
             except Exception as e:
-                # reject the flight - all waiters raise and the next caller
+                # reject the flight - all waiters throw and the next caller
                 # re-leads instead of deadlocking on a dead flight
                 client.reject(e, messageHash)
             # rethrows the leader's own failure and attaches the handler that
@@ -1267,7 +1267,7 @@ class kraken(ccxt.async_support.kraken):
                 length = len(stored)
                 if length == limit and (previousOrder is None):
                     first = stored[0]
-                    symbolsByOrderId = self.safe_value(self.options, 'symbolsByOrderId', {})
+                    symbolsByOrderId = self.safe_dict(self.options, 'symbolsByOrderId', {})
                     if first['id'] in symbolsByOrderId:
                         del symbolsByOrderId[first['id']]
                 stored.append(newOrder)
@@ -1442,7 +1442,7 @@ class kraken(ccxt.async_support.kraken):
 
     def get_message_hash(self, unifiedElementName: str, subChannelName: Str = None, symbol: Str = None):
         # unifiedElementName can be : orderbook, trade, ticker, bidask ...
-        # subChannelName only applies to channel that needs specific variation(i.e. depth_50, depth_100..) to be selected
+        # subChannelName only applies to channel that needs specific variation (i.e. depth_50, depth_100..) to be selected
         withSymbol = symbol is not None
         messageHash = unifiedElementName
         if not withSymbol:
@@ -1464,7 +1464,7 @@ class kraken(ccxt.async_support.kraken):
         #         "reqid": 1574146735269,
         #         "pair": "ETH/XBT",
         #         "status": "subscribed",
-        #         "subscription": {depth: 10, name: "book"}
+        #         "subscription": { depth: 10, name: "book" }
         #     }
         #
         # private
@@ -1474,15 +1474,15 @@ class kraken(ccxt.async_support.kraken):
         #         "event": "subscriptionStatus",
         #         "reqid": 1,
         #         "status": "subscribed",
-        #         "subscription": {maxratecount: 125, name: "openOrders"}
+        #         "subscription": { maxratecount: 125, name: "openOrders" }
         #     }
         #
         channelId = self.safe_string(message, 'channelID')
         if channelId is not None:
             client.subscriptions[channelId] = message
-        # requestId = self.safe_string(message, "reqid")
-        # if requestId in client.futures:
-        #     del client.futures[requestId]
+        # const requestId = this.safeString (message, "reqid");
+        # if (requestId in client.futures) {
+        #     delete client.futures[requestId];
         # }
 
     def handle_error_message(self, client: Client, message: object) -> Bool:
@@ -1493,14 +1493,14 @@ class kraken(ccxt.async_support.kraken):
         #         "pair": "foobar",
         #         "reqid": 1574146735269,
         #         "status": "error",
-        #         "subscription": {name: "ticker"}
+        #         "subscription": { name: "ticker" }
         #     }
         #
         # v2
         #     {
         #         "error": "Unsupported field: 'price' for the given msg type: add order",
         #         "method": "add_order",
-        #         "success": False,
+        #         "success": false,
         #         "time_in": "2025-05-13T08:59:44.803511Z",
         #         "time_out": "2025-05-13T08:59:44.803542Z'
         #     }
@@ -1541,7 +1541,7 @@ class kraken(ccxt.async_support.kraken):
             method = self.safe_value(methods, channel)
             if method is not None:
                 method(client, message)
-        if self.handle_error_message(client, message):
+        if self.handle_error_message(client, message) is True:
             event = self.safe_string_2(message, 'event', 'method')
             methods = {
                 'heartbeat': self.handle_heartbeat,

@@ -122,18 +122,18 @@ class hitbtc extends \ccxt\async\hitbtc {
             $this->watch($url, $messageHash, $request, $messageHash);
             //
             //    {
-            //        "jsonrpc" => "2.0",
-            //        "result" => true
+            //        "jsonrpc": "2.0",
+            //        "result": true
             //    }
             //
             //    # Failure to return results
             //
             //    {
-            //        "jsonrpc" => "2.0",
-            //        "error" => {
-            //            "code" => 1002,
-            //            "message" => "Authorization is required or has been failed",
-            //            "description" => "invalid $signature format"
+            //        "jsonrpc": "2.0",
+            //        "error": {
+            //            "code": 1002,
+            //            "message": "Authorization is required or has been failed",
+            //            "description": "invalid signature format"
             //        }
             //    }
             //
@@ -274,30 +274,30 @@ class hitbtc extends \ccxt\async\hitbtc {
     public function handle_order_book(Client $client, mixed $message) {
         //
         //    {
-        //        "ch" => "orderbook/full",                 // Channel
-        //        "snapshot" => {
-        //            "ETHBTC" => {
-        //                "t" => 1626866578796,             // Timestamp in milliseconds
-        //                "s" => 27617207,                  // Sequence number
-        //                "a" => array(                          // Asks
+        //        "ch": "orderbook/full",                 // Channel
+        //        "snapshot": {
+        //            "ETHBTC": {
+        //                "t": 1626866578796,             // Timestamp in milliseconds
+        //                "s": 27617207,                  // Sequence number
+        //                "a": [                          // Asks
         //                    ["0.060506", "0"],
         //                    ["0.060549", "12.6431"],
         //                    ["0.060570", "0"],
         //                    ["0.060612", "0"]
-        //                ),
-        //                "b" => array(                          // Bids
+        //                ],
+        //                "b": [                          // Bids
         //                    ["0.060439", "4.4095"],
         //                    ["0.060414", "0"],
         //                    ["0.060407", "7.3349"],
         //                    ["0.060390", "0"]
-        //                )
+        //                ]
         //            }
         //        }
         //    }
         //
         $snapshot = $this->safe_dict($message, 'snapshot');
         $data = $this->safe_dict_2($message, 'snapshot', 'update', array());
-        $type = $snapshot ? 'snapshot' : 'update';
+        $type = ($snapshot !== null && $snapshot !== null) ? 'snapshot' : 'update';
         $marketIds = is_array($data) ? array_keys($data) : array();
         for ($i = 0; $i < count($marketIds); $i++) {
             $marketId = $marketIds[$i];
@@ -419,43 +419,43 @@ class hitbtc extends \ccxt\async\hitbtc {
     public function handle_ticker(Client $client, mixed $message) {
         //
         //    {
-        //        "ch" => "ticker/1s",
-        //        "data" => {
-        //            "ETHBTC" => {
-        //                "t" => 1614815872000,             // Timestamp in milliseconds
-        //                "a" => "0.031175",                // Best ask
-        //                "A" => "0.03329",                 // Best ask quantity
-        //                "b" => "0.031148",                // Best bid
-        //                "B" => "0.10565",                 // Best bid quantity
-        //                "c" => "0.031210",                // Last price
-        //                "o" => "0.030781",                // Open price
-        //                "h" => "0.031788",                // High price
-        //                "l" => "0.030733",                // Low price
-        //                "v" => "62.587",                  // Base asset volume
-        //                "q" => "1.951420577",             // Quote asset volume
-        //                "p" => "0.000429",                // Price change
-        //                "P" => "1.39",                    // Price change percent
-        //                "L" => 1182694927                 // Last trade identifier
+        //        "ch": "ticker/1s",
+        //        "data": {
+        //            "ETHBTC": {
+        //                "t": 1614815872000,             // Timestamp in milliseconds
+        //                "a": "0.031175",                // Best ask
+        //                "A": "0.03329",                 // Best ask quantity
+        //                "b": "0.031148",                // Best bid
+        //                "B": "0.10565",                 // Best bid quantity
+        //                "c": "0.031210",                // Last price
+        //                "o": "0.030781",                // Open price
+        //                "h": "0.031788",                // High price
+        //                "l": "0.030733",                // Low price
+        //                "v": "62.587",                  // Base asset volume
+        //                "q": "1.951420577",             // Quote asset volume
+        //                "p": "0.000429",                // Price change
+        //                "P": "1.39",                    // Price change percent
+        //                "L": 1182694927                 // Last trade identifier
         //            }
         //        }
         //    }
         //
         //    {
-        //        "ch" => "ticker/price/1s",
-        //        "data" => {
-        //            "BTCUSDT" => {
-        //                "t" => 1614815872030,
-        //                "o" => "32636.79",
-        //                "c" => "32085.51",
-        //                "h" => "33379.92",
-        //                "l" => "30683.28",
-        //                "v" => "11.90667",
-        //                "q" => "384081.1955629"
+        //        "ch": "ticker/price/1s",
+        //        "data": {
+        //            "BTCUSDT": {
+        //                "t": 1614815872030,
+        //                "o": "32636.79",
+        //                "c": "32085.51",
+        //                "h": "33379.92",
+        //                "l": "30683.28",
+        //                "v": "11.90667",
+        //                "q": "384081.1955629"
         //            }
         //        }
         //    }
         //
-        $data = $this->safe_value($message, 'data', array());
+        $data = $this->safe_dict($message, 'data', array());
         $marketIds = is_array($data) ? array_keys($data) : array();
         $result = array();
         $topic = 'tickers';
@@ -475,30 +475,30 @@ class hitbtc extends \ccxt\async\hitbtc {
     public function parse_ws_ticker(array $ticker, ?array $market = null) {
         //
         //    {
-        //        "t" => 1614815872000,             // Timestamp in milliseconds
-        //        "a" => "0.031175",                // Best ask
-        //        "A" => "0.03329",                 // Best ask quantity
-        //        "b" => "0.031148",                // Best bid
-        //        "B" => "0.10565",                 // Best bid quantity
-        //        "c" => "0.031210",                // Last price
-        //        "o" => "0.030781",                // Open price
-        //        "h" => "0.031788",                // High price
-        //        "l" => "0.030733",                // Low price
-        //        "v" => "62.587",                  // Base asset volume
-        //        "q" => "1.951420577",             // Quote asset volume
-        //        "p" => "0.000429",                // Price change
-        //        "P" => "1.39",                    // Price change percent
-        //        "L" => 1182694927                 // Last trade identifier
+        //        "t": 1614815872000,             // Timestamp in milliseconds
+        //        "a": "0.031175",                // Best ask
+        //        "A": "0.03329",                 // Best ask quantity
+        //        "b": "0.031148",                // Best bid
+        //        "B": "0.10565",                 // Best bid quantity
+        //        "c": "0.031210",                // Last price
+        //        "o": "0.030781",                // Open price
+        //        "h": "0.031788",                // High price
+        //        "l": "0.030733",                // Low price
+        //        "v": "62.587",                  // Base asset volume
+        //        "q": "1.951420577",             // Quote asset volume
+        //        "p": "0.000429",                // Price change
+        //        "P": "1.39",                    // Price change percent
+        //        "L": 1182694927                 // Last trade identifier
         //    }
         //
         //    {
-        //        "t" => 1614815872030,
-        //        "o" => "32636.79",
-        //        "c" => "32085.51",
-        //        "h" => "33379.92",
-        //        "l" => "30683.28",
-        //        "v" => "11.90667",
-        //        "q" => "384081.1955629"
+        //        "t": 1614815872030,
+        //        "o": "32636.79",
+        //        "c": "32085.51",
+        //        "h": "33379.92",
+        //        "l": "30683.28",
+        //        "v": "11.90667",
+        //        "q": "384081.1955629"
         //    }
         //
         $timestamp = $this->safe_integer($ticker, 't');
@@ -574,14 +574,14 @@ class hitbtc extends \ccxt\async\hitbtc {
     public function handle_bid_ask(Client $client, mixed $message) {
         //
         //     {
-        //         "ch" => "orderbook/top/100ms", // or 'orderbook/top/100ms/batch'
-        //         "data" => {
-        //             "BTCUSDT" => {
-        //                 "t" => 1727276919771,
-        //                 "a" => "63931.45",
-        //                 "A" => "0.02879",
-        //                 "b" => "63926.97",
-        //                 "B" => "0.00100"
+        //         "ch": "orderbook/top/100ms", // or 'orderbook/top/100ms/batch'
+        //         "data": {
+        //             "BTCUSDT": {
+        //                 "t": 1727276919771,
+        //                 "a": "63931.45",
+        //                 "A": "0.02879",
+        //                 "b": "63926.97",
+        //                 "B": "0.00100"
         //             }
         //         }
         //     }
@@ -657,44 +657,44 @@ class hitbtc extends \ccxt\async\hitbtc {
     public function handle_trades(Client $client, mixed $message) {
         //
         //    {
-        //        "result" => array(
-        //            "ch" => "trades",                           // Channel
-        //            "subscriptions" => ["ETHBTC", "BTCUSDT"]
-        //        ),
-        //        "id" => 123
+        //        "result": {
+        //            "ch": "trades",                           // Channel
+        //            "subscriptions": ["ETHBTC", "BTCUSDT"]
+        //        },
+        //        "id": 123
         //    }
         //
         // Notification snapshot
         //
         //    {
-        //        "ch" => "trades",                               // Channel
-        //        "snapshot" => {
-        //            "BTCUSDT" => [array(
-        //                "t" => 1626861109494,                   // Timestamp in milliseconds
-        //                "i" => 1555634969,                      // Trade identifier
-        //                "p" => "30881.96",                      // Price
-        //                "q" => "12.66828",                      // Quantity
-        //                "s" => "buy"                            // Side
-        //            )]
+        //        "ch": "trades",                               // Channel
+        //        "snapshot": {
+        //            "BTCUSDT": [{
+        //                "t": 1626861109494,                   // Timestamp in milliseconds
+        //                "i": 1555634969,                      // Trade identifier
+        //                "p": "30881.96",                      // Price
+        //                "q": "12.66828",                      // Quantity
+        //                "s": "buy"                            // Side
+        //            }]
         //        }
         //    }
         //
         // Notification update
         //
         //    {
-        //        "ch" => "trades",
-        //        "update" => {
-        //            "BTCUSDT" => [array(
-        //                "t" => 1626861123552,
-        //                "i" => 1555634969,
-        //                "p" => "30877.68",
-        //                "q" => "0.00006",
-        //                "s" => "sell"
-        //            )]
+        //        "ch": "trades",
+        //        "update": {
+        //            "BTCUSDT": [{
+        //                "t": 1626861123552,
+        //                "i": 1555634969,
+        //                "p": "30877.68",
+        //                "q": "0.00006",
+        //                "s": "sell"
+        //            }]
         //        }
         //    }
         //
-        $data = $this->safe_value_2($message, 'snapshot', 'update', array());
+        $data = $this->safe_dict_2($message, 'snapshot', 'update', array());
         $marketIds = is_array($data) ? array_keys($data) : array();
         for ($i = 0; $i < count($marketIds); $i++) {
             $marketId = $marketIds[$i];
@@ -731,11 +731,11 @@ class hitbtc extends \ccxt\async\hitbtc {
     public function parse_ws_trade(mixed $trade, ?array $market = null) {
         //
         //    {
-        //        "t" => 1626861123552,       // Timestamp in milliseconds
-        //        "i" => 1555634969,          // Trade identifier
-        //        "p" => "30877.68",          // Price
-        //        "q" => "0.00006",           // Quantity
-        //        "s" => "sell"               // Side
+        //        "t": 1626861123552,       // Timestamp in milliseconds
+        //        "i": 1555634969,          // Trade identifier
+        //        "p": "30877.68",          // Price
+        //        "q": "0.00006",           // Quantity
+        //        "s": "sell"               // Side
         //    }
         //
         $timestamp = $this->safe_integer($trade, 't');
@@ -771,7 +771,7 @@ class hitbtc extends \ccxt\async\hitbtc {
          * @param {int} [$since] not used by hitbtc watchOHLCV
          * @param {int} [$limit] 0 – 1000, default value = 0 (no history returned)
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         $period = $this->safe_string($this->timeframes, $timeframe, $timeframe);
         $name = 'candles/' . $period;
@@ -794,16 +794,16 @@ class hitbtc extends \ccxt\async\hitbtc {
     public function handle_ohlcv(Client $client, mixed $message) {
         //
         //    {
-        //        "ch" => "candles/M1",                     // Channel
-        //        "snapshot" => {
-        //            "BTCUSDT" => [{
-        //                "t" => 1626860340000,             // Message timestamp
-        //                "o" => "30881.95",                // Open price
-        //                "c" => "30890.96",                // Last price
-        //                "h" => "30900.8",                 // High price
-        //                "l" => "30861.27",                // Low price
-        //                "v" => "1.27852",                 // Base asset volume
-        //                "q" => "39493.9021811"            // Quote asset volume
+        //        "ch": "candles/M1",                     // Channel
+        //        "snapshot": {
+        //            "BTCUSDT": [{
+        //                "t": 1626860340000,             // Message timestamp
+        //                "o": "30881.95",                // Open price
+        //                "c": "30890.96",                // Last price
+        //                "h": "30900.8",                 // High price
+        //                "l": "30861.27",                // Low price
+        //                "v": "1.27852",                 // Base asset volume
+        //                "q": "39493.9021811"            // Quote asset volume
         //            }
         //            ...
         //            ]
@@ -811,21 +811,21 @@ class hitbtc extends \ccxt\async\hitbtc {
         //    }
         //
         //    {
-        //        "ch" => "candles/M1",
-        //        "update" => {
-        //            "ETHBTC" => [array(
-        //                "t" => 1626860880000,
-        //                "o" => "0.060711",
-        //                "c" => "0.060749",
-        //                "h" => "0.060749",
-        //                "l" => "0.060711",
-        //                "v" => "12.2800",
-        //                "q" => "0.7455339675"
-        //          )]
+        //        "ch": "candles/M1",
+        //        "update": {
+        //            "ETHBTC": [{
+        //                "t": 1626860880000,
+        //                "o": "0.060711",
+        //                "c": "0.060749",
+        //                "h": "0.060749",
+        //                "l": "0.060711",
+        //                "v": "12.2800",
+        //                "q": "0.7455339675"
+        //          }]
         //        }
         //    }
         //
-        $data = $this->safe_value_2($message, 'snapshot', 'update', array());
+        $data = $this->safe_dict_2($message, 'snapshot', 'update', array());
         $marketIds = is_array($data) ? array_keys($data) : array();
         $channel = $this->safe_string($message, 'ch', '');
         $splitChannel = explode('/', $channel);
@@ -858,13 +858,13 @@ class hitbtc extends \ccxt\async\hitbtc {
     public function parse_ws_ohlcv(mixed $ohlcv, ?array $market = null): array {
         //
         //    {
-        //        "t" => 1626860340000,             // Message timestamp
-        //        "o" => "30881.95",                // Open price
-        //        "c" => "30890.96",                // Last price
-        //        "h" => "30900.8",                 // High price
-        //        "l" => "30861.27",                // Low price
-        //        "v" => "1.27852",                 // Base asset volume
-        //        "q" => "39493.9021811"            // Quote asset volume
+        //        "t": 1626860340000,             // Message timestamp
+        //        "o": "30881.95",                // Open price
+        //        "c": "30890.96",                // Last price
+        //        "h": "30900.8",                 // High price
+        //        "l": "30861.27",                // Low price
+        //        "v": "1.27852",                 // Base asset volume
+        //        "q": "39493.9021811"            // Quote asset volume
         //    }
         //
         return array(
@@ -920,63 +920,63 @@ class hitbtc extends \ccxt\async\hitbtc {
     public function handle_order(Client $client, mixed $message) {
         //
         //    {
-        //        "jsonrpc" => "2.0",
-        //        "method" => "spot_order",                            // "margin_order", "future_order"
-        //        "params" => {
-        //            "id" => 584244931496,
-        //            "client_order_id" => "b5acd79c0a854b01b558665bcf379456",
-        //            "symbol" => "BTCUSDT",
-        //            "side" => "buy",
-        //            "status" => "new",
-        //            "type" => "limit",
-        //            "time_in_force" => "GTC",
-        //            "quantity" => "0.01000",
-        //            "quantity_cumulative" => "0",
-        //            "price" => "0.01",                              // only updates and snapshots
-        //            "post_only" => false,
-        //            "reduce_only" => false,                         // only margin and contract
-        //            "display_quantity" => "0",                      // only updates and snapshot
-        //            "created_at" => "2021-07-02T22:52:32.864Z",
-        //            "updated_at" => "2021-07-02T22:52:32.864Z",
-        //            "trade_id" => 1361977606,                       // only trades
-        //            "trade_quantity" => "0.00001",                  // only trades
-        //            "trade_price" => "49595.04",                    // only trades
-        //            "trade_fee" => "0.001239876000",                // only trades
-        //            "trade_taker" => true,                          // only trades, only spot
-        //            "trade_position_id" => 485308,                  // only trades, only margin
-        //            "report_type" => "new"                          // "trade", "status" (snapshot)
+        //        "jsonrpc": "2.0",
+        //        "method": "spot_order",                            // "margin_order", "future_order"
+        //        "params": {
+        //            "id": 584244931496,
+        //            "client_order_id": "b5acd79c0a854b01b558665bcf379456",
+        //            "symbol": "BTCUSDT",
+        //            "side": "buy",
+        //            "status": "new",
+        //            "type": "limit",
+        //            "time_in_force": "GTC",
+        //            "quantity": "0.01000",
+        //            "quantity_cumulative": "0",
+        //            "price": "0.01",                              // only updates and snapshots
+        //            "post_only": false,
+        //            "reduce_only": false,                         // only margin and contract
+        //            "display_quantity": "0",                      // only updates and snapshot
+        //            "created_at": "2021-07-02T22:52:32.864Z",
+        //            "updated_at": "2021-07-02T22:52:32.864Z",
+        //            "trade_id": 1361977606,                       // only trades
+        //            "trade_quantity": "0.00001",                  // only trades
+        //            "trade_price": "49595.04",                    // only trades
+        //            "trade_fee": "0.001239876000",                // only trades
+        //            "trade_taker": true,                          // only trades, only spot
+        //            "trade_position_id": 485308,                  // only trades, only margin
+        //            "report_type": "new"                          // "trade", "status" (snapshot)
         //        }
         //    }
         //
         //    {
-        //       "jsonrpc" => "2.0",
-        //       "method" => "spot_orders",                            // "margin_orders", "future_orders"
-        //       "params" => array(
+        //       "jsonrpc": "2.0",
+        //       "method": "spot_orders",                            // "margin_orders", "future_orders"
+        //       "params": [
         //            {
-        //                "id" => 584244931496,
-        //                "client_order_id" => "b5acd79c0a854b01b558665bcf379456",
-        //                "symbol" => "BTCUSDT",
-        //                "side" => "buy",
-        //                "status" => "new",
-        //                "type" => "limit",
-        //                "time_in_force" => "GTC",
-        //                "quantity" => "0.01000",
-        //                "quantity_cumulative" => "0",
-        //                "price" => "0.01",                              // only updates and snapshots
-        //                "post_only" => false,
-        //                "reduce_only" => false,                         // only margin and contract
-        //                "display_quantity" => "0",                      // only updates and snapshot
-        //                "created_at" => "2021-07-02T22:52:32.864Z",
-        //                "updated_at" => "2021-07-02T22:52:32.864Z",
-        //                "trade_id" => 1361977606,                       // only trades
-        //                "trade_quantity" => "0.00001",                  // only trades
-        //                "trade_price" => "49595.04",                    // only trades
-        //                "trade_fee" => "0.001239876000",                // only trades
-        //                "trade_taker" => true,                          // only trades, only spot
-        //                "trade_position_id" => 485308,                  // only trades, only margin
-        //                "report_type" => "new"                          // "trade", "status" (snapshot)
+        //                "id": 584244931496,
+        //                "client_order_id": "b5acd79c0a854b01b558665bcf379456",
+        //                "symbol": "BTCUSDT",
+        //                "side": "buy",
+        //                "status": "new",
+        //                "type": "limit",
+        //                "time_in_force": "GTC",
+        //                "quantity": "0.01000",
+        //                "quantity_cumulative": "0",
+        //                "price": "0.01",                              // only updates and snapshots
+        //                "post_only": false,
+        //                "reduce_only": false,                         // only margin and contract
+        //                "display_quantity": "0",                      // only updates and snapshot
+        //                "created_at": "2021-07-02T22:52:32.864Z",
+        //                "updated_at": "2021-07-02T22:52:32.864Z",
+        //                "trade_id": 1361977606,                       // only trades
+        //                "trade_quantity": "0.00001",                  // only trades
+        //                "trade_price": "49595.04",                    // only trades
+        //                "trade_fee": "0.001239876000",                // only trades
+        //                "trade_taker": true,                          // only trades, only spot
+        //                "trade_position_id": 485308,                  // only trades, only margin
+        //                "report_type": "new"                          // "trade", "status" (snapshot)
         //            }
-        //        )
+        //        ]
         //    }
         //
         if ($this->orders === null) {
@@ -1014,28 +1014,28 @@ class hitbtc extends \ccxt\async\hitbtc {
     public function parse_ws_order_trade(array $trade, ?array $market = null) {
         //
         //    {
-        //        "id" => 584244931496,
-        //        "client_order_id" => "b5acd79c0a854b01b558665bcf379456",
-        //        "symbol" => "BTCUSDT",
-        //        "side" => "buy",
-        //        "status" => "new",
-        //        "type" => "limit",
-        //        "time_in_force" => "GTC",
-        //        "quantity" => "0.01000",
-        //        "quantity_cumulative" => "0",
-        //        "price" => "0.01",                              // only updates and snapshots
-        //        "post_only" => false,
-        //        "reduce_only" => false,                         // only margin and contract
-        //        "display_quantity" => "0",                      // only updates and snapshot
-        //        "created_at" => "2021-07-02T22:52:32.864Z",
-        //        "updated_at" => "2021-07-02T22:52:32.864Z",
-        //        "trade_id" => 1361977606,                       // only trades
-        //        "trade_quantity" => "0.00001",                  // only trades
-        //        "trade_price" => "49595.04",                    // only trades
-        //        "trade_fee" => "0.001239876000",                // only trades
-        //        "trade_taker" => true,                          // only trades, only spot
-        //        "trade_position_id" => 485308,                  // only trades, only margin
-        //        "report_type" => "new"                          // "trade", "status" (snapshot)
+        //        "id": 584244931496,
+        //        "client_order_id": "b5acd79c0a854b01b558665bcf379456",
+        //        "symbol": "BTCUSDT",
+        //        "side": "buy",
+        //        "status": "new",
+        //        "type": "limit",
+        //        "time_in_force": "GTC",
+        //        "quantity": "0.01000",
+        //        "quantity_cumulative": "0",
+        //        "price": "0.01",                              // only updates and snapshots
+        //        "post_only": false,
+        //        "reduce_only": false,                         // only margin and contract
+        //        "display_quantity": "0",                      // only updates and snapshot
+        //        "created_at": "2021-07-02T22:52:32.864Z",
+        //        "updated_at": "2021-07-02T22:52:32.864Z",
+        //        "trade_id": 1361977606,                       // only trades
+        //        "trade_quantity": "0.00001",                  // only trades
+        //        "trade_price": "49595.04",                    // only trades
+        //        "trade_fee": "0.001239876000",                // only trades
+        //        "trade_taker": true,                          // only trades, only spot
+        //        "trade_position_id": 485308,                  // only trades, only margin
+        //        "report_type": "new"                          // "trade", "status" (snapshot)
         //    }
         //
         $timestamp = $this->safe_integer($trade, 'created_at');
@@ -1064,28 +1064,28 @@ class hitbtc extends \ccxt\async\hitbtc {
     public function parse_ws_order(mixed $order, ?array $market = null) {
         //
         //    {
-        //        "id" => 584244931496,
-        //        "client_order_id" => "b5acd79c0a854b01b558665bcf379456",
-        //        "symbol" => "BTCUSDT",
-        //        "side" => "buy",
-        //        "status" => "new",
-        //        "type" => "limit",
-        //        "time_in_force" => "GTC",
-        //        "quantity" => "0.01000",
-        //        "quantity_cumulative" => "0",
-        //        "price" => "0.01",                              // only updates and snapshots
-        //        "post_only" => false,
-        //        "reduce_only" => false,                         // only margin and contract
-        //        "display_quantity" => "0",                      // only updates and snapshot
-        //        "created_at" => "2021-07-02T22:52:32.864Z",
-        //        "updated_at" => "2021-07-02T22:52:32.864Z",
-        //        "trade_id" => 1361977606,                       // only $trades
-        //        "trade_quantity" => "0.00001",                  // only $trades
-        //        "trade_price" => "49595.04",                    // only $trades
-        //        "trade_fee" => "0.001239876000",                // only $trades
-        //        "trade_taker" => true,                          // only $trades, only spot
-        //        "trade_position_id" => 485308,                  // only $trades, only margin
-        //        "report_type" => "new"                          // "trade", "status" (snapshot)
+        //        "id": 584244931496,
+        //        "client_order_id": "b5acd79c0a854b01b558665bcf379456",
+        //        "symbol": "BTCUSDT",
+        //        "side": "buy",
+        //        "status": "new",
+        //        "type": "limit",
+        //        "time_in_force": "GTC",
+        //        "quantity": "0.01000",
+        //        "quantity_cumulative": "0",
+        //        "price": "0.01",                              // only updates and snapshots
+        //        "post_only": false,
+        //        "reduce_only": false,                         // only margin and contract
+        //        "display_quantity": "0",                      // only updates and snapshot
+        //        "created_at": "2021-07-02T22:52:32.864Z",
+        //        "updated_at": "2021-07-02T22:52:32.864Z",
+        //        "trade_id": 1361977606,                       // only trades
+        //        "trade_quantity": "0.00001",                  // only trades
+        //        "trade_price": "49595.04",                    // only trades
+        //        "trade_fee": "0.001239876000",                // only trades
+        //        "trade_taker": true,                          // only trades, only spot
+        //        "trade_position_id": 485308,                  // only trades, only margin
+        //        "report_type": "new"                          // "trade", "status" (snapshot)
         //    }
         //
         $timestamp = $this->safe_string($order, 'created_at');
@@ -1335,17 +1335,17 @@ class hitbtc extends \ccxt\async\hitbtc {
     public function handle_balance(Client $client, mixed $message) {
         //
         //    {
-        //        "jsonrpc" => "2.0",
-        //        "method" => "futures_balance",
-        //        "params" => array(
-        //            array(
-        //                "currency" => "BCN",
-        //                "available" => "100.000000000000",
-        //                "reserved" => "0",
-        //                "reserved_margin" => "0"
-        //            ),
+        //        "jsonrpc": "2.0",
+        //        "method": "futures_balance",
+        //        "params": [
+        //            {
+        //                "currency": "BCN",
+        //                "available": "100.000000000000",
+        //                "reserved": "0",
+        //                "reserved_margin": "0"
+        //            },
         //            ...
-        //        )
+        //        ]
         //    }
         //
         $messageHash = $this->safe_string($message, 'method');
@@ -1357,7 +1357,7 @@ class hitbtc extends \ccxt\async\hitbtc {
 
     public function handle_notification(Client $client, mixed $message) {
         //
-        //     array( jsonrpc => "2.0", result => true, id => null )
+        //     { jsonrpc: "2.0", result: true, id: null }
         //
         return $message;
     }
@@ -1367,27 +1367,27 @@ class hitbtc extends \ccxt\async\hitbtc {
         // createOrderWs, cancelOrderWs
         //
         //    {
-        //        "jsonrpc" => "2.0",
-        //        "result" => array(
-        //            "id" => 1130310696965,
-        //            "client_order_id" => "OPC2oyHSkEBqIpPtniLqeW-597hUL3Yo",
-        //            "symbol" => "ADAUSDT",
-        //            "side" => "buy",
-        //            "status" => "new",
-        //            "type" => "limit",
-        //            "time_in_force" => "GTC",
-        //            "quantity" => "4",
-        //            "quantity_cumulative" => "0",
-        //            "price" => "0.3300000",
-        //            "post_only" => false,
-        //            "created_at" => "2023-11-17T14:58:15.903Z",
-        //            "updated_at" => "2023-11-17T14:58:15.903Z",
-        //            "original_client_order_id" => "d6b645556af740b1bd1683400fd9cbce",       // spot_replace_order only
-        //            "report_type" => "new"
-        //            "margin_mode" => "isolated",                                            // margin and future only
-        //            "reduce_only" => false,                                                 // margin and future only
-        //        ),
-        //        "id" => 1700233093414
+        //        "jsonrpc": "2.0",
+        //        "result": {
+        //            "id": 1130310696965,
+        //            "client_order_id": "OPC2oyHSkEBqIpPtniLqeW-597hUL3Yo",
+        //            "symbol": "ADAUSDT",
+        //            "side": "buy",
+        //            "status": "new",
+        //            "type": "limit",
+        //            "time_in_force": "GTC",
+        //            "quantity": "4",
+        //            "quantity_cumulative": "0",
+        //            "price": "0.3300000",
+        //            "post_only": false,
+        //            "created_at": "2023-11-17T14:58:15.903Z",
+        //            "updated_at": "2023-11-17T14:58:15.903Z",
+        //            "original_client_order_id": "d6b645556af740b1bd1683400fd9cbce",       // spot_replace_order only
+        //            "report_type": "new"
+        //            "margin_mode": "isolated",                                            // margin and future only
+        //            "reduce_only": false,                                                 // margin and future only
+        //        },
+        //        "id": 1700233093414
         //    }
         //
         $messageHash = $this->safe_string($message, 'id');
@@ -1450,7 +1450,7 @@ class hitbtc extends \ccxt\async\hitbtc {
             }
             if ((gettype($result) === 'array' && array_keys($result) === array_keys(array_keys($result)))) {
                 // to do improve this, not very reliable right now
-                $first = $this->safe_value($result, 0, array());
+                $first = $this->safe_dict($result, 0, array());
                 $arrayLength = count($result);
                 if (($arrayLength === 0) || (is_array($first) && array_key_exists('client_order_id' ?? '', $first))) {
                     $this->handle_order_request($client, $message);
@@ -1462,13 +1462,13 @@ class hitbtc extends \ccxt\async\hitbtc {
     public function handle_authenticate(Client $client, mixed $message) {
         //
         //    {
-        //        "jsonrpc" => "2.0",
-        //        "result" => true
+        //        "jsonrpc": "2.0",
+        //        "result": true
         //    }
         //
         $success = $this->safe_value($message, 'result');
         $messageHash = 'authenticated';
-        if ($success) {
+        if ($success === true) {
             $future = $this->safe_value($client->futures, $messageHash);
             $future->resolve(true);
         } else {
@@ -1481,16 +1481,16 @@ class hitbtc extends \ccxt\async\hitbtc {
         return $message;
     }
 
-    public function handle_error(Client $client, mixed $message) {
+    public function handle_error(Client $client, mixed $message): bool {
         //
         //    {
-        //        jsonrpc => '2.0',
-        //        $error => array(
-        //          $code => 20001,
-        //          $message => 'Insufficient funds',
-        //          $description => 'Check that the funds are sufficient, given commissions'
-        //        ),
-        //        $id => 1700228604325
+        //        jsonrpc: '2.0',
+        //        error: {
+        //          code: 20001,
+        //          message: 'Insufficient funds',
+        //          description: 'Check that the funds are sufficient, given commissions'
+        //        },
+        //        id: 1700228604325
         //    }
         //
         $error = $this->safe_value($message, 'error');
@@ -1502,7 +1502,7 @@ class hitbtc extends \ccxt\async\hitbtc {
                 $feedback = $this->id . ' ' . $description;
                 $this->throw_exactly_matched_exception($this->exceptions['exact'], $code, $feedback);
                 $this->throw_broadly_matched_exception($this->exceptions['broad'], $errorMessage, $feedback);
-                throw new ExchangeError($feedback); // unknown $message
+                throw new ExchangeError($feedback); // unknown message
             } catch (Exception $e) {
                 if ($e instanceof AuthenticationError) {
                     $messageHash = 'authenticated';
@@ -1517,6 +1517,6 @@ class hitbtc extends \ccxt\async\hitbtc {
                 return true;
             }
         }
-        return null;
+        return false;
     }
 }

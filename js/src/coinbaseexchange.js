@@ -179,11 +179,15 @@ export default class coinbaseexchange extends Exchange {
                         'time': { 'cost': 1 },
                         'products/spark-lines': { 'cost': 1 },
                         'products/volume-summary': { 'cost': 1 },
+                        'wrapped-assets': { 'cost': 1 },
+                        'wrapped-assets/{wrapped_asset_id}': { 'cost': 1 },
+                        'wrapped-assets/{wrapped_asset_id}/conversion-rate': { 'cost': 1 },
                     },
                 },
                 'private': {
                     'get': {
                         'address-book': { 'cost': 1 },
+                        'address-book/counterparty': { 'cost': 1 },
                         'accounts': { 'cost': 1 },
                         'accounts/{id}': { 'cost': 1 },
                         'accounts/{id}/holds': { 'cost': 1 },
@@ -213,9 +217,11 @@ export default class coinbaseexchange extends Exchange {
                         'reports/{report_id}': { 'cost': 1 },
                         'transfers': { 'cost': 1 },
                         'transfers/{transfer_id}': { 'cost': 1 },
+                        'travel-rules': { 'cost': 1 },
                         'users/self/exchange-limits': { 'cost': 1 },
                         'users/self/hold-balances': { 'cost': 1 },
                         'users/self/trailing-volume': { 'cost': 1 },
+                        'users/{user_id}/trading-volumes': { 'cost': 1 },
                         'withdrawals/fee-estimate': { 'cost': 1 },
                         'conversions/{conversion_id}': { 'cost': 1 },
                         'conversions': { 'cost': 1 },
@@ -231,12 +237,18 @@ export default class coinbaseexchange extends Exchange {
                         'loans/interest': { 'cost': 1 },
                         'loans/assets': { 'cost': 1 },
                         'loans': { 'cost': 1 },
+                        'loans/options': { 'cost': 1 },
+                        'wrapped-assets/redeem': { 'cost': 1 },
+                        'wrapped-assets/redeem/{redeem_id}': { 'cost': 1 },
+                        'wrapped-assets/stake-wrap': { 'cost': 1 },
+                        'wrapped-assets/stake-wrap/{stake_wrap_id}': { 'cost': 1 },
                     },
                     'post': {
                         'conversions': { 'cost': 1 },
                         'deposits/coinbase-account': { 'cost': 1 },
                         'deposits/payment-method': { 'cost': 1 },
                         'coinbase-accounts/{id}/addresses': { 'cost': 1 },
+                        'address-book': { 'cost': 1 },
                         'funding/repay': { 'cost': 1 },
                         'orders': { 'cost': 1 },
                         'position/close': { 'cost': 1 },
@@ -246,8 +258,14 @@ export default class coinbaseexchange extends Exchange {
                         'reports': { 'cost': 1 },
                         'withdrawals/coinbase': { 'cost': 1 },
                         'withdrawals/coinbase-account': { 'cost': 1 },
+                        'withdrawals/counterparty': { 'cost': 1 },
                         'withdrawals/crypto': { 'cost': 1 },
                         'withdrawals/payment-method': { 'cost': 1 },
+                        'transfers/{transfer_id}/travel-rules': { 'cost': 1 },
+                        'travel-rules': { 'cost': 1 },
+                        'users/{user_id}/settlement-preferences': { 'cost': 1 },
+                        'wrapped-assets/redeem': { 'cost': 1 },
+                        'wrapped-assets/stake-wrap': { 'cost': 1 },
                         'loans/open': { 'cost': 1 },
                         'loans/repay-interest': { 'cost': 1 },
                         'loans/repay-principal': { 'cost': 1 },
@@ -256,10 +274,13 @@ export default class coinbaseexchange extends Exchange {
                         'orders': { 'cost': 1 },
                         'orders/client:{client_oid}': { 'cost': 1 },
                         'orders/{id}': { 'cost': 1 },
+                        'address-book/{id}': { 'cost': 1 },
+                        'travel-rules/{id}': { 'cost': 1 },
                     },
                     'put': {
                         'profiles/{id}/deactivate': { 'cost': 1 },
                         'profiles/{id}': { 'cost': 1 },
+                        'address-book/{id}': { 'cost': 1 },
                     },
                 },
             },
@@ -1570,7 +1591,7 @@ export default class coinbaseexchange extends Exchange {
             request['time_in_force'] = timeInForce;
         }
         const postOnly = this.safeValue2(params, 'postOnly', 'post_only', false);
-        if (postOnly) {
+        if (postOnly === true) {
             request['post_only'] = true;
         }
         params = this.omit(params, ['timeInForce', 'time_in_force', 'stopPrice', 'stop_price', 'clientOrderId', 'client_oid', 'postOnly', 'post_only', 'triggerPrice']);
@@ -1719,7 +1740,7 @@ export default class coinbaseexchange extends Exchange {
             }
             response = await this.privatePostWithdrawalsCrypto(this.extend(request, params));
         }
-        if (!response) {
+        if (response === undefined) {
             throw new ExchangeError(this.id + ' withdraw() error: ' + this.json(response));
         }
         return this.parseTransaction(response, currency);
@@ -2006,15 +2027,15 @@ export default class coinbaseexchange extends Exchange {
     }
     parseTransactionStatus(transaction) {
         const canceled = this.safeValue(transaction, 'canceled_at');
-        if (canceled) {
+        if ((canceled !== undefined) && (canceled !== null)) {
             return 'canceled';
         }
         const processed = this.safeValue(transaction, 'processed_at');
         const completed = this.safeValue(transaction, 'completed_at');
-        if (completed) {
+        if ((completed !== undefined) && (completed !== null)) {
             return 'ok';
         }
-        else if (processed && !completed) {
+        else if ((processed !== undefined) && (processed !== null)) {
             return 'failed';
         }
         else {
@@ -2145,7 +2166,7 @@ export default class coinbaseexchange extends Exchange {
         let request = '/' + this.implodeParams(path, params);
         const query = this.omit(params, this.extractParams(path));
         if (method === 'GET') {
-            if (Object.keys(query).length) {
+            if (Object.keys(query).length > 0) {
                 request += '?' + this.urlencode(query);
             }
         }
@@ -2155,7 +2176,7 @@ export default class coinbaseexchange extends Exchange {
             const nonce = this.nonce().toString();
             let payload = '';
             if (method !== 'GET') {
-                if (Object.keys(query).length) {
+                if (Object.keys(query).length > 0) {
                     body = this.json(query);
                     payload = body;
                 }

@@ -114,7 +114,7 @@ export default class whitebit extends whitebitRest {
         //     "id": null
         // }
         //
-        const params = this.safeValue(message, 'params', []);
+        const params = this.safeList(message, 'params', []);
         for (let i = 0; i < params.length; i++) {
             const data = params[i];
             const marketId = this.safeString(data, 7);
@@ -223,7 +223,7 @@ export default class whitebit extends whitebitRest {
         const orderbook = this.orderbooks[symbol];
         orderbook['timestamp'] = timestamp;
         orderbook['datetime'] = this.iso8601(timestamp);
-        if (isSnapshot) {
+        if (isSnapshot === true) {
             const snapshot = this.parseOrderBook(data, symbol);
             orderbook.reset(snapshot);
         }
@@ -767,7 +767,7 @@ export default class whitebit extends whitebitRest {
             return;
         }
         const fetchBalanceSnapshot = this.handleOption('watchBalance', 'fetchBalanceSnapshot', true);
-        if (fetchBalanceSnapshot) {
+        if (fetchBalanceSnapshot === true) {
             const messageHash = type + ':fetchBalanceSnapshot';
             if (!(messageHash in client.futures)) {
                 client.future(messageHash);
@@ -907,12 +907,12 @@ export default class whitebit extends whitebitRest {
             return await this.watch(url, messageHash, message, method, subscription);
         }
         else {
-            const subscription = this.safeValue(client.subscriptions, method, {});
+            const subscription = this.safeDict(client.subscriptions, method, {});
             let hasSymbolSubscription = true;
             const market = this.market(symbol);
             const marketId = market['id'];
             const isSubscribed = this.safeBool(subscription, marketId, false);
-            if (!isSubscribed) {
+            if (isSubscribed !== true) {
                 if (marketId !== undefined) {
                     subscription[marketId] = true;
                 }
@@ -963,18 +963,11 @@ export default class whitebit extends whitebitRest {
         // the authorized sentinel authenticate () has always returned - every
         // path below hands back that same value
         const authorized = 1;
-        // single-flight leader election, see
-        // https://github.com/ccxt/ccxt/issues/29393: the handshake is gated on
-        // subscriptions['authenticated'], which watch () only registers once
-        // the awaited v4PrivatePostProfileWebsocketToken () has resolved, so
-        // every concurrent cold caller used to pass that gate, burn a
-        // rate-limited private REST call for its own websocket_token and push
-        // its own authorize frame down the shared socket. the flight is
-        // registered in client.futures on the very client that carries the
-        // handshake, under a key that is not one of the exchange's own
-        // messageHashes, and is settled through client.resolve () /
-        // client.reject () so every write to that map goes through the
-        // client's own accessors
+        // single-flight leader election, see https://github.com/ccxt/ccxt/issues/29393:
+        // the handshake gate subscriptions['authenticated'] is only registered after the awaited
+        // token fetch, so concurrent cold callers would each burn a private REST call and push
+        // their own authorize frame. the flight lives in client.futures of the handshake client
+        // under a non-messageHash key and settles only via client.resolve () / client.reject ()
         const messageHash = 'authenticateFlight';
         if (messageHash in client.futures) {
             // a flight is already in progress - wake when the leader settles
@@ -1092,7 +1085,7 @@ export default class whitebit extends whitebitRest {
         // pong
         //    { error: null, result: "pong", id: 0 }
         //
-        if (!this.handleErrorMessage(client, message)) {
+        if (this.handleErrorMessage(client, message) !== true) {
             return;
         }
         const result = this.safeString(message, 'result');

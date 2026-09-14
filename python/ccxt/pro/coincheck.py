@@ -138,14 +138,14 @@ class coincheck(ccxt.async_support.coincheck):
         #
         #     [
         #         [
-        #             "1663318663",  # transaction timestamp(unix time)
-        #             "2357062",  # transaction ID
-        #             "btc_jpy",  # pair
-        #             "2820896.0",  # transaction rate
-        #             "5.0",  # transaction amount
-        #             "sell",  # order side
-        #             "1193401",  # ID of the Taker
-        #             "2078767"  # ID of the Maker
+        #             "1663318663", // transaction timestamp (unix time)
+        #             "2357062", // transaction ID
+        #             "btc_jpy", // pair
+        #             "2820896.0", // transaction rate
+        #             "5.0", // transaction amount
+        #             "sell", // order side
+        #             "1193401", // ID of the Taker
+        #             "2078767" // ID of the Maker
         #         ]
         #     ]
         #
@@ -166,14 +166,14 @@ class coincheck(ccxt.async_support.coincheck):
     def parse_ws_trade(self, trade: dict, market: Market = None) -> Trade:
         #
         #     [
-        #         "1663318663",  # transaction timestamp(unix time)
-        #         "2357062",  # transaction ID
-        #         "btc_jpy",  # pair
-        #         "2820896.0",  # transaction rate
-        #         "5.0",  # transaction amount
-        #         "sell",  # order side
-        #         "1193401",  # ID of the Taker
-        #         "2078767"  # ID of the Maker
+        #         "1663318663", // transaction timestamp (unix time)
+        #         "2357062", // transaction ID
+        #         "btc_jpy", // pair
+        #         "2820896.0", // transaction rate
+        #         "5.0", // transaction amount
+        #         "sell", // order side
+        #         "1193401", // ID of the Taker
+        #         "2078767" // ID of the Maker
         #     ]
         #
         symbol = self.symbol(self.safe_string(trade, 2))

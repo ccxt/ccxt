@@ -122,7 +122,7 @@ abstract class upbit extends \ccxt\async\Exchange {
         return $this->request('ticker', 'public', 'GET', $params, null, null, array("cost" => 2));
     }
     /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     * @return \React\Promise\PromiseInterface<list<mixed>>
      */
     public function public_get_ticker_all($params = array()) {
         return $this->request('ticker/all', 'public', 'GET', $params, null, null, array("cost" => 2));
@@ -248,6 +248,36 @@ abstract class upbit extends \ccxt\async\Exchange {
         return $this->request('api_keys', 'private', 'GET', $params, null, null, array("cost" => 0.67));
     }
     /**
+     * @return \React\Promise\PromiseInterface<list<mixed>>
+     */
+    public function private_get_pockets($params = array()) {
+        return $this->request('pockets', 'private', 'GET', $params, null, null, array("cost" => 0.67));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<list<mixed>>
+     */
+    public function private_get_pockets_api_keys($params = array()) {
+        return $this->request('pockets/api_keys', 'private', 'GET', $params, null, null, array("cost" => 0.67));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<list<mixed>>
+     */
+    public function private_get_pockets_assets($params = array()) {
+        return $this->request('pockets/assets', 'private', 'GET', $params, null, null, array("cost" => 0.67));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<list<mixed>>
+     */
+    public function private_get_pockets_universal_transfers($params = array()) {
+        return $this->request('pockets/universal_transfers', 'private', 'GET', $params, null, null, array("cost" => 0.67));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<list<mixed>>
+     */
+    public function private_get_pockets_transfers($params = array()) {
+        return $this->request('pockets/transfers', 'private', 'GET', $params, null, null, array("cost" => 0.67));
+    }
+    /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function private_post_orders($params = array()) {
@@ -300,6 +330,18 @@ abstract class upbit extends \ccxt\async\Exchange {
      */
     public function private_post_travel_rule_deposit_txid($params = array()) {
         return $this->request('travel_rule/deposit/txid', 'private', 'POST', $params, null, null, array("cost" => 0.67));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_post_pockets_universal_transfers($params = array()) {
+        return $this->request('pockets/universal_transfers', 'private', 'POST', $params, null, null, array("cost" => 0.67));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_post_pockets_transfers($params = array()) {
+        return $this->request('pockets/transfers', 'private', 'POST', $params, null, null, array("cost" => 0.67));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -440,7 +482,7 @@ abstract class upbit extends \ccxt\async\Exchange {
         return $this->request('ticker', 'public', 'GET', $params, null, null, array("cost" => 2));
     }
     /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     * @return \React\Promise\PromiseInterface<list<mixed>>
      */
     public function publicGetTickerAll($params = array()) {
         return $this->request('ticker/all', 'public', 'GET', $params, null, null, array("cost" => 2));
@@ -566,6 +608,36 @@ abstract class upbit extends \ccxt\async\Exchange {
         return $this->request('api_keys', 'private', 'GET', $params, null, null, array("cost" => 0.67));
     }
     /**
+     * @return \React\Promise\PromiseInterface<list<mixed>>
+     */
+    public function privateGetPockets($params = array()) {
+        return $this->request('pockets', 'private', 'GET', $params, null, null, array("cost" => 0.67));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<list<mixed>>
+     */
+    public function privateGetPocketsApiKeys($params = array()) {
+        return $this->request('pockets/api_keys', 'private', 'GET', $params, null, null, array("cost" => 0.67));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<list<mixed>>
+     */
+    public function privateGetPocketsAssets($params = array()) {
+        return $this->request('pockets/assets', 'private', 'GET', $params, null, null, array("cost" => 0.67));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<list<mixed>>
+     */
+    public function privateGetPocketsUniversalTransfers($params = array()) {
+        return $this->request('pockets/universal_transfers', 'private', 'GET', $params, null, null, array("cost" => 0.67));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<list<mixed>>
+     */
+    public function privateGetPocketsTransfers($params = array()) {
+        return $this->request('pockets/transfers', 'private', 'GET', $params, null, null, array("cost" => 0.67));
+    }
+    /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function privatePostOrders($params = array()) {
@@ -618,6 +690,18 @@ abstract class upbit extends \ccxt\async\Exchange {
      */
     public function privatePostTravelRuleDepositTxid($params = array()) {
         return $this->request('travel_rule/deposit/txid', 'private', 'POST', $params, null, null, array("cost" => 0.67));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privatePostPocketsUniversalTransfers($params = array()) {
+        return $this->request('pockets/universal_transfers', 'private', 'POST', $params, null, null, array("cost" => 0.67));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privatePostPocketsTransfers($params = array()) {
+        return $this->request('pockets/transfers', 'private', 'POST', $params, null, null, array("cost" => 0.67));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>

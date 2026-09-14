@@ -5,7 +5,7 @@ namespace ccxt;
 
 public partial class bit2c : Exchange
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "id", "bit2c" },
@@ -124,6 +124,9 @@ public partial class bit2c : Exchange
                         { "Exchanges/{pair}/orderbook", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
+                        { "Exchanges/{pair}/orderbook-top", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                         { "Exchanges/{pair}/trades", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
@@ -138,6 +141,9 @@ public partial class bit2c : Exchange
                             { "cost", 1 },
                         } },
                         { "Funds/AddCoinFundsRequest", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "Funds/WithdrawCoin", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
                         { "Order/AddFund", new Dictionary<string, object>() {
@@ -191,6 +197,9 @@ public partial class bit2c : Exchange
                             { "cost", 1 },
                         } },
                         { "Order/OrderHistory", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "Order/HistoryByOrderId", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
                     } },
@@ -330,18 +339,18 @@ public partial class bit2c : Exchange
 
     public override object parseBalance(object response)
     {
-        object result = new Dictionary<string, object>() {
+        Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
             { "timestamp", null },
             { "datetime", null },
         };
-        object codes = new List<object>(((IDictionary<string,object>)this.currencies).Keys);
-        for (object i = 0; isLessThan(i, getArrayLength(codes)); postFixIncrement(ref i))
+        List<object> codes = new List<object>(((IDictionary<string,object>)this.currencies).Keys);
+        for (int i = 0; isLessThan(i, getArrayLength(codes)); postFixIncrement(ref i))
         {
-            object code = getValue(codes, i);
-            object account = this.account();
-            object currency = this.currency(code);
-            object uppercase = ((string)getValue(currency, "id")).ToUpper();
+            string? code = ((string)getValue(codes, i));
+            Dictionary<string, object> account = this.account();
+            Dictionary<string, object> currency = this.currency(((string)code));
+            string uppercase = ((string)getValue(currency, "id")).ToUpper();
             if (isTrue(inOp(response, uppercase)))
             {
                 ((IDictionary<string,object>)account)["free"] = this.safeString(response, add("AVAILABLE_", uppercase));
@@ -360,14 +369,14 @@ public partial class bit2c : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public async override Task<object> fetchBalance(object parameters = null)
+    public async override Task<ccxt.Balances> FetchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
-        object response = await this.privateGetAccountBalanceV2(parameters);
+        Dictionary<string, object> response = await this.privateGetAccountBalanceV2(parameters);
         //
         //     {
         //         "AVAILABLE_NIS": 0.0,
@@ -410,7 +419,7 @@ public partial class bit2c : Exchange
         //         }
         //     }
         //
-        return this.parseBalance(response);
+        return ccxt.BaseExchange.ToBalances(this.parseBalance(response));
     }
 
     /**
@@ -423,18 +432,18 @@ public partial class bit2c : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
+    public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
-        object market = this.market(symbol);
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> market = this.market(symbol);
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "pair", getValue(market, "id") },
         };
-        object orderbook = await this.publicGetExchangesPairOrderbook(this.extend(request, parameters));
+        Dictionary<string, object> orderbook = await this.publicGetExchangesPairOrderbook(this.extend(request, parameters));
         // the full orderbook.json snapshot can contain dead orders - rows
         // published with a zero amount at their limit price, hours-stable and
         // sometimes crossing the real market. per the api docs the endpoint
@@ -442,41 +451,41 @@ public partial class bit2c : Exchange
         // feed filters these rows out, so a non-positive amount is a dead order
         // their full snapshot failed to purge - it is removed here, which also
         // uncrosses the book. rows are positional price and amount pairs
-        object rawBids = this.safeList(orderbook, "bids", new List<object>() {});
-        object rawAsks = this.safeList(orderbook, "asks", new List<object>() {});
-        object bids = new List<object>() {};
-        object asks = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(rawBids)); postFixIncrement(ref i))
+        List<object> rawBids = this.safeList(orderbook, "bids", new List<object>() {});
+        List<object> rawAsks = this.safeList(orderbook, "asks", new List<object>() {});
+        List<object> bids = new List<object>() {};
+        List<object> asks = new List<object>() {};
+        for (int i = 0; isLessThan(i, getArrayLength(rawBids)); postFixIncrement(ref i))
         {
             object bidRow = getValue(rawBids, i);
-            object bidAmount = this.safeString(bidRow, 1);
+            string? bidAmount = this.safeString(bidRow, 1);
             if (isTrue(Precise.stringGt(bidAmount, "0")))
             {
                 ((IList<object>)bids).Add(bidRow);
             }
         }
-        for (object i = 0; isLessThan(i, getArrayLength(rawAsks)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(rawAsks)); postFixIncrement(ref i))
         {
             object askRow = getValue(rawAsks, i);
-            object askAmount = this.safeString(askRow, 1);
+            string? askAmount = this.safeString(askRow, 1);
             if (isTrue(Precise.stringGt(askAmount, "0")))
             {
                 ((IList<object>)asks).Add(askRow);
             }
         }
-        object filtered = new Dictionary<string, object>() {
+        Dictionary<string, object> filtered = new Dictionary<string, object>() {
             { "bids", bids },
             { "asks", asks },
         };
-        return this.parseOrderBook(filtered, symbol);
+        return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(filtered, symbol));
     }
 
     public override object parseTicker(object ticker, object market = null)
     {
-        object symbol = this.safeSymbol(null, market);
-        object averagePrice = this.safeString(ticker, "av");
-        object baseVolume = this.safeString(ticker, "a");
-        object last = this.safeString(ticker, "ll");
+        string? symbol = this.safeSymbol(null, market);
+        string? averagePrice = this.safeString(ticker, "av");
+        string? baseVolume = this.safeString(ticker, "a");
+        string? last = this.safeString(ticker, "ll");
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", symbol },
             { "timestamp", null },
@@ -510,19 +519,19 @@ public partial class bit2c : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> fetchTicker(object symbol, object parameters = null)
+    public async override Task<ccxt.Ticker> FetchTicker(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
-        object market = this.market(symbol);
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> market = this.market(symbol);
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "pair", getValue(market, "id") },
         };
-        object response = await this.publicGetExchangesPairTicker(this.extend(request, parameters));
-        return this.parseTicker(response, market);
+        Dictionary<string, object> response = await this.publicGetExchangesPairTicker(this.extend(request, parameters));
+        return ccxt.BaseExchange.ToTicker(this.parseTicker(response, market));
     }
 
     /**
@@ -537,17 +546,17 @@ public partial class bit2c : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public async override Task<object> fetchTrades(object symbol, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> FetchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
-        object market = this.market(symbol);
-        object optionValue = this.safeString(this.options, "fetchTradesMethod"); // kept here for backward compatibility #29154
+        Dictionary<string, object> market = this.market(symbol);
+        string? optionValue = this.safeString(this.options, "fetchTradesMethod"); // kept here for backward compatibility #29154
         object method = this.handleOption("fetchTrades", "method", optionValue); // public_get_exchanges_pair_trades or public_get_exchanges_pair_lasttrades
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "pair", getValue(market, "id") },
         };
         if (isTrue(!isEqual(since, null)))
@@ -558,7 +567,7 @@ public partial class bit2c : Exchange
         {
             ((IDictionary<string,object>)request)["limit"] = limit; // max 100000
         }
-        object responseList = new List<object>() {};
+        IList<object> responseList = new List<object>() {};
         if (isTrue(isEqual(method, "public_get_exchanges_pair_trades")))
         {
             object response = await this.publicGetExchangesPairTrades(this.extend(request, parameters));
@@ -583,7 +592,7 @@ public partial class bit2c : Exchange
             }
             responseList = this.toArray(response);
         }
-        return this.parseTrades(responseList, market, since, limit);
+        return ccxt.BaseExchange.ToTradeList(this.parseTrades(responseList, market, since, limit));
     }
 
     /**
@@ -594,14 +603,14 @@ public partial class bit2c : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
-    public async override Task<object> fetchTradingFees(object parameters = null)
+    public async override Task<ccxt.TradingFees> FetchTradingFees(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
-        object response = await this.privateGetAccountBalance(parameters);
+        Dictionary<string, object> response = await this.privateGetAccountBalance(parameters);
         //
         //     {
         //         "AVAILABLE_NIS": 0.0,
@@ -618,18 +627,18 @@ public partial class bit2c : Exchange
         //         }
         //     }
         //
-        object fees = this.safeValue(response, "Fees", new Dictionary<string, object>() {});
-        object keys = new List<object>(((IDictionary<string,object>)fees).Keys);
-        object result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
+        IDictionary<string, object> fees = this.safeDict(response, "Fees", new Dictionary<string, object>() {});
+        List<object> keys = new List<object>(((IDictionary<string,object>)fees).Keys);
+        Dictionary<string, object> result = new Dictionary<string, object>() {};
+        for (int i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
         {
-            object marketId = getValue(keys, i);
-            object symbol = this.safeSymbol(marketId);
+            string? marketId = ((string)getValue(keys, i));
+            string? symbol = this.safeSymbol(marketId);
             object fee = this.safeValue(fees, marketId);
-            object makerString = this.safeString(fee, "FeeMaker");
-            object takerString = this.safeString(fee, "FeeTaker");
-            object maker = this.parseNumber(Precise.stringDiv(makerString, "100"));
-            object taker = this.parseNumber(Precise.stringDiv(takerString, "100"));
+            string? makerString = this.safeString(fee, "FeeMaker");
+            string? takerString = this.safeString(fee, "FeeTaker");
+            double? maker = this.parseNumber(Precise.stringDiv(makerString, "100"));
+            double? taker = this.parseNumber(Precise.stringDiv(takerString, "100"));
             ((IDictionary<string,object>)result)[(string)symbol] = new Dictionary<string, object>() {
                 { "info", fee },
                 { "symbol", symbol },
@@ -639,7 +648,7 @@ public partial class bit2c : Exchange
                 { "tierBased", true },
             };
         }
-        return result;
+        return ccxt.BaseExchange.ToTradingFees(result);
     }
 
     /**
@@ -655,19 +664,19 @@ public partial class bit2c : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
+    public async override Task<ccxt.Order> CreateOrder(string symbol, string type, string side, double amount, double? price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
-        object market = this.market(symbol);
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> market = this.market(symbol);
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "Amount", amount },
             { "Pair", getValue(market, "id") },
         };
-        object response = null;
+        Dictionary<string, object> response = null;
         if (isTrue(isEqual(type, "market")))
         {
             if (isTrue(isEqual(side, "buy")))
@@ -680,13 +689,13 @@ public partial class bit2c : Exchange
         } else
         {
             ((IDictionary<string,object>)request)["Price"] = price;
-            object amountString = this.numberToString(amount);
-            object priceString = this.numberToString(price);
+            string? amountString = this.numberToString(amount);
+            string? priceString = this.numberToString(price);
             ((IDictionary<string,object>)request)["Total"] = this.parseToNumeric(Precise.stringMul(amountString, priceString));
             ((IDictionary<string,object>)request)["IsBid"] = (isEqual(side, "buy"));
             response = await this.privatePostOrderAddOrder(this.extend(request, parameters));
         }
-        return this.parseOrder(response, market);
+        return ccxt.BaseExchange.ToOrder(this.parseOrder(response, market));
     }
 
     /**
@@ -699,14 +708,14 @@ public partial class bit2c : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> cancelOrder(object id, object symbol = null, object parameters = null)
+    public async override Task<ccxt.Order> CancelOrder(string id, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "id", id },
         };
-        object response = await this.privatePostOrderCancelOrder(this.extend(request, parameters));
-        return this.parseOrder(response);
+        Dictionary<string, object> response = await this.privatePostOrderCancelOrder(this.extend(request, parameters));
+        return ccxt.BaseExchange.ToOrder(this.parseOrder(response));
     }
 
     /**
@@ -720,7 +729,7 @@ public partial class bit2c : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> fetchOpenOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> FetchOpenOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
@@ -731,15 +740,15 @@ public partial class bit2c : Exchange
         {
             await this.loadMarkets();
         }
-        object market = this.market(symbol);
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> market = this.market(symbol);
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "pair", getValue(market, "id") },
         };
-        object response = await this.privateGetOrderMyOrders(this.extend(request, parameters));
+        Dictionary<string, object> response = await this.privateGetOrderMyOrders(this.extend(request, parameters));
         object orders = this.safeValue(response, getValue(market, "id"), new Dictionary<string, object>() {});
         object asks = this.safeValue(orders, "ask", new List<object>() {});
-        object bids = this.safeList(orders, "bid", new List<object>() {});
-        return this.parseOrders(this.arrayConcat(asks, bids), market, since, limit);
+        List<object> bids = this.safeList(orders, "bid", new List<object>() {});
+        return ccxt.BaseExchange.ToOrderList(this.parseOrders(this.arrayConcat(asks, bids), market, since, limit));
     }
 
     /**
@@ -752,18 +761,18 @@ public partial class bit2c : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> fetchOrder(object id, object symbol = null, object parameters = null)
+    public async override Task<ccxt.Order> FetchOrder(string id, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
-        object market = this.market(symbol);
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> market = this.market(symbol);
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "id", id },
         };
-        object response = await this.privateGetOrderGetById(this.extend(request, parameters));
+        Dictionary<string, object> response = await this.privateGetOrderGetById(this.extend(request, parameters));
         //
         //         {
         //             "pair": "BtcNis",
@@ -778,7 +787,7 @@ public partial class bit2c : Exchange
         //             "initialAmount": 2.00000000
         //         }
         //
-        return this.parseOrder(response, market);
+        return ccxt.BaseExchange.ToOrder(this.parseOrder(response, market));
     }
 
     public override object parseOrder(object order, object market = null)
@@ -814,7 +823,7 @@ public partial class bit2c : Exchange
         //      }
         //
         object orderUnified = null;
-        object isNewOrder = false;
+        bool isNewOrder = false;
         if (isTrue(inOp(order, "NewOrder")))
         {
             orderUnified = getValue(order, "NewOrder");
@@ -823,18 +832,18 @@ public partial class bit2c : Exchange
         {
             orderUnified = order;
         }
-        object id = this.safeString(orderUnified, "id");
-        object symbol = this.safeSymbol(null, market);
-        object timestamp = this.safeIntegerProduct(orderUnified, "created", 1000);
+        string? id = this.safeString(orderUnified, "id");
+        string? symbol = this.safeSymbol(null, market);
+        Int64? timestamp = this.safeIntegerProduct(orderUnified, "created", 1000);
         // status field vary between responses
         // bit2c status type:
         // 0 = New
         // 1 = Open
         // 5 = Completed
-        object status = null;
+        string? status = null;
         if (isTrue(isNewOrder))
         {
-            object tempStatus = this.safeInteger(orderUnified, "status_type");
+            Int64? tempStatus = this.safeInteger(orderUnified, "status_type");
             if (isTrue(isTrue(isEqual(tempStatus, 0)) || isTrue(isEqual(tempStatus, 1))))
             {
                 status = "open";
@@ -844,7 +853,7 @@ public partial class bit2c : Exchange
             }
         } else
         {
-            object tempStatus = this.safeString(orderUnified, "status");
+            string? tempStatus = this.safeString(orderUnified, "status");
             if (isTrue(isTrue(isEqual(tempStatus, "New")) || isTrue(isEqual(tempStatus, "Open"))))
             {
                 status = "open";
@@ -855,7 +864,7 @@ public partial class bit2c : Exchange
         }
         // bit2c order type:
         // 0 = LMT,  1 = MKT
-        object type = this.safeString(orderUnified, "order_type");
+        string? type = this.safeString(orderUnified, "order_type");
         if (isTrue(isEqual(type, "0")))
         {
             type = "limit";
@@ -865,7 +874,7 @@ public partial class bit2c : Exchange
         }
         // bit2c side:
         // 0 = buy, 1 = sell
-        object side = this.safeString(orderUnified, "type");
+        string? side = this.safeString(orderUnified, "type");
         if (isTrue(isEqual(side, "0")))
         {
             side = "buy";
@@ -873,9 +882,9 @@ public partial class bit2c : Exchange
         {
             side = "sell";
         }
-        object price = this.safeString(orderUnified, "price");
-        object amount = null;
-        object remaining = null;
+        string? price = this.safeString(orderUnified, "price");
+        string? amount = null;
+        string? remaining = null;
         if (isTrue(isNewOrder))
         {
             amount = this.safeString(orderUnified, "amount"); // NOTE:'initialAmount' is currently not set on new order
@@ -921,15 +930,15 @@ public partial class bit2c : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public async override Task<object> fetchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> FetchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
-        object market = null;
-        object request = new Dictionary<string, object>() {};
+        IDictionary<string, object> market = null;
+        Dictionary<string, object> request = new Dictionary<string, object>() {};
         if (isTrue(!isEqual(limit, null)))
         {
             ((IDictionary<string,object>)request)["take"] = limit;
@@ -945,7 +954,7 @@ public partial class bit2c : Exchange
             market = this.market(symbol);
             ((IDictionary<string,object>)request)["pair"] = getValue(market, "id");
         }
-        object response = await this.privateGetOrderOrderHistory(this.extend(request, parameters));
+        List<object> response = await this.privateGetOrderOrderHistory(this.extend(request, parameters));
         //
         //     [
         //         {
@@ -984,19 +993,19 @@ public partial class bit2c : Exchange
         //         }
         //     ]
         //
-        object responseList = new List<object>() {};
+        IList<object> responseList = new List<object>() {};
         if (isTrue(!isEqual(response, null)))
         {
             responseList = this.toArray(response);
         }
-        return this.parseTrades(responseList, market, since, limit);
+        return ccxt.BaseExchange.ToTradeList(this.parseTrades(responseList, market, since, limit));
     }
 
     public virtual object removeCommaFromValue(object str)
     {
         object newString = "";
-        object strParts = ((string)str).Split(new [] {((string)",")}, StringSplitOptions.None).ToList<object>();
-        for (object i = 0; isLessThan(i, getArrayLength(strParts)); postFixIncrement(ref i))
+        List<object> strParts = ((string)str).Split(new [] {((string)",")}, StringSplitOptions.None).ToList<object>();
+        for (int i = 0; isLessThan(i, getArrayLength(strParts)); postFixIncrement(ref i))
         {
             newString = add(newString, getValue(strParts, i));
         }
@@ -1040,12 +1049,12 @@ public partial class bit2c : Exchange
         object timestamp = null;
         object id = null;
         object price = null;
-        object amount = null;
+        string? amount = null;
         object orderId = null;
-        object fee = null;
+        Dictionary<string, object> fee = null;
         object side = null;
-        object makerOrTaker = null;
-        object reference = this.safeString(trade, "reference");
+        string? makerOrTaker = null;
+        string? reference = this.safeString(trade, "reference");
         if (isTrue(!isEqual(reference, null)))
         {
             id = reference;
@@ -1053,14 +1062,14 @@ public partial class bit2c : Exchange
             price = this.safeString(trade, "price");
             price = this.removeCommaFromValue(price);
             amount = this.safeString(trade, "firstAmount");
-            object reference_parts = ((string)reference).Split(new [] {((string)"|")}, StringSplitOptions.None).ToList<object>(); // reference contains 'pair|orderId_by_taker|orderId_by_maker'
-            object marketId = this.safeString(trade, "pair");
+            List<object> reference_parts = ((string)reference).Split(new [] {((string)"|")}, StringSplitOptions.None).ToList<object>(); // reference contains 'pair|orderId_by_taker|orderId_by_maker'
+            string? marketId = this.safeString(trade, "pair");
             market = this.safeMarket(marketId, market);
             market = this.safeMarket(getValue(reference_parts, 0), market);
             object isMaker = this.safeValue(trade, "isMaker");
-            makerOrTaker = ((bool) isTrue(isMaker)) ? "maker" : "taker";
-            orderId = ((bool) isTrue(isMaker)) ? getValue(reference_parts, 2) : getValue(reference_parts, 1);
-            object action = this.safeInteger(trade, "action");
+            makerOrTaker = ((bool) isTrue((isEqual(isMaker, true)))) ? "maker" : "taker";
+            orderId = ((bool) isTrue((isEqual(isMaker, true)))) ? getValue(reference_parts, 2) : getValue(reference_parts, 1);
+            Int64? action = this.safeInteger(trade, "action");
             if (isTrue(isEqual(action, 0)))
             {
                 side = "buy";
@@ -1068,7 +1077,7 @@ public partial class bit2c : Exchange
             {
                 side = "sell";
             }
-            object feeCost = this.safeString(trade, "feeAmount");
+            string? feeCost = this.safeString(trade, "feeAmount");
             if (isTrue(!isEqual(feeCost, null)))
             {
                 fee = new Dictionary<string, object>() {
@@ -1085,7 +1094,7 @@ public partial class bit2c : Exchange
             side = this.safeValue(trade, "isBid");
             if (isTrue(!isEqual(side, null)))
             {
-                if (isTrue(side))
+                if (isTrue(isTrue((!isEqual(side, null))) && isTrue((!isEqual(side, "")))))
                 {
                     side = "buy";
                 } else
@@ -1112,9 +1121,9 @@ public partial class bit2c : Exchange
         }, market);
     }
 
-    public virtual object isFiat(object code)
+    public virtual bool isFiat(object code)
     {
-        return isEqual(code, "NIS");
+        return ((bool)((object)(isEqual(code, "NIS")))!);
     }
 
     /**
@@ -1126,29 +1135,29 @@ public partial class bit2c : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    public async override Task<object> fetchDepositAddress(object code, object parameters = null)
+    public async override Task<ccxt.DepositAddress> FetchDepositAddress(string code, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
-        object currency = this.currency(code);
+        Dictionary<string, object> currency = this.currency(((string)code));
         if (isTrue(this.isFiat(code)))
         {
             throw new NotSupported ((string)add(this.id, " fetchDepositAddress() does not support fiat currencies")) ;
         }
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "Coin", getValue(currency, "id") },
         };
-        object response = await this.privatePostFundsAddCoinFundsRequest(this.extend(request, parameters));
+        Dictionary<string, object> response = await this.privatePostFundsAddCoinFundsRequest(this.extend(request, parameters));
         //
         //     {
         //         "address": "0xf14b94518d74aff2b1a6d3429471bcfcd3881d42",
         //         "hasTx": False
         //     }
         //
-        return this.parseDepositAddress(response, currency);
+        return ccxt.BaseExchange.ToDepositAddress(this.parseDepositAddress(response, currency));
     }
 
     public override object parseDepositAddress(object depositAddress, object currency = null)
@@ -1159,9 +1168,9 @@ public partial class bit2c : Exchange
         //         "hasTx": False
         //     }
         //
-        object address = this.safeString(depositAddress, "address");
+        string? address = this.safeString(depositAddress, "address");
         this.checkAddress(address);
-        object code = this.safeCurrencyCode(null, currency);
+        string? code = this.safeCurrencyCode(null, currency);
         return new Dictionary<string, object>() {
             { "info", depositAddress },
             { "currency", code },
@@ -1171,7 +1180,7 @@ public partial class bit2c : Exchange
         };
     }
 
-    public override object nonce()
+    public override Int64 nonce()
     {
         return this.milliseconds();
     }
@@ -1188,14 +1197,14 @@ public partial class bit2c : Exchange
         } else
         {
             this.checkRequiredCredentials();
-            object nonce = this.nonce();
-            object query = this.extend(new Dictionary<string, object>() {
+            Int64 nonce = this.nonce();
+            Dictionary<string, object> query = this.extend(new Dictionary<string, object>() {
                 { "nonce", nonce },
             }, parameters);
-            object auth = this.urlencode(query);
+            string auth = this.urlencode(query);
             if (isTrue(isEqual(method, "GET")))
             {
-                if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys))))
+                if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys)), 0)))
                 {
                     url = add(url, add("?", auth));
                 }
@@ -1203,7 +1212,7 @@ public partial class bit2c : Exchange
             {
                 body = auth;
             }
-            object signature = this.hmac(this.encode(auth), this.encode(this.secret), sha512, "base64");
+            string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha512, "base64");
             headers = new Dictionary<string, object>() {
                 { "Content-Type", "application/x-www-form-urlencoded" },
                 { "key", this.apiKey },
@@ -1229,14 +1238,14 @@ public partial class bit2c : Exchange
         //     { "error": "Please provide valid nonce in Request Nonce (1598218490) is not bigger than last nonce (1598218490)."}
         //     { "Error" : "No order found." }
         //
-        object error = this.safeString(response, "error");
+        string? error = this.safeString(response, "error");
         if (isTrue(isEqual(error, null)))
         {
             error = this.safeString(response, "Error");
         }
         if (isTrue(!isEqual(error, null)))
         {
-            object feedback = add(add(this.id, " "), body);
+            string feedback = add(add(this.id, " "), body);
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), error, feedback);
             this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), error, feedback);
             throw new ExchangeError ((string)feedback) ;

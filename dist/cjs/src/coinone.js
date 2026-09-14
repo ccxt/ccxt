@@ -215,6 +215,8 @@ class coinone extends coinone$1["default"] {
                         'transaction/krw/history': { 'cost': 1 },
                         'transaction/coin/history': { 'cost': 1 },
                         'transaction/coin/withdrawal/limit': { 'cost': 1 },
+                        'event/order-reward/programs': { 'cost': 1 },
+                        'event/order-reward/history': { 'cost': 1 },
                     },
                 },
             },
@@ -1225,7 +1227,7 @@ class coinone extends coinone$1["default"] {
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
             const value = walletAddress[key];
-            if ((!value) || (value === '-1')) {
+            if ((value === undefined) || (value === null) || (value === '') || (value === '-1')) {
                 continue;
             }
             const parts = key.split('_');
@@ -1272,7 +1274,7 @@ class coinone extends coinone$1["default"] {
         }
         if (api === 'public') {
             url += request;
-            if (Object.keys(query).length) {
+            if (Object.keys(query).length > 0) {
                 url += '?' + this.urlencode(query);
             }
         }

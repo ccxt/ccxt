@@ -335,7 +335,7 @@ class poloniex extends poloniex$1["default"] {
         //    }
         //
         const messageHash = this.safeString(message, 'id');
-        const data = this.safeValue(message, 'data', []);
+        const data = this.safeList(message, 'data', []);
         const orders = [];
         for (let i = 0; i < data.length; i++) {
             const order = data[i];
@@ -644,7 +644,7 @@ class poloniex extends poloniex$1["default"] {
         //        ]
         //    }
         //
-        const data = this.safeValue(message, 'data', []);
+        const data = this.safeList(message, 'data', []);
         for (let i = 0; i < data.length; i++) {
             const item = data[i];
             const marketId = this.safeString(item, 'symbol');
@@ -833,7 +833,7 @@ class poloniex extends poloniex$1["default"] {
         //        ]
         //    }
         //
-        const data = this.safeValue(message, 'data', []);
+        const data = this.safeList(message, 'data', []);
         let orders = this.orders;
         if (orders === undefined) {
             const limit = this.safeInteger(this.options, 'ordersLimit');
@@ -1018,7 +1018,7 @@ class poloniex extends poloniex$1["default"] {
         //        ]
         //    }
         //
-        const data = this.safeValue(message, 'data', []);
+        const data = this.safeList(message, 'data', []);
         const newTickers = {};
         for (let i = 0; i < data.length; i++) {
             const item = data[i];
@@ -1096,7 +1096,7 @@ class poloniex extends poloniex$1["default"] {
         //        "action": "update"
         //    }
         //
-        const data = this.safeValue(message, 'data', []);
+        const data = this.safeList(message, 'data', []);
         const type = this.safeString(message, 'action');
         const snapshot = type === 'snapshot';
         const update = type === 'update';
@@ -1222,7 +1222,7 @@ class poloniex extends poloniex$1["default"] {
         client.lastPong = this.milliseconds();
     }
     handleMessage(client, message) {
-        if (this.handleErrorMessage(client, message)) {
+        if (this.handleErrorMessage(client, message) === true) {
             return;
         }
         const type = this.safeString(message, 'channel');
@@ -1264,7 +1264,7 @@ class poloniex extends poloniex$1["default"] {
             this.handleOrderRequest(client, message);
         }
         else {
-            const data = this.safeValue(message, 'data', []);
+            const data = this.safeList(message, 'data', []);
             const dataLength = data.length;
             if (dataLength > 0) {
                 method.call(this, client, message);
@@ -1343,7 +1343,7 @@ class poloniex extends poloniex$1["default"] {
         const data = this.safeValue(message, 'data');
         const success = this.safeValue(data, 'success');
         const messageHash = 'authenticated';
-        if (success) {
+        if (success === true) {
             client.resolve(message, messageHash);
         }
         else {

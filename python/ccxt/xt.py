@@ -33,9 +33,9 @@ class xt(Exchange, ImplicitAPI):
             'id': 'xt',
             'name': 'XT',
             'countries': ['SC'],  # Seychelles
-            # spot api ratelimits are None, 10/s/ip, 50/s/ip, 100/s/ip or 200/s/ip
-            # futures 3 requests per second => 1000ms / (100 * 3.33) = 3.003(get assets -> fetchMarkets & fetchCurrencies)
-            # futures 10 requests per second => 1000ms / (100 * 1) = 10(all other)
+            # spot api ratelimits are undefined, 10/s/ip, 50/s/ip, 100/s/ip or 200/s/ip
+            # futures 3 requests per second => 1000ms / (100 * 3.33) = 3.003 (get assets -> fetchMarkets & fetchCurrencies)
+            # futures 10 requests per second => 1000ms / (100 * 1) = 10 (all other)
             # futures 1000 times per minute for each single IP -> Otherwise account locked for 10min
             'rateLimit': 100,
             'version': 'v4',
@@ -57,7 +57,7 @@ class xt(Exchange, ImplicitAPI):
                 'createMarketBuyOrderWithCost': True,
                 'createMarketSellOrderWithCost': False,
                 'createOrder': True,
-                'createPostOnlyOrder': False,
+                'createPostOnlyOrder': True,
                 'createReduceOnlyOrder': True,
                 'editOrder': True,
                 'fetchAccounts': False,
@@ -260,27 +260,42 @@ class xt(Exchange, ImplicitAPI):
                     },
                     'linear': {
                         'get': {
+                            'future/copytrade/user/v1/copy-trade/current-following-v2': {'cost': 1},
+                            'future/copytrade/user/v1/copy-trade/follower-balance-bill': {'cost': 1},
+                            'future/copytrade/user/v1/copy-trade/follower-position': {'cost': 1},
                             'future/trade/v1/entrust/plan-detail': {'cost': 1},
                             'future/trade/v1/entrust/plan-list': {'cost': 1},
                             'future/trade/v1/entrust/plan-list-history': {'cost': 1},
                             'future/trade/v1/entrust/profit-detail': {'cost': 1},
                             'future/trade/v1/entrust/profit-list': {'cost': 1},
+                            'future/trade/v1/entrust/profit-list-history': {'cost': 1},
+                            'future/trade/v1/entrust/reverse-plan-list': {'cost': 1},
+                            'future/trade/v1/entrust/reverse-plan-list-history': {'cost': 1},
                             'future/trade/v1/entrust/track-detail': {'cost': 1},
                             'future/trade/v1/entrust/track-list': {'cost': 1},
                             'future/trade/v1/entrust/track-list-history': {'cost': 1},
+                            'future/trade/v1/order-entrust/list': {'cost': 1},
                             'future/trade/v1/order/detail': {'cost': 1},
                             'future/trade/v1/order/list': {'cost': 1},
                             'future/trade/v1/order/list-history': {'cost': 1},
+                            'future/trade/v1/order/trade-history': {'cost': 1},
                             'future/trade/v1/position/list-history': {'cost': 1},
+                            'future/trade/v1/position/cross-margin/{symbol}': {'cost': 1},
+                            'future/trade/v1/position/leverage/list': {'cost': 1},
+                            'future/trade/v1/position/list/active': {'cost': 1},
                             'future/trade/v1/order/trade-list': {'cost': 1},
+                            'future/trade/v1/order/trade-list-all': {'cost': 1},
                             'future/user/v1/account/info': {'cost': 1},
+                            'future/user/v1/auto-deleverage/history': {'cost': 1},
                             'future/user/v1/balance/bills': {'cost': 1},
                             'future/user/v1/balance/detail': {'cost': 1},
                             'future/user/v1/balance/funding-rate-list': {'cost': 1},
                             'future/user/v1/balance/list': {'cost': 1},
+                            'future/user/v1/compat/balance/{coin}': {'cost': 1},
                             'future/user/v1/position/adl': {'cost': 1},
                             'future/user/v1/position/break-list': {'cost': 1},
                             'future/user/v1/position/list': {'cost': 1},
+                            'future/user/v1/taker-over/list': {'cost': 1},
                             'future/user/v1/user/step-rate': {'cost': 1},
                             'future/user/v1/user/collection/list': {'cost': 1},
                             'future/user/v1/user/listen-key': {'cost': 1},
@@ -318,22 +333,34 @@ class xt(Exchange, ImplicitAPI):
                             'future/trade/v1/entrust/plan-list-history': {'cost': 1},
                             'future/trade/v1/entrust/profit-detail': {'cost': 1},
                             'future/trade/v1/entrust/profit-list': {'cost': 1},
+                            'future/trade/v1/entrust/profit-list-history': {'cost': 1},
+                            'future/trade/v1/entrust/reverse-plan-list': {'cost': 1},
+                            'future/trade/v1/entrust/reverse-plan-list-history': {'cost': 1},
                             'future/trade/v1/entrust/track-detail': {'cost': 1},
                             'future/trade/v1/entrust/track-list': {'cost': 1},
                             'future/trade/v1/entrust/track-list-history': {'cost': 1},
+                            'future/trade/v1/order-entrust/list': {'cost': 1},
                             'future/trade/v1/order/detail': {'cost': 1},
                             'future/trade/v1/order/list': {'cost': 1},
                             'future/trade/v1/order/list-history': {'cost': 1},
+                            'future/trade/v1/order/trade-history': {'cost': 1},
                             'future/trade/v1/position/list-history': {'cost': 1},
+                            'future/trade/v1/position/cross-margin/{symbol}': {'cost': 1},
+                            'future/trade/v1/position/leverage/list': {'cost': 1},
+                            'future/trade/v1/position/list/active': {'cost': 1},
                             'future/trade/v1/order/trade-list': {'cost': 1},
+                            'future/trade/v1/order/trade-list-all': {'cost': 1},
                             'future/user/v1/account/info': {'cost': 1},
+                            'future/user/v1/auto-deleverage/history': {'cost': 1},
                             'future/user/v1/balance/bills': {'cost': 1},
                             'future/user/v1/balance/detail': {'cost': 1},
                             'future/user/v1/balance/funding-rate-list': {'cost': 1},
                             'future/user/v1/balance/list': {'cost': 1},
+                            'future/user/v1/compat/balance/{coin}': {'cost': 1},
                             'future/user/v1/position/adl': {'cost': 1},
                             'future/user/v1/position/break-list': {'cost': 1},
                             'future/user/v1/position/list': {'cost': 1},
+                            'future/user/v1/taker-over/list': {'cost': 1},
                             'future/user/v1/user/step-rate': {'cost': 1},
                             'future/user/v1/user/collection/list': {'cost': 1},
                             'future/user/v1/user/listen-key': {'cost': 1},
@@ -518,8 +545,8 @@ class xt(Exchange, ImplicitAPI):
                     'WITHDRAW_004': BadRequest,  # The withdrawal address is not added
                     'WITHDRAW_005': BadRequest,  # The withdrawal address cannot be empty
                     'WITHDRAW_006': BadRequest,  # Memo cannot be empty
-                    'WITHDRAW_008': PermissionDenied,  # Risk control is triggered, withdraw of self currency is not currently supported
-                    'WITHDRAW_009': PermissionDenied,  # Withdraw failed, some hasattr(self, assets) withdraw are restricted by T+1 withdraw
+                    'WITHDRAW_008': PermissionDenied,  # Risk control is triggered, withdraw of this currency is not currently supported
+                    'WITHDRAW_009': PermissionDenied,  # Withdraw failed, some assets in this withdraw are restricted by T+1 withdraw
                     'WITHDRAW_010': BadRequest,  # The precision of withdrawal is invalid
                     'WITHDRAW_011': InsufficientFunds,  # free balance is not enough
                     'WITHDRAW_012': PermissionDenied,  # Withdraw failed, your remaining withdrawal limit today is not enough
@@ -531,14 +558,14 @@ class xt(Exchange, ImplicitAPI):
                     'WITHDRAW_018': BadRequest,  # Memo must be a number
                     'WITHDRAW_019': BadRequest,  # Memo is incorrect, please enter again
                     'WITHDRAW_020': PermissionDenied,  # Your withdrawal amount has reached the upper limit for today, please try it tomorrow
-                    'WITHDRAW_021': PermissionDenied,  # Your withdrawal amount has reached the upper limit for today, you can only withdraw up to {0} self time
+                    'WITHDRAW_021': PermissionDenied,  # Your withdrawal amount has reached the upper limit for today, you can only withdraw up to {0} this time
                     'WITHDRAW_022': BadRequest,  # Withdrawal amount must be greater than {0}
                     'WITHDRAW_023': BadRequest,  # Withdrawal amount must be less than {0}
                     'WITHDRAW_024': BadRequest,  # Withdraw is not supported
                     'WITHDRAW_025': BadRequest,  # Please create a FIO address in the deposit page
-                    'FUND_001': BadRequest,  # Duplicate request(a bizId can only be requested once)
+                    'FUND_001': BadRequest,  # Duplicate request (a bizId can only be requested once)
                     'FUND_002': InsufficientFunds,  # Insufficient account balance
-                    'FUND_003': BadRequest,  # Transfer operations are not supported(for example, sub-accounts do not support financial transfers)
+                    'FUND_003': BadRequest,  # Transfer operations are not supported (for example, sub-accounts do not support financial transfers)
                     'FUND_004': ExchangeError,  # Unfreeze failed
                     'FUND_005': PermissionDenied,  # Transfer prohibited
                     'FUND_014': BadRequest,  # The transfer-in account id and transfer-out account ID cannot be the same
@@ -551,7 +578,7 @@ class xt(Exchange, ImplicitAPI):
                     'FUND_021': BadRequest,  # Operation not supported
                     'FUND_022': BadRequest,  # Freeze record does not exist
                     'FUND_044': BadRequest,  # The maximum length of the amount is 113 and cannot exceed the limit
-                    'TRANSFER_001': BadRequest,  # Duplicate request(a bizId can only be requested once)
+                    'TRANSFER_001': BadRequest,  # Duplicate request (a bizId can only be requested once)
                     'TRANSFER_002': InsufficientFunds,  # Insufficient account balance
                     'TRANSFER_003': BadRequest,  # User not registered
                     'TRANSFER_004': PermissionDenied,  # The currency is not allowed to be transferred
@@ -938,8 +965,8 @@ class xt(Exchange, ImplicitAPI):
         #                 "supportChains": [
         #                     {
         #                         "chain": "Bitcoin",
-        #                         "depositEnabled": True,
-        #                         "withdrawEnabled": True,
+        #                         "depositEnabled": true,
+        #                         "withdrawEnabled": true,
         #                         "withdrawFeeAmount": 0.0009,
         #                         "withdrawMinAmount": 0.0005,
         #                         "depositFeeRate": 0
@@ -1039,7 +1066,7 @@ class xt(Exchange, ImplicitAPI):
         :param dict params: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
-        if self.options['adjustForTimeDifference']:
+        if self.options['adjustForTimeDifference'] is True:
             self.load_time_difference()
         promisesUnresolved = [
             self.fetch_spot_markets(params),
@@ -1066,8 +1093,8 @@ class xt(Exchange, ImplicitAPI):
         #                     "symbol": "xt_usdt",
         #                     "state": "ONLINE",
         #                     "stateTime": 1554048000000,
-        #                     "tradingEnabled": True,
-        #                     "openapiEnabled": True,
+        #                     "tradingEnabled": true,
+        #                     "openapiEnabled": true,
         #                     "nextStateTime": null,
         #                     "nextState": null,
         #                     "depthMergePrecision": 5,
@@ -1108,7 +1135,7 @@ class xt(Exchange, ImplicitAPI):
         symbols = self.safe_list(data, 'symbols', [])
         return self.parse_markets(symbols)
 
-    def fetch_swap_and_future_markets(self, params={}):
+    def fetch_swap_and_future_markets(self, params={}) -> list[Market]:
         markets = [self.publicLinearGetFutureMarketV1PublicSymbolList(params), self.publicInverseGetFutureMarketV1PublicSymbolList(params)]
         #
         #     {
@@ -1126,9 +1153,9 @@ class xt(Exchange, ImplicitAPI):
         #                 "predictEventType": null,
         #                 "underlyingType": "U_BASED",
         #                 "contractSize": "1",
-        #                 "tradeSwitch": True,
-        #                 "isDisplay": True,
-        #                 "isOpenApi": False,
+        #                 "tradeSwitch": true,
+        #                 "isDisplay": true,
+        #                 "isOpenApi": false,
         #                 "state": 0,
         #                 "initLeverage": 20,
         #                 "initPositionType": "CROSSED",
@@ -1165,7 +1192,7 @@ class xt(Exchange, ImplicitAPI):
         #                 "maxPrice": null,
         #                 "deliveryDate": 1669879634000,
         #                 "deliveryPrice": null,
-        #                 "deliveryCompletion": False,
+        #                 "deliveryCompletion": false,
         #                 "cnDesc": null,
         #                 "enDesc": null
         #             },
@@ -1190,8 +1217,8 @@ class xt(Exchange, ImplicitAPI):
         #         "symbol": "xt_usdt",
         #         "state": "ONLINE",
         #         "stateTime": 1554048000000,
-        #         "tradingEnabled": True,
-        #         "openapiEnabled": True,
+        #         "tradingEnabled": true,
+        #         "openapiEnabled": true,
         #         "nextStateTime": null,
         #         "nextState": null,
         #         "depthMergePrecision": 5,
@@ -1254,9 +1281,9 @@ class xt(Exchange, ImplicitAPI):
         #         "predictEventType": null,
         #         "underlyingType": "U_BASED",
         #         "contractSize": "1",
-        #         "tradeSwitch": True,
-        #         "isDisplay": True,
-        #         "isOpenApi": False,
+        #         "tradeSwitch": true,
+        #         "isDisplay": true,
+        #         "isOpenApi": false,
         #         "state": 0,
         #         "initLeverage": 20,
         #         "initPositionType": "CROSSED",
@@ -1293,7 +1320,7 @@ class xt(Exchange, ImplicitAPI):
         #         "maxPrice": null,
         #         "deliveryDate": 1669879634000,
         #         "deliveryPrice": null,
-        #         "deliveryCompletion": False,
+        #         "deliveryCompletion": false,
         #         "cnDesc": null,
         #         "enDesc": null
         #     }
@@ -1371,7 +1398,7 @@ class xt(Exchange, ImplicitAPI):
         if contract:
             isActive = self.safe_bool(market, 'isOpenApi', False)
         else:
-            if (state == 'ONLINE') and (self.safe_bool(market, 'tradingEnabled')) and (self.safe_bool(market, 'openapiEnabled')):
+            if (state == 'ONLINE') and (self.safe_bool(market, 'tradingEnabled') is True) and (self.safe_bool(market, 'openapiEnabled') is True):
                 isActive = True
         return self.safe_market_structure({
             'id': id,
@@ -1440,7 +1467,7 @@ class xt(Exchange, ImplicitAPI):
         :param dict params: extra parameters specific to the exchange API endpoint
         :param int [params.until]: timestamp in ms of the latest candle to fetch
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             self.load_markets()
@@ -1460,7 +1487,7 @@ class xt(Exchange, ImplicitAPI):
             duration = self.parse_timeframe(timeframe) * 1000
             request['startTime'] = int(math.ceil(since / duration)) * duration
         if limit is not None:
-            if market['spot']:
+            if market['spot'] is True:
                 limit = min(limit, 1000)  # spot max limit
             else:
                 limit = min(limit, 1500)  # derivatives max limit
@@ -1472,9 +1499,9 @@ class xt(Exchange, ImplicitAPI):
         if until is not None:
             request['endTime'] = until
         response = None
-        if market['linear']:
+        if market['linear'] is True:
             response = self.publicLinearGetFutureMarketV1PublicQKline(self.extend(request, params))
-        elif market['inverse']:
+        elif market['inverse'] is True:
             response = self.publicInverseGetFutureMarketV1PublicQKline(self.extend(request, params))
         else:
             response = self.publicSpotGetKline(self.extend(request, params))
@@ -1551,7 +1578,7 @@ class xt(Exchange, ImplicitAPI):
         #     }
         #
         isInverse = self.safe_bool(market, 'inverse')
-        volumeIndex = 'v' if (isInverse) else 'a'
+        volumeIndex = 'v' if (isInverse is True) else 'a'
         return [
             self.safe_integer(ohlcv, 't'),
             self.safe_number(ohlcv, 'o'),
@@ -1580,7 +1607,7 @@ class xt(Exchange, ImplicitAPI):
             'symbol': market['id'],
         }
         response = None
-        if market['spot']:
+        if market['spot'] is True:
             if limit is not None:
                 request['limit'] = min(limit, 500)
             response = self.publicSpotGetDepth(self.extend(request, params))
@@ -1589,9 +1616,9 @@ class xt(Exchange, ImplicitAPI):
                 request['level'] = min(limit, 50)
             else:
                 request['level'] = 50
-            if market['linear']:
+            if market['linear'] is True:
                 response = self.publicLinearGetFutureMarketV1PublicQDepth(self.extend(request, params))
-            elif market['inverse']:
+            elif market['inverse'] is True:
                 response = self.publicInverseGetFutureMarketV1PublicQDepth(self.extend(request, params))
         #
         # spot
@@ -1641,7 +1668,7 @@ class xt(Exchange, ImplicitAPI):
         #
         orderBook = self.safe_dict(response, 'result', {})
         timestamp = self.safe_integer_2(orderBook, 'timestamp', 't')
-        if market['spot']:
+        if market['spot'] is True:
             ob = self.parse_order_book(orderBook, symbol, timestamp)
             ob['nonce'] = self.safe_integer(orderBook, 'lastUpdateId')
             return ob
@@ -1667,9 +1694,9 @@ class xt(Exchange, ImplicitAPI):
             'symbol': market['id'],
         }
         response = None
-        if market['linear']:
+        if market['linear'] is True:
             response = self.publicLinearGetFutureMarketV1PublicQAggTicker(self.extend(request, params))
-        elif market['inverse']:
+        elif market['inverse'] is True:
             response = self.publicInverseGetFutureMarketV1PublicQAggTicker(self.extend(request, params))
         else:
             response = self.publicSpotGetTicker24h(self.extend(request, params))
@@ -1720,7 +1747,7 @@ class xt(Exchange, ImplicitAPI):
         #     }
         #
         ticker = self.safe_value(response, 'result')
-        if market['spot']:
+        if market['spot'] is True:
             return self.parse_ticker(ticker[0], market)
         return self.parse_ticker(ticker, market)
 
@@ -1994,16 +2021,16 @@ class xt(Exchange, ImplicitAPI):
             'symbol': market['id'],
         }
         response = None
-        if market['spot']:
+        if market['spot'] is True:
             if limit is not None:
                 request['limit'] = min(limit, 1000)
             response = self.publicSpotGetTradeRecent(self.extend(request, params))
         else:
             if limit is not None:
                 request['num'] = min(limit, 1000)
-            if market['linear']:
+            if market['linear'] is True:
                 response = self.publicLinearGetFutureMarketV1PublicQDeal(self.extend(request, params))
-            elif market['inverse']:
+            elif market['inverse'] is True:
                 response = self.publicInverseGetFutureMarketV1PublicQDeal(self.extend(request, params))
         #
         # spot
@@ -2019,7 +2046,7 @@ class xt(Exchange, ImplicitAPI):
         #                 "p": "22038.81",
         #                 "q": "0.000978",
         #                 "v": "21.55395618",
-        #                 "b": True
+        #                 "b": true
         #             },
         #         ]
         #     }
@@ -2094,8 +2121,8 @@ class xt(Exchange, ImplicitAPI):
         #         "mc": "SUCCESS",
         #         "ma": [],
         #         "result": {
-        #             "hasPrev": False,
-        #             "hasNext": False,
+        #             "hasPrev": false,
+        #             "hasNext": false,
         #             "items": [
         #                 {
         #                     "symbol": "btc_usdt",
@@ -2158,7 +2185,7 @@ class xt(Exchange, ImplicitAPI):
         #         "p": "22038.81",
         #         "q": "0.000978",
         #         "v": "21.55395618",
-        #         "b": True
+        #         "b": true
         #     }
         #
         # spot: watchTrades
@@ -2169,19 +2196,19 @@ class xt(Exchange, ImplicitAPI):
         #        t: 1684258222702,
         #        p: '27003.65',
         #        q: '0.000796',
-        #        b: True
+        #        b: true
         #    }
         #
         # spot: watchMyTrades
         #
         #    {
-        #        "s": "btc_usdt",                # symbol
-        #        "t": 1656043204763,             # time
-        #        "i": "6316559590087251233",     # tradeId
-        #        "oi": "6216559590087220004",    # orderId
-        #        "p": "30000",                   # trade price
-        #        "q": "3",                       # qty quantity
-        #        "v": "90000"                    # volume trade amount
+        #        "s": "btc_usdt",                // symbol
+        #        "t": 1656043204763,             // time
+        #        "i": "6316559590087251233",     // tradeId
+        #        "oi": "6216559590087220004",    // orderId
+        #        "p": "30000",                   // trade price
+        #        "q": "3",                       // qty quantity
+        #        "v": "90000"                    // volume trade amount
         #    }
         #
         # swap and future: fetchTrades
@@ -2241,7 +2268,7 @@ class xt(Exchange, ImplicitAPI):
         #        "timestamp": 1684892412565
         #    }
         #
-        # watchMyTrades(ws, swap)
+        # watchMyTrades (ws, swap)
         #
         #    {
         #        'fee': '0.04080840',
@@ -2448,7 +2475,7 @@ class xt(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
-        if not market['spot']:
+        if market['spot'] is not True:
             raise NotSupported(self.id + ' createMarketBuyOrderWithCost() supports spot orders only')
         return self.create_order(symbol, 'market', 'buy', cost, 1, params)
 
@@ -2468,7 +2495,8 @@ class xt(Exchange, ImplicitAPI):
         :param float amount: how much you want to trade in units of the base currency
         :param float [price]: the price to fulfill the order, in units of the quote currency, can be ignored in market orders
         :param dict params: extra parameters specific to the exchange API endpoint
-        :param str [params.timeInForce]: 'GTC', 'IOC', 'FOK' or 'GTX'
+        :param str [params.timeInForce]: 'GTC', 'IOC', 'FOK', 'PO' or 'GTX'
+        :param bool [params.postOnly]: True or False whether the order is post-only, mapped to timeInForce GTX
         :param str [params.entrustType]: 'TAKE_PROFIT', 'STOP', 'TAKE_PROFIT_MARKET', 'STOP_MARKET', 'TRAILING_STOP_MARKET', required if stopPrice is defined, currently isn't functioning on xt's side
         :param str [params.triggerPriceType]: 'INDEX_PRICE', 'MARK_PRICE', 'LATEST_PRICE', required if stopPrice is defined
         :param float [params.triggerPrice]: price to trigger a stop order
@@ -2485,7 +2513,7 @@ class xt(Exchange, ImplicitAPI):
             self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
-        if market['spot']:
+        if market['spot'] is True:
             isTrailing = ('trailingPercent' in params) or ('trailingAmount' in params) or ('trailingTriggerPrice' in params)
             if isTrailing:
                 # do not silently place a regular spot order when a trailing order was requested
@@ -2494,7 +2522,7 @@ class xt(Exchange, ImplicitAPI):
         else:
             return self.create_contract_order(symbol, type, side, amount, price, params)
 
-    def create_spot_order(self, symbol: str, type: OrderType, side: object, amount: object, price: Num = None, params={}):
+    def create_spot_order(self, symbol: str, type: OrderType, side: object, amount: object, price: Num = None, params={}) -> Order:
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
@@ -2514,7 +2542,7 @@ class xt(Exchange, ImplicitAPI):
                 cost = self.safe_string(params, 'cost')
                 params = self.omit(params, 'cost')
                 createMarketBuyOrderRequiresPrice = self.safe_bool(self.options, 'createMarketBuyOrderRequiresPrice', True)
-                if createMarketBuyOrderRequiresPrice:
+                if createMarketBuyOrderRequiresPrice is True:
                     if price is None and (cost is None):
                         raise InvalidOrder(self.id + ' createOrder() requires a price argument or cost in params for market buy orders on spot markets to calculate the total amount to spend(amount * price), alternatively set the createMarketBuyOrderRequiresPrice option to False and pass in the cost to spend into the amount parameter')
                     else:
@@ -2532,6 +2560,11 @@ class xt(Exchange, ImplicitAPI):
         else:
             timeInForce = self.safe_string_upper(params, 'timeInForce', 'GTC')
             request['price'] = self.price_to_precision(symbol, price)
+        postOnly = None
+        postOnly, params = self.handle_post_only(type == 'market', timeInForce == 'GTX', params)
+        if postOnly is True:
+            timeInForce = 'GTX'
+        params = self.omit(params, ['timeInForce', 'postOnly'])
         if (side == 'sell') or (type == 'limit'):
             request['quantity'] = self.amount_to_precision(symbol, amount)
         request['timeInForce'] = timeInForce
@@ -2549,7 +2582,7 @@ class xt(Exchange, ImplicitAPI):
         order = self.safe_dict(response, 'result', {})
         return self.parse_order(order, market)
 
-    def create_contract_order(self, symbol: str, type: object, side: object, amount: object, price: Num = None, params={}):
+    def create_contract_order(self, symbol: str, type: object, side: object, amount: object, price: Num = None, params={}) -> Order:
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
@@ -2558,14 +2591,19 @@ class xt(Exchange, ImplicitAPI):
             'origQty': self.amount_to_precision(symbol, amount),
         }
         timeInForce = self.safe_string_upper(params, 'timeInForce')
+        postOnly = None
+        postOnly, params = self.handle_post_only(type == 'market', timeInForce == 'GTX', params)
+        if postOnly is True:
+            timeInForce = 'GTX'
+        params = self.omit(params, ['timeInForce', 'postOnly'])
         if timeInForce is not None:
             request['timeInForce'] = timeInForce
         reduceOnly = self.safe_bool(params, 'reduceOnly', False)
         if side == 'buy':
-            requestType = 'SHORT' if (reduceOnly) else 'LONG'
+            requestType = 'SHORT' if (reduceOnly is True) else 'LONG'
             request['positionSide'] = requestType
         else:
-            requestType = 'LONG' if (reduceOnly) else 'SHORT'
+            requestType = 'LONG' if (reduceOnly is True) else 'SHORT'
             request['positionSide'] = requestType
         response = {}
         triggerPrice = self.safe_number_2(params, 'triggerPrice', 'stopPrice')
@@ -2578,7 +2616,7 @@ class xt(Exchange, ImplicitAPI):
         isStopLoss = (stopLoss is not None)
         isTakeProfit = (takeProfit is not None)
         isTrailing = (trailingPercent is not None) or (trailingAmount is not None)
-        if isTrailing and not market['swap']:
+        if isTrailing and (market['swap'] is not True):
             raise NotSupported(self.id + ' createOrder() trailing orders are only supported on swap markets')
         if (trailingTriggerPrice is not None) and not isTrailing:
             # do not silently place a regular order when a trailing activation price was requested
@@ -2601,21 +2639,21 @@ class xt(Exchange, ImplicitAPI):
             if trailingTriggerPrice is not None:
                 request['activationPrice'] = self.price_to_precision(symbol, trailingTriggerPrice)
             params = self.omit(params, ['trailingPercent', 'trailingAmount', 'trailingTriggerPrice'])
-            if market['linear']:
+            if market['linear'] is True:
                 response = self.privateLinearPostFutureTradeV1EntrustCreateTrack(self.extend(request, params))
-            elif market['inverse']:
+            elif market['inverse'] is True:
                 response = self.privateInversePostFutureTradeV1EntrustCreateTrack(self.extend(request, params))
         elif isTrigger:
-            request['timeInForce'] = self.safe_string_upper(params, 'timeInForce', 'GTC')
+            request['timeInForce'] = 'GTC' if (timeInForce is None) else timeInForce
             request['triggerPriceType'] = self.safe_string(params, 'triggerPriceType', 'LATEST_PRICE')
             request['orderSide'] = side.upper()
             request['stopPrice'] = self.price_to_precision(symbol, triggerPrice)
             entrustType = 'STOP_MARKET' if (type == 'market') else 'STOP'
             request['entrustType'] = entrustType
             params = self.omit(params, 'triggerPrice')
-            if market['linear']:
+            if market['linear'] is True:
                 response = self.privateLinearPostFutureTradeV1EntrustCreatePlan(self.extend(request, params))
-            elif market['inverse']:
+            elif market['inverse'] is True:
                 response = self.privateInversePostFutureTradeV1EntrustCreatePlan(self.extend(request, params))
         elif isStopLoss or isTakeProfit:
             if isStopLoss:
@@ -2623,16 +2661,16 @@ class xt(Exchange, ImplicitAPI):
             else:
                 request['triggerProfitPrice'] = self.price_to_precision(symbol, takeProfit)
             params = self.omit(params, ['stopLoss', 'takeProfit'])
-            if market['linear']:
+            if market['linear'] is True:
                 response = self.privateLinearPostFutureTradeV1EntrustCreateProfit(self.extend(request, params))
-            elif market['inverse']:
+            elif market['inverse'] is True:
                 response = self.privateInversePostFutureTradeV1EntrustCreateProfit(self.extend(request, params))
         else:
             request['orderSide'] = side.upper()
             request['orderType'] = type.upper()
-            if market['linear']:
+            if market['linear'] is True:
                 response = self.privateLinearPostFutureTradeV1OrderCreate(self.extend(request, params))
-            elif market['inverse']:
+            elif market['inverse'] is True:
                 response = self.privateInversePostFutureTradeV1OrderCreate(self.extend(request, params))
         #
         #     {
@@ -2676,31 +2714,31 @@ class xt(Exchange, ImplicitAPI):
         trigger = self.safe_bool_2(params, 'trigger', 'stop')
         stopLossTakeProfit = self.safe_bool(params, 'stopLossTakeProfit')
         trailing = self.safe_bool(params, 'trailing')
-        if trailing:
+        if trailing is True:
             isContract = (subType is not None) or (type == 'swap') or (type == 'future')
             if not isContract:
                 raise NotSupported(self.id + ' fetchOrder() trailing orders are only supported on swap and future markets')
-        if trigger:
+        if trigger is True:
             request['entrustId'] = id
-        elif stopLossTakeProfit:
+        elif stopLossTakeProfit is True:
             request['profitId'] = id
-        elif trailing:
+        elif trailing is True:
             request['trackId'] = id
         else:
             request['orderId'] = id
-        if trigger:
+        if trigger is True:
             params = self.omit(params, ['trigger', 'stop'])
             if subType == 'inverse':
                 response = self.privateInverseGetFutureTradeV1EntrustPlanDetail(self.extend(request, params))
             else:
                 response = self.privateLinearGetFutureTradeV1EntrustPlanDetail(self.extend(request, params))
-        elif stopLossTakeProfit:
+        elif stopLossTakeProfit is True:
             params = self.omit(params, 'stopLossTakeProfit')
             if subType == 'inverse':
                 response = self.privateInverseGetFutureTradeV1EntrustProfitDetail(self.extend(request, params))
             else:
                 response = self.privateLinearGetFutureTradeV1EntrustProfitDetail(self.extend(request, params))
-        elif trailing:
+        elif trailing is True:
             params = self.omit(params, 'trailing')
             if subType == 'inverse':
                 response = self.privateInverseGetFutureTradeV1EntrustTrackDetail(self.extend(request, params))
@@ -2738,7 +2776,7 @@ class xt(Exchange, ImplicitAPI):
         #             "avgPrice": null,
         #             "fee": null,
         #             "feeCurrency": null,
-        #             "closed": False,
+        #             "closed": false,
         #             "state": "NEW",
         #             "time": 1679175285162,
         #             "updatedTime": 1679175285255
@@ -2759,7 +2797,7 @@ class xt(Exchange, ImplicitAPI):
         #             "orderSide": "BUY",
         #             "positionSide": "LONG",
         #             "timeInForce": "GTC",
-        #             "closePosition": False,
+        #             "closePosition": false,
         #             "price": "20000",
         #             "origQty": "10",
         #             "avgPrice": "0",
@@ -2770,7 +2808,7 @@ class xt(Exchange, ImplicitAPI):
         #             "triggerStopPrice": null,
         #             "sourceId": null,
         #             "sourceType": "DEFAULT",
-        #             "forceClose": False,
+        #             "forceClose": false,
         #             "closeProfit": null,
         #             "state": "NEW",
         #             "createdTime": 1680116055693,
@@ -2800,7 +2838,7 @@ class xt(Exchange, ImplicitAPI):
         #             "marketOrderLevel": null,
         #             "createdTime": 1681271998064,
         #             "updatedTime": 1681271998064,
-        #             "ordinary": False
+        #             "ordinary": false
         #         }
         #     }
         #
@@ -2867,17 +2905,17 @@ class xt(Exchange, ImplicitAPI):
         subType, params = self.handle_sub_type_and_params('fetchOrders', market, params)
         trigger = self.safe_bool_2(params, 'trigger', 'stop')
         trailing = self.safe_bool(params, 'trailing')
-        if trailing:
+        if trailing is True:
             isContract = (subType is not None) or (type == 'swap') or (type == 'future')
             if not isContract:
                 raise NotSupported(self.id + ' fetchOrders() trailing orders are only supported on swap and future markets')
-        if trigger:
+        if trigger is True:
             params = self.omit(params, ['trigger', 'stop'])
             if subType == 'inverse':
                 response = self.privateInverseGetFutureTradeV1EntrustPlanListHistory(self.extend(request, params))
             else:
                 response = self.privateLinearGetFutureTradeV1EntrustPlanListHistory(self.extend(request, params))
-        elif trailing:
+        elif trailing is True:
             params = self.omit(params, 'trailing')
             if subType == 'inverse':
                 response = self.privateInverseGetFutureTradeV1EntrustTrackListHistory(self.extend(request, params))
@@ -2901,8 +2939,8 @@ class xt(Exchange, ImplicitAPI):
         #         "mc": "SUCCESS",
         #         "ma": [],
         #         "result": {
-        #             "hasPrev": False,
-        #             "hasNext": True,
+        #             "hasPrev": false,
+        #             "hasNext": true,
         #             "items": [
         #                 {
         #                     "symbol": "btc_usdt",
@@ -2923,7 +2961,7 @@ class xt(Exchange, ImplicitAPI):
         #                     "avgPrice": null,
         #                     "fee": null,
         #                     "feeCurrency": null,
-        #                     "closed": True,
+        #                     "closed": true,
         #                     "state": "CANCELED",
         #                     "time": 1679175285162,
         #                     "updatedTime": 1679175488492
@@ -2939,8 +2977,8 @@ class xt(Exchange, ImplicitAPI):
         #         "msgInfo": "success",
         #         "error": null,
         #         "result": {
-        #             "hasPrev": False,
-        #             "hasNext": True,
+        #             "hasPrev": false,
+        #             "hasNext": true,
         #             "items": [
         #                 {
         #                     "orderId": "207519546930995456",
@@ -2950,7 +2988,7 @@ class xt(Exchange, ImplicitAPI):
         #                     "orderSide": "BUY",
         #                     "positionSide": "LONG",
         #                     "timeInForce": "GTC",
-        #                     "closePosition": False,
+        #                     "closePosition": false,
         #                     "price": "20000",
         #                     "origQty": "100",
         #                     "avgPrice": "0",
@@ -2961,7 +2999,7 @@ class xt(Exchange, ImplicitAPI):
         #                     "triggerStopPrice": null,
         #                     "sourceId": null,
         #                     "sourceType": "DEFAULT",
-        #                     "forceClose": False,
+        #                     "forceClose": false,
         #                     "closeProfit": null,
         #                     "state": "CANCELED",
         #                     "createdTime": 1679178515689,
@@ -2978,8 +3016,8 @@ class xt(Exchange, ImplicitAPI):
         #         "msgInfo": "success",
         #         "error": null,
         #         "result": {
-        #             "hasPrev": False,
-        #             "hasNext": False,
+        #             "hasPrev": false,
+        #             "hasNext": false,
         #             "items": [
         #                 {
         #                     "entrustId": "216300248132756992",
@@ -2997,7 +3035,7 @@ class xt(Exchange, ImplicitAPI):
         #                     "marketOrderLevel": null,
         #                     "createdTime": 1681271998064,
         #                     "updatedTime": 1681273188674,
-        #                     "ordinary": False
+        #                     "ordinary": false
         #                 },
         #             ]
         #         }
@@ -3027,7 +3065,7 @@ class xt(Exchange, ImplicitAPI):
         trigger = self.safe_bool_2(params, 'stop', 'trigger')
         stopLossTakeProfit = self.safe_bool(params, 'stopLossTakeProfit')
         trailing = self.safe_bool(params, 'trailing')
-        if trailing:
+        if trailing is True:
             isContract = (subType is not None) or (type == 'swap') or (type == 'future')
             if not isContract:
                 raise NotSupported(self.id + ' fetchOrdersByStatus() trailing orders are only supported on swap and future markets')
@@ -3036,40 +3074,40 @@ class xt(Exchange, ImplicitAPI):
             # filter runs, so the limit is only applied locally after filtering
             request = self.omit(request, ['state', 'size'])
         elif status == 'open':
-            if trigger or stopLossTakeProfit:
+            if (trigger is True) or (stopLossTakeProfit is True):
                 request['state'] = 'NOT_TRIGGERED'
             elif type == 'swap':
                 request['state'] = 'UNFINISHED'  # NEW & PARTIALLY_FILLED
         elif status == 'closed':
-            if trigger or stopLossTakeProfit:
+            if (trigger is True) or (stopLossTakeProfit is True):
                 request['state'] = 'TRIGGERED'
             else:
                 request['state'] = 'FILLED'
         elif status == 'canceled':
-            if trigger or stopLossTakeProfit:
+            if (trigger is True) or (stopLossTakeProfit is True):
                 request['state'] = 'USER_REVOCATION'
             else:
                 request['state'] = 'CANCELED'
         else:
             request['state'] = status
-        if trigger or stopLossTakeProfit or (subType is not None) or (type == 'swap') or (type == 'future'):
+        if (trigger is True) or (stopLossTakeProfit is True) or (subType is not None) or (type == 'swap') or (type == 'future'):
             if since is not None:
                 request['startTime'] = since
-            if (limit is not None) and not trailing:
+            if (limit is not None) and (trailing is not True):
                 request['size'] = limit
-        if trigger:
+        if trigger is True:
             params = self.omit(params, ['stop', 'trigger'])
             if subType == 'inverse':
                 response = self.privateInverseGetFutureTradeV1EntrustPlanList(self.extend(request, params))
             else:
                 response = self.privateLinearGetFutureTradeV1EntrustPlanList(self.extend(request, params))
-        elif stopLossTakeProfit:
+        elif stopLossTakeProfit is True:
             params = self.omit(params, 'stopLossTakeProfit')
             if subType == 'inverse':
                 response = self.privateInverseGetFutureTradeV1EntrustProfitList(self.extend(request, params))
             else:
                 response = self.privateLinearGetFutureTradeV1EntrustProfitList(self.extend(request, params))
-        elif trailing:
+        elif trailing is True:
             params = self.omit(params, 'trailing')
             if status == 'open':
                 if subType == 'inverse':
@@ -3108,8 +3146,8 @@ class xt(Exchange, ImplicitAPI):
         #         "mc": "SUCCESS",
         #         "ma": [],
         #         "result": {
-        #             "hasPrev": False,
-        #             "hasNext": True,
+        #             "hasPrev": false,
+        #             "hasNext": true,
         #             "items": [
         #                 {
         #                     "symbol": "btc_usdt",
@@ -3130,7 +3168,7 @@ class xt(Exchange, ImplicitAPI):
         #                     "avgPrice": null,
         #                     "fee": null,
         #                     "feeCurrency": null,
-        #                     "closed": True,
+        #                     "closed": true,
         #                     "state": "CANCELED",
         #                     "time": 1679175285162,
         #                     "updatedTime": 1679175488492
@@ -3165,7 +3203,7 @@ class xt(Exchange, ImplicitAPI):
         #                 "avgPrice": null,
         #                 "fee": null,
         #                 "feeCurrency": null,
-        #                 "closed": False,
+        #                 "closed": false,
         #                 "state": "NEW",
         #                 "time": 1679352507741,
         #                 "updatedTime": 1679352507869
@@ -3192,7 +3230,7 @@ class xt(Exchange, ImplicitAPI):
         #                     "orderSide": "BUY",
         #                     "positionSide": "LONG",
         #                     "timeInForce": "GTC",
-        #                     "closePosition": False,
+        #                     "closePosition": false,
         #                     "price": "20000",
         #                     "origQty": "100",
         #                     "avgPrice": "0",
@@ -3203,7 +3241,7 @@ class xt(Exchange, ImplicitAPI):
         #                     "triggerStopPrice": null,
         #                     "sourceId": null,
         #                     "sourceType": "DEFAULT",
-        #                     "forceClose": False,
+        #                     "forceClose": false,
         #                     "closeProfit": null,
         #                     "state": "CANCELED",
         #                     "createdTime": 1679178515689,
@@ -3240,7 +3278,7 @@ class xt(Exchange, ImplicitAPI):
         #                     "marketOrderLevel": null,
         #                     "createdTime": 1681271998064,
         #                     "updatedTime": 1681273188674,
-        #                     "ordinary": False
+        #                     "ordinary": false
         #                 },
         #             ]
         #         }
@@ -3284,7 +3322,7 @@ class xt(Exchange, ImplicitAPI):
             orders = self.safe_list(resultDict, 'items', [])
         else:
             orders = self.safe_list(response, 'result', [])
-        if trailing:
+        if trailing is True:
             # the track endpoints do not support a server-side state filter
             # and return entries in every state, so filter by status first,
             # otherwise since/limit could cut off matching rows
@@ -3388,31 +3426,31 @@ class xt(Exchange, ImplicitAPI):
         trigger = self.safe_bool_2(params, 'trigger', 'stop')
         stopLossTakeProfit = self.safe_bool(params, 'stopLossTakeProfit')
         trailing = self.safe_bool(params, 'trailing')
-        if trailing:
+        if trailing is True:
             isContract = (subType is not None) or (type == 'swap') or (type == 'future')
             if not isContract:
                 raise NotSupported(self.id + ' cancelOrder() trailing orders are only supported on swap and future markets')
-        if trigger:
+        if trigger is True:
             request['entrustId'] = id
-        elif stopLossTakeProfit:
+        elif stopLossTakeProfit is True:
             request['profitId'] = id
-        elif trailing:
+        elif trailing is True:
             request['trackId'] = id
         else:
             request['orderId'] = id
-        if trigger:
+        if trigger is True:
             params = self.omit(params, ['trigger', 'stop'])
             if subType == 'inverse':
                 response = self.privateInversePostFutureTradeV1EntrustCancelPlan(self.extend(request, params))
             else:
                 response = self.privateLinearPostFutureTradeV1EntrustCancelPlan(self.extend(request, params))
-        elif stopLossTakeProfit:
+        elif stopLossTakeProfit is True:
             params = self.omit(params, 'stopLossTakeProfit')
             if subType == 'inverse':
                 response = self.privateInversePostFutureTradeV1EntrustCancelProfitStop(self.extend(request, params))
             else:
                 response = self.privateLinearPostFutureTradeV1EntrustCancelProfitStop(self.extend(request, params))
-        elif trailing:
+        elif trailing is True:
             params = self.omit(params, 'trailing')
             if subType == 'inverse':
                 response = self.privateInversePostFutureTradeV1EntrustCancelTrack(self.extend(request, params))
@@ -3481,23 +3519,23 @@ class xt(Exchange, ImplicitAPI):
         trigger = self.safe_bool_2(params, 'trigger', 'stop')
         stopLossTakeProfit = self.safe_bool(params, 'stopLossTakeProfit')
         trailing = self.safe_bool(params, 'trailing')
-        if trailing:
+        if trailing is True:
             isContract = (subType is not None) or (type == 'swap') or (type == 'future')
             if not isContract:
                 raise NotSupported(self.id + ' cancelAllOrders() trailing orders are only supported on swap and future markets')
-        if trigger:
+        if trigger is True:
             params = self.omit(params, ['trigger', 'stop'])
             if subType == 'inverse':
                 response = self.privateInversePostFutureTradeV1EntrustCancelAllPlan(self.extend(request, params))
             else:
                 response = self.privateLinearPostFutureTradeV1EntrustCancelAllPlan(self.extend(request, params))
-        elif stopLossTakeProfit:
+        elif stopLossTakeProfit is True:
             params = self.omit(params, 'stopLossTakeProfit')
             if subType == 'inverse':
                 response = self.privateInversePostFutureTradeV1EntrustCancelAllProfitStop(self.extend(request, params))
             else:
                 response = self.privateLinearPostFutureTradeV1EntrustCancelAllProfitStop(self.extend(request, params))
-        elif trailing:
+        elif trailing is True:
             params = self.omit(params, 'trailing')
             if subType == 'inverse':
                 response = self.privateInversePostFutureTradeV1EntrustCancelAllTrack(self.extend(request, params))
@@ -3529,7 +3567,7 @@ class xt(Exchange, ImplicitAPI):
         #         "returnCode": 0,
         #         "msgInfo": "success",
         #         "error": null,
-        #         "result": True
+        #         "result": true
         #     }
         #
         return [
@@ -3618,7 +3656,7 @@ class xt(Exchange, ImplicitAPI):
         #         "avgPrice": null,
         #         "fee": null,
         #         "feeCurrency": null,
-        #         "closed": False,
+        #         "closed": false,
         #         "state": "NEW",
         #         "time": 1679175285162,
         #         "updatedTime": 1679175285255
@@ -3634,7 +3672,7 @@ class xt(Exchange, ImplicitAPI):
         #         "orderSide": "BUY",
         #         "positionSide": "LONG",
         #         "timeInForce": "GTC",
-        #         "closePosition": False,
+        #         "closePosition": false,
         #         "price": "20000",
         #         "origQty": "100",
         #         "avgPrice": "0",
@@ -3645,7 +3683,7 @@ class xt(Exchange, ImplicitAPI):
         #         "triggerStopPrice": null,
         #         "sourceId": null,
         #         "sourceType": "DEFAULT",
-        #         "forceClose": False,
+        #         "forceClose": false,
         #         "closeProfit": null,
         #         "state": "CANCELED",
         #         "createdTime": 1679178515689,
@@ -3670,7 +3708,7 @@ class xt(Exchange, ImplicitAPI):
         #         "marketOrderLevel": null,
         #         "createdTime": 1681271998064,
         #         "updatedTime": 1681271998064,
-        #         "ordinary": False
+        #         "ordinary": false
         #     }
         #
         # stop-loss and take-profit: fetchOrder, fetchOpenOrders, fetchClosedOrders, fetchCanceledOrders, fetchOrdersByStatus
@@ -3711,6 +3749,13 @@ class xt(Exchange, ImplicitAPI):
         filledQuantity = self.safe_number(order, 'executedQty')
         filled = filledQuantity if (marketType == 'spot') else Precise.string_mul(self.number_to_string(filledQuantity), self.number_to_string(market['contractSize']))
         lastUpdatedTimestamp = self.safe_integer(order, 'updatedTime')
+        timeInForce = self.safe_string(order, 'timeInForce')
+        postOnly = None
+        if timeInForce is not None:
+            if timeInForce == 'GTX':
+                # GTX means "Good Till Crossing" and is an equivalent way of saying Post Only
+                timeInForce = 'PO'
+            postOnly = (timeInForce == 'PO')
         side = self.safe_string_lower_2(order, 'side', 'orderSide')
         if side is None:
             # the stop loss and take profit entries carry only the position
@@ -3733,8 +3778,8 @@ class xt(Exchange, ImplicitAPI):
             'lastUpdateTimestamp': lastUpdatedTimestamp,
             'symbol': symbol,
             'type': self.safe_string_lower_2(order, 'type', 'orderType'),
-            'timeInForce': self.safe_string(order, 'timeInForce'),
-            'postOnly': None,
+            'timeInForce': timeInForce,
+            'postOnly': postOnly,
             'side': side,
             'price': self.safe_number(order, 'price'),
             'triggerPrice': self.safe_number(order, 'stopPrice'),
@@ -3812,8 +3857,8 @@ class xt(Exchange, ImplicitAPI):
         #         "msgInfo": "success",
         #         "error": null,
         #         "result": {
-        #             "hasPrev": False,
-        #             "hasNext": False,
+        #             "hasPrev": false,
+        #             "hasNext": false,
         #             "items": [
         #                 {
         #                     "id": "207260567109387525",
@@ -3969,8 +4014,8 @@ class xt(Exchange, ImplicitAPI):
         #         "mc": "SUCCESS",
         #         "ma": [],
         #         "result": {
-        #             "hasPrev": False,
-        #             "hasNext": False,
+        #             "hasPrev": false,
+        #             "hasNext": false,
         #             "items": [
         #                 {
         #                     "id": 170368702,
@@ -4023,8 +4068,8 @@ class xt(Exchange, ImplicitAPI):
         #         "mc": "SUCCESS",
         #         "ma": [],
         #         "result": {
-        #             "hasPrev": False,
-        #             "hasNext": False,
+        #             "hasPrev": false,
+        #             "hasNext": false,
         #             "items": [
         #                 {
         #                     "id": 950898,
@@ -4199,7 +4244,7 @@ class xt(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
-        if not (market['contract']):
+        if market['contract'] is not True:
             raise NotSupported(self.id + ' setLeverage() supports contract markets only')
         request = {
             'symbol': market['id'],
@@ -4480,7 +4525,7 @@ class xt(Exchange, ImplicitAPI):
         if paginate:
             return self.fetch_paginated_call_cursor('fetchFundingRateHistory', symbol, since, limit, params, 'id', 'id', 1, 200)
         market = self.market(symbol)
-        if not market['swap']:
+        if market['swap'] is not True:
             raise NotSupported(self.id + ' fetchFundingRateHistory() supports swap contracts only')
         request = {
             'symbol': market['id'],
@@ -4502,8 +4547,8 @@ class xt(Exchange, ImplicitAPI):
         #         "msgInfo": "success",
         #         "error": null,
         #         "result": {
-        #             "hasPrev": False,
-        #             "hasNext": True,
+        #             "hasPrev": false,
+        #             "hasNext": true,
         #             "items": [
         #                 {
         #                     "id": "210441653482221888",
@@ -4559,7 +4604,7 @@ class xt(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
-        if not market['swap']:
+        if market['swap'] is not True:
             raise NotSupported(self.id + ' fetchFundingRate() supports swap contracts only')
         request = {
             'symbol': market['id'],
@@ -4635,7 +4680,7 @@ class xt(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        if not market['swap']:
+        if market['swap'] is not True:
             raise NotSupported(self.id + ' fetchOpenInterest() supports swap contracts only')
         request = {
             'symbol': market['id'],
@@ -4696,7 +4741,7 @@ class xt(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        if not market['contract']:
+        if market['contract'] is not True:
             raise NotSupported(self.id + ' fetchTradingFee() supports contract markets only')
         subType = None
         subType, params = self.handle_sub_type_and_params('fetchTradingFee', market, params)
@@ -4711,8 +4756,8 @@ class xt(Exchange, ImplicitAPI):
         #         "msgInfo": "success",
         #         "error": null,
         #         "result": {
-        #             "specialType": False,
-        #             "vipProType": False,
+        #             "specialType": false,
+        #             "vipProType": false,
         #             "stepRateProName": null,
         #             "discountLevel": 0,
         #             "makerFee": "0.0002",
@@ -4750,7 +4795,7 @@ class xt(Exchange, ImplicitAPI):
         else:
             response = self.privateLinearGetFutureUserV1UserStepRate(params)
         #
-        # same response
+        # same response as fetchTradingFee
         #
         fee = self.safe_dict(response, 'result', {})
         result = {}
@@ -4759,7 +4804,7 @@ class xt(Exchange, ImplicitAPI):
             symbol = symbols[i]
             market = self.market(symbol)
             matchesSubType = market['inverse'] if (isInverse) else market['linear']
-            if market['contract'] and matchesSubType:
+            if (market['contract'] is True) and (matchesSubType is True):
                 result[symbol] = self.parse_trading_fee(fee, market)
         return result
 
@@ -4789,7 +4834,7 @@ class xt(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
-        if not market['swap']:
+        if market['swap'] is not True:
             raise NotSupported(self.id + ' fetchFundingHistory() supports swap contracts only')
         request = {
             'symbol': market['id'],
@@ -4811,8 +4856,8 @@ class xt(Exchange, ImplicitAPI):
         #         "msgInfo": "success",
         #         "error": null,
         #         "result": {
-        #             "hasPrev": False,
-        #             "hasNext": False,
+        #             "hasPrev": false,
+        #             "hasNext": false,
         #             "items": [
         #                 {
         #                     "id": "210804044057280512",
@@ -4869,7 +4914,7 @@ class xt(Exchange, ImplicitAPI):
         breakBySymbolSide = {}
         for i in range(0, len(breakList)):
             breakEntry = breakList[i]
-            # xt is hedge-mode only(positionSide is always 'LONG'/'SHORT' on every
+            # xt is hedge-mode only (positionSide is always 'LONG'/'SHORT' on every
             # endpoint, including here and on position/list; there is no one-way/net
             # mode that would report 'BOTH', see setLeverage()/setMarginMode() which
             # both validate positionSide against exactly ['LONG', 'SHORT'])
@@ -4941,7 +4986,7 @@ class xt(Exchange, ImplicitAPI):
         #                 "isolatedMargin": "1.0824",
         #                 "openOrderMarginFrozen": "0",
         #                 "realizedProfit": "-0.00130138",
-        #                 "autoMargin": False,
+        #                 "autoMargin": false,
         #                 "leverage": 25,
         #                 "markPrice": "27050"
         #             },
@@ -5018,7 +5063,7 @@ class xt(Exchange, ImplicitAPI):
         #                 "isolatedMargin": "1.0824",
         #                 "openOrderMarginFrozen": "0",
         #                 "realizedProfit": "-0.00130138",
-        #                 "autoMargin": False,
+        #                 "autoMargin": false,
         #                 "leverage": 25,
         #                 "markPrice": "27050"
         #             },
@@ -5090,8 +5135,8 @@ class xt(Exchange, ImplicitAPI):
         #         "msgInfo": "success",
         #         "error": null,
         #         "result": {
-        #             "hasPrev": False,
-        #             "hasNext": False,
+        #             "hasPrev": false,
+        #             "hasNext": false,
         #             "items": [
         #                 {
         #                     "id": "654559911738263296",
@@ -5108,8 +5153,8 @@ class xt(Exchange, ImplicitAPI):
         #                     "closeTime": 1785761266645,
         #                     "startLeverage": 10,
         #                     "endLeverage": 10,
-        #                     "working": False,
-        #                     "force": False,
+        #                     "working": false,
+        #                     "force": false,
         #                     "forceMarkPrice": null,
         #                     "totalFee": "0.0063",
         #                     "totalFundFee": "0"
@@ -5140,7 +5185,7 @@ class xt(Exchange, ImplicitAPI):
         #         "isolatedMargin": "1.0824",
         #         "openOrderMarginFrozen": "0",
         #         "realizedProfit": "-0.00130138",
-        #         "autoMargin": False,
+        #         "autoMargin": false,
         #         "leverage": 25,
         #         "markPrice": "27050"
         #     }
@@ -5171,8 +5216,8 @@ class xt(Exchange, ImplicitAPI):
         #         "closeTime": 1785761266645,
         #         "startLeverage": 10,
         #         "endLeverage": 10,
-        #         "working": False,
-        #         "force": False,
+        #         "working": false,
+        #         "force": false,
         #         "forceMarkPrice": null,
         #         "totalFee": "0.0063",
         #         "totalFundFee": "0"
@@ -5186,7 +5231,7 @@ class xt(Exchange, ImplicitAPI):
         isCross = (positionType == 'CROSSED') or (positionType == '1')
         marginMode = 'cross' if (isCross) else 'isolated'
         collateral = self.safe_number(position, 'isolatedMargin')
-        # history entries carry the liquidation price in forceMarkPrice when force is True
+        # history entries carry the liquidation price in forceMarkPrice when force is true
         liquidationPriceString = self.omit_zero(self.safe_string_2(position, 'breakPrice', 'forceMarkPrice'))
         timestamp = self.safe_integer(position, 'closeTime')
         return self.safe_position({
@@ -5247,15 +5292,15 @@ class xt(Exchange, ImplicitAPI):
         response = self.privateSpotPostBalanceTransfer(self.extend(request, params))
         #
         #   {
-        #       info: {rc: '0', mc: 'SUCCESS', ma: [], result: '226971333791398656'},
+        #       info: { rc: '0', mc: 'SUCCESS', ma: [], result: '226971333791398656' },
         #       id: '226971333791398656',
-        #       timestamp: None,
-        #       datetime: None,
-        #       currency: None,
-        #       amount: None,
-        #       fromAccount: None,
-        #       toAccount: None,
-        #       status: None
+        #       timestamp: undefined,
+        #       datetime: undefined,
+        #       currency: undefined,
+        #       amount: undefined,
+        #       fromAccount: undefined,
+        #       toAccount: undefined,
+        #       status: undefined
         #   }
         #
         return self.parse_transfer(response, currency)
@@ -5290,7 +5335,7 @@ class xt(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
-        if market['spot']:
+        if market['spot'] is True:
             raise NotSupported(self.id + ' setMarginMode() supports contract markets only')
         marginMode = marginMode.lower()
         if marginMode != 'isolated' and marginMode != 'cross':
@@ -5363,7 +5408,7 @@ class xt(Exchange, ImplicitAPI):
             request['orderId'] = id
             request['price'] = self.price_to_precision(symbol, price)
         response = None
-        if market['swap']:
+        if market['swap'] is True:
             if isStopLoss:
                 request['triggerStopPrice'] = self.price_to_precision(symbol, stopLoss)
             elif takeProfit is not None:
@@ -5413,7 +5458,7 @@ class xt(Exchange, ImplicitAPI):
             #         }
             #     }
             #
-        result = response if (market['swap']) else self.safe_dict(response, 'result', {})
+        result = response if (market['swap'] is True) else self.safe_dict(response, 'result', {})
         return self.parse_order(result, market)
 
     def handle_errors(self, code: int, reason: str, url: object, method: object, headers: object, body: object, response: object, requestHeaders: object, requestBody: object):
@@ -5524,7 +5569,7 @@ class xt(Exchange, ImplicitAPI):
             if (endpoint == 'spot') or (endpoint == 'user'):
                 payloadString = 'xt-validate-algorithms=HmacSHA256&xt-validate-appkey=' + self.apiKey + '&xt-validate-recvwindow=' + recvWindow + '&xt-validate-t' + 'imestamp=' + timestamp
                 if isUndefinedBody:
-                    if urlencoded:
+                    if urlencoded != '':
                         url += '?' + urlencoded
                         payloadString += '#' + method + '#' + payload + '#' + self.rawencode(self.keysort(query))
                     else:
@@ -5536,7 +5581,7 @@ class xt(Exchange, ImplicitAPI):
             else:
                 payloadString = 'xt-validate-appkey=' + self.apiKey + '&xt-validate-t' + 'imestamp=' + timestamp  # we can't glue timestamp, breaks in php
                 if method == 'GET':
-                    if urlencoded:
+                    if urlencoded != '':
                         url += '?' + urlencoded
                         payloadString += '#' + payload + '#' + urlencoded
                     else:
@@ -5548,6 +5593,6 @@ class xt(Exchange, ImplicitAPI):
             headers['xt-validate-timestamp'] = timestamp
             headers['xt-validate-signature'] = signature
         else:
-            if urlencoded:
+            if urlencoded != '':
                 url += '?' + urlencoded
         return {'url': url, 'method': method, 'body': body, 'headers': headers}

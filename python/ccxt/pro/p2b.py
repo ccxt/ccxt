@@ -31,7 +31,7 @@ class p2b(ccxt.async_support.p2b):
                 'watchOHLCV': True,
                 'watchOrderBook': True,
                 'watchOrders': False,
-                # 'watchStatus': True,
+                # 'watchStatus': true,
                 'watchTicker': True,
                 'watchTickers': True,
                 'watchTrades': True,
@@ -67,7 +67,7 @@ class p2b(ccxt.async_support.p2b):
     async def subscribe(self, name: str, messageHash: str, request: object, params={}):
         """
  @ignore
-        Connects to a websocket channel
+        connects to a websocket channel
         :param str name: name of the channel
         :param str messageHash: string to look up in handler
         :param str[]|float[] request: endpoint parameters
@@ -94,7 +94,7 @@ class p2b(ccxt.async_support.p2b):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()
@@ -253,14 +253,14 @@ class p2b(ccxt.async_support.p2b):
         #        "method": "kline.update",
         #        "params": [
         #            [
-        #                1657648800,             # Kline start time
-        #                "0.054146",             # Kline open price
-        #                "0.053938",             # Kline close price(current price)
-        #                "0.054146",             # Kline high price
-        #                "0.053911",             # Kline low price
-        #                "596.4674",             # Volume for stock currency
-        #                "32.2298758767",        # Volume for money currency
-        #                "ETH_BTC"               # Market
+        #                1657648800,             // Kline start time
+        #                "0.054146",             // Kline open price
+        #                "0.053938",             // Kline close price (current price)
+        #                "0.054146",             // Kline high price
+        #                "0.053911",             // Kline low price
+        #                "596.4674",             // Volume for stock currency
+        #                "32.2298758767",        // Volume for money currency
+        #                "ETH_BTC"               // Market
         #            ]
         #        ],
         #        "id": null
@@ -297,10 +297,10 @@ class p2b(ccxt.async_support.p2b):
         #            "ETH_BTC",
         #            [
         #                {
-        #                    "id": 4503032979,               # Order_id
+        #                    "id": 4503032979,               // Order_id
         #                    "amount": "0.103",
-        #                    "type": "sell",                 # Side
-        #                    "time": 1657661950.8487639,     # Creation time
+        #                    "type": "sell",                 // Side
+        #                    "time": 1657661950.8487639,     // Creation time
         #                    "price": "0.05361"
         #                },
         #                ...
@@ -336,14 +336,14 @@ class p2b(ccxt.async_support.p2b):
         #        "params": [
         #            "ETH_BTC",
         #            {
-        #                "high": "0.055774",         # High price for the last 24h
-        #                "close": "0.053679",        # Close price for the last 24h
-        #                "low": "0.053462",          # Low price for the last 24h
-        #                "period": 86400,            # Period 24h
-        #                "last": "0.053679",         # Last price for the last 24h
-        #                "volume": "38463.6132",     # Stock volume for the last 24h
-        #                "open": "0.055682",         # Open price for the last 24h
-        #                "deal": "2091.0038055314"   # Money volume for the last 24h
+        #                "high": "0.055774",         // High price for the last 24h
+        #                "close": "0.053679",        // Close price for the last 24h
+        #                "low": "0.053462",          // Low price for the last 24h
+        #                "period": 86400,            // Period 24h
+        #                "last": "0.053679",         // Last price for the last 24h
+        #                "volume": "38463.6132",     // Stock volume for the last 24h
+        #                "open": "0.055682",         // Open price for the last 24h
+        #                "deal": "2091.0038055314"   // Money volume for the last 24h
         #            }
         #        ],
         #        "id": null
@@ -354,8 +354,8 @@ class p2b(ccxt.async_support.p2b):
         #    {
         #        "method": "price.update",
         #        "params": [
-        #            "ETH_BTC",      # market
-        #            "0.053836"      # last price
+        #            "ETH_BTC",      // market
+        #            "0.053836"      // last price
         #        ],
         #        "id": null
         #    }
@@ -388,12 +388,12 @@ class p2b(ccxt.async_support.p2b):
         #    {
         #        "method": "depth.update",
         #        "params": [
-        #            False,                          # True - all records, False - new records
+        #            false,                          // true - all records, false - new records
         #            {
-        #                "asks": [                  # side
+        #                "asks": [                   // side
         #                    [
-        #                        "19509.81",         # price
-        #                        "0.277"             # amount
+        #                        "19509.81",         // price
+        #                        "0.277"             // amount
         #                    ]
         #                ]
         #            },
@@ -417,7 +417,7 @@ class p2b(ccxt.async_support.p2b):
         if orderbook is None:
             self.orderbooks[symbol] = self.order_book({}, limit)
             orderbook = self.orderbooks[symbol]
-        if isFullUpdate:
+        if isFullUpdate is True:
             # the first parameter signals whether the message carries all
             # records or only the changed ones, a full set replaces the book,
             # otherwise stale levels that left the depth window would linger
@@ -441,7 +441,7 @@ class p2b(ccxt.async_support.p2b):
         client.resolve(orderbook, messageHash)
 
     def handle_message(self, client: Client, message: object):
-        if self.handle_error_message(client, message):
+        if self.handle_error_message(client, message) is True:
             return
         result = self.safe_string(message, 'result')
         if result == 'pong':

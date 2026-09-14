@@ -10,19 +10,19 @@ public partial class testMainClass : BaseTest
 {
     async static public Task<object> testWatchTrades(Exchange exchange, object skippedProperties, object symbol)
     {
-        object method = "watchTrades";
-        object now = exchange.milliseconds();
+        string method = "watchTrades";
+        Int64 now = exchange.milliseconds();
         object ends = add(now, 15000);
-        object maxIdleTime = 5000;
-        object idle = false;
+        int maxIdleTime = 5000;
+        bool idle = false;
         while (isTrue((isLessThan(now, ends))) && !isTrue(idle))
         {
             object response = new List<object>() {};
-            object success = true;
-            object startTime = exchange.milliseconds();
+            bool success = true;
+            Int64 startTime = exchange.milliseconds();
             try
             {
-                response = await exchange.watchTrades(symbol);
+                response = detypeForComparison(await exchange.WatchTrades(((string)symbol)));
             } catch(Exception e)
             {
                 if (!isTrue(testSharedMethods.isTemporaryFailure(e)))
@@ -35,7 +35,7 @@ public partial class testMainClass : BaseTest
             if (isTrue(isEqual(success, true)))
             {
                 testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, response);
-                for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+                for (int i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
                 {
                     testTrade(exchange, skippedProperties, method, getValue(response, i), symbol, now);
                 }

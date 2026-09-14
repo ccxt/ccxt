@@ -163,30 +163,30 @@ class coincheck extends Exchange {
             ),
             'markets' => array(
                 'BTC/JPY' => $this->safe_market_structure(array( 'id' => 'btc_jpy', 'symbol' => 'BTC/JPY', 'base' => 'BTC', 'quote' => 'JPY', 'baseId' => 'btc', 'quoteId' => 'jpy', 'type' => 'spot', 'spot' => true )), // the only real pair
-                // 'ETH/JPY' => array( 'id' => 'eth_jpy', 'symbol' => 'ETH/JPY', 'base' => 'ETH', 'quote' => 'JPY', 'baseId' => 'eth', 'quoteId' => 'jpy' ),
+                // 'ETH/JPY': { 'id': 'eth_jpy', 'symbol': 'ETH/JPY', 'base': 'ETH', 'quote': 'JPY', 'baseId': 'eth', 'quoteId': 'jpy' },
                 'ETC/JPY' => $this->safe_market_structure(array( 'id' => 'etc_jpy', 'symbol' => 'ETC/JPY', 'base' => 'ETC', 'quote' => 'JPY', 'baseId' => 'etc', 'quoteId' => 'jpy', 'type' => 'spot', 'spot' => true )),
-                // 'DAO/JPY' => array( 'id' => 'dao_jpy', 'symbol' => 'DAO/JPY', 'base' => 'DAO', 'quote' => 'JPY', 'baseId' => 'dao', 'quoteId' => 'jpy' ),
-                // 'LSK/JPY' => array( 'id' => 'lsk_jpy', 'symbol' => 'LSK/JPY', 'base' => 'LSK', 'quote' => 'JPY', 'baseId' => 'lsk', 'quoteId' => 'jpy' ),
+                // 'DAO/JPY': { 'id': 'dao_jpy', 'symbol': 'DAO/JPY', 'base': 'DAO', 'quote': 'JPY', 'baseId': 'dao', 'quoteId': 'jpy' },
+                // 'LSK/JPY': { 'id': 'lsk_jpy', 'symbol': 'LSK/JPY', 'base': 'LSK', 'quote': 'JPY', 'baseId': 'lsk', 'quoteId': 'jpy' },
                 'FCT/JPY' => $this->safe_market_structure(array( 'id' => 'fct_jpy', 'symbol' => 'FCT/JPY', 'base' => 'FCT', 'quote' => 'JPY', 'baseId' => 'fct', 'quoteId' => 'jpy', 'type' => 'spot', 'spot' => true )),
                 'MONA/JPY' => $this->safe_market_structure(array( 'id' => 'mona_jpy', 'symbol' => 'MONA/JPY', 'base' => 'MONA', 'quote' => 'JPY', 'baseId' => 'mona', 'quoteId' => 'jpy', 'type' => 'spot', 'spot' => true )),
-                // 'XMR/JPY' => array( 'id' => 'xmr_jpy', 'symbol' => 'XMR/JPY', 'base' => 'XMR', 'quote' => 'JPY', 'baseId' => 'xmr', 'quoteId' => 'jpy' ),
-                // 'REP/JPY' => array( 'id' => 'rep_jpy', 'symbol' => 'REP/JPY', 'base' => 'REP', 'quote' => 'JPY', 'baseId' => 'rep', 'quoteId' => 'jpy' ),
-                // 'XRP/JPY' => array( 'id' => 'xrp_jpy', 'symbol' => 'XRP/JPY', 'base' => 'XRP', 'quote' => 'JPY', 'baseId' => 'xrp', 'quoteId' => 'jpy' ),
-                // 'ZEC/JPY' => array( 'id' => 'zec_jpy', 'symbol' => 'ZEC/JPY', 'base' => 'ZEC', 'quote' => 'JPY', 'baseId' => 'zec', 'quoteId' => 'jpy' ),
-                // 'XEM/JPY' => array( 'id' => 'xem_jpy', 'symbol' => 'XEM/JPY', 'base' => 'XEM', 'quote' => 'JPY', 'baseId' => 'xem', 'quoteId' => 'jpy' ),
-                // 'LTC/JPY' => array( 'id' => 'ltc_jpy', 'symbol' => 'LTC/JPY', 'base' => 'LTC', 'quote' => 'JPY', 'baseId' => 'ltc', 'quoteId' => 'jpy' ),
-                // 'DASH/JPY' => array( 'id' => 'dash_jpy', 'symbol' => 'DASH/JPY', 'base' => 'DASH', 'quote' => 'JPY', 'baseId' => 'dash', 'quoteId' => 'jpy' ),
-                // 'ETH/BTC' => array( 'id' => 'eth_btc', 'symbol' => 'ETH/BTC', 'base' => 'ETH', 'quote' => 'BTC', 'baseId' => 'eth', 'quoteId' => 'btc' ),
+                // 'XMR/JPY': { 'id': 'xmr_jpy', 'symbol': 'XMR/JPY', 'base': 'XMR', 'quote': 'JPY', 'baseId': 'xmr', 'quoteId': 'jpy' },
+                // 'REP/JPY': { 'id': 'rep_jpy', 'symbol': 'REP/JPY', 'base': 'REP', 'quote': 'JPY', 'baseId': 'rep', 'quoteId': 'jpy' },
+                // 'XRP/JPY': { 'id': 'xrp_jpy', 'symbol': 'XRP/JPY', 'base': 'XRP', 'quote': 'JPY', 'baseId': 'xrp', 'quoteId': 'jpy' },
+                // 'ZEC/JPY': { 'id': 'zec_jpy', 'symbol': 'ZEC/JPY', 'base': 'ZEC', 'quote': 'JPY', 'baseId': 'zec', 'quoteId': 'jpy' },
+                // 'XEM/JPY': { 'id': 'xem_jpy', 'symbol': 'XEM/JPY', 'base': 'XEM', 'quote': 'JPY', 'baseId': 'xem', 'quoteId': 'jpy' },
+                // 'LTC/JPY': { 'id': 'ltc_jpy', 'symbol': 'LTC/JPY', 'base': 'LTC', 'quote': 'JPY', 'baseId': 'ltc', 'quoteId': 'jpy' },
+                // 'DASH/JPY': { 'id': 'dash_jpy', 'symbol': 'DASH/JPY', 'base': 'DASH', 'quote': 'JPY', 'baseId': 'dash', 'quoteId': 'jpy' },
+                // 'ETH/BTC': { 'id': 'eth_btc', 'symbol': 'ETH/BTC', 'base': 'ETH', 'quote': 'BTC', 'baseId': 'eth', 'quoteId': 'btc' },
                 'ETC/BTC' => $this->safe_market_structure(array( 'id' => 'etc_btc', 'symbol' => 'ETC/BTC', 'base' => 'ETC', 'quote' => 'BTC', 'baseId' => 'etc', 'quoteId' => 'btc', 'type' => 'spot', 'spot' => true )),
-                // 'LSK/BTC' => array( 'id' => 'lsk_btc', 'symbol' => 'LSK/BTC', 'base' => 'LSK', 'quote' => 'BTC', 'baseId' => 'lsk', 'quoteId' => 'btc' ),
-                // 'FCT/BTC' => array( 'id' => 'fct_btc', 'symbol' => 'FCT/BTC', 'base' => 'FCT', 'quote' => 'BTC', 'baseId' => 'fct', 'quoteId' => 'btc' ),
-                // 'XMR/BTC' => array( 'id' => 'xmr_btc', 'symbol' => 'XMR/BTC', 'base' => 'XMR', 'quote' => 'BTC', 'baseId' => 'xmr', 'quoteId' => 'btc' ),
-                // 'REP/BTC' => array( 'id' => 'rep_btc', 'symbol' => 'REP/BTC', 'base' => 'REP', 'quote' => 'BTC', 'baseId' => 'rep', 'quoteId' => 'btc' ),
-                // 'XRP/BTC' => array( 'id' => 'xrp_btc', 'symbol' => 'XRP/BTC', 'base' => 'XRP', 'quote' => 'BTC', 'baseId' => 'xrp', 'quoteId' => 'btc' ),
-                // 'ZEC/BTC' => array( 'id' => 'zec_btc', 'symbol' => 'ZEC/BTC', 'base' => 'ZEC', 'quote' => 'BTC', 'baseId' => 'zec', 'quoteId' => 'btc' ),
-                // 'XEM/BTC' => array( 'id' => 'xem_btc', 'symbol' => 'XEM/BTC', 'base' => 'XEM', 'quote' => 'BTC', 'baseId' => 'xem', 'quoteId' => 'btc' ),
-                // 'LTC/BTC' => array( 'id' => 'ltc_btc', 'symbol' => 'LTC/BTC', 'base' => 'LTC', 'quote' => 'BTC', 'baseId' => 'ltc', 'quoteId' => 'btc' ),
-                // 'DASH/BTC' => array( 'id' => 'dash_btc', 'symbol' => 'DASH/BTC', 'base' => 'DASH', 'quote' => 'BTC', 'baseId' => 'dash', 'quoteId' => 'btc' ),
+                // 'LSK/BTC': { 'id': 'lsk_btc', 'symbol': 'LSK/BTC', 'base': 'LSK', 'quote': 'BTC', 'baseId': 'lsk', 'quoteId': 'btc' },
+                // 'FCT/BTC': { 'id': 'fct_btc', 'symbol': 'FCT/BTC', 'base': 'FCT', 'quote': 'BTC', 'baseId': 'fct', 'quoteId': 'btc' },
+                // 'XMR/BTC': { 'id': 'xmr_btc', 'symbol': 'XMR/BTC', 'base': 'XMR', 'quote': 'BTC', 'baseId': 'xmr', 'quoteId': 'btc' },
+                // 'REP/BTC': { 'id': 'rep_btc', 'symbol': 'REP/BTC', 'base': 'REP', 'quote': 'BTC', 'baseId': 'rep', 'quoteId': 'btc' },
+                // 'XRP/BTC': { 'id': 'xrp_btc', 'symbol': 'XRP/BTC', 'base': 'XRP', 'quote': 'BTC', 'baseId': 'xrp', 'quoteId': 'btc' },
+                // 'ZEC/BTC': { 'id': 'zec_btc', 'symbol': 'ZEC/BTC', 'base': 'ZEC', 'quote': 'BTC', 'baseId': 'zec', 'quoteId': 'btc' },
+                // 'XEM/BTC': { 'id': 'xem_btc', 'symbol': 'XEM/BTC', 'base': 'XEM', 'quote': 'BTC', 'baseId': 'xem', 'quoteId': 'btc' },
+                // 'LTC/BTC': { 'id': 'ltc_btc', 'symbol': 'LTC/BTC', 'base': 'LTC', 'quote': 'BTC', 'baseId': 'ltc', 'quoteId': 'btc' },
+                // 'DASH/BTC': { 'id': 'dash_btc', 'symbol': 'DASH/BTC', 'base': 'DASH', 'quote': 'BTC', 'baseId': 'dash', 'quoteId': 'btc' },
             ),
             'features' => array(
                 'spot' => array(
@@ -253,8 +253,8 @@ class coincheck extends Exchange {
             'precisionMode' => TICK_SIZE,
             'exceptions' => array(
                 'exact' => array(
-                    'disabled API Key' => '\\ccxt\\AuthenticationError', // array("success":false,"error":"disabled API Key")'
-                    'invalid authentication' => '\\ccxt\\AuthenticationError', // array("success":false,"error":"invalid authentication")
+                    'disabled API Key' => '\\ccxt\\AuthenticationError', // {"success":false,"error":"disabled API Key"}'
+                    'invalid authentication' => '\\ccxt\\AuthenticationError', // {"success":false,"error":"invalid authentication"}
                 ),
                 'broad' => array(),
             ),
@@ -291,18 +291,18 @@ class coincheck extends Exchange {
         $response = $this->publicGetExchangeStatus($params);
         //
         //     {
-        //         "exchange_status" => array(
+        //         "exchange_status": [
         //             {
-        //                 "pair" => "btc_jpy",
-        //                 "status" => "available",
-        //                 "timestamp" => 1782787596,
-        //                 "availability" => {
-        //                     "order" => true,
-        //                     "market_order" => true,
-        //                     "cancel" => true
+        //                 "pair": "btc_jpy",
+        //                 "status": "available",
+        //                 "timestamp": 1782787596,
+        //                 "availability": {
+        //                     "order": true,
+        //                     "market_order": true,
+        //                     "cancel": true
         //                 }
         //             }
-        //         )
+        //         ]
         //     }
         //
         $exchangeStatuses = $this->safe_list($response, 'exchange_status', array());
@@ -377,16 +377,16 @@ class coincheck extends Exchange {
         //
         // fetchOpenOrders
         //
-        //     {                        $id =>  202835,
-        //                      "order_type" => "buy",
-        //                            "rate" =>  26890,
-        //                            "pair" => "btc_jpy",
-        //                  "pending_amount" => "0.5527",
-        //       "pending_market_buy_amount" =>  null,
-        //                  "stop_loss_rate" =>  null,
-        //                      "created_at" => "2015-01-10T05:55:38.000Z" }
+        //     {                        id:  202835,
+        //                      "order_type": "buy",
+        //                            "rate":  26890,
+        //                            "pair": "btc_jpy",
+        //                  "pending_amount": "0.5527",
+        //       "pending_market_buy_amount":  null,
+        //                  "stop_loss_rate":  null,
+        //                      "created_at": "2015-01-10T05:55:38.000Z" }
         //
-        // todo => add formats for fetchOrder, fetchClosedOrders here
+        // todo: add formats for fetchOrder, fetchClosedOrders here
         //
         $id = $this->safe_string($order, 'id');
         $side = $this->safe_string($order, 'order_type');
@@ -523,30 +523,30 @@ class coincheck extends Exchange {
         // fetchTrades (public)
         //
         //      {
-        //          "id" => "206849494",
-        //          "amount" => "0.01",
-        //          "rate" => "5598346.0",
-        //          "pair" => "btc_jpy",
-        //          "order_type" => "sell",
-        //          "created_at" => "2021-12-08T14:10:33.000Z"
+        //          "id": "206849494",
+        //          "amount": "0.01",
+        //          "rate": "5598346.0",
+        //          "pair": "btc_jpy",
+        //          "order_type": "sell",
+        //          "created_at": "2021-12-08T14:10:33.000Z"
         //      }
         //
         // fetchMyTrades (private) - example from docs
         //
         //      {
-        //          "id" => 38,
-        //          "order_id" => 49,
-        //          "created_at" => "2015-11-18T07:02:21.000Z",
-        //          "funds" => array(
-        //              "btc" => "0.1",
-        //              "jpy" => "-4096.135"
-        //                  ),
-        //           "pair" => "btc_jpy",
-        //           "rate" => "40900.0",
-        //           "fee_currency" => "JPY",
-        //           "fee" => "6.135",
-        //           "liquidity" => "T",
-        //           "side" => "buy"
+        //          "id": 38,
+        //          "order_id": 49,
+        //          "created_at": "2015-11-18T07:02:21.000Z",
+        //          "funds": {
+        //              "btc": "0.1",
+        //              "jpy": "-4096.135"
+        //                  },
+        //           "pair": "btc_jpy",
+        //           "rate": "40900.0",
+        //           "fee_currency": "JPY",
+        //           "fee": "6.135",
+        //           "liquidity": "T",
+        //           "side": "buy"
         //      }
         //
         $timestamp = $this->parse8601($this->safe_string($trade, 'created_at'));
@@ -622,24 +622,24 @@ class coincheck extends Exchange {
         $response = $this->privateGetExchangeOrdersTransactionsPagination($this->extend($request, $params));
         //
         //      {
-        //          "success" => true,
-        //          "data" => array(
-        //                      array(
-        //                          "id" => 38,
-        //                          "order_id" => 49,
-        //                          "created_at" => "2015-11-18T07:02:21.000Z",
-        //                          "funds" => array(
-        //                              "btc" => "0.1",
-        //                              "jpy" => "-4096.135"
-        //                                  ),
-        //                          "pair" => "btc_jpy",
-        //                          "rate" => "40900.0",
-        //                          "fee_currency" => "JPY",
-        //                          "fee" => "6.135",
-        //                          "liquidity" => "T",
-        //                          "side" => "buy"
-        //                       ),
-        //                  )
+        //          "success": true,
+        //          "data": [
+        //                      {
+        //                          "id": 38,
+        //                          "order_id": 49,
+        //                          "created_at": "2015-11-18T07:02:21.000Z",
+        //                          "funds": {
+        //                              "btc": "0.1",
+        //                              "jpy": "-4096.135"
+        //                                  },
+        //                          "pair": "btc_jpy",
+        //                          "rate": "40900.0",
+        //                          "fee_currency": "JPY",
+        //                          "fee": "6.135",
+        //                          "liquidity": "T",
+        //                          "side": "buy"
+        //                       },
+        //                  ]
         //      }
         //
         $transactions = $this->safe_list($response, 'data', array());
@@ -671,12 +671,12 @@ class coincheck extends Exchange {
         $response = $this->publicGetTrades($this->extend($request, $params));
         //
         //      {
-        //          "id" => "206849494",
-        //          "amount" => "0.01",
-        //          "rate" => "5598346.0",
-        //          "pair" => "btc_jpy",
-        //          "order_type" => "sell",
-        //          "created_at" => "2021-12-08T14:10:33.000Z"
+        //          "id": "206849494",
+        //          "amount": "0.01",
+        //          "rate": "5598346.0",
+        //          "pair": "btc_jpy",
+        //          "order_type": "sell",
+        //          "created_at": "2021-12-08T14:10:33.000Z"
         //      }
         //
         $data = $this->safe_list($response, 'data', array());
@@ -698,20 +698,20 @@ class coincheck extends Exchange {
         $response = $this->privateGetAccounts($params);
         //
         //     {
-        //         "success" => true,
-        //         "id" => "7487995",
-        //         "email" => "some@email.com",
-        //         "identity_status" => "identity_pending",
-        //         "bitcoin_address" => null,
-        //         "lending_leverage" => "4",
-        //         "taker_fee" => "0.0",
-        //         "maker_fee" => "0.0",
-        //         "exchange_fees" => {
-        //           "btc_jpy" => array( taker_fee => '0.0', maker_fee => "0.0" ),
-        //           "etc_jpy" => array( taker_fee => '0.0', maker_fee => "0.0" ),
-        //           "fct_jpy" => array( taker_fee => '0.0', maker_fee => "0.0" ),
-        //           "mona_jpy" => array( taker_fee => '0.0', maker_fee => "0.0" ),
-        //           "plt_jpy" => array( taker_fee => '0.0', maker_fee => "0.0" )
+        //         "success": true,
+        //         "id": "7487995",
+        //         "email": "some@email.com",
+        //         "identity_status": "identity_pending",
+        //         "bitcoin_address": null,
+        //         "lending_leverage": "4",
+        //         "taker_fee": "0.0",
+        //         "maker_fee": "0.0",
+        //         "exchange_fees": {
+        //           "btc_jpy": { taker_fee: '0.0', maker_fee: "0.0" },
+        //           "etc_jpy": { taker_fee: '0.0', maker_fee: "0.0" },
+        //           "fct_jpy": { taker_fee: '0.0', maker_fee: "0.0" },
+        //           "mona_jpy": { taker_fee: '0.0', maker_fee: "0.0" },
+        //           "plt_jpy": { taker_fee: '0.0', maker_fee: "0.0" }
         //         }
         //     }
         //
@@ -800,8 +800,8 @@ class coincheck extends Exchange {
         $response = $this->privateDeleteExchangeOrdersId($this->extend($request, $params));
         //
         //    {
-        //        "success" => true,
-        //        "id" => 12345
+        //        "success": true,
+        //        "id": 12345
         //    }
         //
         return $this->parse_order($response);
@@ -833,27 +833,27 @@ class coincheck extends Exchange {
         }
         $response = $this->privateGetDepositMoney($this->extend($request, $params));
         // {
-        //   "success" => true,
-        //   "deposits" => array(
-        //     array(
-        //       "id" => 2,
-        //       "amount" => "0.05",
-        //       "currency" => "BTC",
-        //       "address" => "13PhzoK8me3u5nHzzFD85qT9RqEWR9M4Ty",
-        //       "status" => "confirmed",
-        //       "confirmed_at" => "2015-06-13T08:29:18.000Z",
-        //       "created_at" => "2015-06-13T08:22:18.000Z"
-        //     ),
+        //   "success": true,
+        //   "deposits": [
         //     {
-        //       "id" => 1,
-        //       "amount" => "0.01",
-        //       "currency" => "BTC",
-        //       "address" => "13PhzoK8me3u5nHzzFD85qT9RqEWR9M4Ty",
-        //       "status" => "received",
-        //       "confirmed_at" => "2015-06-13T08:21:18.000Z",
-        //       "created_at" => "2015-06-13T08:21:18.000Z"
+        //       "id": 2,
+        //       "amount": "0.05",
+        //       "currency": "BTC",
+        //       "address": "13PhzoK8me3u5nHzzFD85qT9RqEWR9M4Ty",
+        //       "status": "confirmed",
+        //       "confirmed_at": "2015-06-13T08:29:18.000Z",
+        //       "created_at": "2015-06-13T08:22:18.000Z"
+        //     },
+        //     {
+        //       "id": 1,
+        //       "amount": "0.01",
+        //       "currency": "BTC",
+        //       "address": "13PhzoK8me3u5nHzzFD85qT9RqEWR9M4Ty",
+        //       "status": "received",
+        //       "confirmed_at": "2015-06-13T08:21:18.000Z",
+        //       "created_at": "2015-06-13T08:21:18.000Z"
         //     }
-        //   )
+        //   ]
         // }
         $data = $this->safe_list($response, 'deposits', array());
         return $this->parse_transactions($data, $currency, $since, $limit, array( 'type' => 'deposit' ));
@@ -884,25 +884,25 @@ class coincheck extends Exchange {
         }
         $response = $this->privateGetWithdraws($this->extend($request, $params));
         //  {
-        //   "success" => true,
-        //   "pagination" => array(
-        //     "limit" => 25,
-        //     "order" => "desc",
-        //     "starting_after" => null,
-        //     "ending_before" => null
-        //   ),
-        //   "data" => array(
+        //   "success": true,
+        //   "pagination": {
+        //     "limit": 25,
+        //     "order": "desc",
+        //     "starting_after": null,
+        //     "ending_before": null
+        //   },
+        //   "data": [
         //     {
-        //       "id" => 398,
-        //       "status" => "finished",
-        //       "amount" => "242742.0",
-        //       "currency" => "JPY",
-        //       "created_at" => "2014-12-04T15:00:00.000Z",
-        //       "bank_account_id" => 243,
-        //       "fee" => "400.0",
-        //       "is_fast" => true
+        //       "id": 398,
+        //       "status": "finished",
+        //       "amount": "242742.0",
+        //       "currency": "JPY",
+        //       "created_at": "2014-12-04T15:00:00.000Z",
+        //       "bank_account_id": 243,
+        //       "fee": "400.0",
+        //       "is_fast": true
         //     }
-        //   )
+        //   ]
         // }
         $data = $this->safe_list($response, 'data', array());
         return $this->parse_transactions($data, $currency, $since, $limit, array( 'type' => 'withdrawal' ));
@@ -927,26 +927,26 @@ class coincheck extends Exchange {
         // fetchDeposits
         //
         // {
-        //       "id" => 2,
-        //       "amount" => "0.05",
-        //       "currency" => "BTC",
-        //       "address" => "13PhzoK8me3u5nHzzFD85qT9RqEWR9M4Ty",
-        //       "status" => "confirmed",
-        //       "confirmed_at" => "2015-06-13T08:29:18.000Z",
-        //       "created_at" => "2015-06-13T08:22:18.000Z"
+        //       "id": 2,
+        //       "amount": "0.05",
+        //       "currency": "BTC",
+        //       "address": "13PhzoK8me3u5nHzzFD85qT9RqEWR9M4Ty",
+        //       "status": "confirmed",
+        //       "confirmed_at": "2015-06-13T08:29:18.000Z",
+        //       "created_at": "2015-06-13T08:22:18.000Z"
         //  }
         //
         // fetchWithdrawals
         //
         //  {
-        //       "id" => 398,
-        //       "status" => "finished",
-        //       "amount" => "242742.0",
-        //       "currency" => "JPY",
-        //       "created_at" => "2014-12-04T15:00:00.000Z",
-        //       "bank_account_id" => 243,
-        //       "fee" => "400.0",
-        //       "is_fast" => true
+        //       "id": 398,
+        //       "status": "finished",
+        //       "amount": "242742.0",
+        //       "currency": "JPY",
+        //       "created_at": "2014-12-04T15:00:00.000Z",
+        //       "bank_account_id": 243,
+        //       "fee": "400.0",
+        //       "is_fast": true
         //  }
         //
         $id = $this->safe_string($transaction, 'id');
@@ -997,7 +997,7 @@ class coincheck extends Exchange {
         $url = $this->urls['api']['rest'] . '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         if ($api === 'public') {
-            if ($query) {
+            if (count($query) > 0) {
                 $url .= '?' . $this->urlencode($query);
             }
         } else {
@@ -1005,11 +1005,11 @@ class coincheck extends Exchange {
             $nonce = (string) $this->nonce();
             $queryString = '';
             if ($method === 'GET') {
-                if ($query) {
+                if (count($query) > 0) {
                     $url .= '?' . $this->urlencode($this->keysort($query));
                 }
             } else {
-                if ($query) {
+                if (count($query) > 0) {
                     $body = $this->urlencode($this->keysort($query));
                     $queryString = $body;
                 }
@@ -1030,11 +1030,11 @@ class coincheck extends Exchange {
             return null;
         }
         //
-        //     array("success":false,"error":"disabled API Key")'
-        //     array("success":false,"error":"invalid authentication")
+        //     {"success":false,"error":"disabled API Key"}'
+        //     {"success":false,"error":"invalid authentication"}
         //
         $success = $this->safe_bool($response, 'success', true);
-        if (!$success) {
+        if ($success !== true) {
             $error = $this->safe_string($response, 'error');
             $feedback = $this->id . ' ' . $this->json($response);
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $error, $feedback);

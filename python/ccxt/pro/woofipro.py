@@ -55,7 +55,7 @@ class woofipro(ccxt.async_support.woofipro):
                 'ordersLimit': 1000,
                 'requestId': {},
                 'watchPositions': {
-                    'fetchPositionsSnapshot': True,  # or False
+                    'fetchPositionsSnapshot': True,  # or false
                     'awaitPositionsSnapshot': True,  # whether to wait for the positions snapshot before providing updates
                 },
             },
@@ -371,7 +371,7 @@ class woofipro(ccxt.async_support.woofipro):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()
@@ -525,7 +525,7 @@ class woofipro(ccxt.async_support.woofipro):
         #         timestamp: 1715179456660,
         #         orderTag: 'CCXT',
         #         createdTime: 1715179456656,
-        #         maker: False
+        #         maker: false
         #     }
         #
         marketId = self.safe_string(trade, 'symbol')
@@ -567,14 +567,14 @@ class woofipro(ccxt.async_support.woofipro):
         #
         #     {
         #         "event": "auth",
-        #         "success": True,
+        #         "success": true,
         #         "ts": 1657463158812
         #     }
         #
         messageHash = 'authenticated'
         success = self.safe_value(message, 'success')
-        if success:
-            # client.resolve(message, messageHash)
+        if success is True:
+            # client.resolve (message, messageHash);
             future = self.safe_value(client.futures, 'authenticated')
             future.resolve(True)
         else:
@@ -649,7 +649,7 @@ class woofipro(ccxt.async_support.woofipro):
         if self.markets is None:
             await self.load_markets()
         trigger = self.safe_bool_2(params, 'stop', 'trigger', False)
-        topic = 'algoexecutionreport' if (trigger) else 'executionreport'
+        topic = 'algoexecutionreport' if (trigger is True) else 'executionreport'
         params = self.omit(params, ['stop', 'trigger'])
         messageHash = topic
         if symbol is not None:
@@ -683,7 +683,7 @@ class woofipro(ccxt.async_support.woofipro):
         if self.markets is None:
             await self.load_markets()
         trigger = self.safe_bool_2(params, 'stop', 'trigger', False)
-        topic = 'algoexecutionreport' if (trigger) else 'executionreport'
+        topic = 'algoexecutionreport' if (trigger is True) else 'executionreport'
         params = self.omit(params, 'stop')
         messageHash = 'myTrades'
         if symbol is not None:
@@ -722,8 +722,8 @@ class woofipro(ccxt.async_support.woofipro):
         #         "totalFee": 0,
         #         "visible": 0.01,
         #         "timestamp": 1657515556798,
-        #         "reduceOnly": False,
-        #         "maker": False
+        #         "reduceOnly": false,
+        #         "maker": false
         #     }
         # algo order
         #     {
@@ -741,8 +741,8 @@ class woofipro(ccxt.async_support.woofipro):
         #         "tradeId":0,
         #         "triggerTradePrice":0,
         #         "triggerTime":1234567,
-        #         "triggered": False,
-        #         "activated": False,
+        #         "triggered": false,
+        #         "activated": false,
         #         "executedPrice":0.0,
         #         "executedQuantity":0.0,
         #         "fee":0.0,
@@ -752,7 +752,7 @@ class woofipro(ccxt.async_support.woofipro):
         #         "avgPrice":0,
         #         "triggerPrice":0.0,
         #         "triggerPriceType":"STOP",
-        #         "isActivated": False,
+        #         "isActivated": false,
         #         "status":"NEW",
         #         "rootAlgoStatus": "FILLED",
         #         "algoStatus": "FILLED",
@@ -843,7 +843,7 @@ class woofipro(ccxt.async_support.woofipro):
         #             "totalFee": 0,
         #             "visible": 0.01,
         #             "timestamp": 1657515556799,
-        #             "maker": False
+        #             "maker": false
         #         }
         #     }
         #
@@ -916,7 +916,7 @@ class woofipro(ccxt.async_support.woofipro):
         #     timestamp: 1715179456660,
         #     orderTag: 'CCXT',
         #     createdTime: 1715179456656,
-        #     maker: False
+        #     maker: false
         # }
         #
         messageHash = 'myTrades'
@@ -965,7 +965,7 @@ class woofipro(ccxt.async_support.woofipro):
         self.set_positions_cache(client, symbols)
         fetchPositionsSnapshot = self.handle_option('watchPositions', 'fetchPositionsSnapshot', True)
         awaitPositionsSnapshot = self.handle_option('watchPositions', 'awaitPositionsSnapshot', True)
-        if fetchPositionsSnapshot and awaitPositionsSnapshot and self.positions is None:
+        if (fetchPositionsSnapshot is True) and (awaitPositionsSnapshot is True) and (self.positions is None):
             snapshot = await client.future('fetchPositionsSnapshot')
             return self.filter_by_symbols_since_limit(snapshot, symbols, since, limit, True)
         request = {
@@ -979,7 +979,7 @@ class woofipro(ccxt.async_support.woofipro):
 
     def set_positions_cache(self, client: Client, symbols: Strings = None):
         fetchPositionsSnapshot = self.handle_option('watchPositions', 'fetchPositionsSnapshot', False)
-        if fetchPositionsSnapshot:
+        if fetchPositionsSnapshot is True:
             messageHash = 'fetchPositionsSnapshot'
             if not (messageHash in client.futures):
                 client.future(messageHash)
@@ -1202,7 +1202,7 @@ class woofipro(ccxt.async_support.woofipro):
         if not ('success' in message):
             return False
         success = self.safe_bool(message, 'success')
-        if success:
+        if success is True:
             return False
         errorMessage = self.safe_string(message, 'errorMsg')
         try:
@@ -1221,7 +1221,7 @@ class woofipro(ccxt.async_support.woofipro):
             return True
 
     def handle_message(self, client: Client, message: object):
-        if self.handle_error_message(client, message):
+        if self.handle_error_message(client, message) is True:
             return
         methods = {
             'ping': self.handle_ping,
@@ -1278,7 +1278,7 @@ class woofipro(ccxt.async_support.woofipro):
 
     def handle_pong(self, client: Client, message: object):
         #
-        # {event: "pong", ts: 1614667590000}
+        # { event: "pong", ts: 1614667590000 }
         #
         client.lastPong = self.milliseconds()
         return message
@@ -1288,7 +1288,7 @@ class woofipro(ccxt.async_support.woofipro):
         #     {
         #         "id": "666888",
         #         "event": "subscribe",
-        #         "success": True,
+        #         "success": true,
         #         "ts": 1657117712212
         #     }
         #

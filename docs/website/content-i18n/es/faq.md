@@ -74,9 +74,9 @@ description: "Si tu pregunta está formulada de forma tan breve como la anterior
 
   ## ¡Oye! La corrección que subiste está en TypeScript, ¿también corregirías JavaScript / Python / PHP, por favor?
 
-  Nuestro sistema de compilación genera código JavaScript, Python, PHP, C#, Go y Java específico de cada exchange automáticamente, por lo que es transpilado desde TypeScript, y no es necesario corregir todos los lenguajes por separado uno a uno.
+  Nuestro sistema de compilación genera código JavaScript, Python, PHP, C#, Go, Java y Rust específico de cada exchange automáticamente, por lo que es transpilado desde TypeScript, y no es necesario corregir todos los lenguajes por separado uno a uno.
 
-  Por lo tanto, si está corregido en TypeScript, también está corregido en JavaScript NPM, Python pip, PHP Composer, C# NuGet, Go y Java. La compilación automática generalmente tarda 15-20 minutos. Solo actualiza tu versión con `npm`, `pip` o `composer` **después de que llegue la nueva versión** y todo estará bien.
+  Por lo tanto, si está corregido en TypeScript, también está corregido en JavaScript NPM, Python pip, PHP Composer, C# NuGet, Go, Java y Rust (crates.io). La compilación automática generalmente tarda 15-20 minutos. Solo actualiza tu versión con `npm`, `pip` o `composer` **después de que llegue la nueva versión** y todo estará bien.
 
   Más información aquí:
 

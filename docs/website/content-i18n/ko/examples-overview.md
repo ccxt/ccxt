@@ -59,6 +59,24 @@ php -f path/to/example.php # substitute for actual filename here
 python path/to/example.py # substitute for actual filename here
 ```
 
+---
+
+### Rust
+
+[Rust 예제](/docs/examples/rust/)
+
+Rust 예제는 `examples/rust/Cargo.toml`에 선언된 cargo 바이너리입니다 — `[[bin]]` 이름으로 실행하세요:
+
+```shell
+cargo run --manifest-path examples/rust/Cargo.toml --bin binance_basics
+```
+
+WebSocket(`watch*`) 예제는 `ws` 기능 뒤에 있는 `ccxt-pro` 크레이트를 사용합니다:
+
+```shell
+cargo run --manifest-path examples/rust/Cargo.toml --features ws --bin watch_trades
+```
+
 -------------------------------------------------------------------------------
 
 ## CCXT 논문 및 학위 논문 인용

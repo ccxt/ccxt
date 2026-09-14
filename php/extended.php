@@ -22,7 +22,7 @@ class extended extends Exchange {
             'dex' => true,
             'has' => array(
                 'CORS' => null,
-                'spot' => true,
+                'spot' => false, // venue retired spot trading; SPOT rows are still parsed, see parseMarket
                 'margin' => false,
                 'swap' => true,
                 'future' => false,
@@ -184,6 +184,8 @@ class extended extends Exchange {
                             'info/{market}/funding' => array( 'cost' => 1 ),
                             'info/{market}/open-interests' => array( 'cost' => 1 ),
                             'info/builder/dashboard' => array( 'cost' => 1 ),
+                            'interest/info/rate-curves' => array( 'cost' => 1 ),
+                            'interest/info/latest-rate-curves' => array( 'cost' => 1 ),
                         ),
                     ),
                     'private' => array(
@@ -214,12 +216,28 @@ class extended extends Exchange {
                             'user/rewards/leaderboard/stats' => array( 'cost' => 1 ),
                             'portfolio/charts/equities' => array( 'cost' => 1 ),
                             'portfolio/charts/pnl' => array( 'cost' => 1 ),
+                            'portfolio/charts/pnl/percentage' => array( 'cost' => 1 ),
+                            'portfolio/charts/pnl/cumulative' => array( 'cost' => 1 ),
+                            'portfolio/charts/pnl/cumulative/percentage' => array( 'cost' => 1 ),
+                            'portfolio/charts/vault-equities' => array( 'cost' => 1 ),
+                            'portfolio/charts/max-drawdown' => array( 'cost' => 1 ),
+                            'portfolio/charts/funding' => array( 'cost' => 1 ),
+                            'portfolio/accounts/summary' => array( 'cost' => 1 ),
+                            'portfolio/accounts/health' => array( 'cost' => 1 ),
+                            'portfolio/accounts/performance' => array( 'cost' => 1 ),
+                            'portfolio/funding/stats' => array( 'cost' => 1 ),
+                            'portfolio/funding/history' => array( 'cost' => 1 ),
                             'vault/public/performance' => array( 'cost' => 1 ),
                             'vault/public/summary' => array( 'cost' => 1 ),
                             'builder/trades' => array( 'cost' => 1 ),
+                            'interest/key-metrics' => array( 'cost' => 1 ),
+                            'interest/daily-metrics' => array( 'cost' => 1 ),
+                            'interest/payment-chart' => array( 'cost' => 1 ),
+                            'interest/payments' => array( 'cost' => 1 ),
                         ),
                         'post' => array(
                             'user/order' => array( 'cost' => 1 ),
+                            'user/order/rfq' => array( 'cost' => 1 ),
                             'user/order/massCancel' => array( 'cost' => 1 ),
                             'user/deadmanswitch' => array( 'cost' => 1 ),
                             'user/bridge/quote' => array( 'cost' => 1 ),
@@ -292,7 +310,7 @@ class extended extends Exchange {
                     '1135' => '\\ccxt\\InvalidOrder', // Order expiration date must be within 90 days for the Mainnet, 28 days for the Testnet.
                     '1136' => '\\ccxt\\InvalidOrder', // Reduce-only order size exceeds open position size.
                     '1137' => '\\ccxt\\InvalidOrder', // Position is missing for a reduce-only order.
-                    '1138' => '\\ccxt\\InvalidOrder', // Position is the same side reduce-only order.
+                    '1138' => '\\ccxt\\InvalidOrder', // Position is the same side as a reduce-only order.
                     '1139' => '\\ccxt\\InvalidOrder', // Market order must have time in force IOC.
                     '1140' => '\\ccxt\\InsufficientFunds', // New order cost exceeds available balance.
                     '1141' => '\\ccxt\\InvalidOrder', // Invalid price value.
@@ -367,106 +385,106 @@ class extended extends Exchange {
         $response = $this->v1PublicGetInfoMarkets($params);
         //
         //     {
-        //       "status" => "OK",
-        //       "data" => array(
+        //       "status": "OK",
+        //       "data": [
         //         {
-        //           "name" => "BTC-USD",
-        //           "uiName" => "BTC-USD",
-        //           "category" => "Crypto",
-        //           "subCategory" => "L1",
-        //           "assetName" => "BTC",
-        //           "assetPrecision" => 5,
-        //           "collateralAssetName" => "USD",
-        //           "collateralAssetPrecision" => 6,
-        //           "description" => "Bitcoin",
-        //           "active" => true,
-        //           "status" => "ACTIVE",
-        //           "marketStats" => {
-        //             "dailyVolume" => "231016077.512960",
-        //             "dailyVolumeBase" => "3025.00058",
-        //             "dailyPriceChange" => "420",
-        //             "dailyPriceChangePercentage" => "0.0055",
-        //             "dailyLow" => "75635",
-        //             "dailyHigh" => "77399",
-        //             "lastPrice" => "77259",
-        //             "askPrice" => "77260",
-        //             "bidPrice" => "77259",
-        //             "markPrice" => "77259.680250000004",
-        //             "indexPrice" => "77299.020412500001",
-        //             "fundingRate" => "0.000013",
-        //             "nextFundingRate" => 1777442400000,
-        //             "openInterest" => "115861923.311902",
-        //             "openInterestBase" => "1500.40958",
-        //             "deleverageLevels" => {
-        //               "shortPositions" => array(
-        //                 array(
-        //                   "level" => 1,
-        //                   "rankingLowerBound" => "-815.7788"
-        //                 ),
-        //                 array(
-        //                   "level" => 2,
-        //                   "rankingLowerBound" => "-2.1328"
-        //                 ),
-        //                 array(
-        //                   "level" => 3,
-        //                   "rankingLowerBound" => "-0.9297"
-        //                 ),
+        //           "name": "BTC-USD",
+        //           "uiName": "BTC-USD",
+        //           "category": "Crypto",
+        //           "subCategory": "L1",
+        //           "assetName": "BTC",
+        //           "assetPrecision": 5,
+        //           "collateralAssetName": "USD",
+        //           "collateralAssetPrecision": 6,
+        //           "description": "Bitcoin",
+        //           "active": true,
+        //           "status": "ACTIVE",
+        //           "marketStats": {
+        //             "dailyVolume": "231016077.512960",
+        //             "dailyVolumeBase": "3025.00058",
+        //             "dailyPriceChange": "420",
+        //             "dailyPriceChangePercentage": "0.0055",
+        //             "dailyLow": "75635",
+        //             "dailyHigh": "77399",
+        //             "lastPrice": "77259",
+        //             "askPrice": "77260",
+        //             "bidPrice": "77259",
+        //             "markPrice": "77259.680250000004",
+        //             "indexPrice": "77299.020412500001",
+        //             "fundingRate": "0.000013",
+        //             "nextFundingRate": 1777442400000,
+        //             "openInterest": "115861923.311902",
+        //             "openInterestBase": "1500.40958",
+        //             "deleverageLevels": {
+        //               "shortPositions": [
         //                 {
-        //                   "level" => 4,
-        //                   "rankingLowerBound" => "0.0000"
+        //                   "level": 1,
+        //                   "rankingLowerBound": "-815.7788"
+        //                 },
+        //                 {
+        //                   "level": 2,
+        //                   "rankingLowerBound": "-2.1328"
+        //                 },
+        //                 {
+        //                   "level": 3,
+        //                   "rankingLowerBound": "-0.9297"
+        //                 },
+        //                 {
+        //                   "level": 4,
+        //                   "rankingLowerBound": "0.0000"
         //                 }
-        //               ),
-        //               "longPositions" => array(
-        //                 array(
-        //                   "level" => 1,
-        //                   "rankingLowerBound" => "-47234.9095"
-        //                 ),
-        //                 array(
-        //                   "level" => 2,
-        //                   "rankingLowerBound" => "-0.0030"
-        //                 ),
-        //                 array(
-        //                   "level" => 3,
-        //                   "rankingLowerBound" => "0.0020"
-        //                 ),
-        //                 array(
-        //                   "level" => 4,
-        //                   "rankingLowerBound" => "0.0033"
+        //               ],
+        //               "longPositions": [
+        //                 {
+        //                   "level": 1,
+        //                   "rankingLowerBound": "-47234.9095"
+        //                 },
+        //                 {
+        //                   "level": 2,
+        //                   "rankingLowerBound": "-0.0030"
+        //                 },
+        //                 {
+        //                   "level": 3,
+        //                   "rankingLowerBound": "0.0020"
+        //                 },
+        //                 {
+        //                   "level": 4,
+        //                   "rankingLowerBound": "0.0033"
         //                 }
-        //               )
+        //               ]
         //             }
-        //           ),
-        //           "tradingConfig" => {
-        //             "minOrderSize" => "0.0001",
-        //             "minOrderSizeChange" => "0.00001",
-        //             "minPriceChange" => "1",
-        //             "maxMarketOrderValue" => "3000000",
-        //             "maxLimitOrderValue" => "15000000",
-        //             "maxPositionValue" => "60000000",
-        //             "maxLeverage" => "50.00",
-        //             "hourlyFundingRateCap" => "0.25",
-        //             "maxNumOrders" => "200",
-        //             "limitPriceCap" => "0.05",
-        //             "limitPriceFloor" => "0.05",
-        //             "riskFactorConfig" => array(
-        //               array(
-        //                 "upperBound" => "4000000",
-        //                 "riskFactor" => "0.02",
-        //                 "isAvailableForUsers" => true
+        //           },
+        //           "tradingConfig": {
+        //             "minOrderSize": "0.0001",
+        //             "minOrderSizeChange": "0.00001",
+        //             "minPriceChange": "1",
+        //             "maxMarketOrderValue": "3000000",
+        //             "maxLimitOrderValue": "15000000",
+        //             "maxPositionValue": "60000000",
+        //             "maxLeverage": "50.00",
+        //             "hourlyFundingRateCap": "0.25",
+        //             "maxNumOrders": "200",
+        //             "limitPriceCap": "0.05",
+        //             "limitPriceFloor": "0.05",
+        //             "riskFactorConfig": [
+        //               {
+        //                 "upperBound": "4000000",
+        //                 "riskFactor": "0.02",
+        //                 "isAvailableForUsers": true
         //               }
-        //             )
-        //           ),
-        //           "l2Config" => array(
-        //             "type" => "STARKX",
-        //             "collateralId" => "0x1",
-        //             "syntheticId" => "0x4254432d3600000000000000000000",
-        //             "syntheticResolution" => 1000000,
-        //             "collateralResolution" => 1000000
-        //           ),
-        //           "visibleOnUi" => true,
-        //           "createdAt" => 1752829532673
+        //             ]
+        //           },
+        //           "l2Config": {
+        //             "type": "STARKX",
+        //             "collateralId": "0x1",
+        //             "syntheticId": "0x4254432d3600000000000000000000",
+        //             "syntheticResolution": 1000000,
+        //             "collateralResolution": 1000000
+        //           },
+        //           "visibleOnUi": true,
+        //           "createdAt": 1752829532673
         //         }
-        //       )
+        //       ]
         //     }
         //
         $data = $this->safe_list($response, 'data', array());
@@ -476,41 +494,41 @@ class extended extends Exchange {
     public function parse_market(array $market): array {
         //
         //     {
-        //       "name" => "BTC-USD",
-        //       "uiName" => "BTC-USD",
-        //       "category" => "Crypto",
-        //       "subCategory" => "L1",
-        //       "assetName" => "BTC",
-        //       "assetPrecision" => 5,
-        //       "collateralAssetName" => "USD",
-        //       "collateralAssetPrecision" => 6,
-        //       "description" => "Bitcoin",
-        //       "active" => true,
-        //       "status" => "ACTIVE",
-        //       "marketStats" => array( ... ),
-        //       "tradingConfig" => {
-        //         "minOrderSize" => "0.0001",
-        //         "minOrderSizeChange" => "0.00001",
-        //         "minPriceChange" => "1",
-        //         "maxMarketOrderValue" => "3000000",
-        //         "maxLimitOrderValue" => "15000000",
-        //         "maxPositionValue" => "60000000",
-        //         "maxLeverage" => "50.00",
-        //         "hourlyFundingRateCap" => "0.25",
-        //         "maxNumOrders" => "200",
-        //         "limitPriceCap" => "0.05",
-        //         "limitPriceFloor" => "0.05",
-        //         "riskFactorConfig" => array(
-        //           array(
-        //             "upperBound" => "4000000",
-        //             "riskFactor" => "0.02",
-        //             "isAvailableForUsers" => true
+        //       "name": "BTC-USD",
+        //       "uiName": "BTC-USD",
+        //       "category": "Crypto",
+        //       "subCategory": "L1",
+        //       "assetName": "BTC",
+        //       "assetPrecision": 5,
+        //       "collateralAssetName": "USD",
+        //       "collateralAssetPrecision": 6,
+        //       "description": "Bitcoin",
+        //       "active": true,
+        //       "status": "ACTIVE",
+        //       "marketStats": { ... },
+        //       "tradingConfig": {
+        //         "minOrderSize": "0.0001",
+        //         "minOrderSizeChange": "0.00001",
+        //         "minPriceChange": "1",
+        //         "maxMarketOrderValue": "3000000",
+        //         "maxLimitOrderValue": "15000000",
+        //         "maxPositionValue": "60000000",
+        //         "maxLeverage": "50.00",
+        //         "hourlyFundingRateCap": "0.25",
+        //         "maxNumOrders": "200",
+        //         "limitPriceCap": "0.05",
+        //         "limitPriceFloor": "0.05",
+        //         "riskFactorConfig": [
+        //           {
+        //             "upperBound": "4000000",
+        //             "riskFactor": "0.02",
+        //             "isAvailableForUsers": true
         //           }
-        //         )
-        //       ),
-        //       "l2Config" => array( ... ),
-        //       "visibleOnUi" => true,
-        //       "createdAt" => 1752829532673
+        //         ]
+        //       },
+        //       "l2Config": { ... },
+        //       "visibleOnUi": true,
+        //       "createdAt": 1752829532673
         //     }
         //
         $tradingConfig = $this->safe_dict($market, 'tradingConfig', array());
@@ -541,6 +559,9 @@ class extended extends Exchange {
         $contractSize = null;
         $linear = null;
         $inverse = null;
+        // SPOT rows are still parsed on purpose even though has['spot'] is false - that flag
+        // only advertises the capability and gates the unified spot tests, it does not filter
+        // markets, so accounts still holding spot balances keep resolving their symbols
         if ($type === 'spot') {
             $isSpot = true;
         } else {
@@ -617,28 +638,28 @@ class extended extends Exchange {
         $response = $this->v1PublicGetInfoAssets($params);
         //
         //     {
-        //       "status" => "OK",
-        //       "data" => array(
+        //       "status": "OK",
+        //       "data": [
         //         {
-        //           "id" => 1,
-        //           "name" => "USD",
-        //           "symbol" => "USD",
-        //           "description" => "USD Collateral",
-        //           "precision" => 6,
-        //           "isActive" => true,
-        //           "isCollateral" => true,
-        //           "starkexId" => "0x1",
-        //           "starkexResolution" => 1000000,
-        //           "l1Id" => "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
-        //           "l1Resolution" => 1000000,
-        //           "version" => 3,
-        //           "createdAt" => 1752829532673,
-        //           "type" => "SPOT",
-        //           "canBeUsedAsCollateral" => true,
-        //           "riskFactors" => array(),
-        //           "availableForTradeFactors" => array()
+        //           "id": 1,
+        //           "name": "USD",
+        //           "symbol": "USD",
+        //           "description": "USD Collateral",
+        //           "precision": 6,
+        //           "isActive": true,
+        //           "isCollateral": true,
+        //           "starkexId": "0x1",
+        //           "starkexResolution": 1000000,
+        //           "l1Id": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+        //           "l1Resolution": 1000000,
+        //           "version": 3,
+        //           "createdAt": 1752829532673,
+        //           "type": "SPOT",
+        //           "canBeUsedAsCollateral": true,
+        //           "riskFactors": [],
+        //           "availableForTradeFactors": []
         //         }
-        //       )
+        //       ]
         //     }
         //
         $data = $this->safe_list($response, 'data', array());
@@ -648,23 +669,23 @@ class extended extends Exchange {
     public function parse_currency(array $currency): array {
         //
         //     {
-        //       "id" => 1,
-        //       "name" => "USD",
-        //       "symbol" => "USD",
-        //       "description" => "USD Collateral",
-        //       "precision" => 6,
-        //       "isActive" => true,
-        //       "isCollateral" => true,
-        //       "starkexId" => "0x1",
-        //       "starkexResolution" => 1000000,
-        //       "l1Id" => "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
-        //       "l1Resolution" => 1000000,
-        //       "version" => 3,
-        //       "createdAt" => 1752829532673,
-        //       "type" => "SPOT",
-        //       "canBeUsedAsCollateral" => true,
-        //       "riskFactors" => array(),
-        //       "availableForTradeFactors" => array()
+        //       "id": 1,
+        //       "name": "USD",
+        //       "symbol": "USD",
+        //       "description": "USD Collateral",
+        //       "precision": 6,
+        //       "isActive": true,
+        //       "isCollateral": true,
+        //       "starkexId": "0x1",
+        //       "starkexResolution": 1000000,
+        //       "l1Id": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+        //       "l1Resolution": 1000000,
+        //       "version": 3,
+        //       "createdAt": 1752829532673,
+        //       "type": "SPOT",
+        //       "canBeUsedAsCollateral": true,
+        //       "riskFactors": [],
+        //       "availableForTradeFactors": []
         //     }
         //
         $currencyId = $this->safe_string($currency, 'symbol');
@@ -711,36 +732,36 @@ class extended extends Exchange {
         $response = $this->v1PublicGetInfoMarketsMarketStats($this->extend($request, $params));
         //
         //     {
-        //       "status" => "OK",
-        //       "data" => {
-        //         "dailyVolume" => "231216165.666600",
-        //         "dailyVolumeBase" => "3027.36710",
-        //         "dailyPriceChange" => "181",
-        //         "dailyPriceChangePercentage" => "0.0024",
-        //         "dailyLow" => "75635",
-        //         "dailyHigh" => "77399",
-        //         "lastPrice" => "77026",
-        //         "askPrice" => "77026",
-        //         "bidPrice" => "77025",
-        //         "markPrice" => "77006.091897999984",
-        //         "indexPrice" => "77050.739529925005",
-        //         "fundingRate" => "0.000012",
-        //         "nextFundingRate" => 1777446000000,
-        //         "openInterest" => "114851569.088316",
-        //         "openInterestBase" => "1491.33012",
-        //         "deleverageLevels" => {
-        //           "shortPositions" => array(
-        //             array( "level" => 1, "rankingLowerBound" => "-784.2884" ),
-        //             array( "level" => 2, "rankingLowerBound" => "-2.1078" ),
-        //             array( "level" => 3, "rankingLowerBound" => "-0.8754" ),
-        //             array( "level" => 4, "rankingLowerBound" => "0.0000" )
-        //           ),
-        //           "longPositions" => array(
-        //             array( "level" => 1, "rankingLowerBound" => "-47747.2010" ),
-        //             array( "level" => 2, "rankingLowerBound" => "-0.0131" ),
-        //             array( "level" => 3, "rankingLowerBound" => "0.0019" ),
-        //             array( "level" => 4, "rankingLowerBound" => "0.0032" )
-        //           )
+        //       "status": "OK",
+        //       "data": {
+        //         "dailyVolume": "231216165.666600",
+        //         "dailyVolumeBase": "3027.36710",
+        //         "dailyPriceChange": "181",
+        //         "dailyPriceChangePercentage": "0.0024",
+        //         "dailyLow": "75635",
+        //         "dailyHigh": "77399",
+        //         "lastPrice": "77026",
+        //         "askPrice": "77026",
+        //         "bidPrice": "77025",
+        //         "markPrice": "77006.091897999984",
+        //         "indexPrice": "77050.739529925005",
+        //         "fundingRate": "0.000012",
+        //         "nextFundingRate": 1777446000000,
+        //         "openInterest": "114851569.088316",
+        //         "openInterestBase": "1491.33012",
+        //         "deleverageLevels": {
+        //           "shortPositions": [
+        //             { "level": 1, "rankingLowerBound": "-784.2884" },
+        //             { "level": 2, "rankingLowerBound": "-2.1078" },
+        //             { "level": 3, "rankingLowerBound": "-0.8754" },
+        //             { "level": 4, "rankingLowerBound": "0.0000" }
+        //           ],
+        //           "longPositions": [
+        //             { "level": 1, "rankingLowerBound": "-47747.2010" },
+        //             { "level": 2, "rankingLowerBound": "-0.0131" },
+        //             { "level": 3, "rankingLowerBound": "0.0019" },
+        //             { "level": 4, "rankingLowerBound": "0.0032" }
+        //           ]
         //         }
         //       }
         //     }
@@ -773,19 +794,19 @@ class extended extends Exchange {
         $response = $this->v1PublicGetInfoMarkets($this->extend($request, $params));
         //
         //     {
-        //       "status" => "OK",
-        //       "data" => array(
+        //       "status": "OK",
+        //       "data": [
         //         {
-        //           "name" => "BTC-USD",
-        //           "assetName" => "BTC",
-        //           "collateralAssetName" => "USD",
-        //           "marketStats" => array(
-        //             "dailyVolume" => "231016077.512960",
+        //           "name": "BTC-USD",
+        //           "assetName": "BTC",
+        //           "collateralAssetName": "USD",
+        //           "marketStats": {
+        //             "dailyVolume": "231016077.512960",
         //             ...
-        //           ),
+        //           },
         //           ...
         //         }
-        //       )
+        //       ]
         //     }
         //
         $data = $this->safe_list($response, 'data', array());
@@ -807,34 +828,34 @@ class extended extends Exchange {
     public function parse_ticker(mixed $ticker, ?array $market = null): array {
         //
         //     {
-        //       "dailyVolume" => "231216165.666600",
-        //       "dailyVolumeBase" => "3027.36710",
-        //       "dailyPriceChange" => "181",
-        //       "dailyPriceChangePercentage" => "0.0024",
-        //       "dailyLow" => "75635",
-        //       "dailyHigh" => "77399",
-        //       "lastPrice" => "77026",
-        //       "askPrice" => "77026",
-        //       "bidPrice" => "77025",
-        //       "markPrice" => "77006.091897999984",
-        //       "indexPrice" => "77050.739529925005",
-        //       "fundingRate" => "0.000012",
-        //       "nextFundingRate" => 1777446000000,
-        //       "openInterest" => "114851569.088316",
-        //       "openInterestBase" => "1491.33012",
-        //       "deleverageLevels" => {
-        //         "shortPositions" => array(
-        //           array( "level" => 1, "rankingLowerBound" => "-784.2884" ),
-        //           array( "level" => 2, "rankingLowerBound" => "-2.1078" ),
-        //           array( "level" => 3, "rankingLowerBound" => "-0.8754" ),
-        //           array( "level" => 4, "rankingLowerBound" => "0.0000" )
-        //         ),
-        //         "longPositions" => array(
-        //           array( "level" => 1, "rankingLowerBound" => "-47747.2010" ),
-        //           array( "level" => 2, "rankingLowerBound" => "-0.0131" ),
-        //           array( "level" => 3, "rankingLowerBound" => "0.0019" ),
-        //           array( "level" => 4, "rankingLowerBound" => "0.0032" )
-        //         )
+        //       "dailyVolume": "231216165.666600",
+        //       "dailyVolumeBase": "3027.36710",
+        //       "dailyPriceChange": "181",
+        //       "dailyPriceChangePercentage": "0.0024",
+        //       "dailyLow": "75635",
+        //       "dailyHigh": "77399",
+        //       "lastPrice": "77026",
+        //       "askPrice": "77026",
+        //       "bidPrice": "77025",
+        //       "markPrice": "77006.091897999984",
+        //       "indexPrice": "77050.739529925005",
+        //       "fundingRate": "0.000012",
+        //       "nextFundingRate": 1777446000000,
+        //       "openInterest": "114851569.088316",
+        //       "openInterestBase": "1491.33012",
+        //       "deleverageLevels": {
+        //         "shortPositions": [
+        //           { "level": 1, "rankingLowerBound": "-784.2884" },
+        //           { "level": 2, "rankingLowerBound": "-2.1078" },
+        //           { "level": 3, "rankingLowerBound": "-0.8754" },
+        //           { "level": 4, "rankingLowerBound": "0.0000" }
+        //         ],
+        //         "longPositions": [
+        //           { "level": 1, "rankingLowerBound": "-47747.2010" },
+        //           { "level": 2, "rankingLowerBound": "-0.0131" },
+        //           { "level": 3, "rankingLowerBound": "0.0019" },
+        //           { "level": 4, "rankingLowerBound": "0.0032" }
+        //         ]
         //       }
         //     }
         //
@@ -887,21 +908,21 @@ class extended extends Exchange {
         $response = $this->v1PublicGetInfoMarketsMarketOrderbook($this->extend($request, $params));
         //
         //     {
-        //       "status" => "OK",
-        //       "data" => {
-        //         "market" => "BTC-USD",
-        //         "bid" => array(
+        //       "status": "OK",
+        //       "data": {
+        //         "market": "BTC-USD",
+        //         "bid": [
         //           {
-        //             "qty" => "14.46084",
-        //             "price" => "76214"
+        //             "qty": "14.46084",
+        //             "price": "76214"
         //           }
-        //         ),
-        //         "ask" => array(
+        //         ],
+        //         "ask": [
         //           {
-        //             "qty" => "0.11585",
-        //             "price" => "76215"
+        //             "qty": "0.11585",
+        //             "price": "76215"
         //           }
-        //         )
+        //         ]
         //       }
         //     }
         //
@@ -935,18 +956,18 @@ class extended extends Exchange {
         $response = $this->v1PublicGetInfoMarketsMarketTrades($this->extend($request, $params));
         //
         //     {
-        //       "status" => "OK",
-        //       "data" => array(
+        //       "status": "OK",
+        //       "data": [
         //         {
-        //           "i" => 2.049676905958871e+18,
-        //           "m" => "BTC-USD",
-        //           "S" => "SELL",
-        //           "tT" => "TRADE",
-        //           "T" => 1777516030193,
-        //           "p" => "76140",
-        //           "q" => "0.00165"
+        //           "i": 2.049676905958871e+18,
+        //           "m": "BTC-USD",
+        //           "S": "SELL",
+        //           "tT": "TRADE",
+        //           "T": 1777516030193,
+        //           "p": "76140",
+        //           "q": "0.00165"
         //         }
-        //       )
+        //       ]
         //     }
         //
         $data = $this->safe_list($response, 'data', array());
@@ -984,27 +1005,27 @@ class extended extends Exchange {
         $response = $this->v1PrivateGetUserTrades($this->extend($params, $request));
         //
         //     {
-        //         "status" => "OK",
-        //         "data" => array(
+        //         "status": "OK",
+        //         "data": [
         //             {
-        //                 "id" => 1,
-        //                 "orderId" => 1784980437895231232,
-        //                 "externalId" => "ExtId-1",
-        //                 "accountId" => 1,
-        //                 "market" => "BTC-USD",
-        //                 "side" => "BUY",
-        //                 "price" => "39000",
-        //                 "qty" => "0.2",
-        //                 "value" => "7800",
-        //                 "fee" => "1.3",
-        //                 "tradeType" => "TRADE",
-        //                 "isTaker" => true,
-        //                 "createdTime" => 1701563440000
+        //                 "id": 1,
+        //                 "orderId": 1784980437895231232,
+        //                 "externalId": "ExtId-1",
+        //                 "accountId": 1,
+        //                 "market": "BTC-USD",
+        //                 "side": "BUY",
+        //                 "price": "39000",
+        //                 "qty": "0.2",
+        //                 "value": "7800",
+        //                 "fee": "1.3",
+        //                 "tradeType": "TRADE",
+        //                 "isTaker": true,
+        //                 "createdTime": 1701563440000
         //             }
-        //         ),
-        //         "pagination" => {
-        //             "cursor" => 1784963886257016832,
-        //             "count" => 1
+        //         ],
+        //         "pagination": {
+        //             "cursor": 1784963886257016832,
+        //             "count": 1
         //         }
         //     }
         //
@@ -1057,25 +1078,25 @@ class extended extends Exchange {
         $response = $this->v1PrivateGetUserFundingHistory($this->extend($params, $request));
         //
         //     {
-        //         "status" => "OK",
-        //         "data" => array(
+        //         "status": "OK",
+        //         "data": [
         //             {
-        //                 "id" => 8341,
-        //                 "accountId" => 3137,
-        //                 "market" => "BNB-USD",
-        //                 "positionId" => 1821237954501148672,
-        //                 "side" => "LONG",
-        //                 "size" => "1.116",
-        //                 "value" => "560.77401888",
-        //                 "markPrice" => "502.48568",
-        //                 "fundingFee" => "0",
-        //                 "fundingRate" => "0",
-        //                 "paidTime" => 1723147241346
+        //                 "id": 8341,
+        //                 "accountId": 3137,
+        //                 "market": "BNB-USD",
+        //                 "positionId": 1821237954501148672,
+        //                 "side": "LONG",
+        //                 "size": "1.116",
+        //                 "value": "560.77401888",
+        //                 "markPrice": "502.48568",
+        //                 "fundingFee": "0",
+        //                 "fundingRate": "0",
+        //                 "paidTime": 1723147241346
         //             }
-        //         ),
-        //         "pagination" => {
-        //             "cursor" => 8341,
-        //             "count" => 1
+        //         ],
+        //         "pagination": {
+        //             "cursor": 8341,
+        //             "count": 1
         //         }
         //     }
         //
@@ -1097,17 +1118,17 @@ class extended extends Exchange {
     public function parse_funding_history(mixed $history, ?array $market = null) {
         //
         //     {
-        //         "id" => 8341,
-        //         "accountId" => 3137,
-        //         "market" => "BNB-USD",
-        //         "positionId" => 1821237954501148672,
-        //         "side" => "LONG",
-        //         "size" => "1.116",
-        //         "value" => "560.77401888",
-        //         "markPrice" => "502.48568",
-        //         "fundingFee" => "0",
-        //         "fundingRate" => "0",
-        //         "paidTime" => 1723147241346
+        //         "id": 8341,
+        //         "accountId": 3137,
+        //         "market": "BNB-USD",
+        //         "positionId": 1821237954501148672,
+        //         "side": "LONG",
+        //         "size": "1.116",
+        //         "value": "560.77401888",
+        //         "markPrice": "502.48568",
+        //         "fundingFee": "0",
+        //         "fundingRate": "0",
+        //         "paidTime": 1723147241346
         //     }
         //
         $marketId = $this->safe_string($history, 'market');
@@ -1139,31 +1160,31 @@ class extended extends Exchange {
         // fetchTrades
         //
         //     {
-        //       "i" => 2.049676905958871e+18,
-        //       "m" => "BTC-USD",
-        //       "S" => "SELL",
-        //       "tT" => "TRADE",
-        //       "T" => 1777516030193,
-        //       "p" => "76140",
-        //       "q" => "0.00165"
+        //       "i": 2.049676905958871e+18,
+        //       "m": "BTC-USD",
+        //       "S": "SELL",
+        //       "tT": "TRADE",
+        //       "T": 1777516030193,
+        //       "p": "76140",
+        //       "q": "0.00165"
         //     }
         //
         // fetchMyTrades
         //
         //     {
-        //         "id" => 1,
-        //         "orderId" => 1784980437895231232,
-        //         "externalId" => "ExtId-1",
-        //         "accountId" => 1,
-        //         "market" => "BTC-USD",
-        //         "side" => "BUY",
-        //         "price" => "39000",
-        //         "qty" => "0.2",
-        //         "value" => "7800",
-        //         "fee" => "1.3",
-        //         "tradeType" => "TRADE",
-        //         "isTaker" => true,
-        //         "createdTime" => 1701563440000
+        //         "id": 1,
+        //         "orderId": 1784980437895231232,
+        //         "externalId": "ExtId-1",
+        //         "accountId": 1,
+        //         "market": "BTC-USD",
+        //         "side": "BUY",
+        //         "price": "39000",
+        //         "qty": "0.2",
+        //         "value": "7800",
+        //         "fee": "1.3",
+        //         "tradeType": "TRADE",
+        //         "isTaker": true,
+        //         "createdTime": 1701563440000
         //     }
         //
         $marketId = $this->safe_string_2($trade, 'm', 'market');
@@ -1214,7 +1235,7 @@ class extended extends Exchange {
          * @param {string} [$params->candleType] candle type => 'trades' (default), 'mark-prices', or 'index-prices'
          * @param {string} [$params->price] *ignored if $params->candleType is set* 'mark' or 'index' for mark $price and index $price candles
          * @param {int} [$params->until] end timestamp in ms for the requested period
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -1243,17 +1264,17 @@ class extended extends Exchange {
         $response = $this->v1PublicGetInfoCandlesMarketCandleType($this->extend($request, $params));
         //
         //     {
-        //       "status" => "OK",
-        //       "data" => array(
+        //       "status": "OK",
+        //       "data": [
         //         {
-        //           "o" => "75657.5",
-        //           "l" => "75657.5",
-        //           "h" => "75657.5",
-        //           "c" => "75657.5",
-        //           "v" => "0",
-        //           "T" => 1777517880000
+        //           "o": "75657.5",
+        //           "l": "75657.5",
+        //           "h": "75657.5",
+        //           "c": "75657.5",
+        //           "v": "0",
+        //           "T": 1777517880000
         //         }
-        //       )
+        //       ]
         //     }
         //
         $data = $this->safe_list($response, 'data', array());
@@ -1263,12 +1284,12 @@ class extended extends Exchange {
     public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
         //
         //     {
-        //       "o" => "75657.5",
-        //       "l" => "75657.5",
-        //       "h" => "75657.5",
-        //       "c" => "75657.5",
-        //       "v" => "0",
-        //       "T" => 1777517880000
+        //       "o": "75657.5",
+        //       "l": "75657.5",
+        //       "h": "75657.5",
+        //       "c": "75657.5",
+        //       "v": "0",
+        //       "T": 1777517880000
         //     }
         //
         return array(
@@ -1326,17 +1347,17 @@ class extended extends Exchange {
         $response = $this->v1PublicGetInfoMarketFunding($this->extend($request, $params));
         //
         //     {
-        //       "status" => "OK",
-        //       "data" => array(
+        //       "status": "OK",
+        //       "data": [
         //         {
-        //           "m" => "BTC-USD",
-        //           "f" => "0.000008",
-        //           "T" => 1777507201028
+        //           "m": "BTC-USD",
+        //           "f": "0.000008",
+        //           "T": 1777507201028
         //         }
-        //       ),
-        //       "pagination" => {
-        //         "cursor" => 1784963886257016832,
-        //         "count" => 1
+        //       ],
+        //       "pagination": {
+        //         "cursor": 1784963886257016832,
+        //         "count": 1
         //       }
         //     }
         //
@@ -1359,9 +1380,9 @@ class extended extends Exchange {
     public function parse_funding_rate_history(mixed $info, ?array $market = null) {
         //
         //     {
-        //       "m" => "BTC-USD",
-        //       "f" => "0.000008",
-        //       "T" => 1777507201028
+        //       "m": "BTC-USD",
+        //       "f": "0.000008",
+        //       "T": 1777507201028
         //     }
         //
         $marketId = $this->safe_string($info, 'm');
@@ -1384,7 +1405,7 @@ class extended extends Exchange {
          *
          * @param {string} $symbol unified CCXT $market $symbol
          * @param {string} $timeframe '1h' or '1d'
-         * @param {int} [$since] the time(ms) of the earliest record to retrieve unix timestamp
+         * @param {int} [$since] the time(ms) of the earliest record to retrieve as a unix timestamp
          * @param {int} [$limit] the maximum amount of open interest structures to retrieve
          * @param {array} [$params] exchange specific parameters
          * @param {int} [$params->until] timestamp in ms of the latest open interest record to fetch
@@ -1415,14 +1436,14 @@ class extended extends Exchange {
         $response = $this->v1PublicGetInfoMarketOpenInterests($this->extend($request, $params));
         //
         //     {
-        //       "status" => "OK",
-        //       "data" => array(
+        //       "status": "OK",
+        //       "data": [
         //         {
-        //           "i" => "112620590.6060360000000000",
-        //           "I" => "1473.1408400000000000",
-        //           "t" => 1777420800000
+        //           "i": "112620590.6060360000000000",
+        //           "I": "1473.1408400000000000",
+        //           "t": 1777420800000
         //         }
-        //       )
+        //       ]
         //     }
         //
         $data = $this->safe_list($response, 'data', array());
@@ -1432,9 +1453,9 @@ class extended extends Exchange {
     public function parse_open_interest(mixed $interest, ?array $market = null) {
         //
         //     {
-        //       "i" => "112620590.6060360000000000",
-        //       "I" => "1473.1408400000000000",
-        //       "t" => 1777420800000
+        //       "i": "112620590.6060360000000000",
+        //       "I": "1473.1408400000000000",
+        //       "t": 1777420800000
         //     }
         //
         $timestamp = $this->safe_integer($interest, 't');
@@ -1463,31 +1484,31 @@ class extended extends Exchange {
         $response = $this->v1PrivateGetUserSpotBalances($params);
         //
         //     {
-        //         "status" => "OK",
-        //         "data" => array(
-        //             array(
-        //                 "accountId" => 123,
-        //                 "asset" => "USDC",
-        //                 "balance" => "13500",
-        //                 "indexPrice" => "1",
-        //                 "notionalValue" => "13500",
-        //                 "contributionFactor" => "1",
-        //                 "equityContribution" => "13500",
-        //                 "availableToWithdraw" => "100",
-        //                 "updatedAt" => 1701563440
-        //             ),
+        //         "status": "OK",
+        //         "data": [
         //             {
-        //                 "accountId" => 123,
-        //                 "asset" => "BTC",
-        //                 "balance" => "0.5",
-        //                 "indexPrice" => "65000",
-        //                 "notionalValue" => "32500",
-        //                 "contributionFactor" => "0.95",
-        //                 "equityContribution" => "30875",
-        //                 "availableToWithdraw" => "0.5",
-        //                 "updatedAt" => 1701563440
+        //                 "accountId": 123,
+        //                 "asset": "USDC",
+        //                 "balance": "13500",
+        //                 "indexPrice": "1",
+        //                 "notionalValue": "13500",
+        //                 "contributionFactor": "1",
+        //                 "equityContribution": "13500",
+        //                 "availableToWithdraw": "100",
+        //                 "updatedAt": 1701563440
+        //             },
+        //             {
+        //                 "accountId": 123,
+        //                 "asset": "BTC",
+        //                 "balance": "0.5",
+        //                 "indexPrice": "65000",
+        //                 "notionalValue": "32500",
+        //                 "contributionFactor": "0.95",
+        //                 "equityContribution": "30875",
+        //                 "availableToWithdraw": "0.5",
+        //                 "updatedAt": 1701563440
         //             }
-        //         )
+        //         ]
         //     }
         //
         $data = $this->safe_list($response, 'data', array());
@@ -1522,19 +1543,19 @@ class extended extends Exchange {
         $response = $this->v1PrivateGetUserAccountInfo($params);
         //
         //     {
-        //         "status" => "OK",
-        //         "data" => {
-        //             "accountId" => 3342,
-        //             "description" => "Main account",
-        //             "accountIndex" => 0,
-        //             "status" => "ACTIVE",
-        //             "l2Key" => "0x...",
-        //             "l2Vault" => "500343",
-        //             "bridgeStarknetAddress" => "0x...",
-        //             "apiKeys" => array(
+        //         "status": "OK",
+        //         "data": {
+        //             "accountId": 3342,
+        //             "description": "Main account",
+        //             "accountIndex": 0,
+        //             "status": "ACTIVE",
+        //             "l2Key": "0x...",
+        //             "l2Vault": "500343",
+        //             "bridgeStarknetAddress": "0x...",
+        //             "apiKeys": [
         //                 "..."
-        //             ),
-        //             "accountIndexForKeyGeneration" => 0
+        //             ],
+        //             "accountIndexForKeyGeneration": 0
         //         }
         //     }
         //
@@ -1554,25 +1575,25 @@ class extended extends Exchange {
         $response = $this->v1PrivateGetUserAccounts($params);
         //
         // {
-        //     "status" => "OK",
-        //     "data" => [array(
-        //         "accountId" => 123,
-        //         "description" => "Main",
-        //         "accountIndex" => 0,
-        //         "status" => "ACTIVE",
-        //         "l2Key" => "0x123",
-        //         "l2Vault" => "321",
-        //         "bridgeStarknetAddress" => "0xabc",
-        //         "accountIndexForKeyGeneration" => 0
-        //       ), {
-        //         "accountId" => 999,
-        //         "description" => "Vault Balance",
-        //         "accountIndex" => 1001,
-        //         "status" => "ACTIVE",
-        //         "l2Key" => "0x123",
-        //         "l2Vault" => "999",
-        //         "bridgeStarknetAddress" => "0xabc",
-        //         "accountIndexForKeyGeneration" => 0
+        //     "status": "OK",
+        //     "data": [{
+        //         "accountId": 123,
+        //         "description": "Main",
+        //         "accountIndex": 0,
+        //         "status": "ACTIVE",
+        //         "l2Key": "0x123",
+        //         "l2Vault": "321",
+        //         "bridgeStarknetAddress": "0xabc",
+        //         "accountIndexForKeyGeneration": 0
+        //       }, {
+        //         "accountId": 999,
+        //         "description": "Vault Balance",
+        //         "accountIndex": 1001,
+        //         "status": "ACTIVE",
+        //         "l2Key": "0x123",
+        //         "l2Vault": "999",
+        //         "bridgeStarknetAddress": "0xabc",
+        //         "accountIndexForKeyGeneration": 0
         //       }
         //     ]}
         //
@@ -1640,15 +1661,15 @@ class extended extends Exchange {
     public function parse_ledger_entry(array $item, ?array $currency = null): array {
         //
         //     {
-        //         "id" => "1951255127004282880",
-        //         "type" => "TRANSFER",
-        //         "status" => "COMPLETED",
-        //         "amount" => "-3.0000000000000000",
-        //         "fee" => "0",
-        //         "asset" => 1,
-        //         "time" => 1754050449502,
-        //         "accountId" => 100009,
-        //         "counterpartyAccountId" => 100023
+        //         "id": "1951255127004282880",
+        //         "type": "TRANSFER",
+        //         "status": "COMPLETED",
+        //         "amount": "-3.0000000000000000",
+        //         "fee": "0",
+        //         "asset": 1,
+        //         "time": 1754050449502,
+        //         "accountId": 100009,
+        //         "counterpartyAccountId": 100023
         //     }
         //
         $timestamp = $this->safe_integer($item, 'time');
@@ -1717,23 +1738,23 @@ class extended extends Exchange {
         $response = $this->v1PrivateGetUserAssetOperations($this->extend($request, $params));
         //
         //     {
-        //         "status" => "OK",
-        //         "data" => array(
+        //         "status": "OK",
+        //         "data": [
         //             {
-        //                 "id" => "1951255127004282880",
-        //                 "type" => "TRANSFER",
-        //                 "status" => "COMPLETED",
-        //                 "amount" => "-3.0000000000000000",
-        //                 "fee" => "0",
-        //                 "asset" => 1,
-        //                 "time" => 1754050449502,
-        //                 "accountId" => 100009,
-        //                 "counterpartyAccountId" => 100023
+        //                 "id": "1951255127004282880",
+        //                 "type": "TRANSFER",
+        //                 "status": "COMPLETED",
+        //                 "amount": "-3.0000000000000000",
+        //                 "fee": "0",
+        //                 "asset": 1,
+        //                 "time": 1754050449502,
+        //                 "accountId": 100009,
+        //                 "counterpartyAccountId": 100023
         //             }
-        //         ),
-        //         "pagination" => {
-        //             "cursor" => 1951255127004282880,
-        //             "count" => 1
+        //         ],
+        //         "pagination": {
+        //             "cursor": 1951255127004282880,
+        //             "count": 1
         //         }
         //     }
         //
@@ -1824,8 +1845,8 @@ class extended extends Exchange {
         $response = $this->v1PrivatePostUserWithdrawal($this->extend($request, $params));
         //
         //     {
-        //         "status" => "OK",
-        //         "data" => 1820796462590083072
+        //         "status": "OK",
+        //         "data": 1820796462590083072
         //     }
         //
         $now = $this->milliseconds();
@@ -1942,10 +1963,10 @@ class extended extends Exchange {
         $response = $this->v1PrivatePostUserTransfer($this->extend($request, $params));
         //
         //     {
-        //         "status" => "OK",
-        //         "data" => {
-        //             "validSignature" => true,
-        //             "id" => 1820778187672010752
+        //         "status": "OK",
+        //         "data": {
+        //             "validSignature": true,
+        //             "id": 1820778187672010752
         //         }
         //     }
         //
@@ -2045,15 +2066,15 @@ class extended extends Exchange {
     public function parse_transaction(array $transaction, ?array $currency = null): array {
         //
         //     {
-        //         "id" => "1951255127004282880",
-        //         "type" => "TRANSFER",
-        //         "status" => "COMPLETED",
-        //         "amount" => "-3.0000000000000000",
-        //         "fee" => "0",
-        //         "asset" => 1,
-        //         "time" => 1754050449502,
-        //         "accountId" => 100009,
-        //         "counterpartyAccountId" => 100023
+        //         "id": "1951255127004282880",
+        //         "type": "TRANSFER",
+        //         "status": "COMPLETED",
+        //         "amount": "-3.0000000000000000",
+        //         "fee": "0",
+        //         "asset": 1,
+        //         "time": 1754050449502,
+        //         "accountId": 100009,
+        //         "counterpartyAccountId": 100023
         //     }
         //
         $timestamp = $this->safe_integer($transaction, 'time');
@@ -2114,15 +2135,15 @@ class extended extends Exchange {
         $response = $this->v1PrivateGetUserFees($this->extend($request, $params));
         //
         //     {
-        //         "status" => "OK",
-        //         "data" => array(
+        //         "status": "OK",
+        //         "data": [
         //             {
-        //                 "market" => "BTC-USD",
-        //                 "makerFeeRate" => "0.00000",
-        //                 "takerFeeRate" => "0.00025",
-        //                 "builderFeeRate" => "0.0001"
+        //                 "market": "BTC-USD",
+        //                 "makerFeeRate": "0.00000",
+        //                 "takerFeeRate": "0.00025",
+        //                 "builderFeeRate": "0.0001"
         //             }
-        //         )
+        //         ]
         //     }
         //
         $data = $this->safe_list($response, 'data', array());
@@ -2145,15 +2166,15 @@ class extended extends Exchange {
         $response = $this->v1PrivateGetUserFees($params);
         //
         //     {
-        //         "status" => "OK",
-        //         "data" => array(
+        //         "status": "OK",
+        //         "data": [
         //             {
-        //                 "market" => "BTC-USD",
-        //                 "makerFeeRate" => "0.00000",
-        //                 "takerFeeRate" => "0.00025",
-        //                 "builderFeeRate" => "0.0001"
+        //                 "market": "BTC-USD",
+        //                 "makerFeeRate": "0.00000",
+        //                 "takerFeeRate": "0.00025",
+        //                 "builderFeeRate": "0.0001"
         //             }
-        //         )
+        //         ]
         //     }
         //
         $data = $this->safe_list($response, 'data', array());
@@ -2172,10 +2193,10 @@ class extended extends Exchange {
     public function parse_trading_fee(array $fee, ?array $market = null): array {
         //
         //     {
-        //         "market" => "BTC-USD",
-        //         "makerFeeRate" => "0.00000",
-        //         "takerFeeRate" => "0.00025",
-        //         "builderFeeRate" => "0.0001"
+        //         "market": "BTC-USD",
+        //         "makerFeeRate": "0.00000",
+        //         "takerFeeRate": "0.00025",
+        //         "builderFeeRate": "0.0001"
         //     }
         //
         $marketId = $this->safe_string($fee, 'market');
@@ -2208,13 +2229,13 @@ class extended extends Exchange {
         $response = $this->v1PrivateGetUserLeverage($this->extend($request, $params));
         //
         //     {
-        //         "status" => "OK",
-        //         "data" => array(
+        //         "status": "OK",
+        //         "data": [
         //             {
-        //                 "market" => "SOL-USD",
-        //                 "leverage" => "10"
+        //                 "market": "SOL-USD",
+        //                 "leverage": "10"
         //             }
-        //         )
+        //         ]
         //     }
         //
         $data = $this->safe_list($response, 'data', array());
@@ -2244,8 +2265,8 @@ class extended extends Exchange {
         $response = $this->v1PrivatePatchUserLeverage($this->extend($request, $params));
         //
         //     {
-        //         "status" => "OK",
-        //         "data" => array()
+        //         "status": "OK",
+        //         "data": {}
         //     }
         //
         $data = $this->safe_dict($response, 'data', array());
@@ -2255,8 +2276,8 @@ class extended extends Exchange {
     public function parse_leverage(array $leverage, ?array $market = null): array {
         //
         //     {
-        //         "market" => "BTC-USD",
-        //         "leverage" => "10"
+        //         "market": "BTC-USD",
+        //         "leverage": "10"
         //     }
         //
         $marketId = $this->safe_string($leverage, 'market');
@@ -2290,32 +2311,32 @@ class extended extends Exchange {
         $response = $this->v1PrivateGetUserPositions($this->extend($request, $params));
         //
         //     {
-        //         "status" => "OK",
-        //         "data" => array(
+        //         "status": "OK",
+        //         "data": [
         //             {
-        //                 "id" => 1,
-        //                 "accountId" => 1,
-        //                 "market" => "BTC-USD",
-        //                 "side" => "LONG",
-        //                 "leverage" => "10",
-        //                 "size" => "0.1",
-        //                 "value" => "4000",
-        //                 "openPrice" => "39000",
-        //                 "markPrice" => "40000",
-        //                 "liquidationPrice" => "38200",
-        //                 "margin" => "20",
-        //                 "unrealisedPnl" => "1000",
-        //                 "realisedPnl" => "1.2",
-        //                 "tpTriggerPrice" => "41000",
-        //                 "tpLimitPrice" => "41500",
-        //                 "slTriggerPrice" => "39500",
-        //                 "slLimitPrice" => "39000",
-        //                 "adl" => "2.5",
-        //                 "maxPositionSize" => "0.2",
-        //                 "createdAt" => 1701563440000,
-        //                 "updatedAt" => 1701563440000
+        //                 "id": 1,
+        //                 "accountId": 1,
+        //                 "market": "BTC-USD",
+        //                 "side": "LONG",
+        //                 "leverage": "10",
+        //                 "size": "0.1",
+        //                 "value": "4000",
+        //                 "openPrice": "39000",
+        //                 "markPrice": "40000",
+        //                 "liquidationPrice": "38200",
+        //                 "margin": "20",
+        //                 "unrealisedPnl": "1000",
+        //                 "realisedPnl": "1.2",
+        //                 "tpTriggerPrice": "41000",
+        //                 "tpLimitPrice": "41500",
+        //                 "slTriggerPrice": "39500",
+        //                 "slLimitPrice": "39000",
+        //                 "adl": "2.5",
+        //                 "maxPositionSize": "0.2",
+        //                 "createdAt": 1701563440000,
+        //                 "updatedAt": 1701563440000
         //             }
-        //         )
+        //         ]
         //     }
         //
         $data = $this->safe_list($response, 'data', array());
@@ -2366,27 +2387,27 @@ class extended extends Exchange {
         $response = $this->v1PrivateGetUserPositionsHistory($this->extend($request, $params));
         //
         //     {
-        //         "status" => "OK",
-        //         "data" => array(
+        //         "status": "OK",
+        //         "data": [
         //             {
-        //                 "id" => 1784963886257016832,
-        //                 "accountId" => 1,
-        //                 "market" => "BTC-USD",
-        //                 "side" => "LONG",
-        //                 "exitType" => "TRADE",
-        //                 "leverage" => "10",
-        //                 "size" => "0.1",
-        //                 "maxPositionSize" => "0.2",
-        //                 "openPrice" => "39000",
-        //                 "exitPrice" => "40000",
-        //                 "realisedPnl" => "10",
-        //                 "createdTime" => 1701563440000,
-        //                 "closedTime" => 1701567040000
+        //                 "id": 1784963886257016832,
+        //                 "accountId": 1,
+        //                 "market": "BTC-USD",
+        //                 "side": "LONG",
+        //                 "exitType": "TRADE",
+        //                 "leverage": "10",
+        //                 "size": "0.1",
+        //                 "maxPositionSize": "0.2",
+        //                 "openPrice": "39000",
+        //                 "exitPrice": "40000",
+        //                 "realisedPnl": "10",
+        //                 "createdTime": 1701563440000,
+        //                 "closedTime": 1701567040000
         //             }
-        //         ),
-        //         "pagination" => {
-        //             "cursor" => 1784963886257016832,
-        //             "count" => 1
+        //         ],
+        //         "pagination": {
+        //             "cursor": 1784963886257016832,
+        //             "count": 1
         //         }
         //     }
         //
@@ -2409,27 +2430,27 @@ class extended extends Exchange {
     public function parse_position(mixed $position, ?array $market = null): array {
         //
         //     {
-        //         "id" => 1,
-        //         "accountId" => 1,
-        //         "market" => "BTC-USD",
-        //         "side" => "LONG",
-        //         "leverage" => "10",
-        //         "size" => "0.1",
-        //         "value" => "4000",
-        //         "openPrice" => "39000",
-        //         "markPrice" => "40000",
-        //         "liquidationPrice" => "38200",
-        //         "margin" => "20",
-        //         "unrealisedPnl" => "1000",
-        //         "realisedPnl" => "1.2",
-        //         "tpTriggerPrice" => "41000",
-        //         "tpLimitPrice" => "41500",
-        //         "slTriggerPrice" => "39500",
-        //         "slLimitPrice" => "39000",
-        //         "adl" => "2.5",
-        //         "maxPositionSize" => "0.2",
-        //         "createdAt" => 1701563440000,
-        //         "updatedAt" => 1701563440000
+        //         "id": 1,
+        //         "accountId": 1,
+        //         "market": "BTC-USD",
+        //         "side": "LONG",
+        //         "leverage": "10",
+        //         "size": "0.1",
+        //         "value": "4000",
+        //         "openPrice": "39000",
+        //         "markPrice": "40000",
+        //         "liquidationPrice": "38200",
+        //         "margin": "20",
+        //         "unrealisedPnl": "1000",
+        //         "realisedPnl": "1.2",
+        //         "tpTriggerPrice": "41000",
+        //         "tpLimitPrice": "41500",
+        //         "slTriggerPrice": "39500",
+        //         "slLimitPrice": "39000",
+        //         "adl": "2.5",
+        //         "maxPositionSize": "0.2",
+        //         "createdAt": 1701563440000,
+        //         "updatedAt": 1701563440000
         //     }
         //
         $marketId = $this->safe_string($position, 'market');
@@ -2610,7 +2631,7 @@ class extended extends Exchange {
         $market = $this->market($symbol);
         $uppercaseType = strtoupper($type);
         $uppercaseSide = strtoupper($side);
-        if ($market['spot'] && $uppercaseType !== 'LIMIT') {
+        if (($market['spot'] === true) && $uppercaseType !== 'LIMIT') {
             throw new BadRequest($this->id . ' createOrder() supports limit orders for spot markets only');
         }
         if (!$this->in_array($uppercaseType, array( 'LIMIT', 'MARKET', 'CONDITIONAL', 'TPSL' ))) {
@@ -2808,7 +2829,7 @@ class extended extends Exchange {
          * @param {float} $amount how much of currency you want to trade in units of base currency
          * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, required for all order types
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {string} [$params->clientOrderId] client order id, sent exchange order id
+         * @param {string} [$params->clientOrderId] client order id, sent as the exchange order id
          * @param {string} [$params->cancelId] previous external order id to replace
          * @param {string} [$params->timeInForce] 'GTT' or 'IOC'
          * @param {boolean} [$params->postOnly] true if the order should only make liquidity
@@ -2834,10 +2855,10 @@ class extended extends Exchange {
         $response = $this->v1PrivatePostUserOrder($request);
         //
         //     {
-        //         "status" => "OK",
-        //         "data" => {
-        //             "id" => "2051479786538188800",
-        //             "externalId" => "3480985089570526249141260266819446928410958787024864860785196119336740291620"
+        //         "status": "OK",
+        //         "data": {
+        //             "id": "2051479786538188800",
+        //             "externalId": "3480985089570526249141260266819446928410958787024864860785196119336740291620"
         //         }
         //     }
         //
@@ -2912,10 +2933,10 @@ class extended extends Exchange {
         $editResponse = $this->v1PrivatePostUserOrder($request);
         //
         //     {
-        //         "status" => "OK",
-        //         "data" => {
-        //             "id" => "2051479786538188800",
-        //             "externalId" => "3480985089570526249141260266819446928410958787024864860785196119336740291620"
+        //         "status": "OK",
+        //         "data": {
+        //             "id": "2051479786538188800",
+        //             "externalId": "3480985089570526249141260266819446928410958787024864860785196119336740291620"
         //         }
         //     }
         //
@@ -2964,7 +2985,7 @@ class extended extends Exchange {
         }
         //
         //     {
-        //         "status" => "OK"
+        //         "status": "OK"
         //     }
         //
         $orderId = ($clientOrderId === null) ? $id : null;
@@ -3021,8 +3042,8 @@ class extended extends Exchange {
         $this->v1PrivatePostUserOrderMassCancel($this->extend($request, $params));
         //
         //     {
-        //         "status" => "OK",
-        //         "data" => array()
+        //         "status": "OK",
+        //         "data": {}
         //     }
         //
         return array();
@@ -3050,8 +3071,8 @@ class extended extends Exchange {
         $this->v1PrivatePostUserOrderMassCancel($this->extend($request, $params));
         //
         //     {
-        //         "status" => "OK",
-        //         "data" => array()
+        //         "status": "OK",
+        //         "data": {}
         //     }
         //
         return array();
@@ -3142,29 +3163,29 @@ class extended extends Exchange {
         $response = $this->v1PrivateGetUserOrders($this->extend($request, $params));
         //
         //     {
-        //       "status" => "OK",
-        //       "data" => array(
+        //       "status": "OK",
+        //       "data": [
         //         {
-        //           "id" => 1775511783722512384,
-        //           "accountId" => 3017,
-        //           "externalId" => "2554612759479898620327573136214120486511160383028978112799136270841501275076",
-        //           "market" => "ETH-USD",
-        //           "type" => "LIMIT",
-        //           "side" => "BUY",
-        //           "status" => "PARTIALLY_FILLED",
-        //           "price" => "3300",
-        //           "averagePrice" => "3297.00",
-        //           "qty" => "0.2",
-        //           "filledQty" => "0.1",
-        //           "payedFee" => "0.0120000000000000",
-        //           "reduceOnly" => false,
-        //           "postOnly" => false,
-        //           "createdTime" => 1701563440000,
-        //           "updatedTime" => 1701563440000,
-        //           "timeInForce" => "IOC",
-        //           "expireTime" => 1712754771819
+        //           "id": 1775511783722512384,
+        //           "accountId": 3017,
+        //           "externalId": "2554612759479898620327573136214120486511160383028978112799136270841501275076",
+        //           "market": "ETH-USD",
+        //           "type": "LIMIT",
+        //           "side": "BUY",
+        //           "status": "PARTIALLY_FILLED",
+        //           "price": "3300",
+        //           "averagePrice": "3297.00",
+        //           "qty": "0.2",
+        //           "filledQty": "0.1",
+        //           "payedFee": "0.0120000000000000",
+        //           "reduceOnly": false,
+        //           "postOnly": false,
+        //           "createdTime": 1701563440000,
+        //           "updatedTime": 1701563440000,
+        //           "timeInForce": "IOC",
+        //           "expireTime": 1712754771819
         //         }
-        //       )
+        //       ]
         //     }
         //
         $data = $this->safe_list($response, 'data', array());
@@ -3203,32 +3224,32 @@ class extended extends Exchange {
         $response = $this->v1PrivateGetUserOrdersHistory($this->extend($params, $request));
         //
         //     {
-        //       "status" => "OK",
-        //       "data" => array(
+        //       "status": "OK",
+        //       "data": [
         //         {
-        //           "id" => 1784963886257016832,
-        //           "externalId" => "ExtId-1",
-        //           "accountId" => 1,
-        //           "market" => "BTC-USD",
-        //           "status" => "FILLED",
-        //           "type" => "LIMIT",
-        //           "side" => "BUY",
-        //           "price" => "39000",
-        //           "averagePrice" => "39000",
-        //           "qty" => "0.2",
-        //           "filledQty" => "0.1",
-        //           "payedFee" => "0.0120000000000000",
-        //           "reduceOnly" => false,
-        //           "postOnly" => false,
-        //           "createdTime" => 1701563440000,
-        //           "updatedTime" => 1701563440000,
-        //           "timeInForce" => "IOC",
-        //           "expireTime" => 1706563440
+        //           "id": 1784963886257016832,
+        //           "externalId": "ExtId-1",
+        //           "accountId": 1,
+        //           "market": "BTC-USD",
+        //           "status": "FILLED",
+        //           "type": "LIMIT",
+        //           "side": "BUY",
+        //           "price": "39000",
+        //           "averagePrice": "39000",
+        //           "qty": "0.2",
+        //           "filledQty": "0.1",
+        //           "payedFee": "0.0120000000000000",
+        //           "reduceOnly": false,
+        //           "postOnly": false,
+        //           "createdTime": 1701563440000,
+        //           "updatedTime": 1701563440000,
+        //           "timeInForce": "IOC",
+        //           "expireTime": 1706563440
         //         }
-        //       ),
-        //       "pagination" => {
-        //         "cursor" => 1784963886257016832,
-        //         "count" => 1
+        //       ],
+        //       "pagination": {
+        //         "cursor": 1784963886257016832,
+        //         "count": 1
         //       }
         //     }
         //
@@ -3301,42 +3322,42 @@ class extended extends Exchange {
     public function parse_order(array $order, ?array $market = null): array {
         //
         //     {
-        //         "id" => 1784963886257016832,
-        //         "externalId" => "ExtId-1",
-        //         "accountId" => 1,
-        //         "market" => "BTC-USD",
-        //         "status" => "FILLED",
-        //         "type" => "LIMIT",
-        //         "side" => "BUY",
-        //         "price" => "39000",
-        //         "averagePrice" => "39000",
-        //         "qty" => "0.2",
-        //         "filledQty" => "0.1",
-        //         "payedFee" => "0.0120000000000000",
-        //         "reduceOnly" => false,
-        //         "postOnly" => false,
-        //         "trigger" => array(
-        //             "triggerPrice" => "34000",
-        //             "triggerPriceType" => "LAST",
-        //             "triggerPriceDirection" => "UP",
-        //             "executionPriceType" => "MARKET"
-        //         ),
-        //         "takeProfit" => array(
-        //             "triggerPrice" => "34000",
-        //             "triggerPriceType" => "LAST",
-        //             "price" => "35000",
-        //             "priceType" => "MARKET"
-        //         ),
-        //         "stopLoss" => array(
-        //             "triggerPrice" => "34000",
-        //             "triggerPriceType" => "LAST",
-        //             "price" => "35000",
-        //             "priceType" => "MARKET"
-        //         ),
-        //         "createdTime" => 1701563440000,
-        //         "updatedTime" => 1701563440000,
-        //         "timeInForce" => "IOC",
-        //         "expireTime" => 1706563440
+        //         "id": 1784963886257016832,
+        //         "externalId": "ExtId-1",
+        //         "accountId": 1,
+        //         "market": "BTC-USD",
+        //         "status": "FILLED",
+        //         "type": "LIMIT",
+        //         "side": "BUY",
+        //         "price": "39000",
+        //         "averagePrice": "39000",
+        //         "qty": "0.2",
+        //         "filledQty": "0.1",
+        //         "payedFee": "0.0120000000000000",
+        //         "reduceOnly": false,
+        //         "postOnly": false,
+        //         "trigger": {
+        //             "triggerPrice": "34000",
+        //             "triggerPriceType": "LAST",
+        //             "triggerPriceDirection": "UP",
+        //             "executionPriceType": "MARKET"
+        //         },
+        //         "takeProfit": {
+        //             "triggerPrice": "34000",
+        //             "triggerPriceType": "LAST",
+        //             "price": "35000",
+        //             "priceType": "MARKET"
+        //         },
+        //         "stopLoss": {
+        //             "triggerPrice": "34000",
+        //             "triggerPriceType": "LAST",
+        //             "price": "35000",
+        //             "priceType": "MARKET"
+        //         },
+        //         "createdTime": 1701563440000,
+        //         "updatedTime": 1701563440000,
+        //         "timeInForce": "IOC",
+        //         "expireTime": 1706563440
         //     }
         //
         $marketId = $this->safe_string($order, 'market');
@@ -3390,7 +3411,7 @@ class extended extends Exchange {
     }
 
     public function get_extended_encode_i64(mixed $value) {
-        // Cairo $prime offset for i64 negative encoding.
+        // Cairo prime offset for i64 negative encoding.
         $prime = '3618502788666131213697322783095070105623107215331596699973092056135872020481';
         $valueString = $this->number_to_string($value);
         if (Precise::string_lt($valueString, '0')) {
@@ -3478,7 +3499,7 @@ class extended extends Exchange {
             $expiration,
             $salt,
         )));
-        // SNIP-12 final message hash => poseidon('StarkNet Message', $domainHash, $starkKey, $orderHash)
+        // SNIP-12 final message hash: poseidon('StarkNet Message', domainHash, starkKey, orderHash)
         return $this->extended_starknet_compute_poseidon_hash_on_elements(array(
             $this->get_extended_string_to_felt('StarkNet Message'),
             $domainHash,
@@ -3534,11 +3555,11 @@ class extended extends Exchange {
     }
 
     public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
-        if (!$response) {
-            return null; // fallback to default $error handler
+        if ($response === null) {
+            return null; // fallback to default error handler
         }
         //
-        //     array("status":"ERROR","error":array("code":1140,"message":"New order cost exceeds available balance","debugInfo":"Order cost 2.000000 exceeds available for trade 0\nOrder price = 200, mark price = 95.2147597125 estimated market price = 94.81"))
+        //     {"status":"ERROR","error":{"code":1140,"message":"New order cost exceeds available balance","debugInfo":"Order cost 2.000000 exceeds available for trade 0\nOrder price = 200, mark price = 95.2147597125 estimated market price = 94.81"}}
         //
         $status = $this->safe_string_lower($response, 'status');
         if ($status === 'error') {
@@ -3560,7 +3581,7 @@ class extended extends Exchange {
         $queryPost = ($path === 'user/deadmanswitch');
         $url = $this->implode_hostname($this->urls['api']['rest']);
         if ($accessibility === 'private') {
-            // $this->check_required_credentials();
+            // this.checkRequiredCredentials ();
             if ($this->apiKey === null) {
                 throw new AuthenticationError($this->id . ' sign() requires an apiKey for private endpoints');
             }
@@ -3573,7 +3594,7 @@ class extended extends Exchange {
             }
         }
         $url = $url . '/api/' . $version . $endpoint;
-        if (($method === 'GET' || $method === 'DELETE' || $queryPost) && $query) {
+        if (($method === 'GET' || $method === 'DELETE' || $queryPost) && (count($query) > 0)) {
             $url .= '?' . $this->urlencode_with_array_repeat($query);
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );

@@ -293,7 +293,7 @@ class coinone(ccxt.async_support.coinone):
         #             "timestamp": 1705303667916,
         #             "price": "58490000",
         #             "qty": "0.0008",
-        #             "is_seller_maker": False
+        #             "is_seller_maker": false
         #         }
         #     }
         #
@@ -318,7 +318,7 @@ class coinone(ccxt.async_support.coinone):
         #         "timestamp": 1705303667916,
         #         "price": "58490000",
         #         "qty": "0.0008",
-        #         "is_seller_maker": False
+        #         "is_seller_maker": false
         #     }
         #
         baseId = self.safe_string_upper(trade, 'target_currency')
@@ -331,7 +331,7 @@ class coinone(ccxt.async_support.coinone):
         isSellerMaker = self.safe_value(trade, 'is_seller_maker')
         side = None
         if isSellerMaker is not None:
-            side = 'sell' if isSellerMaker else 'buy'
+            side = 'sell' if (isSellerMaker is True) else 'buy'
         priceString = self.safe_string(trade, 'price')
         amountString = self.safe_string(trade, 'qty')
         return self.safe_trade({
@@ -364,7 +364,7 @@ class coinone(ccxt.async_support.coinone):
         return False
 
     def handle_message(self, client: Client, message: object):
-        if self.handle_error_message(client, message):
+        if self.handle_error_message(client, message) is True:
             return
         type = self.safe_string(message, 'response_type')
         if type == 'PONG':

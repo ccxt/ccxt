@@ -153,7 +153,7 @@ class limitless(PredictionExchange, ImplicitAPI):
             'requiredCredentials': {
                 'apiKey': True,   # Limitless API key
                 'secret': True,
-                'privateKey': True,   # embedded/trading wallet key — createOrder signs with it(env-loading needs self True)
+                'privateKey': True,   # embedded/trading wallet key — createOrder signs with it (env-var loading needs this true)
             },
             'fees': {
                 'trading': {
@@ -167,12 +167,12 @@ class limitless(PredictionExchange, ImplicitAPI):
                 'defaultFetchMarketsPages': 5,
                 'marketsPageSize': 25,
                 'usdcDecimals': 6,  # Limitless sizes are 6-decimal USDC
-                'warnOnCancelAllOrdersWithOutcome': True,  # cancelAllOrders with an outcome will cancel all orders for the entire slug(both YES and NO outcomes), so we warn by default to prevent mistakes. Set self option to False to suppress the warning.
+                'warnOnCancelAllOrdersWithOutcome': True,  # cancelAllOrders with an outcome will cancel all orders for the entire slug (both YES and NO outcomes), so we warn by default to prevent mistakes. Set this option to false to suppress the warning.
                 'zeroAddress': '0x0000000000000000000000000000000000000000',
                 'chainId': 8453,  # Base
                 'rpcUrl': 'https://mainnet.base.org',  # Base RPC used by approve() for the on-chain allowance tx
-                'collateralAddress': '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',  # USDC on Base(default approve token)
-                'exchangeAddress': '0x05c748E2f4DcDe0ec9Fa8DDc40DE6b867f923fa5',  # Limitless CTF exchange(default approve spender)
+                'collateralAddress': '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',  # USDC on Base (default approve token)
+                'exchangeAddress': '0x05c748E2f4DcDe0ec9Fa8DDc40DE6b867f923fa5',  # Limitless CTF exchange (default approve spender)
                 'createMarketBuyOrderRequiresPrice': True,
             },
             'exceptions': {
@@ -206,9 +206,10 @@ class limitless(PredictionExchange, ImplicitAPI):
         maxMarkets = self.safe_integer(params, 'limit', self.safe_integer(self.options, 'fetchMarketsLimit', 1000))
         allRaw = []
         queriesLength = len(queries)
-        if queries and queriesLength > 0:
+        if queriesLength > 0:
             requestedLimit = self.safe_integer(params, 'limit', 50)
-            # the search endpoint rejects limit > 50 - cap the per-query request and             # maxMarkets bound the overall collection
+            # the search endpoint rejects limit > 50 - cap the per-query request and let
+            # maxMarkets bound the overall collection
             limit = min(requestedLimit, 50)
             searchRest = self.omit(rest, ['limit'])
             seen = {}
@@ -219,7 +220,7 @@ class limitless(PredictionExchange, ImplicitAPI):
                 for j in range(0, len(found)):
                     raw = found[j]
                     slug = self.safe_string(raw, 'slug')
-                    if slug and not (slug in seen):
+                    if (slug is not None and slug != '') and not (slug in seen):
                         seen[slug] = True
                         allRaw.append(raw)
         else:
@@ -263,7 +264,7 @@ class limitless(PredictionExchange, ImplicitAPI):
                     rawPageMarkets = self.safe_list(response, 'data', responseRows)
                     page_markets = rawPageMarkets if (rawPageMarkets is not None) else []
                     pageMarketsLength = len(page_markets)
-                    if not page_markets or pageMarketsLength == 0:
+                    if pageMarketsLength == 0:
                         break
                     for i in range(0, len(page_markets)):
                         raw = page_markets[i]
@@ -274,15 +275,15 @@ class limitless(PredictionExchange, ImplicitAPI):
         markets = []
         eventGroups = {}
         # group rows carry their tradeable children in a nested `markets` list — expand them
-        # into regular rows before parsing(a group row itself has no tokens)
+        # into regular rows before parsing (a group row itself has no tokens)
         expandedRaw = self.expand_group_rows(allRaw)
         for i in range(0, len(expandedRaw)):
             raw = expandedRaw[i]
             groupId = self.safe_string_n(raw, ['groupSlug', 'groupId'], self.safe_string(raw, 'slug'))
-            eventKey = self.shorten_slug(groupId) if groupId else None
+            eventKey = self.shorten_slug(groupId) if (groupId is not None and groupId != '') else None
             m = self.parse_market(raw)
             markets.append(m)
-            if eventKey:
+            if (eventKey is not None) and (eventKey != ''):
                 if not (eventKey in eventGroups):
                     eventGroups[eventKey] = {'groupId': groupId, 'title': self.safe_string_2(raw, 'groupTitle', 'title', groupId), 'raw': raw, 'markets': []}
                 eventGroup = eventGroups[eventKey]
@@ -311,13 +312,13 @@ class limitless(PredictionExchange, ImplicitAPI):
         #   "automationType":"manual",
         #   "conditionId":"0x11287d02d8067ff3d3d8bd21b212ebcfdc20b638f7f6440e4115f649e6b57015",
         #   "negRiskRequestId":null,
-        #   "description":"<p>This market will resolve to “Yes” if Donald Trump resigns or is removed or otherwise ceases to be the President of the United States for any period of time by December 31, 2026, 11:59 PM ET. Otherwise, self market will resolve to “No”.</p><p>An announcement of Donald Trump's resignation/removal before self market's end date will immediately resolve self market to \\""Yes\\"", regardless of when the announced resignation/removal goes into effect.</p><p>Only permanent removal from office will qualify. Temporary removal(e.g. temporary invocation of the 25th Amendment under Section 3 or a Section 4 invocation not sustained by both Houses of Congress) or impeachment without removal will not count.</p><p>A sustained invocation of the Twenty-Fifth Amendment, Section 4(i.e., if both Houses of Congress, by two-thirds vote, uphold the Vice President and Cabinet’s determination of presidential inability) will qualify for a \\""Yes\\"" resolution.</p><p>The resolution source for self market will be a consensus of credible reporting.</p>",
+        #   "description":"<p>This market will resolve to “Yes” if Donald Trump resigns or is removed as President or otherwise ceases to be the President of the United States for any period of time by December 31, 2026, 11:59 PM ET. Otherwise, this market will resolve to “No”.</p><p>An announcement of Donald Trump's resignation/removal before this market's end date will immediately resolve this market to \\""Yes\\"", regardless of when the announced resignation/removal goes into effect.</p><p>Only permanent removal from office will qualify. Temporary removal (e.g. temporary invocation of the 25th Amendment under Section 3 or a Section 4 invocation not sustained by both Houses of Congress) or impeachment without removal will not count.</p><p>A sustained invocation of the Twenty-Fifth Amendment, Section 4 (i.e., if both Houses of Congress, by two-thirds vote, uphold the Vice President and Cabinet’s determination of presidential inability) will qualify for a \\""Yes\\"" resolution.</p><p>The resolution source for this market will be a consensus of credible reporting.</p>",
         #   "collateralToken":{
         #       "address":"0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
         #       "decimals":"6",
         #       "symbol":"USDC"
         #   },
-        #   "title":"💎 Trump out before 2027?",
+        #   "title":"💎 Trump out as President before 2027?",
         #   "proxyTitle":null,
         #   "expirationDate":"Jan 1, 2027",
         #   "expirationTimestamp":"1798779540000",
@@ -388,22 +389,22 @@ class limitless(PredictionExchange, ImplicitAPI):
         groupId = self.safe_string_n(raw, ['groupSlug', 'groupId'], slug)
         # CTF condition id — needed to redeem a resolved winning position
         conditionId = self.safe_string(raw, 'conditionId')
-        tokens = self.safe_value(raw, 'tokens', {})
-        # the listing exposes `expired` + `status`(FUNDED/RESOLVED/…), not an `active` flag; a
+        tokens = self.safe_dict(raw, 'tokens', {})
+        # the listing exposes `expired` + `status` (FUNDED/RESOLVED/…), not an `active` flag; a
         # market is tradeable only while it is FUNDED and not yet expired
         isExpired = self.safe_bool(raw, 'expired', False)
         marketStatus = self.safe_string(raw, 'status')
-        active = not isExpired and (marketStatus == 'FUNDED')
-        # expiry is a ms timestamp string(`expirationTimestamp`); `deadline`/`expiresAt` do not exist
+        active = (isExpired is not True) and (marketStatus == 'FUNDED')
+        # expiry is a ms timestamp string (`expirationTimestamp`); `deadline`/`expiresAt` do not exist
         expiryTimestamp = self.safe_integer(raw, 'expirationTimestamp')
-        # limitless reports lifetime volume(human-readable in `volumeFormatted`), not a 24h figure
+        # limitless reports lifetime volume (human-readable in `volumeFormatted`), not a 24h figure
         volume24h = self.safe_number(raw, 'volumeFormatted')
         # resolution: winningOutcomeIndex is null until the market resolves, then the winning outcome index
         winningOutcomeIndex = self.safe_integer(raw, 'winningOutcomeIndex')
         marketResolved = (winningOutcomeIndex is not None)
         resolvedOutcome = None
         marketSymbol = self.slug_to_market_symbol(groupId, slug)
-        # amount precision comes from the collateral token decimals(USDC, 6); limitless does not
+        # amount precision comes from the collateral token decimals (USDC, 6); limitless does not
         # expose a price tick, so 0.001 is the platform convention
         collateralToken = self.safe_dict(raw, 'collateralToken', {})
         collateralDecimals = self.safe_integer(collateralToken, 'decimals', self.safe_integer(self.options, 'usdcDecimals', 6))
@@ -418,9 +419,9 @@ class limitless(PredictionExchange, ImplicitAPI):
             tokenData = tokens[outcomeLabel]
             tokenId = tokenData
             outcomeHandle = self.slug_to_outcome_symbol(groupId, slug, outcomeLabel)
-            # winningOutcomeIndex indexes the API's canonical outcome order(yes=0, no=1 for
+            # winningOutcomeIndex indexes the API's canonical outcome order (yes=0, no=1 for
             # limitless's binary yes/no markets). Object.keys iteration order is NOT stable across
-            # languages(Go randomizes map iteration), so map the leg to its canonical index by
+            # languages (Go randomizes map iteration), so map the leg to its canonical index by
             # label rather than by loop position — otherwise Go/Java flag the wrong winner
             labelLower = outcomeLabel.lower()
             legIndex = i
@@ -435,7 +436,7 @@ class limitless(PredictionExchange, ImplicitAPI):
                 settleFractionRaw = 1 if winnerRaw else 0
                 if winnerRaw:
                     resolvedOutcome = outcomeHandle
-            # effectively-final copies for the object literal below(Java cannot capture a
+            # effectively-final copies for the object literal below (Java cannot capture a
             # reassigned local into the anonymous inner class it emits for a map literal)
             winner = winnerRaw
             settleFraction = settleFractionRaw
@@ -458,7 +459,7 @@ class limitless(PredictionExchange, ImplicitAPI):
                 },
             })
         outcomesLength = len(outcomes)
-        # effectively-final copy for the market object literal below(reassigned in the loop)
+        # effectively-final copy for the market object literal below (reassigned in the loop)
         marketResolvedOutcome = resolvedOutcome
         return {
             'id': slug,
@@ -523,9 +524,9 @@ class limitless(PredictionExchange, ImplicitAPI):
         """
         request = {'addressOrSlug': id}
         response = await self.limitlessPublicGetMarketsAddressOrSlug(self.extend(request, params))
-        # a group response carries its tradeable children in `markets`(each a full market row
+        # a group response carries its tradeable children in `markets` (each a full market row
         # with tokens) — expandGroupRows unwraps them; a single market has no nested markets
-        # and wraps own one-market event, which parseEvent's loop then parses
+        # and wraps as its own one-market event, which parseEvent's loop then parses
         rows = self.expand_group_rows([response])
         wrapped = self.extend(response, {'markets': rows})
         event = self.parse_event(wrapped)
@@ -552,7 +553,7 @@ class limitless(PredictionExchange, ImplicitAPI):
                 groupTitle = self.safe_string(raw, 'title', groupSlug)
                 nestedMarketsLength = len(nestedMarkets)
                 for j in range(0, nestedMarketsLength):
-                    # self.extend copies — the raw child stays untouched
+                    # extend copies — the raw child stays untouched
                     tagged = self.extend(nestedMarkets[j], {'groupSlug': groupSlug, 'groupTitle': groupTitle})
                     result.append(tagged)
             else:
@@ -562,19 +563,19 @@ class limitless(PredictionExchange, ImplicitAPI):
     def parse_event(self, event: dict) -> object:
         # {
         #    "groupId":"trump-out-as-president-before-2027-1768933068297",
-        #    "title":"💎 Trump out before 2027?",
+        #    "title":"💎 Trump out as President before 2027?",
         #    "raw":{
         #       "id":"36814",
         #       "automationType":"manual",
         #       "conditionId":"0x11287d02d8067ff3d3d8bd21b212ebcfdc20b638f7f6440e4115f649e6b57015",
         #       "negRiskRequestId":null,
-        #       "description":"<p>This market will resolve to “Yes” if Donald Trump resigns or is removed or otherwise ceases to be the President of the United States for any period of time by December 31, 2026, 11:59 PM ET. Otherwise, self market will resolve to “No”.</p><p>An announcement of Donald Trump's resignation/removal before self market's end date will immediately resolve self market to \\""Yes\\"", regardless of when the announced resignation/removal goes into effect.</p><p>Only permanent removal from office will qualify. Temporary removal(e.g. temporary invocation of the 25th Amendment under Section 3 or a Section 4 invocation not sustained by both Houses of Congress) or impeachment without removal will not count.</p><p>A sustained invocation of the Twenty-Fifth Amendment, Section 4(i.e., if both Houses of Congress, by two-thirds vote, uphold the Vice President and Cabinet’s determination of presidential inability) will qualify for a \\""Yes\\"" resolution.</p><p>The resolution source for self market will be a consensus of credible reporting.</p>",
+        #       "description":"<p>This market will resolve to “Yes” if Donald Trump resigns or is removed as President or otherwise ceases to be the President of the United States for any period of time by December 31, 2026, 11:59 PM ET. Otherwise, this market will resolve to “No”.</p><p>An announcement of Donald Trump's resignation/removal before this market's end date will immediately resolve this market to \\""Yes\\"", regardless of when the announced resignation/removal goes into effect.</p><p>Only permanent removal from office will qualify. Temporary removal (e.g. temporary invocation of the 25th Amendment under Section 3 or a Section 4 invocation not sustained by both Houses of Congress) or impeachment without removal will not count.</p><p>A sustained invocation of the Twenty-Fifth Amendment, Section 4 (i.e., if both Houses of Congress, by two-thirds vote, uphold the Vice President and Cabinet’s determination of presidential inability) will qualify for a \\""Yes\\"" resolution.</p><p>The resolution source for this market will be a consensus of credible reporting.</p>",
         #       "collateralToken":{
         #          "address":"0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
         #          "decimals":"6",
         #          "symbol":"USDC"
         #       },
-        #       "title":"💎 Trump out before 2027?",
+        #       "title":"💎 Trump out as President before 2027?",
         #       "proxyTitle":null,
         #       "expirationDate":"Jan 1, 2027",
         #       "expirationTimestamp":"1798779540000",
@@ -711,13 +712,13 @@ class limitless(PredictionExchange, ImplicitAPI):
         #             "automationType":"manual",
         #             "conditionId":"0x11287d02d8067ff3d3d8bd21b212ebcfdc20b638f7f6440e4115f649e6b57015",
         #             "negRiskRequestId":null,
-        #             "description":"<p>This market will resolve to “Yes” if Donald Trump resigns or is removed or otherwise ceases to be the President of the United States for any period of time by December 31, 2026, 11:59 PM ET. Otherwise, self market will resolve to “No”.</p><p>An announcement of Donald Trump's resignation/removal before self market's end date will immediately resolve self market to \\""Yes\\"", regardless of when the announced resignation/removal goes into effect.</p><p>Only permanent removal from office will qualify. Temporary removal(e.g. temporary invocation of the 25th Amendment under Section 3 or a Section 4 invocation not sustained by both Houses of Congress) or impeachment without removal will not count.</p><p>A sustained invocation of the Twenty-Fifth Amendment, Section 4(i.e., if both Houses of Congress, by two-thirds vote, uphold the Vice President and Cabinet’s determination of presidential inability) will qualify for a \\""Yes\\"" resolution.</p><p>The resolution source for self market will be a consensus of credible reporting.</p>",
+        #             "description":"<p>This market will resolve to “Yes” if Donald Trump resigns or is removed as President or otherwise ceases to be the President of the United States for any period of time by December 31, 2026, 11:59 PM ET. Otherwise, this market will resolve to “No”.</p><p>An announcement of Donald Trump's resignation/removal before this market's end date will immediately resolve this market to \\""Yes\\"", regardless of when the announced resignation/removal goes into effect.</p><p>Only permanent removal from office will qualify. Temporary removal (e.g. temporary invocation of the 25th Amendment under Section 3 or a Section 4 invocation not sustained by both Houses of Congress) or impeachment without removal will not count.</p><p>A sustained invocation of the Twenty-Fifth Amendment, Section 4 (i.e., if both Houses of Congress, by two-thirds vote, uphold the Vice President and Cabinet’s determination of presidential inability) will qualify for a \\""Yes\\"" resolution.</p><p>The resolution source for this market will be a consensus of credible reporting.</p>",
         #             "collateralToken":{
         #                "address":"0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
         #                "decimals":"6",
         #                "symbol":"USDC"
         #             },
-        #             "title":"💎 Trump out before 2027?",
+        #             "title":"💎 Trump out as President before 2027?",
         #             "proxyTitle":null,
         #             "expirationDate":"Jan 1, 2027",
         #             "expirationTimestamp":"1798779540000",
@@ -787,6 +788,10 @@ class limitless(PredictionExchange, ImplicitAPI):
         groupId = self.safe_string(event, 'address', self.safe_string(event, 'groupId', self.safe_string(event, 'slug')))
         endDate = self.safe_string(event, 'deadline', self.safe_string(event, 'expiresAt'))
         title = self.safe_string(event, 'title', groupId)
+        hasGroupId = (groupId is not None) and (groupId != '')
+        eventSlug = self.shorten_slug(groupId) if hasGroupId else None
+        hasEndDate = (endDate is not None) and (endDate != '')
+        endTimestamp = self.parse8601(endDate) if hasEndDate else None
         markets = []
         rawMarkets = self.safe_list(event, 'markets', [])
         # aggregate 24h volume across the markets so sort by volume works
@@ -794,7 +799,7 @@ class limitless(PredictionExchange, ImplicitAPI):
         for i in range(0, len(rawMarkets)):
             rawMarket = rawMarkets[i]
             # an already-parsed ccxt market row carries the unified 'market' handle + outcomes
-            # with 'symbol' kept legacy fallback — don't run it through parseMarket again
+            # with 'symbol' kept as a legacy fallback — don't run it through parseMarket again
             marketSymbol = self.safe_string_2(rawMarket, 'market', 'symbol')
             marketOutcomes = self.safe_list(rawMarket, 'outcomes')
             if marketSymbol is not None and marketOutcomes is not None:
@@ -802,13 +807,13 @@ class limitless(PredictionExchange, ImplicitAPI):
             else:
                 markets.append(self.parse_market(rawMarket))
             marketInfo = self.safe_dict(rawMarket, 'info', rawMarket)
-            # use volumeFormatted(human units) — the raw `volume` is 1e-6 fixed-point, which would
+            # use volumeFormatted (human units) — the raw `volume` is 1e-6 fixed-point, which would
             # make the event volume 1,000,000x too big and useless for cross-venue ranking
             totalVolume = self.sum(totalVolume, self.safe_number(marketInfo, 'volumeFormatted', 0))
         return self.extend({
             'id': groupId,
             'slug': groupId,
-            'event': self.shorten_slug(groupId) if groupId else None,
+            'event': eventSlug,
             'title': title,
             'description': self.safe_string(event, 'description'),
             'markets': markets,
@@ -822,7 +827,7 @@ class limitless(PredictionExchange, ImplicitAPI):
             'tags': self.safe_list(event, 'tags'),
             'created': self.parse8601(self.safe_string(event, 'createdAt')),
             'createdDatetime': self.safe_string(event, 'createdAt'),
-            'end': self.parse8601(endDate) if endDate else None,
+            'end': endTimestamp,
             'endDatetime': endDate,
             'lastUpdatedAt': self.parse8601(self.safe_string(event, 'updatedAt')),
             'resolutionSource': self.safe_string(event, 'resolutionSource'),
@@ -858,41 +863,41 @@ class limitless(PredictionExchange, ImplicitAPI):
         #         "automationType": "manual",
         #         "conditionId": "0x11287d02d8067ff3d3d8bd21b212ebcfdc20b638f7f6440e4115f649e6b57015",
         #         "negRiskRequestId": null,
-        #         "description": "<p>This market will resolve to Yes if Donald Trump resigns or is removed or otherwise ceases to be the President of the United States for any period of time by December 31, 2026, 11:59 PM ET. Otherwise, self market will resolve to No.</p><p>An announcement of Donald Trump's resignation/removal before self market's end date will immediately resolve self market to Yes, regardless of when the announced resignation/removal goes into effect.</p><p>Only permanent removal from office will qualify. Temporary removal(e.g. temporary invocation of the 25th Amendment under Section 3 or a Section 4 invocation not sustained by both Houses of Congress) or impeachment without removal will not count.</p><p>A sustained invocation of the Twenty-Fifth Amendment, Section 4(i.e., if both Houses of Congress, by two-thirds vote, uphold the Vice President and Cabinets determination of presidential inability) will qualify for a Yes resolution.</p><p>The resolution source for self market will be a consensus of credible reporting.</p>",
+        #         "description": "<p>This market will resolve to Yes if Donald Trump resigns or is removed as President or otherwise ceases to be the President of the United States for any period of time by December 31, 2026, 11:59 PM ET. Otherwise, this market will resolve to No.</p><p>An announcement of Donald Trump's resignation/removal before this market's end date will immediately resolve this market to Yes, regardless of when the announced resignation/removal goes into effect.</p><p>Only permanent removal from office will qualify. Temporary removal (e.g. temporary invocation of the 25th Amendment under Section 3 or a Section 4 invocation not sustained by both Houses of Congress) or impeachment without removal will not count.</p><p>A sustained invocation of the Twenty-Fifth Amendment, Section 4 (i.e., if both Houses of Congress, by two-thirds vote, uphold the Vice President and Cabinets determination of presidential inability) will qualify for a Yes resolution.</p><p>The resolution source for this market will be a consensus of credible reporting.</p>",
         #         "collateralToken": {
         #             "address": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
         #             "decimals": "6",
         #             "symbol": "USDC"
         #         },
-        #         "title": "Trump out before 2027?",
+        #         "title": "Trump out as President before 2027?",
         #         "proxyTitle": null,
         #         "expirationDate": "Jan 1, 2027",
         #         "expirationTimestamp": "1798779540000",
         #         "createdAt": "2026-01-20T18:17:48.298Z",
         #         "updatedAt": "2026-04-09T10:47:02.254Z",
-        #         "categories": ["Politics"],
+        #         "categories": [ "Politics" ],
         #         "status": "FUNDED",
-        #         "expired": False,
-        #         "hidden": False,
+        #         "expired": false,
+        #         "hidden": false,
         #         "creator": {
         #             "name": "Limitless",
         #             "imageURI": "https://limitless.exchange/assets/images/logo.svg",
         #             "link": "https://x.com/trylimitless"
         #         },
-        #         "tags": ["Limitless"],
+        #         "tags": [ "Limitless" ],
         #         "volume": "1032001807",
         #         "volumeFormatted": "1032.001807",
         #         "tokens": {
         #             "yes": "56154308742753982686710750162015444986563701968079760676518531584453506363044",
         #             "no": "32572248812801208874557774576516861470423415416073401354576860825663488568217"
         #         },
-        #         "prices": [0.155, 0.845],
+        #         "prices": [ 0.155, 0.845 ],
         #         "tradePrices": {
-        #             "buy": {"market": [Array], "limit": [Array]},
-        #             "sell": {"market": [Array], "limit": [Array]}
+        #             "buy": { "market": [Array], "limit": [Array] },
+        #             "sell": { "market": [Array], "limit": [Array] }
         #         },
-        #         "isOther": False,
-        #         "isRewardable": True,
+        #         "isOther": false,
+        #         "isRewardable": true,
         #         "slug": "trump-out-as-president-before-2027-1768933068297",
         #         "tradeType": "clob",
         #         "venue": {
@@ -902,7 +907,7 @@ class limitless(PredictionExchange, ImplicitAPI):
         #         "marketType": "single",
         #         "priorityIndex": "0",
         #         "winningOutcomeIndex": null,
-        #         "metadata": {"fee": True, "isBannered": False, "isPolyArbitrage": True},
+        #         "metadata": { "fee": true, "isBannered": false, "isPolyArbitrage": true },
         #         "settings": {
         #             "minSize": "100000000",
         #             "maxSpread": "0.035",
@@ -932,41 +937,41 @@ class limitless(PredictionExchange, ImplicitAPI):
         #         "automationType": "manual",
         #         "conditionId": "0x11287d02d8067ff3d3d8bd21b212ebcfdc20b638f7f6440e4115f649e6b57015",
         #         "negRiskRequestId": null,
-        #         "description": "<p>This market will resolve to Yes if Donald Trump resigns or is removed or otherwise ceases to be the President of the United States for any period of time by December 31, 2026, 11:59 PM ET. Otherwise, self market will resolve to No.</p><p>An announcement of Donald Trump's resignation/removal before self market's end date will immediately resolve self market to Yes, regardless of when the announced resignation/removal goes into effect.</p><p>Only permanent removal from office will qualify. Temporary removal(e.g. temporary invocation of the 25th Amendment under Section 3 or a Section 4 invocation not sustained by both Houses of Congress) or impeachment without removal will not count.</p><p>A sustained invocation of the Twenty-Fifth Amendment, Section 4(i.e., if both Houses of Congress, by two-thirds vote, uphold the Vice President and Cabinets determination of presidential inability) will qualify for a Yes resolution.</p><p>The resolution source for self market will be a consensus of credible reporting.</p>",
+        #         "description": "<p>This market will resolve to Yes if Donald Trump resigns or is removed as President or otherwise ceases to be the President of the United States for any period of time by December 31, 2026, 11:59 PM ET. Otherwise, this market will resolve to No.</p><p>An announcement of Donald Trump's resignation/removal before this market's end date will immediately resolve this market to Yes, regardless of when the announced resignation/removal goes into effect.</p><p>Only permanent removal from office will qualify. Temporary removal (e.g. temporary invocation of the 25th Amendment under Section 3 or a Section 4 invocation not sustained by both Houses of Congress) or impeachment without removal will not count.</p><p>A sustained invocation of the Twenty-Fifth Amendment, Section 4 (i.e., if both Houses of Congress, by two-thirds vote, uphold the Vice President and Cabinets determination of presidential inability) will qualify for a Yes resolution.</p><p>The resolution source for this market will be a consensus of credible reporting.</p>",
         #         "collateralToken": {
         #             "address": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
         #             "decimals": "6",
         #             "symbol": "USDC"
         #         },
-        #         "title": "Trump out before 2027?",
+        #         "title": "Trump out as President before 2027?",
         #         "proxyTitle": null,
         #         "expirationDate": "Jan 1, 2027",
         #         "expirationTimestamp": "1798779540000",
         #         "createdAt": "2026-01-20T18:17:48.298Z",
         #         "updatedAt": "2026-04-09T10:47:02.254Z",
-        #         "categories": ["Politics"],
+        #         "categories": [ "Politics" ],
         #         "status": "FUNDED",
-        #         "expired": False,
-        #         "hidden": False,
+        #         "expired": false,
+        #         "hidden": false,
         #         "creator": {
         #             "name": "Limitless",
         #             "imageURI": "https://limitless.exchange/assets/images/logo.svg",
         #             "link": "https://x.com/trylimitless"
         #         },
-        #         "tags": ["Limitless"],
+        #         "tags": [ "Limitless" ],
         #         "volume": "1032001807",
         #         "volumeFormatted": "1032.001807",
         #         "tokens": {
         #             "yes": "56154308742753982686710750162015444986563701968079760676518531584453506363044",
         #             "no": "32572248812801208874557774576516861470423415416073401354576860825663488568217"
         #         },
-        #         "prices": [0.155, 0.845],
+        #         "prices": [ 0.155, 0.845 ],
         #         "tradePrices": {
-        #             "buy": {"market": [Array], "limit": [Array]},
-        #             "sell": {"market": [Array], "limit": [Array]}
+        #             "buy": { "market": [Array], "limit": [Array] },
+        #             "sell": { "market": [Array], "limit": [Array] }
         #         },
-        #         "isOther": False,
-        #         "isRewardable": True,
+        #         "isOther": false,
+        #         "isRewardable": true,
         #         "slug": "trump-out-as-president-before-2027-1768933068297",
         #         "tradeType": "clob",
         #         "venue": {
@@ -976,7 +981,7 @@ class limitless(PredictionExchange, ImplicitAPI):
         #         "marketType": "single",
         #         "priorityIndex": "0",
         #         "winningOutcomeIndex": null,
-        #         "metadata": {"fee": True, "isBannered": False, "isPolyArbitrage": True},
+        #         "metadata": { "fee": true, "isBannered": false, "isPolyArbitrage": true },
         #         "settings": {
         #             "minSize": "100000000",
         #             "maxSpread": "0.035",
@@ -989,7 +994,7 @@ class limitless(PredictionExchange, ImplicitAPI):
         #         "logo": "https://cdn.limitless.exchange/markets-logo/36814/9daba01d-6bcd-4a2c-9187-f4264b7191da.png"
         #     }
         #
-        # ticker is either a plain raw market object, or a composite dict {'market': rawMarket, 'book': rawOrderbook}
+        # ticker is either a plain raw market object, or a composite dict { 'market': rawMarket, 'book': rawOrderbook }
         raw = ticker
         book = None
         if 'market' in ticker:
@@ -1039,7 +1044,7 @@ class limitless(PredictionExchange, ImplicitAPI):
         pricesLength = len(prices)
         if (lastStr is None) and (pricesLength > 0):
             lastStr = self.safe_string(prices, 0) if (isYes) else self.safe_string(prices, 1)
-        # volume and book sizes are in USDC micro-units(6 decimals)
+        # volume and book sizes are in USDC micro-units (6 decimals)
         rawVolume = self.safe_string(raw, 'volume')
         volumeStr = None
         if rawVolume is not None:
@@ -1104,7 +1109,7 @@ class limitless(PredictionExchange, ImplicitAPI):
                 if slug is not None:
                     outcomesBySlug[slug] = []
                 slugs.append(slug)
-            # reassign after push, plain mutation through a local is lost in transpiled php(arrays are value types there)
+            # reassign after push, plain mutation through a local is lost in transpiled php (arrays are value types there)
             grouped = self.safe_value(outcomesBySlug, slug)
             grouped.append(outcomeObj)
             if slug is not None:
@@ -1149,7 +1154,7 @@ class limitless(PredictionExchange, ImplicitAPI):
             'slug': slug,
         }
         if limit is not None:
-            request['limit'] = limit
+            request['limit'] = min(limit, 100)
         response = await self.limitlessPublicGetMarketsSlugEvents(self.extend(request, params))
         #
         #     {
@@ -1159,7 +1164,7 @@ class limitless(PredictionExchange, ImplicitAPI):
         #                 "makerAmount": "19996200",
         #                 "matchedSize": "2500000",
         #                 "price": 0.332,
-        #                 "profile": {"account": "0x0572B4Aa431e730d1d19cc7CFea7D6C0Bc07096f"},
+        #                 "profile": { "account": "0x0572B4Aa431e730d1d19cc7CFea7D6C0Bc07096f" },
         #                 "side": 0,
         #                 "takerAmount": "830000",
         #                 "title": "",
@@ -1204,14 +1209,14 @@ class limitless(PredictionExchange, ImplicitAPI):
         #
         #     {
         #         "bids": [
-        #             {"price": "0.14", "size": "12360330000", "side": "BUY"},
-        #             {"price": "0.1", "size": "1000000", "side": "BUY"},
-        #             {"price": "0.003", "size": "500000000", "side": "BUY"}
+        #             { "price": "0.14", "size": "12360330000", "side": "BUY" },
+        #             { "price": "0.1", "size": "1000000", "side": "BUY" },
+        #             { "price": "0.003", "size": "500000000", "side": "BUY" }
         #         ],
         #         "asks": [
-        #             {"price": "0.161", "size": "222000000", "side": "SELL"},
-        #             {"price": "0.996", "size": "5555000000", "side": "SELL"},
-        #             {"price": "0.997", "size": "500000000", "side": "SELL"}
+        #             { "price": "0.161", "size": "222000000", "side": "SELL" },
+        #             { "price": "0.996", "size": "5555000000", "side": "SELL" },
+        #             { "price": "0.997", "size": "500000000", "side": "SELL" }
         #         ],
         #         "tokenId": "56154308742753982686710750162015444986563701968079760676518531584453506363044",
         #         "adjustedMidpoint": "0.1505",
@@ -1271,7 +1276,7 @@ class limitless(PredictionExchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum number of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: a list of candles ordered, open, high, low, close, volume
+        :returns int[][]: a list of candles ordered as timestamp, open, high, low, close, volume
         """
         await self.load_outcome(outcome)
         outcomeObj = self.outcome(outcome)
@@ -1336,7 +1341,7 @@ class limitless(PredictionExchange, ImplicitAPI):
                         break
                 history = self.safe_list(selectedSeries, 'prices', [])
         # the endpoint returns raw price points, not candles - bucket them into
-        # timeframe-aligned candles(single points would carry unaligned timestamps)
+        # timeframe-aligned candles (single points would carry unaligned timestamps)
         pseudoTrades = []
         for i in range(0, len(history)):
             point = history[i]
@@ -1344,7 +1349,7 @@ class limitless(PredictionExchange, ImplicitAPI):
             pointTs = self.safe_integer(point, 'timestamp')
             if pointTs is None:
                 tsString = self.safe_string(point, 'timestamp')
-                pointTs = self.parse8601(tsString) if tsString else None
+                pointTs = self.parse8601(tsString) if (tsString is not None and tsString != '') else None
             elif pointTs < 1000000000000:
                 # old responses may return unix seconds
                 pointTs = pointTs * 1000
@@ -1426,7 +1431,7 @@ class limitless(PredictionExchange, ImplicitAPI):
         #         }
         #     ]
         #
-        # pass None: parsePredictionOrder sets outcome to the market outcome while the outcome
+        # pass undefined as market: parsePredictionOrder sets outcome to the market outcome while the outcome
         # lives under 'outcome', so the base outcome filter would drop every order; the per-slug
         # endpoint already scopes results and parsePredictionOrder resolves the outcome via outcomes_by_id
         return self.parse_prediction_orders(self.to_array(response), None, since, limit)
@@ -1576,7 +1581,7 @@ class limitless(PredictionExchange, ImplicitAPI):
         #                     "execution": {
         #                         "feeRateBps": 300,
         #                         "effectiveFeeBps": 59,
-        #                         "matched": True,
+        #                         "matched": true,
         #                         "settlementStatus": "MINED",
         #                         "tradeEventId": "44c46a93-f5cb-40f5-a52f-bd55bb97641e",
         #                         "txHash": "0x101cda4b605007440b382c35a27531605c7fc1b29a7c803b19237586a74c10e8",
@@ -1724,7 +1729,7 @@ class limitless(PredictionExchange, ImplicitAPI):
         #             "execution": {
         #                 "feeRateBps": 300,
         #                 "effectiveFeeBps": 59,
-        #                 "matched": True,
+        #                 "matched": true,
         #                 "settlementStatus": "MINED",
         #                 "tradeEventId": "44c46a93-f5cb-40f5-a52f-bd55bb97641e",
         #                 "txHash": "0x101cda4b605007440b382c35a27531605c7fc1b29a7c803b19237586a74c10e8",
@@ -1910,14 +1915,14 @@ class limitless(PredictionExchange, ImplicitAPI):
         tradeWalletOption = self.safe_string(accountInfo, 'tradeWalletOption')
         usesSmartWallet = (tradeWalletOption == 'smartWallet')
         walletFromAccount = self.safe_string(accountInfo, 'smartWallet') if (usesSmartWallet) else self.safe_string(accountInfo, 'account')
-        maker = self.walletAddress if self.walletAddress else walletFromAccount
+        maker = self.walletAddress if (self.walletAddress != '') else walletFromAccount
         maker, params = self.handle_option_and_params(params, 'createOrder', 'maker', maker)
         try:
             self.check_address(maker)
         except Exception as e:
             raise InvalidAddress(self.id + ' createOrder requires a valid maker address. Set the "maker" parameter to a valid address or set the "walletAddress" property in the constructor options.')
         # when the profile trades through a smart wallet the order must be signed by the
-        # linked embedded(owner) wallet, not by the smart wallet itself
+        # linked embedded (owner) wallet, not by the smart wallet itself
         embeddedAddress = self.safe_string(accountInfo, 'embeddedAccount')
         hasEmbedded = (embeddedAddress is not None)
         isSmartWallet = usesSmartWallet and hasEmbedded
@@ -1944,7 +1949,7 @@ class limitless(PredictionExchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' createOrder() requires a side argument')
         sideValue = self.safe_integer(sides, side.lower())
         rank = self.safe_dict(accountInfo, 'rank')
-        # signatureType: 0 = EOA, 2 = smart-wallet(the embedded owner signs on behalf of the safe)
+        # signatureType: 0 = EOA, 2 = smart-wallet (the embedded owner signs on behalf of the safe)
         signatureType = 2 if isSmartWallet else 0
         signatureType, params = self.handle_option_and_params(params, 'createOrder', 'signatureType', signatureType)
         signRequest = {
@@ -1958,7 +1963,7 @@ class limitless(PredictionExchange, ImplicitAPI):
             'side': sideValue,
             'signatureType': signatureType,
         }
-        # the contract expects expiration uint256; non-zero values are rejected by the API(GTC orders use 0)
+        # the contract expects expiration as a uint256; non-zero values are rejected by the API (GTC orders use 0)
         expirationInt = self.safe_integer(params, 'expiration')
         if expirationInt is not None:
             params = self.omit(params, 'expiration')
@@ -2001,12 +2006,12 @@ class limitless(PredictionExchange, ImplicitAPI):
             else:
                 makerAmount = self.amount_to_prediction_precision(outcome, amount)
                 takerAmount = self.cost_to_prediction_precision(outcome, calculatedCost)
-        # amounts must be integers(uint256): parseNumber yields a float that the Python EIP-712 encoder rejects
+        # amounts must be integers (uint256): parseNumber yields a float that the Python EIP-712 encoder rejects
         signRequest['makerAmount'] = self.parse_to_int(self.apply_scale(makerAmount, True))
         signRequest['takerAmount'] = 1 if isMarket else self.parse_to_int(self.apply_scale(takerAmount, True))
         signature = self.sign_order_request(signRequest, marketSymbol)
         signRequest['signature'] = signature
-        # price is an unsigned hint required by the API for GTC/FAK orders(not part of the EIP-712 struct)
+        # price is an unsigned hint required by the API for GTC/FAK orders (not part of the EIP-712 struct)
         if not isMarket and (price is not None):
             signRequest['price'] = self.parse_number(priceString)
         slug = self.safe_string(outcomeObj['info'], 'slug')
@@ -2075,7 +2080,7 @@ class limitless(PredictionExchange, ImplicitAPI):
         return self.sign_hash(self.hash_message(message), privateKey[-64:])
 
     def sign_evm_transaction(self, tx: dict, privateKey: str) -> str:
-        # builds and signs an EIP-1559(type 0x02) transaction, returning the signed raw tx hex
+        # builds and signs an EIP-1559 (type 0x02) transaction, returning the signed raw tx hex
         accessList = self.rlp_encode_list([])
         fields = [
             self.rlp_encode_bytes(self.int_to_rlp_hex(self.safe_integer(tx, 'chainId'))),
@@ -2132,7 +2137,7 @@ class limitless(PredictionExchange, ImplicitAPI):
         amount = self.safe_string(params, 'amount')
         if amount is not None:
             decimals = self.safe_integer(self.options, 'usdcDecimals', 6)
-            # scale the human USDC amount to base units(amount / 10^-decimals = amount * 10^decimals)
+            # scale the human USDC amount to base units (amount / 10^-decimals = amount * 10^decimals)
             scaled = Precise.string_div(amount, self.parse_precision(self.number_to_string(decimals)))
             amountInt = self.parse_to_int(scaled)
             amountBase16 = self.int_to_base16(amountInt)
@@ -2159,7 +2164,7 @@ class limitless(PredictionExchange, ImplicitAPI):
             'order_id': id,
         }
         response = await self.limitlessPrivateDeleteOrdersOrderId(self.extend(request, params))
-        # the del response carries no order body, so backfill the id and the resulting status
+        # the delete response carries no order body, so backfill the id and the resulting status
         order = self.parse_prediction_order(response)
         if order['id'] is None:
             order['id'] = id
@@ -2293,7 +2298,7 @@ class limitless(PredictionExchange, ImplicitAPI):
         #                 "collateralToken": "7",
         #                 "conditionId": "0x0c61db7449dd8f8c81cd856f53d4186cf30888e27eb025d10c7908fa94ba736e",
         #                 "market": {
-        #                     "closed": True,
+        #                     "closed": true,
         #                     "collateral": {
         #                     "symbol": "USDC",
         #                     "id": "7",
@@ -2315,7 +2320,7 @@ class limitless(PredictionExchange, ImplicitAPI):
         #                 "blockTimestamp": 1778144137,
         #                 "collateralAmount": "2",
         #                 "market": {
-        #                     "closed": True,
+        #                     "closed": true,
         #                     "collateral": {
         #                         "symbol": "USDC",
         #                         "id": "7",
@@ -2406,7 +2411,7 @@ class limitless(PredictionExchange, ImplicitAPI):
         #         "blockTimestamp": 1778144137,
         #         "collateralAmount": "2",
         #         "market": {
-        #             "closed": True,
+        #             "closed": true,
         #             "collateral": {
         #                 "symbol": "USDC",
         #                 "id": "7",
@@ -2449,8 +2454,8 @@ class limitless(PredictionExchange, ImplicitAPI):
         if rawSide.find('limit') >= 0:
             type = 'limit'
             takerOrMaker = 'maker'
-        if rawSide is None:
-            raise ExchangeError(self.id + ' method() missing rawSide')
+            if rawSide is None:
+                raise ExchangeError(self.id + ' method() missing rawSide')
         elif rawSide.find('market') >= 0:
             type = 'market'
             takerOrMaker = 'taker'
@@ -2505,7 +2510,7 @@ class limitless(PredictionExchange, ImplicitAPI):
         if symbolsLength > 0:
             await self.load_outcomes(outcomes)
         # no bulk warm-up on the unfiltered path: the portfolio request is self-contained and
-        # labels resolve cache-only(raw slugs/labels stay available in info when the cache is cold)
+        # labels resolve cache-only (raw slugs/labels stay available in info when the cache is cold)
         response = await self.limitlessPrivateGetPortfolioPositions(params)
         #
         #     {
@@ -2529,7 +2534,7 @@ class limitless(PredictionExchange, ImplicitAPI):
         #                     "conditionId": "0xdcd8264cd09a6c50fca35eca24cda13e70f705e8b9ca7df7edb1c53d5e14ef91",
         #                     "id": 113280,
         #                     "address": null,
-        #                     "closed": False,
+        #                     "closed": false,
         #                     "expirationDate": "2026-05-11T10:00:00.000Z",
         #                     "deadline": "2026-05-11T10:00:00.000Z",
         #                     "negRiskRequestId": null,
@@ -2579,7 +2584,7 @@ class limitless(PredictionExchange, ImplicitAPI):
         #                     "yes": "1004763"
         #                 },
         #                 "rewards": {
-        #                     "isEarning": False,
+        #                     "isEarning": false,
         #                     "epochs": []
         #                 },
         #                 "makerAddress": "0xAb2B9833FC8B8f55F4De7C4A0FAb8577EF0F7b36"
@@ -2696,8 +2701,8 @@ class limitless(PredictionExchange, ImplicitAPI):
         queriesLength = len(queries)
         rest = self.omit(params, ['query', 'queries', 'limit', 'sort', 'searchIn', 'eventId', 'slug', 'status'])
         eventId = self.safe_string_2(params, 'eventId', 'slug')
-        # always fetch fresh from the API(never serve the possibly-cold cache): a query searches, an
-        # eventId/slug does a direct lookup, and any other scope(tags) pages the active-markets listing
+        # always fetch fresh from the API (never serve the possibly-cold cache): a query searches, an
+        # eventId/slug does a direct lookup, and any other scope (tags) pages the active-markets listing
         rawMarkets = []
         if queriesLength > 0:
             requestedLimit = self.safe_integer(params, 'limit', 50)
@@ -2716,7 +2721,7 @@ class limitless(PredictionExchange, ImplicitAPI):
                 for j in range(0, len(found)):
                     raw = found[j]
                     rawSlug = self.safe_string(raw, 'slug')
-                    if rawSlug and not (rawSlug in seen):
+                    if (rawSlug is not None and rawSlug != '') and not (rawSlug in seen):
                         seen[rawSlug] = True
                         rawMarkets.append(raw)
         elif eventId is not None:
@@ -2730,24 +2735,24 @@ class limitless(PredictionExchange, ImplicitAPI):
             listRawLength = len(listRaw)
             for i in range(0, listRawLength):
                 rawMarkets.append(listRaw[i])
-        if not self.events:
+        if self.events is None:
             self.events = {}
-        if not self.markets:
+        if self.markets is None:
             self.markets = self.create_safe_dictionary()
         eventGroups = {}
         # group rows carry their tradeable children in a nested `markets` list — expand them
-        # into regular rows before parsing(a group row itself has no tokens)
+        # into regular rows before parsing (a group row itself has no tokens)
         expandedMarkets = self.expand_group_rows(rawMarkets)
         rawMarketsLength = len(expandedMarkets)
         for i in range(0, rawMarketsLength):
             raw = expandedMarkets[i]
             groupId = self.safe_string_n(raw, ['groupSlug', 'groupId'], self.safe_string(raw, 'slug'))
-            eventKey = self.shorten_slug(groupId) if groupId else None
+            eventKey = self.shorten_slug(groupId) if (groupId is not None and groupId != '') else None
             m = self.parse_market(raw)
             if m is None:
                 raise ExchangeError(self.id + ' fetchEvents() missing m')
             self.markets[m['market']] = m
-            if eventKey:
+            if (eventKey is not None) and (eventKey != ''):
                 if not (eventKey in eventGroups):
                     eventGroups[eventKey] = {'groupId': groupId, 'title': self.safe_string_2(raw, 'groupTitle', 'title', groupId), 'raw': raw, 'markets': []}
                 eventGroup = eventGroups[eventKey]
@@ -2769,8 +2774,8 @@ class limitless(PredictionExchange, ImplicitAPI):
         self.populate_outcomes()
         # the limitless search endpoint is FUZZY — it returns nearest-neighbour markets even
         # for queries that match nothing — so default searchIn to 'both' to post-filter the
-        # results literally by title/description(an explicit params.searchIn still wins).
-        # tags were already applied server-side(category-scoped listing); strip them before the
+        # results literally by title/description (an explicit params.searchIn still wins).
+        # tags were already applied server-side (category-scoped listing); strip them before the
         # client-side pass — events built from raw markets carry venue tags, not category names,
         # so the base tag filter would wrongly drop server-matched events
         searchParams = self.extend({'searchIn': 'both'}, params)
@@ -2860,32 +2865,32 @@ class limitless(PredictionExchange, ImplicitAPI):
                     allRaw.append(raw)
         return allRaw
 
-    def sign(self, path: object, section: object = 'limitless', method='GET', params={}, headers: object = None, body: object = None):
+    def sign(self, path: object, api: object = 'limitless', method='GET', params={}, headers: object = None, body: object = None):
         """
  @ignore
         builds the request URL and attaches the lmts authentication headers for private endpoints
         :param str path: the endpoint path
-        :param string|str[] [section]: the api group and access level
+        :param string|str[] [api]: the api group and access level
         :param str [method]: HTTP method
         :param dict [params]: request parameters
         :param dict [headers]: request headers
         :param dict [body]: request body
         :returns dict: a dictionary with url, method, body and headers
         """
-        apiGroup = section if isinstance(section, str) else section[0]
-        access = 'public' if isinstance(section, str) else section[1]
+        apiGroup = api if isinstance(api, str) else api[0]
+        access = 'public' if isinstance(api, str) else api[1]
         baseUrls = self.urls['api']
         baseUrl = self.safe_string(baseUrls, apiGroup, baseUrls['limitless'])
         url = '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         querystring = self.urlencode_with_array_repeat(query)
-        if method == 'GET' and querystring:
+        if method == 'GET' and (querystring != ''):
             url += '?' + querystring
         if access == 'private':
             bodyString = ''
             if headers is None:
                 headers = {}
-            if method == 'POST' and querystring:
+            if method == 'POST' and (querystring != ''):
                 bodyString = self.json(query)
                 body = bodyString
                 headerDefaults = headers if (headers is not None) else {}
@@ -2899,10 +2904,13 @@ class limitless(PredictionExchange, ImplicitAPI):
             payload = timestamp + newline + method + newline + url + newline + bodyString
             signature = self.hmac(self.encode(payload), self.base64_to_binary(self.secret), hashlib.sha256, 'base64')
             headers = self.extend(headers, {
-                'lmts-api-key': self.apiKey,
                 'lmts-timestamp': timestamp,
                 'lmts-signature': signature,
             })
+            headerKey = 'lmts-api' + '-key'  # concatenating because of the php version
+            headersKey = {}
+            headersKey[headerKey] = self.apiKey
+            headers = self.extend(headers, headersKey)
         url = baseUrl + url
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
@@ -2921,8 +2929,8 @@ class limitless(PredictionExchange, ImplicitAPI):
         if message is not None:
             self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
         self.throw_broadly_matched_exception(self.exceptions['broad'], responseBody, feedback)
-        # a 400 is a client-side bad request(bad params, or a business rule like "market not
-        # resolved"), not a transport outage — raise BadRequest with the exchange message instead
+        # a 400 is a client-side bad request (bad params, or a business rule like "market not
+        # resolved"), not a transport outage — throw BadRequest with the exchange message instead
         # of letting the base map the bare 400 to a retryable network-unavailable error
         if statusCode == 400:
             raise BadRequest(feedback)

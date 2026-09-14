@@ -153,6 +153,11 @@ class upbit extends upbit$1["default"] {
                         'travel_rule/vasps': { 'cost': 0.67 },
                         'status/wallet': { 'cost': 0.67 },
                         'api_keys': { 'cost': 0.67 }, // Upbit KR only
+                        'pockets': { 'cost': 0.67 },
+                        'pockets/api_keys': { 'cost': 0.67 },
+                        'pockets/assets': { 'cost': 0.67 },
+                        'pockets/universal_transfers': { 'cost': 0.67 },
+                        'pockets/transfers': { 'cost': 0.67 },
                     },
                     'post': {
                         'orders': { 'cost': 2.5 }, // RPS: 8
@@ -164,6 +169,8 @@ class upbit extends upbit$1["default"] {
                         'deposits/generate_coin_address': { 'cost': 0.67 },
                         'travel_rule/deposit/uuid': { 'cost': 0.67 }, // RPS: 30, but each deposit can only be queried once every 10 minutes
                         'travel_rule/deposit/txid': { 'cost': 0.67 }, // RPS: 30, but each deposit can only be queried once every 10 minutes
+                        'pockets/universal_transfers': { 'cost': 0.67 },
+                        'pockets/transfers': { 'cost': 0.67 },
                     },
                     'delete': {
                         'order': { 'cost': 0.67 },
@@ -344,16 +351,16 @@ class upbit extends upbit$1["default"] {
         const walletLocked = this.safeValue(memberInfo, 'wallet_locked');
         const locked = this.safeValue(memberInfo, 'locked');
         let active = true;
-        if ((canWithdraw !== undefined) && !canWithdraw) {
+        if ((canWithdraw !== undefined) && (canWithdraw !== true)) {
             active = false;
         }
         else if (walletState !== 'working') {
             active = false;
         }
-        else if ((walletLocked !== undefined) && walletLocked) {
+        else if ((walletLocked !== undefined) && (walletLocked === true)) {
             active = false;
         }
-        else if ((locked !== undefined) && locked) {
+        else if ((locked !== undefined) && (locked === true)) {
             active = false;
         }
         const maxOnetimeWithdrawal = this.safeString(withdrawLimits, 'onetime');
@@ -782,9 +789,12 @@ class upbit extends upbit$1["default"] {
      * @name upbit#fetchTickers
      * @see https://docs.upbit.com/kr/reference/list-tickers
      * @see https://global-docs.upbit.com/reference/list-tickers
+     * @see https://docs.upbit.com/kr/reference/tickers_by_quote
+     * @see https://global-docs.upbit.com/reference/tickers_by_quote
      * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
      * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.quote_currencies] comma-separated quote currency ids to fetch all tickers for, defaults to every quote currency of the loaded markets, only used when symbols is undefined
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTickers(symbols = undefined, params = {}) {
@@ -792,14 +802,42 @@ class upbit extends upbit$1["default"] {
             await this.loadMarkets();
         }
         symbols = this.marketSymbols(symbols);
-        const ids = (symbols !== undefined) ? this.marketIds(symbols) : this.ids;
-        const promises = [];
-        const queries = this.idsQueryStrings(ids, 6400); // seems upbit server limitations
-        for (let i = 0; i < queries.length; i++) {
-            const idsQuery = queries[i];
-            promises.push(this.publicGetTicker({ 'markets': idsQuery }));
+        let tickers = [];
+        if (symbols === undefined) {
+            // ticker/all returns every market of the requested quote currencies with a single request
+            const quoteIds = [];
+            const marketSymbols = this.symbols;
+            for (let i = 0; i < marketSymbols.length; i++) {
+                const market = this.market(marketSymbols[i]);
+                const quoteId = market['quoteId'];
+                if (!this.inArray(quoteId, quoteIds)) {
+                    quoteIds.push(quoteId);
+                }
+            }
+            const sortedQuoteIds = this.sort(quoteIds); // market iteration order differs per language
+            let quoteCurrencies = '';
+            for (let i = 0; i < sortedQuoteIds.length; i++) {
+                if (quoteCurrencies !== '') {
+                    quoteCurrencies = quoteCurrencies + ',';
+                }
+                quoteCurrencies = quoteCurrencies + sortedQuoteIds[i];
+            }
+            const request = {
+                'quote_currencies': quoteCurrencies,
+            };
+            tickers = await this.publicGetTickerAll(this.extend(request, params));
         }
-        const responses = await Promise.all(promises);
+        else {
+            const ids = this.marketIds(symbols);
+            const promises = [];
+            const queries = this.idsQueryStrings(ids, 4000); // the url is limited to about 8000 characters once the commas are percent-encoded
+            for (let i = 0; i < queries.length; i++) {
+                const idsQuery = queries[i];
+                promises.push(this.publicGetTicker(this.extend({ 'markets': idsQuery }, params)));
+            }
+            const responses = await Promise.all(promises);
+            tickers = this.arraysConcat(responses);
+        }
         //
         //     [ {                market: "BTC-ETH",
         //                    "trade_date": "20181122",
@@ -828,8 +866,7 @@ class upbit extends upbit$1["default"] {
         //           "lowest_52_week_date": "2017-12-08",
         //                     "timestamp":  1542883543813  } ]
         //
-        const concated = this.arraysConcat(responses);
-        return this.parseTickers(concated, symbols);
+        return this.parseTickers(tickers, symbols);
     }
     idsQueryStrings(ids, maxQueryLength) {
         if (ids === undefined) {
@@ -1190,7 +1227,7 @@ class upbit extends upbit$1["default"] {
         if (cost !== undefined) {
             quoteAmount = this.costToPrecision(symbol, cost);
         }
-        else if (createMarketBuyOrderRequiresPrice) {
+        else if (createMarketBuyOrderRequiresPrice === true) {
             if (price === undefined || amount === undefined) {
                 throw new errors.InvalidOrder(this.id + ' createOrder() requires the price and amount argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend (quote quantity) in the amount argument');
             }
@@ -1318,7 +1355,7 @@ class upbit extends upbit$1["default"] {
         }
         let response;
         params = this.omit(params, ['timeInForce', 'time_in_force', 'postOnly', 'clientOrderId', 'cost', 'selfTradePrevention', 'smp_type', 'test']);
-        if (test) {
+        if (test === true) {
             response = await this.privatePostOrdersTest(this.extend(request, params));
         }
         else {
@@ -1861,11 +1898,11 @@ class upbit extends upbit$1["default"] {
         //        new_order_identifier: '22'
         //      }
         const id = this.safeString(order, 'uuid');
-        let side = this.safeString(order, 'side');
+        let side = this.safeStringLower(order, 'side');
         if (side === 'bid') {
             side = 'buy';
         }
-        else {
+        else if (side === 'ask') {
             side = 'sell';
         }
         const identifier = this.safeString(order, 'identifier');
@@ -1888,7 +1925,7 @@ class upbit extends upbit$1["default"] {
         let feeCost = this.safeString(order, 'paid_fee');
         const marketId = this.safeString(order, 'market');
         market = this.safeMarket(marketId, market);
-        let trades = this.safeValue(order, 'trades', []);
+        let trades = this.safeList(order, 'trades', []);
         trades = this.parseTrades(trades, market, undefined, undefined, {
             'order': id,
             'type': type,
@@ -2211,7 +2248,7 @@ class upbit extends upbit$1["default"] {
         //         }
         //     ]
         //
-        return this.parseDepositAddresses(response, codes);
+        return this.parseDepositAddresses(response, codes, false);
     }
     parseDepositAddress(depositAddress, currency = undefined) {
         //
@@ -2381,7 +2418,7 @@ class upbit extends upbit$1["default"] {
         url += '/' + this.version + '/' + this.implodeParams(path, params);
         const query = this.omit(params, this.extractParams(path));
         if (method !== 'POST') {
-            if (Object.keys(query).length) {
+            if (Object.keys(query).length > 0) {
                 url += '?' + this.urlencode(query);
             }
         }
@@ -2399,7 +2436,7 @@ class upbit extends upbit$1["default"] {
                 body = this.json(params);
                 headers['Content-Type'] = 'application/json';
             }
-            if (hasQuery) {
+            if ((hasQuery !== undefined) && (hasQuery !== 0)) {
                 auth = this.rawencode(query);
             }
             if (auth !== undefined) {

@@ -111,6 +111,7 @@ class blockchaincom(Exchange, ImplicitAPI):
                 'private': {
                     'get': {
                         'fees': {'cost': 1},  # fetchFees
+                        'internal/orders': {'cost': 1},  # getOrdersInternal
                         'orders': {'cost': 1},  # fetchOpenOrders, fetchClosedOrders
                         'orders/{orderId}': {'cost': 1},  # fetchOrder(id)
                         'trades': {'cost': 1},
@@ -126,7 +127,7 @@ class blockchaincom(Exchange, ImplicitAPI):
                     },
                     'post': {
                         'orders': {'cost': 1},  # createOrder
-                        'deposits/{currency}': {'cost': 1},  # fetchDepositAddress by currency(only crypto supported)
+                        'deposits/{currency}': {'cost': 1},  # fetchDepositAddress by currency (only crypto supported)
                         'withdrawals': {'cost': 1},  # withdraw
                     },
                     'delete': {
@@ -188,7 +189,7 @@ class blockchaincom(Exchange, ImplicitAPI):
                     'BCH': 'BCH',
                     'BSV': 'BSV',
                     'BTC': 'BTC',
-                    # 'BEP20': 'BNB',  # todo
+                    # 'BEP20': 'BNB', // todo
                     'DCR': 'DCR',
                     'DESO': 'DESO',
                     'DASH': 'DASH',
@@ -212,7 +213,7 @@ class blockchaincom(Exchange, ImplicitAPI):
                     'XTZ': 'XTZ',
                     'ZEC': 'ZEC',
                     'ZIL': 'ZIL',
-                    # 'THETA': 'THETA',  # todo: possible TFUEL THETA FUEL is also same, but API might have a mistake
+                    # 'THETA': 'THETA', // todo: possible TFUEL THETA FUEL is also same, but API might have a mistake
                     # todo: uncomment below after consensus
                     # 'MOBILECOIN': 'MOB',
                     # 'KIN': 'KIN',
@@ -791,7 +792,7 @@ class blockchaincom(Exchange, ImplicitAPI):
         state = 'OPEN'
         return await self.fetch_orders_by_state(state, symbol, since, limit, params)
 
-    async def fetch_orders_by_state(self, state: object, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_orders_by_state(self, state: object, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         if self.markets is None:
             await self.load_markets()
         request = {
@@ -938,7 +939,7 @@ class blockchaincom(Exchange, ImplicitAPI):
         #     {
         #         "amount":30.0,
         #         "currency":"USDT",
-        #         "beneficiary":"cab00d11-6e7f-46b7-b453-2e8ef6f101fa",  # blockchain specific id
+        #         "beneficiary":"cab00d11-6e7f-46b7-b453-2e8ef6f101fa", // blockchain specific id
         #         "withdrawalId":"99df5ef7-eab6-4033-be49-312930fbd1ea",
         #         "fee":34.005078,
         #         "state":"COMPLETED",
@@ -980,7 +981,7 @@ class blockchaincom(Exchange, ImplicitAPI):
             'type': type,
             'amount': amount,
             'currency': code,
-            'status': self.parse_transaction_state(state),  # 'status':   'pending',   # 'ok', 'failed', 'canceled', string
+            'status': self.parse_transaction_state(state),  # 'status':   'pending',   // 'ok', 'failed', 'canceled', string
             'updated': None,
             'comment': None,
             'internal': None,
@@ -1049,7 +1050,7 @@ class blockchaincom(Exchange, ImplicitAPI):
         response = await self.privateGetWithdrawals(self.extend(request, params))
         return self.parse_transactions(response, currency, since, limit)
 
-    async def fetch_withdrawal(self, id: str, code: Str = None, params={}):
+    async def fetch_withdrawal(self, id: str, code: Str = None, params={}) -> Transaction:
         """
         fetch data on a currency withdrawal via the withdrawal id
 
@@ -1094,7 +1095,7 @@ class blockchaincom(Exchange, ImplicitAPI):
         response = await self.privateGetDeposits(self.extend(request, params))
         return self.parse_transactions(response, currency, since, limit)
 
-    async def fetch_deposit(self, id: str, code: Str = None, params={}):
+    async def fetch_deposit(self, id: str, code: Str = None, params={}) -> Transaction:
         """
         fetch information on a deposit
 
@@ -1204,7 +1205,7 @@ class blockchaincom(Exchange, ImplicitAPI):
         url = self.urls['api'][api] + requestPath
         query = self.omit(params, self.extract_params(path))
         if api == 'public':
-            if query:
+            if len(query) > 0:
                 url += '?' + self.urlencode(query)
         elif api == 'private':
             self.check_required_credentials()
@@ -1212,7 +1213,7 @@ class blockchaincom(Exchange, ImplicitAPI):
                 'X-API-Token': self.secret,
             }
             if (method == 'GET'):
-                if query:
+                if len(query) > 0:
                     url += '?' + self.urlencode(query)
             else:
                 body = self.json(query)

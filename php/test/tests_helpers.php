@@ -280,11 +280,16 @@ function create_dynamic_class ($exchangeId, $originalClass, $args) {
                 public $fetch_result = null;
                 public function fetch($url, $method = "GET", $headers = null, $body = null) {
                     return Async\async (function() use ($url, $method, $headers, $body){
-                        if ($this->fetch_result !== null) {
-                            return $this->fetch_result;
-                        }
-                        return  Async\await(parent::fetch($url, $method, $headers, $body));
+                        return $this->do_fetch($url, $method, $headers, $body);
                     })();
+                }
+                // the inner async layers call do_fetch directly (no extra fiber); overriding it
+                // here keeps the mock on that path too, and public fetch() above still routes here
+                protected function do_fetch($url, $method = "GET", $headers = null, $body = null) {
+                    if ($this->fetch_result !== null) {
+                        return $this->fetch_result;
+                    }
+                    return parent::do_fetch($url, $method, $headers, $body);
                 }
             }
         }';

@@ -202,6 +202,14 @@ class dydx(Exchange, ImplicitAPI):
                         'addresses/{address}/subaccountNumber/{subaccountNumber}/orders': {'cost': 1},
                         'fills/parentSubaccount': {'cost': 1},
                         'historical-pnl/parentSubaccount': {'cost': 1},
+                        'pnl': {'cost': 1},
+                        'pnl/parentSubaccountNumber': {'cost': 1},
+                        'tradeHistory': {'cost': 1},
+                        'tradeHistory/parentSubaccountNumber': {'cost': 1},
+                    },
+                    'post': {
+                        'turnkey/signin': {'cost': 1},
+                        'turnkey/uploadAddress': {'cost': 1},
                     },
                 },
                 'nodeRpc': {
@@ -349,7 +357,7 @@ class dydx(Exchange, ImplicitAPI):
                     # error collision for clob and sending modules from 2 - 8
                     # https://github.com/dydxprotocol/v4-chain/blob/5f9f6c9b95cc87d732e23de764909703b81a6e8b/protocol/x/clob/types/errors.go#L320
                     # https://github.com/dydxprotocol/v4-chain/blob/5f9f6c9b95cc87d732e23de764909703b81a6e8b/protocol/x/sending/types/errors.go
-                    '9': InvalidOrder,  # A cancel already exists in the memclob for self order with a greater than or equal GoodTilBlock
+                    '9': InvalidOrder,  # A cancel already exists in the memclob for this order with a greater than or equal GoodTilBlock
                     '10': InvalidOrder,  # The next block height is greater than the GoodTilBlock of the message
                     '11': InvalidOrder,  # The GoodTilBlock of the message is further than ShortBlockWindow blocks into the future
                     '12': InvalidOrder,  # MsgPlaceOrder is invalid
@@ -370,7 +378,7 @@ class dydx(Exchange, ImplicitAPI):
                     '27': InvalidOrder,  # Invalid ClobPair parameter
                     '28': InvalidOrder,  # Oracle price must be > 0.
                     '29': InvalidOrder,  # Invalid stateful order cancellation
-                    '30': InvalidOrder,  # An order with the same `OrderId` and `OrderHash` has already been processed for self CLOB
+                    '30': InvalidOrder,  # An order with the same `OrderId` and `OrderHash` has already been processed for this CLOB
                     '31': InvalidOrder,  # Missing mid price for ClobPair
                     '32': InvalidOrder,  # Existing stateful order cancellation has higher-or-equal priority than the new one
                     '33': InvalidOrder,  # ClobPair with id already exists
@@ -398,7 +406,7 @@ class dydx(Exchange, ImplicitAPI):
                     '1005': InvalidOrder,  # Liquidation order is on the wrong side
                     '1006': InvalidOrder,  # Total fills amount exceeds size of liquidation order
                     '1007': InvalidOrder,  # Liquidation order does not contain any fills
-                    '1008': InvalidOrder,  # Subaccount has previously liquidated self perpetual in the current block
+                    '1008': InvalidOrder,  # Subaccount has previously liquidated this perpetual in the current block
                     '1009': InvalidOrder,  # Liquidation order has size smaller than min position notional specified in the liquidation config
                     '1010': InvalidOrder,  # Liquidation order has size greater than max position notional specified in the liquidation config
                     '1011': InvalidOrder,  # Liquidation exceeds the maximum notional amount that a single subaccount can have liquidated per block
@@ -509,7 +517,7 @@ class dydx(Exchange, ImplicitAPI):
             raise ExchangeError(self.id + ' parseMarket() missing marketId')
         parts = marketId.split('-')
         baseName = self.safe_string(parts, 0)
-        baseId = self.safe_string(market, 'baseId', baseName)  # idk where 'baseId' comes from, but leaving
+        baseId = self.safe_string(market, 'baseId', baseName)  # idk where 'baseId' comes from, but leaving as is
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
         settleId = 'USDC'
@@ -735,7 +743,7 @@ class dydx(Exchange, ImplicitAPI):
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: the latest time in ms to fetch entries for
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()
@@ -858,14 +866,14 @@ class dydx(Exchange, ImplicitAPI):
         #     "type": "LIMIT",
         #     "status": "FILLED",
         #     "timeInForce": "GTT",
-        #     "reduceOnly": False,
+        #     "reduceOnly": false,
         #     "orderFlags": "64",
         #     "goodTilBlockTime": "2025-07-28T12:07:33.000Z",
         #     "createdAtHeight": "45058325",
         #     "clientMetadata": "2",
         #     "updatedAt": "2025-07-28T12:06:35.330Z",
         #     "updatedAtHeight": "45058326",
-        #     "postOnly": False,
+        #     "postOnly": false,
         #     "ticker": "BTC-USD",
         #     "subaccountNumber": 0
         # }
@@ -992,14 +1000,14 @@ class dydx(Exchange, ImplicitAPI):
         #         "type": "LIMIT",
         #         "status": "FILLED",
         #         "timeInForce": "GTT",
-        #         "reduceOnly": False,
+        #         "reduceOnly": false,
         #         "orderFlags": "64",
         #         "goodTilBlockTime": "2025-07-28T12:07:33.000Z",
         #         "createdAtHeight": "45058325",
         #         "clientMetadata": "2",
         #         "updatedAt": "2025-07-28T12:06:35.330Z",
         #         "updatedAtHeight": "45058326",
-        #         "postOnly": False,
+        #         "postOnly": false,
         #         "ticker": "BTC-USD",
         #         "subaccountNumber": 0
         #     }
@@ -1443,7 +1451,7 @@ class dydx(Exchange, ImplicitAPI):
         credentials = self.retrieve_credentials()
         account = await self.fetch_dydx_account()
         lastBlockHeight = await self.fetch_latest_block_height()
-        # params['latestBlockHeight'] = lastBlockHeight
+        # params['latestBlockHeight'] = lastBlockHeight;
         newParams = self.extend(params, {'latestBlockHeight': lastBlockHeight})
         orderRequestRes = self.create_order_request(symbol, type, side, amount, price, newParams)
         orderId = orderRequestRes[0]
@@ -1494,7 +1502,7 @@ class dydx(Exchange, ImplicitAPI):
         """
         isTrigger = self.safe_bool_2(params, 'trigger', 'stop', False)
         params = self.omit(params, ['trigger', 'stop'])
-        if not isTrigger and (symbol is None):
+        if (isTrigger is not True) and (symbol is None):
             raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
         if self.markets is None:
             await self.load_markets()
@@ -1509,7 +1517,7 @@ class dydx(Exchange, ImplicitAPI):
         goodTillBlockTimeInSeconds = 2592000
         goodTillBlockTimeInSeconds, params = self.handle_option_and_params(params, 'cancelOrder', 'goodTillBlockTimeInSeconds', goodTillBlockTimeInSeconds)  # default is 30 days
         goodTillBlockTime = None
-        defaultOrderFlags = 32 if (isTrigger) else 64
+        defaultOrderFlags = 32 if (isTrigger is True) else 64
         orderFlags = self.safe_integer(params, 'orderFlags', defaultOrderFlags)
         subAccountId = 0
         subAccountId, params = self.handle_option_and_params(params, 'cancelOrder', 'subAccountId', subAccountId)
@@ -1584,7 +1592,7 @@ class dydx(Exchange, ImplicitAPI):
             await self.load_markets()
         market = self.market(symbol)
         clientOrderIds = self.safe_list(params, 'clientOrderIds')
-        if not clientOrderIds:
+        if clientOrderIds is None:
             raise NotSupported(self.id + ' cancelOrders only support clientOrderIds.')
         subAccountId = 0
         subAccountId, params = self.handle_option_and_params(params, 'cancelOrders', 'subAccountId', subAccountId)
@@ -1763,7 +1771,7 @@ class dydx(Exchange, ImplicitAPI):
         response = await self.nodeRestPostCosmosTxV1beta1Simulate(request)
         #
         # {
-        #     gas_info: {gas_wanted: '18446744073709551615', gas_used: '86055'},
+        #     gas_info: { gas_wanted: '18446744073709551615', gas_used: '86055' },
         #     result: {
         #         ...
         #     }
@@ -1819,7 +1827,7 @@ class dydx(Exchange, ImplicitAPI):
         fromSubaccountId = self.safe_integer(params, 'fromSubaccountId')
         toSubaccountId = self.safe_integer(params, 'toSubaccountId')
         if fromAccount != 'main':
-            # raise error if from subaccount id is None
+            # throw error if from subaccount id is undefined
             if fromAccount is None:
                 raise NotSupported(self.id + ' transfer only support main > subaccount and subaccount <> subaccount.')
             if fromSubaccountId is None or toSubaccountId is None:
@@ -2139,7 +2147,7 @@ class dydx(Exchange, ImplicitAPI):
         rows = self.array_concat(withdrawals, deposits)
         return self.parse_transactions(rows, currency, since, limit)
 
-    async def fetch_transactions_helper(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_transactions_helper(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[dict]:
         methodName = self.safe_string(params, 'methodName')
         params = self.omit(params, 'methodName')
         userAddress = None
@@ -2229,7 +2237,7 @@ class dydx(Exchange, ImplicitAPI):
         #                     "subaccountNumber": 0
         #                 }
         #             },
-        #             "marginEnabled": True,
+        #             "marginEnabled": true,
         #             "updatedAtHeight": "45234659",
         #             "latestProcessedBlockHeight": "45293477"
         #         }
@@ -2324,7 +2332,7 @@ class dydx(Exchange, ImplicitAPI):
         #                 "subaccountNumber": 0
         #             }
         #         },
-        #         "marginEnabled": True,
+        #         "marginEnabled": true,
         #         "updatedAtHeight": "52228833",
         #         "latestProcessedBlockHeight": "52246761"
         #     }
@@ -2350,7 +2358,7 @@ class dydx(Exchange, ImplicitAPI):
             return self.walletAddress
         dydxAccount = self.safe_dict(self.options, 'dydxAccount')
         if dydxAccount is not None:
-            # return dydxAccount
+            # return dydxAccount;
             wallet = self.safe_string(dydxAccount, 'address')
             if wallet is not None:
                 return wallet
@@ -2363,7 +2371,7 @@ class dydx(Exchange, ImplicitAPI):
         params = self.keysort(params)
         url += '/' + pathWithParams
         if method == 'GET':
-            if params:
+            if len(params) > 0:
                 url += '?' + self.urlencode(params)
         else:
             body = self.json(params)
@@ -2373,20 +2381,20 @@ class dydx(Exchange, ImplicitAPI):
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
-        if not response:
+        if (response is None) or (response is None):
             return None  # fallback to default error handler
         #
         # abci response
-        # {"result": {"code": 0}}
+        # { "result": { "code": 0 } }
         #
         # rest response
-        # {"code": 123}
+        # { "code": 123 }
         #
         result = self.safe_dict(response, 'result')
         errorCode = self.safe_string(result, 'code')
-        if not errorCode:
+        if (errorCode is None) or (errorCode == ''):
             errorCode = self.safe_string(response, 'code')
-        if errorCode:
+        if (errorCode is not None) and (errorCode != ''):
             errorCodeNum = self.parse_to_numeric(errorCode)
             if errorCodeNum > 0:
                 feedback = self.id + ' ' + self.json(response)

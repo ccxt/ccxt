@@ -132,8 +132,9 @@ export default class toobit extends Exchange {
     fetchBidsAsks(symbols?: Strings, params?: {}): Promise<Tickers>;
     parseBidsAsksCustom(tickers: any, symbols?: Strings, params?: {}): Tickers;
     parseBidAskCustom(ticker: any): {
-        timestamp: Str;
-        symbol: Str;
+        timestamp: Int;
+        datetime: string | undefined;
+        symbol: string;
         bid: Num;
         bidVolume: Num;
         ask: Num;

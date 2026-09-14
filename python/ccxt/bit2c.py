@@ -137,6 +137,7 @@ class bit2c(Exchange, ImplicitAPI):
                     'get': {
                         'Exchanges/{pair}/Ticker': {'cost': 1},
                         'Exchanges/{pair}/orderbook': {'cost': 1},
+                        'Exchanges/{pair}/orderbook-top': {'cost': 1},
                         'Exchanges/{pair}/trades': {'cost': 1},
                         'Exchanges/{pair}/lasttrades': {'cost': 1},
                     },
@@ -145,6 +146,7 @@ class bit2c(Exchange, ImplicitAPI):
                     'post': {
                         'Merchant/CreateCheckout': {'cost': 1},
                         'Funds/AddCoinFundsRequest': {'cost': 1},
+                        'Funds/WithdrawCoin': {'cost': 1},
                         'Order/AddFund': {'cost': 1},
                         'Order/AddOrder': {'cost': 1},
                         'Order/GetById': {'cost': 1},
@@ -164,6 +166,7 @@ class bit2c(Exchange, ImplicitAPI):
                         'Order/GetById': {'cost': 1},
                         'Order/AccountHistory': {'cost': 1},
                         'Order/OrderHistory': {'cost': 1},
+                        'Order/HistoryByOrderId': {'cost': 1},
                     },
                 },
             },
@@ -278,14 +281,14 @@ class bit2c(Exchange, ImplicitAPI):
             'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
-                    'Please provide valid APIkey': AuthenticationError,  # {"error" : "Please provide valid APIkey"}
-                    'No order found.': OrderNotFound,  # {"Error" : "No order found."}
+                    'Please provide valid APIkey': AuthenticationError,  # { "error" : "Please provide valid APIkey" }
+                    'No order found.': OrderNotFound,  # { "Error" : "No order found." }
                 },
                 'broad': {
-                    # {"error": "Please provide valid nonce in Request Nonce(1598218490) is not bigger than last nonce(1598218490)."}
-                    # {"error": "Please provide valid nonce in Request UInt64.TryParse failed for nonce :"}
+                    # { "error": "Please provide valid nonce in Request Nonce (1598218490) is not bigger than last nonce (1598218490)."}
+                    # { "error": "Please provide valid nonce in Request UInt64.TryParse failed for nonce :" }
                     'Please provide valid nonce': InvalidNonce,
-                    'please approve new terms of use on site': PermissionDenied,  # {"error" : "please approve new terms of use on site."}
+                    'please approve new terms of use on site': PermissionDenied,  # { "error" : "please approve new terms of use on site." }
                 },
             },
         })
@@ -350,15 +353,15 @@ class bit2c(Exchange, ImplicitAPI):
         #         "GRIN": 0.0,
         #         "LOCKED_GRIN": 0.0,
         #         "Fees": {
-        #             "BtcNis": {"FeeMaker": 1.0, "FeeTaker": 1.0},
-        #             "EthNis": {"FeeMaker": 1.0, "FeeTaker": 1.0},
-        #             "BchabcNis": {"FeeMaker": 1.0, "FeeTaker": 1.0},
-        #             "LtcNis": {"FeeMaker": 1.0, "FeeTaker": 1.0},
-        #             "EtcNis": {"FeeMaker": 1.0, "FeeTaker": 1.0},
-        #             "BtgNis": {"FeeMaker": 1.0, "FeeTaker": 1.0},
-        #             "LtcBtc": {"FeeMaker": 1.0, "FeeTaker": 1.0},
-        #             "BchsvNis": {"FeeMaker": 1.0, "FeeTaker": 1.0},
-        #             "GrinNis": {"FeeMaker": 1.0, "FeeTaker": 1.0}
+        #             "BtcNis": { "FeeMaker": 1.0, "FeeTaker": 1.0 },
+        #             "EthNis": { "FeeMaker": 1.0, "FeeTaker": 1.0 },
+        #             "BchabcNis": { "FeeMaker": 1.0, "FeeTaker": 1.0 },
+        #             "LtcNis": { "FeeMaker": 1.0, "FeeTaker": 1.0 },
+        #             "EtcNis": { "FeeMaker": 1.0, "FeeTaker": 1.0 },
+        #             "BtgNis": { "FeeMaker": 1.0, "FeeTaker": 1.0 },
+        #             "LtcBtc": { "FeeMaker": 1.0, "FeeTaker": 1.0 },
+        #             "BchsvNis": { "FeeMaker": 1.0, "FeeTaker": 1.0 },
+        #             "GrinNis": { "FeeMaker": 1.0, "FeeTaker": 1.0 }
         #         }
         #     }
         #
@@ -469,7 +472,7 @@ class bit2c(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
-        optionValue = self.safe_string(self.options, 'fetchTradesMethod')  # kept here for backward compatibility  #29154
+        optionValue = self.safe_string(self.options, 'fetchTradesMethod')  # kept here for backward compatibility #29154
         method = self.handle_option('fetchTrades', 'method', optionValue)  # public_get_exchanges_pair_trades or public_get_exchanges_pair_lasttrades
         request = {
             'pair': market['id'],
@@ -520,13 +523,13 @@ class bit2c(Exchange, ImplicitAPI):
         #         "LOCKED_BTC": 0.0,
         #         ...
         #         "Fees": {
-        #             "BtcNis": {"FeeMaker": 1.0, "FeeTaker": 1.0},
-        #             "EthNis": {"FeeMaker": 1.0, "FeeTaker": 1.0},
+        #             "BtcNis": { "FeeMaker": 1.0, "FeeTaker": 1.0 },
+        #             "EthNis": { "FeeMaker": 1.0, "FeeTaker": 1.0 },
         #             ...
         #         }
         #     }
         #
-        fees = self.safe_value(response, 'Fees', {})
+        fees = self.safe_dict(response, 'Fees', {})
         keys = list(fees.keys())
         result = {}
         for i in range(0, len(keys)):
@@ -895,8 +898,8 @@ class bit2c(Exchange, ImplicitAPI):
             market = self.safe_market(marketId, market)
             market = self.safe_market(reference_parts[0], market)
             isMaker = self.safe_value(trade, 'isMaker')
-            makerOrTaker = 'maker' if isMaker else 'taker'
-            orderId = reference_parts[2] if isMaker else reference_parts[1]
+            makerOrTaker = 'maker' if (isMaker is True) else 'taker'
+            orderId = reference_parts[2] if (isMaker is True) else reference_parts[1]
             action = self.safe_integer(trade, 'action')
             if action == 0:
                 side = 'buy'
@@ -915,7 +918,7 @@ class bit2c(Exchange, ImplicitAPI):
             amount = self.safe_string(trade, 'amount')
             side = self.safe_value(trade, 'isBid')
             if side is not None:
-                if side:
+                if (side is not None) and (side != ''):
                     side = 'buy'
                 else:
                     side = 'sell'
@@ -936,7 +939,7 @@ class bit2c(Exchange, ImplicitAPI):
             'fee': fee,
         }, market)
 
-    def is_fiat(self, code: object):
+    def is_fiat(self, code: object) -> bool:
         return code == 'NIS'
 
     def fetch_deposit_address(self, code: str, params={}) -> DepositAddress:
@@ -999,7 +1002,7 @@ class bit2c(Exchange, ImplicitAPI):
             }, params)
             auth = self.urlencode(query)
             if method == 'GET':
-                if query:
+                if len(query) > 0:
                     url += '?' + auth
             else:
                 body = auth
@@ -1015,9 +1018,9 @@ class bit2c(Exchange, ImplicitAPI):
         if response is None:
             return None  # fallback to default error handler
         #
-        #     {"error" : "please approve new terms of use on site."}
-        #     {"error": "Please provide valid nonce in Request Nonce(1598218490) is not bigger than last nonce(1598218490)."}
-        #     {"Error" : "No order found."}
+        #     { "error" : "please approve new terms of use on site." }
+        #     { "error": "Please provide valid nonce in Request Nonce (1598218490) is not bigger than last nonce (1598218490)."}
+        #     { "Error" : "No order found." }
         #
         error = self.safe_string(response, 'error')
         if error is None:

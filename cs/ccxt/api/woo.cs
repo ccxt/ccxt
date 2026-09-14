@@ -809,6 +809,20 @@ public partial class woo : Exchange
         return await this.callAsync<Dictionary<string, object>> ("v3PrivatePostSpotMarginInterestRepay",parameters);
     }
 
+    /// <summary>Calls the v3PrivatePostFuturesDefaultMarginModeReset endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v3PrivatePostFuturesDefaultMarginModeReset (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("v3PrivatePostFuturesDefaultMarginModeReset",parameters);
+    }
+
+    /// <summary>Calls the v3PrivatePostIsolatedMarginMargin endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v3PrivatePostIsolatedMarginMargin (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("v3PrivatePostIsolatedMarginMargin",parameters);
+    }
+
     /// <summary>Calls the v3PrivatePostAlgoOrder endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> v3PrivatePostAlgoOrder (object parameters = null)
@@ -849,6 +863,20 @@ public partial class woo : Exchange
     public async Task<Dictionary<string, object>> v3PrivatePutFuturesPositionMode (object parameters = null)
     {
         return await this.callAsync<Dictionary<string, object>> ("v3PrivatePutFuturesPositionMode",parameters);
+    }
+
+    /// <summary>Calls the v3PrivatePutFuturesDefaultMarginMode endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v3PrivatePutFuturesDefaultMarginMode (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("v3PrivatePutFuturesDefaultMarginMode",parameters);
+    }
+
+    /// <summary>Calls the v3PrivatePutFuturesDefaultMarginModeSymbol endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v3PrivatePutFuturesDefaultMarginModeSymbol (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("v3PrivatePutFuturesDefaultMarginModeSymbol",parameters);
     }
 
     /// <summary>Calls the v3PrivatePutOrderOid endpoint.</summary>
@@ -940,6 +968,13 @@ public partial class woo : Exchange
     public async Task<Dictionary<string, object>> v3PrivateDeleteOrdersPending (object parameters = null)
     {
         return await this.callAsync<Dictionary<string, object>> ("v3PrivateDeleteOrdersPending",parameters);
+    }
+
+    /// <summary>Calls the v3PrivateDeleteAssetWalletWithdrawWithdrawId endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v3PrivateDeleteAssetWalletWithdrawWithdrawId (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("v3PrivateDeleteAssetWalletWithdrawWithdrawId",parameters);
     }
 
 }

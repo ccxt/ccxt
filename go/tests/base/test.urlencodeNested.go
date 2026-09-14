@@ -20,10 +20,10 @@ func TestUrlencodeNested() {
 		},
 		"d": []any{1, 2},
 	}
-	var expected2a any = "b[c]=2&b[target]=%2B%26&d[0]=1&d[1]=2"
-	var expected2c any = "b[target]=%2B%26&b[c]=2&d[0]=1&d[1]=2"
-	var expected2b any = "d[0]=1&d[1]=2&b[c]=2&b[target]=%2B%26"
-	var expected2d any = "d[0]=1&d[1]=2&b[target]=%2B%26&b[c]=2"
+	var expected2a string = "b[c]=2&b[target]=%2B%26&d[0]=1&d[1]=2"
+	var expected2c string = "b[target]=%2B%26&b[c]=2&d[0]=1&d[1]=2"
+	var expected2b string = "d[0]=1&d[1]=2&b[c]=2&b[target]=%2B%26"
+	var expected2d string = "d[0]=1&d[1]=2&b[target]=%2B%26&b[c]=2"
 	var result2 any = exchange.UrlencodeNested(dict2)
 	assert(ccxt.IsTrue(ccxt.IsTrue(ccxt.IsTrue(ccxt.IsEqual(result2, expected2a)) || ccxt.IsTrue(ccxt.IsEqual(result2, expected2b))) || ccxt.IsTrue(ccxt.IsEqual(result2, expected2c))) || ccxt.IsTrue(ccxt.IsEqual(result2, expected2d)), ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add("urlencodeNested: expected ", expected2a), " or "), expected2b), " or "), expected2c), " or "), expected2d), " but got "), result2))
 }

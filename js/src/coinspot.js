@@ -185,7 +185,9 @@ export default class coinspot extends Exchange {
                             'my/sell': { 'cost': 1 },
                             'my/sell/edit': { 'cost': 1 },
                             'my/buy/now': { 'cost': 1 },
+                            'my/buy/now/coinlist': { 'cost': 1 },
                             'my/sell/now': { 'cost': 1 },
+                            'my/sell/now/coinlist': { 'cost': 1 },
                             'my/swap/now': { 'cost': 1 },
                             'my/buy/cancel': { 'cost': 1 },
                             'my/buy/cancel/all': { 'cost': 1 },
@@ -193,6 +195,8 @@ export default class coinspot extends Exchange {
                             'my/sell/cancel/all': { 'cost': 1 },
                             'my/coin/withdraw/senddetails': { 'cost': 1 },
                             'my/coin/withdraw/send': { 'cost': 1 },
+                            'my/coin/withdraw/send/async': { 'cost': 1 },
+                            'my/coin/withdraw/send/status': { 'cost': 1 },
                             'ro/status': { 'cost': 1 },
                             'ro/orders/market/open': { 'cost': 1 },
                             'ro/orders/market/completed': { 'cost': 1 },
@@ -484,7 +488,7 @@ export default class coinspot extends Exchange {
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
             const market = this.safeMarket(id);
-            if (market['spot']) {
+            if (market['spot'] === true) {
                 const symbol = market['symbol'];
                 const ticker = prices[id];
                 result[symbol] = this.parseTicker(ticker, market);
@@ -736,7 +740,7 @@ export default class coinspot extends Exchange {
         });
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
-        if (!response) {
+        if (response === undefined) {
             return undefined; // fallback to default error handler
         }
         const status = this.safeString(response, 'status');

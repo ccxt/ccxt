@@ -101,6 +101,7 @@ export default class deepcoin extends deepcoinRest {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return.
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.aggregation] price aggregation level of the book, e.g. '0.1' or '0.0001', defaults to the market's price tick size
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
@@ -111,9 +112,11 @@ export default class deepcoin extends deepcoinRest {
      * @see https://www.deepcoin.com/docs/publicWS/25LevelIncrementalMarketData
      * @param {string} symbol unified array of symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.aggregation] price aggregation level the book was subscribed with, defaults to the market's price tick size
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     unWatchOrderBook(symbol: string, params?: {}): Promise<any>;
+    orderBookSuffix(market: Market, methodName: string, params?: Dict): [Str, Dict];
     handleOrderBook(client: Client, message: any): void;
     handleOrderBookSnapshot(client: Client, message: any): void;
     handleOrderBookMessage(client: Client, message: any, orderbook: any): void;

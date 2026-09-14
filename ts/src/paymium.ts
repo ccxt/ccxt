@@ -85,6 +85,7 @@ export default class paymium extends Exchange {
                         'user/orders': { 'cost': 1 } as Endpoint<List>,
                         'user/orders/{uuid}': { 'cost': 1 } as Endpoint<Dict>,
                         'user/price_alerts': { 'cost': 1 } as Endpoint<List>,
+                        'user/withdrawals': { 'cost': 1 } as Endpoint<List>,
                         'merchant/get_payment/{uuid}': { 'cost': 1 } as Endpoint<Dict>,
                     },
                     'post': {
@@ -428,7 +429,7 @@ export default class paymium extends Exchange {
         //         }
         //     ]
         //
-        return this.parseDepositAddresses (response, codes);
+        return this.parseDepositAddresses (response, codes, false);
     }
 
     override parseDepositAddress (depositAddress: any, currency: Currency = undefined): DepositAddress {
@@ -634,7 +635,7 @@ export default class paymium extends Exchange {
         let url = this.urls['api']['rest'] + '/' + this.version + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
         if (api === 'public') {
-            if (Object.keys (query).length) {
+            if (Object.keys (query).length > 0) {
                 url += '?' + this.urlencode (query);
             }
         } else {
@@ -646,13 +647,13 @@ export default class paymium extends Exchange {
                 'Api-Nonce': nonce,
             };
             if (method === 'POST') {
-                if (Object.keys (query).length) {
+                if (Object.keys (query).length > 0) {
                     body = this.json (query);
                     auth += body;
                     headers['Content-Type'] = 'application/json';
                 }
             } else {
-                if (Object.keys (query).length) {
+                if (Object.keys (query).length > 0) {
                     const queryString = this.urlencode (query);
                     auth += queryString;
                     url += '?' + queryString;

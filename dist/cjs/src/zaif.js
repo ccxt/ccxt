@@ -115,6 +115,9 @@ class zaif extends zaif$1["default"] {
                         'last_price/{pair}': { 'cost': 1 },
                         'ticker/{pair}': { 'cost': 1 },
                         'trades/{pair}': { 'cost': 1 },
+                        'vasp_info/{vasp_master_id}': { 'cost': 1 },
+                        'country_info/{code}': { 'cost': 1 },
+                        'corp_type_id_info/{id}': { 'cost': 1 },
                     },
                 },
                 'private': {
@@ -328,7 +331,7 @@ class zaif extends zaif$1["default"] {
             'timestamp': undefined,
             'datetime': undefined,
         };
-        const funds = this.safeValue(balances, 'funds', {});
+        const funds = this.safeDict(balances, 'funds', {});
         const currencyIds = Object.keys(funds);
         for (let i = 0; i < currencyIds.length; i++) {
             const currencyId = currencyIds[i];
@@ -528,7 +531,7 @@ class zaif extends zaif$1["default"] {
         const numTrades = trades.length;
         if (numTrades === 1) {
             const firstTrade = this.safeDict(trades, 0, {});
-            if (!Object.keys(firstTrade).length) {
+            if (Object.keys(firstTrade).length === 0) {
                 trades = [];
             }
         }
@@ -867,7 +870,7 @@ class zaif extends zaif$1["default"] {
             throw new errors.ExchangeError(feedback); // unknown message
         }
         const success = this.safeBool(response, 'success', true);
-        if (!success) {
+        if (success !== true) {
             throw new errors.ExchangeError(feedback);
         }
         return undefined;

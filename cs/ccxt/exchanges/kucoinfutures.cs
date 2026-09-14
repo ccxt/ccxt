@@ -5,7 +5,7 @@ namespace ccxt;
 
 public partial class kucoinfutures : kucoin
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "id", "kucoinfutures" },
@@ -44,13 +44,14 @@ public partial class kucoinfutures : kucoin
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> fetchBidsAsks(object symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> FetchBidsAsks(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", "futuresPublicGetAllTickers" },
         };
-        return await this.fetchTickers(symbols, this.extend(request, parameters));
+        Dictionary<string, object> extendedRequest = this.extend(request, parameters);
+        return await this.FetchTickers(symbols, extendedRequest);
     }
 
     /**
@@ -64,21 +65,21 @@ public partial class kucoinfutures : kucoin
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public async override Task<object> transfer(object code, object amount, object fromAccount, object toAccount, object parameters = null)
+    public async override Task<ccxt.TransferEntry> Transfer(string code, double amount, string fromAccount, string toAccount, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
-        object currency = this.currency(code);
-        object amountToPrecision = this.currencyToPrecision(code, amount);
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> currency = this.currency(((string)code));
+        string? amountToPrecision = this.currencyToPrecision(((string)code), amount);
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "currency", this.safeString(currency, "id") },
             { "amount", amountToPrecision },
         };
-        object toAccountString = this.parseTransferType(toAccount);
-        object response = null;
+        string? toAccountString = this.parseTransferType(toAccount);
+        Dictionary<string, object> response = null;
         if (isTrue(isTrue(isEqual(toAccountString, "TRADE")) || isTrue(isEqual(toAccountString, "MAIN"))))
         {
             ((IDictionary<string,object>)request)["recAccountType"] = toAccountString;
@@ -91,17 +92,13 @@ public partial class kucoinfutures : kucoin
         {
             throw new BadRequest ((string)add(this.id, " transfer() only supports transfers between future/swap, spot and funding accounts")) ;
         }
-        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        return this.extend(this.parseTransfer(data, currency), new Dictionary<string, object>() {
-            { "amount", this.parseNumber(amountToPrecision) },
-            { "fromAccount", fromAccount },
-            { "toAccount", toAccount },
-        });
+        IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        return ccxt.BaseExchange.ToTransferEntry(this.extend(this.parseTransfer(data, currency), new Dictionary<string, object>() {             { "amount", this.parseNumber(amountToPrecision) },             { "fromAccount", fromAccount },             { "toAccount", toAccount },         }));
     }
 
-    public virtual object parseTransferType(object transferType)
+    public virtual string? parseTransferType(object transferType)
     {
-        object transferTypes = new Dictionary<string, object>() {
+        Dictionary<string, object> transferTypes = new Dictionary<string, object>() {
             { "spot", "TRADE" },
             { "funding", "MAIN" },
         };

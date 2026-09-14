@@ -1,0 +1,36 @@
+name: MCP
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main, master ]
+    paths:
+      - 'mcp/**'
+      - '.github/workflows/mcp.yml'
+  pull_request:
+    paths:
+      - 'mcp/**'
+      - '.github/workflows/mcp.yml'
+
+# The ccxt-mcp sub-package is self-contained (its own package.json + lockfile) and its
+# tests use a fake ccxt module, so this job never touches the multi-language transpiler
+# pipeline — just build (tsc + doc manifest) and run the offline test matrix.
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: mcp
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Install
+        run: npm ci
+      - name: Build (tsc + doc manifest)
+        run: npm run build
+      - name: Test (unit + schema snapshot + stdio integration)
+        run: npm test
+      - name: Pack check (tarball contents)
+        run: npm pack --dry-run

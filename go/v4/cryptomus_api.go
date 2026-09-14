@@ -8,81 +8,156 @@
 package ccxt
 
 // PublicGetV2UserApiExchangeMarkets returns a channel that yields a JSON object.
-func (this *CryptomusCore) PublicGetV2UserApiExchangeMarkets(args ...any) <-chan any {
+func (this *Cryptomus) PublicGetV2UserApiExchangeMarkets(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetV2UserApiExchangeMarkets", args...)
 }
 
 // PublicGetV2UserApiExchangeMarketPrice returns a channel that yields a JSON object.
-func (this *CryptomusCore) PublicGetV2UserApiExchangeMarketPrice(args ...any) <-chan any {
+func (this *Cryptomus) PublicGetV2UserApiExchangeMarketPrice(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetV2UserApiExchangeMarketPrice", args...)
 }
 
+// PublicGetV2UserApiExchangeMarketsPrice returns a channel that yields a JSON object.
+func (this *Cryptomus) PublicGetV2UserApiExchangeMarketsPrice(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetV2UserApiExchangeMarketsPrice", args...)
+}
+
 // PublicGetV1ExchangeMarketAssets returns a channel that yields a JSON object.
-func (this *CryptomusCore) PublicGetV1ExchangeMarketAssets(args ...any) <-chan any {
+func (this *Cryptomus) PublicGetV1ExchangeMarketAssets(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetV1ExchangeMarketAssets", args...)
 }
 
 // PublicGetV1ExchangeMarketOrderBookCurrencyPair returns a channel that yields a JSON object.
-func (this *CryptomusCore) PublicGetV1ExchangeMarketOrderBookCurrencyPair(args ...any) <-chan any {
+func (this *Cryptomus) PublicGetV1ExchangeMarketOrderBookCurrencyPair(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetV1ExchangeMarketOrderBookCurrencyPair", args...)
 }
 
 // PublicGetV1ExchangeMarketTickers returns a channel that yields a JSON object.
-func (this *CryptomusCore) PublicGetV1ExchangeMarketTickers(args ...any) <-chan any {
+func (this *Cryptomus) PublicGetV1ExchangeMarketTickers(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetV1ExchangeMarketTickers", args...)
 }
 
 // PublicGetV1ExchangeMarketTradesCurrencyPair returns a channel that yields a JSON object.
-func (this *CryptomusCore) PublicGetV1ExchangeMarketTradesCurrencyPair(args ...any) <-chan any {
+func (this *Cryptomus) PublicGetV1ExchangeMarketTradesCurrencyPair(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetV1ExchangeMarketTradesCurrencyPair", args...)
 }
 
 // PrivateGetV2UserApiExchangeOrders returns a channel that yields a JSON object.
-func (this *CryptomusCore) PrivateGetV2UserApiExchangeOrders(args ...any) <-chan any {
+func (this *Cryptomus) PrivateGetV2UserApiExchangeOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetV2UserApiExchangeOrders", args...)
 }
 
 // PrivateGetV2UserApiExchangeOrdersHistory returns a channel that yields a JSON object.
-func (this *CryptomusCore) PrivateGetV2UserApiExchangeOrdersHistory(args ...any) <-chan any {
+func (this *Cryptomus) PrivateGetV2UserApiExchangeOrdersHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetV2UserApiExchangeOrdersHistory", args...)
 }
 
 // PrivateGetV2UserApiExchangeAccountBalance returns a channel that yields a JSON object.
-func (this *CryptomusCore) PrivateGetV2UserApiExchangeAccountBalance(args ...any) <-chan any {
+func (this *Cryptomus) PrivateGetV2UserApiExchangeAccountBalance(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetV2UserApiExchangeAccountBalance", args...)
 }
 
 // PrivateGetV2UserApiExchangeAccountTariffs returns a channel that yields a JSON object.
-func (this *CryptomusCore) PrivateGetV2UserApiExchangeAccountTariffs(args ...any) <-chan any {
+func (this *Cryptomus) PrivateGetV2UserApiExchangeAccountTariffs(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetV2UserApiExchangeAccountTariffs", args...)
 }
 
 // PrivateGetV2UserApiPaymentServices returns a channel that yields a JSON object.
-func (this *CryptomusCore) PrivateGetV2UserApiPaymentServices(args ...any) <-chan any {
+func (this *Cryptomus) PrivateGetV2UserApiPaymentServices(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetV2UserApiPaymentServices", args...)
 }
 
 // PrivateGetV2UserApiPayoutServices returns a channel that yields a JSON object.
-func (this *CryptomusCore) PrivateGetV2UserApiPayoutServices(args ...any) <-chan any {
+func (this *Cryptomus) PrivateGetV2UserApiPayoutServices(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetV2UserApiPayoutServices", args...)
 }
 
 // PrivateGetV2UserApiTransactionList returns a channel that yields a JSON object.
-func (this *CryptomusCore) PrivateGetV2UserApiTransactionList(args ...any) <-chan any {
+func (this *Cryptomus) PrivateGetV2UserApiTransactionList(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetV2UserApiTransactionList", args...)
 }
 
+// PrivateGetV2UserApiBalance returns a channel that yields a JSON object.
+func (this *Cryptomus) PrivateGetV2UserApiBalance(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV2UserApiBalance", args...)
+}
+
+// PrivateGetV2UserApiConvertDirectionList returns a channel that yields a JSON object.
+func (this *Cryptomus) PrivateGetV2UserApiConvertDirectionList(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV2UserApiConvertDirectionList", args...)
+}
+
+// PrivateGetV2UserApiConvertOrderList returns a channel that yields a JSON object.
+func (this *Cryptomus) PrivateGetV2UserApiConvertOrderList(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV2UserApiConvertOrderList", args...)
+}
+
+// PrivateGetV2UserApiAmlCheckBalance returns a channel that yields a JSON object.
+func (this *Cryptomus) PrivateGetV2UserApiAmlCheckBalance(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV2UserApiAmlCheckBalance", args...)
+}
+
+// PrivateGetV2UserApiAmlCheckCurrencies returns a channel that yields a JSON object.
+func (this *Cryptomus) PrivateGetV2UserApiAmlCheckCurrencies(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV2UserApiAmlCheckCurrencies", args...)
+}
+
+// PrivateGetV2UserApiAmlCheckPackages returns a channel that yields a JSON object.
+func (this *Cryptomus) PrivateGetV2UserApiAmlCheckPackages(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV2UserApiAmlCheckPackages", args...)
+}
+
+// PrivateGetV2UserApiAmlCheckRequest returns a channel that yields a JSON object.
+func (this *Cryptomus) PrivateGetV2UserApiAmlCheckRequest(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV2UserApiAmlCheckRequest", args...)
+}
+
+// PrivateGetV2UserApiAmlCheckRequestId returns a channel that yields a JSON object.
+func (this *Cryptomus) PrivateGetV2UserApiAmlCheckRequestId(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV2UserApiAmlCheckRequestId", args...)
+}
+
 // PrivatePostV2UserApiExchangeOrders returns a channel that yields a JSON object.
-func (this *CryptomusCore) PrivatePostV2UserApiExchangeOrders(args ...any) <-chan any {
+func (this *Cryptomus) PrivatePostV2UserApiExchangeOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostV2UserApiExchangeOrders", args...)
 }
 
 // PrivatePostV2UserApiExchangeOrdersMarket returns a channel that yields a JSON object.
-func (this *CryptomusCore) PrivatePostV2UserApiExchangeOrdersMarket(args ...any) <-chan any {
+func (this *Cryptomus) PrivatePostV2UserApiExchangeOrdersMarket(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostV2UserApiExchangeOrdersMarket", args...)
 }
 
+// PrivatePostV2UserApiConvert returns a channel that yields a JSON object.
+func (this *Cryptomus) PrivatePostV2UserApiConvert(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV2UserApiConvert", args...)
+}
+
+// PrivatePostV2UserApiConvertCalculate returns a channel that yields a JSON object.
+func (this *Cryptomus) PrivatePostV2UserApiConvertCalculate(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV2UserApiConvertCalculate", args...)
+}
+
+// PrivatePostV2UserApiConvertLimit returns a channel that yields a JSON object.
+func (this *Cryptomus) PrivatePostV2UserApiConvertLimit(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV2UserApiConvertLimit", args...)
+}
+
+// PrivatePostV2UserApiAmlCheckRequest returns a channel that yields a JSON object.
+func (this *Cryptomus) PrivatePostV2UserApiAmlCheckRequest(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV2UserApiAmlCheckRequest", args...)
+}
+
+// PrivatePostV2UserApiAmlCheckRequestIdReportSend returns a channel that yields a JSON object.
+func (this *Cryptomus) PrivatePostV2UserApiAmlCheckRequestIdReportSend(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV2UserApiAmlCheckRequestIdReportSend", args...)
+}
+
 // PrivateDeleteV2UserApiExchangeOrdersOrderId returns a channel that yields a JSON object.
-func (this *CryptomusCore) PrivateDeleteV2UserApiExchangeOrdersOrderId(args ...any) <-chan any {
+func (this *Cryptomus) PrivateDeleteV2UserApiExchangeOrdersOrderId(args ...any) <-chan any {
 	return this.callEndpointAsync("privateDeleteV2UserApiExchangeOrdersOrderId", args...)
+}
+
+// PrivateDeleteV2UserApiConvertOrderUuid returns a channel that yields a JSON object.
+func (this *Cryptomus) PrivateDeleteV2UserApiConvertOrderUuid(args ...any) <-chan any {
+	return this.callEndpointAsync("privateDeleteV2UserApiConvertOrderUuid", args...)
 }

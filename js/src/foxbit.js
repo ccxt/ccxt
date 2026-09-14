@@ -152,6 +152,8 @@ export default class foxbit extends Exchange {
                             'markets/{market}/candlesticks': { 'cost': 12 }, // 5 requests per 2 seconds
                             'markets/{market}/trades/history': { 'cost': 12 }, // 5 requests per 2 seconds
                             'markets/{market}/ticker/24hr': { 'cost': 15 }, // 4 requests per 2 seconds
+                            'markets/sparkline/{window}': { 'cost': 20 }, // 3 requests per 2 seconds
+                            'travel_rule/operation_reasons': { 'cost': 30 }, // 2 requests per 2 seconds
                         },
                     },
                     'private': {
@@ -165,12 +167,14 @@ export default class foxbit extends Exchange {
                             'deposits': { 'cost': 10 }, // 3 requests per second
                             'withdrawals': { 'cost': 10 }, // 3 requests per second
                             'me/fees/trading': { 'cost': 60 }, // 1 requests per 2 seconds
+                            'prime_desk/executions/{quote_id}': { 'cost': 10 }, // 6 requests per 2 seconds
                         },
                         'post': {
                             'orders': { 'cost': 2 }, // 30 requests per 2 seconds
                             'orders/batch': { 'cost': 7.5 }, // 8 requests per 2 seconds
                             'orders/cancel-replace': { 'cost': 3 }, // 20 requests per 2 seconds
                             'withdrawals': { 'cost': 10 }, // 3 requests per second
+                            'deposits/{deposit_sn}/travel_rule': { 'cost': 30 }, // 2 requests per 2 seconds
                         },
                         'put': {
                             'orders/cancel': { 'cost': 2 }, // 30 requests per 2 seconds
@@ -964,7 +968,7 @@ export default class foxbit extends Exchange {
                 request['time_in_force'] = timeInForce;
             }
         }
-        if (postOnly) {
+        if (postOnly === true) {
             request['post_only'] = true;
         }
         if (triggerPrice !== undefined) {
@@ -1037,7 +1041,7 @@ export default class foxbit extends Exchange {
                 }
                 delete orderParams['timeInForce'];
             }
-            if (postOnly) {
+            if (postOnly === true) {
                 request['post_only'] = true;
                 delete orderParams['postOnly'];
             }
@@ -1810,7 +1814,7 @@ export default class foxbit extends Exchange {
             amount = Precise.stringAdd(remaining, filled);
         }
         let cost = this.safeString(order, 'funds_received');
-        if (!cost) {
+        if ((cost === undefined) || (cost === '')) {
             const priceAverage = this.safeString(order, 'price_avg');
             const priceToCalculate = this.safeString(order, 'price', priceAverage);
             cost = Precise.stringMul(priceToCalculate, amount);
@@ -2066,7 +2070,7 @@ export default class foxbit extends Exchange {
         const details = this.safeList(error, 'details');
         const message = this.safeString(error, 'message');
         let detailsString = '';
-        if (details) {
+        if (details !== undefined) {
             for (let i = 0; i < details.length; i++) {
                 detailsString = detailsString + details[i] + ' ';
             }

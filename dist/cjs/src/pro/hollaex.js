@@ -589,7 +589,7 @@ class hollaex extends hollaex$1["default"] {
         //         }
         //     }
         //
-        if (!this.handleErrorMessage(client, message)) {
+        if (this.handleErrorMessage(client, message) !== true) {
             return;
         }
         const content = this.safeString(message, 'message');
