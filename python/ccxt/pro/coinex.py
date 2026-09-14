@@ -711,7 +711,7 @@ class coinex(ccxt.async_support.coinex):
         type = None
         type, params = self.handle_market_type_and_params(callerMethodName, market, params)
         url = self.urls['api']['ws'][type]
-        # subscriptionHashes = ['trades']
+        # const subscriptionHashes = [ 'trades' ];
         subscribe = {
             'method': 'deals.subscribe',
             'params': {'market_list': subscribedSymbols},
@@ -769,7 +769,7 @@ class coinex(ccxt.async_support.coinex):
             'params': {'market_list': marketList},
             'id': self.request_id(),
         }
-        # subscriptionHashes = self.hash(self.encode(self.json(watchOrderBookSubscriptions)), 'sha256')
+        # const subscriptionHashes = this.hash (this.encode (this.json (watchOrderBookSubscriptions)), sha256);
         url = self.urls['api']['ws'][type]
         orderbooks = await self.watch_multiple(url, messageHashes, self.deep_extend(subscribe, params), messageHashes)
         if self.newUpdates:
@@ -805,7 +805,7 @@ class coinex(ccxt.async_support.coinex):
         #         "method": "depth.update",
         #         "data": {
         #             "market": "BTCUSDT",
-        #             "is_full": True,
+        #             "is_full": true,
         #             "depth": {
         #                 "asks": [
         #                     [
@@ -855,7 +855,7 @@ class coinex(ccxt.async_support.coinex):
             currentOrderBook['timestamp'] = timestamp
             currentOrderBook['datetime'] = self.iso8601(timestamp)
             self.orderbooks[symbol] = currentOrderBook
-        # self.checkOrderBookChecksum(self.orderbooks[symbol])
+        # this.checkOrderBookChecksum (this.orderbooks[symbol]);
         client.resolve(self.orderbooks[symbol], messageHash)
 
     async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
@@ -1295,9 +1295,9 @@ class coinex(ccxt.async_support.coinex):
         if response is None:
             return None
         #
-        #     {"id": 1, "code": 20001, "message": "invalid argument"}
-        #     {"id": 2, "code": 21001, "message": "require auth"}
-        #     {"id": 1, "code": 21002, "message": "Signature Incorrect"}
+        #     { "id": 1, "code": 20001, "message": "invalid argument" }
+        #     { "id": 2, "code": 21001, "message": "require auth" }
+        #     { "id": 1, "code": 21002, "message": "Signature Incorrect" }
         #
         message = self.safe_string_lower(response, 'message')
         isErrorMessage = (message is not None) and (message != 'ok')

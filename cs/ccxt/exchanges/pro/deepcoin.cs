@@ -731,6 +731,7 @@ public partial class deepcoin : ccxt.deepcoin
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return.
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.aggregation] price aggregation level of the book, e.g. '0.1' or '0.0001', defaults to the market's price tick size
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<ccxt.pro.IOrderBook> WatchOrderBook(string symbol, Int64? limit = null, object parameters = null)
@@ -742,7 +743,10 @@ public partial class deepcoin : ccxt.deepcoin
         }
         Dictionary<string, object> market = this.market(symbol);
         string messageHash = add(add("orderbook", "::"), getValue(market, "symbol"));
-        string suffix = "_0.1";
+        object suffix = null;
+        var suffixparametersVariable = this.orderBookSuffix(market, "watchOrderBook", parameters);
+        suffix = ((IList<object>)suffixparametersVariable)[0];
+        parameters = ((IList<object>)suffixparametersVariable)[1];
         object orderbook = await this.watchPublic(market, messageHash, "25", parameters, suffix);
         return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());
     }
@@ -754,6 +758,7 @@ public partial class deepcoin : ccxt.deepcoin
      * @see https://www.deepcoin.com/docs/publicWS/25LevelIncrementalMarketData
      * @param {string} symbol unified array of symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.aggregation] price aggregation level the book was subscribed with, defaults to the market's price tick size
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> unWatchOrderBook(object symbol, object parameters = null)
@@ -765,11 +770,46 @@ public partial class deepcoin : ccxt.deepcoin
         }
         Dictionary<string, object> market = this.market(symbol);
         string messageHash = add(add("orderbook", "::"), getValue(market, "symbol"));
-        string suffix = "_0.1";
+        object suffix = null;
+        var suffixparametersVariable = this.orderBookSuffix(market, "unWatchOrderBook", parameters);
+        suffix = ((IList<object>)suffixparametersVariable)[0];
+        parameters = ((IList<object>)suffixparametersVariable)[1];
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
             { "topic", "orderbook" },
         };
         return await this.unWatchPublic(market, messageHash, "25", parameters, subscription, suffix);
+    }
+
+    public virtual object orderBookSuffix(object market, object methodName, object parameters = null)
+    {
+        // the 25-level book is published per price-aggregation level and the
+        // level is part of the FilterValue ('DeepCoin_BTC/USDT_0.1'). the
+        // venue only serves the levels that exist for that market, from the
+        // tick size up to a few coarser steps: subscribing to a level the
+        // market does not have is answered with 'orderbook does not exist:
+        // XRP/USDT_0.1, no available orderbook data' and nothing is
+        // streamed. a fixed '_0.1' therefore only worked for markets whose
+        // tick happens to be 0.1 or finer by a step or two (23 of the first
+        // 120 spot markets, 52 of 120 swaps in a live probe); the tick size
+        // itself was accepted on 116 and 117 of them, and the handful whose
+        // tick was rejected accepted the next coarser level
+        parameters ??= new Dictionary<string, object>();
+        string? symbol = this.safeString(market, "symbol");
+        object aggregation = null;
+        IList<object> aggregationparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, methodName, "aggregation");
+        aggregation = ((IList<object>)aggregationparametersVariable)[0];
+        parameters = ((IList<object>)aggregationparametersVariable)[1];
+        if (isTrue(isEqual(aggregation, null)))
+        {
+            IDictionary<string, object> precision = this.safeDict(market, "precision", new Dictionary<string, object>() {});
+            double? tickSize = this.safeNumber(precision, "price");
+            if (isTrue(isEqual(tickSize, null)))
+            {
+                throw new BadRequest ((string)add(add(add(add(add(this.id, " "), methodName), "() requires a params[\"aggregation\"] price level for "), symbol), " because the market has no price precision")) ;
+            }
+            aggregation = this.numberToString(tickSize);
+        }
+        return new List<object>() {add("_", aggregation), parameters};
     }
 
     public virtual void handleOrderBook(WebSocketClient client, object message)

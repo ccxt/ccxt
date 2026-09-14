@@ -63,7 +63,7 @@ class opinion extends Exchange {
                 'watchTrades' => true,
             ),
             'timeframes' => array(
-                // live-verified via GET /token/price-history => only 1h/1d are recognized,
+                // live-verified via GET /token/price-history: only 1h/1d are recognized,
                 // any other interval value (including 1m/1w) silently falls back to 1d
                 '1h' => '1h',
                 '1d' => '1d',
@@ -129,11 +129,11 @@ class opinion extends Exchange {
             ),
             'exceptions' => array(
                 'exact' => array(
-                    '10014' => '\\ccxt\\AccountNotEnabled', // "Please enable trading first" - live-verified => account onboarded but trading wallet not enabled yet
+                    '10014' => '\\ccxt\\AccountNotEnabled', // "Please enable trading first" - live-verified: account onboarded but trading wallet not enabled yet
                     '10403' => '\\ccxt\\PermissionDenied', // "API is not available to persons located in the United States, China, or persons located in restricted jurisdictions"
                     '11001' => '\\ccxt\\AuthenticationError', // "This API Key has no related Opinion Login Wallet yet"
                     '11002' => '\\ccxt\\AuthenticationError', // "Invalid API key"
-                    '10605' => '\\ccxt\\InvalidOrder', // "Depth not enough" - live-verified => a market order with no matching book depth
+                    '10605' => '\\ccxt\\InvalidOrder', // "Depth not enough" - live-verified: a market order with no matching book depth
                     '10610' => '\\ccxt\\InvalidOrder', // "postOnly is not allowed for market orders"
                     '11004' => '\\ccxt\\AuthenticationError', // "Self-service key issuance is temporarily disabled"
                     '11005' => '\\ccxt\\AuthenticationError', // "Wallet is not a registered Opinion account"
@@ -187,8 +187,8 @@ class opinion extends Exchange {
         $pageLimit = $this->safe_integer($this->options, 'marketsPageLimit', 20);
         $maxPages = $this->safe_integer($this->options, 'maxMarketsPages', 50);
         $flatMarkets = array();
-        // seen-guard keyed by the $event handle; the events themselves go through setEvents below
-        // so the cache gets the base indexing (id . handle . slug) instead of a $raw assignment
+        // seen-guard keyed by the event handle; the events themselves go through setEvents below
+        // so the cache gets the base indexing (id + handle + slug) instead of a raw assignment
         $seenEvents = array();
         $eventsList = array();
         $page = 1;
@@ -204,9 +204,9 @@ class opinion extends Exchange {
             $rawMarkets = $this->safe_list($result, 'list', array());
             $rawMarketsLength = count($rawMarkets);
             $fetchedRawCount = $this->sum($fetchedRawCount, $rawMarketsLength);
-            // categorical parents expand into several $flatMarkets entries each, so the $raw,
-            // unflattened row count in 'total' must be compared against $fetchedRawCount, not
-            // strlen($flatMarkets) - otherwise expansion makes the comparison meaningless
+            // categorical parents expand into several flatMarkets entries each, so the raw,
+            // unflattened row count in 'total' must be compared against fetchedRawCount, not
+            // flatMarkets.length - otherwise expansion makes the comparison meaningless
             $total = $this->safe_integer($result, 'total');
             for ($i = 0; $i < $rawMarketsLength; $i++) {
                 $raw = $rawMarkets[$i];
@@ -272,29 +272,29 @@ class opinion extends Exchange {
          * @return {array} a [market structure](https://docs.ccxt.com/#/?id=market-structure)
          */
         // {
-        //     "chainId" => "56",
-        //     "conditionId" => "469db44df1309dac7cf9fcaa142562f3c89719d47277e095d021c1561166539a",
-        //     "createdAt" => 1778750719,
-        //     "cutoffAt" => 0,
-        //     "isResolvableByAI" => true,
-        //     "marketId" => 16565,
-        //     "marketTitle" => "10–15s",
-        //     "noLabel" => "No",
-        //     "noTokenId" => "48641131337815600205538397357674754469573755318952418769815647071528778171134",
-        //     "questionId" => "63907f471c045499f69b5ea157bdea1942f9d53b6e5e767ae69f4d148aeeefae",
-        //     "quoteToken" => "0x55d398326f99059fF775485246999027B3197955",
-        //     "rebate" => array(
-        //         "maker" => 0.5
-        //     ),
-        //     "resolvedAt" => 1779342061,
-        //     "resultTokenId" => "107063188116504514729209026208703521982564071792212276771696073817845504321279",
-        //     "rules" => "",
-        //     "slug" => "how-long-will-trump-and-xi-shake-hands-when-they-meet-10-15s",
-        //     "status" => 4,
-        //     "statusEnum" => "Resolved",
-        //     "volume" => "50",
-        //     "yesLabel" => "Yes",
-        //     "yesTokenId" => "107063188116504514729209026208703521982564071792212276771696073817845504321279"
+        //     "chainId": "56",
+        //     "conditionId": "469db44df1309dac7cf9fcaa142562f3c89719d47277e095d021c1561166539a",
+        //     "createdAt": 1778750719,
+        //     "cutoffAt": 0,
+        //     "isResolvableByAI": true,
+        //     "marketId": 16565,
+        //     "marketTitle": "10–15s",
+        //     "noLabel": "No",
+        //     "noTokenId": "48641131337815600205538397357674754469573755318952418769815647071528778171134",
+        //     "questionId": "63907f471c045499f69b5ea157bdea1942f9d53b6e5e767ae69f4d148aeeefae",
+        //     "quoteToken": "0x55d398326f99059fF775485246999027B3197955",
+        //     "rebate": {
+        //         "maker": 0.5
+        //     },
+        //     "resolvedAt": 1779342061,
+        //     "resultTokenId": "107063188116504514729209026208703521982564071792212276771696073817845504321279",
+        //     "rules": "",
+        //     "slug": "how-long-will-trump-and-xi-shake-hands-when-they-meet-10-15s",
+        //     "status": 4,
+        //     "statusEnum": "Resolved",
+        //     "volume": "50",
+        //     "yesLabel": "Yes",
+        //     "yesTokenId": "107063188116504514729209026208703521982564071792212276771696073817845504321279"
         // }
         $marketId = $this->safe_string($raw, 'marketId');
         $slug = $this->safe_string($raw, 'slug');
@@ -345,7 +345,7 @@ class opinion extends Exchange {
         }
         $marketResolvedOutcome = $resolvedOutcome;
         // the venue sends cutoffAt 0 for markets without a scheduled cutoff - map it to
-        // null instead of the epoch, same for the event-level end date
+        // undefined instead of the epoch, same for the event-level end date
         $expiryTimestamp = null;
         if ($this->safe_integer($raw, 'cutoffAt', 0) !== 0) {
             $expiryTimestamp = $this->safe_timestamp($raw, 'cutoffAt');
@@ -437,9 +437,9 @@ class opinion extends Exchange {
         $rest = $this->omit($params, array( 'query', 'queries', 'tags', 'status', 'sort', 'searchIn', 'limit' ));
         $pageLimit = $this->safe_integer($this->options, 'defaultFetchEventsLimit', 20);
         $userLimit = $this->safe_integer($params, 'limit');
-        // bound how many events are actually FETCHED => the user limit when given, otherwise
+        // bound how many events are actually FETCHED: the user limit when given, otherwise
         // options.maxFetchEventsResults - the scope filters keep the listing narrow, but a broad
-        // label can still hold more than one $page
+        // label can still hold more than one page
         $fetchCap = $this->safe_integer($this->options, 'maxFetchEventsResults', 100);
         if ($userLimit !== null) {
             $fetchCap = $userLimit;
@@ -532,92 +532,92 @@ class opinion extends Exchange {
          * @return {array} an event structure
          */
         // {
-        //     "chainId" => "56",
-        //     "childMarkets" => array(
-        //         array(
-        //             "chainId" => "56",
-        //             "conditionId" => "469db44df1309dac7cf9fcaa142562f3c89719d47277e095d021c1561166539a",
-        //             "createdAt" => 1778750719,
-        //             "cutoffAt" => 0,
-        //             "isResolvableByAI" => true,
-        //             "marketId" => 16565,
-        //             "marketTitle" => "10–15s",
-        //             "noLabel" => "No",
-        //             "noTokenId" => "48641131337815600205538397357674754469573755318952418769815647071528778171134",
-        //             "questionId" => "63907f471c045499f69b5ea157bdea1942f9d53b6e5e767ae69f4d148aeeefae",
-        //             "quoteToken" => "0x55d398326f99059fF775485246999027B3197955",
-        //             "rebate" => array(
-        //                 "maker" => 0.5
-        //             ),
-        //             "resolvedAt" => 1779342061,
-        //             "resultTokenId" => "107063188116504514729209026208703521982564071792212276771696073817845504321279",
-        //             "rules" => "",
-        //             "slug" => "how-long-will-trump-and-xi-shake-hands-when-they-meet-10-15s",
-        //             "status" => 4,
-        //             "statusEnum" => "Resolved",
-        //             "volume" => "50",
-        //             "yesLabel" => "Yes",
-        //             "yesTokenId" => "107063188116504514729209026208703521982564071792212276771696073817845504321279"
-        //         ),
+        //     "chainId": "56",
+        //     "childMarkets": [
         //         {
-        //             "chainId" => "56",
-        //             "conditionId" => "c4054e23e1afc96c93bbc05378414f8286b2f3e3107bb80944ba8a7581428812",
-        //             "createdAt" => 1778750720,
-        //             "cutoffAt" => 0,
-        //             "isResolvableByAI" => true,
-        //             "marketId" => 16566,
-        //             "marketTitle" => "15s+",
-        //             "noLabel" => "No",
-        //             "noTokenId" => "47010463515333704767569479601138504130354011266006912230152057656074556410652",
-        //             "questionId" => "3c78ac485d772b8241fd185f8b45ef9d7df9690d99ea59ed58927ade2f50b182",
-        //             "quoteToken" => "0x55d398326f99059fF775485246999027B3197955",
-        //             "rebate" => array(
-        //                 "maker" => 0.5
-        //             ),
-        //             "resolvedAt" => 1779342061,
-        //             "resultTokenId" => "47010463515333704767569479601138504130354011266006912230152057656074556410652",
-        //             "rules" => "",
-        //             "slug" => "how-long-will-trump-and-xi-shake-hands-when-they-meet-15s-plus",
-        //             "status" => 4,
-        //             "statusEnum" => "Resolved",
-        //             "volume" => "50",
-        //             "yesLabel" => "Yes",
-        //             "yesTokenId" => "4219962057210945760892475434030882254029819241100485445656470801524365584613"
+        //             "chainId": "56",
+        //             "conditionId": "469db44df1309dac7cf9fcaa142562f3c89719d47277e095d021c1561166539a",
+        //             "createdAt": 1778750719,
+        //             "cutoffAt": 0,
+        //             "isResolvableByAI": true,
+        //             "marketId": 16565,
+        //             "marketTitle": "10–15s",
+        //             "noLabel": "No",
+        //             "noTokenId": "48641131337815600205538397357674754469573755318952418769815647071528778171134",
+        //             "questionId": "63907f471c045499f69b5ea157bdea1942f9d53b6e5e767ae69f4d148aeeefae",
+        //             "quoteToken": "0x55d398326f99059fF775485246999027B3197955",
+        //             "rebate": {
+        //                 "maker": 0.5
+        //             },
+        //             "resolvedAt": 1779342061,
+        //             "resultTokenId": "107063188116504514729209026208703521982564071792212276771696073817845504321279",
+        //             "rules": "",
+        //             "slug": "how-long-will-trump-and-xi-shake-hands-when-they-meet-10-15s",
+        //             "status": 4,
+        //             "statusEnum": "Resolved",
+        //             "volume": "50",
+        //             "yesLabel": "Yes",
+        //             "yesTokenId": "107063188116504514729209026208703521982564071792212276771696073817845504321279"
+        //         },
+        //         {
+        //             "chainId": "56",
+        //             "conditionId": "c4054e23e1afc96c93bbc05378414f8286b2f3e3107bb80944ba8a7581428812",
+        //             "createdAt": 1778750720,
+        //             "cutoffAt": 0,
+        //             "isResolvableByAI": true,
+        //             "marketId": 16566,
+        //             "marketTitle": "15s+",
+        //             "noLabel": "No",
+        //             "noTokenId": "47010463515333704767569479601138504130354011266006912230152057656074556410652",
+        //             "questionId": "3c78ac485d772b8241fd185f8b45ef9d7df9690d99ea59ed58927ade2f50b182",
+        //             "quoteToken": "0x55d398326f99059fF775485246999027B3197955",
+        //             "rebate": {
+        //                 "maker": 0.5
+        //             },
+        //             "resolvedAt": 1779342061,
+        //             "resultTokenId": "47010463515333704767569479601138504130354011266006912230152057656074556410652",
+        //             "rules": "",
+        //             "slug": "how-long-will-trump-and-xi-shake-hands-when-they-meet-15s-plus",
+        //             "status": 4,
+        //             "statusEnum": "Resolved",
+        //             "volume": "50",
+        //             "yesLabel": "Yes",
+        //             "yesTokenId": "4219962057210945760892475434030882254029819241100485445656470801524365584613"
         //         }
-        //     ),
-        //     "conditionId" => "",
-        //     "coverUrl" => "",
-        //     "createdAt" => 1778750719,
-        //     "cutoffAt" => 1778803200,
-        //     "isResolvableByAI" => false,
-        //     "labelIds" => array(
+        //     ],
+        //     "conditionId": "",
+        //     "coverUrl": "",
+        //     "createdAt": 1778750719,
+        //     "cutoffAt": 1778803200,
+        //     "isResolvableByAI": false,
+        //     "labelIds": [
         //         1
-        //     ),
-        //     "labels" => array(
+        //     ],
+        //     "labels": [
         //         "Politics"
-        //     ),
-        //     "marketId" => 788,
-        //     "marketTitle" => "How long will Trump and Xi shake hands when they meet?",
-        //     "marketType" => 1,
-        //     "noLabel" => "",
-        //     "noTokenId" => "",
-        //     "questionId" => "63907f471c045499f69b5ea157bdea1942f9d53b6e5e767ae69f4d148aeeefae",
-        //     "quoteToken" => "0x55d398326f99059fF775485246999027B3197955",
-        //     "rebate" => array(
-        //         "maker" => 0.5
-        //     ),
-        //     "resolvedAt" => 0,
-        //     "resultTokenId" => "",
-        //     "rules" => "This market resolves based on the length of the longest qualifying handshake between Donald Trump and Xi Jinping on May 14, 2026 (Beijing local time), the day of their bilateral meeting at the Great Hall of the People.\nBaseline already established => Video footage from the welcome ceremony confirms a qualifying handshake within the 10–15s range. The remaining question is whether any additional handshake on the same day produces a longer measured duration.\nOutcomes:\n\n10–15s — resolves YES if no qualifying handshake on May 14, 2026 exceeds 15 seconds.\n15s+ — resolves YES if any qualifying handshake on May 14, 2026 is measured at more than 15 seconds.\n\nMeasurement => Duration is measured from the exact moment hands make initial physical contact until the exact moment either party breaks contact. Where multiple video sources exist, the highest-resolution footage is used; where measurements differ, the consensus reading across major media is applied. A duration falling exactly on the 15s boundary resolves to 15s+.\nQualifying handshake => voluntary, intentional, in-person; direct hand-to-hand contact (gloves permitted); clearly visible on video from start to finish. Fist bumps, hugs, waves, back pats, and other non-handshake contact are excluded from the measured duration even if they occur during the same greeting.\nResolution window => All qualifying handshakes occurring on May 14, 2026 in Beijing local time are eligible, including those at arrival, bilateral sessions, signing ceremonies, state dinners, and departure. Handshakes on any other date do not count.\nResolution source => video footage from May 14, 2026.",
-        //     "slug" => "how-long-will-trump-and-xi-shake-hands-when-they-meet",
-        //     "status" => 1,
-        //     "statusEnum" => "Created",
-        //     "thumbnailUrl" => "https://images.opinion.trade/0xf988d66bd9c46b69d33e2703f7264d3c2267136c/0xdf583bdff183f389d7c5d9c5d099127cabda824afd05d66059b8027ca775763d",
-        //     "volume" => "100.00",
-        //     "volume24h" => "100.00",
-        //     "volume7d" => "100.00",
-        //     "yesLabel" => "",
-        //     "yesTokenId" => ""
+        //     ],
+        //     "marketId": 788,
+        //     "marketTitle": "How long will Trump and Xi shake hands when they meet?",
+        //     "marketType": 1,
+        //     "noLabel": "",
+        //     "noTokenId": "",
+        //     "questionId": "63907f471c045499f69b5ea157bdea1942f9d53b6e5e767ae69f4d148aeeefae",
+        //     "quoteToken": "0x55d398326f99059fF775485246999027B3197955",
+        //     "rebate": {
+        //         "maker": 0.5
+        //     },
+        //     "resolvedAt": 0,
+        //     "resultTokenId": "",
+        //     "rules": "This market resolves based on the length of the longest qualifying handshake between Donald Trump and Xi Jinping on May 14, 2026 (Beijing local time), the day of their bilateral meeting at the Great Hall of the People.\nBaseline already established: Video footage from the welcome ceremony confirms a qualifying handshake within the 10–15s range. The remaining question is whether any additional handshake on the same day produces a longer measured duration.\nOutcomes:\n\n10–15s — resolves YES if no qualifying handshake on May 14, 2026 exceeds 15 seconds.\n15s+ — resolves YES if any qualifying handshake on May 14, 2026 is measured at more than 15 seconds.\n\nMeasurement: Duration is measured from the exact moment hands make initial physical contact until the exact moment either party breaks contact. Where multiple video sources exist, the highest-resolution footage is used; where measurements differ, the consensus reading across major media is applied. A duration falling exactly on the 15s boundary resolves to 15s+.\nQualifying handshake: voluntary, intentional, in-person; direct hand-to-hand contact (gloves permitted); clearly visible on video from start to finish. Fist bumps, hugs, waves, back pats, and other non-handshake contact are excluded from the measured duration even if they occur during the same greeting.\nResolution window: All qualifying handshakes occurring on May 14, 2026 in Beijing local time are eligible, including those at arrival, bilateral sessions, signing ceremonies, state dinners, and departure. Handshakes on any other date do not count.\nResolution source: video footage from May 14, 2026.",
+        //     "slug": "how-long-will-trump-and-xi-shake-hands-when-they-meet",
+        //     "status": 1,
+        //     "statusEnum": "Created",
+        //     "thumbnailUrl": "https://images.opinion.trade/0xf988d66bd9c46b69d33e2703f7264d3c2267136c/0xdf583bdff183f389d7c5d9c5d099127cabda824afd05d66059b8027ca775763d",
+        //     "volume": "100.00",
+        //     "volume24h": "100.00",
+        //     "volume7d": "100.00",
+        //     "yesLabel": "",
+        //     "yesTokenId": ""
         // }
         $eventId = $this->safe_string($rawEvent, 'marketId');
         $slug = $this->safe_string($rawEvent, 'slug');
@@ -694,15 +694,15 @@ class opinion extends Exchange {
          */
         //
         //     {
-        //         "price" => array(
-        //             "errmsg" => "",
-        //             "errno" => 0,
-        //             "result" => array( "price" => "0.002", "side" => "buy-limit", "size" => "205.03", "timestamp" => 1766844546000, "tokenId" => "..." )
-        //         ),
-        //         "book" => {
-        //             "errmsg" => "",
-        //             "errno" => 0,
-        //             "result" => array( "asks" => array( array( "price" => "0.999", "size" => "5500" ) ), "bids" => array(), "market" => "...", "timestamp" => ..., "tokenId" => "..." )
+        //         "price": {
+        //             "errmsg": "",
+        //             "errno": 0,
+        //             "result": { "price": "0.002", "side": "buy-limit", "size": "205.03", "timestamp": 1766844546000, "tokenId": "..." }
+        //         },
+        //         "book": {
+        //             "errmsg": "",
+        //             "errno": 0,
+        //             "result": { "asks": [ { "price": "0.999", "size": "5500" } ], "bids": [], "market": "...", "timestamp": ..., "tokenId": "..." }
         //         }
         //     }
         //
@@ -808,16 +808,16 @@ class opinion extends Exchange {
         $response = Async\await($this->opinionPublicGetTokenOrderbook($this->extend($request, $params)));
         //
         //     {
-        //         "errmsg" => "",
-        //         "errno" => 0,
-        //         "result" => {
-        //             "asks" => array(
-        //                 array( "price" => "0.999", "size" => "5500" )
-        //             ),
-        //             "bids" => array(),
-        //             "market" => "ff7d2d935d0cce2922ea05a363e5a87439e1f8f86f01dacf7238d4c4cc542f6c",
-        //             "timestamp" => 1785488076901,
-        //             "tokenId" => "56915117085756475550546730127709511264652860289185956800398231821503615918119"
+        //         "errmsg": "",
+        //         "errno": 0,
+        //         "result": {
+        //             "asks": [
+        //                 { "price": "0.999", "size": "5500" }
+        //             ],
+        //             "bids": [],
+        //             "market": "ff7d2d935d0cce2922ea05a363e5a87439e1f8f86f01dacf7238d4c4cc542f6c",
+        //             "timestamp": 1785488076901,
+        //             "tokenId": "56915117085756475550546730127709511264652860289185956800398231821503615918119"
         //         }
         //     }
         //
@@ -857,12 +857,12 @@ class opinion extends Exchange {
         ), $params)));
         //
         //     {
-        //         "errmsg" => "",
-        //         "errno" => 0,
-        //         "result" => {
-        //             "history" => array(
-        //                 array( "p" => "0.001", "t" => 1785495600 )
-        //             )
+        //         "errmsg": "",
+        //         "errno": 0,
+        //         "result": {
+        //             "history": [
+        //                 { "p": "0.001", "t": 1785495600 }
+        //             ]
         //         }
         //     }
         //
@@ -889,9 +889,9 @@ class opinion extends Exchange {
          * @param {array} [$market] the outcome object the candle belongs to
          * @return {int[]} a candle ordered as timestamp, open, high, low, close, volume
          */
-        // Unused => fetchOHLCV maps array( p, t ) points directly.
+        // Unused: fetchOHLCV maps { p, t } points directly.
         //
-        //     array( "p" => "0.001", "t" => 1785495600 )
+        //     { "p": "0.001", "t": 1785495600 }
         //
         $price = $this->safe_number($ohlcv, 'p');
         return array( $this->safe_timestamp($ohlcv, 't'), $price, $price, $price, $price, null );
@@ -1053,7 +1053,7 @@ class opinion extends Exchange {
                 throw new ArgumentsRequired($this->id . ' createOrder() requires a $price for limit orders');
             }
             if ($sideStr === 'SELL') {
-                // the reference (worst acceptable) $price the taker $amount is computed from
+                // the reference (worst acceptable) price the taker amount is computed from
                 throw new ArgumentsRequired($this->id . ' createOrder() requires a $price for market sell orders');
             }
         }
@@ -1077,7 +1077,7 @@ class opinion extends Exchange {
         $maker = Async\await($this->load_multi_sign_address());
         // Ethereum addresses are case-insensitive - a checksummed multiSignAddress compared
         // against a differently-cased walletAddress with strict equality would pick the wrong
-        // $signatureType (0 EOA vs 2 Gnosis Safe) and break $order signing/validation
+        // signatureType (0 EOA vs 2 Gnosis Safe) and break order signing/validation
         $makerLower = strtolower($maker);
         $walletAddressLower = strtolower($this->walletAddress);
         $signatureType = ($makerLower === $walletAddressLower) ? 0 : 2;
@@ -1148,8 +1148,8 @@ class opinion extends Exchange {
         $response = Async\await($this->opinionPrivatePostOrderCancel($this->extend($request, $params)));
         $result = $this->safe_dict($response, 'result', array());
         $canceled = $this->safe_bool($result, 'result', false);
-        // a false $result does NOT mean the order is still open — it may already be filled,
-        // already cancelled, or unknown; don't invent a $status the venue didn't report.
+        // a false result does NOT mean the order is still open — it may already be filled,
+        // already cancelled, or unknown; don't invent a status the venue didn't report.
         // error responses with an errno never reach this line, handleErrors throws on them
         $status = ($canceled === true) ? 'canceled' : null;
         return $this->safe_prediction_order(array( 'id' => $id, 'status' => $status, 'info' => $response ));
@@ -1181,23 +1181,23 @@ class opinion extends Exchange {
          */
         //
         //     {
-        //         "orderId" => "...",
-        //         "marketId" => 1094,
-        //         "side" => 0,
-        //         "sideEnum" => "Buy",
-        //         "tradingMethod" => 2,
-        //         "tradingMethodEnum" => "Limit",
-        //         "price" => "0.01",
-        //         "orderShares" => "5",
-        //         "orderAmount" => "0.05",
-        //         "filledShares" => "0",
-        //         "filledAmount" => "0",
-        //         "profit" => "0",
-        //         "status" => 1,
-        //         "statusEnum" => "Pending",
-        //         "createdAt" => 1785500000,
-        //         "expiresAt" => 0,
-        //         "postOnly" => false
+        //         "orderId": "...",
+        //         "marketId": 1094,
+        //         "side": 0,
+        //         "sideEnum": "Buy",
+        //         "tradingMethod": 2,
+        //         "tradingMethodEnum": "Limit",
+        //         "price": "0.01",
+        //         "orderShares": "5",
+        //         "orderAmount": "0.05",
+        //         "filledShares": "0",
+        //         "filledAmount": "0",
+        //         "profit": "0",
+        //         "status": 1,
+        //         "statusEnum": "Pending",
+        //         "createdAt": 1785500000,
+        //         "expiresAt": 0,
+        //         "postOnly": false
         //     }
         //
         $id = $this->safe_string($order, 'orderId');
@@ -1224,7 +1224,7 @@ class opinion extends Exchange {
             'price' => $this->safe_number($order, 'price'),
             'amount' => $this->safe_number($order, 'orderShares'),
             // cost is the FILLED portion's collateral (unified cost = filled * price) — orderAmount
-            // is the full requested orderShares * price, wrong for a partially filled $order
+            // is the full requested orderShares * price, wrong for a partially filled order
             'cost' => $this->safe_number($order, 'filledAmount'),
             'filled' => $this->safe_number($order, 'filledShares'),
             'fee' => null,
@@ -1671,9 +1671,9 @@ class opinion extends Exchange {
          */
         $response = Async\await($this->opinionPrivateDeleteAuthApiKey($params));
         $this->options['apiKey'] = null;
-        // sign() prefers $this->apiKey over options['apiKey'] - clear it too, or a directly-set
+        // sign() prefers this.apiKey over options['apiKey'] - clear it too, or a directly-set
         // exchange.apiKey would keep being used for private calls after the key is revoked.
-        // an empty string, not null => the strict base types the credential, and
+        // an empty string, not undefined: the strict base types the credential as string, and
         // sign() treats an empty key as absent
         $this->apiKey = '';
         return $response;
@@ -1715,14 +1715,14 @@ class opinion extends Exchange {
 
     public function set_api_credentials(array $response): array {
         //
-        //     array( "apiKey" => "...", "walletAddress" => "..." )
+        //     { "apiKey": "...", "walletAddress": "..." }
         //
         $creds = array(
             'apiKey' => $this->safe_string($response, 'apiKey'),
             'walletAddress' => $this->safe_string($response, 'walletAddress'),
         );
         $this->options['apiKey'] = $creds['apiKey'];
-        // checkRequiredCredentials() (called by createOrder()) checks $this->apiKey, not
+        // checkRequiredCredentials() (called by createOrder()) checks this.apiKey, not
         // options['apiKey'] - keep both in sync, same as deleteApiKey() clearing both
         $this->apiKey = $creds['apiKey'];
         return $creds;
@@ -1773,7 +1773,7 @@ class opinion extends Exchange {
     }
 
     public function handle_message(mixed $client, mixed $message) {
-        // every data payload carries its channel name in $msgType; frames without one -
+        // every data payload carries its channel name in msgType; frames without one -
         // subscribe acks and heartbeat echoes - carry nothing to route
         $msgType = $this->safe_string($message, 'msgType');
         if ($msgType === null) {
@@ -1865,7 +1865,7 @@ class opinion extends Exchange {
     }
 
     private function do_seed_order_book(?string $outcome, ?string $sym, ?int $limit = null) {
-        // the depth channel streams single-level deltas only, so seed the live book from the REST $snapshot
+        // the depth channel streams single-level deltas only, so seed the live book from the REST snapshot
         $snapshot = Async\await($this->fetch_order_book($outcome, $limit));
         $orderbook = $this->order_book(array());
         $orderbook->reset($snapshot);
@@ -1875,13 +1875,13 @@ class opinion extends Exchange {
     public function handle_order_book(mixed $client, mixed $message) {
         //
         //     {
-        //         "marketId" => 2764,
-        //         "tokenId" => "19120407572139442221452465677574895365338028945317996490376653704877573103648",
-        //         "outcomeSide" => 1,
-        //         "side" => "bids",
-        //         "price" => "0.2",
-        //         "size" => "50",
-        //         "msgType" => "market.depth.diff"
+        //         "marketId": 2764,
+        //         "tokenId": "19120407572139442221452465677574895365338028945317996490376653704877573103648",
+        //         "outcomeSide": 1,
+        //         "side": "bids",
+        //         "price": "0.2",
+        //         "size": "50",
+        //         "msgType": "market.depth.diff"
         //     }
         //
         $tokenId = $this->safe_string($message, 'tokenId');
@@ -1931,11 +1931,11 @@ class opinion extends Exchange {
     public function handle_ticker(mixed $client, mixed $message) {
         //
         //     {
-        //         "tokenId" => "19120407572139442221452465677574895365338028945317996490376653704877573103648",
-        //         "outcomeSide" => 1,
-        //         "price" => "0.85",
-        //         "marketId" => 2764,
-        //         "msgType" => "market.last.price"
+        //         "tokenId": "19120407572139442221452465677574895365338028945317996490376653704877573103648",
+        //         "outcomeSide": 1,
+        //         "price": "0.85",
+        //         "marketId": 2764,
+        //         "msgType": "market.last.price"
         //     }
         //
         $tokenId = $this->safe_string($message, 'tokenId');
@@ -1989,14 +1989,14 @@ class opinion extends Exchange {
     public function handle_trades(mixed $client, mixed $message) {
         //
         //     {
-        //         "tokenId" => "19120407572139442221452465677574895365338028945317996490376653704877573103648",
-        //         "side" => "Buy",
-        //         "outcomeSide" => 1,
-        //         "price" => "0.85",
-        //         "shares" => "10",
-        //         "amount" => "8.5",
-        //         "marketId" => 2764,
-        //         "msgType" => "market.last.trade"
+        //         "tokenId": "19120407572139442221452465677574895365338028945317996490376653704877573103648",
+        //         "side": "Buy",
+        //         "outcomeSide": 1,
+        //         "price": "0.85",
+        //         "shares": "10",
+        //         "amount": "8.5",
+        //         "marketId": 2764,
+        //         "msgType": "market.last.trade"
         //     }
         //
         $tokenId = $this->safe_string($message, 'tokenId');
@@ -2071,7 +2071,7 @@ class opinion extends Exchange {
          * @param {int} $status the numeric order $status
          * @return {string} a unified order $status, or null
          */
-        // per the venue docs => 1 pending, 2 finished, 3 canceled, 4 expired, 5 failed
+        // per the venue docs: 1 pending, 2 finished, 3 canceled, 4 expired, 5 failed
         if ($status === 1) {
             return 'open';
         }
@@ -2093,31 +2093,31 @@ class opinion extends Exchange {
     public function handle_order(mixed $client, mixed $message) {
         //
         //     {
-        //         "orderUpdateType" => "orderConfirm",
-        //         "marketId" => 2770,
-        //         "rootMarketId" => 122,
-        //         "orderId" => "a11ee07e-e22f-11f0-9714-0a58a9feac02",
-        //         "side" => 1,
-        //         "outcomeSide" => 1,
-        //         "price" => "0.150000000000000000",
-        //         "shares" => "66.66",
-        //         "amount" => "9.999000000000000000",
-        //         "status" => 1,
-        //         "tradingMethod" => 2,
-        //         "quoteToken" => "0x55d398326f99059fF775485246999027B3197955",
-        //         "createdAt" => 1766735464,
-        //         "expiresAt" => 0,
-        //         "chainId" => "56",
-        //         "filledShares" => "10.000000000000000000",
-        //         "filledAmount" => "1.500000000000000000",
-        //         "msgType" => "trade.order.update"
+        //         "orderUpdateType": "orderConfirm",
+        //         "marketId": 2770,
+        //         "rootMarketId": 122,
+        //         "orderId": "a11ee07e-e22f-11f0-9714-0a58a9feac02",
+        //         "side": 1,
+        //         "outcomeSide": 1,
+        //         "price": "0.150000000000000000",
+        //         "shares": "66.66",
+        //         "amount": "9.999000000000000000",
+        //         "status": 1,
+        //         "tradingMethod": 2,
+        //         "quoteToken": "0x55d398326f99059fF775485246999027B3197955",
+        //         "createdAt": 1766735464,
+        //         "expiresAt": 0,
+        //         "chainId": "56",
+        //         "filledShares": "10.000000000000000000",
+        //         "filledAmount": "1.500000000000000000",
+        //         "msgType": "trade.order.update"
         //     }
         //
         $marketId = $this->safe_integer($message, 'marketId');
         $outcomeSide = $this->safe_integer($message, 'outcomeSide');
         $outcomeObj = $this->opinion_outcome_by_market_id_side($marketId, $outcomeSide);
         $timestamp = $this->safe_timestamp($message, 'createdAt');
-        // unlike the REST $order body (0 buy / 1 sell), the websocket channel uses 1 buy / 2 sell
+        // unlike the REST order body (0 buy / 1 sell), the websocket channel uses 1 buy / 2 sell
         // per the docs and confirmed live
         $sideInt = $this->safe_integer($message, 'side');
         $side = ($sideInt === 1) ? 'buy' : 'sell';
@@ -2184,23 +2184,23 @@ class opinion extends Exchange {
     public function handle_my_trade(mixed $client, mixed $message) {
         //
         //     {
-        //         "orderId" => "3c7af25f-e21f-11f0-9714-0a58a9feac02",
-        //         "tradeNo" => "e1403840-e22f-11f0-83af-0a58a9feac02",
-        //         "marketId" => 2770,
-        //         "rootMarketId" => 122,
-        //         "txHash" => "0x272c...4195",
-        //         "side" => "Buy",
-        //         "outcomeSide" => 2,
-        //         "price" => "0.100000000000000000",
-        //         "shares" => "9.44444",
-        //         "amount" => "0.944444",
-        //         "profit" => "0.000000000000000000",
-        //         "status" => 2,
-        //         "quoteToken" => "0x55d398326f99059fF775485246999027B3197955",
-        //         "fee" => "0.000000000000000000",
-        //         "chainId" => "56",
-        //         "createdAt" => 1766735571,
-        //         "msgType" => "trade.record.new"
+        //         "orderId": "3c7af25f-e21f-11f0-9714-0a58a9feac02",
+        //         "tradeNo": "e1403840-e22f-11f0-83af-0a58a9feac02",
+        //         "marketId": 2770,
+        //         "rootMarketId": 122,
+        //         "txHash": "0x272c...4195",
+        //         "side": "Buy",
+        //         "outcomeSide": 2,
+        //         "price": "0.100000000000000000",
+        //         "shares": "9.44444",
+        //         "amount": "0.944444",
+        //         "profit": "0.000000000000000000",
+        //         "status": 2,
+        //         "quoteToken": "0x55d398326f99059fF775485246999027B3197955",
+        //         "fee": "0.000000000000000000",
+        //         "chainId": "56",
+        //         "createdAt": 1766735571,
+        //         "msgType": "trade.record.new"
         //     }
         //
         $marketId = $this->safe_integer($message, 'marketId');
@@ -2278,7 +2278,7 @@ class opinion extends Exchange {
         ), $existingHeaders);
         if ($access === 'private') {
             if ($path === 'auth/api-key') {
-                // wallet-signature scheme => no $apiKey involved, the signature itself is the credential
+                // wallet-signature scheme: no apiKey involved, the signature itself is the credential
                 if (($this->walletAddress === null) || ($this->privateKey === null)) {
                     throw new ArgumentsRequired($this->id . ' ' . $path . ' requires a walletAddress and privateKey');
                 }
@@ -2289,8 +2289,8 @@ class opinion extends Exchange {
                 $headers['OPINION_SIGNATURE'] = $this->sign_api_key_auth($this->walletAddress, $action, $timestamp);
                 $headers['OPINION_TIMESTAMP'] = $timestamp;
             } else {
-                // an empty $this->apiKey counts as absent - deleteApiKey clears it to '' (the
-                // strict base types the credential, null can not be assigned)
+                // an empty this.apiKey counts as absent - deleteApiKey clears it to '' (the
+                // strict base types the credential as string, undefined can not be assigned)
                 $hasDirectApiKey = !$this->is_empty_string($this->apiKey);
                 $apiKey = ($hasDirectApiKey) ? $this->apiKey : $this->safe_string($this->options, 'apiKey');
                 if ($apiKey === null) {

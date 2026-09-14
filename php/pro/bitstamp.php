@@ -88,22 +88,22 @@ class bitstamp extends \ccxt\async\bitstamp {
         // the feed does not include a snapshot, just the deltas
         //
         //     {
-        //         "data" => array(
-        //             "timestamp" => "1583656800",
-        //             "microtimestamp" => "1583656800237527",
-        //             "bids" => array(
+        //         "data": {
+        //             "timestamp": "1583656800",
+        //             "microtimestamp": "1583656800237527",
+        //             "bids": [
         //                 ["8732.02", "0.00002478", "1207590500704256"],
         //                 ["8729.62", "0.01600000", "1207590502350849"],
         //                 ["8727.22", "0.01800000", "1207590504296448"],
-        //             ),
-        //             "asks" => array(
+        //             ],
+        //             "asks": [
         //                 ["8735.67", "2.00000000", "1207590693249024"],
         //                 ["8735.67", "0.01700000", "1207590693634048"],
         //                 ["8735.68", "1.53294500", "1207590692048896"],
-        //             ),
-        //         ),
-        //         "event" => "data",
-        //         "channel" => "diff_order_book_btcusd"
+        //             ],
+        //         },
+        //         "event": "data",
+        //         "channel": "diff_order_book_btcusd"
         //     }
         //
         $channel = $this->safe_string($message, 'channel');
@@ -217,16 +217,16 @@ class bitstamp extends \ccxt\async\bitstamp {
     public function parse_ws_trade(mixed $trade, ?array $market = null): array {
         //
         //     {
-        //         "buy_order_id" => 1211625836466176,
-        //         "amount_str" => "1.08000000",
-        //         "timestamp" => "1584642064",
-        //         "microtimestamp" => "1584642064685000",
-        //         "id" => 108637852,
-        //         "amount" => 1.08,
-        //         "sell_order_id" => 1211625840754689,
-        //         "price_str" => "6294.77",
-        //         "type" => 1,
-        //         "price" => 6294.77
+        //         "buy_order_id": 1211625836466176,
+        //         "amount_str": "1.08000000",
+        //         "timestamp": "1584642064",
+        //         "microtimestamp": "1584642064685000",
+        //         "id": 108637852,
+        //         "amount": 1.08,
+        //         "sell_order_id": 1211625840754689,
+        //         "price_str": "6294.77",
+        //         "type": 1,
+        //         "price": 6294.77
         //     }
         //
         $microtimestamp = $this->safe_integer($trade, 'microtimestamp', 0);
@@ -260,24 +260,24 @@ class bitstamp extends \ccxt\async\bitstamp {
     public function handle_trade(Client $client, mixed $message) {
         //
         //     {
-        //         "data" => array(
-        //             "buy_order_id" => 1207733769326592,
-        //             "amount_str" => "0.14406384",
-        //             "timestamp" => "1583691851",
-        //             "microtimestamp" => "1583691851934000",
-        //             "id" => 106833903,
-        //             "amount" => 0.14406384,
-        //             "sell_order_id" => 1207733765476352,
-        //             "price_str" => "8302.92",
-        //             "type" => 0,
-        //             "price" => 8302.92
-        //         ),
-        //         "event" => "trade",
-        //         "channel" => "live_trades_btcusd"
+        //         "data": {
+        //             "buy_order_id": 1207733769326592,
+        //             "amount_str": "0.14406384",
+        //             "timestamp": "1583691851",
+        //             "microtimestamp": "1583691851934000",
+        //             "id": 106833903,
+        //             "amount": 0.14406384,
+        //             "sell_order_id": 1207733765476352,
+        //             "price_str": "8302.92",
+        //             "type": 0,
+        //             "price": 8302.92
+        //         },
+        //         "event": "trade",
+        //         "channel": "live_trades_btcusd"
         //     }
         //
-        // the $trade streams push raw $trade information in real-time
-        // each $trade has a unique buyer and seller
+        // the trade streams push raw trade information in real-time
+        // each trade has a unique buyer and seller
         $channel = $this->safe_string($message, 'channel');
         if ($channel === null) {
             return;
@@ -338,7 +338,7 @@ class bitstamp extends \ccxt\async\bitstamp {
     public function handle_orders(Client $client, mixed $message) {
         //
         // {
-        //     "data":array(
+        //     "data":{
         //        "id":"1463471322288128",
         //        "id_str":"1463471322288128",
         //        "order_type":1,
@@ -348,9 +348,9 @@ class bitstamp extends \ccxt\async\bitstamp {
         //        "amount_str":"0.05000000",
         //        "price":1000,
         //        "price_str":"1000.00"
-        //     ),
+        //     },
         //     "channel":"private-my_orders_ltcusd-4848701",
-        //     "event" => "order_deleted" // field only present for cancelOrder
+        //     "event": "order_deleted" // field only present for cancelOrder
         // }
         //
         $channel = $this->safe_string($message, 'channel');
@@ -372,20 +372,20 @@ class bitstamp extends \ccxt\async\bitstamp {
     public function parse_ws_order(mixed $order, ?array $market = null) {
         //
         //    {
-        //        "id" => "1894876776091648",
-        //        "id_str" => "1894876776091648",
-        //        "order_type" => 0,
-        //        "order_subtype" => 0,
-        //        "datetime" => "1751451375",
-        //        "microtimestamp" => "1751451375070000",
-        //        "amount" => 1.1,
-        //        "amount_str" => "1.10000000",
-        //        "amount_traded" => "0",
-        //        "amount_at_create" => "1.10000000",
-        //        "price" => 10.23,
-        //        "price_str" => "10.23",
-        //        "is_liquidation" => false,
-        //        "trade_account_id" => 0
+        //        "id": "1894876776091648",
+        //        "id_str": "1894876776091648",
+        //        "order_type": 0,
+        //        "order_subtype": 0,
+        //        "datetime": "1751451375",
+        //        "microtimestamp": "1751451375070000",
+        //        "amount": 1.1,
+        //        "amount_str": "1.10000000",
+        //        "amount_traded": "0",
+        //        "amount_at_create": "1.10000000",
+        //        "price": 10.23,
+        //        "price_str": "10.23",
+        //        "is_liquidation": false,
+        //        "trade_account_id": 0
         //    }
         //
         $id = $this->safe_string($order, 'id_str');
@@ -461,14 +461,14 @@ class bitstamp extends \ccxt\async\bitstamp {
     public function handle_subscription_status(Client $client, mixed $message) {
         //
         //     {
-        //         "event" => "bts:subscription_succeeded",
-        //         "channel" => "detail_order_book_btcusd",
-        //         "data" => array(),
+        //         "event": "bts:subscription_succeeded",
+        //         "channel": "detail_order_book_btcusd",
+        //         "data": {},
         //     }
         //     {
-        //         "event" => "bts:subscription_succeeded",
-        //         "channel" => "private-my_orders_ltcusd-4848701",
-        //         "data" => array()
+        //         "event": "bts:subscription_succeeded",
+        //         "channel": "private-my_orders_ltcusd-4848701",
+        //         "data": {}
         //     }
         //
         $channel = $this->safe_string($message, 'channel');
@@ -483,27 +483,27 @@ class bitstamp extends \ccxt\async\bitstamp {
     public function handle_subject(Client $client, mixed $message) {
         //
         //     {
-        //         "data" => array(
-        //             "timestamp" => "1583656800",
-        //             "microtimestamp" => "1583656800237527",
-        //             "bids" => array(
+        //         "data": {
+        //             "timestamp": "1583656800",
+        //             "microtimestamp": "1583656800237527",
+        //             "bids": [
         //                 ["8732.02", "0.00002478", "1207590500704256"],
         //                 ["8729.62", "0.01600000", "1207590502350849"],
         //                 ["8727.22", "0.01800000", "1207590504296448"],
-        //             ),
-        //             "asks" => array(
+        //             ],
+        //             "asks": [
         //                 ["8735.67", "2.00000000", "1207590693249024"],
         //                 ["8735.67", "0.01700000", "1207590693634048"],
         //                 ["8735.68", "1.53294500", "1207590692048896"],
-        //             ),
-        //         ),
-        //         "event" => "data",
-        //         "channel" => "detail_order_book_btcusd"
+        //             ],
+        //         },
+        //         "event": "data",
+        //         "channel": "detail_order_book_btcusd"
         //     }
         //
         // private order
         //     {
-        //         "data":array(
+        //         "data":{
         //         "id":"1463471322288128",
         //         "id_str":"1463471322288128",
         //         "order_type":1,
@@ -513,9 +513,9 @@ class bitstamp extends \ccxt\async\bitstamp {
         //         "amount_str":"0.05000000",
         //         "price":1000,
         //         "price_str":"1000.00"
-        //         ),
+        //         },
         //         "channel":"private-my_orders_ltcusd-4848701",
-        //         "event" => "order_deleted" // field only present for cancelOrder
+        //         "event": "order_deleted" // field only present for cancelOrder
         //     }
         //
         $channel = $this->safe_string($message, 'channel');
@@ -539,9 +539,9 @@ class bitstamp extends \ccxt\async\bitstamp {
 
     public function handle_error_message(Client $client, mixed $message): ?bool {
         // {
-        //     "event" => "bts:error",
-        //     "channel" => '',
-        //     "data" => array( $code => 4009, $message => "Connection is unauthorized." )
+        //     "event": "bts:error",
+        //     "channel": '',
+        //     "data": { code: 4009, message: "Connection is unauthorized." }
         // }
         $event = $this->safe_string($message, 'event');
         if ($event === 'bts:error') {
@@ -559,34 +559,34 @@ class bitstamp extends \ccxt\async\bitstamp {
         }
         //
         //     {
-        //         "event" => "bts:subscription_succeeded",
-        //         "channel" => "detail_order_book_btcusd",
-        //         "data" => array(),
+        //         "event": "bts:subscription_succeeded",
+        //         "channel": "detail_order_book_btcusd",
+        //         "data": {},
         //     }
         //
         //     {
-        //         "data" => array(
-        //             "timestamp" => "1583656800",
-        //             "microtimestamp" => "1583656800237527",
-        //             "bids" => array(
+        //         "data": {
+        //             "timestamp": "1583656800",
+        //             "microtimestamp": "1583656800237527",
+        //             "bids": [
         //                 ["8732.02", "0.00002478", "1207590500704256"],
         //                 ["8729.62", "0.01600000", "1207590502350849"],
         //                 ["8727.22", "0.01800000", "1207590504296448"],
-        //             ),
-        //             "asks" => array(
+        //             ],
+        //             "asks": [
         //                 ["8735.67", "2.00000000", "1207590693249024"],
         //                 ["8735.67", "0.01700000", "1207590693634048"],
         //                 ["8735.68", "1.53294500", "1207590692048896"],
-        //             ),
-        //         ),
-        //         "event" => "data",
-        //         "channel" => "detail_order_book_btcusd"
+        //             ],
+        //         },
+        //         "event": "data",
+        //         "channel": "detail_order_book_btcusd"
         //     }
         //
         //     {
-        //         "event" => "bts:subscription_succeeded",
-        //         "channel" => "private-my_orders_ltcusd-4848701",
-        //         "data" => array()
+        //         "event": "bts:subscription_succeeded",
+        //         "channel": "private-my_orders_ltcusd-4848701",
+        //         "data": {}
         //     }
         //
         $event = $this->safe_string($message, 'event');
@@ -606,21 +606,21 @@ class bitstamp extends \ccxt\async\bitstamp {
         $time = $this->milliseconds();
         $expiresIn = $this->safe_integer($this->options, 'expiresIn');
         if (($expiresIn === null) || ($time > $expiresIn)) {
-            // single-flight leader election on a never-dialed $client, see
-            // https://github.com/ccxt/ccxt/issues/29393 => the websocket token is
-            // minted by a private REST call and cached in $this->options, so N
+            // single-flight leader election on a never-dialed client, see
+            // https://github.com/ccxt/ccxt/issues/29393: the websocket token is
+            // minted by a private REST call and cached in this.options, so N
             // concurrent subscribePrivate () calls on a cold instance all pass
             // the staleness check above and each mint their own token - the
             // tokens are short lived (valid_sec is 60), so this burns the
             // private endpoint and only the last write survives.
-            // the flight is registered in $client->futures and settled through
-            // $client->resolve / $client->reject, so every mutation of that map
+            // the flight is registered in client.futures and settled through
+            // client.resolve / client.reject, so every mutation of that map
             // goes through the client's own accessors in the ported languages
             $messageHash = 'authenticateFlight';
             $client = $this->client('authenticationFlights');
             if (is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures)) {
                 // a flight is already in progress - wake when the leader
-                // settles it => the token is then in $this->options
+                // settles it: the token is then in this.options
                 Async\await($client->future($messageHash));
                 return;
             }
@@ -636,10 +636,10 @@ class bitstamp extends \ccxt\async\bitstamp {
                 //
                 $sessionToken = $this->safe_string($response, 'token');
                 if ($sessionToken === null) {
-                    // reject the flight BEFORE any cache write => a hollow 200
-                    // used to be swallowed silently, leaving $expiresIn stale
+                    // reject the flight BEFORE any cache write: a hollow 200
+                    // used to be swallowed silently, leaving expiresIn stale
                     // and every caller subscribing with an empty auth field
-                    // until the $validity window reopened
+                    // until the validity window reopened
                     throw new AuthenticationError($this->id . ' authenticate() received an empty token');
                 }
                 $userId = $this->safe_string($response, 'user_id');
@@ -647,8 +647,8 @@ class bitstamp extends \ccxt\async\bitstamp {
                 $this->options['expiresIn'] = $this->sum($time, $validity);
                 $this->options['userId'] = $userId;
                 $this->options['wsSessionToken'] = $sessionToken;
-                // settle the flight => $client->resolve deletes the $future from
-                // $client->futures and wakes every waiter parked on it
+                // settle the flight: client.resolve deletes the future from
+                // client.futures and wakes every waiter parked on it
                 $client->resolve($sessionToken, $messageHash);
             } catch (Exception $e) {
                 // reject the flight - all waiters throw and the next caller

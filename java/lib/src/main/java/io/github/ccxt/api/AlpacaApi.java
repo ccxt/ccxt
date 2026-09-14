@@ -7,6 +7,9 @@
 
 package io.github.ccxt.api;
 import io.github.ccxt.Exchange;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 public class AlpacaApi extends Exchange
 {
@@ -25,7 +28,7 @@ public class AlpacaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  brokerPrivateGetV1AccountsAccountIdTokenizationRequests (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  brokerPrivateGetV1AccountsAccountIdTokenizationRequests (Object... optionalArgs)
     {
         return this.callAsync ("brokerPrivateGetV1AccountsAccountIdTokenizationRequests", optionalArgs);
     }
@@ -36,7 +39,7 @@ public class AlpacaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  brokerPrivateGetV1AccountsAccountIdTokenizationRequestsTokenizationRequestId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  brokerPrivateGetV1AccountsAccountIdTokenizationRequestsTokenizationRequestId (Object... optionalArgs)
     {
         return this.callAsync ("brokerPrivateGetV1AccountsAccountIdTokenizationRequestsTokenizationRequestId", optionalArgs);
     }
@@ -47,7 +50,7 @@ public class AlpacaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  brokerPrivateGetV1AccountsAccountIdTokenizationRequestsByClientRequestId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  brokerPrivateGetV1AccountsAccountIdTokenizationRequestsByClientRequestId (Object... optionalArgs)
     {
         return this.callAsync ("brokerPrivateGetV1AccountsAccountIdTokenizationRequestsByClientRequestId", optionalArgs);
     }
@@ -58,7 +61,7 @@ public class AlpacaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  brokerPrivateGetV1AccountsAccountIdTokenizationRequestsByIssuerRequestId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  brokerPrivateGetV1AccountsAccountIdTokenizationRequestsByIssuerRequestId (Object... optionalArgs)
     {
         return this.callAsync ("brokerPrivateGetV1AccountsAccountIdTokenizationRequestsByIssuerRequestId", optionalArgs);
     }
@@ -69,7 +72,7 @@ public class AlpacaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  brokerPrivateGetV1FpslAnalyticsAccountIdLoans (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  brokerPrivateGetV1FpslAnalyticsAccountIdLoans (Object... optionalArgs)
     {
         return this.callAsync ("brokerPrivateGetV1FpslAnalyticsAccountIdLoans", optionalArgs);
     }
@@ -80,7 +83,7 @@ public class AlpacaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  brokerPrivateGetV1Ipos (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  brokerPrivateGetV1Ipos (Object... optionalArgs)
     {
         return this.callAsync ("brokerPrivateGetV1Ipos", optionalArgs);
     }
@@ -91,7 +94,7 @@ public class AlpacaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  brokerPrivateGetV1IposOfferingReference (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  brokerPrivateGetV1IposOfferingReference (Object... optionalArgs)
     {
         return this.callAsync ("brokerPrivateGetV1IposOfferingReference", optionalArgs);
     }
@@ -102,7 +105,7 @@ public class AlpacaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  brokerPrivateGetV1WalletsTravelRuleVasps (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  brokerPrivateGetV1WalletsTravelRuleVasps (Object... optionalArgs)
     {
         return this.callAsync ("brokerPrivateGetV1WalletsTravelRuleVasps", optionalArgs);
     }
@@ -113,7 +116,7 @@ public class AlpacaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  brokerPrivateGetV1beta1Acats (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  brokerPrivateGetV1beta1Acats (Object... optionalArgs)
     {
         return this.callAsync ("brokerPrivateGetV1beta1Acats", optionalArgs);
     }
@@ -124,7 +127,7 @@ public class AlpacaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  brokerPrivateGetV1beta1AcatsContrabrokers (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  brokerPrivateGetV1beta1AcatsContrabrokers (Object... optionalArgs)
     {
         return this.callAsync ("brokerPrivateGetV1beta1AcatsContrabrokers", optionalArgs);
     }
@@ -135,7 +138,7 @@ public class AlpacaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  brokerPrivateGetV1beta1AcatsAccountId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  brokerPrivateGetV1beta1AcatsAccountId (Object... optionalArgs)
     {
         return this.callAsync ("brokerPrivateGetV1beta1AcatsAccountId", optionalArgs);
     }
@@ -146,7 +149,7 @@ public class AlpacaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  brokerPrivateGetV1beta1AcatsAccountIdAcatsId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  brokerPrivateGetV1beta1AcatsAccountIdAcatsId (Object... optionalArgs)
     {
         return this.callAsync ("brokerPrivateGetV1beta1AcatsAccountIdAcatsId", optionalArgs);
     }
@@ -157,7 +160,7 @@ public class AlpacaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  brokerPrivateGetV1beta1AcatsAccountIdAcatsIdAssets (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  brokerPrivateGetV1beta1AcatsAccountIdAcatsIdAssets (Object... optionalArgs)
     {
         return this.callAsync ("brokerPrivateGetV1beta1AcatsAccountIdAcatsIdAssets", optionalArgs);
     }
@@ -168,7 +171,7 @@ public class AlpacaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  brokerPrivatePostV1beta1AcatsAccountId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  brokerPrivatePostV1beta1AcatsAccountId (Object... optionalArgs)
     {
         return this.callAsync ("brokerPrivatePostV1beta1AcatsAccountId", optionalArgs);
     }
@@ -179,7 +182,7 @@ public class AlpacaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  brokerPrivatePatchV1AccountsAccountIdWalletsWhitelistsWhitelistedAddressIdTravelRuleInfo (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  brokerPrivatePatchV1AccountsAccountIdWalletsWhitelistsWhitelistedAddressIdTravelRuleInfo (Object... optionalArgs)
     {
         return this.callAsync ("brokerPrivatePatchV1AccountsAccountIdWalletsWhitelistsWhitelistedAddressIdTravelRuleInfo", optionalArgs);
     }
@@ -190,7 +193,7 @@ public class AlpacaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  traderPrivateGetV2Account (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  traderPrivateGetV2Account (Object... optionalArgs)
     {
         return this.callAsync ("traderPrivateGetV2Account", optionalArgs);
     }
@@ -201,7 +204,7 @@ public class AlpacaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  traderPrivateGetV2Orders (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  traderPrivateGetV2Orders (Object... optionalArgs)
     {
         return this.callAsync ("traderPrivateGetV2Orders", optionalArgs);
     }
@@ -212,7 +215,7 @@ public class AlpacaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  traderPrivateGetV2OrdersOrderId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  traderPrivateGetV2OrdersOrderId (Object... optionalArgs)
     {
         return this.callAsync ("traderPrivateGetV2OrdersOrderId", optionalArgs);
     }
@@ -223,7 +226,7 @@ public class AlpacaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  traderPrivateGetV2Positions (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  traderPrivateGetV2Positions (Object... optionalArgs)
     {
         return this.callAsync ("traderPrivateGetV2Positions", optionalArgs);
     }
@@ -234,7 +237,7 @@ public class AlpacaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  traderPrivateGetV2PositionsSymbolOrAssetId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  traderPrivateGetV2PositionsSymbolOrAssetId (Object... optionalArgs)
     {
         return this.callAsync ("traderPrivateGetV2PositionsSymbolOrAssetId", optionalArgs);
     }
@@ -245,7 +248,7 @@ public class AlpacaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  traderPrivateGetV2AccountPortfolioHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  traderPrivateGetV2AccountPortfolioHistory (Object... optionalArgs)
     {
         return this.callAsync ("traderPrivateGetV2AccountPortfolioHistory", optionalArgs);
     }
@@ -256,7 +259,7 @@ public class AlpacaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  traderPrivateGetV2Watchlists (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  traderPrivateGetV2Watchlists (Object... optionalArgs)
     {
         return this.callAsync ("traderPrivateGetV2Watchlists", optionalArgs);
     }
@@ -267,7 +270,7 @@ public class AlpacaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  traderPrivateGetV2WatchlistsWatchlistId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  traderPrivateGetV2WatchlistsWatchlistId (Object... optionalArgs)
     {
         return this.callAsync ("traderPrivateGetV2WatchlistsWatchlistId", optionalArgs);
     }
@@ -278,7 +281,7 @@ public class AlpacaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  traderPrivateGetV2WatchlistsByName (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  traderPrivateGetV2WatchlistsByName (Object... optionalArgs)
     {
         return this.callAsync ("traderPrivateGetV2WatchlistsByName", optionalArgs);
     }
@@ -289,7 +292,7 @@ public class AlpacaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  traderPrivateGetV2AccountConfigurations (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  traderPrivateGetV2AccountConfigurations (Object... optionalArgs)
     {
         return this.callAsync ("traderPrivateGetV2AccountConfigurations", optionalArgs);
     }
@@ -300,7 +303,7 @@ public class AlpacaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  traderPrivateGetV2AccountActivities (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  traderPrivateGetV2AccountActivities (Object... optionalArgs)
     {
         return this.callAsync ("traderPrivateGetV2AccountActivities", optionalArgs);
     }
@@ -311,7 +314,7 @@ public class AlpacaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  traderPrivateGetV2AccountActivitiesActivityType (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  traderPrivateGetV2AccountActivitiesActivityType (Object... optionalArgs)
     {
         return this.callAsync ("traderPrivateGetV2AccountActivitiesActivityType", optionalArgs);
     }
@@ -322,7 +325,7 @@ public class AlpacaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  traderPrivateGetV2Calendar (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  traderPrivateGetV2Calendar (Object... optionalArgs)
     {
         return this.callAsync ("traderPrivateGetV2Calendar", optionalArgs);
     }
@@ -333,7 +336,7 @@ public class AlpacaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  traderPrivateGetV2Clock (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  traderPrivateGetV2Clock (Object... optionalArgs)
     {
         return this.callAsync ("traderPrivateGetV2Clock", optionalArgs);
     }
@@ -344,7 +347,7 @@ public class AlpacaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  traderPrivateGetV2Assets (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  traderPrivateGetV2Assets (Object... optionalArgs)
     {
         return this.callAsync ("traderPrivateGetV2Assets", optionalArgs);
     }
@@ -355,7 +358,7 @@ public class AlpacaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  traderPrivateGetV2AssetsSymbolOrAssetId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  traderPrivateGetV2AssetsSymbolOrAssetId (Object... optionalArgs)
     {
         return this.callAsync ("traderPrivateGetV2AssetsSymbolOrAssetId", optionalArgs);
     }
@@ -366,7 +369,7 @@ public class AlpacaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  traderPrivateGetV2CorporateActionsAnnouncementsId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  traderPrivateGetV2CorporateActionsAnnouncementsId (Object... optionalArgs)
     {
         return this.callAsync ("traderPrivateGetV2CorporateActionsAnnouncementsId", optionalArgs);
     }
@@ -377,7 +380,7 @@ public class AlpacaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  traderPrivateGetV2CorporateActionsAnnouncements (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  traderPrivateGetV2CorporateActionsAnnouncements (Object... optionalArgs)
     {
         return this.callAsync ("traderPrivateGetV2CorporateActionsAnnouncements", optionalArgs);
     }
@@ -388,7 +391,7 @@ public class AlpacaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  traderPrivateGetV2Wallets (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  traderPrivateGetV2Wallets (Object... optionalArgs)
     {
         return this.callAsync ("traderPrivateGetV2Wallets", optionalArgs);
     }
@@ -399,7 +402,7 @@ public class AlpacaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  traderPrivateGetV2WalletsTransfers (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  traderPrivateGetV2WalletsTransfers (Object... optionalArgs)
     {
         return this.callAsync ("traderPrivateGetV2WalletsTransfers", optionalArgs);
     }
@@ -410,7 +413,7 @@ public class AlpacaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  traderPrivateGetV1Locates (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  traderPrivateGetV1Locates (Object... optionalArgs)
     {
         return this.callAsync ("traderPrivateGetV1Locates", optionalArgs);
     }
@@ -421,7 +424,7 @@ public class AlpacaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  traderPrivateGetV1LocatesLocateId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  traderPrivateGetV1LocatesLocateId (Object... optionalArgs)
     {
         return this.callAsync ("traderPrivateGetV1LocatesLocateId", optionalArgs);
     }
@@ -432,7 +435,7 @@ public class AlpacaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  traderPrivateGetV1LocatesQuotes (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  traderPrivateGetV1LocatesQuotes (Object... optionalArgs)
     {
         return this.callAsync ("traderPrivateGetV1LocatesQuotes", optionalArgs);
     }
@@ -443,7 +446,7 @@ public class AlpacaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  traderPrivateGetV2TokenizationRequests (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  traderPrivateGetV2TokenizationRequests (Object... optionalArgs)
     {
         return this.callAsync ("traderPrivateGetV2TokenizationRequests", optionalArgs);
     }
@@ -454,7 +457,7 @@ public class AlpacaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  traderPrivateGetV2TokenizationRequestsTokenizationRequestId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  traderPrivateGetV2TokenizationRequestsTokenizationRequestId (Object... optionalArgs)
     {
         return this.callAsync ("traderPrivateGetV2TokenizationRequestsTokenizationRequestId", optionalArgs);
     }
@@ -465,7 +468,7 @@ public class AlpacaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  traderPrivateGetV2TokenizationRequestsByClientRequestId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  traderPrivateGetV2TokenizationRequestsByClientRequestId (Object... optionalArgs)
     {
         return this.callAsync ("traderPrivateGetV2TokenizationRequestsByClientRequestId", optionalArgs);
     }
@@ -476,7 +479,7 @@ public class AlpacaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  traderPrivateGetV2WalletsTravelRuleVasps (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  traderPrivateGetV2WalletsTravelRuleVasps (Object... optionalArgs)
     {
         return this.callAsync ("traderPrivateGetV2WalletsTravelRuleVasps", optionalArgs);
     }
@@ -487,7 +490,7 @@ public class AlpacaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  traderPrivatePostV2Orders (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  traderPrivatePostV2Orders (Object... optionalArgs)
     {
         return this.callAsync ("traderPrivatePostV2Orders", optionalArgs);
     }
@@ -498,7 +501,7 @@ public class AlpacaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  traderPrivatePostV2Watchlists (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  traderPrivatePostV2Watchlists (Object... optionalArgs)
     {
         return this.callAsync ("traderPrivatePostV2Watchlists", optionalArgs);
     }
@@ -509,7 +512,7 @@ public class AlpacaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  traderPrivatePostV2WatchlistsWatchlistId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  traderPrivatePostV2WatchlistsWatchlistId (Object... optionalArgs)
     {
         return this.callAsync ("traderPrivatePostV2WatchlistsWatchlistId", optionalArgs);
     }
@@ -520,7 +523,7 @@ public class AlpacaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  traderPrivatePostV2WatchlistsByName (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  traderPrivatePostV2WatchlistsByName (Object... optionalArgs)
     {
         return this.callAsync ("traderPrivatePostV2WatchlistsByName", optionalArgs);
     }
@@ -531,7 +534,7 @@ public class AlpacaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  traderPrivatePostV2WalletsTransfers (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  traderPrivatePostV2WalletsTransfers (Object... optionalArgs)
     {
         return this.callAsync ("traderPrivatePostV2WalletsTransfers", optionalArgs);
     }
@@ -542,7 +545,7 @@ public class AlpacaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  traderPrivatePostV1Locates (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  traderPrivatePostV1Locates (Object... optionalArgs)
     {
         return this.callAsync ("traderPrivatePostV1Locates", optionalArgs);
     }
@@ -553,7 +556,7 @@ public class AlpacaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  traderPrivatePutV2OrdersOrderId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  traderPrivatePutV2OrdersOrderId (Object... optionalArgs)
     {
         return this.callAsync ("traderPrivatePutV2OrdersOrderId", optionalArgs);
     }
@@ -564,7 +567,7 @@ public class AlpacaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  traderPrivatePutV2WatchlistsWatchlistId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  traderPrivatePutV2WatchlistsWatchlistId (Object... optionalArgs)
     {
         return this.callAsync ("traderPrivatePutV2WatchlistsWatchlistId", optionalArgs);
     }
@@ -575,7 +578,7 @@ public class AlpacaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  traderPrivatePutV2WatchlistsByName (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  traderPrivatePutV2WatchlistsByName (Object... optionalArgs)
     {
         return this.callAsync ("traderPrivatePutV2WatchlistsByName", optionalArgs);
     }
@@ -586,7 +589,7 @@ public class AlpacaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  traderPrivatePatchV2OrdersOrderId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  traderPrivatePatchV2OrdersOrderId (Object... optionalArgs)
     {
         return this.callAsync ("traderPrivatePatchV2OrdersOrderId", optionalArgs);
     }
@@ -597,7 +600,7 @@ public class AlpacaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  traderPrivatePatchV2AccountConfigurations (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  traderPrivatePatchV2AccountConfigurations (Object... optionalArgs)
     {
         return this.callAsync ("traderPrivatePatchV2AccountConfigurations", optionalArgs);
     }
@@ -608,7 +611,7 @@ public class AlpacaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  traderPrivatePatchV2WalletsWhitelistsWhitelistedAddressIdTravelRuleInfo (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  traderPrivatePatchV2WalletsWhitelistsWhitelistedAddressIdTravelRuleInfo (Object... optionalArgs)
     {
         return this.callAsync ("traderPrivatePatchV2WalletsWhitelistsWhitelistedAddressIdTravelRuleInfo", optionalArgs);
     }
@@ -619,7 +622,7 @@ public class AlpacaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  traderPrivateDeleteV2Orders (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  traderPrivateDeleteV2Orders (Object... optionalArgs)
     {
         return this.callAsync ("traderPrivateDeleteV2Orders", optionalArgs);
     }
@@ -630,7 +633,7 @@ public class AlpacaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  traderPrivateDeleteV2OrdersOrderId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  traderPrivateDeleteV2OrdersOrderId (Object... optionalArgs)
     {
         return this.callAsync ("traderPrivateDeleteV2OrdersOrderId", optionalArgs);
     }
@@ -641,7 +644,7 @@ public class AlpacaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  traderPrivateDeleteV2Positions (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  traderPrivateDeleteV2Positions (Object... optionalArgs)
     {
         return this.callAsync ("traderPrivateDeleteV2Positions", optionalArgs);
     }
@@ -652,7 +655,7 @@ public class AlpacaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  traderPrivateDeleteV2PositionsSymbolOrAssetId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  traderPrivateDeleteV2PositionsSymbolOrAssetId (Object... optionalArgs)
     {
         return this.callAsync ("traderPrivateDeleteV2PositionsSymbolOrAssetId", optionalArgs);
     }
@@ -663,7 +666,7 @@ public class AlpacaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  traderPrivateDeleteV2WatchlistsWatchlistId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  traderPrivateDeleteV2WatchlistsWatchlistId (Object... optionalArgs)
     {
         return this.callAsync ("traderPrivateDeleteV2WatchlistsWatchlistId", optionalArgs);
     }
@@ -674,7 +677,7 @@ public class AlpacaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  traderPrivateDeleteV2WatchlistsByName (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  traderPrivateDeleteV2WatchlistsByName (Object... optionalArgs)
     {
         return this.callAsync ("traderPrivateDeleteV2WatchlistsByName", optionalArgs);
     }
@@ -685,7 +688,7 @@ public class AlpacaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  traderPrivateDeleteV2WatchlistsWatchlistIdSymbol (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  traderPrivateDeleteV2WatchlistsWatchlistIdSymbol (Object... optionalArgs)
     {
         return this.callAsync ("traderPrivateDeleteV2WatchlistsWatchlistIdSymbol", optionalArgs);
     }
@@ -696,7 +699,7 @@ public class AlpacaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  marketPublicGetV1beta3CryptoLocBars (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  marketPublicGetV1beta3CryptoLocBars (Object... optionalArgs)
     {
         return this.callAsync ("marketPublicGetV1beta3CryptoLocBars", optionalArgs);
     }
@@ -707,7 +710,7 @@ public class AlpacaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  marketPublicGetV1beta3CryptoLocLatestBars (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  marketPublicGetV1beta3CryptoLocLatestBars (Object... optionalArgs)
     {
         return this.callAsync ("marketPublicGetV1beta3CryptoLocLatestBars", optionalArgs);
     }
@@ -718,7 +721,7 @@ public class AlpacaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  marketPublicGetV1beta3CryptoLocLatestOrderbooks (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  marketPublicGetV1beta3CryptoLocLatestOrderbooks (Object... optionalArgs)
     {
         return this.callAsync ("marketPublicGetV1beta3CryptoLocLatestOrderbooks", optionalArgs);
     }
@@ -729,7 +732,7 @@ public class AlpacaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  marketPublicGetV1beta3CryptoLocLatestQuotes (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  marketPublicGetV1beta3CryptoLocLatestQuotes (Object... optionalArgs)
     {
         return this.callAsync ("marketPublicGetV1beta3CryptoLocLatestQuotes", optionalArgs);
     }
@@ -740,7 +743,7 @@ public class AlpacaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  marketPublicGetV1beta3CryptoLocLatestTrades (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  marketPublicGetV1beta3CryptoLocLatestTrades (Object... optionalArgs)
     {
         return this.callAsync ("marketPublicGetV1beta3CryptoLocLatestTrades", optionalArgs);
     }
@@ -751,7 +754,7 @@ public class AlpacaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  marketPublicGetV1beta3CryptoLocQuotes (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  marketPublicGetV1beta3CryptoLocQuotes (Object... optionalArgs)
     {
         return this.callAsync ("marketPublicGetV1beta3CryptoLocQuotes", optionalArgs);
     }
@@ -762,7 +765,7 @@ public class AlpacaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  marketPublicGetV1beta3CryptoLocSnapshots (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  marketPublicGetV1beta3CryptoLocSnapshots (Object... optionalArgs)
     {
         return this.callAsync ("marketPublicGetV1beta3CryptoLocSnapshots", optionalArgs);
     }
@@ -773,7 +776,7 @@ public class AlpacaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  marketPublicGetV1beta3CryptoLocTrades (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  marketPublicGetV1beta3CryptoLocTrades (Object... optionalArgs)
     {
         return this.callAsync ("marketPublicGetV1beta3CryptoLocTrades", optionalArgs);
     }
@@ -784,7 +787,7 @@ public class AlpacaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  marketPrivateGetV1beta1CorporateActions (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  marketPrivateGetV1beta1CorporateActions (Object... optionalArgs)
     {
         return this.callAsync ("marketPrivateGetV1beta1CorporateActions", optionalArgs);
     }
@@ -795,7 +798,7 @@ public class AlpacaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  marketPrivateGetV1beta1FixedIncomeLatestPrices (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  marketPrivateGetV1beta1FixedIncomeLatestPrices (Object... optionalArgs)
     {
         return this.callAsync ("marketPrivateGetV1beta1FixedIncomeLatestPrices", optionalArgs);
     }
@@ -806,7 +809,7 @@ public class AlpacaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  marketPrivateGetV1beta1FixedIncomeLatestQuotes (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  marketPrivateGetV1beta1FixedIncomeLatestQuotes (Object... optionalArgs)
     {
         return this.callAsync ("marketPrivateGetV1beta1FixedIncomeLatestQuotes", optionalArgs);
     }
@@ -817,7 +820,7 @@ public class AlpacaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  marketPrivateGetV1beta1ForexLatestRates (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  marketPrivateGetV1beta1ForexLatestRates (Object... optionalArgs)
     {
         return this.callAsync ("marketPrivateGetV1beta1ForexLatestRates", optionalArgs);
     }
@@ -828,7 +831,7 @@ public class AlpacaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  marketPrivateGetV1beta1ForexRates (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  marketPrivateGetV1beta1ForexRates (Object... optionalArgs)
     {
         return this.callAsync ("marketPrivateGetV1beta1ForexRates", optionalArgs);
     }
@@ -839,7 +842,7 @@ public class AlpacaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON scalar
      */
-    public java.util.concurrent.CompletableFuture<String>  marketPrivateGetV1beta1LogosSymbol (Object... optionalArgs)
+    public CompletableFuture<String>  marketPrivateGetV1beta1LogosSymbol (Object... optionalArgs)
     {
         return this.callAsync ("marketPrivateGetV1beta1LogosSymbol", optionalArgs);
     }
@@ -850,7 +853,7 @@ public class AlpacaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  marketPrivateGetV1beta1News (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  marketPrivateGetV1beta1News (Object... optionalArgs)
     {
         return this.callAsync ("marketPrivateGetV1beta1News", optionalArgs);
     }
@@ -861,7 +864,7 @@ public class AlpacaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  marketPrivateGetV1beta1ScreenerStocksMostActives (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  marketPrivateGetV1beta1ScreenerStocksMostActives (Object... optionalArgs)
     {
         return this.callAsync ("marketPrivateGetV1beta1ScreenerStocksMostActives", optionalArgs);
     }
@@ -872,7 +875,7 @@ public class AlpacaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  marketPrivateGetV1beta1ScreenerMarketTypeMovers (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  marketPrivateGetV1beta1ScreenerMarketTypeMovers (Object... optionalArgs)
     {
         return this.callAsync ("marketPrivateGetV1beta1ScreenerMarketTypeMovers", optionalArgs);
     }
@@ -883,7 +886,7 @@ public class AlpacaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  marketPrivateGetV2StocksAuctions (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  marketPrivateGetV2StocksAuctions (Object... optionalArgs)
     {
         return this.callAsync ("marketPrivateGetV2StocksAuctions", optionalArgs);
     }
@@ -894,7 +897,7 @@ public class AlpacaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  marketPrivateGetV2StocksBars (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  marketPrivateGetV2StocksBars (Object... optionalArgs)
     {
         return this.callAsync ("marketPrivateGetV2StocksBars", optionalArgs);
     }
@@ -905,7 +908,7 @@ public class AlpacaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  marketPrivateGetV2StocksBarsLatest (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  marketPrivateGetV2StocksBarsLatest (Object... optionalArgs)
     {
         return this.callAsync ("marketPrivateGetV2StocksBarsLatest", optionalArgs);
     }
@@ -916,7 +919,7 @@ public class AlpacaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  marketPrivateGetV2StocksMetaConditionsTicktype (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  marketPrivateGetV2StocksMetaConditionsTicktype (Object... optionalArgs)
     {
         return this.callAsync ("marketPrivateGetV2StocksMetaConditionsTicktype", optionalArgs);
     }
@@ -927,7 +930,7 @@ public class AlpacaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  marketPrivateGetV2StocksMetaExchanges (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  marketPrivateGetV2StocksMetaExchanges (Object... optionalArgs)
     {
         return this.callAsync ("marketPrivateGetV2StocksMetaExchanges", optionalArgs);
     }
@@ -938,7 +941,7 @@ public class AlpacaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  marketPrivateGetV2StocksQuotes (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  marketPrivateGetV2StocksQuotes (Object... optionalArgs)
     {
         return this.callAsync ("marketPrivateGetV2StocksQuotes", optionalArgs);
     }
@@ -949,7 +952,7 @@ public class AlpacaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  marketPrivateGetV2StocksQuotesLatest (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  marketPrivateGetV2StocksQuotesLatest (Object... optionalArgs)
     {
         return this.callAsync ("marketPrivateGetV2StocksQuotesLatest", optionalArgs);
     }
@@ -960,7 +963,7 @@ public class AlpacaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  marketPrivateGetV2StocksSnapshots (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  marketPrivateGetV2StocksSnapshots (Object... optionalArgs)
     {
         return this.callAsync ("marketPrivateGetV2StocksSnapshots", optionalArgs);
     }
@@ -971,7 +974,7 @@ public class AlpacaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  marketPrivateGetV2StocksTrades (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  marketPrivateGetV2StocksTrades (Object... optionalArgs)
     {
         return this.callAsync ("marketPrivateGetV2StocksTrades", optionalArgs);
     }
@@ -982,7 +985,7 @@ public class AlpacaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  marketPrivateGetV2StocksTradesLatest (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  marketPrivateGetV2StocksTradesLatest (Object... optionalArgs)
     {
         return this.callAsync ("marketPrivateGetV2StocksTradesLatest", optionalArgs);
     }
@@ -993,7 +996,7 @@ public class AlpacaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  marketPrivateGetV2StocksSymbolAuctions (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  marketPrivateGetV2StocksSymbolAuctions (Object... optionalArgs)
     {
         return this.callAsync ("marketPrivateGetV2StocksSymbolAuctions", optionalArgs);
     }
@@ -1004,7 +1007,7 @@ public class AlpacaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  marketPrivateGetV2StocksSymbolBars (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  marketPrivateGetV2StocksSymbolBars (Object... optionalArgs)
     {
         return this.callAsync ("marketPrivateGetV2StocksSymbolBars", optionalArgs);
     }
@@ -1015,7 +1018,7 @@ public class AlpacaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  marketPrivateGetV2StocksSymbolBarsLatest (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  marketPrivateGetV2StocksSymbolBarsLatest (Object... optionalArgs)
     {
         return this.callAsync ("marketPrivateGetV2StocksSymbolBarsLatest", optionalArgs);
     }
@@ -1026,7 +1029,7 @@ public class AlpacaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  marketPrivateGetV2StocksSymbolQuotes (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  marketPrivateGetV2StocksSymbolQuotes (Object... optionalArgs)
     {
         return this.callAsync ("marketPrivateGetV2StocksSymbolQuotes", optionalArgs);
     }
@@ -1037,7 +1040,7 @@ public class AlpacaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  marketPrivateGetV2StocksSymbolQuotesLatest (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  marketPrivateGetV2StocksSymbolQuotesLatest (Object... optionalArgs)
     {
         return this.callAsync ("marketPrivateGetV2StocksSymbolQuotesLatest", optionalArgs);
     }
@@ -1048,7 +1051,7 @@ public class AlpacaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  marketPrivateGetV2StocksSymbolSnapshot (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  marketPrivateGetV2StocksSymbolSnapshot (Object... optionalArgs)
     {
         return this.callAsync ("marketPrivateGetV2StocksSymbolSnapshot", optionalArgs);
     }
@@ -1059,7 +1062,7 @@ public class AlpacaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  marketPrivateGetV2StocksSymbolTrades (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  marketPrivateGetV2StocksSymbolTrades (Object... optionalArgs)
     {
         return this.callAsync ("marketPrivateGetV2StocksSymbolTrades", optionalArgs);
     }
@@ -1070,7 +1073,7 @@ public class AlpacaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  marketPrivateGetV2StocksSymbolTradesLatest (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  marketPrivateGetV2StocksSymbolTradesLatest (Object... optionalArgs)
     {
         return this.callAsync ("marketPrivateGetV2StocksSymbolTradesLatest", optionalArgs);
     }

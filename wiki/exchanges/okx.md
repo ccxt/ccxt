@@ -2388,12 +2388,17 @@ watches best bid & ask for symbols
 **Kind**: instance method of [<code>okx</code>](#okx)  
 **Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
-**See**: https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-tickers-channel  
+**See**
+
+- https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-order-book-channel
+- https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-tickers-channel
+
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | symbols | <code>Array&lt;string&gt;</code> | Yes | unified symbol of the market to fetch the ticker for |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.channel | <code>string</code> | No | the channel to subscribe to, 'bbo-tbt' (default, 10ms L1) or 'tickers' (100ms) |
 
 
 ```javascript

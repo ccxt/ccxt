@@ -534,7 +534,7 @@ class paymium(Exchange, ImplicitAPI):
         #                 "name": "account_operation",
         #                 "address": "1FPDBXNqSkZMsw1kSkkajcj8berxDQkUoc",
         #                 "tx_hash": "string",
-        #                 "is_trading_account": True
+        #                 "is_trading_account": true
         #             }
         #         ]
         #     }
@@ -569,7 +569,7 @@ class paymium(Exchange, ImplicitAPI):
         #                 "name": "account_operation",
         #                 "address": "1FPDBXNqSkZMsw1kSkkajcj8berxDQkUoc",
         #                 "tx_hash": "string",
-        #                 "is_trading_account": True
+        #                 "is_trading_account": true
         #             }
         #         ]
         #     }

@@ -10,6 +10,7 @@ import log from 'ololog'
 import ts from 'typescript6';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { applyJavaImports } from './javaUtilImports.js';
 
 const HTTP_METHODS = [ 'get', 'post', 'put', 'delete', 'patch' ];
 
@@ -1002,7 +1003,7 @@ async function editAPIFilesJava(subdir = ''){
     // the dir is already populated (CI rebuild) or empty (first run).
     fs.mkdirSync(JAVA_PATH + subdir, { recursive: true });
     const files = exchanges.map(ex => JAVA_PATH + subdir + capitalize(ex) + 'Api.java');
-    await Promise.all(files.map((path, idx) => writeFile(path, storedJavaMethods[exchanges[idx]].join ('\n'))))
+    await Promise.all(files.map((path, idx) => writeFile(path, applyJavaImports (storedJavaMethods[exchanges[idx]].join ('\n')))))
 }
 
 //-------------------------------------------------------------------------
@@ -1099,12 +1100,9 @@ function createRustHeader(exchange: Exchange, parent: string){
 // -------------------------------------------------------------------------
 
 function createJavaHeader(exchange: Exchange, parent: string){
-    // When the parent is another exchange, extend its untyped Core class
-    // (CompletableFuture<Object> methods) — extending the typed wrapper would
-    // shadow the Core signatures and break the generated typed wrapper subclass.
     // prediction-market exchanges extend PredictionExchange (itself extends Exchange)
     const baseParent = (parent === 'Exchange' && isPrediction) ? 'PredictionExchange' : parent;
-    const capParent = (baseParent === 'Exchange' || baseParent === 'PredictionExchange') ? baseParent : `${capitalize(baseParent)}Core`;
+    const capParent = (baseParent === 'Exchange' || baseParent === 'PredictionExchange') ? baseParent : capitalize(baseParent);
     const parentImport = (baseParent === 'Exchange' || baseParent === 'PredictionExchange') ? `import io.github.ccxt.${capParent}` : `import io.github.ccxt.exchanges.${capParent}` ;
     const javaPackage = isPrediction ? 'io.github.ccxt.api.prediction' : 'io.github.ccxt.api';
     const namespace = `package ${javaPackage};\n${parentImport};`;

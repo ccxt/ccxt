@@ -791,7 +791,7 @@ class coinbaseexchange(ccxt.async_support.coinbaseexchange):
 
     def handle_order_book(self, client: Client, message: object):
         #
-        # first message(snapshot)
+        # first message (snapshot)
         #
         #     {
         #         "type": "snapshot",
@@ -811,7 +811,7 @@ class coinbaseexchange(ccxt.async_support.coinbaseexchange):
         #         "product_id": "BTC-USD",
         #         "time": "2019-08-14T20:42:27.265Z",
         #         "changes": [
-        #             ["buy", "10101.80000000", "0.162567"]
+        #             [ "buy", "10101.80000000", "0.162567" ]
         #         ]
         #     }
         #
@@ -859,7 +859,7 @@ class coinbaseexchange(ccxt.async_support.coinbaseexchange):
         #         "channels": [
         #             {
         #                 "name": "level2",
-        #                 "product_ids": ["ETH-BTC"]
+        #                 "product_ids": [ "ETH-BTC" ]
         #             }
         #         ]
         #     }
@@ -871,7 +871,7 @@ class coinbaseexchange(ccxt.async_support.coinbaseexchange):
         #     {
         #         "type": "error",
         #         "message": "error message",
-        #         /* ..."""
+        #         /* ... */
         #     }
         #
         # auth error

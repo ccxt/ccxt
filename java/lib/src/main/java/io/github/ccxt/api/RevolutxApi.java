@@ -7,6 +7,7 @@
 
 package io.github.ccxt.api;
 import io.github.ccxt.Exchange;
+import java.util.concurrent.CompletableFuture;
 
 public class RevolutxApi extends Exchange
 {
@@ -25,7 +26,7 @@ public class RevolutxApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object or a JSON array, so this endpoint keeps Object
      */
-    public java.util.concurrent.CompletableFuture<Object>  publicGet20PublicOrderBookSymbol (Object... optionalArgs)
+    public CompletableFuture<Object>  publicGet20PublicOrderBookSymbol (Object... optionalArgs)
     {
         return this.callAsync ("publicGet20PublicOrderBookSymbol", optionalArgs);
     }
@@ -36,7 +37,7 @@ public class RevolutxApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object or a JSON array, so this endpoint keeps Object
      */
-    public java.util.concurrent.CompletableFuture<Object>  publicGet10PublicTickers (Object... optionalArgs)
+    public CompletableFuture<Object>  publicGet10PublicTickers (Object... optionalArgs)
     {
         return this.callAsync ("publicGet10PublicTickers", optionalArgs);
     }
@@ -47,7 +48,7 @@ public class RevolutxApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object or a JSON array, so this endpoint keeps Object
      */
-    public java.util.concurrent.CompletableFuture<Object>  publicGet10PublicCandlesSymbol (Object... optionalArgs)
+    public CompletableFuture<Object>  publicGet10PublicCandlesSymbol (Object... optionalArgs)
     {
         return this.callAsync ("publicGet10PublicCandlesSymbol", optionalArgs);
     }
@@ -58,7 +59,7 @@ public class RevolutxApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object or a JSON array, so this endpoint keeps Object
      */
-    public java.util.concurrent.CompletableFuture<Object>  publicGet10PublicTradesAll (Object... optionalArgs)
+    public CompletableFuture<Object>  publicGet10PublicTradesAll (Object... optionalArgs)
     {
         return this.callAsync ("publicGet10PublicTradesAll", optionalArgs);
     }
@@ -69,7 +70,7 @@ public class RevolutxApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object or a JSON array, so this endpoint keeps Object
      */
-    public java.util.concurrent.CompletableFuture<Object>  publicGet10PublicConfigurationCurrencies (Object... optionalArgs)
+    public CompletableFuture<Object>  publicGet10PublicConfigurationCurrencies (Object... optionalArgs)
     {
         return this.callAsync ("publicGet10PublicConfigurationCurrencies", optionalArgs);
     }
@@ -80,7 +81,7 @@ public class RevolutxApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object or a JSON array, so this endpoint keeps Object
      */
-    public java.util.concurrent.CompletableFuture<Object>  publicGet10PublicConfigurationPairs (Object... optionalArgs)
+    public CompletableFuture<Object>  publicGet10PublicConfigurationPairs (Object... optionalArgs)
     {
         return this.callAsync ("publicGet10PublicConfigurationPairs", optionalArgs);
     }
@@ -91,7 +92,7 @@ public class RevolutxApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object or a JSON array, so this endpoint keeps Object
      */
-    public java.util.concurrent.CompletableFuture<Object>  privateGet10Balances (Object... optionalArgs)
+    public CompletableFuture<Object>  privateGet10Balances (Object... optionalArgs)
     {
         return this.callAsync ("privateGet10Balances", optionalArgs);
     }
@@ -102,7 +103,7 @@ public class RevolutxApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object or a JSON array, so this endpoint keeps Object
      */
-    public java.util.concurrent.CompletableFuture<Object>  privateGet10OrdersActive (Object... optionalArgs)
+    public CompletableFuture<Object>  privateGet10OrdersActive (Object... optionalArgs)
     {
         return this.callAsync ("privateGet10OrdersActive", optionalArgs);
     }
@@ -113,7 +114,7 @@ public class RevolutxApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object or a JSON array, so this endpoint keeps Object
      */
-    public java.util.concurrent.CompletableFuture<Object>  privateGet10OrdersHistorical (Object... optionalArgs)
+    public CompletableFuture<Object>  privateGet10OrdersHistorical (Object... optionalArgs)
     {
         return this.callAsync ("privateGet10OrdersHistorical", optionalArgs);
     }
@@ -124,7 +125,7 @@ public class RevolutxApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object or a JSON array, so this endpoint keeps Object
      */
-    public java.util.concurrent.CompletableFuture<Object>  privateGet10OrdersVenueOrderId (Object... optionalArgs)
+    public CompletableFuture<Object>  privateGet10OrdersVenueOrderId (Object... optionalArgs)
     {
         return this.callAsync ("privateGet10OrdersVenueOrderId", optionalArgs);
     }
@@ -135,7 +136,7 @@ public class RevolutxApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object or a JSON array, so this endpoint keeps Object
      */
-    public java.util.concurrent.CompletableFuture<Object>  privateGet10OrdersFillsVenueOrderId (Object... optionalArgs)
+    public CompletableFuture<Object>  privateGet10OrdersFillsVenueOrderId (Object... optionalArgs)
     {
         return this.callAsync ("privateGet10OrdersFillsVenueOrderId", optionalArgs);
     }
@@ -146,7 +147,7 @@ public class RevolutxApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object or a JSON array, so this endpoint keeps Object
      */
-    public java.util.concurrent.CompletableFuture<Object>  privateGet10TradesPrivateSymbol (Object... optionalArgs)
+    public CompletableFuture<Object>  privateGet10TradesPrivateSymbol (Object... optionalArgs)
     {
         return this.callAsync ("privateGet10TradesPrivateSymbol", optionalArgs);
     }
@@ -157,7 +158,7 @@ public class RevolutxApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object or a JSON array, so this endpoint keeps Object
      */
-    public java.util.concurrent.CompletableFuture<Object>  privateGet10Transactions (Object... optionalArgs)
+    public CompletableFuture<Object>  privateGet10Transactions (Object... optionalArgs)
     {
         return this.callAsync ("privateGet10Transactions", optionalArgs);
     }
@@ -168,7 +169,7 @@ public class RevolutxApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object or a JSON array, so this endpoint keeps Object
      */
-    public java.util.concurrent.CompletableFuture<Object>  privatePost10Orders (Object... optionalArgs)
+    public CompletableFuture<Object>  privatePost10Orders (Object... optionalArgs)
     {
         return this.callAsync ("privatePost10Orders", optionalArgs);
     }
@@ -179,7 +180,7 @@ public class RevolutxApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object or a JSON array, so this endpoint keeps Object
      */
-    public java.util.concurrent.CompletableFuture<Object>  privatePut10OrdersVenueOrderId (Object... optionalArgs)
+    public CompletableFuture<Object>  privatePut10OrdersVenueOrderId (Object... optionalArgs)
     {
         return this.callAsync ("privatePut10OrdersVenueOrderId", optionalArgs);
     }
@@ -190,7 +191,7 @@ public class RevolutxApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object or a JSON array, so this endpoint keeps Object
      */
-    public java.util.concurrent.CompletableFuture<Object>  privateDelete10Orders (Object... optionalArgs)
+    public CompletableFuture<Object>  privateDelete10Orders (Object... optionalArgs)
     {
         return this.callAsync ("privateDelete10Orders", optionalArgs);
     }
@@ -201,7 +202,7 @@ public class RevolutxApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object or a JSON array, so this endpoint keeps Object
      */
-    public java.util.concurrent.CompletableFuture<Object>  privateDelete10OrdersVenueOrderId (Object... optionalArgs)
+    public CompletableFuture<Object>  privateDelete10OrdersVenueOrderId (Object... optionalArgs)
     {
         return this.callAsync ("privateDelete10OrdersVenueOrderId", optionalArgs);
     }

@@ -8,6 +8,55 @@
     },
     "isSandboxModeEnabled": true,
     "methods": {
+        "createSubAccount": [
+            {
+                "description": "create a subaccount with an agent wallet header",
+                "method": "createSubAccount",
+                "input": [
+                    "ccxtsub5",
+                    {
+                        "subAccountAddress": "AUCaxhvyYhnYH7RqBz2g19riU4HEhvETzauGsL6DxUQS",
+                        "subAccountPrivateKey": "2HwJG4ffT7dRyRXbutkPjxjciXHLadsS9r569H8ZQZzFsh9YdGWgz8JXF1xBjM1C6SFGjBkSYmCpNfoocD7YbFEy",
+                        "agentAddress": "8g1g9FMKw7HfAMiD8L3p28RKfv7LQJzAf56A4ftSxMt9"
+                    }
+                ],
+                "httpResponse": {
+                    "success": true,
+                    "data": null,
+                    "error": null,
+                    "code": null
+                },
+                "parsedResponse": {
+                    "success": true,
+                    "data": null,
+                    "error": null,
+                    "code": null
+                }
+            },
+            {
+                "description": "create a subaccount",
+                "method": "createSubAccount",
+                "input": [
+                    "ccxtsub2",
+                    {
+                        "subAccountAddress": "AubBvFpKrUiVnXpRq7wZYSUnrx4K5yBYepdmZm75iySQ",
+                        "subAccountPrivateKey": "65qLgAgXZ4Vu7PyzLHHiPy77w2ca6ryWZvzS1nNqSK5YWWj3Ekuq74cEFjEh2UHNLd8drM33WK3Vuc2QvpuAkQhN"
+                    }
+                ],
+                "httpResponse": {
+                    "success": true,
+                    "data": null,
+                    "error": null,
+                    "code": null
+                },
+                "parsedResponse": {
+                    "success": true,
+                    "data": null,
+                    "error": null,
+                    "code": null
+                }
+            }
+        ],
         "transfer": [
             {
                 "description": "transfer between own accounts",

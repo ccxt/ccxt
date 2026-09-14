@@ -32,7 +32,7 @@ class binance(PredictionExchange, ImplicitAPI):
             'id': 'binance',
             'name': 'Binance',
             'countries': [],
-            # all prediction endpoints weigh 200 against the 12000/min SAPI IP budget(5 ms per weight unit)
+            # all prediction endpoints weigh 200 against the 12000/min SAPI IP budget (5 ms per weight unit)
             'rateLimit': 5,
             'version': 'v1',
             'certified': False,
@@ -138,7 +138,7 @@ class binance(PredictionExchange, ImplicitAPI):
                 'marketsPageLimit': 100,       # market/list page size
                 'maxFetchMarketsLimit': 200,   # cap on topics collected by an unscoped fetchMarkets
                 'loadAllOutcomes': False,
-                # the market listing is bounded(maxFetchEventsResults), so an unscoped
+                # the market listing is bounded (maxFetchEventsResults), so an unscoped
                 # fetchEvents pages a capped listing instead of requiring a search scope
                 'allowUnscopedFetchEvents': True,
                 # venue-specific fetchEvents scope params accepted by requireEventQuery in
@@ -253,7 +253,7 @@ class binance(PredictionExchange, ImplicitAPI):
             #         "total": 128,
             #         "offset": 0,
             #         "limit": 20,
-            #         "hasMore": True
+            #         "hasMore": true
             #     }
             #
             pageTopics = self.safe_list(response, 'marketTopics', [])
@@ -483,7 +483,7 @@ class binance(PredictionExchange, ImplicitAPI):
         #         "topicType": "FLAT",
         #         "chartType": "CRYPTO_UP_DOWN",
         #         "symbol": "BTCUSDT",
-        #         "variantData": {"type": "CRYPTO_UP_DOWN", "startPrice": "67890.12", "endPrice": null},
+        #         "variantData": { "type": "CRYPTO_UP_DOWN", "startPrice": "67890.12", "endPrice": null },
         #         "participantCount": 3420,
         #         "collateral": "USDT",
         #         "feeRateBps": 200,
@@ -494,8 +494,8 @@ class binance(PredictionExchange, ImplicitAPI):
         #         "startDate": 1748131200000,
         #         "endDate": 1748134800000,
         #         "status": "REGISTERED",
-        #         "timeline": [...],
-        #         "markets": [{"marketId": 5567895, "title": "UP", "outcomes": [...]}]
+        #         "timeline": [ ... ],
+        #         "markets": [ { "marketId": 5567895, "title": "UP", "outcomes": [ ... ] } ]
         #     }
         #
         rawMarkets = self.safe_list(rawTopic, 'markets', [])
@@ -562,7 +562,7 @@ class binance(PredictionExchange, ImplicitAPI):
         #         "liquidity": "25000.00",
         #         "decimalPrecision": 2,
         #         "outcomes": [
-        #             {"name": "YES", "price": "0.52", "chance": "0.52", "index": 0, "tokenId": "112233"}
+        #             { "name": "YES", "price": "0.52", "chance": "0.52", "index": 0, "tokenId": "112233" }
         #         ]
         #     }
         #
@@ -711,7 +711,7 @@ class binance(PredictionExchange, ImplicitAPI):
         }
         response = await self.sapiPrivateGetOrderBookLastTradePrice(self.extend(request, params))
         #
-        #     {"marketId": 5567895, "lastTradePrice": "0.52"}
+        #     { "marketId": 5567895, "lastTradePrice": "0.52" }
         #
         return self.parse_prediction_ticker(response, outcomeObj)
 
@@ -724,11 +724,11 @@ class binance(PredictionExchange, ImplicitAPI):
         :returns dict: a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
         """
         #
-        #     {"marketId": 5567895, "lastTradePrice": "0.52"}
+        #     { "marketId": 5567895, "lastTradePrice": "0.52" }
         #
         marketAny = market
         outcomeObj = self.safe_outcome(self.safe_string(marketAny, 'outcome'), marketAny)
-        # the venue quotes the market's primary token(outcome index 0, e.g. YES or UP),
+        # the venue quotes the market's primary token (outcome index 0, e.g. YES or UP),
         # any other outcome of a binary market mirrors as 1 - price
         outcomeInfo = self.safe_dict(outcomeObj, 'info', {})
         outcomeIndex = self.safe_string(outcomeInfo, 'index')
@@ -831,8 +831,8 @@ class binance(PredictionExchange, ImplicitAPI):
         #         "outcome": "YES",
         #         "tokenId": "112233",
         #         "timestamp": 1748131800000,
-        #         "bids": [{"price": "0.51", "size": "5000.00"}],
-        #         "asks": [{"price": "0.52", "size": "3000.00"}]
+        #         "bids": [ { "price": "0.51", "size": "5000.00" } ],
+        #         "asks": [ { "price": "0.52", "size": "3000.00" } ]
         #     }
         #
         timestamp = self.safe_integer(response, 'timestamp')
@@ -858,7 +858,7 @@ class binance(PredictionExchange, ImplicitAPI):
         #         {
         #             "accountType": "SPOT",
         #             "availableBalanceDisplay": "1000.00",
-        #             "enabled": True
+        #             "enabled": true
         #         }
         #     ]
         # }
@@ -1188,7 +1188,7 @@ class binance(PredictionExchange, ImplicitAPI):
         #             "currentPrice": "0.55",
         #             "toWin": "1923.07",
         #             "positionStatus": "OPEN",
-        #             "canClaim": False,
+        #             "canClaim": false,
         #             "endDate": 1748134800000,
         #             "unrealizedPnl": "0.06",
         #             "unrealizedPnlPercent": "6.00",
@@ -1522,7 +1522,7 @@ class binance(PredictionExchange, ImplicitAPI):
         #     "side": "BUY",
         #     "amountIn": "1000000000000000000",
         #     "amountOut": "1923070000000000000",
-        #     "isMinAmountOut": False,
+        #     "isMinAmountOut": false,
         #     "feeAmount": "20000000000000000",
         #     "feeDiscountBps": "0",
         #     "averagePrice": 0.52,
@@ -1582,7 +1582,7 @@ class binance(PredictionExchange, ImplicitAPI):
         """
         await self.load_outcome(outcome)
         outcomeObj = self.outcome(outcome)
-        # markets are keyed by the parent market outcome; the outcome handle("MARKET:LABEL")
+        # markets are keyed by the parent market outcome; the outcome handle ("MARKET:LABEL")
         # is not a market id, so resolve the market and price/amount precision via outcomeObj['market']
         marketSymbol = self.safe_string(outcomeObj, 'market')
         market = self.market(marketSymbol)

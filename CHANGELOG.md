@@ -18,7 +18,7 @@
 <a id="ccxt-mcp-v0.1.3"></a>
 # [ccxt-mcp v0.1.3 (ccxt-mcp-v0.1.3)](https://github.com/ccxt/ccxt/releases/tag/ccxt-mcp-v0.1.3) - 2026-09-07
 
-Download **ccxt-mcp.mcpb** below and open it in Claude Desktop (Settings > Extensions) for a one-click install. Any other MCP host (Claude Code, Cursor, VS Code, Windsurf): `claude mcp add ccxt -- npx -y ccxt-mcp`. Docs: https://docs.ccxt.com/#/mcp
+Download **ccxt-mcp.mcpb** below and open it in Claude Desktop (Settings > Extensions) for a one-click install. Any other MCP host (Claude Code, Cursor, VS Code, Windsurf): `claude mcp add ccxt -- npx -y ccxt-mcp`. Docs: https://docs.ccxt.com/docs/mcp
 
 [Changes][ccxt-mcp-v0.1.3]
 
@@ -26,7 +26,7 @@ Download **ccxt-mcp.mcpb** below and open it in Claude Desktop (Settings > Exten
 <a id="ccxt-mcp-v0.1.2"></a>
 # [ccxt-mcp v0.1.2 (ccxt-mcp-v0.1.2)](https://github.com/ccxt/ccxt/releases/tag/ccxt-mcp-v0.1.2) - 2026-09-03
 
-Download **ccxt-mcp.mcpb** below and open it in Claude Desktop (Settings > Extensions) for a one-click install. Any other MCP host (Claude Code, Cursor, VS Code, Windsurf): `claude mcp add ccxt -- npx -y ccxt-mcp`. Docs: https://docs.ccxt.com/#/mcp
+Download **ccxt-mcp.mcpb** below and open it in Claude Desktop (Settings > Extensions) for a one-click install. Any other MCP host (Claude Code, Cursor, VS Code, Windsurf): `claude mcp add ccxt -- npx -y ccxt-mcp`. Docs: https://docs.ccxt.com/docs/mcp
 
 [Changes][ccxt-mcp-v0.1.2]
 
@@ -34,7 +34,7 @@ Download **ccxt-mcp.mcpb** below and open it in Claude Desktop (Settings > Exten
 <a id="ccxt-mcp-latest"></a>
 # [CCXT MCP - latest (v0.1.3) (ccxt-mcp-latest)](https://github.com/ccxt/ccxt/releases/tag/ccxt-mcp-latest) - 2026-09-03
 
-Download **ccxt-mcp.mcpb** below and open it in Claude Desktop (Settings > Extensions) for a one-click install. Any other MCP host (Claude Code, Cursor, VS Code, Windsurf): `claude mcp add ccxt -- npx -y ccxt-mcp`. Docs: https://docs.ccxt.com/#/mcp
+Download **ccxt-mcp.mcpb** below and open it in Claude Desktop (Settings > Extensions) for a one-click install. Any other MCP host (Claude Code, Cursor, VS Code, Windsurf): `claude mcp add ccxt -- npx -y ccxt-mcp`. Docs: https://docs.ccxt.com/docs/mcp
 
 [Changes][ccxt-mcp-latest]
 

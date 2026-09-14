@@ -118,7 +118,7 @@ class poloniex(ccxt.async_support.poloniex):
             #
             #    {
             #        "data": {
-            #            "success": True,
+            #            "success": true,
             #            "ts": 1645597033915
             #        },
             #        "channel": "auth"
@@ -128,7 +128,7 @@ class poloniex(ccxt.async_support.poloniex):
             #
             #    {
             #        "data": {
-            #            "success": False,
+            #            "success": false,
             #            "message": "Authentication failed!",
             #            "ts": 1646276295075
             #        },
@@ -818,7 +818,7 @@ class poloniex(ccxt.async_support.poloniex):
                     trade = self.parse_ws_trade(order)
                     self.handle_my_trades(client, trade)
                     if previousOrder is None:
-                        # fill event for an order missing from the cache(e.g. placed before subscribing or after a reconnect) - parse as a fresh order instead of aggregating
+                        # fill event for an order missing from the cache (e.g. placed before subscribing or after a reconnect) - parse as a fresh order instead of aggregating
                         parsedOrder = self.parse_ws_order(order)
                         orders.append(parsedOrder)
                         marketIds.append(marketId)
@@ -1252,7 +1252,7 @@ class poloniex(ccxt.async_support.poloniex):
     def handle_authenticate(self, client: Client, message: object):
         #
         #    {
-        #        "success": True,
+        #        "success": true,
         #        "ret_msg": '',
         #        "op": "auth",
         #        "conn_id": "ce3dpomvha7dha97tvp0-2xh"
