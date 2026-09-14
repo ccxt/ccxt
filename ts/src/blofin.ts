@@ -1932,10 +1932,12 @@ export default class blofin extends Exchange {
         if (tag !== undefined) {
             request['tag'] = tag;
         }
+        // consume the unified network key unconditionally so it never leaks
+        // onto the wire; an explicit raw params['chain'] takes precedence
+        let networkCode: Str = undefined;
+        [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
         const chain = this.safeString (params, 'chain');
         if (chain === undefined) {
-            let networkCode: Str = undefined;
-            [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
             if (networkCode !== undefined) {
                 request['chain'] = this.networkCodeToId (networkCode);
             } else if (dest === 'onchain') {
@@ -1955,7 +1957,11 @@ export default class blofin extends Exchange {
         //     }
         //
         const data = this.safeDict (response, 'data', {});
-        return this.parseTransaction (data, currency);
+        // the response carries only withdrawId + clientId, and this class's
+        // parseTransaction reads every field from the payload - seed the
+        // parsed structure from the request so the unified transaction
+        // reflects what was actually submitted
+        return this.parseTransaction (this.extend (request, data), currency);
     }
 
     /**
