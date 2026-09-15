@@ -478,8 +478,7 @@ export default class bitstamp extends bitstampRest {
         symbol = market['symbol'];
         await this.authenticate ();
         const channel = 'private-my_orders_' + market['id'] + '-' + this.options['userId'];
-        const emptyList: string[] = [];
-        return await this.unWatchChannel (channel, channel, 'orders', emptyList, params);
+        return await this.unWatchChannel (channel, channel, 'orders', [ symbol ], params);
     }
 
     /**
@@ -537,8 +536,7 @@ export default class bitstamp extends bitstampRest {
         symbol = market['symbol'];
         await this.authenticate ();
         const channel = 'private-my_trades_' + market['id'] + '-' + this.options['userId'];
-        const emptyList: string[] = [];
-        return await this.unWatchChannel (channel, channel, 'myTrades', emptyList, params);
+        return await this.unWatchChannel (channel, channel, 'myTrades', [ symbol ], params);
     }
 
     handleMyTrades (client: Client, message: any) {
@@ -561,8 +559,14 @@ export default class bitstamp extends bitstampRest {
         //
         const channel = this.safeString (message, 'channel');
         const data = this.safeDict (message, 'data', {});
-        const subscription = (channel === undefined) ? undefined : this.safeValue (client.subscriptions, channel);
+        const subscription = (channel === undefined) ? undefined : this.safeDict (client.subscriptions, channel);
         const symbol = this.safeString (subscription, 'symbol');
+        if (symbol === undefined) {
+            // cleanUnsubscription deletes the subscription, so a trade frame
+            // arriving after an unsubscribe has no subscription to resolve
+            // the symbol from - drop the message instead of throwing
+            return;
+        }
         const market = this.market (symbol);
         if (this.myTrades === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
@@ -801,13 +805,50 @@ export default class bitstamp extends bitstampRest {
             return;
         }
         const unsubHash = 'unsubscribe:' + channel;
-        const subscription = this.safeValue (client.subscriptions, unsubHash);
+        const subscription = this.safeDict (client.subscriptions, unsubHash);
         if (subscription === undefined) {
             return;
         }
         const subHash = this.safeString (subscription, 'subHash');
-        this.cleanCache (subscription);
+        const topic = this.safeString (subscription, 'topic');
+        const symbols = this.safeList (subscription, 'symbols', []);
+        // the base cleanCache only prunes trades/orderbooks per symbol and
+        // would wipe the whole orders/myTrades cache - rebuild those without
+        // the unsubscribed symbols instead, so the markets that are still
+        // subscribed keep their cached history
+        if ((topic === 'orders') && (this.orders !== undefined)) {
+            const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
+            const freshOrdersCache = new ArrayCacheBySymbolById (limit);
+            this.orders = this.pruneCachedBySymbols (freshOrdersCache, this.orders, symbols);
+        } else if ((topic === 'myTrades') && (this.myTrades !== undefined)) {
+            const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
+            const freshTradesCache = new ArrayCacheBySymbolById (limit);
+            this.myTrades = this.pruneCachedBySymbols (freshTradesCache, this.myTrades, symbols);
+        } else {
+            this.cleanCache (subscription);
+        }
         this.cleanUnsubscription (client, subHash, unsubHash);
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @description refills a fresh ArrayCacheBySymbolById with the entries of the old cache except the given symbols, so unsubscribing one market keeps the cached entries of the others
+     * @param {object} newCache an empty ArrayCacheBySymbolById to fill
+     * @param {object} cache the old ArrayCacheBySymbolById to prune
+     * @param {string[]} symbols the symbols to remove from the cache
+     * @returns {object} the new cache holding the remaining entries
+     */
+    pruneCachedBySymbols (newCache: any, cache: any, symbols: string[]) {
+        const entries = this.toArray (cache);
+        for (let i = 0; i < entries.length; i++) {
+            const entry = entries[i];
+            const entrySymbol = this.safeString (entry, 'symbol');
+            if (!this.inArray (entrySymbol, symbols)) {
+                newCache.append (entry);
+            }
+        }
+        return newCache;
     }
 
     handleSubject (client: Client, message: any) {
