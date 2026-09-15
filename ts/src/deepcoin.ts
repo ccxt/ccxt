@@ -790,10 +790,7 @@ export default class deepcoin extends Exchange {
         //         "ts": "1760367816000"
         //     }
         //
-        let timestamp = this.safeInteger (ticker, 'ts');
-        if (timestamp === 0) {
-            timestamp = undefined;
-        }
+        const timestamp = this.safeIntegerOmitZero (ticker, 'ts');
         const marketId = this.safeString (ticker, 'instId');
         market = this.safeMarket (marketId, market, '-');
         const symbol = market['symbol'];
