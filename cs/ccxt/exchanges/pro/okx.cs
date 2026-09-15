@@ -33,6 +33,17 @@ public partial class okx : ccxt.okx
                 { "watchPositions", true },
                 { "watchFundingRate", true },
                 { "watchFundingRates", true },
+                { "unWatchTicker", true },
+                { "unWatchTickers", true },
+                { "unWatchOHLCV", true },
+                { "unWatchOHLCVForSymbols", true },
+                { "unWatchOrderBook", true },
+                { "unWatchOrderBookForSymbols", true },
+                { "unWatchTrades", true },
+                { "unWatchTradesForSymbols", true },
+                { "unWatchMyTrades", false },
+                { "unWatchOrders", false },
+                { "unWatchPositions", false },
                 { "createOrderWs", true },
                 { "editOrderWs", true },
                 { "cancelOrderWs", true },
@@ -57,6 +68,9 @@ public partial class okx : ccxt.okx
                 } },
                 { "watchTickers", new Dictionary<string, object>() {
                     { "channel", "tickers" },
+                } },
+                { "watchBidsAsks", new Dictionary<string, object>() {
+                    { "channel", "bbo-tbt" },
                 } },
                 { "watchOrders", new Dictionary<string, object>() {
                     { "type", "ANY" },
@@ -698,10 +712,12 @@ public partial class okx : ccxt.okx
     /**
      * @method
      * @name okx#watchBidsAsks
+     * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-order-book-channel
      * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-tickers-channel
      * @description watches best bid & ask for symbols
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.channel] the channel to subscribe to, 'bbo-tbt' (default, 10ms L1) or 'tickers' (100ms)
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<ccxt.Tickers> WatchBidsAsks(object symbols = null, object parameters = null)
@@ -713,7 +729,7 @@ public partial class okx : ccxt.okx
         }
         symbols = this.marketSymbols(symbols, null, false);
         object channel = null;
-        IList<object> channelparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "watchBidsAsks", "channel", "tickers");
+        IList<object> channelparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "watchBidsAsks", "channel", "bbo-tbt");
         channel = ((IList<object>)channelparametersVariable)[0];
         parameters = ((IList<object>)channelparametersVariable)[1];
         object url = this.getUrl(channel, "public");
@@ -746,6 +762,8 @@ public partial class okx : ccxt.okx
     public virtual void handleBidAsk(WebSocketClient client, object message)
     {
         //
+        // tickers
+        //
         //     {
         //         "arg": { channel: "tickers", instId: "BTC-USDT" },
         //         "data": [
@@ -770,9 +788,25 @@ public partial class okx : ccxt.okx
         //         ]
         //     }
         //
+        // bbo-tbt
+        //
+        //     {
+        //         "arg": { "channel": "bbo-tbt", "instId": "BTC-USDT" },
+        //         "data": [
+        //             {
+        //                 "asks": [ [ "36232.2", "1.8826134", "0", "17" ] ],
+        //                 "bids": [ [ "36232.1", "0.00572212", "0", "2" ] ],
+        //                 "ts": "1651826598363"
+        //             }
+        //         ]
+        //     }
+        //
+        IDictionary<string, object> arg = this.safeDict(message, "arg", new Dictionary<string, object>() {});
+        string? marketId = this.safeString(arg, "instId");
+        Dictionary<string, object> market = this.safeMarket(marketId);
         List<object> data = this.safeList(message, "data", new List<object>() {});
         IDictionary<string, object> ticker = this.safeDict(data, 0, new Dictionary<string, object>() {});
-        object parsedTicker = this.parseWsBidAsk(ticker);
+        object parsedTicker = this.parseWsBidAsk(ticker, market);
         object symbol = getValue(parsedTicker, "symbol");
         if (isTrue(!isEqual(symbol, null)))
         {
@@ -788,14 +822,32 @@ public partial class okx : ccxt.okx
         market = this.safeMarket(marketId, market);
         string? symbol = this.safeString(market, "symbol");
         Int64? timestamp = this.safeInteger(ticker, "ts");
+        string? ask = this.safeString(ticker, "askPx");
+        string? askVolume = this.safeString(ticker, "askSz");
+        string? bid = this.safeString(ticker, "bidPx");
+        string? bidVolume = this.safeString(ticker, "bidSz");
+        if (isTrue(isEqual(ask, null)))
+        {
+            List<object> asks = this.safeList(ticker, "asks", new List<object>() {});
+            List<object> firstAsk = this.safeList(asks, 0, new List<object>() {});
+            ask = this.safeString(firstAsk, 0);
+            askVolume = this.safeString(firstAsk, 1);
+        }
+        if (isTrue(isEqual(bid, null)))
+        {
+            List<object> bids = this.safeList(ticker, "bids", new List<object>() {});
+            List<object> firstBid = this.safeList(bids, 0, new List<object>() {});
+            bid = this.safeString(firstBid, 0);
+            bidVolume = this.safeString(firstBid, 1);
+        }
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", symbol },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "ask", this.safeString(ticker, "askPx") },
-            { "askVolume", this.safeString(ticker, "askSz") },
-            { "bid", this.safeString(ticker, "bidPx") },
-            { "bidVolume", this.safeString(ticker, "bidSz") },
+            { "ask", ask },
+            { "askVolume", askVolume },
+            { "bid", bid },
+            { "bidVolume", bidVolume },
             { "info", ticker },
         }, market);
     }
@@ -1703,19 +1755,29 @@ public partial class okx : ccxt.okx
             }
         } else if (isTrue(isTrue((isEqual(channel, "books5"))) || isTrue((isEqual(channel, "bbo-tbt")))))
         {
-            if (!isTrue((inOp(this.orderbooks, symbol))))
+            // watchBidsAsks reuses bbo-tbt with bidask:: hashes; only reset the
+            // shared order-book cache when watchOrderBook subscribed to this
+            // channel+symbol (e.g. 'bbo-tbt:BTC/USDT' in ((WebSocketClient)client).subscriptions)
+            if (isTrue(inOp(((WebSocketClient)client).subscriptions, messageHash)))
             {
-                ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {}, limit);
+                if (!isTrue((inOp(this.orderbooks, symbol))))
+                {
+                    ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {}, limit);
+                }
+                ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, symbol);
+                for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+                {
+                    object update = getValue(data, i);
+                    Int64? timestamp = this.safeInteger(update, "ts");
+                    object snapshot = this.parseOrderBook(update, symbol, timestamp, "bids", "asks", 0, 1);
+                    (orderbook as IOrderBook).reset(snapshot);
+                    callDynamically(client as WebSocketClient, "resolve", new object[] {orderbook, messageHash});
+                }
             }
-            ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, symbol);
-            for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
-            {
-                object update = getValue(data, i);
-                Int64? timestamp = this.safeInteger(update, "ts");
-                object snapshot = this.parseOrderBook(update, symbol, timestamp, "bids", "asks", 0, 1);
-                (orderbook as IOrderBook).reset(snapshot);
-                callDynamically(client as WebSocketClient, "resolve", new object[] {orderbook, messageHash});
-            }
+        }
+        if (isTrue(isEqual(channel, "bbo-tbt")))
+        {
+            this.handleBidAsk(client as WebSocketClient, message);
         }
         return message;
     }

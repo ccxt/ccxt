@@ -411,8 +411,8 @@ class cryptomus(Exchange, ImplicitAPI):
         #             {
         #                 'currency_code': 'USDC',
         #                 'network_code': 'bsc',
-        #                 'can_withdraw': True,
-        #                 'can_deposit': True,
+        #                 'can_withdraw': true,
+        #                 'can_deposit': true,
         #                 'min_withdraw': '1.00000000',
         #                 'max_withdraw': '10000000.00000000',
         #                 'max_deposit': '10000000.00000000',
@@ -780,7 +780,7 @@ class cryptomus(Exchange, ImplicitAPI):
         response = self.privateDeleteV2UserApiExchangeOrdersOrderId(self.extend(request, params))
         #
         #     {
-        #         "success": True
+        #         "success": true
         #     }
         #
         return self.safe_order({'info': response})

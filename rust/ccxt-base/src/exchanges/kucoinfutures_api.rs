@@ -1637,6 +1637,11 @@ impl KucoinfuturesCore {
         self.call_method(Value::Str("uta_get_market_fiat_price".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `utaV2GetMarketFundingRate` implicit endpoint.
+    pub async fn uta_v2_get_market_funding_rate(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("uta_v2_get_market_funding_rate".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `utaPrivateGetMarketOrderbook` implicit endpoint.
     pub async fn uta_private_get_market_orderbook(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("uta_private_get_market_orderbook".to_string()), optional_args).await

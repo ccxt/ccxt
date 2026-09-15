@@ -89,7 +89,7 @@ class woofipro extends \ccxt\async\woofipro {
     }
 
     private function do_watch_public(mixed $messageHash, mixed $message) {
-        // the default $id
+        // the default id
         $id = 'OqdphuyCtYWxwzhxyLLjOWNdFP7sQt8RPWzmb5xY';
         if ($this->accountId !== null && $this->accountId !== '') {
             $id = $this->accountId;
@@ -136,22 +136,22 @@ class woofipro extends \ccxt\async\woofipro {
     public function handle_order_book(Client $client, mixed $message) {
         //
         //     {
-        //         "topic" => "PERP_BTC_USDC@$orderbook",
-        //         "ts" => 1650121915308,
-        //         "data" => {
-        //             "symbol" => "PERP_BTC_USDC",
-        //             "bids" => array(
-        //                 array(
+        //         "topic": "PERP_BTC_USDC@orderbook",
+        //         "ts": 1650121915308,
+        //         "data": {
+        //             "symbol": "PERP_BTC_USDC",
+        //             "bids": [
+        //                 [
         //                     0.30891,
         //                     2469.98
-        //                 )
-        //             ),
-        //             "asks" => array(
-        //                 array(
+        //                 ]
+        //             ],
+        //             "asks": [
+        //                 [
         //                     0.31075,
         //                     2379.63
-        //                 )
-        //             )
+        //                 ]
+        //             ]
         //         }
         //     }
         //
@@ -202,14 +202,14 @@ class woofipro extends \ccxt\async\woofipro {
     public function parse_ws_ticker(array $ticker, ?array $market = null) {
         //
         //     {
-        //         "symbol" => "PERP_BTC_USDC",
-        //         "open" => 19441.5,
-        //         "close" => 20147.07,
-        //         "high" => 20761.87,
-        //         "low" => 19320.54,
-        //         "volume" => 2481.103,
-        //         "amount" => 50037935.0286,
-        //         "count" => 3689
+        //         "symbol": "PERP_BTC_USDC",
+        //         "open": 19441.5,
+        //         "close": 20147.07,
+        //         "high": 20761.87,
+        //         "low": 19320.54,
+        //         "volume": 2481.103,
+        //         "amount": 50037935.0286,
+        //         "count": 3689
         //     }
         //
         return $this->safe_ticker(array(
@@ -239,17 +239,17 @@ class woofipro extends \ccxt\async\woofipro {
     public function handle_ticker(Client $client, mixed $message) {
         //
         //     {
-        //         "topic" => "PERP_BTC_USDC@$ticker",
-        //         "ts" => 1657120017000,
-        //         "data" => {
-        //             "symbol" => "PERP_BTC_USDC",
-        //             "open" => 19441.5,
-        //             "close" => 20147.07,
-        //             "high" => 20761.87,
-        //             "low" => 19320.54,
-        //             "volume" => 2481.103,
-        //             "amount" => 50037935.0286,
-        //             "count" => 3689
+        //         "topic": "PERP_BTC_USDC@ticker",
+        //         "ts": 1657120017000,
+        //         "data": {
+        //             "symbol": "PERP_BTC_USDC",
+        //             "open": 19441.5,
+        //             "close": 20147.07,
+        //             "high": 20761.87,
+        //             "low": 19320.54,
+        //             "volume": 2481.103,
+        //             "amount": 50037935.0286,
+        //             "count": 3689
         //         }
         //     }
         //
@@ -300,8 +300,8 @@ class woofipro extends \ccxt\async\woofipro {
         //     {
         //         "topic":"tickers",
         //         "ts":1618820615000,
-        //         "data":array(
-        //             array(
+        //         "data":[
+        //             {
         //                 "symbol":"PERP_NEAR_USDC",
         //                 "open":16.297,
         //                 "close":17.183,
@@ -310,9 +310,9 @@ class woofipro extends \ccxt\async\woofipro {
         //                 "volume":0,
         //                 "amount":0,
         //                 "count":0
-        //             ),
+        //             },
         //         ...
-        //         )
+        //         ]
         //     }
         //
         $topic = $this->safe_string($message, 'topic');
@@ -361,17 +361,17 @@ class woofipro extends \ccxt\async\woofipro {
     public function handle_bid_ask(Client $client, mixed $message) {
         //
         //     {
-        //       "topic" => "bbos",
-        //       "ts" => 1726212495000,
-        //       "data" => array(
+        //       "topic": "bbos",
+        //       "ts": 1726212495000,
+        //       "data": [
         //         {
-        //           "symbol" => "PERP_WOO_USDC",
-        //           "ask" => 0.16570,
-        //           "askSize" => 4224,
-        //           "bid" => 0.16553,
-        //           "bidSize" => 6645
+        //           "symbol": "PERP_WOO_USDC",
+        //           "ask": 0.16570,
+        //           "askSize": 4224,
+        //           "bid": 0.16553,
+        //           "bidSize": 6645
         //         }
-        //       )
+        //       ]
         //     }
         //
         $topic = $this->safe_string($message, 'topic');
@@ -528,7 +528,7 @@ class woofipro extends \ccxt\async\woofipro {
     public function handle_trade(Client $client, mixed $message) {
         //
         // {
-        //     "topic":"PERP_ADA_USDC@$trade",
+        //     "topic":"PERP_ADA_USDC@trade",
         //     "ts":1618820361552,
         //     "data":{
         //         "symbol":"PERP_ADA_USDC",
@@ -567,30 +567,30 @@ class woofipro extends \ccxt\async\woofipro {
         //     }
         // private stream
         //     {
-        //         $symbol => 'PERP_XRP_USDC',
-        //         clientOrderId => '',
-        //         orderId => 1167632251,
-        //         type => 'MARKET',
-        //         $side => 'BUY',
-        //         quantity => 20,
-        //         $price => 0,
-        //         tradeId => '1715179456664012',
-        //         executedPrice => 0.5276,
-        //         executedQuantity => 20,
-        //         $fee => 0.006332,
-        //         feeAsset => 'USDC',
-        //         totalExecutedQuantity => 20,
-        //         avgPrice => 0.5276,
-        //         averageExecutedPrice => 0.5276,
-        //         status => 'FILLED',
-        //         reason => '',
-        //         totalFee => 0.006332,
-        //         visible => 0,
-        //         visibleQuantity => 0,
-        //         $timestamp => 1715179456660,
-        //         orderTag => 'CCXT',
-        //         createdTime => 1715179456656,
-        //         $maker => false
+        //         symbol: 'PERP_XRP_USDC',
+        //         clientOrderId: '',
+        //         orderId: 1167632251,
+        //         type: 'MARKET',
+        //         side: 'BUY',
+        //         quantity: 20,
+        //         price: 0,
+        //         tradeId: '1715179456664012',
+        //         executedPrice: 0.5276,
+        //         executedQuantity: 20,
+        //         fee: 0.006332,
+        //         feeAsset: 'USDC',
+        //         totalExecutedQuantity: 20,
+        //         avgPrice: 0.5276,
+        //         averageExecutedPrice: 0.5276,
+        //         status: 'FILLED',
+        //         reason: '',
+        //         totalFee: 0.006332,
+        //         visible: 0,
+        //         visibleQuantity: 0,
+        //         timestamp: 1715179456660,
+        //         orderTag: 'CCXT',
+        //         createdTime: 1715179456656,
+        //         maker: false
         //     }
         //
         $marketId = $this->safe_string($trade, 'symbol');
@@ -634,15 +634,15 @@ class woofipro extends \ccxt\async\woofipro {
     public function handle_auth(Client $client, mixed $message) {
         //
         //     {
-        //         "event" => "auth",
-        //         "success" => true,
-        //         "ts" => 1657463158812
+        //         "event": "auth",
+        //         "success": true,
+        //         "ts": 1657463158812
         //     }
         //
         $messageHash = 'authenticated';
         $success = $this->safe_value($message, 'success');
         if ($success === true) {
-            // $client->resolve($message, $messageHash);
+            // client.resolve (message, messageHash);
             $future = $this->safe_value($client->futures, 'authenticated');
             $future->resolve(true);
         } else {
@@ -807,36 +807,36 @@ class woofipro extends \ccxt\async\woofipro {
     public function parse_ws_order(mixed $order, ?array $market = null) {
         //
         //     {
-        //         "symbol" => "PERP_BTC_USDT",
-        //         "clientOrderId" => 0,
-        //         "orderId" => 52952826,
-        //         "type" => "LIMIT",
-        //         "side" => "SELL",
-        //         "quantity" => 0.01,
-        //         "price" => 22000,
-        //         "tradeId" => 0,
-        //         "executedPrice" => 0,
-        //         "executedQuantity" => 0,
-        //         "fee" => 0,
-        //         "feeAsset" => "USDT",
-        //         "totalExecutedQuantity" => 0,
-        //         "status" => "NEW",
-        //         "reason" => '',
-        //         "orderTag" => "default",
-        //         "totalFee" => 0,
-        //         "visible" => 0.01,
-        //         "timestamp" => 1657515556798,
-        //         "reduceOnly" => false,
-        //         "maker" => false
+        //         "symbol": "PERP_BTC_USDT",
+        //         "clientOrderId": 0,
+        //         "orderId": 52952826,
+        //         "type": "LIMIT",
+        //         "side": "SELL",
+        //         "quantity": 0.01,
+        //         "price": 22000,
+        //         "tradeId": 0,
+        //         "executedPrice": 0,
+        //         "executedQuantity": 0,
+        //         "fee": 0,
+        //         "feeAsset": "USDT",
+        //         "totalExecutedQuantity": 0,
+        //         "status": "NEW",
+        //         "reason": '',
+        //         "orderTag": "default",
+        //         "totalFee": 0,
+        //         "visible": 0.01,
+        //         "timestamp": 1657515556798,
+        //         "reduceOnly": false,
+        //         "maker": false
         //     }
-        // algo $order
+        // algo order
         //     {
         //         "symbol":"PERP_MATIC_USDC",
         //         "rootAlgoOrderId":123,
         //         "parentAlgoOrderId":123,
         //         "algoOrderId":123,
         //         "orderTag":"some tags",
-        //         "algoType" => "STOP",
+        //         "algoType": "STOP",
         //         "clientOrderId":"client_id",
         //         "type":"LIMIT",
         //         "side":"BUY",
@@ -845,8 +845,8 @@ class woofipro extends \ccxt\async\woofipro {
         //         "tradeId":0,
         //         "triggerTradePrice":0,
         //         "triggerTime":1234567,
-        //         "triggered" => false,
-        //         "activated" => false,
+        //         "triggered": false,
+        //         "activated": false,
         //         "executedPrice":0.0,
         //         "executedQuantity":0.0,
         //         "fee":0.0,
@@ -856,13 +856,13 @@ class woofipro extends \ccxt\async\woofipro {
         //         "avgPrice":0,
         //         "triggerPrice":0.0,
         //         "triggerPriceType":"STOP",
-        //         "isActivated" => false,
+        //         "isActivated": false,
         //         "status":"NEW",
-        //         "rootAlgoStatus" => "FILLED",
-        //         "algoStatus" => "FILLED",
+        //         "rootAlgoStatus": "FILLED",
+        //         "algoStatus": "FILLED",
         //         "reason":"",
         //         "totalFee":0.0,
-        //         "visible" => 7029.0,
+        //         "visible": 7029.0,
         //         "visibleQuantity":7029.0,
         //         "timestamp":1704679472448,
         //         "maker":false,
@@ -928,29 +928,29 @@ class woofipro extends \ccxt\async\woofipro {
     public function handle_order_update(Client $client, mixed $message) {
         //
         //     {
-        //         "topic" => "executionreport",
-        //         "ts" => 1657515556799,
-        //         "data" => {
-        //             "symbol" => "PERP_BTC_USDT",
-        //             "clientOrderId" => 0,
-        //             "orderId" => 52952826,
-        //             "type" => "LIMIT",
-        //             "side" => "SELL",
-        //             "quantity" => 0.01,
-        //             "price" => 22000,
-        //             "tradeId" => 0,
-        //             "executedPrice" => 0,
-        //             "executedQuantity" => 0,
-        //             "fee" => 0,
-        //             "feeAsset" => "USDT",
-        //             "totalExecutedQuantity" => 0,
-        //             "status" => "NEW",
-        //             "reason" => '',
-        //             "orderTag" => "default",
-        //             "totalFee" => 0,
-        //             "visible" => 0.01,
-        //             "timestamp" => 1657515556799,
-        //             "maker" => false
+        //         "topic": "executionreport",
+        //         "ts": 1657515556799,
+        //         "data": {
+        //             "symbol": "PERP_BTC_USDT",
+        //             "clientOrderId": 0,
+        //             "orderId": 52952826,
+        //             "type": "LIMIT",
+        //             "side": "SELL",
+        //             "quantity": 0.01,
+        //             "price": 22000,
+        //             "tradeId": 0,
+        //             "executedPrice": 0,
+        //             "executedQuantity": 0,
+        //             "fee": 0,
+        //             "feeAsset": "USDT",
+        //             "totalExecutedQuantity": 0,
+        //             "status": "NEW",
+        //             "reason": '',
+        //             "orderTag": "default",
+        //             "totalFee": 0,
+        //             "visible": 0.01,
+        //             "timestamp": 1657515556799,
+        //             "maker": false
         //         }
         //     }
         //
@@ -1011,30 +1011,30 @@ class woofipro extends \ccxt\async\woofipro {
     public function handle_my_trade(Client $client, mixed $message) {
         //
         // {
-        //     $symbol => 'PERP_XRP_USDC',
-        //     clientOrderId => '',
-        //     orderId => 1167632251,
-        //     type => 'MARKET',
-        //     side => 'BUY',
-        //     quantity => 20,
-        //     price => 0,
-        //     tradeId => '1715179456664012',
-        //     executedPrice => 0.5276,
-        //     executedQuantity => 20,
-        //     fee => 0.006332,
-        //     feeAsset => 'USDC',
-        //     totalExecutedQuantity => 20,
-        //     avgPrice => 0.5276,
-        //     averageExecutedPrice => 0.5276,
-        //     status => 'FILLED',
-        //     reason => '',
-        //     totalFee => 0.006332,
-        //     visible => 0,
-        //     visibleQuantity => 0,
-        //     timestamp => 1715179456660,
-        //     orderTag => 'CCXT',
-        //     createdTime => 1715179456656,
-        //     maker => false
+        //     symbol: 'PERP_XRP_USDC',
+        //     clientOrderId: '',
+        //     orderId: 1167632251,
+        //     type: 'MARKET',
+        //     side: 'BUY',
+        //     quantity: 20,
+        //     price: 0,
+        //     tradeId: '1715179456664012',
+        //     executedPrice: 0.5276,
+        //     executedQuantity: 20,
+        //     fee: 0.006332,
+        //     feeAsset: 'USDC',
+        //     totalExecutedQuantity: 20,
+        //     avgPrice: 0.5276,
+        //     averageExecutedPrice: 0.5276,
+        //     status: 'FILLED',
+        //     reason: '',
+        //     totalFee: 0.006332,
+        //     visible: 0,
+        //     visibleQuantity: 0,
+        //     timestamp: 1715179456660,
+        //     orderTag: 'CCXT',
+        //     createdTime: 1715179456656,
+        //     maker: false
         // }
         //
         $messageHash = 'myTrades';
@@ -1137,7 +1137,7 @@ class woofipro extends \ccxt\async\woofipro {
                 $cache->append($position);
             }
         }
-        // don't remove the $future from the .futures $cache
+        // don't remove the future from the .futures cache
         if (is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures)) {
             $future = $client->futures[$messageHash];
             $future->resolve($cache);
@@ -1151,7 +1151,7 @@ class woofipro extends \ccxt\async\woofipro {
         //        "topic":"position",
         //        "ts":1705292345255,
         //        "data":{
-        //           "positions":array(
+        //           "positions":[
         //              {
         //                     "symbol":"PERP_ETH_USDC",
         //                     "positionQty":3.1408,
@@ -1174,7 +1174,7 @@ class woofipro extends \ccxt\async\woofipro {
         //                     "imr":0.1,
         //                     "timestamp":1685154032762
         //              }
-        //           )
+        //           ]
         //        }
         //    }
         //
@@ -1355,7 +1355,7 @@ class woofipro extends \ccxt\async\woofipro {
 
     public function handle_error_message(Client $client, mixed $message): ?bool {
         //
-        // array("id":"1","event":"subscribe","success":false,"ts":1710780997216,"errorMsg":"Auth is needed.")
+        // {"id":"1","event":"subscribe","success":false,"ts":1710780997216,"errorMsg":"Auth is needed."}
         //
         if (!(is_array($message) && array_key_exists('success' ?? '', $message))) {
             return false;
@@ -1460,7 +1460,7 @@ class woofipro extends \ccxt\async\woofipro {
 
     public function handle_pong(Client $client, mixed $message) {
         //
-        // array( event => "pong", ts => 1614667590000 )
+        // { event: "pong", ts: 1614667590000 }
         //
         $client->lastPong = $this->milliseconds();
         return $message;
@@ -1469,10 +1469,10 @@ class woofipro extends \ccxt\async\woofipro {
     public function handle_subscribe(Client $client, mixed $message) {
         //
         //     {
-        //         "id" => "666888",
-        //         "event" => "subscribe",
-        //         "success" => true,
-        //         "ts" => 1657117712212
+        //         "id": "666888",
+        //         "event": "subscribe",
+        //         "success": true,
+        //         "ts": 1657117712212
         //     }
         //
         return $message;

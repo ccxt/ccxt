@@ -54,7 +54,7 @@ class modetrade(ccxt.async_support.modetrade):
                 'ordersLimit': 1000,
                 'requestId': {},
                 'watchPositions': {
-                    'fetchPositionsSnapshot': True,  # or False
+                    'fetchPositionsSnapshot': True,  # or false
                     'awaitPositionsSnapshot': True,  # whether to wait for the positions snapshot before providing updates
                 },
             },
@@ -527,7 +527,7 @@ class modetrade(ccxt.async_support.modetrade):
         #         timestamp: 1715179456660,
         #         orderTag: 'CCXT',
         #         createdTime: 1715179456656,
-        #         maker: False
+        #         maker: false
         #     }
         #
         marketId = self.safe_string(trade, 'symbol')
@@ -569,14 +569,14 @@ class modetrade(ccxt.async_support.modetrade):
         #
         #     {
         #         "event": "auth",
-        #         "success": True,
+        #         "success": true,
         #         "ts": 1657463158812
         #     }
         #
         messageHash = 'authenticated'
         success = self.safe_value(message, 'success')
         if success is True:
-            # client.resolve(message, messageHash)
+            # client.resolve (message, messageHash);
             future = self.safe_value(client.futures, 'authenticated')
             future.resolve(True)
         else:
@@ -724,8 +724,8 @@ class modetrade(ccxt.async_support.modetrade):
         #         "totalFee": 0,
         #         "visible": 0.01,
         #         "timestamp": 1657515556798,
-        #         "reduceOnly": False,
-        #         "maker": False
+        #         "reduceOnly": false,
+        #         "maker": false
         #     }
         # algo order
         #     {
@@ -743,8 +743,8 @@ class modetrade(ccxt.async_support.modetrade):
         #         "tradeId":0,
         #         "triggerTradePrice":0,
         #         "triggerTime":1234567,
-        #         "triggered": False,
-        #         "activated": False,
+        #         "triggered": false,
+        #         "activated": false,
         #         "executedPrice":0.0,
         #         "executedQuantity":0.0,
         #         "fee":0.0,
@@ -754,7 +754,7 @@ class modetrade(ccxt.async_support.modetrade):
         #         "avgPrice":0,
         #         "triggerPrice":0.0,
         #         "triggerPriceType":"STOP",
-        #         "isActivated": False,
+        #         "isActivated": false,
         #         "status":"NEW",
         #         "rootAlgoStatus": "FILLED",
         #         "algoStatus": "FILLED",
@@ -845,7 +845,7 @@ class modetrade(ccxt.async_support.modetrade):
         #             "totalFee": 0,
         #             "visible": 0.01,
         #             "timestamp": 1657515556799,
-        #             "maker": False
+        #             "maker": false
         #         }
         #     }
         #
@@ -920,7 +920,7 @@ class modetrade(ccxt.async_support.modetrade):
         #     timestamp: 1715179456660,
         #     orderTag: 'CCXT',
         #     createdTime: 1715179456656,
-        #     maker: False
+        #     maker: false
         # }
         #
         messageHash = 'myTrades'
@@ -1279,7 +1279,7 @@ class modetrade(ccxt.async_support.modetrade):
 
     def handle_pong(self, client: Client, message: object):
         #
-        # {event: "pong", ts: 1614667590000}
+        # { event: "pong", ts: 1614667590000 }
         #
         client.lastPong = self.milliseconds()
         return message
@@ -1289,7 +1289,7 @@ class modetrade(ccxt.async_support.modetrade):
         #     {
         #         "id": "666888",
         #         "event": "subscribe",
-        #         "success": True,
+        #         "success": true,
         #         "ts": 1657117712212
         #     }
         #

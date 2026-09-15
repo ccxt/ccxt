@@ -346,6 +346,17 @@ impl OkxCore {
         m.insert("watchPositions".to_string(), Value::Bool(true));
         m.insert("watchFundingRate".to_string(), Value::Bool(true));
         m.insert("watchFundingRates".to_string(), Value::Bool(true));
+        m.insert("unWatchTicker".to_string(), Value::Bool(true));
+        m.insert("unWatchTickers".to_string(), Value::Bool(true));
+        m.insert("unWatchOHLCV".to_string(), Value::Bool(true));
+        m.insert("unWatchOHLCVForSymbols".to_string(), Value::Bool(true));
+        m.insert("unWatchOrderBook".to_string(), Value::Bool(true));
+        m.insert("unWatchOrderBookForSymbols".to_string(), Value::Bool(true));
+        m.insert("unWatchTrades".to_string(), Value::Bool(true));
+        m.insert("unWatchTradesForSymbols".to_string(), Value::Bool(true));
+        m.insert("unWatchMyTrades".to_string(), Value::Bool(false));
+        m.insert("unWatchOrders".to_string(), Value::Bool(false));
+        m.insert("unWatchPositions".to_string(), Value::Bool(false));
         m.insert("createOrderWs".to_string(), Value::Bool(true));
         m.insert("editOrderWs".to_string(), Value::Bool(true));
         m.insert("cancelOrderWs".to_string(), Value::Bool(true));
@@ -383,6 +394,11 @@ impl OkxCore {
         m.insert("watchTickers".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("channel".to_string(), Value::Str("tickers".to_string()));
+    m
+}));
+        m.insert("watchBidsAsks".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("channel".to_string(), Value::Str("bbo-tbt".to_string()));
     m
 }));
         m.insert("watchOrders".to_string(), Value::Map({
@@ -1129,10 +1145,12 @@ impl OkxCore {
 /*
  * @method
  * @name okx#watchBidsAsks
+ * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-order-book-channel
  * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-tickers-channel
  * @description watches best bid & ask for symbols
  * @param {string[]} symbols unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.channel] the channel to subscribe to, 'bbo-tbt' (default, 10ms L1) or 'tickers' (100ms)
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
     pub async fn watch_bids_asks(&mut self, optional_args: &[Value]) -> Value {
@@ -1146,7 +1164,7 @@ impl OkxCore {
         }
         symbols = self.market_symbols(&[symbols.clone(), Value::Null, Value::Bool(false)]);
         let mut channel: Value = Value::Null;
-        { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("watchBidsAsks".to_string()), Value::Str("channel".to_string()), &[Value::Str("tickers".to_string())]); channel = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
+        { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("watchBidsAsks".to_string()), Value::Str("channel".to_string()), &[Value::Str("bbo-tbt".to_string())]); channel = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut url: Value = self.get_url(channel.clone(), &[Value::Str("public".to_string())]);
         let mut messageHashes: Value = Value::List(vec![]);
         let mut args: Value = Value::List(vec![]);
@@ -1187,6 +1205,8 @@ impl OkxCore {
 
     pub fn handle_bid_ask(&mut self, mut client: Value, mut message: Value) {
         //
+        // tickers
+        //
         //     {
         //         "arg": { channel: "tickers", instId: "BTC-USDT" },
         //         "data": [
@@ -1211,12 +1231,31 @@ impl OkxCore {
         //         ]
         //     }
         //
+        // bbo-tbt
+        //
+        //     {
+        //         "arg": { "channel": "bbo-tbt", "instId": "BTC-USDT" },
+        //         "data": [
+        //             {
+        //                 "asks": [ [ "36232.2", "1.8826134", "0", "17" ] ],
+        //                 "bids": [ [ "36232.1", "0.00572212", "0", "2" ] ],
+        //                 "ts": "1651826598363"
+        //             }
+        //         ]
+        //     }
+        //
+        let mut arg: Value = self.safe_dict_k(message.clone(), "arg", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]);
+        let mut marketId: Value = self.safe_string_k(arg.clone(), "instId", &[]);
+        let mut market: Value = self.safe_market(&[marketId.clone()]);
         let mut data: Value = self.safe_list_k(message.clone(), "data", &[Value::List(vec![])]);
         let mut ticker: Value = self.safe_dict(data.clone(), Value::Int(0), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut parsedTicker: Value = self.parse_ws_bid_ask(ticker.clone(), &[]);
+        let mut parsedTicker: Value = self.parse_ws_bid_ask(ticker.clone(), &[market.clone()]);
         let mut symbol: Value = get_value(&parsedTicker, &Value::Str("symbol".to_string()));
         if !is_equal(&symbol, &Value::Null) {
             add_element_to_object(&mut self.bidsasks, &symbol, parsedTicker.clone());
@@ -1231,15 +1270,31 @@ impl OkxCore {
         market = self.safe_market(&[marketId.clone(), market.clone()]);
         let mut symbol: Value = self.safe_string_k(market.clone(), "symbol", &[]);
         let mut timestamp: Value = self.safe_integer_k(ticker.clone(), "ts", &[]);
+        let mut ask: Value = self.safe_string_k(ticker.clone(), "askPx", &[]);
+        let mut askVolume: Value = self.safe_string_k(ticker.clone(), "askSz", &[]);
+        let mut bid: Value = self.safe_string_k(ticker.clone(), "bidPx", &[]);
+        let mut bidVolume: Value = self.safe_string_k(ticker.clone(), "bidSz", &[]);
+        if is_equal(&ask, &Value::Null) {
+            let mut asks: Value = self.safe_list_k(ticker.clone(), "asks", &[Value::List(vec![])]);
+            let mut firstAsk: Value = self.safe_list(asks.clone(), Value::Int(0), &[Value::List(vec![])]);
+            ask = self.safe_string(firstAsk.clone(), Value::Int(0), &[]);
+            askVolume = self.safe_string(firstAsk.clone(), Value::Int(1), &[]);
+        }
+        if is_equal(&bid, &Value::Null) {
+            let mut bids: Value = self.safe_list_k(ticker.clone(), "bids", &[Value::List(vec![])]);
+            let mut firstBid: Value = self.safe_list(bids.clone(), Value::Int(0), &[Value::List(vec![])]);
+            bid = self.safe_string(firstBid.clone(), Value::Int(0), &[]);
+            bidVolume = self.safe_string(firstBid.clone(), Value::Int(1), &[]);
+        }
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol.clone());
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
-        m.insert("ask".to_string(), self.safe_string_k(ticker.clone(), "askPx", &[]));
-        m.insert("askVolume".to_string(), self.safe_string_k(ticker.clone(), "askSz", &[]));
-        m.insert("bid".to_string(), self.safe_string_k(ticker.clone(), "bidPx", &[]));
-        m.insert("bidVolume".to_string(), self.safe_string_k(ticker.clone(), "bidSz", &[]));
+        m.insert("ask".to_string(), ask.clone());
+        m.insert("askVolume".to_string(), askVolume.clone());
+        m.insert("bid".to_string(), bid.clone());
+        m.insert("bidVolume".to_string(), bidVolume.clone());
         m.insert("info".to_string(), ticker.clone());
     m
 }), &[market.clone()]);
@@ -2240,25 +2295,33 @@ impl OkxCore {
                 }
             }
         }  else if is_true(&(is_equal(&channel, &Value::Str("books5".to_string())))) || is_true(&(is_equal(&channel, &Value::Str("bbo-tbt".to_string())))) {
-            if !is_true(&(Value::Bool(in_op(&self.orderbooks, &symbol)))) {
-                { let __be_tmp = self.order_book(&[Value::Map({
+            // watchBidsAsks reuses bbo-tbt with bidask:: hashes; only reset the
+            // shared order-book cache when watchOrderBook subscribed to this
+            // channel+symbol (e.g. 'bbo-tbt:BTC/USDT' in client.subscriptions)
+            if is_true(&Value::Bool(in_op(&get_value(&client, &Value::Str("subscriptions".to_string())), &messageHash))) {
+                if !is_true(&(Value::Bool(in_op(&self.orderbooks, &symbol)))) {
+                    { let __be_tmp = self.order_book(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }), limit.clone()]); add_element_to_object(&mut self.orderbooks, &symbol, __be_tmp); };
+                }
+                let mut orderbook: Value = get_value(&self.orderbooks, &symbol);
+                {
+                                        let mut i: Value = Value::Int(0);
+                    let mut __for_first_545: bool = true;
+                    while { if !__for_first_545 { i = add(&i, &Value::Int(1)); } __for_first_545 = false; is_less_than(&i, &get_array_length(&data)) } {
+                    let mut update: Value = get_value(&data, &i);
+                    let mut update: Value = get_value(&data, &i);
+                    let mut timestamp: Value = self.safe_integer_k(update.clone(), "ts", &[]);
+                    let mut snapshot: Value = self.parse_order_book(update.clone(), symbol.clone(), &[timestamp.clone(), Value::Str("bids".to_string()), Value::Str("asks".to_string()), Value::Int(0), Value::Int(1)]);
+                    orderbook.reset(snapshot.clone());
+                    client.resolve(&[orderbook.clone(), messageHash.clone()]);
+                }
+                }
             }
-            let mut orderbook: Value = get_value(&self.orderbooks, &symbol);
-            {
-                                let mut i: Value = Value::Int(0);
-                let mut __for_first_545: bool = true;
-                while { if !__for_first_545 { i = add(&i, &Value::Int(1)); } __for_first_545 = false; is_less_than(&i, &get_array_length(&data)) } {
-                let mut update: Value = get_value(&data, &i);
-                let mut update: Value = get_value(&data, &i);
-                let mut timestamp: Value = self.safe_integer_k(update.clone(), "ts", &[]);
-                let mut snapshot: Value = self.parse_order_book(update.clone(), symbol.clone(), &[timestamp.clone(), Value::Str("bids".to_string()), Value::Str("asks".to_string()), Value::Int(0), Value::Int(1)]);
-                orderbook.reset(snapshot.clone());
-                client.resolve(&[orderbook.clone(), messageHash.clone()]);
-            }
-            }
+        }
+        if is_equal(&channel, &Value::Str("bbo-tbt".to_string())) {
+            self.handle_bid_ask(client.clone(), message.clone());
         }
         return message;
 

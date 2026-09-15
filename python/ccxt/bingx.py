@@ -760,7 +760,7 @@ class bingx(Exchange, ImplicitAPI):
                         'untilDays': 7,
                         'trigger': False,
                         'trailing': False,
-                        'symbolRequired': True,
+                        'symbolRequired': False,
                     },
                     'fetchClosedOrders': {
                         'marginMode': False,
@@ -770,7 +770,7 @@ class bingx(Exchange, ImplicitAPI):
                         'untilDays': 7,
                         'trigger': False,
                         'trailing': False,
-                        'symbolRequired': True,
+                        'symbolRequired': False,
                     },
                     'fetchOHLCV': {
                         'limit': 1440,
@@ -778,6 +778,7 @@ class bingx(Exchange, ImplicitAPI):
                 },
                 'defaultForInverse': {
                     'extends': 'defaultForLinear',
+                    'sandbox': False,
                     'createOrders': None,
                     'fetchOHLCV': {
                         'limit': 1000,
@@ -792,6 +793,7 @@ class bingx(Exchange, ImplicitAPI):
                 #
                 'spot': {
                     'extends': 'defaultForLinear',
+                    'sandbox': False,
                     'fetchCurrencies': {
                         'private': True,
                     },
@@ -819,20 +821,8 @@ class bingx(Exchange, ImplicitAPI):
                         'extends': 'defaultForInverse',
                     },
                 },
-                'defaultForFuture': {
-                    'extends': 'defaultForLinear',
-                    'fetchOrders': None,
-                },
-                'future': {
-                    'linear': {
-                        'extends': 'defaultForFuture',
-                    },
-                    'inverse': {
-                        'extends': 'defaultForFuture',
-                    },
-                },
             },
-            'rollingWindowSize': 2000.0,  # Some endpoints have a 10s window, some have a 5s window, a more complicated rate limiter is needed to accommodate for self
+            'rollingWindowSize': 2000.0,  # Some endpoints have a 10s window, some have a 5s window, a more complicated rate limiter is needed to accommodate for this
         })
 
     def fetch_time(self, params={}) -> Int:
@@ -884,10 +874,10 @@ class bingx(Exchange, ImplicitAPI):
         #                    {
         #                        "name": "BTC",
         #                        "network": "BTC",
-        #                        "isDefault": True,
+        #                        "isDefault": true,
         #                        "minConfirm": "2",
-        #                        "withdrawEnable": True,
-        #                        "depositEnable": True,
+        #                        "withdrawEnable": true,
+        #                        "depositEnable": true,
         #                        "withdrawFee": "0.00004",
         #                        "withdrawMax": "64.77131128",
         #                        "withdrawMin": "0.000046",
@@ -901,10 +891,10 @@ class bingx(Exchange, ImplicitAPI):
         #                    {
         #                        "name": "BTC",
         #                        "network": "BEP20",
-        #                        "isDefault": True,
+        #                        "isDefault": true,
         #                        "minConfirm": "10",
-        #                        "withdrawEnable": True,
-        #                        "depositEnable": True,
+        #                        "withdrawEnable": true,
+        #                        "depositEnable": true,
         #                        "withdrawFee": "0.000001",
         #                        "withdrawMax": "64.77131128",
         #                        "withdrawMin": "0.000065",
@@ -981,15 +971,15 @@ class bingx(Exchange, ImplicitAPI):
         #              "symbols": [
         #                  {
         #                    "symbol": "GEAR-USDT",
-        #                    "minQty": 735,  # deprecated
-        #                    "maxQty": 2941177,  # deprecated.
+        #                    "minQty": 735, // deprecated
+        #                    "maxQty": 2941177, // deprecated.
         #                    "minNotional": 5,
         #                    "maxNotional": 20000,
         #                    "status": 1,
         #                    "tickSize": 0.000001,
         #                    "stepSize": 1,
-        #                    "apiStateSell": True,
-        #                    "apiStateBuy": True,
+        #                    "apiStateSell": true,
+        #                    "apiStateBuy": true,
         #                    "timeOnline": 0,
         #                    "offTime": 0,
         #                    "maintainTime": 0
@@ -1029,7 +1019,7 @@ class bingx(Exchange, ImplicitAPI):
         #                "status": "1",
         #                "apiStateOpen": "true",
         #                "apiStateClose": "true",
-        #                "ensureTrigger": True,
+        #                "ensureTrigger": true,
         #                "triggerFeeRate": "0.00020000"
         #            },
         #            ...
@@ -1381,7 +1371,7 @@ class bingx(Exchange, ImplicitAPI):
         #                "price": 25714.71,
         #                "qty": 1.674571,
         #                "time": 1655085975589,
-        #                "buyerMaker": False
+        #                "buyerMaker": false
         #            }
         #        ]
         #    }
@@ -1394,7 +1384,7 @@ class bingx(Exchange, ImplicitAPI):
         #      "data":[
         #        {
         #          "time": 1672025549368,
-        #          "isBuyerMaker": True,
+        #          "isBuyerMaker": true,
         #          "price": "16885.0",
         #          "qty": "3.3002",
         #          "quoteQty": "55723.87"
@@ -1415,7 +1405,7 @@ class bingx(Exchange, ImplicitAPI):
         #        "price": 25714.71,
         #        "qty": 1.674571,
         #        "time": 1655085975589,
-        #        "buyerMaker": False
+        #        "buyerMaker": false
         #    }
         #
         # spot fetchMyTrades
@@ -1430,15 +1420,15 @@ class bingx(Exchange, ImplicitAPI):
         #         "commission": -0.00005820000000000001,
         #         "commissionAsset": "LTC",
         #         "time": 1687964205000,
-        #         "isBuyer": True,
-        #         "isMaker": False
+        #         "isBuyer": true,
+        #         "isMaker": false
         #     }
         #
         # swap fetchTrades
         #
         #    {
         #        "time": 1672025549368,
-        #        "isBuyerMaker": True,
+        #        "isBuyerMaker": true,
         #        "price": "16885.0",
         #        "qty": "3.3002",
         #        "quoteQty": "55723.87"
@@ -1464,7 +1454,7 @@ class bingx(Exchange, ImplicitAPI):
         #        "E": 1690214529432,
         #        "T": 1690214529386,
         #        "e": "trade",
-        #        "m": True,
+        #        "m": true,
         #        "p": "29110.19",
         #        "q": "0.1868",
         #        "s": "BTC-USDT",
@@ -1477,7 +1467,7 @@ class bingx(Exchange, ImplicitAPI):
         #        "q": "0.0421",
         #        "p": "29023.5",
         #        "T": 1690221401344,
-        #        "m": False,
+        #        "m": false,
         #        "s": "BTC-USDT"
         #    }
         #
@@ -1491,7 +1481,7 @@ class bingx(Exchange, ImplicitAPI):
         #         "p": "55360.0",
         #         "q": "1",
         #         "T": 1722920589582,
-        #         "m": False
+        #         "m": false
         #     }
         #
         # inverse swap fetchMyTrades
@@ -1509,8 +1499,8 @@ class bingx(Exchange, ImplicitAPI):
         #         "realizedPnl": "0.00000000",
         #         "commission": "-0.00005475",
         #         "currency": "SOL",
-        #         "buyer": True,
-        #         "maker": False,
+        #         "buyer": true,
+        #         "maker": false,
         #         "tradeTime": 1722146730000
         #     }
         #
@@ -1521,7 +1511,7 @@ class bingx(Exchange, ImplicitAPI):
         if time == 0:
             time = None
         cost = self.safe_string(trade, 'quoteQty')
-        # type = 'spot' if (cost is None) else 'swap'; self is not reliable
+        # const type = (cost === undefined) ? 'spot' : 'swap'; this is not reliable
         currencyId = self.safe_string_n(trade, ['currency', 'N', 'commissionAsset'])
         currencyCode = self.safe_currency_code(currencyId)
         m = self.safe_bool(trade, 'm')
@@ -1544,7 +1534,7 @@ class bingx(Exchange, ImplicitAPI):
             takeOrMaker = 'maker' if isMaker else 'taker'
         amount = self.safe_string_n(trade, ['qty', 'amount', 'q'])
         if (market is not None) and (market['swap'] is True) and ('volume' in trade):
-            # Linear volume is the base quantity(contractSize 1); inverse volume is the contract count.
+            # Linear volume is the base quantity (contractSize 1); inverse volume is the contract count.
             # safeTrade applies contractSize when calculating inverse cost.
             amount = self.safe_string(trade, 'volume')
         return self.safe_trade({
@@ -2308,9 +2298,9 @@ class bingx(Exchange, ImplicitAPI):
         #    {
         #        "symbol": "BTC-USDT",
         #        "priceChange": "52.5",
-        #        "priceChangePercent": "0.31%",  # they started to add the percent sign in value
+        #        "priceChangePercent": "0.31%", // they started to add the percent sign in value
         #        "lastPrice": "16880.5",
-        #        "lastQty": "2.2238",          # only present in swap!
+        #        "lastQty": "2.2238",          // only present in swap!
         #        "highPrice": "16897.5",
         #        "lowPrice": "16726.0",
         #        "volume": "245870.1692",
@@ -2328,7 +2318,7 @@ class bingx(Exchange, ImplicitAPI):
         marketId = self.safe_string(ticker, 'symbol')
         lastQty = self.safe_string(ticker, 'lastQty')
         # in spot markets, lastQty is not present
-        # it's(bad, but) the only way we can check the tickers origin
+        # it's (bad, but) the only way we can check the tickers origin
         type = 'spot' if (lastQty is None) else 'swap'
         market = self.safe_market(marketId, market, None, type)
         symbol = market['symbol']
@@ -2411,7 +2401,7 @@ class bingx(Exchange, ImplicitAPI):
             #                 "crossUnPnl": "0",
             #                 "availableBalance": "4.72644300000000000000",
             #                 "maxWithdrawAmount": "4.72644300000000000000",
-            #                 "marginAvailable": False,
+            #                 "marginAvailable": false,
             #                 "updateTime": 1721192833443
             #             },
             #         ]
@@ -2510,7 +2500,7 @@ class bingx(Exchange, ImplicitAPI):
         #                 "crossUnPnl": "0",
         #                 "availableBalance": "4.72644300000000000000",
         #                 "maxWithdrawAmount": "4.72644300000000000000",
-        #                 "marginAvailable": False,
+        #                 "marginAvailable": false,
         #                 "updateTime": 1721192833443
         #             },
         #         ]
@@ -2643,7 +2633,7 @@ class bingx(Exchange, ImplicitAPI):
         #                 {
         #                     "positionId": "1861675561156571136",
         #                     "symbol": "LTC-USDT",
-        #                     "isolated": False,
+        #                     "isolated": false,
         #                     "positionSide": "LONG",
         #                     "openTime": 1732693017000,
         #                     "updateTime": 1733310292000,
@@ -2654,7 +2644,7 @@ class bingx(Exchange, ImplicitAPI):
         #                     "positionAmt": "30.0",
         #                     "closePositionAmt": "30.0",
         #                     "leverage": 6,
-        #                     "closeAllPositions": True,
+        #                     "closeAllPositions": true,
         #                     "positionCommission": "-0.33699650000000003",
         #                     "totalFunding": "-2.921461693902908"
         #                 },
@@ -2709,7 +2699,7 @@ class bingx(Exchange, ImplicitAPI):
                 #                 "symbol": "SOL-USD",
                 #                 "positionId": "1813080351385337856",
                 #                 "positionSide": "LONG",
-                #                 "isolated": False,
+                #                 "isolated": false,
                 #                 "positionAmt": "1",
                 #                 "availableAmt": "1",
                 #                 "unrealizedProfit": "-0.00009074",
@@ -2739,7 +2729,7 @@ class bingx(Exchange, ImplicitAPI):
                 #                 "positionAmt": "0.1",
                 #                 "availableAmt": "0.1",
                 #                 "positionSide": "LONG",
-                #                 "isolated": False,
+                #                 "isolated": false,
                 #                 "avgPrice": "83.53",
                 #                 "initialMargin": "1.3922",
                 #                 "margin": "0.3528",
@@ -2752,7 +2742,7 @@ class bingx(Exchange, ImplicitAPI):
                 #                 "riskRate": "0.0008",
                 #                 "markPrice": "73.14",
                 #                 "positionValue": "7.3136",
-                #                 "onlyOnePosition": True,
+                #                 "onlyOnePosition": true,
                 #                 "updateTime": 1721088016688
                 #             }
                 #         ]
@@ -2793,7 +2783,7 @@ class bingx(Exchange, ImplicitAPI):
             #                 "symbol": "SOL-USD",
             #                 "positionId": "1813080351385337856",
             #                 "positionSide": "LONG",
-            #                 "isolated": False,
+            #                 "isolated": false,
             #                 "positionAmt": "1",
             #                 "availableAmt": "1",
             #                 "unrealizedProfit": "-0.00009074",
@@ -2823,7 +2813,7 @@ class bingx(Exchange, ImplicitAPI):
             #                 "positionAmt": "0.1",
             #                 "availableAmt": "0.1",
             #                 "positionSide": "LONG",
-            #                 "isolated": False,
+            #                 "isolated": false,
             #                 "avgPrice": "83.53",
             #                 "initialMargin": "1.3922",
             #                 "margin": "0.3528",
@@ -2836,7 +2826,7 @@ class bingx(Exchange, ImplicitAPI):
             #                 "riskRate": "0.0008",
             #                 "markPrice": "73.14",
             #                 "positionValue": "7.3136",
-            #                 "onlyOnePosition": True,
+            #                 "onlyOnePosition": true,
             #                 "updateTime": 1721088016688
             #             }
             #         ]
@@ -2854,7 +2844,7 @@ class bingx(Exchange, ImplicitAPI):
         #         "symbol": "SOL-USD",
         #         "positionId": "1813080351385337856",
         #         "positionSide": "LONG",
-        #         "isolated": False,
+        #         "isolated": false,
         #         "positionAmt": "1",
         #         "availableAmt": "1",
         #         "unrealizedProfit": "-0.00009074",
@@ -2877,7 +2867,7 @@ class bingx(Exchange, ImplicitAPI):
         #         "positionAmt": "0.1",
         #         "availableAmt": "0.1",
         #         "positionSide": "LONG",
-        #         "isolated": False,
+        #         "isolated": false,
         #         "avgPrice": "83.53",
         #         "initialMargin": "1.3922",
         #         "margin": "0.3528",
@@ -2890,7 +2880,7 @@ class bingx(Exchange, ImplicitAPI):
         #         "riskRate": "0.0008",
         #         "markPrice": "73.14",
         #         "positionValue": "7.3136",
-        #         "onlyOnePosition": True,
+        #         "onlyOnePosition": true,
         #         "updateTime": 1721088016688
         #     }
         #
@@ -2902,7 +2892,7 @@ class bingx(Exchange, ImplicitAPI):
         #         "initialMargin": "5.00000000000000000000",
         #         "unrealizedProfit": "-0.26464500",
         #         "leverage": "20.000000000",
-        #         "isolated": True,
+        #         "isolated": true,
         #         "entryPrice": "83.13",
         #         "positionSide": "LONG",
         #         "positionAmt": "1.20365912",
@@ -2913,7 +2903,7 @@ class bingx(Exchange, ImplicitAPI):
         #     {
         #         "positionId": "1861675561156571136",
         #         "symbol": "LTC-USDT",
-        #         "isolated": False,
+        #         "isolated": false,
         #         "positionSide": "LONG",
         #         "openTime": 1732693017000,
         #         "updateTime": 1733310292000,
@@ -2924,7 +2914,7 @@ class bingx(Exchange, ImplicitAPI):
         #         "positionAmt": "30.0",
         #         "closePositionAmt": "30.0",
         #         "leverage": 6,
-        #         "closeAllPositions": True,
+        #         "closeAllPositions": true,
         #         "positionCommission": "-0.33699650000000003",
         #         "totalFunding": "-2.921461693902908"
         #     }
@@ -3327,8 +3317,8 @@ class bingx(Exchange, ImplicitAPI):
         #     }
         #
         if isinstance(response, str):
-            # broken api engine : order-ids are too long numbers(i.e. 1742930526912864656)
-            # and json.loadscan not handle them in JS, so we have to use .parseJson
+            # broken api engine : order-ids are too long numbers (i.e. 1742930526912864656)
+            # and JSON.parse can not handle them in JS, so we have to use .parseJson
             # however, when order has an attached SL/TP, their value types need extra parsing
             response = self.fix_stringified_json_members(response)
             parsedResponse = self.parse_json(response)
@@ -3345,7 +3335,7 @@ class bingx(Exchange, ImplicitAPI):
         # when the response arrives as an already-parsed dict, the attached SL/TP members are still stringified json
         stopLossDict = self.safe_dict(result, 'stopLoss')
         stopLoss = self.safe_string(result, 'stopLoss')
-        # for py fix, the SL is already parsed(instead of stringified, as it's provided)
+        # for py fix, the SL is already parsed as object (instead of stringified, as it's provided)
         # so we need trick to check if it's non-parsed string yet
         if (stopLossDict is None) and (stopLoss is not None) and (stopLoss.find('{') == 0):
             result['stopLoss'] = self.parse_json(stopLoss)
@@ -3445,8 +3435,8 @@ class bingx(Exchange, ImplicitAPI):
         #     }
         #
         if isinstance(response, str):
-            # broken api engine : order-ids are too long numbers(i.e. 1742930526912864656)
-            # and json.loadscan not handle them in JS, so we have to use .parseJson
+            # broken api engine : order-ids are too long numbers (i.e. 1742930526912864656)
+            # and JSON.parse can not handle them in JS, so we have to use .parseJson
             # however, when order has an attached SL/TP, their value types need extra parsing
             response = self.fix_stringified_json_members(response)
             parsedResponse = self.parse_json(response)
@@ -3606,10 +3596,10 @@ class bingx(Exchange, ImplicitAPI):
         #        priceRate: 0,
         #        stopLoss: '{"stopPrice":50,"workingType":"MARK_PRICE","type":"STOP_MARKET","quantity":1}',
         #        takeProfit: '{"stopPrice":150,"workingType":"MARK_PRICE","type":"TAKE_PROFIT_MARKET","quantity":1}',
-        #        reduceOnly: False
+        #        reduceOnly: false
         #    }
         #
-        # editOrder(swap)
+        # editOrder (swap)
         #
         #    {
         #        cancelResult: 'true',
@@ -3636,8 +3626,8 @@ class bingx(Exchange, ImplicitAPI):
         #            clientOrderId: '',
         #            leverage: '20X',
         #            workingType: 'MARK_PRICE',
-        #            onlyOnePosition: False,
-        #            reduceOnly: False
+        #            onlyOnePosition: false,
+        #            reduceOnly: false
         #        },
         #        replaceResult: 'true',
         #        replaceMsg: '',
@@ -3656,15 +3646,15 @@ class bingx(Exchange, ImplicitAPI):
         #            priceRate: '0',
         #            stopLoss: '',
         #            takeProfit: '',
-        #            reduceOnly: False
+        #            reduceOnly: false
         #        }
         #    }
         #
-        # editOrder(spot)
+        # editOrder (spot)
         #
         #    {
-        #        cancelResult: {code: '0', msg: '', result: True},
-        #        openResult: {code: '0', msg: '', result: True},
+        #        cancelResult: { code: '0', msg: '', result: true },
+        #        openResult: { code: '0', msg: '', result: true },
         #        orderOpenResponse: {
         #            symbol: 'SOL-USDT',
         #            orderId: '1755334007697866752',
@@ -3829,7 +3819,8 @@ class bingx(Exchange, ImplicitAPI):
             'stopLossPrice': stopLossPrice,
             'takeProfitPrice': takeProfitPrice,
             'average': self.safe_string_2(order, 'avgPrice', 'ap'),
-            'cost': self.safe_string(order, 'cummulativeQuoteQty'),
+            # Spot WS: Z is cumulative quote amount; Y is last-fill quote amount.
+            'cost': self.safe_string_2(order, 'cummulativeQuoteQty', 'Z'),
             'amount': self.safe_string_n(order, ['origQty', 'q', 'quantity', 'totalAmount']),
             'filled': self.safe_string_2(order, 'executedQty', 'z'),
             'remaining': None,
@@ -4320,7 +4311,7 @@ class bingx(Exchange, ImplicitAPI):
         #         data: {
         #             triggerTime: '1712645434',
         #             status: 'ACTIVATED',
-        #             note: 'All your perpetual pending orders will be closed automatically at 2024-04-09 06:50:34 UTC(+0),before that you can cancel the timer, or self.extend triggerTime time by self request'
+        #             note: 'All your perpetual pending orders will be closed automatically at 2024-04-09 06:50:34 UTC(+0),before that you can cancel the timer, or extend triggerTime time by this request'
         #         }
         #     }
         #
@@ -4506,7 +4497,7 @@ class bingx(Exchange, ImplicitAPI):
         https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/All%20Orders
         https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Query%20Order%20history(returns less fields than above)
 
-        :param str symbol: unified market symbol of the market orders were made in
+        :param str [symbol]: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -4576,7 +4567,7 @@ class bingx(Exchange, ImplicitAPI):
         #             "stopLossEntrustPrice": 0,
         #             "orderType": "",
         #             "workingType": "MARK_PRICE",
-        #             "stopGuaranteed": False,
+        #             "stopGuaranteed": false,
         #             "triggerOrderId": 1736012449498123500
         #           }
         #         ]
@@ -4778,7 +4769,7 @@ class bingx(Exchange, ImplicitAPI):
         https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/User's%20History%20Orders
         https://bingx-api.github.io/docs/#/standard/contract-interface.html#Historical%20order
 
-        :param str symbol: unified market symbol of the closed orders
+        :param str [symbol]: unified market symbol of the closed orders
         :param int [since]: timestamp in ms of the earliest order
         :param int [limit]: the max number of closed orders to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -4800,7 +4791,7 @@ class bingx(Exchange, ImplicitAPI):
         https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/User's%20History%20Orders
         https://bingx-api.github.io/docs/#/standard/contract-interface.html#Historical%20order
 
-        :param str symbol: unified market symbol of the canceled orders
+        :param str [symbol]: unified market symbol of the canceled orders
         :param int [since]: timestamp in ms of the earliest order
         :param int [limit]: the max number of canceled orders to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -5304,7 +5295,7 @@ class bingx(Exchange, ImplicitAPI):
         #            "txId":"0xaad4654a3234aa6118af9b4b335f5ae81c360b2394721c019b5d1e75328b09f3",
         #            "insertTime":1599621997000,
         #            "transferType":0,
-        #            "unlockConfirm":"12/12",  # confirm times for unlocking
+        #            "unlockConfirm":"12/12", // confirm times for unlocking
         #            "confirmTimes":"12/12"
         #        },
         #    ]
@@ -5373,7 +5364,7 @@ class bingx(Exchange, ImplicitAPI):
         #        "txId":"0xaad4654a3234aa6118af9b4b335f5ae81c360b2394721c019b5d1e75328b09f3",
         #        "insertTime":1599621997000,
         #        "transferType":0,
-        #        "unlockConfirm":"12/12",  # confirm times for unlocking
+        #        "unlockConfirm":"12/12", // confirm times for unlocking
         #        "confirmTimes":"12/12"
         #    }
         #
@@ -5788,8 +5779,8 @@ class bingx(Exchange, ImplicitAPI):
             #                 "realizedPnl": "0.00000000",
             #                 "commission": "-0.00005475",
             #                 "currency": "SOL",
-            #                 "buyer": True,
-            #                 "maker": False,
+            #                 "buyer": true,
+            #                 "maker": false,
             #                 "tradeTime": 1722146730000
             #             }
             #         ]
@@ -5833,8 +5824,8 @@ class bingx(Exchange, ImplicitAPI):
                 #                     "commission": -0.00005820000000000001,
                 #                     "commissionAsset": "LTC",
                 #                     "time": 1687964205000,
-                #                     "isBuyer": True,
-                #                     "isMaker": False
+                #                     "isBuyer": true,
+                #                     "isMaker": false
                 #                 }
                 #             ]
                 #         }
@@ -5851,7 +5842,7 @@ class bingx(Exchange, ImplicitAPI):
                 #    {
                 #       "code": "0",
                 #       "msg": '',
-                #       "data": {fill_orders: [
+                #       "data": { fill_orders: [
                 #          {
                 #              "volume": "0.1",
                 #              "price": "106.75",
@@ -5977,7 +5968,7 @@ class bingx(Exchange, ImplicitAPI):
         return self.parse_transaction(data)
 
     def parse_params(self, params: object):
-        # sortedParams = self.keysort(params)
+        # const sortedParams = this.keysort (params);
         copied = self.clone(params)
         rawKeys = list(params.keys())
         keys = self.sort(rawKeys)
@@ -6334,7 +6325,7 @@ class bingx(Exchange, ImplicitAPI):
         #         code: '0',
         #         msg: '',
         #         timeStamp: '1703327432734',
-        #         data: {dualSidePosition: 'false'}
+        #         data: { dualSidePosition: 'false' }
         #     }
         #
         return self.swapV1PrivatePostPositionSideDual(self.extend(request, params))
@@ -6411,8 +6402,8 @@ class bingx(Exchange, ImplicitAPI):
             #                clientOrderId: '',
             #                leverage: '20X',
             #                workingType: 'MARK_PRICE',
-            #                onlyOnePosition: False,
-            #                reduceOnly: False
+            #                onlyOnePosition: false,
+            #                reduceOnly: false
             #            },
             #            replaceResult: 'true',
             #            replaceMsg: '',
@@ -6431,7 +6422,7 @@ class bingx(Exchange, ImplicitAPI):
             #                priceRate: '0',
             #                stopLoss: '',
             #                takeProfit: '',
-            #                reduceOnly: False
+            #                reduceOnly: false
             #            }
             #        }
             #    }
@@ -6444,8 +6435,8 @@ class bingx(Exchange, ImplicitAPI):
             #        msg: '',
             #        debugMsg: '',
             #        data: {
-            #            cancelResult: {code: '0', msg: '', result: True},
-            #            openResult: {code: '0', msg: '', result: True},
+            #            cancelResult: { code: '0', msg: '', result: true },
+            #            openResult: { code: '0', msg: '', result: true },
             #            orderOpenResponse: {
             #                symbol: 'SOL-USDT',
             #                orderId: '1755334007697866752',
@@ -6620,7 +6611,7 @@ class bingx(Exchange, ImplicitAPI):
         }
 
     def custom_encode(self, params: object):
-        # sortedParams = self.keysort(params)
+        # const sortedParams = this.keysort (params);
         rawKeys = list(params.keys())
         keys = self.sort(rawKeys)
         adjustedValue = None

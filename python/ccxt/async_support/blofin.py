@@ -28,7 +28,7 @@ class blofin(Exchange, ImplicitAPI):
             'name': 'BloFin',
             'countries': ['US'],
             'version': 'v1',
-            'rateLimit': 200,  # 1500 requests per 5 minutes per IP is the binding budget => 200ms per request(500/min allows 120ms, but 1500/5min does not)
+            'rateLimit': 200,  # 1500 requests per 5 minutes per IP is the binding budget => 200ms per request (500/min allows 120ms, but 1500/5min does not)
             'pro': True,
             'has': {
                 'CORS': None,
@@ -434,7 +434,7 @@ class blofin(Exchange, ImplicitAPI):
                     '102005': InvalidOrder,  # Position had been closed
                     '102014': InvalidOrder,  # Limit order exceeds maximum order size limit
                     '102015': InvalidOrder,  # Market order exceeds maximum order size limit
-                    '102022': InvalidOrder,  # Failed to place order. You don’t have any positions of self contract. Turn off Reduce-only to continue.
+                    '102022': InvalidOrder,  # Failed to place order. You don’t have any positions of this contract. Turn off Reduce-only to continue.
                     '102037': InvalidOrder,  # TP trigger price should be higher than the latest trading price
                     '102038': InvalidOrder,  # SL trigger price should be lower than the latest trading price
                     '102039': InvalidOrder,  # TP trigger price should be lower than the latest trading price
@@ -448,7 +448,7 @@ class blofin(Exchange, ImplicitAPI):
                     '102053': InvalidOrder,  # take profit trigger price should be lower than the best bid price
                     '102054': InvalidOrder,  # take profit trigger price should be higher than the best ask price
                     '102055': InvalidOrder,  # stop loss trigger price should be lower than the best ask price
-                    '102064': BadRequest,  # Buy price is not within the price limit(Minimum: 310.40; Maximum:1,629.40)
+                    '102064': BadRequest,  # Buy price is not within the price limit (Minimum: 310.40; Maximum:1,629.40)
                     '102065': BadRequest,  # Sell price is not within the price limit
                     '102068': BadRequest,  # Cancel failed as the order has been filled, triggered, canceled or does not exist
                     '103013': ExchangeError,  # Internal error; unable to process your request. Please try again.
@@ -516,7 +516,7 @@ class blofin(Exchange, ImplicitAPI):
                 },
                 'withdraw': {
                     # a funding password credential is required by the exchange for the
-                    # withdraw call(not to be confused with the api password credential)
+                    # withdraw call (not to be confused with the api password credential)
                     'password': None,
                     'pwd': None,  # password or pwd both work
                 },
@@ -653,7 +653,7 @@ class blofin(Exchange, ImplicitAPI):
         #         "data": [
         #             {
         #                 "asks": [
-        #                     ["0.07228","4.211619","0","2"],  # price, amount, liquidated orders, total open orders
+        #                     ["0.07228","4.211619","0","2"], // price, amount, liquidated orders, total open orders
         #                     ["0.0723","299.880364","0","2"],
         #                     ["0.07231","3.72832","0","1"],
         #                 ],
@@ -790,7 +790,7 @@ class blofin(Exchange, ImplicitAPI):
 
     def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #
-        # fetch trades(response similar for REST & WS)
+        # fetch trades (response similar for REST & WS)
         #
         #   {
         #       "tradeId": "3263934920",
@@ -930,15 +930,15 @@ class blofin(Exchange, ImplicitAPI):
     def parse_ohlcv(self, ohlcv: object, market: Market = None) -> list:
         #
         #     [
-        #         "1678928760000",  # timestamp
-        #         "24341.4",  # open
-        #         "24344",  # high
-        #         "24313.2",  # low
-        #         "24323",  # close
-        #         "628",  # contract volume
-        #         "2.5819",  # base volume
-        #         "62800",  # quote volume
-        #         "0"  # candlestick state
+        #         "1678928760000", // timestamp
+        #         "24341.4", // open
+        #         "24344", // high
+        #         "24313.2", // low
+        #         "24323", // close
+        #         "628", // contract volume
+        #         "2.5819", // base volume
+        #         "62800", // quote volume
+        #         "0" // candlestick state
         #     ]
         #
         return [
@@ -1137,8 +1137,8 @@ class blofin(Exchange, ImplicitAPI):
         #                 "orderFrozen": "14920.994472632597427761",
         #                 "equityUsd": "10011254.077985990315787910",
         #                 "isolatedUnrealizedPnl": "-22.151999999999999999952",
-        #                 "bonus": "0"  # present only in REST
-        #                 "unrealizedPnl": "0"  # present only in WS
+        #                 "bonus": "0" // present only in REST
+        #                 "unrealizedPnl": "0" // present only in WS
         #             }
         #         ]
         #     }
@@ -1338,9 +1338,9 @@ class blofin(Exchange, ImplicitAPI):
         #     "cancelSource": "not_canceled",
         #     "cancelSourceReason": null,
         #     "brokerId": "ec6dd3a7dd982d0b"
-        #     "filled_amount": "1.000000000000000000",  # filledAmount in "ws" watchOrders
-        #     "cancelSource": "",  # only in WS
-        #     "instType": "SWAP",  # only in WS
+        #     "filled_amount": "1.000000000000000000", // filledAmount in "ws" watchOrders
+        #     "cancelSource": "", // only in WS
+        #     "instType": "SWAP", // only in WS
         # }
         #
         id = self.safe_string_n(order, ['tpslId', 'orderId', 'algoId'])
@@ -1499,7 +1499,7 @@ class blofin(Exchange, ImplicitAPI):
             'side': side,
             'positionSide': positionSide,
             'brokerId': self.safe_string(self.options, 'brokerId', 'ec6dd3a7dd982d0b'),
-            'reduceOnly': self.safe_bool(params, 'reduceOnly', True),  # self is TP &  SL protective order, so it should be reduceOnly by default
+            'reduceOnly': self.safe_bool(params, 'reduceOnly', True),  # this is TP &  SL protective order, so it should be reduceOnly by default
         }
         if amount is not None:
             request['size'] = self.amount_to_precision(symbol, amount)
@@ -1989,7 +1989,7 @@ class blofin(Exchange, ImplicitAPI):
         :param boolean [params.trigger]: whether the order is a stop/trigger order
         :returns dict: an list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        # TODO : the original endpoint signature differs, according to that you can skip individual symbol and assign ids in batch. At self moment, `params` is not being used too.
+        # TODO : the original endpoint signature differs, according to that you can skip individual symbol and assign ids in batch. At this moment, `params` is not being used too.
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelOrders() requires a symbol argument')
         if self.markets is None:
@@ -2029,9 +2029,9 @@ class blofin(Exchange, ImplicitAPI):
                 })
         response: dict
         if method == 'privatePostTradeCancelTpsl':
-            response = await self.privatePostTradeCancelTpsl(request)  # * dont self.extend with params, otherwise ARRAY will be turned into OBJECT
+            response = await self.privatePostTradeCancelTpsl(request)  # * dont extend with params, otherwise ARRAY will be turned into OBJECT
         else:
-            response = await self.privatePostTradeCancelBatchOrders(request)  # * dont self.extend with params, otherwise ARRAY will be turned into OBJECT
+            response = await self.privatePostTradeCancelBatchOrders(request)  # * dont extend with params, otherwise ARRAY will be turned into OBJECT
         ordersData = self.safe_list(response, 'data', [])
         return self.parse_orders(ordersData, market, None, None, params)
 
@@ -2201,7 +2201,7 @@ class blofin(Exchange, ImplicitAPI):
         #         liquidationPrice: '10.116655172370356435',
         #         markPrice: '68.96',
         #         initialMargin: '22.988770743333333333',
-        #         margin: '',  # self field might not exist in rest response
+        #         margin: '', // this field might not exist in rest response
         #         marginRatio: '152.523509620342499273',
         #         maintenanceMargin: '0.34483156115',
         #         adl: '4',
@@ -2591,7 +2591,7 @@ class blofin(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_dict(response, 'data', {})
-        return self.parse_margin_mode(data, market)  # Dict, not MarginMode: self override has no explicit return annotation, so the Go/C#/Java wrappers infer it — MarginMode would emit MarginMode instead of the map[string]any required by IExchange.SetMarginMode
+        return self.parse_margin_mode(data, market)  # Dict, not MarginMode: this override has no explicit return annotation, so the Go/C#/Java wrappers infer it — MarginMode would emit MarginMode instead of the map[string]any required by IExchange.SetMarginMode
 
     async def fetch_position_mode(self, symbol: Str = None, params={}) -> PositionModeInfo:
         """
@@ -2765,7 +2765,7 @@ class blofin(Exchange, ImplicitAPI):
         request = '/api/' + self.version + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         url = self.urls['api']['rest'] + request
-        # type = self.getPathAuthenticationType(path)
+        # const type = this.getPathAuthenticationType (path);
         if api == 'public':
             if not self.is_empty(query):
                 url += '?' + self.urlencode(query)

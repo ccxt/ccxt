@@ -806,7 +806,7 @@ class bitrue(ccxt.async_support.bitrue):
                 await client.future(messageHash)
                 return self.options['listenKeyUrl']
             # register before the first await, so a concurrent caller entering
-            # authenticate() while self one is inside the fetch sees the flight
+            # authenticate () while this one is inside the fetch sees the flight
             future = client.reusableFuture(messageHash)
             try:
                 response = await self.openV1PrivatePostPoseidonApiV1ListenKey(params)
@@ -829,7 +829,7 @@ class bitrue(ccxt.async_support.bitrue):
                 self.options['listenKeyUrl'] = self.urls['api']['ws']['private'] + '/stream?listenKey=' + key
                 client.resolve(key, messageHash)
             except Exception as e:
-                # reject the flight - all waiters raise and the next caller
+                # reject the flight - all waiters throw and the next caller
                 # re-leads instead of deadlocking on a dead flight
                 client.reject(e, messageHash)
             # rethrows to the leader on failure and attaches the handler that
@@ -837,10 +837,10 @@ class bitrue(ccxt.async_support.bitrue):
             await future
             # only the leader schedules the keepalive, so a burst of watchers
             # no longer stacks one refresh timer per racing caller. waiters
-            # early-return above, so self runs once per successful flight.
+            # early-return above, so this runs once per successful flight.
             # it also has to stay the LAST statement of the block: master's
-            # build/csharpTranspiler.ts:154 rewrites self.delay with a greedy
-            # /self\.delay\(([^,]+),([^,]+),(.+)\)/ whose [^,] spans newlines,
+            # build/csharpTranspiler.ts:154 rewrites this.delay with a greedy
+            # /this\.delay\(([^,]+),([^,]+),(.+)\)/ whose [^,] spans newlines,
             # so any following statement carrying a comma gets swallowed into
             # a bogus `new object[] {...}` argument
             refreshTimeout = self.safe_integer(self.options, 'listenKeyRefreshRate', 1800000)

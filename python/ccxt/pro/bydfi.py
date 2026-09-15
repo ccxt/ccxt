@@ -57,7 +57,7 @@ class bydfi(ccxt.async_support.bydfi):
                     'frequency': '1000ms',  # 100ms, 1000ms
                 },
                 'watchBalance': {
-                    'fetchBalanceSnapshot': False,  # or True
+                    'fetchBalanceSnapshot': False,  # or true
                     'awaitBalanceSnapshot': True,  # whether to wait for the balance snapshot before providing updates
                 },
                 'timeframes': {
@@ -498,8 +498,8 @@ class bydfi(ccxt.async_support.bydfi):
     def handle_order_book(self, client: Client, message: object):
         #
         #     {
-        #         "a": [[150000, 15], ...],
-        #         "b": [[90450.7, 3615], ...],
+        #         "a": [ [ 150000, 15 ], ... ],
+        #         "b": [ [ 90450.7, 3615 ], ... ],
         #         "s": "BTC-USDT",
         #         "e": "depthUpdate",
         #         "E": 1766577624512
@@ -572,7 +572,7 @@ class bydfi(ccxt.async_support.bydfi):
         #         "o": {
         #             "S": "BUY",
         #             "ap": "0",
-        #             "cpt": False,
+        #             "cpt": false,
         #             "ct": "future",
         #             "ev": "0",
         #             "fee": "0",
@@ -582,7 +582,7 @@ class bydfi(ccxt.async_support.bydfi):
         #             "p": "1000",
         #             "ps": "BOTH",
         #             "pt": "ONE_WAY",
-        #             "ro": False,
+        #             "ro": false,
         #             "s": "ETH-USDC",
         #             "st": "NEW",
         #             "t": "LIMIT",
@@ -614,7 +614,7 @@ class bydfi(ccxt.async_support.bydfi):
         #     {
         #         "S": "BUY",
         #         "ap": "0",
-        #         "cpt": False,
+        #         "cpt": false,
         #         "ct": "future",
         #         "ev": "0",
         #         "fee": "0",
@@ -624,7 +624,7 @@ class bydfi(ccxt.async_support.bydfi):
         #         "p": "1000",
         #         "ps": "BOTH",
         #         "pt": "ONE_WAY",
-        #         "ro": False,
+        #         "ro": false,
         #         "s": "ETH-USDC",
         #         "st": "NEW",
         #         "t": "LIMIT",
@@ -930,7 +930,7 @@ class bydfi(ccxt.async_support.bydfi):
     def handle_subscription_status(self, client: Client, message: object):
         #
         #     {
-        #         "result": True,
+        #         "result": true,
         #         "id": 1
         #     }
         #
