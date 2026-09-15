@@ -40,6 +40,7 @@ public class Tests
     public static bool info = false;
     public static bool debug = false;
     public static bool raceCondition = false;
+    public static bool orderRouterTests = false;
 
     public static string[] args;
 
@@ -51,9 +52,12 @@ public class Tests
         isBaseTests = args.Contains("--baseTests");
         isExchangeTests = args.Contains("--exchangeTests");
         isReqResTests = args.Contains("--requestTests") || args.Contains("--request") || args.Contains("--responseTests") || args.Contains("--response") || args.Contains("--wsTests");
-        isAllTest = !isReqResTests && !isBaseTests && !isExchangeTests; // if neither was chosen
+        isAllTest = !isReqResTests && !isBaseTests && !isExchangeTests && !args.Contains("--orderRouterTests"); // if neither was chosen
 
         raceCondition = args.Contains("--race");
+        //  the offline OrderRouter suite. It runs as part of --baseTests too, so
+        //  `npm run test-base-rest-cs` covers it; this flag runs it on its own.
+        orderRouterTests = args.Contains("--orderRouterTests");
         var argsWithoutOptions = args.Where(arg => !arg.StartsWith("--")).ToList();
         if (argsWithoutOptions.Count > 0)
         {
@@ -109,8 +113,18 @@ public class Tests
         try
         {
             Tests.args = args;
-            ReadConfig();
             InitOptions(args);
+
+            if (orderRouterTests)
+            {
+                //  before ReadConfig on purpose: the OrderRouter suite is offline
+                //  and reads nothing but ts/src/test/base/fixtures/orderRouter.json,
+                //  so it must not need exchanges.json or keys.json to run
+                OrderRouterTests();
+                return;
+            }
+
+            ReadConfig();
 
             await RunBaseTests();
 
@@ -152,6 +166,11 @@ public class Tests
             else
             {
                 await baseTestInstance.baseTestsInit();
+                //  hand-written, not transpiled, and therefore invisible to
+                //  baseTestsInit's generated import list — so it is called here.
+                //  Without this line the C# OrderRouter suite has no caller at
+                //  all and a C#-only divergence ships green.
+                OrderRouterTests();
                 Helper.Green("[C#] base REST tests passed");
             }
         }
@@ -218,6 +237,16 @@ public class Tests
     {
         baseTestInstance.testWsOrderBook();
         Helper.Green(" [C#] OrderBook tests passed");
+    }
+
+    static void OrderRouterTests()
+    {
+        var failed = OrderRouterTest.RunAll();
+        if (failed > 0)
+        {
+            throw new Exception("[C#] " + failed.ToString() + " OrderRouter tests failed");
+        }
+        Helper.Green(" [C#] OrderRouter tests passed");
     }
 
     static void RaceConditionTests()

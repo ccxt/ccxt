@@ -200,6 +200,7 @@ dependencies = [
 name = "ccxt-base"
 version = "4.5.78"
 dependencies = [
+ "async-trait",
  "base64",
  "chrono",
  "ed25519-dalek",
