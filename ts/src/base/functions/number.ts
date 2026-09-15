@@ -113,9 +113,12 @@ function precisionFromString (str: string | undefined): number {
         return 0;
     }
     // support string formats like '1e-4'
-    if (str.indexOf ('e') > -1 || str.indexOf ('E') > -1) {
-        const numStr = str.replace (/\d\.?\d*[eE]/, '')
-        return parseInt (numStr) * -1
+    let exponentIndex = str.indexOf ('e');
+    if (exponentIndex < 0) {
+        exponentIndex = str.indexOf ('E');
+    }
+    if (exponentIndex >= 0) {
+        return 0 - parseInt (str.slice (exponentIndex + 1));
     }
     // support integer formats (without dot) like '1', '10' etc [Note: bug in decimalToPrecision, so this should not be used atm]
     // if (str.indexOf ('.') === -1) {
