@@ -16,7 +16,14 @@ endif ()
 # base-test binary is a correctness gate, not a benchmark. Debug info is skipped (-g0):
 # it dominates compile time on these half-megabyte TUs and the port is debugged through
 # error messages, not gdb.
-set (CMAKE_CXX_FLAGS_DEBUG "-O0 -g0")
+# Performance builds opt in to a higher level via -DCCXT_OPT_FLAGS=-O1 (or -O2):
+# measured ~0.3-0.5s (O1) / ~0.7-1.0s (O2) off the binance load path, but the
+# compile cost grows ~1.4x / ~3x — CI (2 cores, 150-min cap) must stay -O0.
+if (DEFINED CCXT_OPT_FLAGS)
+    set (CMAKE_CXX_FLAGS_DEBUG "${CCXT_OPT_FLAGS} -g0")
+else ()
+    set (CMAKE_CXX_FLAGS_DEBUG "-O0 -g0")
+endif ()
 
 find_package (Threads REQUIRED)
 
