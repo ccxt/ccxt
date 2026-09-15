@@ -52,6 +52,67 @@ public partial class BaseTest
         testArrayCacheBySymbolByIdMutatesStoredReference();
         testArrayCacheBySymbolBySideMutatesStoredReference();
         testArrayCacheBySymbolByIdSharedHashmap();
+        testArrayCacheKeyScanPreservesConversions();
+        testArrayCacheStringKeyFallbacks();
+        testArrayCacheConcurrentUpdates();
+        testArrayCacheNativeFallbacks();
+    }
+
+    private sealed class CacheHelperProbe : BaseCache
+    {
+        public static bool Merge(object stored, object update) => mergeInto(stored, update);
+        public static bool Flag(object value) => isTruthyFlag(value);
+    }
+
+    private void testArrayCacheNativeFallbacks()
+    {
+        var baseCache = new BaseCache();
+        baseCache.Add("row");
+        baseCache.clear();
+        Assert(baseCache.Count == 0, "base clear must empty storage");
+        var plain = new ArrayCache();
+        plain.append(orderRow("A", "1"));
+        Assert(plain.SerializeToJson() == "[{\"symbol\":\"A\",\"id\":\"1\"}]", "serialization must preserve row fields");
+        var same = ohlcvRow(100, 1, 2, 3);
+        Assert(CacheHelperProbe.Merge(same, same), "merging the stored reference must succeed");
+        Assert(!CacheHelperProbe.Merge(null, same) && !CacheHelperProbe.Merge(same, null), "null rows cannot merge");
+        Assert(!CacheHelperProbe.Merge("row", same) && !CacheHelperProbe.Merge(same, "row"), "incompatible rows cannot merge");
+        Assert(CacheHelperProbe.Flag("legacy flag"), "non-null non-boolean flags preserve legacy truthiness");
+        var growing = new List<object> { 100 };
+        Assert(CacheHelperProbe.Merge(growing, same) && growing.SequenceEqual(same), "list merge must grow the stored row");
+        Assert(!CacheHelperProbe.Merge(same.AsReadOnly(), same), "read-only lists require replacement");
+        Assert(!CacheHelperProbe.Merge(new System.Collections.ObjectModel.ReadOnlyDictionary<string, object>(orderRow("A", "1")), orderRow("A", "1")), "read-only dictionaries require replacement");
+        var window = new ArrayCacheBySymbolById(2);
+        window.append(orderRow("A", "1"));
+        window.append(orderRow("A", "2"));
+        window.getLimit("A", null);
+        window.getLimit(null, null);
+        window.append(orderRow("A", "2"));
+        window.append(orderRow("A", "3"));
+        Assert(Convert.ToInt32(window.getLimit("A", null)) == 2 && Convert.ToInt32(window.getLimit(null, null)) == 2, "evicting an id absent from the new window must not decrement its counters");
+        var inheritedRows = new ArrayCacheBySymbolById(1);
+        inheritedRows.Add(orderRow("A", "1")); // Inherited Add does not populate cache counters.
+        inheritedRows.append(orderRow("B", "2"));
+        Assert(inheritedRows.Count == 1 && Convert.ToInt32(inheritedRows.getLimit(null, null)) == 1, "evicting an inherited row must tolerate missing seen sets");
+        foreach (var orphan in new[] { false, true })
+        {
+            var candles = new ArrayCacheByTimestamp();
+            var immutable = same.AsReadOnly();
+            candles.append(immutable);
+            if (orphan) candles.Clear(); // Public inherited operation deliberately leaves an orphaned index.
+            var update = ohlcvRow(100, 9, 8, 7);
+            candles.append(update);
+            Assert(candles.Count == 1 && ReferenceEquals(candles[0], update) && ReferenceEquals(candles.hashmap["100"], update), "immutable timestamp replacement must repair both views");
+        }
+        foreach (var bySide in new[] { false, true })
+        {
+            ArrayCache cache = bySide ? new ArrayCacheBySymbolBySide() : new ArrayCacheBySymbolById();
+            var first = new System.Collections.ObjectModel.ReadOnlyDictionary<string, object>(orderRow("A", "1", "side", "long"));
+            cache.append(first);
+            var update = orderRow("A", "1", "side", "long", "value", 2);
+            cache.append(update);
+            Assert(cache.Count == 1 && ReferenceEquals(cache[0], update), "immutable keyed row must be replaced, not duplicated");
+        }
     }
 
     // 1. THE CRITICAL ONE. ArrayCacheByTimestamp(3) fed 10 distinct timestamps
@@ -312,6 +373,96 @@ public partial class BaseTest
         var bySide = new ArrayCacheBySymbolBySide();
         bySide.append(new Dictionary<string, object>() { { "symbol", "BTC/USDT" }, { "side", "long" }, { "contracts", 1 } });
         Assert((bySide as ArrayCache).hashmap.ContainsKey("BTC/USDT"), "ArrayCacheBySymbolBySide must populate the base ArrayCache.hashmap too");
+    }
+
+    private void testArrayCacheKeyScanPreservesConversions()
+    {
+        foreach (var variant in new[] { "id", "outcome", "side" })
+        {
+            ArrayCache cache = variant == "side" ? new ArrayCacheBySymbolBySide() :
+                variant == "outcome" ? new ArrayCacheByOutcomeById(3) : new ArrayCacheBySymbolById(3);
+            var keyField = variant == "outcome" ? "outcome" : "symbol";
+            var subKey = variant == "side" ? "side" : "id";
+            var numeric = new Dictionary<string, object> { { keyField, "A" }, { subKey, 1 }, { "retained", true } };
+            var other = new Dictionary<string, object> { { keyField, "B" }, { subKey, "1" } };
+            var tail = new Dictionary<string, object> { { keyField, "A" }, { subKey, "2" } };
+            cache.append(numeric);
+            cache.append(other);
+            cache.append(tail);
+            // Incoming numeric keys must retain SafeString's conversion rules.
+            cache.append(new Dictionary<string, object> { { keyField, "B" }, { subKey, 1 }, { "updated", 1 } });
+            Assert(object.ReferenceEquals(cache[0], numeric) && object.ReferenceEquals(cache[1], tail), "scan must match both fields and preserve order");
+            Assert(object.ReferenceEquals(cache[2], other), "numeric update must keep the stored reference");
+            cache.append(new Dictionary<string, object> { { keyField, "A" }, { subKey, "1" }, { "updated", 2 } });
+            cache.append(new Dictionary<string, object> { { keyField, "A" }, { subKey, "1" }, { "updated", 3 } });
+            Assert(cache.Count == 3 && object.ReferenceEquals(cache[2], numeric), "repeated tail update must not evict or duplicate");
+            Assert((bool)numeric["retained"] && (int)numeric["updated"] == 3, "partial updates must keep fields and references");
+            Assert(Convert.ToInt32(cache.getLimit(null, null)) == 3 && Convert.ToInt32(cache.getLimit("A", null)) == 2, "scan optimization must preserve update scopes");
+        }
+    }
+
+    private sealed class CacheKeyProbe : ArrayCache
+    {
+        public static string ReadKey(object row, string field) => cacheStringKey(row, field);
+    }
+
+    private sealed class DerivedCacheRow : Dictionary<string, object> { }
+
+    private void testArrayCacheStringKeyFallbacks()
+    {
+        var previousCulture = System.Globalization.CultureInfo.CurrentCulture;
+        try
+        {
+            System.Globalization.CultureInfo.CurrentCulture = new System.Globalization.CultureInfo("fr-FR");
+            foreach (var value in new object[] { "1", "", null, 1, 1L, 1.5, 1.5m, 1.5f, true, new object() })
+            {
+                var row = new Dictionary<string, object> { { "id", value } };
+                foreach (var shape in new object[] { row, new System.Collections.ObjectModel.ReadOnlyDictionary<string, object>(row), new DerivedCacheRow { { "id", value } } })
+                {
+                    Assert(CacheKeyProbe.ReadKey(shape, "id") == ccxt.Exchange.SafeString(shape, "id"), "cache key conversion must match SafeString for " + shape.GetType() + "/" + value);
+                    Assert(CacheKeyProbe.ReadKey(shape, "missing") == null, "missing fields must retain the null fallback");
+                }
+            }
+            Assert(CacheKeyProbe.ReadKey(null, "id") == null, "null rows must retain the null fallback");
+        }
+        finally
+        {
+            System.Globalization.CultureInfo.CurrentCulture = previousCulture;
+        }
+    }
+
+    private void testArrayCacheConcurrentUpdates()
+    {
+        foreach (ArrayCache cache in new ArrayCache[] { new ArrayCacheBySymbolById(32), new ArrayCacheByOutcomeById(32), new ArrayCacheBySymbolBySide() })
+        {
+            var field = (cache is ArrayCacheByOutcomeById) ? "outcome" : "symbol";
+            var key = (cache is ArrayCacheBySymbolBySide) ? "side" : "id";
+            var workers = new List<Task>();
+            for (var worker = 0; worker < 4; worker++)
+            {
+                workers.Add(Task.Run(() =>
+                {
+                    for (var i = 0; i < 1000; i++)
+                    {
+                        cache.append(new Dictionary<string, object> { { field, "A" }, { key, (i % 32).ToString() }, { "value", i } });
+                        Assert(cache.Count <= 32, "concurrent append must not duplicate keys");
+                        var limit = Convert.ToInt32(cache.getLimit("A", null));
+                        Assert(limit >= 0 && limit <= 32, "concurrent polling must keep counters bounded");
+                    }
+                }));
+            }
+            Assert(Task.WaitAll(workers.ToArray(), 30000), "cache workers must finish without deadlock");
+            var seen = new HashSet<object>();
+            // Stored rows remain shared mutable dictionaries, not immutable
+            // snapshots. Inspect their contents only after writers finish.
+            foreach (Dictionary<string, object> row in cache)
+            {
+                seen.Add(row[key]);
+            }
+            Assert(cache.Count == 32 && seen.Count == 32, "concurrent updates must retain all distinct keys");
+            cache.clear();
+            Assert(cache.Count == 0 && Convert.ToInt32(cache.getLimit(null, null)) == 0, "clear must reset the concurrent workload");
+        }
     }
 
     private static object cache_get(object row, string key)
