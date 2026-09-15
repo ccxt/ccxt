@@ -3412,8 +3412,8 @@ export default class bingx extends Exchange {
         }
         const market = this.market (symbol);
         const test = this.safeBool (params, 'test', false);
-        if (test && (market['inverse'] === true)) {
-            throw new NotSupported (this.id + ' createOrder() does not support test orders for inverse markets');
+        if (test && ((market['swap'] !== true) || (market['inverse'] === true))) {
+            throw new NotSupported (this.id + ' createOrder() only supports test orders for linear swap markets');
         }
         params = this.omit (params, 'test');
         const request = this.createOrderRequest (symbol, type, side, amount, price, params);
