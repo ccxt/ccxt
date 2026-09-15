@@ -2428,6 +2428,14 @@ export class BaseExchange {
         return undefined;  // c# stub
     }
 
+    lockLastNonce () {
+        return undefined; // c# stub
+    }
+
+    unlockLastNonce () {
+        return undefined;  // c# stub
+    }
+
     async loadLighterLibrary (libraryPath: any, chainId: any, privateKey: any, apiKeyIndex: any, accountIndex: any, createClient = false) {
         // wasmExecPathExample: '/opt/homebrew/opt/go/libexec/lib/wasm/wasm_exec.js';
         // libraryPath eg: '/Users/cjg/Git/lighter-go/lighter.wasm';
@@ -6212,6 +6220,16 @@ export class BaseExchange {
 
     nonce () {
         return this.seconds ();
+    }
+
+    incrementingNonce () {
+        const currentNonce = this.nonce ();
+        this.lockLastNonce ();
+        const lastNonce = this.safeInteger (this.options, 'lastNonce', 0);
+        const result = (currentNonce > lastNonce) ? currentNonce : lastNonce + 1;
+        this.options['lastNonce'] = result;
+        this.unlockLastNonce ();
+        return result;
     }
 
     setHeaders (headers: any) {
