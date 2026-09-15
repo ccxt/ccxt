@@ -1186,8 +1186,9 @@ export default class bingx extends bingxRest {
         // don't remove the future from the .futures cache
         if (messageHash in client.futures) {
             const future = client.futures[messageHash];
-            future.resolve ();
             client.resolve (this.balance[type], type + ':balance');
+            // Publish the snapshot before waking callers that will subscribe for the next update.
+            future.resolve ();
         }
     }
 
@@ -1762,10 +1763,10 @@ export default class bingx extends bingxRest {
             const balance = data[i];
             const currencyId = this.safeString (balance, 'a');
             const code = this.safeCurrencyCode (currencyId);
+            const previous = this.safeDict (this.balance[type], code, {});
             const account = this.account ();
-            account['info'] = balance;
-            account['used'] = this.safeString (balance, 'lk');
-            account['free'] = this.safeString (balance, 'wb');
+            account['total'] = this.safeString (balance, 'wb');
+            account['used'] = this.safeString (previous, 'used');
             if ((type !== undefined) && (code !== undefined)) {
                 this.balance[type][code] = account;
             }
