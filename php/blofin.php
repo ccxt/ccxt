@@ -133,7 +133,7 @@ class blofin extends Exchange {
                 'setPositionMode' => true,
                 'signIn' => false,
                 'transfer' => true,
-                'withdraw' => false,
+                'withdraw' => true,
             ),
             'timeframes' => array(
                 '1m' => '1m',
@@ -405,8 +405,8 @@ class blofin extends Exchange {
                     '405' => '\\ccxt\\BadRequest',  // Method Not Allowed
                     '406' => '\\ccxt\\BadRequest',  // Not Acceptable
                     '429' => '\\ccxt\\RateLimitExceeded',  // Too Many Requests
-                    '152001' => '\\ccxt\\BadRequest',  // Parameter {} cannot be empty
-                    '152002' => '\\ccxt\\BadRequest',  // Parameter {} error
+                    '152001' => '\\ccxt\\BadRequest',  // Parameter {} cannot be empty - verified live 2026-09-14 (withdrawal-apply without addrType)
+                    '152002' => '\\ccxt\\BadRequest',  // Parameter {} error - verified live 2026-09-14 (short-form chain id in withdrawal-apply; NOTE the live message omits the field name)
                     '152003' => '\\ccxt\\BadRequest',  // Either parameter {} or {} is required
                     '152004' => '\\ccxt\\BadRequest',  // JSON syntax error
                     '152005' => '\\ccxt\\BadRequest',  // Parameter error: wrong or empty
@@ -439,6 +439,46 @@ class blofin extends Exchange {
                     '102065' => '\\ccxt\\BadRequest',  // Sell price is not within the price limit
                     '102068' => '\\ccxt\\BadRequest',  // Cancel failed as the order has been filled, triggered, canceled or does not exist
                     '103013' => '\\ccxt\\ExchangeError',  // Internal error; unable to process your request. Please try again.
+                    '102067' => '\\ccxt\\OrderNotFound',  // Order modification failed as the order has been filled, triggered, canceled or does not exist.
+                    '102089' => '\\ccxt\\BadRequest',  // Position mode mismatch
+                    '102148' => '\\ccxt\\DuplicateOrderId',  // Duplicate requestId, request ignored.
+                    '103003' => '\\ccxt\\InsufficientFunds',  // Order failed. Insufficient USDT margin in account
+                    '110006' => '\\ccxt\\InvalidOrder',  // You have pending cross orders. Please cancel them before adjusting your leverage.
+                    '110019' => '\\ccxt\\InvalidOrder',  // Setting failed. Cancel any open orders, and close positions first.
+                    '148082' => '\\ccxt\\BadRequest',  // Callback percentage range 0.1% - 100%
+                    '148083' => '\\ccxt\\BadRequest',  // Callback constant range
+                    '152011' => '\\ccxt\\PermissionDenied',  // Transaction API Key does not support brokerId
+                    '152012' => '\\ccxt\\BadRequest',  // BrokerId is required
+                    '152013' => '\\ccxt\\PermissionDenied',  // Unmatched brokerId, please check your API key's bound broker
+                    '152014' => '\\ccxt\\BadRequest',  // Instrument ID does not exist
+                    '152015' => '\\ccxt\\BadRequest',  // Number of instId values exceeds the maximum limit of 20
+                    '152020' => '\\ccxt\\InvalidAddress',  // Address binding not found.
+                    '152022' => '\\ccxt\\BadRequest',  // Current network is not available.
+                    '152023' => '\\ccxt\\PermissionDenied',  // This address is still within the 24-hour withdrawal lock period.
+                    '152024' => '\\ccxt\\PermissionDenied',  // Your account now can only withdraw to whitelist addresses.
+                    '152025' => '\\ccxt\\PermissionDenied',  // Deposits not supported yet, contact customer support for details.
+                    '152026' => '\\ccxt\\BadRequest',  // Amount precision error.
+                    '152027' => '\\ccxt\\BadRequest',  // The withdrawal must exceed the minimum limit.
+                    '152028' => '\\ccxt\\InsufficientFunds',  // Insufficient balance.
+                    '152029' => '\\ccxt\\PermissionDenied',  // The maximum daily withdrawal amount has been reached.
+                    '152030' => '\\ccxt\\DuplicateOrderId',  // Duplicated clientId.
+                    '152031' => '\\ccxt\\InvalidAddress',  // This address is not marked as verification-free. - verified live 2026-09-14 (account-policy rejection, address must carry the verification-free flag for api withdrawals)
+                    '152032' => '\\ccxt\\PermissionDenied',  // Quick withdrawal daily limit exceeded. Please complete 2FA verification.
+                    '152401' => '\\ccxt\\AuthenticationError',  // Access key does not exist
+                    '152402' => '\\ccxt\\AuthenticationError',  // Access key has expired
+                    '152404' => '\\ccxt\\PermissionDenied',  // This operation is not supported, Please check the requestPath or API key permissions. - verified live 2026-09-14 (api key without the withdrawal permission)
+                    '152405' => '\\ccxt\\InvalidNonce',  // Timestamp in header or signature has expired, need to be within 60s
+                    '152406' => '\\ccxt\\PermissionDenied',  // Your IP is not included in your API key's IP whitelist
+                    '152407' => '\\ccxt\\InvalidNonce',  // Repeated nonce, Reusing within 60 seconds is not allowed.
+                    '152408' => '\\ccxt\\AuthenticationError',  // Passphrase error
+                    '152409' => '\\ccxt\\AuthenticationError',  // Signature verification failed
+                    '152410' => '\\ccxt\\InvalidNonce',  // The value of ACCESS-TIMESTAMP needs to be a millisecond timestamp
+                    '152420' => '\\ccxt\\DuplicateOrderId',  // Duplicate order in batch request
+                    '152421' => '\\ccxt\\DuplicateOrderId',  // requestId already exists, please try again later
+                    '152422' => '\\ccxt\\BadRequest',  // Exactly one of callbackRatio and callbackSpread must be provided
+                    '152423' => '\\ccxt\\InvalidOrder',  // New size cannot be less than filled size
+                    '152428' => '\\ccxt\\BadRequest',  // Invalid trigger price type
+                    '152429' => '\\ccxt\\BadRequest',  // Request expired, ttl exceeded
                     'Order failed. Insufficient USDT margin in account' => '\\ccxt\\InsufficientFunds',  // Insufficient USDT margin in account
                 ),
                 'broad' => array(
@@ -473,10 +513,44 @@ class blofin extends Exchange {
                     'USDT' => 'TRC20',
                 ),
                 'networks' => array(
+                    // code -> the withdrawal-apply chain identifier: the live
+                    // venue registry (GET /asset/currencies) returns display
+                    // names like 'Tron (TRC20)', NOT the short forms shown in
+                    // the doc's own Get Currencies response example - a bare
+                    // 'TRC20' in withdrawal-apply is rejected with 152002
+                    // 'Invalid parameter' (verified live 2026-09-14)
                     'BTC' => 'Bitcoin',
-                    'BEP20' => 'BSC',
-                    'ERC20' => 'ERC20',
-                    'TRC20' => 'TRC20',
+                    'ERC20' => 'Ethereum (ERC20)',
+                    'TRC20' => 'Tron (TRC20)',
+                    'BEP20' => 'BNB Smart Chain (BEP20)',
+                    'MATIC' => 'Polygon POS',
+                    'AVAXC' => 'AVAX C-Chain',
+                    'SOL' => 'Solana',
+                    'ARBITRUM' => 'Arbitrum One',
+                    'OP' => 'Optimism',
+                    'APT' => 'APT (APT)',
+                    'TON' => 'TON (Toncoin)',
+                    'KAIA' => 'KAIA',
+                ),
+                'networksById' => array(
+                    // id -> code for BOTH identifier families: live history
+                    // rows and the currencies registry carry the display
+                    // names (verified live 2026-09-15), while the doc
+                    // examples still show short forms - map both back to
+                    // unified codes so either era of data parses
+                    'Bitcoin' => 'BTC',
+                    'Ethereum (ERC20)' => 'ERC20',
+                    'Tron (TRC20)' => 'TRC20',
+                    'BNB Smart Chain (BEP20)' => 'BEP20',
+                    'BSC' => 'BEP20',
+                    'Polygon POS' => 'MATIC',
+                    'AVAX C-Chain' => 'AVAXC',
+                    'Solana' => 'SOL',
+                    'Arbitrum One' => 'ARBITRUM',
+                    'Optimism' => 'OP',
+                    'APT (APT)' => 'APT',
+                    'TON (Toncoin)' => 'TON',
+                    'KAIA' => 'KAIA',
                 ),
                 'fetchOpenInterestHistory' => array(
                     'timeframes' => array(
@@ -1887,6 +1961,89 @@ class blofin extends Exchange {
         return $this->parse_transactions($data, $currency, $since, $limit, $params);
     }
 
+    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()): array {
+        /**
+         * make a withdrawal
+         *
+         * @see https://docs.blofin.com/index.html#withdrawal
+         *
+         * @param {string} $code unified $currency $code
+         * @param {float} $amount the $amount to withdraw, the withdrawal fee is not included and must be reserved on top
+         * @param {string} $address the $address to withdraw to, or a UID / email / phone number for an internal transfer
+         * @param {string} $tag additional identifier (memo / payment id) required by certain networks
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->network] the unified network $code for on-$chain withdrawals, mapped to the exchange's $chain name
+         * @param {string} [$params->dest] 'onchain' (default) or 'internal' for an internal transfer
+         * @param {string} [$params->addrType] $address type, 1 => wallet $address, 2 => UID, 3 => email, 4 => mobile phone
+         * @param {string} [$params->areaCode] area $code for the phone number, required when $address is a phone number
+         * @param {string} [$params->clientId] a client-supplied id of up to 32 case-sensitive alphanumerics
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
+         */
+        // LIVE API vs DOCS quirks, verified against the venue 2026-09-14:
+        // - addrType is documented optional but the live venue rejects
+        //   on-chain withdrawals without it: 152001 "Parameter addrType
+        //   cannot be empty" - defaulted to 1 below
+        // - the chain identifiers accepted here are the DISPLAY NAMES from
+        //   GET /asset/currencies ("Tron (TRC20)", "Ethereum (ERC20)", ...);
+        //   the short forms shown in the doc examples ("TRC20") are rejected
+        //   with 152002 "Invalid parameter" - see options["networks"]
+        // - 152002 responses omit the offending field name even though the
+        //   error table documents the message as "Parameter {} error"
+        list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
+        $this->load_markets();
+        $currency = $this->currency($code);
+        $request = array(
+            'currency' => $currency['id'],
+            'address' => $address,
+            'amount' => $this->number_to_string($amount),
+        );
+        $dest = $this->safe_string($params, 'dest', 'onchain');
+        $request['dest'] = $dest;
+        $params = $this->omit($params, 'dest');
+        if ($dest === 'onchain') {
+            $this->check_address($address);
+            // the doc's Request Parameters table marks addrType "Required:
+            // No", but the live venue rejects on-chain withdrawals without
+            // it (152001 "Parameter addrType cannot be empty") - default to
+            // 1 = wallet address, callers can override for other kinds
+            $request['addrType'] = $this->safe_string($params, 'addrType', '1');
+            $params = $this->omit($params, 'addrType');
+        }
+        if ($tag !== null) {
+            $request['tag'] = $tag;
+        }
+        // consume the unified network key unconditionally so it never leaks
+        // onto the wire; an explicit raw params['chain'] takes precedence
+        $networkCode = null;
+        list($networkCode, $params) = $this->handle_network_code_and_params($params);
+        $chain = $this->safe_string($params, 'chain');
+        if ($chain === null) {
+            if ($networkCode !== null) {
+                $request['chain'] = $this->network_code_to_id($networkCode);
+            } elseif ($dest === 'onchain') {
+                // required for on-chain withdrawals, optional for internal transfers
+                throw new ArgumentsRequired($this->id . ' withdraw() requires a $params["network"] or $params["chain"] for on-$chain withdrawals');
+            }
+        }
+        $response = $this->privatePostAssetWithdrawalApply($this->extend($request, $params));
+        //
+        //     {
+        //         "code": "0",
+        //         "msg": "success",
+        //         "data": {
+        //             "withdrawId": "a1b2c3d4e5",
+        //             "clientId": "broker-20260706-0001"
+        //         }
+        //     }
+        //
+        $data = $this->safe_dict($response, 'data', array());
+        // the response carries only withdrawId + clientId, and this class's
+        // parseTransaction reads every field from the payload - seed the
+        // parsed structure from the request so the unified transaction
+        // reflects what was actually submitted
+        return $this->parse_transaction($this->extend($request, $data), $currency);
+    }
+
     public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch the history of changes, actions done by the user or operations that altered the balance of the user
@@ -1982,6 +2139,14 @@ class blofin extends Exchange {
         $currencyId = $this->safe_string($transaction, 'currency');
         $code = $this->safe_currency_code($currencyId);
         $amount = $this->safe_number($transaction, 'amount');
+        // live history rows carry the DISPLAY-NAME chain identifiers
+        // ('Tron (TRC20)', verified live 2026-09-15) even though the doc
+        // examples show short forms ('TRC20') - options['networksById']
+        // maps both families back to unified codes here. note the history
+        // amount is NET of the fee: a 30 USDT withdrawal-apply lands as
+        // amount 29 + fee 1
+        $networkId = $this->safe_string($transaction, 'chain');
+        $networkCode = $this->network_id_to_code($networkId);
         $txid = $this->safe_string($transaction, 'txId');
         $timestamp = $this->safe_integer($transaction, 'ts');
         $feeCurrencyId = $this->safe_string($transaction, 'feeCurrency');
@@ -1992,7 +2157,7 @@ class blofin extends Exchange {
             'id' => $id,
             'currency' => $code,
             'amount' => $amount,
-            'network' => null,
+            'network' => $networkCode,
             'addressFrom' => null,
             'addressTo' => $addressTo,
             'address' => $address,

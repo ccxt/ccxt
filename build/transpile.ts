@@ -1731,6 +1731,63 @@ class Transpiler {
         return -1
     }
 
+    maskStringSpaceParens (js: string) {
+        // a space before a left paren inside a string literal is DATA, not
+        // code style - the PEP8 E225 collapse and its siblings must never
+        // touch it (first live hit: blofin's chain identifiers like
+        // 'Tron (TRC20)'). quote state is tracked per line exactly like
+        // findCommentStart, and every ' (' inside a literal is swapped for
+        // a regex-inert token before any transform runs and restored
+        // verbatim afterwards
+        const lines = js.split ('\n')
+        for (let i = 0; i < lines.length; i++) {
+            const line = lines[i]
+            if (line.indexOf (' (') < 0) {
+                continue
+            }
+            let quote = ''
+            let out = ''
+            for (let j = 0; j < line.length; j++) {
+                const c = line[j]
+                if (quote !== '') {
+                    if (c === '\\') {
+                        out += c + (line[j + 1] ?? '')
+                        j++
+                        continue
+                    }
+                    if (c === quote) {
+                        quote = ''
+                        out += c
+                        continue
+                    }
+                    if (c === ' ' && line[j + 1] === '(' && /[A-Za-z0-9]/.test (line[j + 2] ?? '')) {
+                        // only the data shape ' (Word...' is protected -
+                        // house-style method mentions like ' () requires'
+                        // and punctuation groups like ' (#' keep the
+                        // long-standing per-language collapse
+                        out += '\x02'
+                        continue
+                    }
+                    out += c
+                } else {
+                    // backticks stay OUT of the quote set: jsdoc code spans
+                    // like \`this.method (arg)\` must remain visible to the
+                    // per-language method-conversion rules
+                    if (c === "'" || c === '"') {
+                        quote = c
+                    }
+                    out += c
+                }
+            }
+            lines[i] = out
+        }
+        return lines.join ('\n')
+    }
+
+    unmaskStringSpaceParens (body: string) {
+        return body.replace (/\x02/g, ' ')
+    }
+
     maskComments (js: string) {
         // comment text is documentation, not code to translate, so the body of
         // every comment is replaced by a regex-inert token before any transform
@@ -1766,7 +1823,8 @@ class Transpiler {
 
         // protect comment bodies from every code transform below
         const { masked, masks } = this.maskComments (args.js)
-        args.js = masked
+        // protect data spaces inside string literals from the style rules
+        args.js = this.maskStringSpaceParens (masked)
 
         // apply common regexes once before branching to language-specific paths
         args.js = this.regexAll (args.js, this.getCommonRegexes ())
@@ -1794,10 +1852,10 @@ class Transpiler {
             phpBody = this.transpileAsyncPHPToSyncPHP (this.transpileJavaScriptToPHP (args, false))
         }
 
-        python3Body = this.unmaskComments (python3Body, masks)
-        python2Body = this.unmaskComments (python2Body, masks)
-        phpBody = this.unmaskComments (phpBody, masks)
-        phpAsyncBody = this.unmaskComments (phpAsyncBody, masks)
+        python3Body = this.unmaskStringSpaceParens (this.unmaskComments (python3Body, masks))
+        python2Body = this.unmaskStringSpaceParens (this.unmaskComments (python2Body, masks))
+        phpBody = this.unmaskStringSpaceParens (this.unmaskComments (phpBody, masks))
+        phpAsyncBody = this.unmaskStringSpaceParens (this.unmaskComments (phpAsyncBody, masks))
 
         return { python3Body, python2Body, phpBody, phpAsyncBody, phpAsyncBodyIsFlatAwait }
     }

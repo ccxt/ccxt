@@ -1005,7 +1005,7 @@ class PredictionExchange(BaseExchange):
 
     async def fetch_settlements(self, outcome: Str = None, since: Int = None, limit: Int = None, params={}):
         """
-        fetches the user's settled(resolved) positions — the "close the loop" record after
+        fetches the user's settled (resolved) positions — the "close the loop" record after
  markets resolve, with the collateral paid out and the realized pnl
         :param str [outcome]: filter to a single unified outcome handle
         :param int [since]: timestamp in ms of the earliest settlement to fetch
