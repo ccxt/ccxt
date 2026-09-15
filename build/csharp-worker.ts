@@ -1,4 +1,5 @@
 import { Transpiler } from 'ast-transpiler';
+import { installCacheRemoveCall } from './cache-remove-call.js';
 import { getProgramBatch } from './worker-program-batch.js';
 import { installCsharpAsyncCoreReturns, installCsharpCollectionReturns, installCsharpLocalTypes, installCsharpNumericReturns, installCsharpStringReturns } from './csharp-local-types.js';
 import log from 'ololog'
@@ -23,6 +24,7 @@ interface CsharpWorkerTask {
 // Used by this worker and by csharpTranspiler.ts setupTranspiler so pooled and
 // main-thread files emit identical code.
 export function setupCsharpPrinter (transpiler: Transpiler) {
+    installCacheRemoveCall(transpiler, 'csharp');
     transpiler.setVerboseMode (false);
     const csharp = transpiler.csharpTranspiler;
     csharp.printElementAccessExpressionExceptionIfAny = (node: any) => {

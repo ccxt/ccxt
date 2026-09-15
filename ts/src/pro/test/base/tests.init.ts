@@ -2,6 +2,7 @@
 import testWsOrderBook from "./test.orderBook.js";
 import testWsCache from "./test.cache.js";
 import testWsCacheNative from "./test.cacheNative.js";
+import testCacheRemoveSymbol from "./test.cacheRemoveSymbol.js";
 import testWsSingleFlight from "./test.singleFlight.js";
 import testWsSingleFlightWiring from "./test.singleFlightWiring.js";
 import testWsKeepAliveTimeout from "./test.keepAliveTimeout.js";
@@ -11,6 +12,7 @@ async function testBaseWs () {
     testWsOrderBook ();
     testWsCache ();
     testWsCacheNative (); // js-only: removeAt () has no port equivalent
+    testCacheRemoveSymbol (); // js-only: native cache removal regression checks
     // todo : testWsClose ();
     await testWsSingleFlight ();
     await testWsSingleFlightWiring ();
