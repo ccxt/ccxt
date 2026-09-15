@@ -26,14 +26,28 @@
     "methods": {
         "cancelAllOrders": [
             {
-                "disabled": true,
                 "description": "default",
                 "method": "cancelAllOrders",
                 "url": "https://mainnet.zklighter.elliot.ai/api/v1/sendTx",
                 "input": [],
                 "output": {
                     "tx_type": 16,
-                    "tx_info": "{\"AccountIndex\":715085,\"ApiKeyIndex\":30,\"TimeInForce\":0,\"Time\":0,\"ExpiredAt\":1789490284390,\"Nonce\":1789489685389,\"Sig\":\"FgZmNnDzRgo8A5h+/XXrDZH0hu/tWu8v8Q0v/LQaRtmRDsV42CkgSfT5dWYHJXKE45NNlTNqTj0rvI3GE01a+MiAZec6OkYK5i9pzU+YIzo=\",\"L2TxAttributes\":null}"
+                    "tx_info": "{\"AccountIndex\":715085,\"ApiKeyIndex\":30,\"TimeInForce\":0,\"Time\":0,\"ExpiredAt\":1789490284390,\"Nonce\":1789489685389,\"Sig\":\"FgZmNnDzRgo8A5h+/XXrDZH0hu/tWu8v8Q0v/LQaRtmRDsV42CkgSfT5dWYHJXKE45NNlTNqTj0rvI3GE01a+MiAZec6OkYK5i9pzU+YIzo=\",\"L2TxAttributes\":{\"4\":1}}"
+                }
+            },
+            {
+                "description": "single market",
+                "method": "cancelAllOrders",
+                "url": "https://mainnet.zklighter.elliot.ai/api/v1/sendTx",
+                "input": [
+                    null,
+                    {
+                        "cancel_all_market_index": 35
+                    }
+                ],
+                "output": {
+                    "tx_type": 16,
+                    "tx_info": "{\"AccountIndex\":715085,\"ApiKeyIndex\":30,\"TimeInForce\":0,\"Time\":0,\"ExpiredAt\":1789490284390,\"Nonce\":1789489685389,\"Sig\":\"FgZmNnDzRgo8A5h+/XXrDZH0hu/tWu8v8Q0v/LQaRtmRDsV42CkgSfT5dWYHJXKE45NNlTNqTj0rvI3GE01a+MiAZec6OkYK5i9pzU+YIzo=\",\"L2TxAttributes\":{\"4\":1,\"5\":35}}"
                 }
             }
         ],

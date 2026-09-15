@@ -2422,6 +2422,7 @@ class BaseExchange(object):
         raise Exception(message)
 
     def lighter_create_client(self, lighterSigner, chainId, privateKey, apiKeyIndex, accountIndex):
+        from ccxt.static_dependencies.lighter_client.signer import decode_and_free
         url = self.implode_hostname(self.urls['api']['public'])
         res = lighterSigner.CreateClient(
             url.encode("utf-8"),
@@ -2431,8 +2432,8 @@ class BaseExchange(object):
             accountIndex,
         )
         # CreateClient returns a null pointer on success and an error string otherwise
-        if res is not None:
-            error = res.decode('utf-8') if isinstance(res, bytes) else str(res)
+        error = decode_and_free(res)
+        if error is not None:
             self.raise_lighter_signer_error('lighter_create_client', error, {'api_key_index': apiKeyIndex, 'account_index': accountIndex})
         return lighterSigner
 

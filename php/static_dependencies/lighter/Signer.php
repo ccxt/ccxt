@@ -76,20 +76,103 @@ class Signer
         void Free(void* ptr);
 CDEF;
 
+    // every symbol ccxt binds on the native signer, in the order they are declared above
+    private const REQUIRED_SIGNER_SYMBOLS = [
+        'GenerateAPIKey', 'CreateClient', 'CheckClient', 'SignChangePubKey', 'SignCreateOrder',
+        'SignCreateGroupedOrders', 'SignCancelOrder', 'SignWithdraw', 'SignCreateSubAccount',
+        'SignCancelAllOrders', 'SignModifyOrder', 'SignTransfer', 'SignCreatePublicPool',
+        'SignUpdatePublicPool', 'SignMintShares', 'SignBurnShares', 'SignStakeAssets',
+        'SignUnstakeAssets', 'SignUpdateLeverage', 'CreateAuthToken', 'SignUpdateMargin',
+        'SignApproveIntegrator', 'Free',
+    ];
+
+    // `SwitchAPIKey` was dropped from the signer when every signing function started taking
+    // `apiKeyIndex`/`accountIndex` on each call. A binary that still exports it predates that
+    // change, so the declarations above no longer line up with it: the trailing arguments land
+    // in the wrong slots and the library reads an arbitrary pair of indices, failing with
+    // `client is not created for apiKeyIndex: <n> accountIndex: <n>` even though the credentials
+    // are correct. Such a binary cannot be used, so reject it while loading instead of signing
+    // garbage later on.
+    private const INCOMPATIBLE_SIGNER_SYMBOLS = ['SwitchAPIKey'];
+
+    private const SIGNER_ABI_HINT = 'The signer binary has to match this version of ccxt. Its functions are called over FFI by position, so a binary built from a different revision of https://github.com/elliottech/lighter-go shifts the trailing arguments instead of failing: use the binaries ccxt is tested against, in the ccxt repository under "ts/src/test/static/binaries", or upgrade ccxt if your binary is newer than it.';
+
+    private const DL_DEFINITIONS = <<<'CDEF'
+        void* dlopen(const char* filename, int flags);
+        void* dlsym(void* handle, const char* symbol);
+        int dlclose(void* handle);
+CDEF;
+
+    private const WIN_DL_DEFINITIONS = <<<'CDEF'
+        void* LoadLibraryA(const char* filename);
+        void* GetProcAddress(void* handle, const char* symbol);
+        int FreeLibrary(void* handle);
+CDEF;
+
+    /**
+     * Verify every symbol ccxt binds on the native signer is present in the binary before
+     * FFI::cdef() touches it, since FFI resolves declared functions lazily: a binary missing a
+     * newer export would otherwise fail opaquely on the first call to it instead of at load.
+     *
+     * @throws RuntimeException If the library is missing required exports or is a pre-ABI-change binary
+     */
+    private function checkLighterLibraryAbi(string $libraryPath): void
+    {
+        $isWindows = PHP_OS_FAMILY === 'Windows';
+        $dl = $isWindows
+            ? \FFI::cdef(self::WIN_DL_DEFINITIONS, 'kernel32.dll')
+            : \FFI::cdef(self::DL_DEFINITIONS, PHP_OS_FAMILY === 'Darwin' ? 'libSystem.B.dylib' : 'libdl.so.2');
+
+        $handle = $isWindows ? $dl->LoadLibraryA($libraryPath) : $dl->dlopen($libraryPath, 2 /* RTLD_NOW */);
+        if ($handle === null) {
+            throw new RuntimeException("could not open the lighter signer library at \"{$libraryPath}\" for an ABI check.");
+        }
+
+        // deliberately never dlclose()/FreeLibrary() $handle: the signer is a Go cgo
+        // "-buildmode=c-shared" library, and the Go runtime does not support being unloaded
+        // (its GC and scheduler threads keep running against unmapped memory) - unloading it
+        // crashes the process. Leaking this one extra reference is harmless: FFI::cdef() below
+        // opens the same path again and the singleton keeps that handle for the process lifetime
+        // anyway, so the library was never going to be unloaded regardless.
+        $hasSymbol = function (string $name) use ($dl, $handle, $isWindows): bool {
+            $sym = $isWindows ? $dl->GetProcAddress($handle, $name) : $dl->dlsym($handle, $name);
+            return $sym !== null;
+        };
+
+        $incompatible = array_values(array_filter(self::INCOMPATIBLE_SIGNER_SYMBOLS, $hasSymbol));
+        if (!empty($incompatible)) {
+            throw new RuntimeException(
+                "the lighter signer library at \"{$libraryPath}\" is too old for this version of ccxt: it still exports " .
+                implode(', ', $incompatible) .
+                ', which means its signing functions do not take apiKeyIndex/accountIndex on every call. ' .
+                'Calling it would silently misalign the arguments and sign with the wrong indices. ' . self::SIGNER_ABI_HINT
+            );
+        }
+
+        $missing = array_values(array_filter(self::REQUIRED_SIGNER_SYMBOLS, fn (string $name): bool => !$hasSymbol($name)));
+        if (!empty($missing)) {
+            throw new RuntimeException(
+                "the lighter signer library at \"{$libraryPath}\" is not compatible with this version of ccxt: it does not export " .
+                implode(', ', $missing) . '. ' . self::SIGNER_ABI_HINT
+            );
+        }
+    }
+
     /**
      * Private constructor - use getInstance() instead
-     * 
+     *
      * @param string|null $libraryPath Optional path to the shared library
      * @throws RuntimeException If the library cannot be loaded
      */
     private function __construct(?string $libraryPath = null)
     {
         $libraryPath = $libraryPath ?? $this->getDefaultLibraryPath();
-        
+
         if (!file_exists($libraryPath)) {
             throw new RuntimeException("Shared library not found at: {$libraryPath}");
         }
 
+        $this->checkLighterLibraryAbi($libraryPath);
         $this->ffi = \FFI::cdef(self::C_DEFINITIONS, $libraryPath);
     }
 

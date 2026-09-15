@@ -103,7 +103,7 @@ def load_lighter_library(path):
     lighterSigner.GenerateAPIKey.restype = ApiKeyResponse
 
     lighterSigner.CreateClient.argtypes = [ctypes.c_char_p, ctypes.c_char_p, ctypes.c_int, ctypes.c_int, ctypes.c_longlong]
-    lighterSigner.CreateClient.restype = ctypes.c_char_p
+    lighterSigner.CreateClient.restype = ctypes.c_void_p
 
     lighterSigner.CheckClient.argtypes = [ctypes.c_int, ctypes.c_longlong]
     lighterSigner.CheckClient.restype = ctypes.c_void_p
