@@ -2014,8 +2014,10 @@ export default class blofin extends Exchange {
             const bySuffix = this.safeDict (this.options, 'networkCodesBySuffix', {});
             return this.safeString (bySuffix, suffix, suffix);
         }
-        const networksById = this.safeDict (this.options, 'networksById', {});
-        return this.safeString (networksById, chainId, chainId);
+        // delegate the paren-free branch to the base resolver so the
+        // currency-scoped networks and the deprecated-network-code aliases
+        // keep applying alongside options['networksById']
+        return this.networkIdToCode (chainId);
     }
 
     /**
@@ -2198,8 +2200,10 @@ export default class blofin extends Exchange {
         const amount = this.safeNumber (transaction, 'amount');
         // live history rows carry the DISPLAY-NAME chain identifiers
         // ('Tron (TRC20)', verified live 2026-09-15) even though the doc
-        // examples show short forms ('TRC20') - options['networksById']
-        // maps both families back to unified codes here. note the history
+        // examples show short forms ('TRC20') - chainIdToNetworkCode parses
+        // the parenthesized suffix for the display-name family, and the
+        // paren-free ids resolve through the base networkIdToCode with
+        // options['networksById']. note the history
         // amount is NET of the fee: a 30 USDT withdrawal-apply lands as
         // amount 29 + fee 1
         const networkId = this.safeString (transaction, 'chain');
