@@ -184,6 +184,38 @@
         ],
         "createOrder": [
             {
+                "description": "createOrder with an already lowercase ioc passes through unchanged",
+                "method": "createOrder",
+                "url": "https://paper-api.alpaca.markets/v2/orders",
+                "input": [
+                    "BTC/USD",
+                    "limit",
+                    "buy",
+                    0.00025,
+                    50000,
+                    {
+                        "timeInForce": "ioc"
+                    }
+                ],
+                "output": "{\"symbol\":\"BTC/USD\",\"side\":\"buy\",\"type\":\"limit\",\"limit_price\":\"50000\",\"qty\":\"0.00025\",\"time_in_force\":\"ioc\",\"client_order_id\":\"ccxt_8aa1d10a95f843fa88669dda30ad2417\"}"
+            },
+            {
+                "description": "createOrder with the unified uppercase IOC is lowercased for the venue",
+                "method": "createOrder",
+                "url": "https://paper-api.alpaca.markets/v2/orders",
+                "input": [
+                    "BTC/USD",
+                    "limit",
+                    "buy",
+                    0.00025,
+                    50000,
+                    {
+                        "timeInForce": "IOC"
+                    }
+                ],
+                "output": "{\"symbol\":\"BTC/USD\",\"side\":\"buy\",\"type\":\"limit\",\"limit_price\":\"50000\",\"qty\":\"0.00025\",\"time_in_force\":\"ioc\",\"client_order_id\":\"ccxt_a63f2d4180c141859a33bbc9d1a94fd2\"}"
+            },
+            {
                 "description": "Spot market buy",
                 "method": "createOrder",
                 "url": "https://paper-api.alpaca.markets/v2/orders",
@@ -223,6 +255,23 @@
             }
         ],
         "editOrder": [
+            {
+                "description": "editOrder with the unified uppercase IOC is lowercased for the venue",
+                "method": "editOrder",
+                "url": "https://paper-api.alpaca.markets/v2/orders/cc3adeff-f95c-4e45-8cdc-5b7fc1772238",
+                "input": [
+                    "cc3adeff-f95c-4e45-8cdc-5b7fc1772238",
+                    "BTC/USD",
+                    "limit",
+                    "buy",
+                    0.00025,
+                    51000,
+                    {
+                        "timeInForce": "IOC"
+                    }
+                ],
+                "output": "{\"qty\":\"0.00025\",\"limit_price\":\"51000\",\"time_in_force\":\"ioc\",\"client_order_id\":\"ccxt_17290bf67d514f21b2ec1fd5dcc5f856\"}"
+            },
             {
                 "description": "edit order",
                 "method": "editOrder",
