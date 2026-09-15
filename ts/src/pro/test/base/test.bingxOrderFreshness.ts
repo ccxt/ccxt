@@ -4,7 +4,8 @@ import bingx from '../../bingx.js';
 
 // Native handler/cache test: no sockets, credentials or exchange requests.
 function testBingxOrderFreshness (ExchangeClass: typeof bingx = bingx) {
-    const cases: [ string, number | undefined, number | undefined, boolean, string, string, boolean? ][] = [
+    const cases: [ string, number | undefined, number | undefined, boolean, string, string, boolean?, boolean? ][] = [
+        [ 'newer update with the same id under another symbol first', 3000, 4000, false, 'FILLED', 'PARTIALLY_FILLED', false, true ],
         [ 'older update with another order of the same symbol first', 3000, 2000, true, 'FILLED', 'PARTIALLY_FILLED', true ],
         [ 'older partial after fill', 3000, 2000, true, 'FILLED', 'PARTIALLY_FILLED' ],
         [ 'older partial after cancellation', 3000, 2000, true, 'CANCELED', 'PARTIALLY_FILLED' ],
@@ -20,12 +21,26 @@ function testBingxOrderFreshness (ExchangeClass: typeof bingx = bingx) {
         [ 'identical terminal duplicate', 3000, 3000, false, 'FILLED', 'FILLED' ],
     ];
     for (const row of cases) {
-        const [ name, previousTime, incomingTime, reject, previousStatus, incomingStatus, prependOtherOrder = false ] = row;
+        const [ name, previousTime, incomingTime, reject, previousStatus, incomingStatus, prependSameSymbol = false, prependOtherSymbol = false ] = row;
+        const prependOtherOrder = prependSameSymbol || prependOtherSymbol;
         const exchange = new ExchangeClass ({});
         exchange.setMarkets ([ exchange.safeMarketStructure ({
             'id': 'LTC-USDT',
             'symbol': 'LTC/USDT:USDT',
             'base': 'LTC',
+            'quote': 'USDT',
+            'settle': 'USDT',
+            'type': 'swap',
+            'spot': false,
+            'swap': true,
+            'contract': true,
+            'linear': true,
+            'inverse': false,
+            'contractSize': 1,
+        }), exchange.safeMarketStructure ({
+            'id': 'ETH-USDT',
+            'symbol': 'ETH/USDT:USDT',
+            'base': 'ETH',
             'quote': 'USDT',
             'settle': 'USDT',
             'type': 'swap',
@@ -56,12 +71,17 @@ function testBingxOrderFreshness (ExchangeClass: typeof bingx = bingx) {
         const rawFirst = JSON.stringify (first);
         const rawSecond = JSON.stringify (second);
         if (prependOtherOrder) {
-            const other = frame (1000, 'PARTIALLY_FILLED');
-            other['o']['i'] = '2';
+            const other = frame (prependOtherSymbol ? 5000 : 1000, 'PARTIALLY_FILLED');
+            if (prependOtherSymbol) {
+                other['o']['s'] = 'ETH-USDT';
+            } else {
+                other['o']['i'] = '2';
+            }
             exchange.handleOrder (client, other);
         }
         exchange.handleOrder (client, first);
         assert (exchange.orders !== undefined, name + ': cache initialized');
+        assert.equal (exchange.orders.length, prependOtherOrder ? 2 : 1, name + ': initial cache size');
         const orderIndex = prependOtherOrder ? 1 : 0;
         const otherBefore = prependOtherOrder ? JSON.stringify (exchange.orders[0]) : undefined;
         const before = JSON.stringify (exchange.orders[orderIndex]);
