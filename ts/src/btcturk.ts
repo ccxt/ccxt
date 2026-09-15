@@ -505,6 +505,15 @@ export default class btcturk extends Exchange {
         const symbol = market['symbol'];
         const timestamp = this.safeInteger (ticker, 'timestamp');
         const last = this.safeString (ticker, 'last');
+        const open = this.safeString (ticker, 'open');
+        let change = this.safeString (ticker, 'daily');
+        let percentage = this.safeString (ticker, 'dailyPercent');
+        if ((open !== undefined) && (last !== undefined) && !Precise.stringEq (open, '0')) {
+            // The reported daily fields can disagree with last - open.
+            // Let safeTicker derive the unified change and percentage from these prices.
+            change = undefined;
+            percentage = undefined;
+        }
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -516,12 +525,12 @@ export default class btcturk extends Exchange {
             'ask': this.safeString (ticker, 'ask'),
             'askVolume': undefined,
             'vwap': undefined,
-            'open': this.safeString (ticker, 'open'),
+            'open': open,
             'close': last,
             'last': last,
             'previousClose': undefined,
-            'change': this.safeString (ticker, 'daily'),
-            'percentage': this.safeString (ticker, 'dailyPercent'),
+            'change': change,
+            'percentage': percentage,
             'average': this.safeString (ticker, 'average'),
             'baseVolume': this.safeString (ticker, 'volume'),
             'quoteVolume': undefined,
