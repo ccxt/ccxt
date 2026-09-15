@@ -102,6 +102,20 @@ impl Value {
         }
     }
 
+    /// Remove one symbol from a side-keyed position cache without consuming other scopes.
+    pub fn remove(&mut self, symbol: Value) {
+        if cache_kind(self).as_deref() != Some("ArrayCacheBySymbolBySide") {
+            return;
+        }
+        if let Value::Str(symbol) = symbol {
+            if let Some(id) = cache_id_of(self) {
+                with_cache_cell(id, |state| cache_remove_symbol(state, &symbol));
+            } else if let Value::Dict(state) = self {
+                cache_remove_symbol(Arc::make_mut(state), &symbol);
+            }
+        }
+    }
+
     /// `clear()` — resets the rolling buffer for a cache marker (or
     /// truncates the inner array of an `Arr` value).
     pub fn clear(&mut self) {
@@ -1155,6 +1169,20 @@ fn cache_at(m: &HashMap<String, Value>, i: usize) -> Value {
 /// Public: cache buffer length, or None when `m` isn't a cache marker.
 pub(crate) fn cache_len_of_marker(m: &HashMap<String, Value>) -> Option<usize> {
     if m.contains_key("__cacheKind") { Some(cache_len_of(m)) } else { None }
+}
+
+fn cache_remove_symbol(state: &mut HashMap<String, Value>, symbol: &str) {
+    if !cache_dict_field_mut(state, "hashmap").contains_key(symbol) {
+        return;
+    }
+    cache_data_mut(state).retain(|item| cache_str_field(item, "symbol").as_deref() != Some(symbol));
+    let removed = cache_seen_size(state, "_seenUpdatesAll", symbol);
+    let remaining = cache_int_field(state, "_allNewUpdates") - removed;
+    cache_set_int(state, "_allNewUpdates", remaining);
+    for field in ["hashmap", "_seenUpdatesAll", "_seenUpdatesBySymbol", "_clearUpdatesBySymbol"] {
+        cache_dict_field_mut(state, field).shift_remove(symbol);
+    }
+    cache_dict_field_mut(state, "_newUpdatesBySymbol").insert(symbol.to_string(), Value::Int(0));
 }
 
 pub(crate) fn cache_append(target: &mut Value, item: Value) {

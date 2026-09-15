@@ -17,6 +17,27 @@ class ArrayCacheBySymbolBySide extends ArrayCache {
         $this->index = array();
     }
 
+    public function remove($symbol) {
+        if (!array_key_exists($symbol, $this->hashmap)) {
+            return;
+        }
+        $retained = array();
+        $indices = array();
+        foreach ($this->deque as $i => &$item) {
+            if ($item['symbol'] !== $symbol) {
+                $retained[] = &$item;
+                $indices[] = $this->index[$i];
+            }
+        }
+        unset($item);
+        $this->deque = $retained;
+        $this->index = $indices;
+        unset($this->hashmap[$symbol]);
+        $this->all_new_updates -= count($this->seen_updates_all[$symbol] ?? array());
+        unset($this->seen_updates_all[$symbol], $this->seen_updates_by_symbol[$symbol], $this->clear_updates_by_symbol[$symbol]);
+        $this->new_updates_by_symbol[$symbol] = 0;
+    }
+
     public function append($item) {
         $symbol = $this->as_string($item['symbol']);
         $side = $this->as_string($item['side']);

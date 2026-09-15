@@ -1,6 +1,7 @@
 import { Transpiler } from 'ast-transpiler';
 import { getProgramBatch } from './worker-program-batch.js';
 import { installCcxtGoLocalTypes } from './go-local-types.js';
+import { installCacheRemoveCall } from './cache-remove-call.js';
 import log from 'ololog'
 
 // task payload posted by goTranspiler.ts#webworkerTranspile (structured clone)
@@ -44,6 +45,7 @@ export default async ({ transpilerConfig, configKey, file, files, roots }: GoWor
         cachedTranspiler.setVerboseMode (false);
         cachedTranspiler.goTranspiler.transformLeadingComment = transformLeadingComment;
         installCcxtGoLocalTypes(cachedTranspiler.goTranspiler);
+        installCacheRemoveCall(cachedTranspiler, 'go');
         cachedConfigKey = key;
     }
     const transpiler = cachedTranspiler;
