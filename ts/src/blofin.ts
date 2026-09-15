@@ -539,10 +539,11 @@ export default class blofin extends Exchange {
                     'KAIA': 'KAIA',
                 },
                 'networksById': {
-                    // id -> code for BOTH identifier families: the deposit /
-                    // withdrawal history rows carry the short forms ('TRC20')
-                    // while the currencies registry and withdrawal-apply use
-                    // the display names - map both back to unified codes
+                    // id -> code for BOTH identifier families: live history
+                    // rows and the currencies registry carry the display
+                    // names (verified live 2026-09-15), while the doc
+                    // examples still show short forms - map both back to
+                    // unified codes so either era of data parses
                     'Bitcoin': 'BTC',
                     'Ethereum (ERC20)': 'ERC20',
                     'Tron (TRC20)': 'TRC20',
@@ -2148,10 +2149,12 @@ export default class blofin extends Exchange {
         const currencyId = this.safeString (transaction, 'currency');
         const code = this.safeCurrencyCode (currencyId);
         const amount = this.safeNumber (transaction, 'amount');
-        // history rows carry the SHORT chain forms ('TRC20') while the
-        // currencies registry and withdrawal-apply use display names
-        // ('Tron (TRC20)') - options['networksById'] maps both families
-        // back to unified codes here
+        // live history rows carry the DISPLAY-NAME chain identifiers
+        // ('Tron (TRC20)', verified live 2026-09-15) even though the doc
+        // examples show short forms ('TRC20') - options['networksById']
+        // maps both families back to unified codes here. note the history
+        // amount is NET of the fee: a 30 USDT withdrawal-apply lands as
+        // amount 29 + fee 1
         const networkId = this.safeString (transaction, 'chain');
         const networkCode = this.networkIdToCode (networkId);
         const txid = this.safeString (transaction, 'txId');
