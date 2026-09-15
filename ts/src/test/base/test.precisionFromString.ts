@@ -83,6 +83,9 @@ function testPrecisionFromString () {
 
     // Test 25: Explicitly positive mantissa
     assert (exchange.precisionFromString ('+1e-4') === 4);
+
+    // Test 26: Negative mantissa with explicitly signed exponent
+    assert (exchange.precisionFromString ('-1e+4') === -4);
 }
 
 export default testPrecisionFromString;

@@ -117,7 +117,7 @@ function precisionFromString (str: string | undefined): number {
     // sign in the prefix the leftover is '--8', which is NaN in js and a
     // FormatException in the ported languages)
     if (str.indexOf ('e') > -1 || str.indexOf ('E') > -1) {
-        const numStr = str.replace (/[-+]?\d\.?\d*[eE]/, '')
+        const numStr = str.replace (/^[-+]?\d\.?\d*[eE]/, '')
         return parseInt (numStr) * -1
     }
     // support integer formats (without dot) like '1', '10' etc [Note: bug in decimalToPrecision, so this should not be used atm]
