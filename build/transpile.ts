@@ -1881,7 +1881,7 @@ class Transpiler {
                         .replace ('await asyncio.sleep', 'time.sleep')
                         .replace ('async ', '')
                         .replace ('await ', ''))
-                        .replace ('asyncio.gather\(\*', '(') // needed for async -> sync
+                        .replace (/asyncio\.gather\(\*/g, '(') // needed for async -> sync: as a string pattern this matched the literal text asyncio.gather\(\* (never present), so the unwrap silently never ran and sync outputs kept a bare asyncio.gather over non-awaitables
                         .replace ('asyncio.run', '') // needed for async -> sync
             })
 
@@ -3397,7 +3397,10 @@ class Transpiler {
                 phpSync = this.transpileAsyncPHPToSyncPHP (phpFixes(result[1].content));
             } else if (this.buildPython) {
                 pythonAsync = pyFixes(result[1].content);
-                pythonSync = pyFixes(result[0].content);
+                // the sync flag drives the async->sync fixes (asyncio.gather unwrap);
+                // omitting it here left every python-only build - the CI python lane -
+                // emitting a bare asyncio.gather over non-awaitables in sync tests
+                pythonSync = pyFixes(result[0].content, true);
             }
 
             const usesEqualsFunction = needsEquals[i];
