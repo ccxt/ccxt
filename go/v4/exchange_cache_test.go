@@ -58,3 +58,40 @@ func TestArrayCacheSeenUpdatesBySymbolBySide(t *testing.T) {
 		t.Fatalf("two sides: GetLimit = %v, want 2", got)
 	}
 }
+
+func TestArrayCacheRemoveSymbolPollingScopes(t *testing.T) {
+	for _, global := range []bool{false, true} {
+		for _, scoped := range []bool{false, true} {
+			c := NewArrayCacheBySymbolBySide()
+			row := func(symbol, side string, contracts int) map[string]any {
+				return map[string]any{"symbol": symbol, "side": side, "contracts": contracts}
+			}
+			check := func(got, want any) {
+				t.Helper()
+				if got != want { t.Fatalf("global=%v scoped=%v: got %v want %v", global, scoped, got, want) }
+			}
+			c.Append(row("ETH", "long", 4))
+			c.Append(row("LTC", "long", 2))
+			c.Append(row("ETH", "short", 5))
+			if global { check(c.GetLimit(nil, nil), 3) }
+			if scoped { check(c.GetLimit("ETH", nil), 2); check(c.GetLimit("LTC", nil), 1) }
+			c.Remove("MISSING")
+			check(len(c.Data), 3)
+			c.Remove("LTC")
+			check(len(c.Data), 2)
+			check(GetValue(c.Data[0], "contracts"), 4)
+			check(GetValue(c.Data[1], "contracts"), 5)
+			check(c.GetLimit("LTC", nil), 0)
+			c.Remove("LTC")
+			c.Append(row("LTC", "both", 0))
+			want := 3
+			if global { want = 1 }
+			check(c.GetLimit(nil, nil), want)
+			c.Append(row("ETH", "long", 6))
+			want = 2
+			if scoped { want = 1 }
+			check(c.GetLimit("ETH", nil), want)
+			check(len(c.Data), 3)
+		}
+	}
+}

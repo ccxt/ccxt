@@ -1,3 +1,4 @@
+import { installCacheRemoveCall } from './cache-remove-call.js';
 import Transpiler from "ast-transpiler";
 import path from 'path';
 import errors from "../js/src/base/errors.js";
@@ -72,6 +73,7 @@ class RustTranspilerBuilder {
 
     setupTranspiler() {
         this.transpiler = new Transpiler(this.getTranspilerConfig());
+        installCacheRemoveCall(this.transpiler, 'rust');
         this.transpiler.setVerboseMode(false);
     }
 
