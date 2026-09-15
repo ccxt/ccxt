@@ -412,6 +412,76 @@
         ],
         "createOrder": [
             {
+                "description": "swap limit",
+                "method": "createOrder",
+                "input": [
+                    "LTC/USDC:USDC",
+                    "limit",
+                    "buy",
+                    1,
+                    40,
+                    {
+                        "postOnly": true
+                    }
+                ],
+                "httpResponse": {
+                    "code": 200,
+                    "message": "{\"ratelimit\": \"didn't use volume quota\"}",
+                    "tx_hash": "315d01d9ffdd3615b931cc2ad952bbaa767a9473506c9f404ab374e4cd3f4ab5658c2998dc468ab6",
+                    "predicted_execution_time_ms": 1789494363134
+                },
+                "parsedResponse": {
+                    "info": {
+                        "code": 200,
+                        "message": "{\"ratelimit\": \"didn't use volume quota\"}",
+                        "tx_hash": "315d01d9ffdd3615b931cc2ad952bbaa767a9473506c9f404ab374e4cd3f4ab5658c2998dc468ab6",
+                        "predicted_execution_time_ms": 1789494363134,
+                        "market_index": 35,
+                        "api_key_index": 254,
+                        "account_index": 746962,
+                        "is_ask": 0,
+                        "order_expiry": -1,
+                        "order_type": 0,
+                        "time_in_force": 2,
+                        "reduce_only": 0,
+                        "client_order_index": 290148420,
+                        "base_amount": 1000,
+                        "avg_execution_price": 40000,
+                        "trigger_price": 0,
+                        "integrator_account_index": 718718,
+                        "integrator_taker_fee": 1000,
+                        "integrator_maker_fee": 1000,
+                        "nonce": 1789494361450
+                    },
+                    "id": null,
+                    "clientOrderId": "290148420",
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "symbol": "LTC/USDC:USDC",
+                    "type": "limit",
+                    "timeInForce": "PO",
+                    "postOnly": true,
+                    "reduceOnly": false,
+                    "side": "buy",
+                    "price": null,
+                    "triggerPrice": null,
+                    "stopLossPrice": null,
+                    "takeProfitPrice": null,
+                    "amount": null,
+                    "cost": null,
+                    "average": null,
+                    "filled": null,
+                    "remaining": null,
+                    "status": null,
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "stopPrice": null
+                }
+            },
+            {
                 "description": "create limit  buy order",
                 "method": "createOrder",
                 "input": [

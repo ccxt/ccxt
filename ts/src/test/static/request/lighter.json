@@ -20,12 +20,13 @@
         "apiKeyIndex": 30,
         "nonce": 0,
         "integratorAccountIndex": 130303,
-        "integratorMakerFee": 10,
-        "integratorTakerFee": 10
+        "integratorMakerFee": 1000,
+        "integratorTakerFee": 1000
     },
     "methods": {
         "cancelAllOrders": [
             {
+                "disabled": true,
                 "description": "default",
                 "method": "cancelAllOrders",
                 "url": "https://mainnet.zklighter.elliot.ai/api/v1/sendTx",
@@ -77,7 +78,6 @@
             }
         ],
         "createOrder": [
-            
             {
                 "description": "swap limit",
                 "method": "createOrder",
@@ -91,7 +91,7 @@
                 ],
                 "output": {
                     "tx_type": 14,
-                    "tx_info": "{\"AccountIndex\":746962,\"ApiKeyIndex\":254,\"MarketIndex\":35,\"ClientOrderIndex\":778339085,\"BaseAmount\":1000,\"Price\":40000,\"IsAsk\":0,\"Type\":0,\"TimeInForce\":1,\"ReduceOnly\":0,\"TriggerPrice\":0,\"OrderExpiry\":1791912496625,\"ExpiredAt\":1789493895625,\"Nonce\":1789493296625,\"Sig\":\"rJtG78GSfnFM2un05LNQd3Z/YBVtRDwLUVWOHJIz3NgfjuU6I52YUt026iVt6eBI1eYNaBxioMYuTxfhDzlnHlzHo03EfF9OD1FJ3xOQRGM=\",\"L2TxAttributes\":{\"1\":718718,\"2\":1000,\"3\":1000,\"4\":1}}"
+                    "tx_info": "{\"AccountIndex\":715085,\"ApiKeyIndex\":30,\"MarketIndex\":35,\"ClientOrderIndex\":778339085,\"BaseAmount\":1000,\"Price\":40000,\"IsAsk\":0,\"Type\":0,\"TimeInForce\":1,\"ReduceOnly\":0,\"TriggerPrice\":0,\"OrderExpiry\":1791912496625,\"ExpiredAt\":1789493895625,\"Nonce\":1789493296625,\"Sig\":\"rJtG78GSfnFM2un05LNQd3Z/YBVtRDwLUVWOHJIz3NgfjuU6I52YUt026iVt6eBI1eYNaBxioMYuTxfhDzlnHlzHo03EfF9OD1FJ3xOQRGM=\",\"L2TxAttributes\":{\"1\":130303,\"2\":1000,\"3\":1000,\"4\":1}}"
                 }
             },
             {
@@ -107,7 +107,7 @@
                 ],
                 "output": {
                     "tx_type": 14,
-                    "tx_info": "{\"AccountIndex\":746962,\"ApiKeyIndex\":254,\"MarketIndex\":35,\"ClientOrderIndex\":283496187,\"BaseAmount\":1000,\"Price\":60000,\"IsAsk\":0,\"Type\":1,\"TimeInForce\":0,\"ReduceOnly\":0,\"TriggerPrice\":0,\"OrderExpiry\":0,\"ExpiredAt\":1789494136568,\"Nonce\":1789493537567,\"Sig\":\"pL6lnoTwFHlkqJDHdOfZUvXV5F1tSn/45fon/XHJ6zN5m9f08+FkGchfWm7m4w2mr1s1SeZO8ZXhr21tEqiHiq9L6k1J7NWBtvJeAARhnBE=\",\"L2TxAttributes\":{\"1\":718718,\"2\":1000,\"3\":1000,\"4\":1}}"
+                    "tx_info": "{\"AccountIndex\":715085,\"ApiKeyIndex\":30,\"MarketIndex\":35,\"ClientOrderIndex\":283496187,\"BaseAmount\":1000,\"Price\":60000,\"IsAsk\":0,\"Type\":1,\"TimeInForce\":0,\"ReduceOnly\":0,\"TriggerPrice\":0,\"OrderExpiry\":0,\"ExpiredAt\":1789494136568,\"Nonce\":1789493537567,\"Sig\":\"pL6lnoTwFHlkqJDHdOfZUvXV5F1tSn/45fon/XHJ6zN5m9f08+FkGchfWm7m4w2mr1s1SeZO8ZXhr21tEqiHiq9L6k1J7NWBtvJeAARhnBE=\",\"L2TxAttributes\":{\"1\":130303,\"2\":1000,\"3\":1000,\"4\":1}}"
                 }
             },
             {
@@ -126,7 +126,7 @@
                 ],
                 "output": {
                     "tx_type": 14,
-                    "tx_info": "{\"AccountIndex\":746962,\"ApiKeyIndex\":254,\"MarketIndex\":35,\"ClientOrderIndex\":199728408,\"BaseAmount\":1000,\"Price\":40000,\"IsAsk\":0,\"Type\":0,\"TimeInForce\":2,\"ReduceOnly\":0,\"TriggerPrice\":0,\"OrderExpiry\":1791912839529,\"ExpiredAt\":1789494238529,\"Nonce\":1789493639528,\"Sig\":\"kDt2vfV4gMFcMveYcB6jj4FR4V2KA/Y2j40R4uytV5vHmy4U05oySCu3IClNLvpdGrjDLABZbHM9+4OCrpb0mVDIh8woRjnRBQxXvWE4YBI=\",\"L2TxAttributes\":{\"1\":718718,\"2\":1000,\"3\":1000,\"4\":1}}"
+                    "tx_info": "{\"AccountIndex\":715085,\"ApiKeyIndex\":30,\"MarketIndex\":35,\"ClientOrderIndex\":199728408,\"BaseAmount\":1000,\"Price\":40000,\"IsAsk\":0,\"Type\":0,\"TimeInForce\":2,\"ReduceOnly\":0,\"TriggerPrice\":0,\"OrderExpiry\":1791912839529,\"ExpiredAt\":1789494238529,\"Nonce\":1789493639528,\"Sig\":\"kDt2vfV4gMFcMveYcB6jj4FR4V2KA/Y2j40R4uytV5vHmy4U05oySCu3IClNLvpdGrjDLABZbHM9+4OCrpb0mVDIh8woRjnRBQxXvWE4YBI=\",\"L2TxAttributes\":{\"1\":130303,\"2\":1000,\"3\":1000,\"4\":1}}"
                 }
             }
         ],
