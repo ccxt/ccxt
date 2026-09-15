@@ -630,6 +630,12 @@ public class BaseTest {
             return thread;
         });
 
+    // Unlike common-pool tasks, these cannot be stolen onto an awaiting watch
+    // stack. Share the daemon executor already used for isolated test joins.
+    protected static CompletableFuture<Object> runWsInjector(java.util.function.Supplier<Object> task) {
+        return CompletableFuture.supplyAsync(task, isolatedJoinPool);
+    }
+
     public static Exception getRootException(Exception exc) {
         if (exc == null) {
             return null;

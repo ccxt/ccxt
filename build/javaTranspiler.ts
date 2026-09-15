@@ -4491,6 +4491,16 @@ class NewTranspiler {
         contentIndentend = contentIndentend.replace(/\(([^()]+(?:\([^()]*\))*) instanceof java\.util\.List\) \|\| \(\1\.getClass\(\)\.isArray\(\)\)/g, 'Helpers.isArrayJs($1)');
         contentIndentend = this.lateBindTypedSurfaceCalls(contentIndentend);
 
+        // The WS injector must not run on the common pool: a watch awaiting
+        // authenticate().join() can steal it before registering its future.
+        // Keep the shared TS body, but schedule this Java-only test task on
+        // plain threads so its readiness wait cannot block the watch's stack.
+        const injectorStart = /(public (?:java\.util\.concurrent\.)?CompletableFuture<Object> injectWsMessages\([^\n]*\)\s*\{\s*return )(?:java\.util\.concurrent\.)?CompletableFuture\.supplyAsync/;
+        if (!injectorStart.test(contentIndentend)) {
+            throw new Error('Java WS injector isolation pattern no longer matches');
+        }
+        contentIndentend = contentIndentend.replace(injectorStart, '$1runWsInjector');
+
         const file = [
             'package tests.exchange;',
             'import io.github.ccxt.Helpers;',
