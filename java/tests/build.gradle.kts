@@ -18,6 +18,8 @@ java {
 }
 
 dependencies {
+    testImplementation(libs.junit.jupiter)
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     implementation(project(":lib"))
     // Silence Netty's "No SLF4J providers were found" stderr noise so the JS
     // test harness doesn't mark every Java WS exchange as WARN (run-tests.js
