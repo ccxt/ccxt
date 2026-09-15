@@ -1533,7 +1533,12 @@
     "extended": {
         "skip": "loadMarkets is geo-blocked from the test environment (403)",
         "skipWs": "loadMarkets is geo-blocked from the test environment, ws tests can not bootstrap",
-        "until": "2026-08-31"
+        "until": "2026-08-31",
+        "skipMethods": {
+            "loadMarkets": {
+                "spot": "SPOT rows are intentionally retained for balance symbol resolution despite has.spot being false; see extended.parseMarket"
+            }
+        }
     },
     "indodax": {
         "skipMethods": {
