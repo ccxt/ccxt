@@ -6,6 +6,7 @@ import testWsSingleFlight from "./test.singleFlight.js";
 import testWsSingleFlightWiring from "./test.singleFlightWiring.js";
 import testWsKeepAliveTimeout from "./test.keepAliveTimeout.js";
 import testWsClientThrottleWiring from "./test.clientThrottleWiring.js";
+import testHyperliquidPendingUnsubscribe from "./test.pendingUnsubscribe.hyperliquid.js";
 
 async function testBaseWs () {
     testWsOrderBook ();
@@ -16,6 +17,7 @@ async function testBaseWs () {
     await testWsSingleFlightWiring ();
     await testWsKeepAliveTimeout ();
     await testWsClientThrottleWiring ();
+    await testHyperliquidPendingUnsubscribe ();
 }
 
 export default testBaseWs;
