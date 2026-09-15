@@ -1567,7 +1567,13 @@ class hyperliquid(Exchange, ImplicitAPI):
 
     def amount_to_precision(self, symbol: Str, amount: object):
         market = self.market(symbol)
-        return self.decimal_to_precision(amount, ROUND, market['precision']['amount'], self.precisionMode, self.paddingMode)
+        result = self.decimal_to_precision(amount, ROUND, market['precision']['amount'], self.precisionMode, self.paddingMode)
+        # a size of zero is meaningful to hyperliquid, a whole position tp/sl order is sent
+        # with grouping positionTpsl and size 0, so only reject a positive amount that
+        # became zero after rounding, never an explicitly requested zero
+        if Precise.string_eq(result, '0') and Precise.string_gt(self.number_to_string(amount), '0'):
+            raise InvalidOrder(self.id + ' amount of ' + market['symbol'] + ' must be greater than minimum amount precision of ' + self.number_to_string(market['precision']['amount']))
+        return result
 
     def price_to_precision(self, symbol: Str, price: object) -> Str:
         market = self.market(symbol)

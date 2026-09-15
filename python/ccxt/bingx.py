@@ -3228,7 +3228,7 @@ class bingx(Exchange, ImplicitAPI):
         :param float [params.takeProfit.triggerPrice]: take profit trigger price
         :param dict [params.stopLoss]: *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered
         :param float [params.stopLoss.triggerPrice]: stop loss trigger price
-        :param boolean [params.test]: *swap only* whether to use the test endpoint or not, default is False
+        :param boolean [params.test]: *linear swap only* whether to use the test endpoint or not, default is False
         :param str [params.positionSide]: *contracts only* "BOTH" for one way mode, "LONG" for buy side of hedged mode, "SHORT" for sell side of hedged mode
         :param boolean [params.hedged]: *swap only* whether the order is in hedged mode or one way mode
         :param bool [params.closePosition]: *swap only* True to close the entire position with a TP/SL order, in which case the quantity is not sent
@@ -3238,6 +3238,8 @@ class bingx(Exchange, ImplicitAPI):
             self.load_markets()
         market = self.market(symbol)
         test = self.safe_bool(params, 'test', False)
+        if test and ((market['swap'] is not True) or (market['inverse'] is True)):
+            raise NotSupported(self.id + ' createOrder() only supports test orders for linear swap markets')
         params = self.omit(params, 'test')
         request = self.create_order_request(symbol, type, side, amount, price, params)
         response: dict | string
