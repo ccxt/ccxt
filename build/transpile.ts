@@ -1731,6 +1731,65 @@ class Transpiler {
         return -1
     }
 
+    maskStringSpaceParens (js: string) {
+        // a space before a left paren inside a string literal is data, not
+        // code style - the PEP8 E225 collapse and its siblings must not
+        // rewrite it (see #30286). quote state is tracked per line exactly
+        // like findCommentStart; every ' (' inside a single- or double-quoted
+        // literal is swapped for a regex-inert token before the transforms
+        // and restored verbatim afterwards. backticks stay out of the quote
+        // set so jsdoc code spans remain visible to the method-conversion
+        // rules. runs after maskComments, so line-comment bodies are already
+        // inert and cannot desync the state.
+        //
+        // the per-line quote-state reset is DELIBERATE: cross-line scanning
+        // is exactly what let stray apostrophes desync the earlier span
+        // design, and multi-line string content (jsdoc-derived docstring
+        // prose) is knowingly left to the long-standing collapse - see the
+        // coverage notes in the commit message. do not "fix" this into a
+        // multi-line scanner.
+        const lines = js.split ('\n')
+        for (let i = 0; i < lines.length; i++) {
+            const line = lines[i]
+            if (line.indexOf (' (') < 0) {
+                continue
+            }
+            let quote = ''
+            let out = ''
+            for (let j = 0; j < line.length; j++) {
+                const c = line[j]
+                if (quote !== '') {
+                    if (c === '\\') {
+                        out += c + (line[j + 1] ?? '')
+                        j++
+                        continue
+                    }
+                    if (c === quote) {
+                        quote = ''
+                        out += c
+                        continue
+                    }
+                    if (c === ' ' && line[j + 1] === '(') {
+                        out += '\x02'
+                        continue
+                    }
+                    out += c
+                } else {
+                    if (c === "'" || c === '"') {
+                        quote = c
+                    }
+                    out += c
+                }
+            }
+            lines[i] = out
+        }
+        return lines.join ('\n')
+    }
+
+    unmaskStringSpaceParens (body: string) {
+        return body.replace (/\x02/g, ' ')
+    }
+
     maskComments (js: string) {
         // comment text is documentation, not code to translate, so the body of
         // every comment is replaced by a regex-inert token before any transform
@@ -1766,7 +1825,8 @@ class Transpiler {
 
         // protect comment bodies from every code transform below
         const { masked, masks } = this.maskComments (args.js)
-        args.js = masked
+        // protect data spaces inside string literals from the style rules
+        args.js = this.maskStringSpaceParens (masked)
 
         // apply common regexes once before branching to language-specific paths
         args.js = this.regexAll (args.js, this.getCommonRegexes ())
@@ -1794,10 +1854,10 @@ class Transpiler {
             phpBody = this.transpileAsyncPHPToSyncPHP (this.transpileJavaScriptToPHP (args, false))
         }
 
-        python3Body = this.unmaskComments (python3Body, masks)
-        python2Body = this.unmaskComments (python2Body, masks)
-        phpBody = this.unmaskComments (phpBody, masks)
-        phpAsyncBody = this.unmaskComments (phpAsyncBody, masks)
+        python3Body = this.unmaskStringSpaceParens (this.unmaskComments (python3Body, masks))
+        python2Body = this.unmaskStringSpaceParens (this.unmaskComments (python2Body, masks))
+        phpBody = this.unmaskStringSpaceParens (this.unmaskComments (phpBody, masks))
+        phpAsyncBody = this.unmaskStringSpaceParens (this.unmaskComments (phpAsyncBody, masks))
 
         return { python3Body, python2Body, phpBody, phpAsyncBody, phpAsyncBodyIsFlatAwait }
     }
