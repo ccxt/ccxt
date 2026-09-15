@@ -1285,6 +1285,8 @@ class NewTranspiler {
             [/this\.delay\(([^,]+),([^,]+),(.+)\)/gm, 'this.delay($1, $2, new object[] {$3})'],
             // [/(this\.\w+)\.(append|resolve|getLimit)\((.+)\)/gm, 'callDynamically($1, "$2", new object[] {$3})'], // check this.orders
             [/(((?:this\.)?\w+))\.(append|resolve|getLimit)\((.+)\)/gm, 'callDynamically($1, "$3", new object[] {$4})'],
+            // Local WS caches are boxed; clear must dispatch to the cache implementation.
+            [/\bcache\.clear\(\)/gm, '((BaseCache)cache).clear()'],
             [/future(\.reject.+)/gm, '((Future)future)$1'],
             [/(\w+)(\.reject.+)/gm, '((WebSocketClient)$1)$2'],
             [/(client)(\.reset.+)/gm, '((WebSocketClient)$1)$2'],

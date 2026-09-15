@@ -1419,6 +1419,8 @@ class NewTranspiler {
             [/new ArrayCacheByOutcomeById\(\)/gm, 'new ArrayCache.ArrayCacheByOutcomeById()'],
             [/new ArrayCacheBySymbolBySide\((\w+)\)/gm, 'new ArrayCache.ArrayCacheBySymbolBySide(((Number)$1).intValue())'],
             [/new ArrayCacheBySymbolBySide\(\)/gm, 'new ArrayCache.ArrayCacheBySymbolBySide()'],
+            // Local WS caches are boxed; clear must dispatch to the cache implementation.
+            [/\bcache\.clear\(\)/gm, '((ArrayCache)cache).clear()'],
         ]
     }
 

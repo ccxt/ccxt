@@ -1383,6 +1383,20 @@ export default class bingx extends bingxRest {
             const timestamp = this.safeInteger (message, 'E');
             position['timestamp'] = timestamp;
             position['datetime'] = this.iso8601 (timestamp);
+            if (position['hedged'] === false) {
+                // One-way updates replace the symbol, including its previous direction.
+                const retainedPositions: List = [];
+                for (let j = 0; j < cache.length; j++) {
+                    const previousPosition = cache[j];
+                    if (previousPosition['symbol'] !== symbol) {
+                        retainedPositions.push (previousPosition);
+                    }
+                }
+                cache.clear ();
+                for (let j = 0; j < retainedPositions.length; j++) {
+                    cache.append (retainedPositions[j]);
+                }
+            }
             newPositions.push (position);
             cache.append (position);
         }
