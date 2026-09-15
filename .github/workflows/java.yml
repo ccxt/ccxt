@@ -77,6 +77,8 @@ jobs:
       run: npm run transpile-prediction-java
     - name: Build Project
       run: npm run buildJava
+    - name: Run native cache removal tests
+      run: ./java/gradlew -p java :lib:test --tests io.github.ccxt.ws.ArrayCacheRemoveTest
     - name: Run Base Tests
       if: env.important_modified == 'true'
       run: npm run test-base-rest-java

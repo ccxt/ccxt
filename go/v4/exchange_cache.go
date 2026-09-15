@@ -643,9 +643,31 @@ func (c *ArrayCacheBySymbolBySide) GetLimit(symbol any, limit any) any {
 	return c.ArrayCache.GetLimit(symbol, limit)
 }
 
-// Remove delegates to the inner ArrayCache
+// Remove drops one symbol without consuming other symbols' polling scopes.
 func (c *ArrayCacheBySymbolBySide) Remove(symbol string) {
-	c.ArrayCache.Remove(symbol)
+	c.Mu.Lock()
+	defer c.Mu.Unlock()
+	if _, exists := c.Hashmap[symbol]; !exists {
+		return
+	}
+	retained := c.Data[:0]
+	for _, item := range c.Data {
+		if GetValue(item, "symbol") != symbol {
+			retained = append(retained, item)
+		}
+	}
+	for i := len(retained); i < len(c.Data); i++ {
+		c.Data[i] = nil
+	}
+	c.Data = retained
+	delete(c.Hashmap, symbol)
+	if seen, exists := c.seenUpdatesAll[symbol]; exists {
+		c.allNewUpdates -= len(seen.elements)
+	}
+	delete(c.seenUpdatesAll, symbol)
+	delete(c.seenUpdatesBySymbol, symbol)
+	delete(c.clearUpdatesBySymbol, symbol)
+	c.newUpdatesBySymbol[symbol] = 0
 }
 
 // implement set for size-tracker and others
