@@ -1,0 +1,72 @@
+{
+    "SOMI": {
+        "id": "SOMI",
+        "code": "SOMI",
+        "name": "Somnia Token",
+        "type": "crypto",
+        "active": true,
+        "precision": 1e-18,
+        "fees": {},
+        "networks": {},
+        "limits": {
+            "deposit": {},
+            "withdraw": {}
+        }
+    },
+    "USDso": {
+        "id": "USDso",
+        "code": "USDso",
+        "name": "USD Somnia",
+        "type": "crypto",
+        "active": true,
+        "precision": 1e-18,
+        "fees": {},
+        "networks": {},
+        "limits": {
+            "deposit": {},
+            "withdraw": {}
+        }
+    },
+    "USDC.e": {
+        "id": "USDC.e",
+        "code": "USDC.e",
+        "name": "Bridged USDC (Stargate)",
+        "type": "crypto",
+        "active": true,
+        "precision": 0.000001,
+        "fees": {},
+        "networks": {},
+        "limits": {
+            "deposit": {},
+            "withdraw": {}
+        }
+    },
+    "WBTC": {
+        "id": "WBTC",
+        "code": "WBTC",
+        "name": "Wrapped BTC",
+        "type": "crypto",
+        "active": true,
+        "precision": 1e-8,
+        "fees": {},
+        "networks": {},
+        "limits": {
+            "deposit": {},
+            "withdraw": {}
+        }
+    },
+    "WETH": {
+        "id": "WETH",
+        "code": "WETH",
+        "name": "WETH",
+        "type": "crypto",
+        "active": true,
+        "precision": 1e-18,
+        "fees": {},
+        "networks": {},
+        "limits": {
+            "deposit": {},
+            "withdraw": {}
+        }
+    }
+}
