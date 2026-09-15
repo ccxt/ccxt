@@ -1435,6 +1435,7 @@ export default class okx extends okxRest {
                 delete this.orderbooks[symbol];
             }
             client.reject (error, messageHash);
+            return orderbook;
         }
         const timestamp = this.safeInteger (message, 'ts');
         orderbook['nonce'] = seqId;
@@ -1553,6 +1554,9 @@ export default class okx extends okxRest {
                 this.orderbooks[symbol] = orderbook;
                 orderbook['symbol'] = symbol;
                 this.handleOrderBookMessage (client, update, orderbook, messageHash);
+                if (!(symbol in this.orderbooks)) {
+                    break;
+                }
                 client.resolve (orderbook, messageHash);
             }
         } else if (action === 'update') {
@@ -1561,6 +1565,10 @@ export default class okx extends okxRest {
                 for (let i = 0; i < data.length; i++) {
                     const update = data[i];
                     this.handleOrderBookMessage (client, update, orderbook, messageHash, market);
+                    if (!(symbol in this.orderbooks)) {
+                        // a nonce gap deleted the cached book and rejected the future - skip the leftover rows
+                        break;
+                    }
                     client.resolve (orderbook, messageHash);
                 }
             }
