@@ -1559,11 +1559,7 @@ func (this *Cryptomus) FetchTickers(options ...FetchTickersOptions) (Tickers, er
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var symbols *[]string = opts.Symbols
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchTickersAsync(symbols, params)
+	res := <-this.FetchTickersAsync(opts.Symbols, opts.Params)
 	if IsError(res) {
 		return Tickers{}, CreateReturnError(res)
 	}
@@ -1588,11 +1584,7 @@ func (this *Cryptomus) FetchOrderBook(symbol string, options ...FetchOrderBookOp
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var limit *int64 = opts.Limit
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchOrderBookAsync(symbol, limit, params)
+	res := <-this.FetchOrderBookAsync(symbol, opts.Limit, opts.Params)
 	if IsError(res) {
 		return OrderBook{}, CreateReturnError(res)
 	}
@@ -1617,13 +1609,7 @@ func (this *Cryptomus) FetchTrades(symbol string, options ...FetchTradesOptions)
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var since *int64 = opts.Since
-
-	var limit *int64 = opts.Limit
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchTradesAsync(symbol, since, limit, params)
+	res := <-this.FetchTradesAsync(symbol, opts.Since, opts.Limit, opts.Params)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
@@ -1669,11 +1655,7 @@ func (this *Cryptomus) CreateOrder(symbol string, typeVar string, side string, a
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var price *float64 = opts.Price
-
-	var params *map[string]any = opts.Params
-	res := <-this.CreateOrderAsync(symbol, typeVar, side, amount, price, params)
+	res := <-this.CreateOrderAsync(symbol, typeVar, side, amount, opts.Price, opts.Params)
 	if IsError(res) {
 		return Order{}, CreateReturnError(res)
 	}
@@ -1697,11 +1679,7 @@ func (this *Cryptomus) CancelOrder(id string, options ...CancelOrderOptions) (Or
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var symbol *string = opts.Symbol
-
-	var params *map[string]any = opts.Params
-	res := <-this.CancelOrderAsync(id, symbol, params)
+	res := <-this.CancelOrderAsync(id, opts.Symbol, opts.Params)
 	if IsError(res) {
 		return Order{}, CreateReturnError(res)
 	}
@@ -1714,15 +1692,7 @@ func (this *Cryptomus) FetchCanceledAndClosedOrders(options ...FetchCanceledAndC
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var symbol *string = opts.Symbol
-
-	var since *int64 = opts.Since
-
-	var limit *int64 = opts.Limit
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchCanceledAndClosedOrdersAsync(symbol, since, limit, params)
+	res := <-this.FetchCanceledAndClosedOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
@@ -1752,15 +1722,7 @@ func (this *Cryptomus) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Ord
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var symbol *string = opts.Symbol
-
-	var since *int64 = opts.Since
-
-	var limit *int64 = opts.Limit
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchOpenOrdersAsync(symbol, since, limit, params)
+	res := <-this.FetchOpenOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}

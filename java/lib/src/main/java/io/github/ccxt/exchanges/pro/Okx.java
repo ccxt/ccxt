@@ -86,6 +86,9 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 put( "watchTickers", new HashMap<String, Object>() {{
                     put( "channel", "tickers" );
                 }} );
+                put( "watchBidsAsks", new HashMap<String, Object>() {{
+                    put( "channel", "bbo-tbt" );
+                }} );
                 put( "watchOrders", new HashMap<String, Object>() {{
                     put( "type", "ANY" );
                 }} );
@@ -810,10 +813,12 @@ public class Okx extends io.github.ccxt.exchanges.Okx
     /**
      * @method
      * @name okx#watchBidsAsks
+     * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-order-book-channel
      * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-tickers-channel
      * @description watches best bid & ask for symbols
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.channel] the channel to subscribe to, 'bbo-tbt' (default, 10ms L1) or 'tickers' (100ms)
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public CompletableFuture<Tickers> watchBidsAsks(Object... optionalArgs)
@@ -829,7 +834,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             }
             symbols = this.marketSymbols(symbols, null, false);
             Object channel = null;
-            List<Object> channelparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchBidsAsks", "channel", "tickers");
+            List<Object> channelparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchBidsAsks", "channel", "bbo-tbt");
             channel = ((List<Object>) channelparametersVariable).get(0);
             parameters = ((List<Object>) channelparametersVariable).get(1);
             Object url = this.getUrl(channel, "public");
@@ -865,6 +870,8 @@ public class Okx extends io.github.ccxt.exchanges.Okx
     public void handleBidAsk(Client client, Object message)
     {
         //
+        // tickers
+        //
         //     {
         //         "arg": { channel: "tickers", instId: "BTC-USDT" },
         //         "data": [
@@ -889,9 +896,25 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         //         ]
         //     }
         //
+        // bbo-tbt
+        //
+        //     {
+        //         "arg": { "channel": "bbo-tbt", "instId": "BTC-USDT" },
+        //         "data": [
+        //             {
+        //                 "asks": [ [ "36232.2", "1.8826134", "0", "17" ] ],
+        //                 "bids": [ [ "36232.1", "0.00572212", "0", "2" ] ],
+        //                 "ts": "1651826598363"
+        //             }
+        //         ]
+        //     }
+        //
+        Object arg = this.safeDict(message, "arg", new HashMap<String, Object>() {{}});
+        String marketId = this.safeString(arg, "instId");
+        Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
         Object data = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         Object ticker = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
-        Object parsedTicker = this.parseWsBidAsk(ticker);
+        Object parsedTicker = this.parseWsBidAsk(ticker, market);
         Object symbol = Helpers.GetValue(parsedTicker, "symbol");
         if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
         {
@@ -908,14 +931,36 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         market = this.safeMarket(marketId, market);
         String symbol = this.safeString(market, "symbol");
         Long timestamp = this.safeInteger(ticker, "ts");
+        String ask = this.safeString(ticker, "askPx");
+        String askVolume = this.safeString(ticker, "askSz");
+        String bid = this.safeString(ticker, "bidPx");
+        String bidVolume = this.safeString(ticker, "bidSz");
+        if (Helpers.isTrue(Helpers.isEqual(ask, null)))
+        {
+            Object asks = this.safeList(ticker, "asks", new ArrayList<Object>(Arrays.asList()));
+            Object firstAsk = this.safeList(asks, 0, new ArrayList<Object>(Arrays.asList()));
+            ask = this.safeString(firstAsk, 0);
+            askVolume = this.safeString(firstAsk, 1);
+        }
+        if (Helpers.isTrue(Helpers.isEqual(bid, null)))
+        {
+            Object bids = this.safeList(ticker, "bids", new ArrayList<Object>(Arrays.asList()));
+            Object firstBid = this.safeList(bids, 0, new ArrayList<Object>(Arrays.asList()));
+            bid = this.safeString(firstBid, 0);
+            bidVolume = this.safeString(firstBid, 1);
+        }
+        final Object finalAsk = ask;
+        final Object finalAskVolume = askVolume;
+        final Object finalBid = bid;
+        final Object finalBidVolume = bidVolume;
         return this.safeTicker(new HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", timestamp );
             put( "datetime", Okx.this.iso8601(timestamp) );
-            put( "ask", Okx.this.safeString(ticker, "askPx") );
-            put( "askVolume", Okx.this.safeString(ticker, "askSz") );
-            put( "bid", Okx.this.safeString(ticker, "bidPx") );
-            put( "bidVolume", Okx.this.safeString(ticker, "bidSz") );
+            put( "ask", finalAsk );
+            put( "askVolume", finalAskVolume );
+            put( "bid", finalBid );
+            put( "bidVolume", finalBidVolume );
             put( "info", ticker );
         }}, market);
     }
@@ -1886,19 +1931,29 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             }
         } else if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(channel, "books5"))) || Helpers.isTrue((Helpers.isEqual(channel, "bbo-tbt")))))
         {
-            if (!Helpers.isTrue((Helpers.inOp(this.orderbooks, symbol))))
+            // watchBidsAsks reuses bbo-tbt with bidask:: hashes; only reset the
+            // shared order-book cache when watchOrderBook subscribed to this
+            // channel+symbol (e.g. 'bbo-tbt:BTC/USDT' in client.subscriptions)
+            if (Helpers.isTrue(Helpers.inOp(client.subscriptions, messageHash)))
             {
-                Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new HashMap<String, Object>() {{}}, limit));
+                if (!Helpers.isTrue((Helpers.inOp(this.orderbooks, symbol))))
+                {
+                    Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new HashMap<String, Object>() {{}}, limit));
+                }
+                io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) Helpers.GetValue(this.orderbooks, symbol);
+                for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
+                {
+                    Object update = Helpers.GetValue(data, i);
+                    Long timestamp = this.safeInteger(update, "ts");
+                    Object snapshot = this.parseOrderBook(update, symbol, timestamp, "bids", "asks", 0, 1);
+                    Helpers.callDynamically(orderbook, "reset", new Object[]{snapshot});
+                    client.resolve(orderbook, messageHash);
+                }
             }
-            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) Helpers.GetValue(this.orderbooks, symbol);
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
-            {
-                Object update = Helpers.GetValue(data, i);
-                Long timestamp = this.safeInteger(update, "ts");
-                Object snapshot = this.parseOrderBook(update, symbol, timestamp, "bids", "asks", 0, 1);
-                Helpers.callDynamically(orderbook, "reset", new Object[]{snapshot});
-                client.resolve(orderbook, messageHash);
-            }
+        }
+        if (Helpers.isTrue(Helpers.isEqual(channel, "bbo-tbt")))
+        {
+            this.handleBidAsk(client, message);
         }
         return message;
     }

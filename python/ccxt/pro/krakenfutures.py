@@ -38,7 +38,7 @@ class krakenfutures(ccxt.async_support.krakenfutures):
                 'watchTrades': True,
                 'watchTradesForSymbols': True,
                 'watchBalance': True,
-                # 'watchStatus': True,  # https://docs.kraken.com/exchange/api-reference/futures-websocket/heartbeat
+                # 'watchStatus': true, // https://docs.kraken.com/exchange/api-reference/futures-websocket/heartbeat
                 'watchOrders': True,
                 'watchMyTrades': True,
                 'watchPositions': True,
@@ -313,15 +313,15 @@ class krakenfutures(ccxt.async_support.krakenfutures):
         #    }
         #
         if self.positions is None:
-            # krakenfutures positions carry no id(parseWsPosition always sets
-            # 'id': None), so key by symbol + side instead of by-id, see
+            # krakenfutures positions carry no id (parseWsPosition always sets
+            # 'id': undefined), so key by symbol + side instead of by-id, see
             # https://github.com/ccxt/ccxt/issues/29709
             self.positions = ArrayCacheBySymbolBySide()
         cache = self.positions
         rawPositions = self.safe_list(message, 'positions')
         if rawPositions is None:
-            # an open_positions frame without the positions key is malformed
-            # do not resolve with a fabricated empty list(the caller cannot
+            # an open_positions frame without the positions key is malformed;
+            # do not resolve with a fabricated empty list (the caller cannot
             # distinguish it from a genuinely flat account)
             return
         newPositions = []
@@ -566,7 +566,7 @@ class krakenfutures(ccxt.async_support.krakenfutures):
         #         "type": "limit",
         #         "order_id": "a1c3803c-8f3d-4317-a085-8d06e11b1d36",
         #         "direction": 0,
-        #         "reduce_only": False
+        #         "reduce_only": false
         #     }
         #
         marketId = self.safe_string(trade, 'product_id')
@@ -645,7 +645,7 @@ class krakenfutures(ccxt.async_support.krakenfutures):
 
     def handle_order(self, client: Client, message: object):
         #
-        #  update(verbose)
+        #  update (verbose)
         #
         #    {
         #        "feed": "open_orders_verbose",
@@ -660,9 +660,9 @@ class krakenfutures(ccxt.async_support.krakenfutures):
         #            "type": "limit",
         #            "order_id": "fa9806c9-cba9-4661-9f31-8c5fd045a95d",
         #            "direction": 0,
-        #            "reduce_only": False
+        #            "reduce_only": false
         #        },
-        #        "is_cancel": True,
+        #        "is_cancel": true,
         #        "reason": "post_order_failed_because_it_would_be_filled"
         #    }
         #
@@ -681,15 +681,15 @@ class krakenfutures(ccxt.async_support.krakenfutures):
         #          "type": "limit",
         #          "order_id": "59302619-41d2-4f0b-941f-7e7914760ad3",
         #          "direction": 1,
-        #          "reduce_only": True
+        #          "reduce_only": true
         #        },
-        #        "is_cancel": False,
+        #        "is_cancel": false,
         #        "reason": "new_placed_order_by_user"
         #    }
         #    {
         #        "feed": "open_orders",
         #        "order_id": "ea8a7144-37db-449b-bb4a-b53c814a0f43",
-        #        "is_cancel": True,
+        #        "is_cancel": true,
         #        "reason": "cancelled_by_user"
         #    }
         #
@@ -706,9 +706,9 @@ class krakenfutures(ccxt.async_support.krakenfutures):
         #         "type": 'limit',
         #         "order_id": '0eaf02b0-855d-4451-a3b7-e2b3070c1fa4',
         #         "direction": 0,
-        #         "reduce_only": False
+        #         "reduce_only": false
         #         },
-        #         "is_cancel": False,
+        #         "is_cancel": false,
         #         "reason": 'edited_by_user'
         #     }
         #
@@ -821,7 +821,7 @@ class krakenfutures(ccxt.async_support.krakenfutures):
         #                "type": "limit",
         #                "order_id": "566942c8-a3b5-4184-a451-622b09493129",
         #                "direction": 0,
-        #                "reduce_only": False
+        #                "reduce_only": false
         #            },
         #            ...
         #        ]
@@ -844,7 +844,7 @@ class krakenfutures(ccxt.async_support.krakenfutures):
         #                "type": "stop",
         #                "order_id": "723ba95f-13b7-418b-8fcf-ab7ba6620555",
         #                "direction": 1,
-        #                "reduce_only": False,
+        #                "reduce_only": false,
         #                "triggerSignal": "last"
         #            },
         #            ...
@@ -892,9 +892,9 @@ class krakenfutures(ccxt.async_support.krakenfutures):
         #            "type": "limit",
         #            "order_id": "fa9806c9-cba9-4661-9f31-8c5fd045a95d",
         #            "direction": 0,
-        #            "reduce_only": False
+        #            "reduce_only": false
         #        },
-        #        "is_cancel": True,
+        #        "is_cancel": true,
         #        "reason": "post_order_failed_because_it_would_be_filled"
         #    }
         #
@@ -911,7 +911,7 @@ class krakenfutures(ccxt.async_support.krakenfutures):
         #        "type": "limit",
         #        "order_id": "fa9806c9-cba9-4661-9f31-8c5fd045a95d",
         #        "direction": 0,
-        #        "reduce_only": False
+        #        "reduce_only": false
         #    }
         #
         isCancelled = self.safe_value(order, 'is_cancel')
@@ -975,13 +975,13 @@ class krakenfutures(ccxt.async_support.krakenfutures):
         #        "premium": 0,
         #        "last": 28053.5,
         #        "change": -0.7710945651981715,
-        #        "suspended": False,
+        #        "suspended": false,
         #        "tag": "perpetual",
         #        "pair": "XBT:USD",
         #        "openInterest": 28875946,
         #        "markPrice": 28064.92082724592,
         #        "maturityTime": 0,
-        #        "post_only": False,
+        #        "post_only": false,
         #        "volumeQuote": 19628180
         #    }
         #
@@ -1042,13 +1042,13 @@ class krakenfutures(ccxt.async_support.krakenfutures):
         #        "premium": 0,
         #        "last": 28053.5,
         #        "change": -0.7710945651981715,
-        #        "suspended": False,
+        #        "suspended": false,
         #        "tag": "perpetual",
         #        "pair": "XBT:USD",
         #        "openInterest": 28875946,
         #        "markPrice": 28064.92082724592,
         #        "maturityTime": 0,
-        #        "post_only": False,
+        #        "post_only": false,
         #        "volumeQuote": 19628180
         #    }
         #
@@ -1418,10 +1418,10 @@ class krakenfutures(ccxt.async_support.krakenfutures):
         #                "time": 1600256910739,
         #                "price": 10937.5,
         #                "seq": 36,
-        #                "buy": True,
+        #                "buy": true,
         #                "qty": 5000.0,
         #                "order_id": "9e30258b-5a98-4002-968a-5b0e149bcfbf",
-        #                "cli_ord_id": "8b58d9da-fcaf-4f60-91bc-9973a3eba48d",  # only on update, not on snapshot
+        #                "cli_ord_id": "8b58d9da-fcaf-4f60-91bc-9973a3eba48d", // only on update, not on snapshot
         #                "fill_id": "cad76f07-814e-4dc6-8478-7867407b6bff",
         #                "fill_type": "maker",
         #                "fee_paid": -0.00009142857,
@@ -1460,10 +1460,10 @@ class krakenfutures(ccxt.async_support.krakenfutures):
         #        "time": 1600256910739,
         #        "price": 10937.5,
         #        "seq": 36,
-        #        "buy": True,
+        #        "buy": true,
         #        "qty": 5000.0,
         #        "order_id": "9e30258b-5a98-4002-968a-5b0e149bcfbf",
-        #        "cli_ord_id": "8b58d9da-fcaf-4f60-91bc-9973a3eba48d",  # only on update, not on snapshot
+        #        "cli_ord_id": "8b58d9da-fcaf-4f60-91bc-9973a3eba48d", // only on update, not on snapshot
         #        "fill_id": "cad76f07-814e-4dc6-8478-7867407b6bff",
         #        "fill_type": "maker",
         #        "fee_paid": -0.00009142857,
@@ -1527,7 +1527,7 @@ class krakenfutures(ccxt.async_support.krakenfutures):
 
     def get_message_hash(self, unifiedElementName: str, subChannelName: Str = None, symbol: Str = None):
         # unifiedElementName can be : orderbook, trade, ticker, bidask ...
-        # subChannelName only applies to channel that needs specific variation(i.e. depth_50, depth_100..) to be selected
+        # subChannelName only applies to channel that needs specific variation (i.e. depth_50, depth_100..) to be selected
         withSymbol = symbol is not None
         messageHash = unifiedElementName
         if not withSymbol:
@@ -1551,7 +1551,7 @@ class krakenfutures(ccxt.async_support.krakenfutures):
         #
         errMsg = self.safe_string(message, 'message')
         # Benign "already subscribed" notice: the original subscription is still
-        # active and delivering data on self socket. The generic client.reject
+        # active and delivering data on this socket. The generic client.reject
         # below rejects every pending future on the connection, so a stray
         # re-subscribe warning would kill unrelated in-flight watch* calls —
         # mirrors the bitmart 90008 fix.
@@ -1578,7 +1578,7 @@ class krakenfutures(ccxt.async_support.krakenfutures):
                 'ticker_lite': self.handle_bid_ask,
                 'trade': self.handle_trade,
                 'trade_snapshot': self.handle_trade,
-                # 'heartbeat': self.handleStatus,
+                # 'heartbeat': this.handleStatus,
                 'book': self.handle_order_book,
                 'book_snapshot': self.handle_order_book_snapshot,
                 'open_orders_verbose': self.handle_order,

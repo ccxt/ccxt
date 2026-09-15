@@ -196,12 +196,12 @@ class blofin(ccxt.async_support.blofin):
         #         channel: "books",
         #         instId: "DOGE-USDT",
         #     },
-        #     action: "snapshot",  # can be 'snapshot' or 'update'
+        #     action: "snapshot", // can be 'snapshot' or 'update'
         #     data: {
-        #         asks: [  [0.08096, 1], [0.08097, 123], ...   ],
-        #         bids: [  [0.08095, 4], [0.08094, 237], ...   ],
+        #         asks: [   [ 0.08096, 1 ], [ 0.08097, 123 ], ...   ],
+        #         bids: [   [ 0.08095, 4 ], [ 0.08094, 237 ], ...   ],
         #         ts: "1707491587909",
-        #         prevSeqId: "0",  # in case of 'update' there will be some value, less then seqId
+        #         prevSeqId: "0", // in case of 'update' there will be some value, less then seqId
         #         seqId: "3374250786",
         #     },
         # }
@@ -403,7 +403,7 @@ class blofin(ccxt.async_support.blofin):
         #             instId: "DOGE-USDT",
         #         },
         #         data: [
-        #             [same object as shown in REST example]
+        #             [ same object as shown in REST example ]
         #         ],
         #     }
         #
@@ -521,7 +521,7 @@ class blofin(ccxt.async_support.blofin):
         #
         #     {
         #         action: 'update',
-        #         arg: {channel: 'orders'},
+        #         arg: { channel: 'orders' },
         #         data: [
         #           <same object as shown in REST example>
         #         ]
@@ -568,7 +568,7 @@ class blofin(ccxt.async_support.blofin):
     def handle_positions(self, client: Client, message: object):
         #
         #     {
-        #         arg: {channel: 'positions'},
+        #         arg: { channel: 'positions' },
         #         data: [
         #           <same object as shown in REST example>
         #         ]
@@ -644,7 +644,7 @@ class blofin(ccxt.async_support.blofin):
         if self.markets is None:
             await self.load_markets()
         callerMethodName, params = self.handle_param_string(params, 'callerMethodName', callerMethodName)
-        # if OHLCV method are being called, then symbols would be symbolsAndTimeframes(multi-dimensional) array
+        # if OHLCV method are being called, then symbols would be symbolsAndTimeframes (multi-dimensional) array
         isOHLCV = (channelName == 'candle')
         symbols = self.get_list_from_object_values(symbolsArray, 0) if isOHLCV else symbolsArray
         symbols = self.market_symbols(symbols, None, True, True)

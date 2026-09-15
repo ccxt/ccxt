@@ -1410,11 +1410,7 @@ func (this *Bit2c) FetchOrderBook(symbol string, options ...FetchOrderBookOption
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var limit *int64 = opts.Limit
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchOrderBookAsync(symbol, limit, params)
+	res := <-this.FetchOrderBookAsync(symbol, opts.Limit, opts.Params)
 	if IsError(res) {
 		return OrderBook{}, CreateReturnError(res)
 	}
@@ -1437,9 +1433,7 @@ func (this *Bit2c) FetchTicker(symbol string, options ...FetchTickerOptions) (Ti
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchTickerAsync(symbol, params)
+	res := <-this.FetchTickerAsync(symbol, opts.Params)
 	if IsError(res) {
 		return Ticker{}, CreateReturnError(res)
 	}
@@ -1465,13 +1459,7 @@ func (this *Bit2c) FetchTrades(symbol string, options ...FetchTradesOptions) ([]
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var since *int64 = opts.Since
-
-	var limit *int64 = opts.Limit
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchTradesAsync(symbol, since, limit, params)
+	res := <-this.FetchTradesAsync(symbol, opts.Since, opts.Limit, opts.Params)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
@@ -1514,11 +1502,7 @@ func (this *Bit2c) CreateOrder(symbol string, typeVar string, side string, amoun
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var price *float64 = opts.Price
-
-	var params *map[string]any = opts.Params
-	res := <-this.CreateOrderAsync(symbol, typeVar, side, amount, price, params)
+	res := <-this.CreateOrderAsync(symbol, typeVar, side, amount, opts.Price, opts.Params)
 	if IsError(res) {
 		return Order{}, CreateReturnError(res)
 	}
@@ -1542,11 +1526,7 @@ func (this *Bit2c) CancelOrder(id string, options ...CancelOrderOptions) (Order,
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var symbol *string = opts.Symbol
-
-	var params *map[string]any = opts.Params
-	res := <-this.CancelOrderAsync(id, symbol, params)
+	res := <-this.CancelOrderAsync(id, opts.Symbol, opts.Params)
 	if IsError(res) {
 		return Order{}, CreateReturnError(res)
 	}
@@ -1571,15 +1551,7 @@ func (this *Bit2c) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Order, 
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var symbol *string = opts.Symbol
-
-	var since *int64 = opts.Since
-
-	var limit *int64 = opts.Limit
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchOpenOrdersAsync(symbol, since, limit, params)
+	res := <-this.FetchOpenOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
@@ -1603,11 +1575,7 @@ func (this *Bit2c) FetchOrder(id string, options ...FetchOrderOptions) (Order, e
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var symbol *string = opts.Symbol
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchOrderAsync(id, symbol, params)
+	res := <-this.FetchOrderAsync(id, opts.Symbol, opts.Params)
 	if IsError(res) {
 		return Order{}, CreateReturnError(res)
 	}
@@ -1632,15 +1600,7 @@ func (this *Bit2c) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, erro
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var symbol *string = opts.Symbol
-
-	var since *int64 = opts.Since
-
-	var limit *int64 = opts.Limit
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchMyTradesAsync(symbol, since, limit, params)
+	res := <-this.FetchMyTradesAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
@@ -1663,9 +1623,7 @@ func (this *Bit2c) FetchDepositAddress(code string, options ...FetchDepositAddre
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchDepositAddressAsync(code, params)
+	res := <-this.FetchDepositAddressAsync(code, opts.Params)
 	if IsError(res) {
 		return DepositAddress{}, CreateReturnError(res)
 	}

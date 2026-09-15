@@ -118,16 +118,16 @@ class foxbit(Exchange, ImplicitAPI):
                     '404': BadRequest,  # Resource not found. A resource was not found while processing the request.
                     '500': ExchangeError,  # Internal server error. An unknown error occurred while processing the request.
                     '2001': AuthenticationError,  # Authentication error. Error authenticating request.
-                    '2002': AuthenticationError,  # Invalid signature. The signature for self request is not valid.
+                    '2002': AuthenticationError,  # Invalid signature. The signature for this request is not valid.
                     '2003': AuthenticationError,  # Invalid access key. Access key missing, invalid or not found.
                     '2004': BadRequest,  # Invalid timestamp. Invalid or missing timestamp.
-                    '2005': PermissionDenied,  # IP not allowed. The IP address {IP_ADDR} isn't on the trusted list for self API key.
-                    '3001': PermissionDenied,  # Permission denied. Permission denied for self request.
-                    '3002': PermissionDenied,  # KYC required. A greater level of KYC verification is required to proceed with self request.
+                    '2005': PermissionDenied,  # IP not allowed. The IP address {IP_ADDR} isn't on the trusted list for this API key.
+                    '3001': PermissionDenied,  # Permission denied. Permission denied for this request.
+                    '3002': PermissionDenied,  # KYC required. A greater level of KYC verification is required to proceed with this request.
                     '3003': AccountSuspended,  # Member disabled. This member is disabled. Please get in touch with our support for more information.
                     '4001': BadRequest,  # Validation error. A validation error occurred.
-                    '4002': InsufficientFunds,  # Insufficient funds. Insufficient funds to proceed with self request.
-                    '4003': InvalidOrder,  # Quantity below the minimum allowed. Quantity below the minimum allowed to proceed with self request.
+                    '4002': InsufficientFunds,  # Insufficient funds. Insufficient funds to proceed with this request.
+                    '4003': InvalidOrder,  # Quantity below the minimum allowed. Quantity below the minimum allowed to proceed with this request.
                     '4004': BadSymbol,  # Invalid symbol. The market or asset symbol is invalid or was not found.
                     '4005': BadRequest,  # Invalid idempotent. Characters allowed are "a-z", "0-9", "_" or "-", and 36 at max. We recommend UUID v4 in lowercase.
                     '4007': ExchangeError,  # Locked error. There was an error in your allocated balance, please contact us.
@@ -285,10 +285,10 @@ class foxbit(Exchange, ImplicitAPI):
                         'marketBuyByCost': False,
                         'marketBuyRequiresPrice': False,
                         'selfTradePrevention': {
-                            'expire_maker': True,  # foxbit prevents self trading by default, no params can change self
-                            'expire_taker': True,  # foxbit prevents self trading by default, no params can change self
-                            'expire_both': True,  # foxbit prevents self trading by default, no params can change self
-                            'none': True,  # foxbit prevents self trading by default, no params can change self
+                            'expire_maker': True,  # foxbit prevents self trading by default, no params can change this
+                            'expire_taker': True,  # foxbit prevents self trading by default, no params can change this
+                            'expire_both': True,  # foxbit prevents self trading by default, no params can change this
+                            'none': True,  # foxbit prevents self trading by default, no params can change this
                         },
                         'trailing': False,
                         'icebergAmount': False,
@@ -359,7 +359,7 @@ class foxbit(Exchange, ImplicitAPI):
         #         "min_amount": "0.0001"
         #       },
         #       "withdraw_info": {
-        #         "enabled": True,
+        #         "enabled": true,
         #         "min_amount": "0.0001",
         #         "fee": "0.0001"
         #       },
@@ -378,7 +378,7 @@ class foxbit(Exchange, ImplicitAPI):
         #                  "status": "ENABLED",
         #                  "fee": "0.0001",
         #               },
-        #               "has_destination_tag": False
+        #               "has_destination_tag": false
         #           }
         #       ]
         #     }
@@ -495,10 +495,10 @@ class foxbit(Exchange, ImplicitAPI):
         #           "deposit_info": {
         #             "min_to_confirm": "1",
         #             "min_amount": "0.0001",
-        #             "enabled": True
+        #             "enabled": true
         #           },
         #           "withdraw_info": {
-        #             "enabled": True,
+        #             "enabled": true,
         #             "min_amount": "0.0001",
         #             "fee": "0.0001"
         #           },
@@ -513,7 +513,7 @@ class foxbit(Exchange, ImplicitAPI):
         #                 "status": "ENABLED",
         #                 "fee": "0.0001"
         #               },
-        #               "has_destination_tag": False
+        #               "has_destination_tag": false
         #             }
         #           ],
         #           "default_network_code": "bitcoin"
@@ -530,10 +530,10 @@ class foxbit(Exchange, ImplicitAPI):
         #           "deposit_info": {
         #             "min_to_confirm": "1",
         #             "min_amount": "0.0001",
-        #             "enabled": True
+        #             "enabled": true
         #           },
         #           "withdraw_info": {
-        #             "enabled": True,
+        #             "enabled": true,
         #             "min_amount": "0.0001",
         #             "fee": "0.0001"
         #           },
@@ -548,7 +548,7 @@ class foxbit(Exchange, ImplicitAPI):
         #                 "status": "ENABLED",
         #                 "fee": "0.0001"
         #               },
-        #               "has_destination_tag": False
+        #               "has_destination_tag": false
         #             }
         #           ],
         #           "default_network_code": "bitcoin"
@@ -797,17 +797,17 @@ class foxbit(Exchange, ImplicitAPI):
         response = await self.v3PublicGetMarketsMarketCandlesticks(self.extend(request, params))
         # [
         #     [
-        #         "1692918000000",  # timestamp
-        #         "127772.05150000",  # open
-        #         "128467.99980000",  # high
-        #         "127750.01000000",  # low
-        #         "128353.99990000",  # close
-        #         "1692918060000",  # close timestamp
-        #         "0.17080431",  # base volume
-        #         "21866.35948786",  # quote volume
-        #         66,  # number of trades
-        #         "0.12073605",  # taker buy base volume
-        #         "15466.34096391"  # taker buy quote volume
+        #         "1692918000000", // timestamp
+        #         "127772.05150000", // open
+        #         "128467.99980000", // high
+        #         "127750.01000000", // low
+        #         "128353.99990000", // close
+        #         "1692918060000", // close timestamp
+        #         "0.17080431", // base volume
+        #         "21866.35948786", // quote volume
+        #         66, // number of trades
+        #         "0.12073605", // taker buy base volume
+        #         "15466.34096391" // taker buy quote volume
         #     ]
         # ]
         return self.parse_ohlcvs(self.to_array(response), market, interval, since, limit)
@@ -1032,7 +1032,7 @@ class foxbit(Exchange, ImplicitAPI):
         #         "remark": "A remarkable note for the order.",
         #         "quantity": "0.42",
         #         "price": "250000.0",
-        #         "post_only": True,
+        #         "post_only": true,
         #         "time_in_force": "GTC"
         #         }
         #     ]
@@ -1724,7 +1724,7 @@ class foxbit(Exchange, ImplicitAPI):
         price = self.safe_string(order, 'price')
         filled = self.safe_string(order, 'quantity_executed')
         remaining = self.safe_string(order, 'quantity')
-        # TODO: validate logic of amount here, should self be calculated?
+        # TODO: validate logic of amount here, should this be calculated?
         amount = None
         if remaining is not None and filled is not None:
             amount = Precise.string_add(remaining, filled)
@@ -1817,7 +1817,7 @@ class foxbit(Exchange, ImplicitAPI):
         timestamp = self.parse_date(created_at)
         datetime = self.iso8601(timestamp)
         if fee is not None and amount is not None:
-            # actualAmount = amount - fee
+            # actualAmount = amount - fee;
             actualAmount = Precise.string_sub(amount, fee)
         feeRate = Precise.string_div(fee, actualAmount)
         feeObj = {

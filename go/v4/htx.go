@@ -11986,9 +11986,7 @@ func (this *Htx) FetchTradingFee(symbol string, options ...FetchTradingFeeOption
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchTradingFeeAsync(symbol, params)
+	res := <-this.FetchTradingFeeAsync(symbol, opts.Params)
 	if IsError(res) {
 		return TradingFeeInterface{}, CreateReturnError(res)
 	}
@@ -12001,11 +11999,7 @@ func (this *Htx) FetchTradingLimits(options ...FetchTradingLimitsOptions) (map[s
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var symbols *[]string = opts.Symbols
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchTradingLimitsAsync(symbols, params)
+	res := <-this.FetchTradingLimitsAsync(opts.Symbols, opts.Params)
 	if IsError(res) {
 		return map[string]any{}, CreateReturnError(res)
 	}
@@ -12028,9 +12022,7 @@ func (this *Htx) FetchTradingLimitsById(id string, options ...FetchTradingLimits
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchTradingLimitsByIdAsync(id, params)
+	res := <-this.FetchTradingLimitsByIdAsync(id, opts.Params)
 	if IsError(res) {
 		return map[string]any{}, CreateReturnError(res)
 	}
@@ -12077,9 +12069,7 @@ func (this *Htx) FetchMarketsByTypeAndSubType(typeVar string, subType string, op
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchMarketsByTypeAndSubTypeAsync(typeVar, subType, params)
+	res := <-this.FetchMarketsByTypeAndSubTypeAsync(typeVar, subType, opts.Params)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
@@ -12105,9 +12095,7 @@ func (this *Htx) FetchTicker(symbol string, options ...FetchTickerOptions) (Tick
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchTickerAsync(symbol, params)
+	res := <-this.FetchTickerAsync(symbol, opts.Params)
 	if IsError(res) {
 		return Ticker{}, CreateReturnError(res)
 	}
@@ -12133,11 +12121,7 @@ func (this *Htx) FetchTickers(options ...FetchTickersOptions) (Tickers, error) {
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var symbols *[]string = opts.Symbols
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchTickersAsync(symbols, params)
+	res := <-this.FetchTickersAsync(opts.Symbols, opts.Params)
 	if IsError(res) {
 		return Tickers{}, CreateReturnError(res)
 	}
@@ -12162,11 +12146,7 @@ func (this *Htx) FetchLastPrices(options ...FetchLastPricesOptions) (LastPrices,
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var symbols *[]string = opts.Symbols
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchLastPricesAsync(symbols, params)
+	res := <-this.FetchLastPricesAsync(opts.Symbols, opts.Params)
 	if IsError(res) {
 		return LastPrices{}, CreateReturnError(res)
 	}
@@ -12193,11 +12173,7 @@ func (this *Htx) FetchOrderBook(symbol string, options ...FetchOrderBookOptions)
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var limit *int64 = opts.Limit
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchOrderBookAsync(symbol, limit, params)
+	res := <-this.FetchOrderBookAsync(symbol, opts.Limit, opts.Params)
 	if IsError(res) {
 		return OrderBook{}, CreateReturnError(res)
 	}
@@ -12224,15 +12200,7 @@ func (this *Htx) FetchOrderTrades(id string, options ...FetchOrderTradesOptions)
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var symbol *string = opts.Symbol
-
-	var since *int64 = opts.Since
-
-	var limit *int64 = opts.Limit
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchOrderTradesAsync(id, symbol, since, limit, params)
+	res := <-this.FetchOrderTradesAsync(id, opts.Symbol, opts.Since, opts.Limit, opts.Params)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
@@ -12245,15 +12213,7 @@ func (this *Htx) FetchSpotOrderTrades(id string, options ...FetchSpotOrderTrades
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var symbol *string = opts.Symbol
-
-	var since *int64 = opts.Since
-
-	var limit *int64 = opts.Limit
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchSpotOrderTradesAsync(id, symbol, since, limit, params)
+	res := <-this.FetchSpotOrderTradesAsync(id, opts.Symbol, opts.Since, opts.Limit, opts.Params)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
@@ -12281,15 +12241,7 @@ func (this *Htx) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, error)
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var symbol *string = opts.Symbol
-
-	var since *int64 = opts.Since
-
-	var limit *int64 = opts.Limit
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchMyTradesAsync(symbol, since, limit, params)
+	res := <-this.FetchMyTradesAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
@@ -12317,13 +12269,7 @@ func (this *Htx) FetchTrades(symbol string, options ...FetchTradesOptions) ([]Tr
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var since *int64 = opts.Since
-
-	var limit *int64 = opts.Limit
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchTradesAsync(symbol, since, limit, params)
+	res := <-this.FetchTradesAsync(symbol, opts.Since, opts.Limit, opts.Params)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
@@ -12354,15 +12300,7 @@ func (this *Htx) FetchOHLCV(symbol string, options ...FetchOHLCVOptions) ([]OHLC
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var timeframe *string = opts.Timeframe
-
-	var since *int64 = opts.Since
-
-	var limit *int64 = opts.Limit
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchOHLCVAsync(symbol, timeframe, since, limit, params)
+	res := <-this.FetchOHLCVAsync(symbol, opts.Timeframe, opts.Since, opts.Limit, opts.Params)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
@@ -12403,13 +12341,7 @@ func (this *Htx) FetchAccountIdByType(typeVar string, options ...FetchAccountIdB
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var marginMode *string = opts.MarginMode
-
-	var symbol *string = opts.Symbol
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchAccountIdByTypeAsync(typeVar, marginMode, symbol, params)
+	res := <-this.FetchAccountIdByTypeAsync(typeVar, opts.MarginMode, opts.Symbol, opts.Params)
 	if IsError(res) {
 		return "", CreateReturnError(res)
 	}
@@ -12481,11 +12413,7 @@ func (this *Htx) FetchOrder(id string, options ...FetchOrderOptions) (Order, err
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var symbol *string = opts.Symbol
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchOrderAsync(id, symbol, params)
+	res := <-this.FetchOrderAsync(id, opts.Symbol, opts.Params)
 	if IsError(res) {
 		return Order{}, CreateReturnError(res)
 	}
@@ -12498,15 +12426,7 @@ func (this *Htx) FetchSpotOrdersByStates(states any, options ...FetchSpotOrdersB
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var symbol *string = opts.Symbol
-
-	var since *int64 = opts.Since
-
-	var limit *int64 = opts.Limit
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchSpotOrdersByStatesAsync(states, symbol, since, limit, params)
+	res := <-this.FetchSpotOrdersByStatesAsync(states, opts.Symbol, opts.Since, opts.Limit, opts.Params)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
@@ -12519,15 +12439,7 @@ func (this *Htx) FetchSpotOrders(options ...FetchSpotOrdersOptions) ([]Order, er
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var symbol *string = opts.Symbol
-
-	var since *int64 = opts.Since
-
-	var limit *int64 = opts.Limit
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchSpotOrdersAsync(symbol, since, limit, params)
+	res := <-this.FetchSpotOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
@@ -12540,15 +12452,7 @@ func (this *Htx) FetchClosedSpotOrders(options ...FetchClosedSpotOrdersOptions) 
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var symbol *string = opts.Symbol
-
-	var since *int64 = opts.Since
-
-	var limit *int64 = opts.Limit
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchClosedSpotOrdersAsync(symbol, since, limit, params)
+	res := <-this.FetchClosedSpotOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
@@ -12561,15 +12465,7 @@ func (this *Htx) FetchContractOrders(options ...FetchContractOrdersOptions) ([]O
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var symbol *string = opts.Symbol
-
-	var since *int64 = opts.Since
-
-	var limit *int64 = opts.Limit
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchContractOrdersAsync(symbol, since, limit, params)
+	res := <-this.FetchContractOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
@@ -12582,15 +12478,7 @@ func (this *Htx) FetchClosedContractOrders(options ...FetchClosedContractOrdersO
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var symbol *string = opts.Symbol
-
-	var since *int64 = opts.Since
-
-	var limit *int64 = opts.Limit
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchClosedContractOrdersAsync(symbol, since, limit, params)
+	res := <-this.FetchClosedContractOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
@@ -12626,15 +12514,7 @@ func (this *Htx) FetchOrders(options ...FetchOrdersOptions) ([]Order, error) {
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var symbol *string = opts.Symbol
-
-	var since *int64 = opts.Since
-
-	var limit *int64 = opts.Limit
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchOrdersAsync(symbol, since, limit, params)
+	res := <-this.FetchOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
@@ -12666,15 +12546,7 @@ func (this *Htx) FetchCanceledOrders(options ...FetchCanceledOrdersOptions) ([]O
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var symbol *string = opts.Symbol
-
-	var since *int64 = opts.Since
-
-	var limit *int64 = opts.Limit
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchCanceledOrdersAsync(symbol, since, limit, params)
+	res := <-this.FetchCanceledOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
@@ -12706,15 +12578,7 @@ func (this *Htx) FetchClosedOrders(options ...FetchClosedOrdersOptions) ([]Order
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var symbol *string = opts.Symbol
-
-	var since *int64 = opts.Since
-
-	var limit *int64 = opts.Limit
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchClosedOrdersAsync(symbol, since, limit, params)
+	res := <-this.FetchClosedOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
@@ -12746,15 +12610,7 @@ func (this *Htx) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Order, er
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var symbol *string = opts.Symbol
-
-	var since *int64 = opts.Since
-
-	var limit *int64 = opts.Limit
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchOpenOrdersAsync(symbol, since, limit, params)
+	res := <-this.FetchOpenOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
@@ -12778,9 +12634,7 @@ func (this *Htx) CreateMarketBuyOrderWithCost(symbol string, cost float64, optio
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var params *map[string]any = opts.Params
-	res := <-this.CreateMarketBuyOrderWithCostAsync(symbol, cost, params)
+	res := <-this.CreateMarketBuyOrderWithCostAsync(symbol, cost, opts.Params)
 	if IsError(res) {
 		return Order{}, CreateReturnError(res)
 	}
@@ -12808,15 +12662,7 @@ func (this *Htx) CreateTrailingPercentOrder(symbol string, typeVar string, side 
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var price *float64 = opts.Price
-
-	var trailingPercent *float64 = opts.TrailingPercent
-
-	var trailingTriggerPrice *float64 = opts.TrailingTriggerPrice
-
-	var params *map[string]any = opts.Params
-	res := <-this.CreateTrailingPercentOrderAsync(symbol, typeVar, side, amount, price, trailingPercent, trailingTriggerPrice, params)
+	res := <-this.CreateTrailingPercentOrderAsync(symbol, typeVar, side, amount, opts.Price, opts.TrailingPercent, opts.TrailingTriggerPrice, opts.Params)
 	if IsError(res) {
 		return Order{}, CreateReturnError(res)
 	}
@@ -12845,11 +12691,7 @@ func (this *Htx) CreateSpotOrderRequest(symbol string, typeVar string, side stri
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var price *float64 = opts.Price
-
-	var params *map[string]any = opts.Params
-	res := <-this.CreateSpotOrderRequestAsync(symbol, typeVar, side, amount, price, params)
+	res := <-this.CreateSpotOrderRequestAsync(symbol, typeVar, side, amount, opts.Price, opts.Params)
 	if IsError(res) {
 		return map[string]any{}, CreateReturnError(res)
 	}
@@ -12907,11 +12749,7 @@ func (this *Htx) CreateOrder(symbol string, typeVar string, side string, amount 
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var price *float64 = opts.Price
-
-	var params *map[string]any = opts.Params
-	res := <-this.CreateOrderAsync(symbol, typeVar, side, amount, price, params)
+	res := <-this.CreateOrderAsync(symbol, typeVar, side, amount, opts.Price, opts.Params)
 	if IsError(res) {
 		return Order{}, CreateReturnError(res)
 	}
@@ -12937,9 +12775,7 @@ func (this *Htx) CreateOrders(orders []OrderRequest, options ...CreateOrdersOpti
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var params *map[string]any = opts.Params
-	res := <-this.CreateOrdersAsync(ConvertOrderRequestListToArray(orders), params)
+	res := <-this.CreateOrdersAsync(ConvertOrderRequestListToArray(orders), opts.Params)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
@@ -12969,11 +12805,7 @@ func (this *Htx) CancelOrder(id string, options ...CancelOrderOptions) (Order, e
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var symbol *string = opts.Symbol
-
-	var params *map[string]any = opts.Params
-	res := <-this.CancelOrderAsync(id, symbol, params)
+	res := <-this.CancelOrderAsync(id, opts.Symbol, opts.Params)
 	if IsError(res) {
 		return Order{}, CreateReturnError(res)
 	}
@@ -12999,11 +12831,7 @@ func (this *Htx) CancelOrders(ids []string, options ...CancelOrdersOptions) ([]O
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var symbol *string = opts.Symbol
-
-	var params *map[string]any = opts.Params
-	res := <-this.CancelOrdersAsync(ids, symbol, params)
+	res := <-this.CancelOrdersAsync(ids, opts.Symbol, opts.Params)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
@@ -13029,11 +12857,7 @@ func (this *Htx) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order, er
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var symbol *string = opts.Symbol
-
-	var params *map[string]any = opts.Params
-	res := <-this.CancelAllOrdersAsync(symbol, params)
+	res := <-this.CancelAllOrdersAsync(opts.Symbol, opts.Params)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
@@ -13056,9 +12880,7 @@ func (this *Htx) CancelAllOrdersAfter(timeout int64, options ...CancelAllOrdersA
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var params *map[string]any = opts.Params
-	res := <-this.CancelAllOrdersAfterAsync(timeout, params)
+	res := <-this.CancelAllOrdersAfterAsync(timeout, opts.Params)
 	if IsError(res) {
 		return map[string]any{}, CreateReturnError(res)
 	}
@@ -13081,9 +12903,7 @@ func (this *Htx) FetchDepositAddressesByNetwork(code string, options ...FetchDep
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchDepositAddressesByNetworkAsync(code, params)
+	res := <-this.FetchDepositAddressesByNetworkAsync(code, opts.Params)
 	if IsError(res) {
 		return DepositAddresses{}, CreateReturnError(res)
 	}
@@ -13106,9 +12926,7 @@ func (this *Htx) FetchDepositAddress(code string, options ...FetchDepositAddress
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchDepositAddressAsync(code, params)
+	res := <-this.FetchDepositAddressAsync(code, opts.Params)
 	if IsError(res) {
 		return DepositAddress{}, CreateReturnError(res)
 	}
@@ -13121,13 +12939,7 @@ func (this *Htx) FetchWithdrawAddresses(code string, options ...FetchWithdrawAdd
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var note *string = opts.Note
-
-	var networkCode *string = opts.NetworkCode
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchWithdrawAddressesAsync(code, note, networkCode, params)
+	res := <-this.FetchWithdrawAddressesAsync(code, opts.Note, opts.NetworkCode, opts.Params)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
@@ -13152,15 +12964,7 @@ func (this *Htx) FetchDeposits(options ...FetchDepositsOptions) ([]Transaction, 
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var code *string = opts.Code
-
-	var since *int64 = opts.Since
-
-	var limit *int64 = opts.Limit
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchDepositsAsync(code, since, limit, params)
+	res := <-this.FetchDepositsAsync(opts.Code, opts.Since, opts.Limit, opts.Params)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
@@ -13185,15 +12989,7 @@ func (this *Htx) FetchWithdrawals(options ...FetchWithdrawalsOptions) ([]Transac
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var code *string = opts.Code
-
-	var since *int64 = opts.Since
-
-	var limit *int64 = opts.Limit
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchWithdrawalsAsync(code, since, limit, params)
+	res := <-this.FetchWithdrawalsAsync(opts.Code, opts.Since, opts.Limit, opts.Params)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
@@ -13219,11 +13015,7 @@ func (this *Htx) Withdraw(code string, amount float64, address string, options .
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var tag *string = opts.Tag
-
-	var params *map[string]any = opts.Params
-	res := <-this.WithdrawAsync(code, amount, address, tag, params)
+	res := <-this.WithdrawAsync(code, amount, address, opts.Tag, opts.Params)
 	if IsError(res) {
 		return Transaction{}, CreateReturnError(res)
 	}
@@ -13257,9 +13049,7 @@ func (this *Htx) Transfer(code string, amount float64, fromAccount string, toAcc
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var params *map[string]any = opts.Params
-	res := <-this.TransferAsync(code, amount, fromAccount, toAccount, params)
+	res := <-this.TransferAsync(code, amount, fromAccount, toAccount, opts.Params)
 	if IsError(res) {
 		return TransferEntry{}, CreateReturnError(res)
 	}
@@ -13288,15 +13078,7 @@ func (this *Htx) FetchTransfers(options ...FetchTransfersOptions) ([]TransferEnt
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var code *string = opts.Code
-
-	var since *int64 = opts.Since
-
-	var limit *int64 = opts.Limit
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchTransfersAsync(code, since, limit, params)
+	res := <-this.FetchTransfersAsync(opts.Code, opts.Since, opts.Limit, opts.Params)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
@@ -13340,15 +13122,7 @@ func (this *Htx) FetchFundingRateHistory(options ...FetchFundingRateHistoryOptio
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var symbol *string = opts.Symbol
-
-	var since *int64 = opts.Since
-
-	var limit *int64 = opts.Limit
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchFundingRateHistoryAsync(symbol, since, limit, params)
+	res := <-this.FetchFundingRateHistoryAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
@@ -13372,9 +13146,7 @@ func (this *Htx) FetchFundingRate(symbol string, options ...FetchFundingRateOpti
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchFundingRateAsync(symbol, params)
+	res := <-this.FetchFundingRateAsync(symbol, opts.Params)
 	if IsError(res) {
 		return FundingRate{}, CreateReturnError(res)
 	}
@@ -13397,11 +13169,7 @@ func (this *Htx) FetchFundingRates(options ...FetchFundingRatesOptions) (Funding
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var symbols *[]string = opts.Symbols
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchFundingRatesAsync(symbols, params)
+	res := <-this.FetchFundingRatesAsync(opts.Symbols, opts.Params)
 	if IsError(res) {
 		return FundingRates{}, CreateReturnError(res)
 	}
@@ -13428,17 +13196,7 @@ func (this *Htx) FetchBorrowInterest(options ...FetchBorrowInterestOptions) ([]B
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var code *string = opts.Code
-
-	var symbol *string = opts.Symbol
-
-	var since *int64 = opts.Since
-
-	var limit *int64 = opts.Limit
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchBorrowInterestAsync(code, symbol, since, limit, params)
+	res := <-this.FetchBorrowInterestAsync(opts.Code, opts.Symbol, opts.Since, opts.Limit, opts.Params)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
@@ -13466,15 +13224,7 @@ func (this *Htx) FetchFundingHistory(options ...FetchFundingHistoryOptions) ([]F
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var symbol *string = opts.Symbol
-
-	var since *int64 = opts.Since
-
-	var limit *int64 = opts.Limit
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchFundingHistoryAsync(symbol, since, limit, params)
+	res := <-this.FetchFundingHistoryAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
@@ -13501,11 +13251,7 @@ func (this *Htx) SetLeverage(leverage int64, options ...SetLeverageOptions) (map
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var symbol *string = opts.Symbol
-
-	var params *map[string]any = opts.Params
-	res := <-this.SetLeverageAsync(leverage, symbol, params)
+	res := <-this.SetLeverageAsync(leverage, opts.Symbol, opts.Params)
 	if IsError(res) {
 		return map[string]any{}, CreateReturnError(res)
 	}
@@ -13533,11 +13279,7 @@ func (this *Htx) FetchPositions(options ...FetchPositionsOptions) ([]Position, e
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var symbols *[]string = opts.Symbols
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchPositionsAsync(symbols, params)
+	res := <-this.FetchPositionsAsync(opts.Symbols, opts.Params)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
@@ -13562,9 +13304,7 @@ func (this *Htx) FetchPosition(symbol string, options ...FetchPositionOptions) (
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchPositionAsync(symbol, params)
+	res := <-this.FetchPositionAsync(symbol, opts.Params)
 	if IsError(res) {
 		return Position{}, CreateReturnError(res)
 	}
@@ -13591,15 +13331,7 @@ func (this *Htx) FetchLedger(options ...FetchLedgerOptions) ([]LedgerEntry, erro
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var code *string = opts.Code
-
-	var since *int64 = opts.Since
-
-	var limit *int64 = opts.Limit
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchLedgerAsync(code, since, limit, params)
+	res := <-this.FetchLedgerAsync(opts.Code, opts.Since, opts.Limit, opts.Params)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
@@ -13621,11 +13353,7 @@ func (this *Htx) FetchLeverageTiers(options ...FetchLeverageTiersOptions) (Lever
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var symbols *[]string = opts.Symbols
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchLeverageTiersAsync(symbols, params)
+	res := <-this.FetchLeverageTiersAsync(opts.Symbols, opts.Params)
 	if IsError(res) {
 		return LeverageTiers{}, CreateReturnError(res)
 	}
@@ -13655,15 +13383,7 @@ func (this *Htx) FetchOpenInterestHistory(symbol string, options ...FetchOpenInt
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var timeframe *string = opts.Timeframe
-
-	var since *int64 = opts.Since
-
-	var limit *int64 = opts.Limit
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchOpenInterestHistoryAsync(symbol, timeframe, since, limit, params)
+	res := <-this.FetchOpenInterestHistoryAsync(symbol, opts.Timeframe, opts.Since, opts.Limit, opts.Params)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
@@ -13687,11 +13407,7 @@ func (this *Htx) FetchOpenInterests(options ...FetchOpenInterestsOptions) (OpenI
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var symbols *[]string = opts.Symbols
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchOpenInterestsAsync(symbols, params)
+	res := <-this.FetchOpenInterestsAsync(opts.Symbols, opts.Params)
 	if IsError(res) {
 		return OpenInterests{}, CreateReturnError(res)
 	}
@@ -13716,9 +13432,7 @@ func (this *Htx) FetchOpenInterest(symbol string, options ...FetchOpenInterestOp
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchOpenInterestAsync(symbol, params)
+	res := <-this.FetchOpenInterestAsync(symbol, opts.Params)
 	if IsError(res) {
 		return OpenInterest{}, CreateReturnError(res)
 	}
@@ -13748,15 +13462,7 @@ func (this *Htx) FetchSettlementHistory(options ...FetchSettlementHistoryOptions
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var symbol *string = opts.Symbol
-
-	var since *int64 = opts.Since
-
-	var limit *int64 = opts.Limit
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchSettlementHistoryAsync(symbol, since, limit, params)
+	res := <-this.FetchSettlementHistoryAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
@@ -13779,11 +13485,7 @@ func (this *Htx) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOpt
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var codes *[]string = opts.Codes
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchDepositWithdrawFeesAsync(codes, params)
+	res := <-this.FetchDepositWithdrawFeesAsync(opts.Codes, opts.Params)
 	if IsError(res) {
 		return DepositWithdrawFees{}, CreateReturnError(res)
 	}
@@ -13812,13 +13514,7 @@ func (this *Htx) FetchLiquidations(symbol string, options ...FetchLiquidationsOp
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var since *int64 = opts.Since
-
-	var limit *int64 = opts.Limit
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchLiquidationsAsync(symbol, since, limit, params)
+	res := <-this.FetchLiquidationsAsync(symbol, opts.Since, opts.Limit, opts.Params)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
@@ -13843,11 +13539,7 @@ func (this *Htx) SetPositionMode(hedged bool, options ...SetPositionModeOptions)
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var symbol *string = opts.Symbol
-
-	var params *map[string]any = opts.Params
-	res := <-this.SetPositionModeAsync(hedged, symbol, params)
+	res := <-this.SetPositionModeAsync(hedged, opts.Symbol, opts.Params)
 	if IsError(res) {
 		return map[string]any{}, CreateReturnError(res)
 	}
@@ -13872,11 +13564,7 @@ func (this *Htx) FetchPositionsADLRank(options ...FetchPositionsADLRankOptions) 
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var symbols *[]string = opts.Symbols
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchPositionsADLRankAsync(symbols, params)
+	res := <-this.FetchPositionsADLRankAsync(opts.Symbols, opts.Params)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}

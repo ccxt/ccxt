@@ -789,11 +789,7 @@ func (this *Bitstamp) WatchOrderBook(symbol string, options ...ccxt.WatchOrderBo
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var limit = opts.Limit
-
-	var params = opts.Params
-	res := <-this.WatchOrderBookAsync(symbol, limit, params)
+	res := <-this.WatchOrderBookAsync(symbol, opts.Limit, opts.Params)
 	if ccxt.IsError(res) {
 		return ccxt.OrderBook{}, ccxt.CreateReturnError(res)
 	}
@@ -817,13 +813,7 @@ func (this *Bitstamp) WatchTrades(symbol string, options ...ccxt.WatchTradesOpti
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var since = opts.Since
-
-	var limit = opts.Limit
-
-	var params = opts.Params
-	res := <-this.WatchTradesAsync(symbol, since, limit, params)
+	res := <-this.WatchTradesAsync(symbol, opts.Since, opts.Limit, opts.Params)
 	if ccxt.IsError(res) {
 		return nil, ccxt.CreateReturnError(res)
 	}
@@ -847,15 +837,7 @@ func (this *Bitstamp) WatchOrders(options ...ccxt.WatchOrdersOptions) ([]ccxt.Or
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var symbol = opts.Symbol
-
-	var since = opts.Since
-
-	var limit = opts.Limit
-
-	var params = opts.Params
-	res := <-this.WatchOrdersAsync(symbol, since, limit, params)
+	res := <-this.WatchOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
 	if ccxt.IsError(res) {
 		return nil, ccxt.CreateReturnError(res)
 	}

@@ -2672,13 +2672,7 @@ func (this *Hollaex) FetchOrderBooks(options ...FetchOrderBooksOptions) (OrderBo
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var symbols *[]string = opts.Symbols
-
-	var limit *int64 = opts.Limit
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchOrderBooksAsync(symbols, limit, params)
+	res := <-this.FetchOrderBooksAsync(opts.Symbols, opts.Limit, opts.Params)
 	if IsError(res) {
 		return OrderBooks{}, CreateReturnError(res)
 	}
@@ -2702,11 +2696,7 @@ func (this *Hollaex) FetchOrderBook(symbol string, options ...FetchOrderBookOpti
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var limit *int64 = opts.Limit
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchOrderBookAsync(symbol, limit, params)
+	res := <-this.FetchOrderBookAsync(symbol, opts.Limit, opts.Params)
 	if IsError(res) {
 		return OrderBook{}, CreateReturnError(res)
 	}
@@ -2729,9 +2719,7 @@ func (this *Hollaex) FetchTicker(symbol string, options ...FetchTickerOptions) (
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchTickerAsync(symbol, params)
+	res := <-this.FetchTickerAsync(symbol, opts.Params)
 	if IsError(res) {
 		return Ticker{}, CreateReturnError(res)
 	}
@@ -2754,11 +2742,7 @@ func (this *Hollaex) FetchTickers(options ...FetchTickersOptions) (Tickers, erro
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var symbols *[]string = opts.Symbols
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchTickersAsync(symbols, params)
+	res := <-this.FetchTickersAsync(opts.Symbols, opts.Params)
 	if IsError(res) {
 		return Tickers{}, CreateReturnError(res)
 	}
@@ -2783,13 +2767,7 @@ func (this *Hollaex) FetchTrades(symbol string, options ...FetchTradesOptions) (
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var since *int64 = opts.Since
-
-	var limit *int64 = opts.Limit
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchTradesAsync(symbol, since, limit, params)
+	res := <-this.FetchTradesAsync(symbol, opts.Since, opts.Limit, opts.Params)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
@@ -2832,15 +2810,7 @@ func (this *Hollaex) FetchOHLCV(symbol string, options ...FetchOHLCVOptions) ([]
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var timeframe *string = opts.Timeframe
-
-	var since *int64 = opts.Since
-
-	var limit *int64 = opts.Limit
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchOHLCVAsync(symbol, timeframe, since, limit, params)
+	res := <-this.FetchOHLCVAsync(symbol, opts.Timeframe, opts.Since, opts.Limit, opts.Params)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
@@ -2880,11 +2850,7 @@ func (this *Hollaex) FetchOpenOrder(id string, options ...FetchOpenOrderOptions)
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var symbol *string = opts.Symbol
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchOpenOrderAsync(id, symbol, params)
+	res := <-this.FetchOpenOrderAsync(id, opts.Symbol, opts.Params)
 	if IsError(res) {
 		return Order{}, CreateReturnError(res)
 	}
@@ -2909,15 +2875,7 @@ func (this *Hollaex) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Order
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var symbol *string = opts.Symbol
-
-	var since *int64 = opts.Since
-
-	var limit *int64 = opts.Limit
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchOpenOrdersAsync(symbol, since, limit, params)
+	res := <-this.FetchOpenOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
@@ -2942,15 +2900,7 @@ func (this *Hollaex) FetchClosedOrders(options ...FetchClosedOrdersOptions) ([]O
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var symbol *string = opts.Symbol
-
-	var since *int64 = opts.Since
-
-	var limit *int64 = opts.Limit
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchClosedOrdersAsync(symbol, since, limit, params)
+	res := <-this.FetchClosedOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
@@ -2974,11 +2924,7 @@ func (this *Hollaex) FetchOrder(id string, options ...FetchOrderOptions) (Order,
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var symbol *string = opts.Symbol
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchOrderAsync(id, symbol, params)
+	res := <-this.FetchOrderAsync(id, opts.Symbol, opts.Params)
 	if IsError(res) {
 		return Order{}, CreateReturnError(res)
 	}
@@ -3003,15 +2949,7 @@ func (this *Hollaex) FetchOrders(options ...FetchOrdersOptions) ([]Order, error)
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var symbol *string = opts.Symbol
-
-	var since *int64 = opts.Since
-
-	var limit *int64 = opts.Limit
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchOrdersAsync(symbol, since, limit, params)
+	res := <-this.FetchOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
@@ -3040,11 +2978,7 @@ func (this *Hollaex) CreateOrder(symbol string, typeVar string, side string, amo
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var price *float64 = opts.Price
-
-	var params *map[string]any = opts.Params
-	res := <-this.CreateOrderAsync(symbol, typeVar, side, amount, price, params)
+	res := <-this.CreateOrderAsync(symbol, typeVar, side, amount, opts.Price, opts.Params)
 	if IsError(res) {
 		return Order{}, CreateReturnError(res)
 	}
@@ -3068,11 +3002,7 @@ func (this *Hollaex) CancelOrder(id string, options ...CancelOrderOptions) (Orde
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var symbol *string = opts.Symbol
-
-	var params *map[string]any = opts.Params
-	res := <-this.CancelOrderAsync(id, symbol, params)
+	res := <-this.CancelOrderAsync(id, opts.Symbol, opts.Params)
 	if IsError(res) {
 		return Order{}, CreateReturnError(res)
 	}
@@ -3095,11 +3025,7 @@ func (this *Hollaex) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var symbol *string = opts.Symbol
-
-	var params *map[string]any = opts.Params
-	res := <-this.CancelAllOrdersAsync(symbol, params)
+	res := <-this.CancelAllOrdersAsync(opts.Symbol, opts.Params)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
@@ -3124,15 +3050,7 @@ func (this *Hollaex) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, er
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var symbol *string = opts.Symbol
-
-	var since *int64 = opts.Since
-
-	var limit *int64 = opts.Limit
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchMyTradesAsync(symbol, since, limit, params)
+	res := <-this.FetchMyTradesAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
@@ -3155,11 +3073,7 @@ func (this *Hollaex) FetchDepositAddresses(options ...FetchDepositAddressesOptio
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var codes *[]string = opts.Codes
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchDepositAddressesAsync(codes, params)
+	res := <-this.FetchDepositAddressesAsync(opts.Codes, opts.Params)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
@@ -3184,15 +3098,7 @@ func (this *Hollaex) FetchDeposits(options ...FetchDepositsOptions) ([]Transacti
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var code *string = opts.Code
-
-	var since *int64 = opts.Since
-
-	var limit *int64 = opts.Limit
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchDepositsAsync(code, since, limit, params)
+	res := <-this.FetchDepositsAsync(opts.Code, opts.Since, opts.Limit, opts.Params)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
@@ -3216,11 +3122,7 @@ func (this *Hollaex) FetchWithdrawal(id string, options ...FetchWithdrawalOption
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var code *string = opts.Code
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchWithdrawalAsync(id, code, params)
+	res := <-this.FetchWithdrawalAsync(id, opts.Code, opts.Params)
 	if IsError(res) {
 		return Transaction{}, CreateReturnError(res)
 	}
@@ -3245,15 +3147,7 @@ func (this *Hollaex) FetchWithdrawals(options ...FetchWithdrawalsOptions) ([]Tra
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var code *string = opts.Code
-
-	var since *int64 = opts.Since
-
-	var limit *int64 = opts.Limit
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchWithdrawalsAsync(code, since, limit, params)
+	res := <-this.FetchWithdrawalsAsync(opts.Code, opts.Since, opts.Limit, opts.Params)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
@@ -3279,11 +3173,7 @@ func (this *Hollaex) Withdraw(code string, amount float64, address string, optio
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var tag *string = opts.Tag
-
-	var params *map[string]any = opts.Params
-	res := <-this.WithdrawAsync(code, amount, address, tag, params)
+	res := <-this.WithdrawAsync(code, amount, address, opts.Tag, opts.Params)
 	if IsError(res) {
 		return Transaction{}, CreateReturnError(res)
 	}
@@ -3306,11 +3196,7 @@ func (this *Hollaex) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFee
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var codes *[]string = opts.Codes
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchDepositWithdrawFeesAsync(codes, params)
+	res := <-this.FetchDepositWithdrawFeesAsync(opts.Codes, opts.Params)
 	if IsError(res) {
 		return DepositWithdrawFees{}, CreateReturnError(res)
 	}

@@ -404,7 +404,7 @@ class extended(Exchange, ImplicitAPI):
         #           "collateralAssetName": "USD",
         #           "collateralAssetPrecision": 6,
         #           "description": "Bitcoin",
-        #           "active": True,
+        #           "active": true,
         #           "status": "ACTIVE",
         #           "marketStats": {
         #             "dailyVolume": "231016077.512960",
@@ -477,7 +477,7 @@ class extended(Exchange, ImplicitAPI):
         #               {
         #                 "upperBound": "4000000",
         #                 "riskFactor": "0.02",
-        #                 "isAvailableForUsers": True
+        #                 "isAvailableForUsers": true
         #               }
         #             ]
         #           },
@@ -488,7 +488,7 @@ class extended(Exchange, ImplicitAPI):
         #             "syntheticResolution": 1000000,
         #             "collateralResolution": 1000000
         #           },
-        #           "visibleOnUi": True,
+        #           "visibleOnUi": true,
         #           "createdAt": 1752829532673
         #         }
         #       ]
@@ -509,9 +509,9 @@ class extended(Exchange, ImplicitAPI):
         #       "collateralAssetName": "USD",
         #       "collateralAssetPrecision": 6,
         #       "description": "Bitcoin",
-        #       "active": True,
+        #       "active": true,
         #       "status": "ACTIVE",
-        #       "marketStats": {...},
+        #       "marketStats": { ... },
         #       "tradingConfig": {
         #         "minOrderSize": "0.0001",
         #         "minOrderSizeChange": "0.00001",
@@ -528,12 +528,12 @@ class extended(Exchange, ImplicitAPI):
         #           {
         #             "upperBound": "4000000",
         #             "riskFactor": "0.02",
-        #             "isAvailableForUsers": True
+        #             "isAvailableForUsers": true
         #           }
         #         ]
         #       },
-        #       "l2Config": {...},
-        #       "visibleOnUi": True,
+        #       "l2Config": { ... },
+        #       "visibleOnUi": true,
         #       "createdAt": 1752829532673
         #     }
         #
@@ -563,7 +563,7 @@ class extended(Exchange, ImplicitAPI):
         contractSize = None
         linear = None
         inverse = None
-        # SPOT rows are still parsed on purpose even though has['spot'] is False - that flag
+        # SPOT rows are still parsed on purpose even though has['spot'] is false - that flag
         # only advertises the capability and gates the unified spot tests, it does not filter
         # markets, so accounts still holding spot balances keep resolving their symbols
         if type == 'spot':
@@ -648,8 +648,8 @@ class extended(Exchange, ImplicitAPI):
         #           "symbol": "USD",
         #           "description": "USD Collateral",
         #           "precision": 6,
-        #           "isActive": True,
-        #           "isCollateral": True,
+        #           "isActive": true,
+        #           "isCollateral": true,
         #           "starkexId": "0x1",
         #           "starkexResolution": 1000000,
         #           "l1Id": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
@@ -657,7 +657,7 @@ class extended(Exchange, ImplicitAPI):
         #           "version": 3,
         #           "createdAt": 1752829532673,
         #           "type": "SPOT",
-        #           "canBeUsedAsCollateral": True,
+        #           "canBeUsedAsCollateral": true,
         #           "riskFactors": [],
         #           "availableForTradeFactors": []
         #         }
@@ -675,8 +675,8 @@ class extended(Exchange, ImplicitAPI):
         #       "symbol": "USD",
         #       "description": "USD Collateral",
         #       "precision": 6,
-        #       "isActive": True,
-        #       "isCollateral": True,
+        #       "isActive": true,
+        #       "isCollateral": true,
         #       "starkexId": "0x1",
         #       "starkexResolution": 1000000,
         #       "l1Id": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
@@ -684,7 +684,7 @@ class extended(Exchange, ImplicitAPI):
         #       "version": 3,
         #       "createdAt": 1752829532673,
         #       "type": "SPOT",
-        #       "canBeUsedAsCollateral": True,
+        #       "canBeUsedAsCollateral": true,
         #       "riskFactors": [],
         #       "availableForTradeFactors": []
         #     }
@@ -749,16 +749,16 @@ class extended(Exchange, ImplicitAPI):
         #         "openInterestBase": "1491.33012",
         #         "deleverageLevels": {
         #           "shortPositions": [
-        #             {"level": 1, "rankingLowerBound": "-784.2884"},
-        #             {"level": 2, "rankingLowerBound": "-2.1078"},
-        #             {"level": 3, "rankingLowerBound": "-0.8754"},
-        #             {"level": 4, "rankingLowerBound": "0.0000"}
+        #             { "level": 1, "rankingLowerBound": "-784.2884" },
+        #             { "level": 2, "rankingLowerBound": "-2.1078" },
+        #             { "level": 3, "rankingLowerBound": "-0.8754" },
+        #             { "level": 4, "rankingLowerBound": "0.0000" }
         #           ],
         #           "longPositions": [
-        #             {"level": 1, "rankingLowerBound": "-47747.2010"},
-        #             {"level": 2, "rankingLowerBound": "-0.0131"},
-        #             {"level": 3, "rankingLowerBound": "0.0019"},
-        #             {"level": 4, "rankingLowerBound": "0.0032"}
+        #             { "level": 1, "rankingLowerBound": "-47747.2010" },
+        #             { "level": 2, "rankingLowerBound": "-0.0131" },
+        #             { "level": 3, "rankingLowerBound": "0.0019" },
+        #             { "level": 4, "rankingLowerBound": "0.0032" }
         #           ]
         #         }
         #       }
@@ -837,16 +837,16 @@ class extended(Exchange, ImplicitAPI):
         #       "openInterestBase": "1491.33012",
         #       "deleverageLevels": {
         #         "shortPositions": [
-        #           {"level": 1, "rankingLowerBound": "-784.2884"},
-        #           {"level": 2, "rankingLowerBound": "-2.1078"},
-        #           {"level": 3, "rankingLowerBound": "-0.8754"},
-        #           {"level": 4, "rankingLowerBound": "0.0000"}
+        #           { "level": 1, "rankingLowerBound": "-784.2884" },
+        #           { "level": 2, "rankingLowerBound": "-2.1078" },
+        #           { "level": 3, "rankingLowerBound": "-0.8754" },
+        #           { "level": 4, "rankingLowerBound": "0.0000" }
         #         ],
         #         "longPositions": [
-        #           {"level": 1, "rankingLowerBound": "-47747.2010"},
-        #           {"level": 2, "rankingLowerBound": "-0.0131"},
-        #           {"level": 3, "rankingLowerBound": "0.0019"},
-        #           {"level": 4, "rankingLowerBound": "0.0032"}
+        #           { "level": 1, "rankingLowerBound": "-47747.2010" },
+        #           { "level": 2, "rankingLowerBound": "-0.0131" },
+        #           { "level": 3, "rankingLowerBound": "0.0019" },
+        #           { "level": 4, "rankingLowerBound": "0.0032" }
         #         ]
         #       }
         #     }
@@ -1004,7 +1004,7 @@ class extended(Exchange, ImplicitAPI):
         #                 "value": "7800",
         #                 "fee": "1.3",
         #                 "tradeType": "TRADE",
-        #                 "isTaker": True,
+        #                 "isTaker": true,
         #                 "createdTime": 1701563440000
         #             }
         #         ],
@@ -1155,7 +1155,7 @@ class extended(Exchange, ImplicitAPI):
         #         "value": "7800",
         #         "fee": "1.3",
         #         "tradeType": "TRADE",
-        #         "isTaker": True,
+        #         "isTaker": true,
         #         "createdTime": 1701563440000
         #     }
         #
@@ -1881,7 +1881,7 @@ class extended(Exchange, ImplicitAPI):
         #     {
         #         "status": "OK",
         #         "data": {
-        #             "validSignature": True,
+        #             "validSignature": true,
         #             "id": 1820778187672010752
         #         }
         #     }
@@ -2997,8 +2997,8 @@ class extended(Exchange, ImplicitAPI):
         #           "qty": "0.2",
         #           "filledQty": "0.1",
         #           "payedFee": "0.0120000000000000",
-        #           "reduceOnly": False,
-        #           "postOnly": False,
+        #           "reduceOnly": false,
+        #           "postOnly": false,
         #           "createdTime": 1701563440000,
         #           "updatedTime": 1701563440000,
         #           "timeInForce": "IOC",
@@ -3054,8 +3054,8 @@ class extended(Exchange, ImplicitAPI):
         #           "qty": "0.2",
         #           "filledQty": "0.1",
         #           "payedFee": "0.0120000000000000",
-        #           "reduceOnly": False,
-        #           "postOnly": False,
+        #           "reduceOnly": false,
+        #           "postOnly": false,
         #           "createdTime": 1701563440000,
         #           "updatedTime": 1701563440000,
         #           "timeInForce": "IOC",
@@ -3143,8 +3143,8 @@ class extended(Exchange, ImplicitAPI):
         #         "qty": "0.2",
         #         "filledQty": "0.1",
         #         "payedFee": "0.0120000000000000",
-        #         "reduceOnly": False,
-        #         "postOnly": False,
+        #         "reduceOnly": false,
+        #         "postOnly": false,
         #         "trigger": {
         #             "triggerPrice": "34000",
         #             "triggerPriceType": "LAST",
@@ -3371,7 +3371,7 @@ class extended(Exchange, ImplicitAPI):
         queryPost = (path == 'user/deadmanswitch')
         url = self.implode_hostname(self.urls['api']['rest'])
         if accessibility == 'private':
-            # self.check_required_credentials()
+            # this.checkRequiredCredentials ();
             if self.apiKey is None:
                 raise AuthenticationError(self.id + ' sign() requires an apiKey for private endpoints')
             headers = {

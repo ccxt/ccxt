@@ -1116,11 +1116,7 @@ func (this *Extended) WatchOrderBook(symbol string, options ...ccxt.WatchOrderBo
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var limit = opts.Limit
-
-	var params = opts.Params
-	res := <-this.WatchOrderBookAsync(symbol, limit, params)
+	res := <-this.WatchOrderBookAsync(symbol, opts.Limit, opts.Params)
 	if ccxt.IsError(res) {
 		return ccxt.OrderBook{}, ccxt.CreateReturnError(res)
 	}
@@ -1145,15 +1141,7 @@ func (this *Extended) WatchOrders(options ...ccxt.WatchOrdersOptions) ([]ccxt.Or
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var symbol = opts.Symbol
-
-	var since = opts.Since
-
-	var limit = opts.Limit
-
-	var params = opts.Params
-	res := <-this.WatchOrdersAsync(symbol, since, limit, params)
+	res := <-this.WatchOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
 	if ccxt.IsError(res) {
 		return nil, ccxt.CreateReturnError(res)
 	}
@@ -1194,15 +1182,7 @@ func (this *Extended) WatchMyTrades(options ...ccxt.WatchMyTradesOptions) ([]ccx
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var symbol = opts.Symbol
-
-	var since = opts.Since
-
-	var limit = opts.Limit
-
-	var params = opts.Params
-	res := <-this.WatchMyTradesAsync(symbol, since, limit, params)
+	res := <-this.WatchMyTradesAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
 	if ccxt.IsError(res) {
 		return nil, ccxt.CreateReturnError(res)
 	}
@@ -1227,15 +1207,7 @@ func (this *Extended) WatchPositions(options ...ccxt.WatchPositionsOptions) ([]c
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var symbols = opts.Symbols
-
-	var since = opts.Since
-
-	var limit = opts.Limit
-
-	var params = opts.Params
-	res := <-this.WatchPositionsAsync(symbols, since, limit, params)
+	res := <-this.WatchPositionsAsync(opts.Symbols, opts.Since, opts.Limit, opts.Params)
 	if ccxt.IsError(res) {
 		return nil, ccxt.CreateReturnError(res)
 	}
@@ -1258,9 +1230,7 @@ func (this *Extended) WatchFundingRate(symbol string, options ...ccxt.WatchFundi
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var params = opts.Params
-	res := <-this.WatchFundingRateAsync(symbol, params)
+	res := <-this.WatchFundingRateAsync(symbol, opts.Params)
 	if ccxt.IsError(res) {
 		return ccxt.FundingRate{}, ccxt.CreateReturnError(res)
 	}
@@ -1283,9 +1253,7 @@ func (this *Extended) WatchMarkPrice(symbol string, options ...ccxt.WatchMarkPri
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var params = opts.Params
-	res := <-this.WatchMarkPriceAsync(symbol, params)
+	res := <-this.WatchMarkPriceAsync(symbol, opts.Params)
 	if ccxt.IsError(res) {
 		return ccxt.Ticker{}, ccxt.CreateReturnError(res)
 	}
@@ -1310,13 +1278,7 @@ func (this *Extended) WatchTrades(symbol string, options ...ccxt.WatchTradesOpti
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var since = opts.Since
-
-	var limit = opts.Limit
-
-	var params = opts.Params
-	res := <-this.WatchTradesAsync(symbol, since, limit, params)
+	res := <-this.WatchTradesAsync(symbol, opts.Since, opts.Limit, opts.Params)
 	if ccxt.IsError(res) {
 		return nil, ccxt.CreateReturnError(res)
 	}
@@ -1344,15 +1306,7 @@ func (this *Extended) WatchOHLCV(symbol string, options ...ccxt.WatchOHLCVOption
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var timeframe = opts.Timeframe
-
-	var since = opts.Since
-
-	var limit = opts.Limit
-
-	var params = opts.Params
-	res := <-this.WatchOHLCVAsync(symbol, timeframe, since, limit, params)
+	res := <-this.WatchOHLCVAsync(symbol, opts.Timeframe, opts.Since, opts.Limit, opts.Params)
 	if ccxt.IsError(res) {
 		return nil, ccxt.CreateReturnError(res)
 	}

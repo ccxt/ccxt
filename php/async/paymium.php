@@ -388,10 +388,10 @@ class paymium extends Exchange {
         $response = Async\await($this->privatePostUserAddresses($params));
         //
         //     {
-        //         "address" => "1HdjGr6WCTcnmW1tNNsHX7fh4Jr5C2PeKe",
-        //         "valid_until" => 1620041926,
-        //         "currency" => "BTC",
-        //         "label" => "Savings"
+        //         "address": "1HdjGr6WCTcnmW1tNNsHX7fh4Jr5C2PeKe",
+        //         "valid_until": 1620041926,
+        //         "currency": "BTC",
+        //         "label": "Savings"
         //     }
         //
         return $this->parse_deposit_address($response);
@@ -420,10 +420,10 @@ class paymium extends Exchange {
         $response = Async\await($this->privateGetUserAddressesAddress($this->extend($request, $params)));
         //
         //     {
-        //         "address" => "1HdjGr6WCTcnmW1tNNsHX7fh4Jr5C2PeKe",
-        //         "valid_until" => 1620041926,
-        //         "currency" => "BTC",
-        //         "label" => "Savings"
+        //         "address": "1HdjGr6WCTcnmW1tNNsHX7fh4Jr5C2PeKe",
+        //         "valid_until": 1620041926,
+        //         "currency": "BTC",
+        //         "label": "Savings"
         //     }
         //
         return $this->parse_deposit_address($response);
@@ -448,14 +448,14 @@ class paymium extends Exchange {
         }
         $response = Async\await($this->privateGetUserAddresses($params));
         //
-        //     array(
+        //     [
         //         {
-        //             "address" => "1HdjGr6WCTcnmW1tNNsHX7fh4Jr5C2PeKe",
-        //             "valid_until" => 1620041926,
-        //             "currency" => "BTC",
-        //             "label" => "Savings"
+        //             "address": "1HdjGr6WCTcnmW1tNNsHX7fh4Jr5C2PeKe",
+        //             "valid_until": 1620041926,
+        //             "currency": "BTC",
+        //             "label": "Savings"
         //         }
-        //     )
+        //     ]
         //
         return $this->parse_deposit_addresses($response, $codes, false);
     }
@@ -463,10 +463,10 @@ class paymium extends Exchange {
     public function parse_deposit_address(mixed $depositAddress, ?array $currency = null): array {
         //
         //     {
-        //         "address" => "1HdjGr6WCTcnmW1tNNsHX7fh4Jr5C2PeKe",
-        //         "valid_until" => 1620041926,
-        //         "currency" => "BTC",
-        //         "label" => "Savings"
+        //         "address": "1HdjGr6WCTcnmW1tNNsHX7fh4Jr5C2PeKe",
+        //         "valid_until": 1620041926,
+        //         "currency": "BTC",
+        //         "label": "Savings"
         //     }
         //
         $address = $this->safe_string($depositAddress, 'address');
@@ -573,39 +573,39 @@ class paymium extends Exchange {
             'currency' => $currency['id'],
             'amount' => $this->currency_to_precision($code, $amount),
             'email' => $toAccount,
-            // 'comment' => 'a small note explaining the transfer'
+            // 'comment': 'a small note explaining the transfer'
         );
         $response = Async\await($this->privatePostUserEmailTransfers($this->extend($request, $params)));
         //
         //     {
-        //         "uuid" => "968f4580-e26c-4ad8-8bcd-874d23d55296",
-        //         "type" => "Transfer",
-        //         "currency" => "BTC",
-        //         "currency_amount" => "string",
-        //         "created_at" => "2013-10-24T10:34:37.000Z",
-        //         "updated_at" => "2013-10-24T10:34:37.000Z",
-        //         "amount" => "1.0",
-        //         "state" => "executed",
-        //         "currency_fee" => "0.0",
-        //         "btc_fee" => "0.0",
-        //         "comment" => "string",
-        //         "traded_btc" => "string",
-        //         "traded_currency" => "string",
-        //         "direction" => "buy",
-        //         "price" => "string",
-        //         "account_operations" => array(
+        //         "uuid": "968f4580-e26c-4ad8-8bcd-874d23d55296",
+        //         "type": "Transfer",
+        //         "currency": "BTC",
+        //         "currency_amount": "string",
+        //         "created_at": "2013-10-24T10:34:37.000Z",
+        //         "updated_at": "2013-10-24T10:34:37.000Z",
+        //         "amount": "1.0",
+        //         "state": "executed",
+        //         "currency_fee": "0.0",
+        //         "btc_fee": "0.0",
+        //         "comment": "string",
+        //         "traded_btc": "string",
+        //         "traded_currency": "string",
+        //         "direction": "buy",
+        //         "price": "string",
+        //         "account_operations": [
         //             {
-        //                 "uuid" => "968f4580-e26c-4ad8-8bcd-874d23d55296",
-        //                 "amount" => "1.0",
-        //                 "currency" => "BTC",
-        //                 "created_at" => "2013-10-24T10:34:37.000Z",
-        //                 "created_at_int" => 1389094259,
-        //                 "name" => "account_operation",
-        //                 "address" => "1FPDBXNqSkZMsw1kSkkajcj8berxDQkUoc",
-        //                 "tx_hash" => "string",
-        //                 "is_trading_account" => true
+        //                 "uuid": "968f4580-e26c-4ad8-8bcd-874d23d55296",
+        //                 "amount": "1.0",
+        //                 "currency": "BTC",
+        //                 "created_at": "2013-10-24T10:34:37.000Z",
+        //                 "created_at_int": 1389094259,
+        //                 "name": "account_operation",
+        //                 "address": "1FPDBXNqSkZMsw1kSkkajcj8berxDQkUoc",
+        //                 "tx_hash": "string",
+        //                 "is_trading_account": true
         //             }
-        //         )
+        //         ]
         //     }
         //
         return $this->parse_transfer($response, $currency);
@@ -614,34 +614,34 @@ class paymium extends Exchange {
     public function parse_transfer(array $transfer, ?array $currency = null): array {
         //
         //     {
-        //         "uuid" => "968f4580-e26c-4ad8-8bcd-874d23d55296",
-        //         "type" => "Transfer",
-        //         "currency" => "BTC",
-        //         "currency_amount" => "string",
-        //         "created_at" => "2013-10-24T10:34:37.000Z",
-        //         "updated_at" => "2013-10-24T10:34:37.000Z",
-        //         "amount" => "1.0",
-        //         "state" => "executed",
-        //         "currency_fee" => "0.0",
-        //         "btc_fee" => "0.0",
-        //         "comment" => "string",
-        //         "traded_btc" => "string",
-        //         "traded_currency" => "string",
-        //         "direction" => "buy",
-        //         "price" => "string",
-        //         "account_operations" => array(
+        //         "uuid": "968f4580-e26c-4ad8-8bcd-874d23d55296",
+        //         "type": "Transfer",
+        //         "currency": "BTC",
+        //         "currency_amount": "string",
+        //         "created_at": "2013-10-24T10:34:37.000Z",
+        //         "updated_at": "2013-10-24T10:34:37.000Z",
+        //         "amount": "1.0",
+        //         "state": "executed",
+        //         "currency_fee": "0.0",
+        //         "btc_fee": "0.0",
+        //         "comment": "string",
+        //         "traded_btc": "string",
+        //         "traded_currency": "string",
+        //         "direction": "buy",
+        //         "price": "string",
+        //         "account_operations": [
         //             {
-        //                 "uuid" => "968f4580-e26c-4ad8-8bcd-874d23d55296",
-        //                 "amount" => "1.0",
-        //                 "currency" => "BTC",
-        //                 "created_at" => "2013-10-24T10:34:37.000Z",
-        //                 "created_at_int" => 1389094259,
-        //                 "name" => "account_operation",
-        //                 "address" => "1FPDBXNqSkZMsw1kSkkajcj8berxDQkUoc",
-        //                 "tx_hash" => "string",
-        //                 "is_trading_account" => true
+        //                 "uuid": "968f4580-e26c-4ad8-8bcd-874d23d55296",
+        //                 "amount": "1.0",
+        //                 "currency": "BTC",
+        //                 "created_at": "2013-10-24T10:34:37.000Z",
+        //                 "created_at_int": 1389094259,
+        //                 "name": "account_operation",
+        //                 "address": "1FPDBXNqSkZMsw1kSkkajcj8berxDQkUoc",
+        //                 "tx_hash": "string",
+        //                 "is_trading_account": true
         //             }
-        //         )
+        //         ]
         //     }
         //
         $currencyId = $this->safe_string($transfer, 'currency');
@@ -666,7 +666,7 @@ class paymium extends Exchange {
     public function parse_transfer_status(?string $status): ?string {
         $statuses = array(
             'executed' => 'ok',
-            // what are the other $statuses?
+            // what are the other statuses?
         );
         return $this->safe_string($statuses, $status, $status);
     }

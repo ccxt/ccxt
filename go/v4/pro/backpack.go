@@ -1842,9 +1842,7 @@ func (this *Backpack) WatchTicker(symbol string, options ...ccxt.WatchTickerOpti
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var params = opts.Params
-	res := <-this.WatchTickerAsync(symbol, params)
+	res := <-this.WatchTickerAsync(symbol, opts.Params)
 	if ccxt.IsError(res) {
 		return ccxt.Ticker{}, ccxt.CreateReturnError(res)
 	}
@@ -1867,9 +1865,7 @@ func (this *Backpack) UnWatchTicker(symbol string, options ...ccxt.UnWatchTicker
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var params = opts.Params
-	res := <-this.UnWatchTickerAsync(symbol, params)
+	res := <-this.UnWatchTickerAsync(symbol, opts.Params)
 	if ccxt.IsError(res) {
 		return nil, ccxt.CreateReturnError(res)
 	}
@@ -1892,11 +1888,7 @@ func (this *Backpack) WatchTickers(options ...ccxt.WatchTickersOptions) (ccxt.Ti
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var symbols = opts.Symbols
-
-	var params = opts.Params
-	res := <-this.WatchTickersAsync(symbols, params)
+	res := <-this.WatchTickersAsync(opts.Symbols, opts.Params)
 	if ccxt.IsError(res) {
 		return ccxt.Tickers{}, ccxt.CreateReturnError(res)
 	}
@@ -1919,11 +1911,7 @@ func (this *Backpack) UnWatchTickers(options ...ccxt.UnWatchTickersOptions) (any
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var symbols = opts.Symbols
-
-	var params = opts.Params
-	res := <-this.UnWatchTickersAsync(symbols, params)
+	res := <-this.UnWatchTickersAsync(opts.Symbols, opts.Params)
 	if ccxt.IsError(res) {
 		return nil, ccxt.CreateReturnError(res)
 	}
@@ -1946,11 +1934,7 @@ func (this *Backpack) WatchBidsAsks(options ...ccxt.WatchBidsAsksOptions) (ccxt.
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var symbols = opts.Symbols
-
-	var params = opts.Params
-	res := <-this.WatchBidsAsksAsync(symbols, params)
+	res := <-this.WatchBidsAsksAsync(opts.Symbols, opts.Params)
 	if ccxt.IsError(res) {
 		return ccxt.Tickers{}, ccxt.CreateReturnError(res)
 	}
@@ -1972,11 +1956,7 @@ func (this *Backpack) UnWatchBidsAsks(options ...ccxt.UnWatchBidsAsksOptions) (a
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var symbols = opts.Symbols
-
-	var params = opts.Params
-	res := <-this.UnWatchBidsAsksAsync(symbols, params)
+	res := <-this.UnWatchBidsAsksAsync(opts.Symbols, opts.Params)
 	if ccxt.IsError(res) {
 		return nil, ccxt.CreateReturnError(res)
 	}
@@ -2002,15 +1982,7 @@ func (this *Backpack) WatchOHLCV(symbol string, options ...ccxt.WatchOHLCVOption
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var timeframe = opts.Timeframe
-
-	var since = opts.Since
-
-	var limit = opts.Limit
-
-	var params = opts.Params
-	res := <-this.WatchOHLCVAsync(symbol, timeframe, since, limit, params)
+	res := <-this.WatchOHLCVAsync(symbol, opts.Timeframe, opts.Since, opts.Limit, opts.Params)
 	if ccxt.IsError(res) {
 		return nil, ccxt.CreateReturnError(res)
 	}
@@ -2034,11 +2006,7 @@ func (this *Backpack) UnWatchOHLCV(symbol string, options ...ccxt.UnWatchOHLCVOp
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var timeframe = opts.Timeframe
-
-	var params = opts.Params
-	res := <-this.UnWatchOHLCVAsync(symbol, timeframe, params)
+	res := <-this.UnWatchOHLCVAsync(symbol, opts.Timeframe, opts.Params)
 	if ccxt.IsError(res) {
 		return nil, ccxt.CreateReturnError(res)
 	}
@@ -2063,13 +2031,7 @@ func (this *Backpack) WatchOHLCVForSymbols(symbolsAndTimeframes [][]string, opti
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var since = opts.Since
-
-	var limit = opts.Limit
-
-	var params = opts.Params
-	res := <-this.WatchOHLCVForSymbolsAsync(symbolsAndTimeframes, since, limit, params)
+	res := <-this.WatchOHLCVForSymbolsAsync(symbolsAndTimeframes, opts.Since, opts.Limit, opts.Params)
 	if ccxt.IsError(res) {
 		return map[string]map[string][]ccxt.OHLCV{}, ccxt.CreateReturnError(res)
 	}
@@ -2092,9 +2054,7 @@ func (this *Backpack) UnWatchOHLCVForSymbols(symbolsAndTimeframes [][]string, op
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var params = opts.Params
-	res := <-this.UnWatchOHLCVForSymbolsAsync(symbolsAndTimeframes, params)
+	res := <-this.UnWatchOHLCVForSymbolsAsync(symbolsAndTimeframes, opts.Params)
 	if ccxt.IsError(res) {
 		return nil, ccxt.CreateReturnError(res)
 	}
@@ -2119,13 +2079,7 @@ func (this *Backpack) WatchTrades(symbol string, options ...ccxt.WatchTradesOpti
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var since = opts.Since
-
-	var limit = opts.Limit
-
-	var params = opts.Params
-	res := <-this.WatchTradesAsync(symbol, since, limit, params)
+	res := <-this.WatchTradesAsync(symbol, opts.Since, opts.Limit, opts.Params)
 	if ccxt.IsError(res) {
 		return nil, ccxt.CreateReturnError(res)
 	}
@@ -2148,9 +2102,7 @@ func (this *Backpack) UnWatchTrades(symbol string, options ...ccxt.UnWatchTrades
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var params = opts.Params
-	res := <-this.UnWatchTradesAsync(symbol, params)
+	res := <-this.UnWatchTradesAsync(symbol, opts.Params)
 	if ccxt.IsError(res) {
 		return nil, ccxt.CreateReturnError(res)
 	}
@@ -2175,13 +2127,7 @@ func (this *Backpack) WatchTradesForSymbols(symbols []string, options ...ccxt.Wa
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var since = opts.Since
-
-	var limit = opts.Limit
-
-	var params = opts.Params
-	res := <-this.WatchTradesForSymbolsAsync(symbols, since, limit, params)
+	res := <-this.WatchTradesForSymbolsAsync(symbols, opts.Since, opts.Limit, opts.Params)
 	if ccxt.IsError(res) {
 		return nil, ccxt.CreateReturnError(res)
 	}
@@ -2204,9 +2150,7 @@ func (this *Backpack) UnWatchTradesForSymbols(symbols []string, options ...ccxt.
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var params = opts.Params
-	res := <-this.UnWatchTradesForSymbolsAsync(symbols, params)
+	res := <-this.UnWatchTradesForSymbolsAsync(symbols, opts.Params)
 	if ccxt.IsError(res) {
 		return nil, ccxt.CreateReturnError(res)
 	}
@@ -2230,11 +2174,7 @@ func (this *Backpack) WatchOrderBook(symbol string, options ...ccxt.WatchOrderBo
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var limit = opts.Limit
-
-	var params = opts.Params
-	res := <-this.WatchOrderBookAsync(symbol, limit, params)
+	res := <-this.WatchOrderBookAsync(symbol, opts.Limit, opts.Params)
 	if ccxt.IsError(res) {
 		return ccxt.OrderBook{}, ccxt.CreateReturnError(res)
 	}
@@ -2259,11 +2199,7 @@ func (this *Backpack) WatchOrderBookForSymbols(symbols []string, options ...ccxt
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var limit = opts.Limit
-
-	var params = opts.Params
-	res := <-this.WatchOrderBookForSymbolsAsync(symbols, limit, params)
+	res := <-this.WatchOrderBookForSymbolsAsync(symbols, opts.Limit, opts.Params)
 	if ccxt.IsError(res) {
 		return ccxt.OrderBook{}, ccxt.CreateReturnError(res)
 	}
@@ -2285,9 +2221,7 @@ func (this *Backpack) UnWatchOrderBook(symbol string, options ...ccxt.UnWatchOrd
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var params = opts.Params
-	res := <-this.UnWatchOrderBookAsync(symbol, params)
+	res := <-this.UnWatchOrderBookAsync(symbol, opts.Params)
 	if ccxt.IsError(res) {
 		return nil, ccxt.CreateReturnError(res)
 	}
@@ -2310,9 +2244,7 @@ func (this *Backpack) UnWatchOrderBookForSymbols(symbols []string, options ...cc
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var params = opts.Params
-	res := <-this.UnWatchOrderBookForSymbolsAsync(symbols, params)
+	res := <-this.UnWatchOrderBookForSymbolsAsync(symbols, opts.Params)
 	if ccxt.IsError(res) {
 		return nil, ccxt.CreateReturnError(res)
 	}
@@ -2337,15 +2269,7 @@ func (this *Backpack) WatchOrders(options ...ccxt.WatchOrdersOptions) ([]ccxt.Or
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var symbol = opts.Symbol
-
-	var since = opts.Since
-
-	var limit = opts.Limit
-
-	var params = opts.Params
-	res := <-this.WatchOrdersAsync(symbol, since, limit, params)
+	res := <-this.WatchOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
 	if ccxt.IsError(res) {
 		return nil, ccxt.CreateReturnError(res)
 	}
@@ -2368,11 +2292,7 @@ func (this *Backpack) UnWatchOrders(options ...ccxt.UnWatchOrdersOptions) (any, 
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var symbol = opts.Symbol
-
-	var params = opts.Params
-	res := <-this.UnWatchOrdersAsync(symbol, params)
+	res := <-this.UnWatchOrdersAsync(opts.Symbol, opts.Params)
 	if ccxt.IsError(res) {
 		return nil, ccxt.CreateReturnError(res)
 	}
@@ -2397,15 +2317,7 @@ func (this *Backpack) WatchPositions(options ...ccxt.WatchPositionsOptions) ([]c
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var symbols = opts.Symbols
-
-	var since = opts.Since
-
-	var limit = opts.Limit
-
-	var params = opts.Params
-	res := <-this.WatchPositionsAsync(symbols, since, limit, params)
+	res := <-this.WatchPositionsAsync(opts.Symbols, opts.Since, opts.Limit, opts.Params)
 	if ccxt.IsError(res) {
 		return nil, ccxt.CreateReturnError(res)
 	}
@@ -2428,11 +2340,7 @@ func (this *Backpack) UnWatchPositions(options ...ccxt.UnWatchPositionsOptions) 
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var symbols = opts.Symbols
-
-	var params = opts.Params
-	res := <-this.UnWatchPositionsAsync(symbols, params)
+	res := <-this.UnWatchPositionsAsync(opts.Symbols, opts.Params)
 	if ccxt.IsError(res) {
 		return nil, ccxt.CreateReturnError(res)
 	}

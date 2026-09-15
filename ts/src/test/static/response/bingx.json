@@ -4486,6 +4486,86 @@
         ],
         "fetchOrder": [
             {
+                "description": "spot order preserves REST cumulative quote amount precedence over websocket alias",
+                "method": "fetchOrder",
+                "input": [
+                    "230000000000000001",
+                    "LTC/USDT"
+                ],
+                "httpResponse": {
+                    "code": 0,
+                    "msg": "",
+                    "data": {
+                        "symbol": "LTC-USDT",
+                        "orderId": "230000000000000001",
+                        "price": "110",
+                        "origQty": "5",
+                        "executedQty": "3",
+                        "cummulativeQuoteQty": "282",
+                        "Z": "999",
+                        "status": "PARTIALLY_FILLED",
+                        "type": "LIMIT",
+                        "side": "BUY",
+                        "time": 1720000000020,
+                        "updateTime": 1720000000020,
+                        "fee": "0",
+                        "feeAsset": "USDT"
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "symbol": "LTC-USDT",
+                        "orderId": "230000000000000001",
+                        "price": "110",
+                        "origQty": "5",
+                        "executedQty": "3",
+                        "cummulativeQuoteQty": "282",
+                        "Z": "999",
+                        "status": "PARTIALLY_FILLED",
+                        "type": "LIMIT",
+                        "side": "BUY",
+                        "time": 1720000000020,
+                        "updateTime": 1720000000020,
+                        "fee": "0",
+                        "feeAsset": "USDT"
+                    },
+                    "id": "230000000000000001",
+                    "clientOrderId": null,
+                    "symbol": "LTC/USDT",
+                    "timestamp": 1720000000020,
+                    "datetime": "2024-07-03T09:46:40.020Z",
+                    "lastTradeTimestamp": 1720000000020,
+                    "lastUpdateTimestamp": 1720000000020,
+                    "type": "limit",
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "side": "buy",
+                    "price": 110,
+                    "triggerPrice": null,
+                    "stopLossPrice": null,
+                    "takeProfitPrice": null,
+                    "average": 94,
+                    "cost": 282,
+                    "amount": 5,
+                    "filled": 3,
+                    "remaining": 2,
+                    "status": "open",
+                    "fee": {
+                        "currency": "USDT",
+                        "cost": "0"
+                    },
+                    "trades": [],
+                    "reduceOnly": null,
+                    "fees": [
+                        {
+                            "currency": "USDT",
+                            "cost": 0
+                        }
+                    ],
+                    "stopPrice": null
+                }
+            },
+            {
                 "description": "fetch inverse swap order fee currency",
                 "method": "fetchOrder",
                 "input": [

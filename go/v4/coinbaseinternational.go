@@ -3191,15 +3191,7 @@ func (this *Coinbaseinternational) FetchOHLCV(symbol string, options ...FetchOHL
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var timeframe *string = opts.Timeframe
-
-	var since *int64 = opts.Since
-
-	var limit *int64 = opts.Limit
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchOHLCVAsync(symbol, timeframe, since, limit, params)
+	res := <-this.FetchOHLCVAsync(symbol, opts.Timeframe, opts.Since, opts.Limit, opts.Params)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
@@ -3225,15 +3217,7 @@ func (this *Coinbaseinternational) FetchFundingRateHistory(options ...FetchFundi
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var symbol *string = opts.Symbol
-
-	var since *int64 = opts.Since
-
-	var limit *int64 = opts.Limit
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchFundingRateHistoryAsync(symbol, since, limit, params)
+	res := <-this.FetchFundingRateHistoryAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
@@ -3258,15 +3242,7 @@ func (this *Coinbaseinternational) FetchFundingHistory(options ...FetchFundingHi
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var symbol *string = opts.Symbol
-
-	var since *int64 = opts.Since
-
-	var limit *int64 = opts.Limit
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchFundingHistoryAsync(symbol, since, limit, params)
+	res := <-this.FetchFundingHistoryAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
@@ -3291,15 +3267,7 @@ func (this *Coinbaseinternational) FetchTransfers(options ...FetchTransfersOptio
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var code *string = opts.Code
-
-	var since *int64 = opts.Since
-
-	var limit *int64 = opts.Limit
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchTransfersAsync(code, since, limit, params)
+	res := <-this.FetchTransfersAsync(opts.Code, opts.Since, opts.Limit, opts.Params)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
@@ -3325,9 +3293,7 @@ func (this *Coinbaseinternational) CreateDepositAddress(code string, options ...
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var params *map[string]any = opts.Params
-	res := <-this.CreateDepositAddressAsync(code, params)
+	res := <-this.CreateDepositAddressAsync(code, opts.Params)
 	if IsError(res) {
 		return DepositAddress{}, CreateReturnError(res)
 	}
@@ -3351,9 +3317,7 @@ func (this *Coinbaseinternational) SetMargin(symbol string, amount float64, opti
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var params *map[string]any = opts.Params
-	res := <-this.SetMarginAsync(symbol, amount, params)
+	res := <-this.SetMarginAsync(symbol, amount, opts.Params)
 	if IsError(res) {
 		return MarginModification{}, CreateReturnError(res)
 	}
@@ -3383,15 +3347,7 @@ func (this *Coinbaseinternational) FetchDepositsWithdrawals(options ...FetchDepo
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var code *string = opts.Code
-
-	var since *int64 = opts.Since
-
-	var limit *int64 = opts.Limit
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchDepositsWithdrawalsAsync(code, since, limit, params)
+	res := <-this.FetchDepositsWithdrawalsAsync(opts.Code, opts.Since, opts.Limit, opts.Params)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
@@ -3414,9 +3370,7 @@ func (this *Coinbaseinternational) FetchPosition(symbol string, options ...Fetch
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchPositionAsync(symbol, params)
+	res := <-this.FetchPositionAsync(symbol, opts.Params)
 	if IsError(res) {
 		return Position{}, CreateReturnError(res)
 	}
@@ -3439,11 +3393,7 @@ func (this *Coinbaseinternational) FetchPositions(options ...FetchPositionsOptio
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var symbols *[]string = opts.Symbols
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchPositionsAsync(symbols, params)
+	res := <-this.FetchPositionsAsync(opts.Symbols, opts.Params)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
@@ -3473,15 +3423,7 @@ func (this *Coinbaseinternational) FetchWithdrawals(options ...FetchWithdrawalsO
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var code *string = opts.Code
-
-	var since *int64 = opts.Since
-
-	var limit *int64 = opts.Limit
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchWithdrawalsAsync(code, since, limit, params)
+	res := <-this.FetchWithdrawalsAsync(opts.Code, opts.Since, opts.Limit, opts.Params)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
@@ -3510,15 +3452,7 @@ func (this *Coinbaseinternational) FetchDeposits(options ...FetchDepositsOptions
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var code *string = opts.Code
-
-	var since *int64 = opts.Since
-
-	var limit *int64 = opts.Limit
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchDepositsAsync(code, since, limit, params)
+	res := <-this.FetchDepositsAsync(opts.Code, opts.Since, opts.Limit, opts.Params)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
@@ -3573,11 +3507,7 @@ func (this *Coinbaseinternational) FetchTickers(options ...FetchTickersOptions) 
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var symbols *[]string = opts.Symbols
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchTickersAsync(symbols, params)
+	res := <-this.FetchTickersAsync(opts.Symbols, opts.Params)
 	if IsError(res) {
 		return Tickers{}, CreateReturnError(res)
 	}
@@ -3600,9 +3530,7 @@ func (this *Coinbaseinternational) FetchTicker(symbol string, options ...FetchTi
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchTickerAsync(symbol, params)
+	res := <-this.FetchTickerAsync(symbol, opts.Params)
 	if IsError(res) {
 		return Ticker{}, CreateReturnError(res)
 	}
@@ -3645,9 +3573,7 @@ func (this *Coinbaseinternational) Transfer(code string, amount float64, fromAcc
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var params *map[string]any = opts.Params
-	res := <-this.TransferAsync(code, amount, fromAccount, toAccount, params)
+	res := <-this.TransferAsync(code, amount, fromAccount, toAccount, opts.Params)
 	if IsError(res) {
 		return TransferEntry{}, CreateReturnError(res)
 	}
@@ -3681,11 +3607,7 @@ func (this *Coinbaseinternational) CreateOrder(symbol string, typeVar string, si
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var price *float64 = opts.Price
-
-	var params *map[string]any = opts.Params
-	res := <-this.CreateOrderAsync(symbol, typeVar, side, amount, price, params)
+	res := <-this.CreateOrderAsync(symbol, typeVar, side, amount, opts.Price, opts.Params)
 	if IsError(res) {
 		return Order{}, CreateReturnError(res)
 	}
@@ -3709,11 +3631,7 @@ func (this *Coinbaseinternational) CancelOrder(id string, options ...CancelOrder
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var symbol *string = opts.Symbol
-
-	var params *map[string]any = opts.Params
-	res := <-this.CancelOrderAsync(id, symbol, params)
+	res := <-this.CancelOrderAsync(id, opts.Symbol, opts.Params)
 	if IsError(res) {
 		return Order{}, CreateReturnError(res)
 	}
@@ -3735,11 +3653,7 @@ func (this *Coinbaseinternational) CancelAllOrders(options ...CancelAllOrdersOpt
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var symbol *string = opts.Symbol
-
-	var params *map[string]any = opts.Params
-	res := <-this.CancelAllOrdersAsync(symbol, params)
+	res := <-this.CancelAllOrdersAsync(opts.Symbol, opts.Params)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
@@ -3768,13 +3682,7 @@ func (this *Coinbaseinternational) EditOrder(id string, symbol string, typeVar s
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var amount *float64 = opts.Amount
-
-	var price *float64 = opts.Price
-
-	var params *map[string]any = opts.Params
-	res := <-this.EditOrderAsync(id, symbol, typeVar, side, amount, price, params)
+	res := <-this.EditOrderAsync(id, symbol, typeVar, side, opts.Amount, opts.Price, opts.Params)
 	if IsError(res) {
 		return Order{}, CreateReturnError(res)
 	}
@@ -3798,11 +3706,7 @@ func (this *Coinbaseinternational) FetchOrder(id string, options ...FetchOrderOp
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var symbol *string = opts.Symbol
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchOrderAsync(id, symbol, params)
+	res := <-this.FetchOrderAsync(id, opts.Symbol, opts.Params)
 	if IsError(res) {
 		return Order{}, CreateReturnError(res)
 	}
@@ -3830,15 +3734,7 @@ func (this *Coinbaseinternational) FetchOpenOrders(options ...FetchOpenOrdersOpt
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var symbol *string = opts.Symbol
-
-	var since *int64 = opts.Since
-
-	var limit *int64 = opts.Limit
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchOpenOrdersAsync(symbol, since, limit, params)
+	res := <-this.FetchOpenOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
@@ -3865,15 +3761,7 @@ func (this *Coinbaseinternational) FetchMyTrades(options ...FetchMyTradesOptions
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var symbol *string = opts.Symbol
-
-	var since *int64 = opts.Since
-
-	var limit *int64 = opts.Limit
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchMyTradesAsync(symbol, since, limit, params)
+	res := <-this.FetchMyTradesAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
@@ -3903,11 +3791,7 @@ func (this *Coinbaseinternational) Withdraw(code string, amount float64, address
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var tag *string = opts.Tag
-
-	var params *map[string]any = opts.Params
-	res := <-this.WithdrawAsync(code, amount, address, tag, params)
+	res := <-this.WithdrawAsync(code, amount, address, opts.Tag, opts.Params)
 	if IsError(res) {
 		return Transaction{}, CreateReturnError(res)
 	}

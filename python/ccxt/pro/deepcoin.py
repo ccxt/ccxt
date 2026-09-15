@@ -84,7 +84,7 @@ class deepcoin(ccxt.async_support.deepcoin):
             'streaming': {
                 'ping': self.ping,
                 # the public stream drops the connection after 20 s without a
-                # text 'ping' from the client(https://www.deepcoin.com/docs/publicWS/public),
+                # text 'ping' from the client (https://www.deepcoin.com/docs/publicWS/public),
                 # and the base default of 30 s only sends the first one at
                 # 30 s. raw probes: no ping and a 20 s or 25 s cadence all
                 # died at 20.7 s with close 1000 'heartbeat timeout', a 10 s
@@ -170,8 +170,8 @@ class deepcoin(ccxt.async_support.deepcoin):
         # single-flight leader election on a never-dialed client, see
         # https://github.com/ccxt/ccxt/issues/29393: the key rides the private ws url query string, so racing
         # acquires would mint several keys and losers dial streams keyed to orphaned credentials. the whole
-        # check-then-fetch(acquire vs extend) is the critical section; the flight IS the client.futures entry,
-        # settled through client.resolve / client.reject so the registry is only mutated inside the client(one lock in go)
+        # check-then-fetch (acquire vs extend) is the critical section; the flight IS the client.futures entry,
+        # settled through client.resolve / client.reject so the registry is only mutated inside the client (one lock in go)
         messageHash = 'authenticate'
         client = self.client('authenticationFlights')
         if messageHash in client.futures:
@@ -217,7 +217,7 @@ class deepcoin(ccxt.async_support.deepcoin):
             # next refresh cycle elects a fresh leader
             client.resolve(listenKey, messageHash)
         except Exception as e:
-            # reject the flight - all waiters raise and the next caller
+            # reject the flight - all waiters throw and the next caller
             # re-leads instead of deadlocking on a dead flight
             client.reject(e, messageHash)
         # rethrows the failure to the leader and attaches the handler that
@@ -675,13 +675,13 @@ class deepcoin(ccxt.async_support.deepcoin):
 
     def order_book_suffix(self, market: Market, methodName: str, params: dict = {}) -> list:
         # the 25-level book is published per price-aggregation level and the
-        # level is part of the FilterValue('DeepCoin_BTC/USDT_0.1'). the
+        # level is part of the FilterValue ('DeepCoin_BTC/USDT_0.1'). the
         # venue only serves the levels that exist for that market, from the
         # tick size up to a few coarser steps: subscribing to a level the
         # market does not have is answered with 'orderbook does not exist:
         # XRP/USDT_0.1, no available orderbook data' and nothing is
         # streamed. a fixed '_0.1' therefore only worked for markets whose
-        # tick happens to be 0.1 or finer by a step or two(23 of the first
+        # tick happens to be 0.1 or finer by a step or two (23 of the first
         # 120 spot markets, 52 of 120 swaps in a live probe); the tick size
         # itself was accepted on 116 and 117 of them, and the handful whose
         # tick was rejected accepted the next coarser level
@@ -700,13 +700,13 @@ class deepcoin(ccxt.async_support.deepcoin):
         #
         #     {
         #         "a": "PMO",
-        #         "t": "i",  # i - update, f - snapshot
+        #         "t": "i", // i - update, f - snapshot
         #         "r": [
         #             {
-        #                 "d": {"I": "ETH/USDT", "D": "1", "P": 4021, "V": 54.39979}
+        #                 "d": { "I": "ETH/USDT", "D": "1", "P": 4021, "V": 54.39979 }
         #             },
         #             {
-        #                 "d": {"I": "ETH/USDT", "D": "0", "P": 4021.1, "V": 49.56724}
+        #                 "d": { "I": "ETH/USDT", "D": "0", "P": 4021.1, "V": 49.56724 }
         #             }
         #         ],
         #         "tt": 1760975816446,
@@ -773,13 +773,13 @@ class deepcoin(ccxt.async_support.deepcoin):
     def handle_order_book_message(self, client: Client, message: object, orderbook: object):
         #     {
         #         "a": "PMO",
-        #         "t": "i",  # i - update, f - snapshot
+        #         "t": "i", // i - update, f - snapshot
         #         "r": [
         #             {
-        #                 "d": {"I": "ETH/USDT", "D": "1", "P": 4021, "V": 54.39979}
+        #                 "d": { "I": "ETH/USDT", "D": "1", "P": 4021, "V": 54.39979 }
         #             },
         #             {
-        #                 "d": {"I": "ETH/USDT", "D": "0", "P": 4021.1, "V": 49.56724}
+        #                 "d": { "I": "ETH/USDT", "D": "0", "P": 4021.1, "V": 49.56724 }
         #             }
         #         ],
         #         "tt": 1760975816446,

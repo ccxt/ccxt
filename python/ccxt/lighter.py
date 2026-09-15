@@ -472,7 +472,7 @@ class lighter(Exchange, ImplicitAPI):
         apiKeyIndex = None
         apiKeyIndex, params = self.handle_option_and_params_2(params, methodName1, optionName1, optionName2, defaultValue)
         if (apiKeyIndex is None) or (apiKeyIndex < 4) or (apiKeyIndex > 254):
-            # apiKeyIndex = self.rand_number(2)
+            # apiKeyIndex = this.randNumber (2);
             apiKeyIndex = 254
             self.options['apiKeyIndex'] = apiKeyIndex  # default to a value to avoid overriding other keys
         return [self.parse_to_int(apiKeyIndex), params]
@@ -705,7 +705,7 @@ class lighter(Exchange, ImplicitAPI):
         """
         if price is None:
             raise ArgumentsRequired(self.id + ' createOrder() requires a price argument')
-        reduceOnly = self.safe_bool_2(params, 'reduceOnly', 'reduce_only', False)  # default False
+        reduceOnly = self.safe_bool_2(params, 'reduceOnly', 'reduce_only', False)  # default false
         orderType = type.upper()
         market = self.market(symbol)
         orderSide = side.upper()
@@ -1076,10 +1076,10 @@ class lighter(Exchange, ImplicitAPI):
         #                    "market_margin_mode": 0,
         #                    "insurance_fund_account_index": 281474976710655,
         #                    "liquidation_mode": 0,
-        #                    "force_reduce_only": False,
-        #                    "funding_fee_discounts_enabled": True,
+        #                    "force_reduce_only": false,
+        #                    "funding_fee_discounts_enabled": true,
         #                    "trading_hours": "",
-        #                    "hidden": True
+        #                    "hidden": true
         #                },
         #                "strategy_index": 0
         #            }
@@ -1351,7 +1351,7 @@ class lighter(Exchange, ImplicitAPI):
         #             "market_margin_mode": 0,
         #             "insurance_fund_account_index": 281474976710654,
         #             "liquidation_mode": 0,
-        #             "force_reduce_only": False,
+        #             "force_reduce_only": false,
         #             "trading_hours": ""
         #         }
         #     }
@@ -1468,7 +1468,7 @@ class lighter(Exchange, ImplicitAPI):
         #                     "market_margin_mode": 0,
         #                     "insurance_fund_account_index": 281474976710655,
         #                     "liquidation_mode": 0,
-        #                     "force_reduce_only": False,
+        #                     "force_reduce_only": false,
         #                     "trading_hours": ""
         #                 }
         #             }
@@ -1707,7 +1707,7 @@ class lighter(Exchange, ImplicitAPI):
         #                 "account_index": "1077",
         #                 "name": "",
         #                 "description": "",
-        #                 "can_invite": True,
+        #                 "can_invite": true,
         #                 "referral_points_percentage": "",
         #                 "positions": [],
         #                 "assets": [
@@ -1813,7 +1813,7 @@ class lighter(Exchange, ImplicitAPI):
         #                 "account_index": 1077,
         #                 "name": "",
         #                 "description": "",
-        #                 "can_invite": True,
+        #                 "can_invite": true,
         #                 "referral_points_percentage": "",
         #                 "positions": [
         #                     {
@@ -1953,7 +1953,7 @@ class lighter(Exchange, ImplicitAPI):
         #                 "account_index": "1077",
         #                 "name": "",
         #                 "description": "",
-        #                 "can_invite": True,
+        #                 "can_invite": true,
         #                 "referral_points_percentage": "",
         #                 "positions": [],
         #                 "assets": [],
@@ -1984,7 +1984,7 @@ class lighter(Exchange, ImplicitAPI):
         #         "account_index": "1077",
         #         "name": "",
         #         "description": "",
-        #         "can_invite": True,
+        #         "can_invite": true,
         #         "referral_points_percentage": "",
         #         "positions": [],
         #         "assets": [],
@@ -2046,7 +2046,7 @@ class lighter(Exchange, ImplicitAPI):
         #                 "price": "2221.60",
         #                 "nonce": 643418,
         #                 "remaining_base_amount": "0.0000",
-        #                 "is_ask": True,
+        #                 "is_ask": true,
         #                 "base_size": 0,
         #                 "base_price": 222160,
         #                 "filled_base_amount": "0.0000",
@@ -2054,7 +2054,7 @@ class lighter(Exchange, ImplicitAPI):
         #                 "side": "",
         #                 "type": "market",
         #                 "time_in_force": "immediate-or-cancel",
-        #                 "reduce_only": False,
+        #                 "reduce_only": false,
         #                 "trigger_price": "0.00",
         #                 "order_expiry": 0,
         #                 "status": "canceled-margin-not-allowed",
@@ -2124,7 +2124,7 @@ class lighter(Exchange, ImplicitAPI):
         #                 "price": "2221.60",
         #                 "nonce": 643418,
         #                 "remaining_base_amount": "0.0000",
-        #                 "is_ask": True,
+        #                 "is_ask": true,
         #                 "base_size": 0,
         #                 "base_price": 222160,
         #                 "filled_base_amount": "0.0000",
@@ -2132,7 +2132,7 @@ class lighter(Exchange, ImplicitAPI):
         #                 "side": "",
         #                 "type": "market",
         #                 "time_in_force": "immediate-or-cancel",
-        #                 "reduce_only": False,
+        #                 "reduce_only": false,
         #                 "trigger_price": "0.00",
         #                 "order_expiry": 0,
         #                 "status": "canceled-margin-not-allowed",
@@ -2167,7 +2167,7 @@ class lighter(Exchange, ImplicitAPI):
         #         "price": "2221.60",
         #         "nonce": 643418,
         #         "remaining_base_amount": "0.0000",
-        #         "is_ask": True,
+        #         "is_ask": true,
         #         "base_size": 0,
         #         "base_price": 222160,
         #         "filled_base_amount": "0.0000",
@@ -2175,7 +2175,7 @@ class lighter(Exchange, ImplicitAPI):
         #         "side": "",
         #         "type": "market",
         #         "time_in_force": "immediate-or-cancel",
-        #         "reduce_only": False,
+        #         "reduce_only": false,
         #         "trigger_price": "0.00",
         #         "order_expiry": 0,
         #         "status": "canceled-margin-not-allowed",
@@ -2215,7 +2215,7 @@ class lighter(Exchange, ImplicitAPI):
                 stopLossPrice = triggerPrice
             if type.find('take-profit') >= 0:
                 takeProfitPrice = triggerPrice
-        # Try to parse to integer first, because parsing an integer to a string wouldn't result in None
+        # Try to parse to integer first, because parsing an integer to a string wouldn't result in undefined
         tif = None
         tifAsInteger = self.safe_integer(order, 'time_in_force')
         if tifAsInteger is not None:
@@ -2774,12 +2774,12 @@ class lighter(Exchange, ImplicitAPI):
         #                 "bid_client_id": 0,
         #                 "ask_account_id": 20,
         #                 "bid_account_id": 1077,
-        #                 "is_maker_ask": True,
+        #                 "is_maker_ask": true,
         #                 "block_height": 102070,
         #                 "timestamp": 1766386112741,
         #                 "taker_position_size_before": "0.0000",
         #                 "taker_entry_quote_before": "0.000000",
-        #                 "taker_position_sign_changed": True,
+        #                 "taker_position_sign_changed": true,
         #                 "maker_position_size_before": "-1856.8547",
         #                 "maker_entry_quote_before": "5491685.069325",
         #                 "maker_initial_margin_fraction_before": 500
@@ -2812,12 +2812,12 @@ class lighter(Exchange, ImplicitAPI):
         #         "bid_client_id": 0,
         #         "ask_account_id": 20,
         #         "bid_account_id": 1077,
-        #         "is_maker_ask": True,
+        #         "is_maker_ask": true,
         #         "block_height": 102070,
         #         "timestamp": 1766386112741,
         #         "taker_position_size_before": "0.0000",
         #         "taker_entry_quote_before": "0.000000",
-        #         "taker_position_sign_changed": True,
+        #         "taker_position_sign_changed": true,
         #         "maker_position_size_before": "-1856.8547",
         #         "maker_entry_quote_before": "5491685.069325",
         #         "maker_initial_margin_fraction_before": 500
