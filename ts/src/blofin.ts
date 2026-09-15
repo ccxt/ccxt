@@ -2003,10 +2003,14 @@ export default class blofin extends Exchange {
         if (chainId === undefined) {
             return undefined;
         }
-        const open = chainId.indexOf ('(');
-        if (open >= 0) {
-            const close = chainId.indexOf (')');
-            const suffix = chainId.slice (open + 1, close);
+        if (chainId.indexOf ('(') > -1) {
+            // php-safe suffix extraction: split instead of index arithmetic,
+            // because a stored strpos result and a two-argument slice do not
+            // survive the php conversion (false-vs-int compare; length arg)
+            const parts = chainId.split ('(');
+            const tail = this.safeString (parts, 1, '');
+            const tailParts = tail.split (')');
+            const suffix = this.safeString (tailParts, 0);
             const bySuffix = this.safeDict (this.options, 'networkCodesBySuffix', {});
             return this.safeString (bySuffix, suffix, suffix);
         }
