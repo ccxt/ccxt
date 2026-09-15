@@ -1952,6 +1952,7 @@ export default class bitget extends Exchange {
                     'fetchOHLCV': {
                         'limit': 200, // variable timespans for recent endpoint, 200 for historical
                     },
+                    'rollingWindow': true,
                 },
                 'forPerps': {
                     'extends': 'spot',
@@ -1996,6 +1997,7 @@ export default class bitget extends Exchange {
                     'fetchClosedOrders': {
                         'trailing': true,
                     },
+                    'rollingWindow': true,
                 },
                 'swap': {
                     'linear': {
