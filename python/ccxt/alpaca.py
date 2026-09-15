@@ -382,8 +382,8 @@ class alpaca(Exchange, ImplicitAPI):
                         },
                         'timeInForce': {
                             'IOC': True,
-                            'FOK': True,
-                            'PO': True,
+                            'FOK': False,  # {"code":42210000,"message":"invalid crypto time_in_force"} — verified live 2026-09-13
+                            'PO': False,  # {"code":40010001,"message":"invalid time_in_force for crypto order"} — verified live 2026-09-13
                             'GTD': False,
                         },
                         'hedged': False,
@@ -453,6 +453,7 @@ class alpaca(Exchange, ImplicitAPI):
                     '40410000': InvalidOrder,  # { "code": 40410000, "message": "order is not found."}
                     '40010001': BadRequest,  # {"code":40010001,"message":"invalid order type for crypto order"}
                     '40110000': PermissionDenied,  # { "code": 40110000, "message": "request is not authorized"}
+                    '42210000': BadRequest,  # {"code":42210000,"message":"invalid crypto time_in_force"}
                     '42910000': RateLimitExceeded,  # {"code":42910000,"message":"rate limit exceeded"}
                 },
                 'broad': {
@@ -1121,6 +1122,7 @@ class alpaca(Exchange, ImplicitAPI):
         :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param float [params.triggerPrice]: The price at which a trigger order is triggered at
+        :param str [params.timeInForce]: 'GTC' or 'IOC', the venue supports only these two for crypto orders, defaults to 'GTC'
         :param float [params.cost]: *market orders only* the cost of the order in units of the quote currency
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
@@ -1152,6 +1154,9 @@ class alpaca(Exchange, ImplicitAPI):
             request['qty'] = self.amount_to_precision(symbol, amount)
         defaultTIF = None
         defaultTIF, params = self.handle_option_and_params(params, 'createOrder', 'timeInForce')
+        if defaultTIF is not None:
+            # the venue only accepts lowercase values, normalize the unified uppercase spellings
+            defaultTIF = defaultTIF.lower()
         request['time_in_force'] = defaultTIF
         params = self.omit(params, ['timeInForce', 'triggerPrice'])
         request['client_order_id'] = self.generate_client_order_id(params)
@@ -1391,7 +1396,7 @@ class alpaca(Exchange, ImplicitAPI):
         :param float [price]: the price for the order, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.triggerPrice]: the price to trigger a stop order
-        :param str [params.timeInForce]: for crypto trading either 'gtc' or 'ioc' can be used
+        :param str [params.timeInForce]: 'GTC' or 'IOC', the venue supports only these two for crypto orders, defaults to 'GTC'
         :param str [params.clientOrderId]: a unique identifier for the order, automatically generated if not sent
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
@@ -1414,7 +1419,8 @@ class alpaca(Exchange, ImplicitAPI):
         timeInForce = None
         timeInForce, params = self.handle_option_and_params(params, 'editOrder', 'timeInForce', 'gtc')
         if timeInForce is not None:
-            request['time_in_force'] = timeInForce
+            # the venue only accepts lowercase values, normalize the unified uppercase spellings
+            request['time_in_force'] = timeInForce.lower()
         request['client_order_id'] = self.generate_client_order_id(params)
         params = self.omit(params, ['clientOrderId'])
         response = self.traderPrivatePatchV2OrdersOrderId(self.extend(request, params))
@@ -1515,7 +1521,10 @@ class alpaca(Exchange, ImplicitAPI):
 
     def parse_time_in_force(self, timeInForce: Str):
         timeInForces = {
-            'day': 'Day',
+            'day': 'Day',  # equities-only value kept as-is deliberately: crypto orders reject it with 42210000, verified live 2026-09-13, and the unified set has no day spelling either way
+            'gtc': 'GTC',
+            'ioc': 'IOC',
+            'fok': 'FOK',
         }
         return self.safe_string(timeInForces, timeInForce, timeInForce)
 
