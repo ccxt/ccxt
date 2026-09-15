@@ -159,6 +159,7 @@ jobs:
         if: env.prediction_modified == 'true'
         run: npm run response-rust-prediction
       - name: Upload Rust Files
+        if: success() || failure()
         uses: actions/upload-artifact@v4
         with:
           name: rust-files
