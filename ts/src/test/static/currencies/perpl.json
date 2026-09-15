@@ -1,0 +1,36 @@
+{
+    "AUSD": {
+        "info": {
+            "ver": 150,
+            "id": 1,
+            "address": "0x00000000efe302beaa2b3e6e1b18d08d69a9012a",
+            "symbol": "AUSD",
+            "name": "AUSD",
+            "decimals": 6,
+            "display_precision": 2,
+            "usd_index": "<index_name>"
+        },
+        "id": "1",
+        "numericId": null,
+        "code": "AUSD",
+        "precision": 0.000001,
+        "type": "crypto",
+        "name": "AUSD",
+        "active": null,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
+        "fees": {},
+        "networks": {},
+        "limits": {
+            "deposit": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
+        }
+    }
+}
