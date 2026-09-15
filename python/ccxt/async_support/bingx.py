@@ -3059,7 +3059,7 @@ class bingx(Exchange, ImplicitAPI):
                 request['price'] = self.parse_to_numeric(self.price_to_precision(symbol, price))
             if triggerPrice is not None:
                 if isMarketOrder and (side == 'buy') and self.safe_string(request, 'quoteOrderQty') is None:
-                    raise ArgumentsRequired(self.id + ' createOrder() requires the cost parameter(or the amount + price) for placing spot market-buy trigger orders')
+                    raise ArgumentsRequired(self.id + ' createOrder() requires the cost parameter (or the amount + price) for placing spot market-buy trigger orders')
                 request['stopPrice'] = self.price_to_precision(symbol, triggerPrice)
                 if type == 'LIMIT':
                     request['type'] = 'TRIGGER_LIMIT'
@@ -5523,9 +5523,9 @@ class bingx(Exchange, ImplicitAPI):
         """
         type = self.safe_integer(params, 'type')  # 1 increase margin 2 decrease margin
         if type is None:
-            raise ArgumentsRequired(self.id + ' setMargin() requires a type parameter either 1(increase margin) or 2(decrease margin)')
+            raise ArgumentsRequired(self.id + ' setMargin() requires a type parameter either 1 (increase margin) or 2 (decrease margin)')
         if not self.in_array(type, [1, 2]):
-            raise ArgumentsRequired(self.id + ' setMargin() requires a type parameter either 1(increase margin) or 2(decrease margin)')
+            raise ArgumentsRequired(self.id + ' setMargin() requires a type parameter either 1 (increase margin) or 2 (decrease margin)')
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
@@ -6217,7 +6217,7 @@ class bingx(Exchange, ImplicitAPI):
         subType = None
         subType, params = self.handle_sub_type_and_params('closeAllPositions', None, params)
         if marketType == 'margin':
-            raise BadRequest(self.id + ' closePositions() cannot be used for ' + marketType + ' markets')
+            raise BadRequest(self.id + ' closePositions () cannot be used for ' + marketType + ' markets')
         request = {
             'recvWindow': recvWindow,
         }

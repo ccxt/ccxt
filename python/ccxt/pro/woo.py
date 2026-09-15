@@ -829,7 +829,7 @@ class woo(ccxt.async_support.woo):
     def check_required_uid(self, error=True) -> bool:
         if (self.uid is None) or (self.uid == ''):
             if error:
-                raise AuthenticationError(self.id + ' requires `uid` credential(woox calls it `application_id`)')
+                raise AuthenticationError(self.id + ' requires `uid` credential (woox calls it `application_id`)')
             else:
                 return False
         return True

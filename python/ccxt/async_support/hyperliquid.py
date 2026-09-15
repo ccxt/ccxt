@@ -2149,7 +2149,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         px = None
         if isMarket:
             if price is None:
-                raise ArgumentsRequired(self.id + '  market orders require price to calculate the max slippage price. Default slippage can be set in options(default is 5%).')
+                raise ArgumentsRequired(self.id + '  market orders require price to calculate the max slippage price. Default slippage can be set in options (default is 5%).')
             px = Precise.string_mul(price, Precise.string_add('1', slippage)) if (isBuy) else Precise.string_mul(price, Precise.string_sub('1', slippage))
             px = self.price_to_precision(symbol, px)  # round after adding slippage
         else:

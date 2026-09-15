@@ -991,7 +991,7 @@ class independentreserve(Exchange, ImplicitAPI):
         networkCode = None
         networkCode, params = self.handle_network_code_and_params(params)
         if networkCode is not None:
-            raise BadRequest(self.id + ' withdraw() does not accept params["networkCode"]')
+            raise BadRequest(self.id + ' withdraw () does not accept params["networkCode"]')
         response = await self.privatePostWithdrawDigitalCurrency(self.extend(request, params))
         #
         #    {

@@ -413,7 +413,7 @@ class lighter(Exchange, ImplicitAPI):
         privateKeyIsSet = (self.privateKey is not None) and (self.privateKey != '')
         if privateKeyIsSet and (apiKeyIndex is not None) and (accountIndex is not None):
             if len(self.privateKey) > 66:
-                raise NotSupported(self.id + ' after the latest update(v4.5.50), CCXT now expects the l1 private key to be provided in the credentials. Please check for more details: https://github.com/ccxt/ccxt/wiki/FAQ#how-to-use-the-lighter-exchange-in-ccxt')
+                raise NotSupported(self.id + ' after the latest update (v4.5.50), CCXT now expects the l1 private key to be provided in the credentials. Please check for more details: https://github.com/ccxt/ccxt/wiki/FAQ#how-to-use-the-lighter-exchange-in-ccxt')
             # load lighter library without creating lighter client
             signer = await self.load_lighter_library(libraryPath, chainId, '', self.parse_to_int(apiKeyIndex), self.parse_to_int(accountIndex), False)
             self.options['auths'][accountIndex][apiKeyIndex]['signer'] = signer
@@ -484,7 +484,7 @@ class lighter(Exchange, ImplicitAPI):
             walletAddress = self.walletAddress
             if self.privateKey is not None:
                 if len(self.privateKey) > 66:
-                    raise NotSupported(self.id + ' after the latest update(v4.5.50), CCXT now expects the l1 private key to be provided in the credentials. Please check for more details: https://github.com/ccxt/ccxt/wiki/FAQ#how-to-use-the-lighter-exchange-in-ccxt')
+                    raise NotSupported(self.id + ' after the latest update (v4.5.50), CCXT now expects the l1 private key to be provided in the credentials. Please check for more details: https://github.com/ccxt/ccxt/wiki/FAQ#how-to-use-the-lighter-exchange-in-ccxt')
                 walletAddress = self.eth_get_address_from_private_key(self.privateKey)
             if walletAddress is None or walletAddress == '':
                 raise ArgumentsRequired(self.id + ' ' + methodName1 + '() requires an ' + optionName1 + '/' + optionName2 + ' parameter or walletAddress to fetch accountIndex. Alternatively set privateKey in credentials to enable automatic walletAddress detection.')
@@ -3091,9 +3091,9 @@ class lighter(Exchange, ImplicitAPI):
         apiKeyIndex, params = self.handle_api_key_index(params, 'setMargin', 'apiKeyIndex', 'api_key_index')
         direction = self.safe_integer(params, 'direction')  # 1 increase margin 0 decrease margin
         if direction is None:
-            raise ArgumentsRequired(self.id + ' setMargin() requires a direction parameter either 1(increase margin) or 0(decrease margin)')
+            raise ArgumentsRequired(self.id + ' setMargin() requires a direction parameter either 1 (increase margin) or 0 (decrease margin)')
         if not self.in_array(direction, [0, 1]):
-            raise ArgumentsRequired(self.id + ' setMargin() requires a direction parameter either 1(increase margin) or 0(decrease margin)')
+            raise ArgumentsRequired(self.id + ' setMargin() requires a direction parameter either 1 (increase margin) or 0 (decrease margin)')
         if symbol is None:
             raise ArgumentsRequired(self.id + ' setMargin() requires a symbol argument')
         accountIndex = None

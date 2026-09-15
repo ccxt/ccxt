@@ -405,7 +405,7 @@ class kucoin(ccxt.async_support.kucoin):
         uta, params = self.handle_option_and_params(params, 'watchTickers', 'uta', uta)
         isFuturesMethod = (marketType != 'spot') and (marketType != 'margin')
         if (isFuturesMethod or uta) and symbols is None:
-            raise ArgumentsRequired(self.id + ' watchTickers() requires a list of symbols for ' + marketType + ' markets and unified trading account(uta)')
+            raise ArgumentsRequired(self.id + ' watchTickers() requires a list of symbols for ' + marketType + ' markets and unified trading account (uta)')
         messageHash = 'tickers'
         method = '/market/ticker'
         if isFuturesMethod:

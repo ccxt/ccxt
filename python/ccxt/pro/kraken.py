@@ -103,18 +103,18 @@ class kraken(ccxt.async_support.kraken):
                         'EAuth:Account unconfirmed': AuthenticationError,
                         'EAuth:Rate limit exceeded': RateLimitExceeded,
                         'EAuth:Too many requests': RateLimitExceeded,
-                        'EDatabase: Internal error(to be deprecated)': ExchangeError,
+                        'EDatabase: Internal error (to be deprecated)': ExchangeError,
                         'EGeneral:Internal error[:<code>]': ExchangeError,
                         'EGeneral:Invalid arguments': BadRequest,
                         'EOrder:Cannot open opposing position': InvalidOrder,
                         'EOrder:Cannot open position': InvalidOrder,
-                        'EOrder:Insufficient funds(insufficient user funds)': InsufficientFunds,
-                        'EOrder:Insufficient margin(exchange does not have sufficient funds to allow margin trading)': InsufficientFunds,
+                        'EOrder:Insufficient funds (insufficient user funds)': InsufficientFunds,
+                        'EOrder:Insufficient margin (exchange does not have sufficient funds to allow margin trading)': InsufficientFunds,
                         'EOrder:Invalid price': InvalidOrder,
                         'EOrder:Margin allowance exceeded': InvalidOrder,
                         'EOrder:Margin level too low': InvalidOrder,
-                        'EOrder:Margin position size exceeded(client would exceed the maximum position size for self pair)': InvalidOrder,
-                        'EOrder:Order minimum not met(volume too low)': InvalidOrder,
+                        'EOrder:Margin position size exceeded (client would exceed the maximum position size for self pair)': InvalidOrder,
+                        'EOrder:Order minimum not met (volume too low)': InvalidOrder,
                         'EOrder:Orders limit exceeded': InvalidOrder,
                         'EOrder:Positions limit exceeded': InvalidOrder,
                         'EOrder:Rate limit exceeded': RateLimitExceeded,
@@ -365,7 +365,7 @@ class kraken(ccxt.async_support.kraken):
         :returns dict: an list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         if symbol is not None:
-            raise NotSupported(self.id + ' cancelOrdersWs() does not support cancelling orders for a specific symbol.')
+            raise NotSupported(self.id + ' cancelOrdersWs () does not support cancelling orders for a specific symbol.')
         await self.load_markets()
         token = await self.authenticate()
         url = (self.urls['api'])['ws']['privateV2']
@@ -393,7 +393,7 @@ class kraken(ccxt.async_support.kraken):
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         if symbol is not None:
-            raise NotSupported(self.id + ' cancelOrderWs() does not support cancelling orders for a specific symbol.')
+            raise NotSupported(self.id + ' cancelOrderWs () does not support cancelling orders for a specific symbol.')
         await self.load_markets()
         token = await self.authenticate()
         url = (self.urls['api'])['ws']['privateV2']
@@ -436,7 +436,7 @@ class kraken(ccxt.async_support.kraken):
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         if symbol is not None:
-            raise NotSupported(self.id + ' cancelAllOrdersWs() does not support cancelling orders in a specific market.')
+            raise NotSupported(self.id + ' cancelAllOrdersWs () does not support cancelling orders in a specific market.')
         await self.load_markets()
         token = await self.authenticate()
         url = (self.urls['api'])['ws']['privateV2']
