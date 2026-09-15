@@ -112,9 +112,12 @@ function precisionFromString (str: string | undefined): number {
     if (str === undefined) {
         return 0;
     }
-    // support string formats like '1e-4'
+    // support string formats like '1e-4' and signed mantissas like '-8e-8'
+    // (tiny float residues serialize with a negative mantissa - without the
+    // sign in the prefix the leftover is '--8', which is NaN in js and a
+    // FormatException in the ported languages)
     if (str.indexOf ('e') > -1 || str.indexOf ('E') > -1) {
-        const numStr = str.replace (/\d\.?\d*[eE]/, '')
+        const numStr = str.replace (/^[-+]?\d\.?\d*[eE]/, '')
         return parseInt (numStr) * -1
     }
     // support integer formats (without dot) like '1', '10' etc [Note: bug in decimalToPrecision, so this should not be used atm]
