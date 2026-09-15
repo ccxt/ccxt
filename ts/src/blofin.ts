@@ -519,44 +519,49 @@ export default class blofin extends Exchange {
                     'USDT': 'TRC20',
                 },
                 'networks': {
-                    // code -> the withdrawal-apply chain identifier: the live
-                    // venue registry (GET /asset/currencies) returns display
-                    // names like 'Tron (TRC20)', NOT the short forms shown in
-                    // the doc's own Get Currencies response example - a bare
-                    // 'TRC20' in withdrawal-apply is rejected with 152002
-                    // 'Invalid parameter' (verified live 2026-09-14)
+                    // code -> the live withdrawal-apply chain identifier where
+                    // it carries no parenthesized suffix; the suffix family
+                    // ('Tron (TRC20)' and friends) is constructed at runtime
+                    // in networkCodeToChainId from networkPrefixes, because a
+                    // space before a paren inside a source literal is not
+                    // transpiler-safe
                     'BTC': 'Bitcoin',
-                    'ERC20': 'Ethereum (ERC20)',
-                    'TRC20': 'Tron (TRC20)',
-                    'BEP20': 'BNB Smart Chain (BEP20)',
+                    'SOL': 'Solana',
                     'MATIC': 'Polygon POS',
                     'AVAXC': 'AVAX C-Chain',
-                    'SOL': 'Solana',
                     'ARBITRUM': 'Arbitrum One',
                     'OP': 'Optimism',
-                    'APT': 'APT (APT)',
-                    'TON': 'TON (Toncoin)',
                     'KAIA': 'KAIA',
                 },
+                'networkPrefixes': {
+                    // code -> the display-name prefix; the venue id is
+                    // prefix + space + parenthesized suffix, where the suffix
+                    // defaults to the unified code itself
+                    'TRC20': 'Tron',
+                    'ERC20': 'Ethereum',
+                    'BEP20': 'BNB Smart Chain',
+                    'APT': 'APT',
+                    'TON': 'TON',
+                },
+                'networkSuffixes': {
+                    // only where the parenthesized suffix differs from the code
+                    'TON': 'Toncoin',
+                },
+                'networkCodesBySuffix': {
+                    // reverse of networkSuffixes for parsing venue ids
+                    'Toncoin': 'TON',
+                },
                 'networksById': {
-                    // id -> code for BOTH identifier families: live history
-                    // rows and the currencies registry carry the display
-                    // names (verified live 2026-09-15), while the doc
-                    // examples still show short forms - map both back to
-                    // unified codes so either era of data parses
+                    // paren-free venue ids and legacy short forms -> unified;
+                    // ids with a parenthesized suffix are parsed at runtime in
+                    // chainIdToNetworkCode
                     'Bitcoin': 'BTC',
-                    'Ethereum (ERC20)': 'ERC20',
-                    'Tron (TRC20)': 'TRC20',
-                    'BNB Smart Chain (BEP20)': 'BEP20',
-                    'BSC': 'BEP20',
+                    'Solana': 'SOL',
                     'Polygon POS': 'MATIC',
                     'AVAX C-Chain': 'AVAXC',
-                    'Solana': 'SOL',
                     'Arbitrum One': 'ARBITRUM',
                     'Optimism': 'OP',
-                    'APT (APT)': 'APT',
-                    'TON (Toncoin)': 'TON',
-                    'KAIA': 'KAIA',
+                    'BSC': 'BEP20',
                 },
                 'fetchOpenInterestHistory': {
                     'timeframes': {
@@ -1971,6 +1976,44 @@ export default class blofin extends Exchange {
         return this.parseTransactions (data, currency, since, limit, params);
     }
 
+    networkCodeToChainId (networkCode: string): Str {
+        // the live venue identifies chains by display names; the suffix
+        // family is built here as prefix + space + parenthesized suffix
+        // because such literals are not transpiler-safe in source
+        const networks = this.safeDict (this.options, 'networks', {});
+        const direct = this.safeString (networks, networkCode);
+        if (direct !== undefined) {
+            return direct;
+        }
+        const prefixes = this.safeDict (this.options, 'networkPrefixes', {});
+        const prefix = this.safeString (prefixes, networkCode);
+        if (prefix !== undefined) {
+            const suffixes = this.safeDict (this.options, 'networkSuffixes', {});
+            const suffix = this.safeString (suffixes, networkCode, networkCode);
+            return prefix + ' ' + '(' + suffix + ')';
+        }
+        return networkCode;
+    }
+
+    chainIdToNetworkCode (chainId: Str): Str {
+        // live history rows and the currencies registry carry display-name
+        // chain ids like Tron with a parenthesized TRC20 suffix (verified
+        // live 2026-09-15), while the doc examples still show short forms -
+        // parse the suffix when present, fall back to the id maps otherwise
+        if (chainId === undefined) {
+            return undefined;
+        }
+        const open = chainId.indexOf ('(');
+        if (open >= 0) {
+            const close = chainId.indexOf (')');
+            const suffix = chainId.slice (open + 1, close);
+            const bySuffix = this.safeDict (this.options, 'networkCodesBySuffix', {});
+            return this.safeString (bySuffix, suffix, suffix);
+        }
+        const networksById = this.safeDict (this.options, 'networksById', {});
+        return this.safeString (networksById, chainId, chainId);
+    }
+
     /**
      * @method
      * @name blofin#withdraw
@@ -2029,7 +2072,7 @@ export default class blofin extends Exchange {
         const chain = this.safeString (params, 'chain');
         if (chain === undefined) {
             if (networkCode !== undefined) {
-                request['chain'] = this.networkCodeToId (networkCode);
+                request['chain'] = this.networkCodeToChainId (networkCode);
             } else if (dest === 'onchain') {
                 // required for on-chain withdrawals, optional for internal transfers
                 throw new ArgumentsRequired (this.id + ' withdraw() requires a params["network"] or params["chain"] for on-chain withdrawals');
@@ -2156,7 +2199,7 @@ export default class blofin extends Exchange {
         // amount is NET of the fee: a 30 USDT withdrawal-apply lands as
         // amount 29 + fee 1
         const networkId = this.safeString (transaction, 'chain');
-        const networkCode = this.networkIdToCode (networkId);
+        const networkCode = this.chainIdToNetworkCode (networkId);
         const txid = this.safeString (transaction, 'txId');
         const timestamp = this.safeInteger (transaction, 'ts');
         const feeCurrencyId = this.safeString (transaction, 'feeCurrency');
