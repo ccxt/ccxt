@@ -365,7 +365,7 @@ export default class lighter extends Exchange {
                 'apiKeyIndex': undefined,
                 'lighterPrivateKey': undefined,
                 'wasmExecPath': undefined, // [JS Only] users should set the path to wasm_exec.js. It can be downloaded here https://github.com/ccxt/lighter-wasm
-                'libraryPath': undefined, // users should set the path to the lighter signing library, it has to match this version of ccxt - the builds ccxt is tested against are in the ccxt repository under "ts/src/test/static/binaries", they can also be downloaded here https://github.com/elliottech/lighter-python/tree/main/lighter/signers (a binary that still exports "SwitchAPIKey" is too old), GO users don't need it
+                'libraryPath': undefined, // users should set the path to the lighter signing library. It can be downloaded here https://github.com/elliottech/lighter-python/tree/main/lighter/signers, GO users don't need it
                 'integratorAccountIndex': 718718,
                 'integratorMakerFee': 1000,
                 'integratorTakerFee': 1000,

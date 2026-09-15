@@ -36,6 +36,18 @@ class SignedTxResponse(ctypes.Structure):
 lighterSigner = None
 lighterSignerPath = None
 
+# The argument lists below target this signer interface (github.com/elliottech/lighter-go,
+# sharedlib/main.go). ctypes checks the argument count against `argtypes` on the Python side but
+# cannot check it against the binary, so a binary from another revision does not fail - its
+# trailing arguments simply land in the wrong slots and the signer reads an arbitrary
+# apiKeyIndex/accountIndex pair. Expected argument counts, for comparing against a new binary:
+#   GenerateAPIKey 0, CreateClient 5, CheckClient 2, SignChangePubKey 5, SignCreateOrder 19,
+#   SignCreateGroupedOrders 12, SignCancelOrder 6, SignWithdraw 7, SignCreateSubAccount 4,
+#   SignCancelAllOrders 7, SignModifyOrder 15, SignTransfer 11, SignCreatePublicPool 7,
+#   SignUpdatePublicPool 8, SignMintShares 6, SignBurnShares 6, SignStakeAssets 6,
+#   SignUnstakeAssets 6, SignUpdateLeverage 7, CreateAuthToken 3, SignUpdateMargin 7,
+#   SignApproveIntegrator 10, Free 1
+
 # every symbol ccxt binds on the native signer, in the order they are bound below
 REQUIRED_SIGNER_SYMBOLS = [
     'GenerateAPIKey', 'CreateClient', 'CheckClient', 'SignChangePubKey', 'SignCreateOrder',
@@ -55,7 +67,7 @@ REQUIRED_SIGNER_SYMBOLS = [
 # garbage later on.
 INCOMPATIBLE_SIGNER_SYMBOLS = ['SwitchAPIKey']
 
-SIGNER_ABI_HINT = 'Use the signer binary that matches your ccxt version - the ones ccxt is built and tested against are in the ccxt repository under "ts/src/test/static/binaries" - or rebuild it from the current https://github.com/elliottech/lighter-go. A binary that still exports "SwitchAPIKey" is too old for this version of ccxt.'
+SIGNER_ABI_HINT = 'The signer binary has to match this version of ccxt. Its functions are called over FFI by position, so a binary built from a different revision of https://github.com/elliottech/lighter-go shifts the trailing arguments instead of failing: use the binaries ccxt is tested against, in the ccxt repository under "ts/src/test/static/binaries", or upgrade ccxt if your binary is newer than it.'
 
 
 def has_signer_symbol(library, name):
@@ -100,10 +112,11 @@ def load_lighter_library(path):
     lighterSigner.SignChangePubKey.restype = SignedTxResponse
 
     lighterSigner.SignCreateOrder.argtypes = [ctypes.c_int, ctypes.c_longlong, ctypes.c_longlong, ctypes.c_int, ctypes.c_int, ctypes.c_int, ctypes.c_int,
-                                            ctypes.c_int, ctypes.c_int, ctypes.c_longlong, ctypes.c_longlong, ctypes.c_int, ctypes.c_int, ctypes.c_uint8, ctypes.c_longlong, ctypes.c_int, ctypes.c_longlong]
+                                            ctypes.c_int, ctypes.c_int, ctypes.c_longlong, ctypes.c_longlong, ctypes.c_int, ctypes.c_int, ctypes.c_uint8, ctypes.c_uint8,
+                                            ctypes.c_uint8, ctypes.c_longlong, ctypes.c_int, ctypes.c_longlong]
     lighterSigner.SignCreateOrder.restype = SignedTxResponse
 
-    lighterSigner.SignCreateGroupedOrders.argtypes = [ctypes.c_uint8, ctypes.POINTER(CreateOrderTxReq), ctypes.c_int, ctypes.c_longlong, ctypes.c_int, ctypes.c_int, ctypes.c_uint8, ctypes.c_longlong, ctypes.c_int, ctypes.c_longlong]
+    lighterSigner.SignCreateGroupedOrders.argtypes = [ctypes.c_uint8, ctypes.POINTER(CreateOrderTxReq), ctypes.c_int, ctypes.c_longlong, ctypes.c_int, ctypes.c_int, ctypes.c_uint8, ctypes.c_uint8, ctypes.c_uint8, ctypes.c_longlong, ctypes.c_int, ctypes.c_longlong]
     lighterSigner.SignCreateGroupedOrders.restype = SignedTxResponse
 
     lighterSigner.SignCancelOrder.argtypes = [ctypes.c_int, ctypes.c_longlong, ctypes.c_uint8, ctypes.c_longlong, ctypes.c_int, ctypes.c_longlong]
@@ -115,10 +128,11 @@ def load_lighter_library(path):
     lighterSigner.SignCreateSubAccount.argtypes = [ctypes.c_uint8, ctypes.c_longlong, ctypes.c_int, ctypes.c_longlong]
     lighterSigner.SignCreateSubAccount.restype = SignedTxResponse
 
-    lighterSigner.SignCancelAllOrders.argtypes = [ctypes.c_int, ctypes.c_longlong, ctypes.c_uint8, ctypes.c_longlong, ctypes.c_int, ctypes.c_longlong]
+    lighterSigner.SignCancelAllOrders.argtypes = [ctypes.c_int, ctypes.c_longlong, ctypes.c_int, ctypes.c_uint8, ctypes.c_longlong, ctypes.c_int, ctypes.c_longlong]
     lighterSigner.SignCancelAllOrders.restype = SignedTxResponse
 
-    lighterSigner.SignModifyOrder.argtypes = [ctypes.c_int, ctypes.c_longlong, ctypes.c_longlong, ctypes.c_longlong, ctypes.c_longlong, ctypes.c_longlong, ctypes.c_int, ctypes.c_int, ctypes.c_uint8, ctypes.c_longlong, ctypes.c_int, ctypes.c_longlong]
+    lighterSigner.SignModifyOrder.argtypes = [ctypes.c_int, ctypes.c_longlong, ctypes.c_longlong, ctypes.c_longlong, ctypes.c_longlong, ctypes.c_longlong, ctypes.c_int, ctypes.c_int,
+                                            ctypes.c_uint8, ctypes.c_uint8, ctypes.c_uint8, ctypes.c_longlong, ctypes.c_longlong, ctypes.c_int, ctypes.c_longlong]
     lighterSigner.SignModifyOrder.restype = SignedTxResponse
 
     lighterSigner.SignTransfer.argtypes = [ctypes.c_longlong, ctypes.c_int16, ctypes.c_int8, ctypes.c_int8, ctypes.c_longlong, ctypes.c_longlong, ctypes.c_char_p, ctypes.c_uint8, ctypes.c_longlong, ctypes.c_int, ctypes.c_longlong]

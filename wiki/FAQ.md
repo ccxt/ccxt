@@ -294,12 +294,10 @@ Since the signing algorithms and structs are not supported natively in all langu
 
 ### Python/C#/PHP users:
 
-- The binaries this version of ccxt is built and tested against are in the ccxt repository under [`ts/src/test/static/binaries`](https://github.com/ccxt/ccxt/tree/master/ts/src/test/static/binaries)
-- They can also be downloaded here: https://github.com/elliottech/lighter-python/tree/8bac9f56b9d0dd0eedaeb53a00ccb4fc9d77082e/lighter/signers
+- The binaries can be downloaded here: https://github.com/elliottech/lighter-python/tree/8bac9f56b9d0dd0eedaeb53a00ccb4fc9d77082e/lighter/signers
 - If they don't support the os you used, you can clone and build library from their lighter-go: https://github.com/elliottech/lighter-go/tree/25847e7e39603dbb90a0bf60b689b571116b7187
 - The path to the binary needs to be provided as `libraryPath`
 - You need to choose the binary according to your OS/architecture
-- **The binary has to match your ccxt version.** ccxt calls the signer over FFI, so an older binary has a different argument layout and the calls silently misalign
 
 ```Python
 lighter = ccxt.lighter({
@@ -308,19 +306,6 @@ lighter = ccxt.lighter({
 	}
 })
 ```
-
-#### `client is not created for apiKeyIndex: <n> accountIndex: <n>`
-
-If the signer reports indices you never configured, the signer binary set as `libraryPath` does not match your ccxt version. The signing functions take `apiKeyIndex` and `accountIndex` on every call; in older binaries they did not, so the trailing arguments land in the wrong slots and the library looks up a client under an arbitrary pair of indices.
-
-To check a binary you already have, list its exported symbols - if `SwitchAPIKey` is still there, the binary predates the current interface and cannot be used:
-
-```bash
-nm -D lighter-signer-linux-amd64.so | grep SwitchAPIKey   # Linux
-nm -gU lighter-signer-darwin-arm64.dylib | grep SwitchAPIKey   # macOS
-```
-
-Replace it with the binary for your platform from [`ts/src/test/static/binaries`](https://github.com/ccxt/ccxt/tree/master/ts/src/test/static/binaries) and point `libraryPath` at it. ccxt rejects a binary that exports `SwitchAPIKey` while loading it, so you get this diagnosis up front rather than a failed signature.
 
 ### Javascript/Typescript users
 

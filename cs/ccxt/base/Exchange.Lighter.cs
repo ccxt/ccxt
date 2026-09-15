@@ -66,7 +66,7 @@ public partial class BaseExchange
         {
             ordersArr.Add(new LighterSigner.Signer.CreateOrderTxReq
             {
-                MarketIndex = Convert.ToInt16(getValue(order, "market_index")),
+                MarketIndex = Convert.ToByte(getValue(order, "market_index")),
                 ClientOrderIndex = Convert.ToInt64(getValue(order, "client_order_index")),
                 BaseAmount = Convert.ToInt64(getValue(order, "base_amount")),
                 Price = Convert.ToUInt32(getValue(order, "avg_execution_price")),
@@ -170,11 +170,8 @@ public partial class BaseExchange
             Convert.ToInt32(getValue(request, "market_index")),
             Convert.ToInt64(getValue(request, "index")),
             Convert.ToInt64(getValue(request, "base_amount")),
-            Convert.ToInt64(getValue(request, "price")),
-            Convert.ToInt64(getValue(request, "trigger_price")),
-            Convert.ToInt64(this.safeInteger(request, "integrator_account_index", 0)),
-            Convert.ToInt32(this.safeInteger(request, "integrator_taker_fee", 0)),
-            Convert.ToInt32(this.safeInteger(request, "integrator_maker_fee", 0)),
+            Convert.ToInt32(getValue(request, "price")),
+            Convert.ToInt32(getValue(request, "trigger_price")),
             0x1, // skip nonce
             Convert.ToInt64(getValue(request, "nonce")),
             Convert.ToInt32(getValue(request, "api_key_index")),

@@ -2418,7 +2418,7 @@ class BaseExchange(object):
             passed = ''
             if request is not None:
                 passed = ' ccxt signed this request with apiKeyIndex: ' + str(self.safe_string(request, 'api_key_index')) + ' accountIndex: ' + str(self.safe_string(request, 'account_index')) + '.'
-            message += '.' + passed + ' If those indices are not the ones reported above then the signer library set in options["libraryPath"] is not compatible with this version of ccxt. ' + SIGNER_ABI_HINT
+            message += '.' + passed + ' If those indices are not the ones reported above then the signer library set in options["libraryPath"] is not the one this version of ccxt binds against. ' + SIGNER_ABI_HINT
         raise Exception(message)
 
     def lighter_create_client(self, lighterSigner, chainId, privateKey, apiKeyIndex, accountIndex):
@@ -2463,7 +2463,9 @@ class BaseExchange(object):
             self.safe_integer(request, 'integrator_account_index', 0),
             self.safe_integer(request, 'integrator_taker_fee', 0),
             self.safe_integer(request, 'integrator_maker_fee', 0),
-            True,
+            self.safe_integer(request, 'self_trade_behavior_mode', 0),  # SelfTradeBehaviorExpireMaker
+            self.safe_integer(request, 'self_trade_equality_mode', 0),  # SelfTradeEqualityAccountIndex
+            True,  # skip nonce
             request['nonce'],
             request['api_key_index'],
             request['account_index']
@@ -2488,7 +2490,9 @@ class BaseExchange(object):
             self.safe_integer(request, 'integrator_account_index', 0),
             self.safe_integer(request, 'integrator_taker_fee', 0),
             self.safe_integer(request, 'integrator_maker_fee', 0),
-            True,
+            self.safe_integer(request, 'self_trade_behavior_mode', 0),  # SelfTradeBehaviorExpireMaker
+            self.safe_integer(request, 'self_trade_equality_mode', 0),  # SelfTradeEqualityAccountIndex
+            True,  # skip nonce
             request['nonce'],
             request['api_key_index'],
             request['account_index'],
@@ -2543,7 +2547,8 @@ class BaseExchange(object):
         tx_type, tx_info, tx_hash, message_to_sign, error = decode_tx_info(signer.SignCancelAllOrders(
             request['time_in_force'],
             request['time'],
-            True,
+            self.safe_integer(request, 'cancel_all_market_index', 255),  # NilMarketIndex, every market
+            True,  # skip nonce
             request['nonce'],
             request['api_key_index'],
             request['account_index'],
@@ -2563,8 +2568,11 @@ class BaseExchange(object):
             self.safe_integer(request, 'integrator_account_index', 0),
             self.safe_integer(request, 'integrator_taker_fee', 0),
             self.safe_integer(request, 'integrator_maker_fee', 0),
-            True,
+            self.safe_integer(request, 'self_trade_behavior_mode', 0),  # SelfTradeBehaviorExpireMaker
+            self.safe_integer(request, 'self_trade_equality_mode', 0),  # SelfTradeEqualityAccountIndex
+            True,  # skip nonce
             request['nonce'],
+            self.safe_integer(request, 'order_version', 0),  # NilOrderVersion
             request['api_key_index'],
             request['account_index'],
         ))
@@ -2581,7 +2589,8 @@ class BaseExchange(object):
             request['to_route_type'],
             request['amount'],
             request['usdc_fee'],
-            request['memo'],
+            # the signer takes the memo as a char*, ctypes rejects a str for it
+            request['memo'] if isinstance(request['memo'], bytes) else self.encode(request['memo']),
             True,
             request['nonce'],
             request['api_key_index'],

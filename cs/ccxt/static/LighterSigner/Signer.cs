@@ -14,35 +14,15 @@ namespace LighterSigner
     public sealed class Signer : IDisposable
     {
         private static Signer? _instance;
-        private static string? _instancePath;
 
         private readonly NativeLib _lib;
         private bool _disposed;
-
-        public const string AbiHint = "Use the signer binary that matches your ccxt version - the ones ccxt is built and tested against are in the ccxt repository under \"ts/src/test/static/binaries\" - or rebuild it from the current https://github.com/elliottech/lighter-go. A binary that still exports \"SwitchAPIKey\" is too old for this version of ccxt.";
-
-        /// <summary>
-        /// `SwitchAPIKey` was dropped from the signer when every signing function started taking
-        /// apiKeyIndex and accountIndex on each call. A binary that still exports it predates that
-        /// change, so the delegates below no longer line up with it: the trailing arguments land in
-        /// the wrong slots and the library reads an arbitrary pair of indices, failing with
-        /// `client is not created for apiKeyIndex: &lt;n&gt; accountIndex: &lt;n&gt;` even though the
-        /// credentials are correct. Such a binary is rejected while loading.
-        /// </summary>
-        private static readonly string[] IncompatibleExports = new string[] { "SwitchAPIKey" };
 
         /// <summary>Get singleton instance (like PHP getInstance()).</summary>
         public static Signer GetInstance(string? libraryPath = null)
         {
             if (_instance == null)
-            {
                 _instance = new Signer(libraryPath);
-                _instancePath = libraryPath;
-            }
-            else if (libraryPath != null && _instancePath != null && libraryPath != _instancePath)
-            {
-                throw new InvalidOperationException($"The lighter signer library was already loaded from {_instancePath}, it cannot be reloaded from {libraryPath} in the same process. Use the same libraryPath for every lighter instance.");
-            }
 
             return _instance;
         }
@@ -52,7 +32,6 @@ namespace LighterSigner
         {
             _instance?.Dispose();
             _instance = null;
-            _instancePath = null;
         }
 
         private Signer(string? libraryPath)
@@ -62,12 +41,6 @@ namespace LighterSigner
                 throw new FileNotFoundException($"Shared library not found at: {path}");
 
             _lib = new NativeLib(path);
-
-            foreach (var symbol in IncompatibleExports)
-            {
-                if (_lib.HasSymbol(symbol))
-                    throw new InvalidOperationException($"The lighter signer library at {path} is too old for this version of ccxt: it still exports {symbol}, which means its signing functions do not take apiKeyIndex/accountIndex on every call. Calling it would silently misalign the arguments and sign with the wrong indices. " + AbiHint);
-            }
 
             // bind exports (names must match exactly what the native lib exports)
             _generateApiKey = _lib.GetFunction<GenerateAPIKeyDelegate>("GenerateAPIKey");
@@ -124,7 +97,7 @@ namespace LighterSigner
         [StructLayout(LayoutKind.Sequential)]
         public struct CreateOrderTxReq
         {
-            public short MarketIndex;
+            public byte MarketIndex;
             public long ClientOrderIndex;
             public long BaseAmount;
             public uint Price;
@@ -227,7 +200,7 @@ namespace LighterSigner
         private delegate SignedTxResponse SignCancelAllOrdersDelegate(int timeInForce, long time, byte skipNonce, long nonce, int apiKeyIndex, long accountIndex);
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        private delegate SignedTxResponse SignModifyOrderDelegate(int marketIndex, long index, long baseAmount, long price, long triggerPrice, long integratorAccountIndex, int integratorTakerFee, int integratorMakerFee, byte skipNonce, long nonce, int apiKeyIndex, long accountIndex);
+        private delegate SignedTxResponse SignModifyOrderDelegate(int marketIndex, long index, long baseAmount, long price, long triggerPrice, byte skipNonce, long nonce, int apiKeyIndex, long accountIndex);
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         private delegate SignedTxResponse SignTransferDelegate(
@@ -268,7 +241,7 @@ namespace LighterSigner
         private delegate SignedTxResponse SignApproveIntegratorDelegate(long integratorIndex, int maxPerpsTakerFee, int maxPerpsMakerFee, int maxSpotTakerFee, int maxSpotMakerFee, long approvalExpiry, byte skipNonce, long nonce, int apiKeyIndex, long accountIndex);
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        private delegate void FreeDelegate(IntPtr ptr);
+        private delegate SignedTxResponse FreeDelegate(int ptr);
 
         // bound delegates
         private readonly GenerateAPIKeyDelegate _generateApiKey;
@@ -317,7 +290,7 @@ namespace LighterSigner
             {
                 var errPtr = _createClient(u.Ptr, pk.Ptr, chainId, apiKeyIndex, accountIndex);
                 if (errPtr != IntPtr.Zero)
-                    throw new InvalidOperationException("CreateClient failed: " + DescribeSignerError(PtrToUtf8StringOrEmpty(errPtr)));
+                    throw new InvalidOperationException("CreateClient failed: " + PtrToUtf8StringOrEmpty(errPtr));
             }
         }
 
@@ -327,19 +300,7 @@ namespace LighterSigner
 
             var errPtr = _checkClient(apiKeyIndex, accountIndex);
             if (errPtr != IntPtr.Zero)
-                throw new InvalidOperationException("CheckClient failed: " + DescribeSignerError(PtrToUtf8StringOrEmpty(errPtr)));
-        }
-
-        // the native signer keeps one client per (apiKeyIndex, accountIndex) pair, so this
-        // particular error means it was called with indices it has no client for. When the
-        // indices it reports are not the ones ccxt passed, the signer binary is not the one
-        // this version of ccxt binds against and the arguments land in the wrong slots
-        private static string DescribeSignerError(string error)
-        {
-            if (error.IndexOf("client is not created for", StringComparison.Ordinal) >= 0)
-                return error + ". If the indices reported above are not the ones you configured then the signer library set in options[\"libraryPath\"] is not compatible with this version of ccxt. " + AbiHint;
-
-            return error;
+                throw new InvalidOperationException("CheckClient failed: " + PtrToUtf8StringOrEmpty(errPtr));
         }
 
         public SignedTx SignChangePubKey(string pubKey, byte skipNonce, long nonce, int apiKeyIndex, long accountIndex)
@@ -426,8 +387,8 @@ namespace LighterSigner
         public SignedTx SignCancelAllOrders(int timeInForce, long time, byte skipNonce, long nonce, int apiKeyIndex, long accountIndex)
             => ParseSignedTx(_signCancelAllOrders(timeInForce, time, skipNonce, nonce, apiKeyIndex, accountIndex));
 
-        public SignedTx SignModifyOrder(int marketIndex, long index, long baseAmount, long price, long triggerPrice, long integratorAccountIndex, int integratorTakerFee, int integratorMakerFee, byte skipNonce, long nonce, int apiKeyIndex, long accountIndex)
-            => ParseSignedTx(_signModifyOrder(marketIndex, index, baseAmount, price, triggerPrice, integratorAccountIndex, integratorTakerFee, integratorMakerFee, skipNonce, nonce, apiKeyIndex, accountIndex));
+        public SignedTx SignModifyOrder(int marketIndex, long index, long baseAmount, long price, long triggerPrice, byte skipNonce, long nonce, int apiKeyIndex, long accountIndex)
+            => ParseSignedTx(_signModifyOrder(marketIndex, index, baseAmount, price, triggerPrice, skipNonce, nonce, apiKeyIndex, accountIndex));
 
         public SignedTx SignTransfer(long toAccountIndex, short assetIndex, byte fromRouteType, byte toRouteType, long amount, long usdcFee, string memo, byte skipNonce, long nonce, int apiKeyIndex, long accountIndex)
         {
@@ -512,7 +473,7 @@ namespace LighterSigner
         private static SignedTx ParseSignedTx(SignedTxResponse r)
         {
             var err = PtrToUtf8StringOrNull(r.err);
-            if (err != null) throw new InvalidOperationException($"Signing failed: {DescribeSignerError(err)}");
+            if (err != null) throw new InvalidOperationException($"Signing failed: {err}");
 
             return new SignedTx(
                 r.txType,
@@ -609,15 +570,6 @@ namespace LighterSigner
                 }
             }
 
-            public bool HasSymbol(string name)
-            {
-                IntPtr sym = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
-                    ? WinGetProcAddress(_handle, name)
-                    : UnixDlsym(_handle, name);
-
-                return sym != IntPtr.Zero;
-            }
-
             public T GetFunction<T>(string name) where T : class
             {
                 IntPtr sym = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
@@ -625,7 +577,7 @@ namespace LighterSigner
                     : UnixDlsym(_handle, name);
 
                 if (sym == IntPtr.Zero)
-                    throw new EntryPointNotFoundException($"Function '{name}' not found in native library. " + AbiHint);
+                    throw new EntryPointNotFoundException($"Function '{name}' not found in native library.");
 
                 return Marshal.GetDelegateForFunctionPointer(sym, typeof(T)) as T
                        ?? throw new InvalidOperationException($"Failed to create delegate for '{name}'.");

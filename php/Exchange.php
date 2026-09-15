@@ -1746,39 +1746,14 @@ class BaseExchange {
 
     public function lighter_create_client($signer, $chainId, $privateKey, $apiKeyIndex, $accountIndex) {
         $url = $this->implode_hostname($this->urls['api']['public']);
-        // createClient() returns null on success and an error string otherwise
-        $error = $signer->createClient(
+        $signer->createClient(
             $url,
             $privateKey,
             $chainId,
             $apiKeyIndex,
             $accountIndex
         );
-        $this->check_lighter_signer_error('lighter_create_client', array( 'err' => $error ), array(
-            'api_key_index' => $apiKeyIndex,
-            'account_index' => $accountIndex,
-        ));
         return $signer;
-    }
-
-    public function check_lighter_signer_error($method, $result, $request = null) {
-        $error = (is_array($result) && array_key_exists('err', $result)) ? $result['err'] : null;
-        if (($error === null) || ($error === '')) {
-            return;
-        }
-        $message = $method . '() failed with error: ' . $error;
-        // the native signer keeps one client per (apiKeyIndex, accountIndex) pair, so this
-        // particular error means it was called with indices it has no client for. When the
-        // indices it reports are not the ones ccxt passed, the signer binary is not the one
-        // this version of ccxt binds against and the arguments land in the wrong slots
-        if (mb_strpos($error, 'client is not created for') !== false) {
-            $passed = '';
-            if ($request !== null) {
-                $passed = ' ccxt signed this request with apiKeyIndex: ' . $this->safe_string($request, 'api_key_index') . ' accountIndex: ' . $this->safe_string($request, 'account_index') . '.';
-            }
-            $message .= '.' . $passed . ' If those indices are not the ones reported above then the signer library set in options["libraryPath"] is not compatible with this version of ccxt. ' . Signer::ABI_HINT;
-        }
-        throw new ExchangeError($message);
     }
 
     public function load_lighter_library($path, $chainId, $privateKey, $apiKeyIndex, $accountIndex, $createClient = false) {
@@ -1813,7 +1788,6 @@ class BaseExchange {
             $request['api_key_index'],
             $request['account_index']
         );
-        $this->check_lighter_signer_error('lighter_sign_create_grouped_orders', $result, $request);
         return [$result['txType'], $result['txInfo']];
     }
 
@@ -1837,7 +1811,6 @@ class BaseExchange {
             $request['api_key_index'],
             $request['account_index']
         );
-        $this->check_lighter_signer_error('lighter_sign_create_order', $result, $request);
         return [$result['txType'], $result['txInfo']];
     }
 
@@ -1850,7 +1823,6 @@ class BaseExchange {
             $request['api_key_index'],
             $request['account_index']
         );
-        $this->check_lighter_signer_error('lighter_sign_cancel_order', $result, $request);
         return [$result['txType'], $result['txInfo']];
     }
 
@@ -1864,7 +1836,6 @@ class BaseExchange {
             $request['api_key_index'],
             $request['account_index']
         );
-        $this->check_lighter_signer_error('lighter_sign_withdraw', $result, $request);
         return [$result['txType'], $result['txInfo']];
     }
 
@@ -1875,7 +1846,6 @@ class BaseExchange {
             $request['api_key_index'],
             $request['account_index']
         );
-        $this->check_lighter_signer_error('lighter_sign_create_sub_account', $result, $request);
         return [$result['txType'], $result['txInfo']];
     }
 
@@ -1888,7 +1858,6 @@ class BaseExchange {
             $request['api_key_index'],
             $request['account_index']
         );
-        $this->check_lighter_signer_error('lighter_sign_cancel_all_orders', $result, $request);
         return [$result['txType'], $result['txInfo']];
     }
 
@@ -1907,7 +1876,6 @@ class BaseExchange {
             $request['api_key_index'],
             $request['account_index']
         );
-        $this->check_lighter_signer_error('lighter_sign_modify_order', $result, $request);
         return [$result['txType'], $result['txInfo']];
     }
 
@@ -1925,7 +1893,6 @@ class BaseExchange {
             $request['api_key_index'],
             $request['account_index']
         );
-        $this->check_lighter_signer_error('lighter_sign_transfer', $result, $request);
         return [$result['txType'], $result['txInfo']];
     }
 
@@ -1939,7 +1906,6 @@ class BaseExchange {
             $request['api_key_index'],
             $request['account_index']
         );
-        $this->check_lighter_signer_error('lighter_sign_update_leverage', $result, $request);
         return [$result['txType'], $result['txInfo']];
     }
 
@@ -1949,9 +1915,7 @@ class BaseExchange {
             $request['api_key_index'],
             $request['account_index']
         );
-        $this->check_lighter_signer_error('lighter_create_auth_token', $result, $request);
-        // createAuthToken() returns array( 'str' => token, 'err' => error ), callers expect the token
-        return $result['str'];
+        return $result;
     }
 
     public function lighter_sign_update_margin($signer, $request) {
@@ -1964,7 +1928,6 @@ class BaseExchange {
             $request['api_key_index'],
             $request['account_index']
         );
-        $this->check_lighter_signer_error('lighter_sign_update_margin', $result, $request);
         return [$result['txType'], $result['txInfo']];
     }
 
@@ -1981,13 +1944,11 @@ class BaseExchange {
             $request['api_key_index'],
             $request['account_index'],
         );
-        $this->check_lighter_signer_error('lighter_sign_approve_integrator', $result, $request);
         return [$result['txType'], $result['txInfo'], $result['messageToSign']];
     }
 
     public function lighter_generate_api_key($signer) {
         $result = $signer->generateAPIKey();
-        $this->check_lighter_signer_error('lighter_generate_api_key', $result, null);
         return [$result['privateKey'], $result['publicKey']];
     }
 
@@ -1999,7 +1960,6 @@ class BaseExchange {
             $request['api_key_index'],
             $request['account_index'],
         );
-        $this->check_lighter_signer_error('lighter_sign_change_pubkey', $result, $request);
         return [$result['txType'], $result['txInfo'], $result['messageToSign']];
     }
 

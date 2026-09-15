@@ -17,19 +17,6 @@ class Signer
 {
     private \FFI $ffi;
     private static ?Signer $instance = null;
-    private static ?string $instancePath = null;
-
-    public const ABI_HINT = 'Use the signer binary that matches your ccxt version - the ones ccxt is built and tested against are in the ccxt repository under "ts/src/test/static/binaries" - or rebuild it from the current https://github.com/elliottech/lighter-go. A binary that still exports "SwitchAPIKey" is too old for this version of ccxt.';
-
-    /**
-     * `SwitchAPIKey` was dropped from the signer when every signing function started taking
-     * `api_key_index` and `account_index` on each call. A binary that still exports it predates
-     * that change, so the declarations below no longer line up with it: the trailing arguments
-     * land in the wrong slots and the library reads an arbitrary pair of indices, failing with
-     * `client is not created for apiKeyIndex: <n> accountIndex: <n>` even though the credentials
-     * are correct. Such a binary cannot be used, so it is rejected while loading.
-     */
-    private const INCOMPATIBLE_EXPORTS = ['SwitchAPIKey'];
 
     private const C_DEFINITIONS = <<<'CDEF'
         typedef struct {
@@ -103,43 +90,7 @@ CDEF;
             throw new RuntimeException("Shared library not found at: {$libraryPath}");
         }
 
-        self::checkAbi($libraryPath);
         $this->ffi = \FFI::cdef(self::C_DEFINITIONS, $libraryPath);
-    }
-
-    /**
-     * Reject signer binaries whose exports show they predate the current signing interface
-     *
-     * @param string $libraryPath
-     * @throws RuntimeException If the library is not compatible with this version of ccxt
-     */
-    private static function checkAbi(string $libraryPath): void
-    {
-        $incompatible = [];
-        foreach (self::INCOMPATIBLE_EXPORTS as $symbol) {
-            if (self::exportsSymbol($libraryPath, $symbol)) {
-                $incompatible[] = $symbol;
-            }
-        }
-        if (count($incompatible) > 0) {
-            throw new RuntimeException(
-                "The lighter signer library at {$libraryPath} is too old for this version of ccxt: " .
-                'it still exports ' . implode(', ', $incompatible) . ', which means its signing functions ' .
-                'do not take apiKeyIndex/accountIndex on every call. Calling it would silently misalign ' .
-                'the arguments and sign with the wrong indices. ' . self::ABI_HINT
-            );
-        }
-    }
-
-    private static function exportsSymbol(string $libraryPath, string $symbol): bool
-    {
-        try {
-            $probe = \FFI::cdef("void {$symbol}(void);", $libraryPath);
-            // FFI resolves function symbols lazily, so the symbol has to be touched
-            return $probe->{$symbol} !== null;
-        } catch (\Throwable $e) {
-            return false;
-        }
     }
 
     /**
@@ -152,12 +103,6 @@ CDEF;
     {
         if (self::$instance === null) {
             self::$instance = new self($libraryPath);
-            self::$instancePath = $libraryPath;
-        } elseif (($libraryPath !== null) && (self::$instancePath !== null) && ($libraryPath !== self::$instancePath)) {
-            throw new RuntimeException(
-                'The lighter signer library was already loaded from ' . self::$instancePath . ', it cannot ' .
-                "be reloaded from {$libraryPath} in the same process. Use the same libraryPath for every lighter instance."
-            );
         }
         return self::$instance;
     }
@@ -168,7 +113,6 @@ CDEF;
     public static function resetInstance(): void
     {
         self::$instance = null;
-        self::$instancePath = null;
     }
 
     /**
