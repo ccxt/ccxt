@@ -2485,6 +2485,8 @@ export class BaseExchange {
             this.safeInteger (request, 'integrator_account_index', 0),
             this.safeInteger (request, 'integrator_taker_fee', 0),
             this.safeInteger (request, 'integrator_maker_fee', 0),
+            this.safeInteger (request, 'self_trade_behavior_mode', 0), // SelfTradeBehaviorExpireMaker
+            this.safeInteger (request, 'self_trade_equality_mode', 0), // SelfTradeEqualityAccountIndex
             1, // skip nonce
             request['nonce'],
             request['api_key_index'],
@@ -2509,6 +2511,8 @@ export class BaseExchange {
             this.safeInteger (request, 'integrator_account_index', 0),
             this.safeInteger (request, 'integrator_taker_fee', 0),
             this.safeInteger (request, 'integrator_maker_fee', 0),
+            this.safeInteger (request, 'self_trade_behavior_mode', 0), // SelfTradeBehaviorExpireMaker
+            this.safeInteger (request, 'self_trade_equality_mode', 0), // SelfTradeEqualityAccountIndex
             1, // skip nonce
             request['nonce'],
             request['api_key_index'],
@@ -2566,6 +2570,7 @@ export class BaseExchange {
         const res = (globalThis.SignCancelAllOrders (
             request['time_in_force'],
             request['time'],
+            this.safeInteger (request, 'cancel_all_market_index', 255), // NilMarketIndex, every market
             1, // skip nonce
             request['nonce'],
             request['api_key_index'],
@@ -2585,8 +2590,11 @@ export class BaseExchange {
             this.safeInteger (request, 'integrator_account_index', 0),
             this.safeInteger (request, 'integrator_taker_fee', 0),
             this.safeInteger (request, 'integrator_maker_fee', 0),
+            this.safeInteger (request, 'self_trade_behavior_mode', 0), // SelfTradeBehaviorExpireMaker
+            this.safeInteger (request, 'self_trade_equality_mode', 0), // SelfTradeEqualityAccountIndex
             1, // skip nonce
             request['nonce'],
+            this.safeInteger (request, 'order_version', 0), // NilOrderVersion
             request['api_key_index'],
             request['account_index']
         ));
