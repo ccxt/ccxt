@@ -12500,7 +12500,7 @@ func (this *Kucoin) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any 
 	}
 	symbols = this.MarketSymbols(symbols)
 
-	response := (<-this.CallDynamically("utaV2GetMarketFundingRate", params))
+	response := (<-this.UtaV2GetMarketFundingRate(params))
 	PanicOnError(response)
 	//
 	//     {
