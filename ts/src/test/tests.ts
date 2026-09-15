@@ -2177,6 +2177,13 @@ class testMainClass {
                 if ((isDisabledPhp !== undefined) && (this.lang === 'PHP')) {
                     continue;
                 }
+                // accept both spellings: request/response fixtures write
+                // "disabledRS": true while ws fixtures carry a reason string
+                const isDisabledRustBool = exchange.safeBool (result, 'disabledRS', false);
+                const isDisabledRustReason = exchange.safeString (result, 'disabledRS');
+                if (((isDisabledRustBool === true) || (isDisabledRustReason !== undefined)) && (this.lang === 'RUST')) {
+                    continue;
+                }
                 exchange.extendExchangeOptions (globalOptions);
                 const testExchangeOptions = exchange.safeValue (result, 'options', {});
                 exchange.extendExchangeOptions (testExchangeOptions);
