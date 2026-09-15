@@ -1553,8 +1553,8 @@ export default class okx extends okxRest {
                 const orderbook = this.orderBook ({}, limit);
                 this.orderbooks[symbol] = orderbook;
                 orderbook['symbol'] = symbol;
-                this.handleOrderBookMessage (client, update, orderbook, messageHash);
-                if (!(symbol in this.orderbooks)) {
+                this.handleOrderBookMessage (client, update, orderbook, messageHash, market);
+                if (!(messageHash in client.subscriptions)) {
                     break;
                 }
                 client.resolve (orderbook, messageHash);
@@ -1565,8 +1565,9 @@ export default class okx extends okxRest {
                 for (let i = 0; i < data.length; i++) {
                     const update = data[i];
                     this.handleOrderBookMessage (client, update, orderbook, messageHash, market);
-                    if (!(symbol in this.orderbooks)) {
-                        // a nonce gap deleted the cached book and rejected the future - skip the leftover rows
+                    if (!(messageHash in client.subscriptions)) {
+                        // a nonce gap rejected the future and always cleared the subscription entry, while the book
+                        // removal alone is skipped for a frame lacking an instrument id - stop replaying leftover rows
                         break;
                     }
                     client.resolve (orderbook, messageHash);
