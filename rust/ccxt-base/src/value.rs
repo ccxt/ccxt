@@ -103,11 +103,13 @@ impl Value {
     }
 
     /// Remove one symbol from a side-keyed position cache without consuming other scopes.
-    pub fn remove(&mut self, symbol: Value) {
-        if cache_kind(self).as_deref() != Some("ArrayCacheBySymbolBySide") {
-            return;
-        }
-        if let Value::Str(symbol) = symbol {
+    pub fn remove_cache_symbol(&mut self, symbol: Value) {
+        assert_eq!(cache_kind(self).as_deref(), Some("ArrayCacheBySymbolBySide"),
+            "remove_cache_symbol requires ArrayCacheBySymbolBySide");
+        let Value::Str(symbol) = symbol else {
+            panic!("remove_cache_symbol requires a string symbol");
+        };
+        {
             if let Some(id) = cache_id_of(self) {
                 with_cache_cell(id, |state| cache_remove_symbol(state, &symbol));
             } else if let Value::Dict(state) = self {

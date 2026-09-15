@@ -18,13 +18,14 @@ class ArrayCacheBySymbolBySide extends ArrayCache {
     }
 
     public function remove($symbol) {
+        $symbol = $this->as_string($symbol);
         if (!array_key_exists($symbol, $this->hashmap)) {
             return;
         }
         $retained = array();
         $indices = array();
         foreach ($this->deque as $i => &$item) {
-            if ($item['symbol'] !== $symbol) {
+            if ($this->as_string($item['symbol']) !== $symbol) {
                 $retained[] = &$item;
                 $indices[] = $this->index[$i];
             }

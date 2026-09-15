@@ -2,7 +2,7 @@ import ts from 'typescript6';
 
 // Dispatch only calls resolved to the actual side-cache API, not textual names.
 export function installCacheRemoveCall (transpiler, language) {
-    const printer = language === 'go' ? transpiler.goTranspiler : transpiler.csharpTranspiler;
+    const printer = language === 'go' ? transpiler.goTranspiler : (language === 'rust' ? transpiler.rustTranspiler : transpiler.csharpTranspiler);
     if (printer.__cacheRemoveCallInstalled) {
         return;
     }
@@ -17,6 +17,12 @@ export function installCacheRemoveCall (transpiler, language) {
                 const argument = this.printNode(node.arguments[0], 0);
                 if (language === 'go') {
                     return `any(${receiver}).(interface{ Remove(string) }).Remove(ccxt.ToString(${argument}))`;
+                }
+                if (language === 'csharp') {
+                    return `((ccxt.pro.ArrayCacheBySymbolBySide)${receiver}).remove((string)${argument})`;
+                }
+                if (language === 'rust') {
+                    return `${receiver}.remove_cache_symbol(${argument})`;
                 }
                 // Java is emitted through the C# printer before its conversion pass.
                 return `callDynamically(${receiver}, "remove", new object[] {${argument}})`;
