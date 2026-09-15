@@ -53,6 +53,8 @@ debug/
 *.rlib
 *.rmeta
 target/
+# Also ignore a runner-provided symlink at this path.
+/rust/target
 go/main
 go/tests/main
 go/cli/cli
