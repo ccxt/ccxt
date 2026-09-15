@@ -2,8 +2,6 @@
 
 namespace ccxt;
 
-use \React\Async;
-use \React\Promise;
 use ccxt\AuthenticationError;
 use ccxt\ArgumentsRequired;
 use ccxt\NotSupported;
@@ -11,6 +9,7 @@ use ccxt\InvalidProxySettings;
 use ccxt\OperationFailed;
 use ccxt\ExchangeNotAvailable;
 use ccxt\OnMaintenance;
+
 
 
 #[\AllowDynamicProperties]

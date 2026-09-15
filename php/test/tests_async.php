@@ -13,6 +13,7 @@ use ccxt\ExchangeNotAvailable;
 use ccxt\OnMaintenance;
 
 
+
 #[\AllowDynamicProperties]
 class testMainClass {
     public $id_tests = false;
