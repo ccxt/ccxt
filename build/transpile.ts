@@ -536,11 +536,7 @@ class Transpiler {
             [ /console\.log\s/g, 'print' ],
             [ /process\.exit\s+/g, 'sys.exit' ],
             [ /(while \(.*\)) {/, '$1\:' ], // While loops replace bracket with :
-            // PEP8 E225: collapse "name (" → "name(" for calls, but not inside string
-            // literals (thrown messages keep prose parentheticals like "parameter (…").
-            // Spans are precomputed once per body with # / // / /* */ skipped — see
-            // computeQuotedStringSpans / isInsideQuotedString.
-            [ /([^:+=\/\*\s-'"]+) \(/g, (matched: string, id: string, offset: number, whole: string) => this.isInsideQuotedString (whole, offset) ? matched : (id + '(') ],
+            [ /([^:+=\/\*\s-]+) \(/g, '$1(' ], // PEP8 E225 remove whitespaces before left ( round bracket
             [ /\sand\(/g, ' and (' ],
             [ /\sor\(/g, ' or (' ],
             [ /\snot\(/g, ' not (' ],
@@ -908,104 +904,6 @@ class Transpiler {
         ].join ("\n");
     }
 
-
-    // E225 quote-span cache: one scan per method body (regexAll feeds bodies one at a time).
-    _e225SpansText: string | undefined = undefined
-    _e225Spans: Array<[number, number]> | undefined = undefined
-
-    // Precompute [start, end) spans of string literals while skipping line comments
-    // (# and //) and /* */ so apostrophes in comments (caller's / doesn't) cannot desync
-    // quote parity. E225 runs after //(→#) rewrite, so # must be recognized. Computed
-    // once per body; membership checks in the E225 replace callback are then O(spans).
-    computeQuotedStringSpans (text: string): Array<[number, number]> {
-        const spans: Array<[number, number]> = []
-        let i = 0
-        const n = text.length
-        while (i < n) {
-            const ch = text[i]
-            // line comments: JS // (if still present) and Python # (// already
-            // rewrote to # earlier in getPythonRegexes). Apostrophes here must not count.
-            if (ch === '#' || (ch === '/' && text[i + 1] === '/')) {
-                if (ch === '/') {
-                    i += 2
-                } else {
-                    i += 1
-                }
-                while (i < n && text[i] !== '\n') {
-                    i += 1
-                }
-                continue
-            }
-            // block comment
-            if (ch === '/' && text[i + 1] === '*') {
-                i += 2
-                while (i < n && !(text[i] === '*' && text[i + 1] === '/')) {
-                    i += 1
-                }
-                if (i < n) {
-                    i += 2
-                }
-                continue
-            }
-            if (ch === "'" || ch === '"') {
-                const quote = ch
-                const start = i
-                const triple = text.startsWith (quote + quote + quote, i)
-                if (triple) {
-                    i += 3
-                    while (i < n) {
-                        if (text.startsWith (quote + quote + quote, i)) {
-                            i += 3
-                            break
-                        }
-                        i += 1
-                    }
-                    spans.push ([ start, i ])
-                    continue
-                }
-                i += 1
-                while (i < n) {
-                    if (text[i] === '\\') { i += 2; continue }
-                    if (text[i] === quote) {
-                        i += 1
-                        break
-                    }
-                    i += 1
-                }
-                spans.push ([ start, i ])
-                continue
-            }
-            i += 1
-        }
-        return spans
-    }
-
-    quotedStringSpansFor (text: string): Array<[number, number]> {
-        if (this._e225SpansText !== text) {
-            this._e225SpansText = text
-            this._e225Spans = this.computeQuotedStringSpans (text)
-        }
-        return this._e225Spans as Array<[number, number]>
-    }
-
-    // True when `offset` sits inside a single-, double-, or triple-quoted string.
-    // Used by the Python E225 rule so prose parentheticals in thrown messages keep
-    // their space before "(" while real calls outside quotes still collapse.
-    isInsideQuotedString (text: string, offset: number) {
-        const spans = this.quotedStringSpansFor (text)
-        for (let s = 0; s < spans.length; s++) {
-            const start = spans[s][0]
-            const end = spans[s][1]
-            if (offset < start) {
-                return false
-            }
-            if (offset >= start && offset < end) {
-                return true
-            }
-        }
-        return false
-    }
-
     // ------------------------------------------------------------------------
     // a helper to apply an array of regexes and substitutions to text
     // accepts an array like [ [ regex, substitution ], ... ]
@@ -1016,10 +914,13 @@ class Transpiler {
             let replaceStringOrCallback = array[i][1]
             const flags = (typeof regex === 'string') ? 'g' : undefined
             regex = new RegExp (regex, flags)
-            // Pass string replacements and callbacks through to String.replace.
-            // Callbacks receive the full (match, ...groups, offset, input) signature so
-            // rules can inspect surrounding text (e.g. skip matches inside quotes).
-            text = text.replace (regex, replaceStringOrCallback)
+            if (typeof array[i][1] !== 'function') {
+                text = text.replace (regex, replaceStringOrCallback)
+            } else {
+                text = text.replace (regex, function (matched: any) {
+                    return replaceStringOrCallback (matched)
+                })
+            }
         }
         return text
     }
@@ -1830,6 +1731,58 @@ class Transpiler {
         return -1
     }
 
+    maskStringSpaceParens (js: string) {
+        // a space before a left paren inside a string literal is data, not
+        // code style - the PEP8 E225 collapse and its siblings must not
+        // rewrite it (see #30286). quote state is tracked per line exactly
+        // like findCommentStart; every ' (' inside a single- or double-quoted
+        // literal is swapped for a regex-inert token before the transforms
+        // and restored verbatim afterwards. backticks stay out of the quote
+        // set so jsdoc code spans remain visible to the method-conversion
+        // rules. runs after maskComments, so line-comment bodies are already
+        // inert and cannot desync the state.
+        const lines = js.split ('\n')
+        for (let i = 0; i < lines.length; i++) {
+            const line = lines[i]
+            if (line.indexOf (' (') < 0) {
+                continue
+            }
+            let quote = ''
+            let out = ''
+            for (let j = 0; j < line.length; j++) {
+                const c = line[j]
+                if (quote !== '') {
+                    if (c === '\\') {
+                        out += c + (line[j + 1] ?? '')
+                        j++
+                        continue
+                    }
+                    if (c === quote) {
+                        quote = ''
+                        out += c
+                        continue
+                    }
+                    if (c === ' ' && line[j + 1] === '(') {
+                        out += '\x02'
+                        continue
+                    }
+                    out += c
+                } else {
+                    if (c === "'" || c === '"') {
+                        quote = c
+                    }
+                    out += c
+                }
+            }
+            lines[i] = out
+        }
+        return lines.join ('\n')
+    }
+
+    unmaskStringSpaceParens (body: string) {
+        return body.replace (/\x02/g, ' ')
+    }
+
     maskComments (js: string) {
         // comment text is documentation, not code to translate, so the body of
         // every comment is replaced by a regex-inert token before any transform
@@ -1865,7 +1818,8 @@ class Transpiler {
 
         // protect comment bodies from every code transform below
         const { masked, masks } = this.maskComments (args.js)
-        args.js = masked
+        // protect data spaces inside string literals from the style rules
+        args.js = this.maskStringSpaceParens (masked)
 
         // apply common regexes once before branching to language-specific paths
         args.js = this.regexAll (args.js, this.getCommonRegexes ())
@@ -1893,10 +1847,10 @@ class Transpiler {
             phpBody = this.transpileAsyncPHPToSyncPHP (this.transpileJavaScriptToPHP (args, false))
         }
 
-        python3Body = this.unmaskComments (python3Body, masks)
-        python2Body = this.unmaskComments (python2Body, masks)
-        phpBody = this.unmaskComments (phpBody, masks)
-        phpAsyncBody = this.unmaskComments (phpAsyncBody, masks)
+        python3Body = this.unmaskStringSpaceParens (this.unmaskComments (python3Body, masks))
+        python2Body = this.unmaskStringSpaceParens (this.unmaskComments (python2Body, masks))
+        phpBody = this.unmaskStringSpaceParens (this.unmaskComments (phpBody, masks))
+        phpAsyncBody = this.unmaskStringSpaceParens (this.unmaskComments (phpAsyncBody, masks))
 
         return { python3Body, python2Body, phpBody, phpAsyncBody, phpAsyncBodyIsFlatAwait }
     }

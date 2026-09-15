@@ -1,12 +1,23 @@
-// Regression for PEP8 E225 string/comment awareness in build/transpile.ts.
+// Regression for PEP8 E225 string-space protection in build/transpile.ts.
+// The protection lives in the transpile pipeline (maskStringSpaceParens runs
+// after maskComments, the E225 rule itself is untouched), so these tests
+// exercise transpileJavaScriptToPythonAndPHP end to end.
 // Run: npx tsx build/test-e225-string-parens.ts
 import { Transpiler } from './transpile.js'
 
 const t = new Transpiler ()
+;(t as any).buildPython = true
+;(t as any).buildPHP = true
 
-const e225: any[] = [
-    [ /([^:+=\/\*\s-'"]+) \(/g, (matched: string, id: string, offset: number, whole: string) => t.isInsideQuotedString (whole, offset) ? matched : (id + '(') ],
-]
+function pyOf (js: string): string {
+    const r = (t as any).transpileJavaScriptToPythonAndPHP ({ 'js': js, 'className': 'X', 'baseClass': 'Y', 'variables': [] })
+    return r.python3Body
+}
+
+function phpOf (js: string): string {
+    const r = (t as any).transpileJavaScriptToPythonAndPHP ({ 'js': js, 'className': 'X', 'baseClass': 'Y', 'variables': [] })
+    return r.phpBody
+}
 
 function assert (cond: boolean, msg: string) {
     if (!cond) {
@@ -16,67 +27,63 @@ function assert (cond: boolean, msg: string) {
     console.log ('ok:', msg)
 }
 
-// 1) Apostrophe in // comment must not desync → call still collapses
+// 1) Apostrophe in a // comment must not desync - the call still collapses
 {
-    const body = [
-        "// doesn't matter what the caller's id is",
-        'this.foo (bar)',
-        'Precise.stringAdd (a, b)',
-    ].join ('\n')
-    const out = t.regexAll (body, e225)
-    assert (out.includes ('this.foo(bar)'), "call after // doesn't collapses")
-    assert (!out.includes ('this.foo (bar)'), "no leftover space on this.foo")
-    assert (out.includes ('Precise.stringAdd(a, b)'), 'Precise call collapses')
-    assert (!t.isInsideQuotedString (body, body.indexOf ('this.foo')), 'call site not inside string')
+    const py = pyOf ([
+        "        // doesn't matter what the caller's id is",
+        '        this.foo (bar);',
+    ].join ('\n'))
+    assert (py.includes ('self.foo(bar)'), "call after doesn't-comment collapses")
+    assert (!py.includes ('self.foo (bar)'), 'no leftover space on the call')
 }
 
-// 2) Prose parenthetical inside thrown-message string must keep the space
+// 2) Prose parenthetical inside a thrown-message string keeps the space
 {
-    const body = [
-        "throw new ArgumentsRequired (this.id + ' parameter (symbol) is required');",
-    ].join ('\n')
-    const out = t.regexAll (body, e225)
-    assert (out.includes ("parameter (symbol)"), 'prose parenthetical keeps space')
-    assert (out.includes ('ArgumentsRequired(') || out.includes ('ArgumentsRequired ('), 'constructor handled')
-    const proseOffset = out.indexOf ('parameter (symbol)')
-    // re-check on original body: offset of "parameter (" inside the string
-    const origOffset = body.indexOf ('parameter (')
-    assert (t.isInsideQuotedString (body, origOffset), 'prose "(" is inside quoted string')
+    const py = pyOf ("        throw new ArgumentsRequired (this.id + ' parameter (symbol) is required');")
+    assert (py.includes ("parameter (symbol)"), 'prose parenthetical keeps the space')
+    assert (py.includes ('ArgumentsRequired('), 'the constructor call still collapses')
 }
 
-// 3) alpaca-style comment (the CI-red case)
+// 3) Mixed line: call collapses, string content survives
 {
-    const body = [
-        "// TRANS entries may carry symbol/asset - never blindly adopt the caller's",
-        'this.safeString (transaction, "id")',
-        'this.parseNumber (fee)',
-    ].join ('\n')
-    const out = t.regexAll (body, e225)
-    assert (out.includes ('this.safeString(transaction, "id")'), 'safeString collapses after caller\'s comment')
-    assert (out.includes ('this.parseNumber(fee)'), 'parseNumber collapses after caller\'s comment')
+    const py = pyOf ("        this.log (' fetch (spot) markets ');")
+    assert (py.includes ("' fetch (spot) markets '"), 'in-string prose intact on a mixed line')
 }
 
-// 4) block comment with apostrophe
+// 4) House method-mention inside a string keeps its source form
 {
-    const body = [
-        "/* won't desync either */",
-        'this.bar (x)',
-    ].join ('\n')
-    const out = t.regexAll (body, e225)
-    assert (out.includes ('this.bar(x)'), 'call after /* */ apostrophe collapses')
+    const py = pyOf ("        throw new NotSupported (this.id + ' fetchMarginModes () is not supported yet');")
+    assert (py.includes ('fetchMarginModes ()'), 'in-string method mention keeps the source space')
 }
 
-
-// 5) After //→# rewrite (E225 runs post-conversion) — the real alpaca shape
+// 5) PHP: ->-shaped prose inside a string is data, not a call (limitless class)
 {
-    const body = [
-        "# TRANS entries may carry symbol/asset - never blindly adopt the caller's",
-        "# currency filter, see the review on https://github.com/ccxt/ccxt/pull/29580",
-        "this.parseTransactionStatus (this.safeString (transaction, 'status'))",
-    ].join ('\n')
-    const out = t.regexAll (body, e225)
-    assert (out.includes ('parseTransactionStatus(this.safeString'), 'call after # caller\'s comment collapses')
-    assert (!out.includes ('parseTransactionStatus ('), 'no space before ( after # comment')
+    const php = phpOf ("        throw new ArgumentsRequired (this.id + ' pass params.conditionId (a bytes32 hex string)');")
+    assert (php.includes ('conditionId (a bytes32'), 'php prose parenthetical keeps the space')
+}
+
+// 6) Snake-cased mention inside a python string keeps its space (binance class)
+{
+    const py = pyOf ("        throw new InvalidOrder (this.id + ' use this.priceToPrecision (symbol, amount) ' + body);")
+    // the mask also shields the mention from the common snake-casing rule,
+    // so the message keeps its source casing - the substance is the space
+    assert (py.includes ('priceToPrecision (symbol, amount)'), 'in-string call-shaped prose keeps the space')
+}
+
+// 7) Escaped quote inside a string does not desync the line scanner
+{
+    const py = pyOf ("        throw new ExchangeError (this.id + ' can\\'t resolve (key) here');")
+    assert (py.includes ("resolve (key)"), 'escaped quote handled, prose space kept')
+}
+
+// 8) Real calls on later lines still collapse after any of the above
+{
+    const py = pyOf ([
+        "        const a = this.safeString (x, 'label (raw)');",
+        '        this.bar (baz);',
+    ].join ('\n'))
+    assert (py.includes ("'label (raw)'"), 'string arg intact')
+    assert (py.includes ('self.bar(baz)'), 'subsequent call collapses')
 }
 
 console.log ('All E225 string-paren regressions passed.')
