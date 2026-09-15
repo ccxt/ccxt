@@ -52,7 +52,7 @@
                     "previousClose": null,
                     "change": 1796,
                     "percentage": 2.321733285071617,
-                    "average": 77879,
+                    "average": 78254,
                     "baseVolume": 11.32065888,
                     "quoteVolume": null,
                     "info": {
@@ -125,7 +125,7 @@
                     "previousClose": null,
                     "change": -360,
                     "percentage": -0.4638338444095137,
-                    "average": 78443,
+                    "average": 77434,
                     "baseVolume": 13.62400222,
                     "quoteVolume": null,
                     "info": {
@@ -151,7 +151,7 @@
                 }
             },
             {
-                "description": "Unchanged price ignores inconsistent daily fields",
+                "description": "Unchanged price ignores inconsistent daily fields and average",
                 "method": "fetchTicker",
                 "input": [
                     "BTC/USDT"
@@ -198,7 +198,7 @@
                     "previousClose": null,
                     "change": 0,
                     "percentage": 0,
-                    "average": 77879,
+                    "average": 77356,
                     "baseVolume": 11.32065888,
                     "quoteVolume": null,
                     "info": {
@@ -487,7 +487,7 @@
                         "previousClose": null,
                         "change": 84353,
                         "percentage": 2.2432548510156782,
-                        "average": 3781356,
+                        "average": 3802471,
                         "baseVolume": 25.3073659,
                         "quoteVolume": null,
                         "info": {
