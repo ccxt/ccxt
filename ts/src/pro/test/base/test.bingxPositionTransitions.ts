@@ -81,6 +81,15 @@ function testBingxPositionTransitions (ExchangeClass: typeof bingx = bingx) {
     const initiallyClosed = createExchange ();
     send (initiallyClosed, [ row ('0') ]);
     assert.equal (snapshot (initiallyClosed)[0]['side'], 'both', 'zero one-way position preserves the exchange side');
+    const polledExchange = createExchange ();
+    send (polledExchange, [ row ('4', 'LONG', 'ETH'), row ('-5', 'SHORT', 'ETH'), row ('2') ]);
+    const polledCache = polledExchange.positions;
+    assert (polledCache !== undefined);
+    polledCache.getLimit (undefined, undefined);
+    polledCache.getLimit ('ETH/USDT:USDT', undefined);
+    polledCache.getLimit ('LTC/USDT:USDT', undefined);
+    send (polledExchange, [ row ('0') ]);
+    assert.equal (polledCache.getLimit (undefined, undefined), 1, 'one-way update must not recount unrelated symbols');
 }
 
 export default testBingxPositionTransitions;

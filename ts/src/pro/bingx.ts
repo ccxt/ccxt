@@ -1366,7 +1366,7 @@ export default class bingx extends bingxRest {
         if (this.positions === undefined) {
             this.positions = new ArrayCacheBySymbolBySide ();
         }
-        const cache = this.positions;
+        const cache: ArrayCacheBySymbolBySide = this.positions;
         const data = this.safeDict (message, 'a', {});
         if (!('P' in data)) {
             return;
@@ -1385,17 +1385,7 @@ export default class bingx extends bingxRest {
             position['datetime'] = this.iso8601 (timestamp);
             if (position['hedged'] === false) {
                 // One-way updates replace the symbol, including its previous direction.
-                const retainedPositions: List = [];
-                for (let j = 0; j < cache.length; j++) {
-                    const previousPosition = cache[j];
-                    if (previousPosition['symbol'] !== symbol) {
-                        retainedPositions.push (previousPosition);
-                    }
-                }
-                cache.clear ();
-                for (let j = 0; j < retainedPositions.length; j++) {
-                    cache.append (retainedPositions[j]);
-                }
+                cache.remove (symbol);
             }
             newPositions.push (position);
             cache.append (position);
