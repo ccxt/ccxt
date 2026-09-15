@@ -5,6 +5,239 @@
     "methods": {
         "watchOrderBook": [
             {
+                "description": "swap orderbook trimmed to the requested limit of five levels",
+                "input": [
+                    "BTC/USDT0:USDT0",
+                    5
+                ],
+                "url": "wss://gateway.prod.nado.xyz/v1/subscribe",
+                "messages": [
+                    {
+                        "result": null,
+                        "id": 1
+                    },
+                    {
+                        "type": "book_depth",
+                        "last_max_timestamp": "1789439771820498853",
+                        "min_timestamp": "1789439771918344611",
+                        "max_timestamp": "1789439771918344611",
+                        "product_id": 2,
+                        "bids": [],
+                        "asks": [
+                            [
+                                "77868000000000000000000",
+                                "4057200000000000000"
+                            ]
+                        ]
+                    },
+                    {
+                        "type": "book_depth",
+                        "last_max_timestamp": "1789439771918344611",
+                        "min_timestamp": "1789439771978117134",
+                        "max_timestamp": "1789439772001861075",
+                        "product_id": 2,
+                        "bids": [
+                            [
+                                "77850000000000000000000",
+                                "2882050000000000000"
+                            ]
+                        ],
+                        "asks": [
+                            [
+                                "77868000000000000000000",
+                                "4034500000000000000"
+                            ]
+                        ]
+                    },
+                    {
+                        "type": "book_depth",
+                        "last_max_timestamp": "1789439772001861075",
+                        "min_timestamp": "1789439772014740737",
+                        "max_timestamp": "1789439772054713099",
+                        "product_id": 2,
+                        "bids": [
+                            [
+                                "77867000000000000000000",
+                                "3114650000000000000"
+                            ],
+                            [
+                                "77865000000000000000000",
+                                "775100000000000000"
+                            ]
+                        ],
+                        "asks": [
+                            [
+                                "77889000000000000000000",
+                                "6400000000000000"
+                            ]
+                        ]
+                    },
+                    {
+                        "type": "book_depth",
+                        "last_max_timestamp": "1789439772054713099",
+                        "min_timestamp": "1789439772201966974",
+                        "max_timestamp": "1789439772215405449",
+                        "product_id": 2,
+                        "bids": [
+                            [
+                                "77867000000000000000000",
+                                "3111850000000000000"
+                            ],
+                            [
+                                "77850000000000000000000",
+                                "2884950000000000000"
+                            ]
+                        ],
+                        "asks": []
+                    },
+                    {
+                        "type": "book_depth",
+                        "last_max_timestamp": "1789439772215405449",
+                        "min_timestamp": "1789439772231916351",
+                        "max_timestamp": "1789439772241834595",
+                        "product_id": 2,
+                        "bids": [
+                            [
+                                "77867000000000000000000",
+                                "3114650000000000000"
+                            ],
+                            [
+                                "77850000000000000000000",
+                                "2882050000000000000"
+                            ]
+                        ],
+                        "asks": []
+                    },
+                    {
+                        "type": "book_depth",
+                        "last_max_timestamp": "1789439772241834595",
+                        "min_timestamp": "1789439772270523059",
+                        "max_timestamp": "1789439772281936318",
+                        "product_id": 2,
+                        "bids": [
+                            [
+                                "77867000000000000000000",
+                                "3114750000000000000"
+                            ]
+                        ],
+                        "asks": []
+                    }
+                ],
+                "httpResponse": {
+                    "status": "success",
+                    "data": {
+                        "bids": [
+                            [
+                                "77867000000000000000000",
+                                "3114750000000000000"
+                            ],
+                            [
+                                "77866000000000000000000",
+                                "12950000000000000"
+                            ],
+                            [
+                                "77865000000000000000000",
+                                "775100000000000000"
+                            ],
+                            [
+                                "77864000000000000000000",
+                                "77150000000000000"
+                            ],
+                            [
+                                "77863000000000000000000",
+                                "343500000000000000"
+                            ]
+                        ],
+                        "asks": [
+                            [
+                                "77868000000000000000000",
+                                "4034500000000000000"
+                            ],
+                            [
+                                "77869000000000000000000",
+                                "1024100000000000000"
+                            ],
+                            [
+                                "77870000000000000000000",
+                                "61450000000000000"
+                            ],
+                            [
+                                "77871000000000000000000",
+                                "12950000000000000"
+                            ],
+                            [
+                                "77872000000000000000000",
+                                "137900000000000000"
+                            ]
+                        ],
+                        "product_id": 2,
+                        "timestamp": "1789439772331826515"
+                    },
+                    "request_type": "query_market_liquidity"
+                },
+                "sentMessages": [
+                    {
+                        "method": "subscribe",
+                        "stream": {
+                            "type": "book_depth",
+                            "product_id": 2
+                        },
+                        "id": 1
+                    }
+                ],
+                "parsedResponse": {
+                    "bids": [
+                        [
+                            77867,
+                            3.11475
+                        ],
+                        [
+                            77866,
+                            0.01295
+                        ],
+                        [
+                            77865,
+                            0.7751
+                        ],
+                        [
+                            77864,
+                            0.07715
+                        ],
+                        [
+                            77863,
+                            0.3435
+                        ]
+                    ],
+                    "asks": [
+                        [
+                            77868,
+                            4.0345
+                        ],
+                        [
+                            77869,
+                            1.0241
+                        ],
+                        [
+                            77870,
+                            0.06145
+                        ],
+                        [
+                            77871,
+                            0.01295
+                        ],
+                        [
+                            77872,
+                            0.1379
+                        ]
+                    ],
+                    "timestamp": 1789439772331,
+                    "datetime": "2026-09-15T02:36:12.331Z",
+                    "nonce": 1789439772331,
+                    "symbol": "BTC/USDT0:USDT0"
+                },
+                "disabledRS": "rust base trait handle_deltas calls its own default handle_delta panic stub - trait default methods cannot reach the exchange's inherent handle_delta override, so watchOrderBook fails with 'nado handleDelta not supported yet'; needs the disabledRS ws-harness branch from the tests PR plus a rust transpiler dispatch fix, recheck 2026-12-14"
+            },
+            {
                 "description": "swap orderbook, market_liquidity snapshot with replayed book_depth diffs",
                 "input": [
                     "BTC/USDT0:USDT0"

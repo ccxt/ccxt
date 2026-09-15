@@ -65,6 +65,10 @@ export default class nado extends nadoRest {
                 // typed ports drop custom orderbook fields, so the markers live
                 // here following the binance requestId-per-url options pattern
                 'orderBookMaxTimestamps': {},
+                // market_liquidity snapshot timestamps per symbol - diffs older
+                // than the snapshot are dropped on the live path too, mirroring
+                // the binance drop-any-event-at-or-below-lastUpdateId rule
+                'orderBookSnapshotTimestamps': {},
             },
             'urls': {
                 'api': {
@@ -1666,12 +1670,13 @@ export default class nado extends nadoRest {
 
     handleOrderBookSubscription (client: Client, message: any, subscription: any) {
         const symbol = this.safeString (subscription, 'symbol') as string;
+        const limit = this.safeInteger (subscription, 'limit');
         if (symbol in this.orderbooks) {
             delete this.orderbooks[symbol];
         }
         // an empty book with an undefined nonce buffers incoming diffs into
         // orderbook.cache until the market_liquidity snapshot is applied
-        this.orderbooks[symbol] = this.orderBook ({});
+        this.orderbooks[symbol] = this.orderBook ({}, limit);
         // fetch the snapshot with a separate async call, binance-style
         this.spawn (this.fetchOrderBookSnapshot, client, message, subscription);
     }
@@ -1734,7 +1739,7 @@ export default class nado extends nadoRest {
             // the exchange timestamps carry nanosecond precision that exceeds
             // the double-safe integer range, so ordering comparisons go through
             // Precise on the raw strings and only display values are truncated
-            const snapshotNanoseconds = this.safeString (data, 'timestamp');
+            const snapshotNanoseconds = this.safeString (data, 'timestamp', '0');
             const timestamp = this.parseWsTimestamp (data, 'timestamp');
             const snapshot: Dict = {
                 'symbol': symbol,
@@ -1745,6 +1750,7 @@ export default class nado extends nadoRest {
                 'nonce': timestamp,
             };
             orderbook.reset (snapshot);
+            this.options['orderBookSnapshotTimestamps'][symbol] = snapshotNanoseconds;
             // replay the diffs buffered while the snapshot was on the wire:
             // the chain check runs over every buffered frame, while only the
             // frames newer than the snapshot mutate the book
@@ -1754,10 +1760,13 @@ export default class nado extends nadoRest {
             for (let i = 0; i < bufferedMessages.length; i++) {
                 const bufferedMessage = bufferedMessages[i];
                 const lastMaxTimestamp = this.safeString (bufferedMessage, 'last_max_timestamp');
+                const frameMaxTimestamp = this.safeString (bufferedMessage, 'max_timestamp');
+                if ((frameMaxTimestamp === undefined) || (lastMaxTimestamp === undefined)) {
+                    continue;
+                }
                 if ((previousMaxTimestamp !== undefined) && (lastMaxTimestamp !== previousMaxTimestamp)) {
                     throw new InvalidNonce (this.id + ' watchOrderBook() received a gap while replaying buffered book_depth diffs');
                 }
-                const frameMaxTimestamp = this.safeString (bufferedMessage, 'max_timestamp');
                 if (Precise.stringGt (frameMaxTimestamp, snapshotNanoseconds)) {
                     this.handleOrderBookMessage (client, bufferedMessage, orderbook);
                 }
@@ -1808,6 +1817,10 @@ export default class nado extends nadoRest {
         if (symbol in maxTimestamps) {
             delete this.options['orderBookMaxTimestamps'][symbol];
         }
+        const snapshotTimestamps = this.safeDict (this.options, 'orderBookSnapshotTimestamps', {});
+        if (symbol in snapshotTimestamps) {
+            delete this.options['orderBookSnapshotTimestamps'][symbol];
+        }
     }
 
     handleOrderBook (client: Client, message: any) {
@@ -1842,15 +1855,26 @@ export default class nado extends nadoRest {
         const maxTimestamps = this.safeDict (this.options, 'orderBookMaxTimestamps', {});
         const previousMaxTimestamp = this.safeString (maxTimestamps, symbol);
         const lastMaxTimestamp = this.safeString (message, 'last_max_timestamp');
-        if ((previousMaxTimestamp !== undefined) && (lastMaxTimestamp !== undefined) && (previousMaxTimestamp !== lastMaxTimestamp)) {
+        const frameMaxTimestamp = this.safeString (message, 'max_timestamp');
+        if ((frameMaxTimestamp === undefined) || (lastMaxTimestamp === undefined)) {
+            return;
+        }
+        if ((previousMaxTimestamp !== undefined) && (previousMaxTimestamp !== lastMaxTimestamp)) {
             this.cleanOrderBookSubscription (client, symbol);
             const error = new InvalidNonce (this.id + ' watchOrderBook() received a book_depth diff with a gap, the previous diff was lost');
             client.reject (error, messageHash);
             return;
         }
-        this.handleOrderBookMessage (client, message, orderbook);
-        this.options['orderBookMaxTimestamps'][symbol] = this.safeString (message, 'max_timestamp');
-        client.resolve (orderbook, messageHash);
+        // a diff can race the snapshot response and arrive already covered by
+        // it - advance the chain marker but leave the book untouched, the
+        // same drop rule the buffered replay applies
+        const snapshotTimestamps = this.safeDict (this.options, 'orderBookSnapshotTimestamps', {});
+        const snapshotNanoseconds = this.safeString (snapshotTimestamps, symbol, '0');
+        if (Precise.stringGt (frameMaxTimestamp, snapshotNanoseconds)) {
+            this.handleOrderBookMessage (client, message, orderbook);
+            client.resolve (orderbook, messageHash);
+        }
+        this.options['orderBookMaxTimestamps'][symbol] = frameMaxTimestamp;
     }
 
     handleExecuteResponse (client: Client, message: any) {
@@ -1951,6 +1975,10 @@ export default class nado extends nadoRest {
             const maxTimestamps = this.safeDict (this.options, 'orderBookMaxTimestamps', {});
             if (symbol in maxTimestamps) {
                 delete this.options['orderBookMaxTimestamps'][symbol];
+            }
+            const snapshotTimestamps = this.safeDict (this.options, 'orderBookSnapshotTimestamps', {});
+            if (symbol in snapshotTimestamps) {
+                delete this.options['orderBookSnapshotTimestamps'][symbol];
             }
         } else if (messageHash.indexOf ('ohlcv:') === 0) {
             const parts = messageHash.split (':');
