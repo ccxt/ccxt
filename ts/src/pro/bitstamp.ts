@@ -653,13 +653,19 @@ export default class bitstamp extends bitstampRest {
         //
         const channel = this.safeString (message, 'channel');
         const order = this.safeDict (message, 'data', {});
+        const subscription = (channel === undefined) ? undefined : this.safeDict (client.subscriptions, channel);
+        const symbol = this.safeString (subscription, 'symbol');
+        if (symbol === undefined) {
+            // cleanUnsubscription deletes the subscription, so an order frame
+            // arriving after an unsubscribe has no subscription to resolve
+            // the symbol from - drop the message instead of throwing
+            return;
+        }
         const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
         if (this.orders === undefined) {
             this.orders = new ArrayCacheBySymbolById (limit);
         }
         const stored = this.orders;
-        const subscription = (channel === undefined) ? undefined : this.safeValue (client.subscriptions, channel);
-        const symbol = this.safeString (subscription, 'symbol');
         const market = this.market (symbol);
         order['event'] = this.safeString (message, 'event');
         const parsed = this.parseWsOrder (order, market);
