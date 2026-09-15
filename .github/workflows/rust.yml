@@ -54,10 +54,12 @@ jobs:
             rust
             examples/rust
           cache-all-crates: true
-          cache-targets: false
+          # Keep downloaded dependencies, but never restore a shared build directory.
           prefix-key: v1-rust-registry-only
+          cache-targets: false
       - name: Isolate Cargo build output
         run: |
+          # Self-hosted runners can share storage. Each attempt must own its binaries.
           echo "CARGO_TARGET_DIR=$RUNNER_TEMP/ccxt-rust-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT" >> "$GITHUB_ENV"
       - name: Setup Node.js
         uses: actions/setup-node@v3

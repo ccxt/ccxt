@@ -69,7 +69,7 @@ class kucoin extends Exchange {
                 'fetchFundingInterval' => true,
                 'fetchFundingRate' => true,
                 'fetchFundingRateHistory' => true,
-                'fetchFundingRates' => false,
+                'fetchFundingRates' => true,
                 'fetchIndexOHLCV' => true, // uta only
                 'fetchIsolatedBorrowRate' => false,
                 'fetchIsolatedBorrowRates' => false,
@@ -135,6 +135,7 @@ class kucoin extends Exchange {
                     'broker' => 'https://api-broker.kucoin.com',
                     'earn' => 'https://api.kucoin.com',
                     'uta' => 'https://api.kucoin.com',
+                    'utaV2' => 'https://api.kucoin.com',
                     'utaPrivate' => 'https://api.kucoin.com',
                 ),
                 'www' => 'https://www.kucoin.com',
@@ -558,6 +559,11 @@ class kucoin extends Exchange {
                         'market/borrowable-currency' => array( 'cost' => 30 ),
                         'user/my-ip' => array( 'cost' => 20 ),
                         'market/fiat-price' => array( 'cost' => 6 ),
+                    ),
+                ),
+                'utaV2' => array(
+                    'get' => array(
+                        'market/funding-rate' => array( 'cost' => 6 ), // 3PW
                     ),
                 ),
                 'utaPrivate' => array(
@@ -2879,6 +2885,12 @@ class kucoin extends Exchange {
         $market = $this->safe_market($marketId, $market, '-');
         $last = $this->safe_string_2($ticker, 'price', 'lastTradePrice');
         $timestamp = $this->safe_integer_product($ticker, 'ts', 0.000001);
+        $change = $this->safe_string($ticker, 'priceChg');
+        $percentage = null;
+        if (($last === null) || ($change === null)) {
+            $percentage = Precise::string_mul($this->safe_string($ticker, 'priceChgPct'), '100');
+        }
+        // Otherwise safeTicker derives percentage from last and change, since priceChgPct can be inconsistent.
         return $this->safe_ticker(array(
             'symbol' => $market['symbol'],
             'timestamp' => $timestamp,
@@ -2894,10 +2906,8 @@ class kucoin extends Exchange {
             'close' => $last,
             'last' => $last,
             'previousClose' => null,
-            'change' => $this->safe_string($ticker, 'priceChg'),
-            // priceChgPct is a ratio: the sample above reports 0.0447 beside a priceChg
-            // of 2878.7 on a price near 64000, which is a move of 4.47 per cent
-            'percentage' => Precise::string_mul($this->safe_string($ticker, 'priceChgPct'), '100'),
+            'change' => $change,
+            'percentage' => $percentage,
             'average' => null,
             'baseVolume' => $this->safe_string($ticker, 'volumeOf24h'),
             'quoteVolume' => $this->safe_string($ticker, 'turnoverOf24h'),
@@ -10086,6 +10096,54 @@ class kucoin extends Exchange {
         return $this->parse_funding_rate($data, $market);
     }
 
+    public function fetch_funding_rates(?array $symbols = null, $params = array()): array {
+        /**
+         * fetch the current funding $rates for multiple markets
+         *
+         * @see https://www.kucoin.com/docs-new/v2/rest/ua/get-current-funding
+         *
+         * @param {string[]} [$symbols] unified market $symbols, all markets are returned if not assigned
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->productType] filter by USDT-FUTURES, USDC-FUTURES or COIN-FUTURES
+         * @param {string} [$params->symbol] exchange-specific contract id (e.g. XBTUSDTM), overrides productType when provided
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=funding-rate-structure funding rate structures~, indexed by market $symbols
+         */
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
+        $symbols = $this->market_symbols($symbols);
+        $response = $this->utaV2GetMarketFundingRate($params);
+        //
+        //     {
+        //         "code": "200000",
+        //         "data": [
+        //             {
+        //                 "symbol": "XBTUSDTM",
+        //                 "nextFundingRate": "-0.000004",
+        //                 "fundingTime": 1789315200000,
+        //                 "fundingRateCap": "0.003",
+        //                 "fundingRateFloor": "-0.003",
+        //                 "currentGranularity": 28800000,
+        //                 "newGranularity": 28800000,
+        //                 "newGranularityStartTime": 1750147200000
+        //             }
+        //         ]
+        //     }
+        //
+        $data = $this->safe_list($response, 'data', array());
+        $rates = array();
+        for ($i = 0; $i < count($data); $i++) {
+            $entry = $data[$i];
+            $marketId = $this->safe_string($entry, 'symbol');
+            // kucoin returns funding index symbols (e.g. .ETHUSDTMFPI8H) alongside tradeable contracts
+            $isFundingIndex = ($marketId !== null) && (str_starts_with($marketId, '.'));
+            if (!$isFundingIndex) {
+                $rates[] = $entry;
+            }
+        }
+        return $this->parse_funding_rates($rates, $symbols);
+    }
+
     public function parse_funding_rate(mixed $data, ?array $market = null): array {
         // uta
         //     {
@@ -11638,6 +11696,9 @@ class kucoin extends Exchange {
         $version = $this->safe_string($params, 'version', $defaultVersion);
         $params = $this->omit($params, 'version');
         $endpoint = '/api/' . $version . '/' . $this->implode_params($path, $params);
+        if ($api === 'utaV2') {
+            $endpoint = '/api/ua/v2/' . $this->implode_params($path, $params);
+        }
         if ($api === 'webExchange') {
             $endpoint = '/' . $this->implode_params($path, $params);
         }

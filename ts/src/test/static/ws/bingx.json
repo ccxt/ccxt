@@ -3,6 +3,344 @@
     "skipKeys": [],
     "options": {},
     "methods": {
+        "watchOrders": [
+            {
+                "description": "spot partial order uses cumulative quote amount instead of limit price or last fill",
+                "input": [
+                    "LTC/USDT",
+                    null,
+                    null,
+                    {
+                        "type": "spot"
+                    }
+                ],
+                "url": "wss://open-api-ws.bingx.com/market?listenKey=offline-spot-order-cost",
+                "options": {
+                    "listenKey": "offline-spot-order-cost",
+                    "lastAuthenticatedTime": 9999999999999
+                },
+                "messages": [
+                    {
+                        "code": 0,
+                        "dataType": "spot.executionReport",
+                        "data": {
+                            "e": "executionReport",
+                            "E": 1720000000020,
+                            "s": "LTC-USDT",
+                            "S": "BUY",
+                            "o": "LIMIT",
+                            "q": "5",
+                            "p": "110",
+                            "x": "TRADE",
+                            "X": "PARTIALLY_FILLED",
+                            "i": "230000000000000001",
+                            "l": "2",
+                            "z": "3",
+                            "L": "96",
+                            "n": "0",
+                            "N": "USDT",
+                            "T": 1720000000020,
+                            "t": "102",
+                            "Z": "282",
+                            "Y": "192"
+                        }
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "e": "executionReport",
+                            "E": 1720000000020,
+                            "s": "LTC-USDT",
+                            "S": "BUY",
+                            "o": "LIMIT",
+                            "q": "5",
+                            "p": "110",
+                            "x": "TRADE",
+                            "X": "PARTIALLY_FILLED",
+                            "i": "230000000000000001",
+                            "l": "2",
+                            "z": "3",
+                            "L": "96",
+                            "n": "0",
+                            "N": "USDT",
+                            "T": 1720000000020,
+                            "t": "102",
+                            "Z": "282",
+                            "Y": "192"
+                        },
+                        "id": "230000000000000001",
+                        "clientOrderId": null,
+                        "symbol": "LTC/USDT",
+                        "timestamp": 1720000000020,
+                        "datetime": "2024-07-03T09:46:40.020Z",
+                        "lastTradeTimestamp": 1720000000020,
+                        "lastUpdateTimestamp": null,
+                        "type": "limit",
+                        "timeInForce": null,
+                        "postOnly": null,
+                        "side": "buy",
+                        "price": 110,
+                        "triggerPrice": null,
+                        "stopLossPrice": null,
+                        "takeProfitPrice": null,
+                        "average": 94,
+                        "cost": 282,
+                        "amount": 5,
+                        "filled": 3,
+                        "remaining": 2,
+                        "status": "open",
+                        "fee": {
+                            "currency": "USDT",
+                            "cost": "0"
+                        },
+                        "trades": [],
+                        "reduceOnly": null,
+                        "fees": [
+                            {
+                                "currency": "USDT",
+                                "cost": 0
+                            }
+                        ],
+                        "stopPrice": null
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "id": "offline-id",
+                        "reqType": "sub",
+                        "dataType": "spot.executionReport"
+                    }
+                ],
+                "sentSkipKeys": [
+                    "id"
+                ]
+            },
+            {
+                "description": "spot canceled order preserves numeric cumulative quote amount with no last fill",
+                "input": [
+                    "LTC/USDT",
+                    null,
+                    null,
+                    {
+                        "type": "spot"
+                    }
+                ],
+                "url": "wss://open-api-ws.bingx.com/market?listenKey=offline-spot-order-cost",
+                "options": {
+                    "listenKey": "offline-spot-order-cost",
+                    "lastAuthenticatedTime": 9999999999999
+                },
+                "messages": [
+                    {
+                        "code": 0,
+                        "dataType": "spot.executionReport",
+                        "data": {
+                            "e": "executionReport",
+                            "E": 1720000000020,
+                            "s": "LTC-USDT",
+                            "S": "BUY",
+                            "o": "LIMIT",
+                            "q": "5",
+                            "p": "110",
+                            "x": "CANCELED",
+                            "X": "CANCELED",
+                            "i": "230000000000000001",
+                            "l": "0",
+                            "z": 3,
+                            "L": "0",
+                            "n": "0",
+                            "N": "USDT",
+                            "T": 1720000000020,
+                            "t": "-1",
+                            "Z": 282,
+                            "Y": "0"
+                        }
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "e": "executionReport",
+                            "E": 1720000000020,
+                            "s": "LTC-USDT",
+                            "S": "BUY",
+                            "o": "LIMIT",
+                            "q": "5",
+                            "p": "110",
+                            "x": "CANCELED",
+                            "X": "CANCELED",
+                            "i": "230000000000000001",
+                            "l": "0",
+                            "z": 3,
+                            "L": "0",
+                            "n": "0",
+                            "N": "USDT",
+                            "T": 1720000000020,
+                            "t": "-1",
+                            "Z": 282,
+                            "Y": "0"
+                        },
+                        "id": "230000000000000001",
+                        "clientOrderId": null,
+                        "symbol": "LTC/USDT",
+                        "timestamp": 1720000000020,
+                        "datetime": "2024-07-03T09:46:40.020Z",
+                        "lastTradeTimestamp": 1720000000020,
+                        "lastUpdateTimestamp": null,
+                        "type": "limit",
+                        "timeInForce": null,
+                        "postOnly": null,
+                        "side": "buy",
+                        "price": 110,
+                        "triggerPrice": null,
+                        "stopLossPrice": null,
+                        "takeProfitPrice": null,
+                        "average": 94,
+                        "cost": 282,
+                        "amount": 5,
+                        "filled": 3,
+                        "remaining": 2,
+                        "status": "canceled",
+                        "fee": {
+                            "currency": "USDT",
+                            "cost": "0"
+                        },
+                        "trades": [],
+                        "reduceOnly": null,
+                        "fees": [
+                            {
+                                "currency": "USDT",
+                                "cost": 0
+                            }
+                        ],
+                        "stopPrice": null
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "id": "offline-id",
+                        "reqType": "sub",
+                        "dataType": "spot.executionReport"
+                    }
+                ],
+                "sentSkipKeys": [
+                    "id"
+                ]
+            },
+            {
+                "description": "spot filled market order derives price and average from cumulative quote amount",
+                "input": [
+                    "LTC/USDT",
+                    null,
+                    null,
+                    {
+                        "type": "spot"
+                    }
+                ],
+                "url": "wss://open-api-ws.bingx.com/market?listenKey=offline-spot-order-cost",
+                "options": {
+                    "listenKey": "offline-spot-order-cost",
+                    "lastAuthenticatedTime": 9999999999999
+                },
+                "messages": [
+                    {
+                        "code": 0,
+                        "dataType": "spot.executionReport",
+                        "data": {
+                            "e": "executionReport",
+                            "E": 1720000000020,
+                            "s": "LTC-USDT",
+                            "S": "BUY",
+                            "o": "MARKET",
+                            "q": "5",
+                            "p": "0",
+                            "x": "TRADE",
+                            "X": "FILLED",
+                            "i": "230000000000000001",
+                            "l": "2",
+                            "z": "5",
+                            "L": "104",
+                            "n": "0",
+                            "N": "USDT",
+                            "T": 1720000000020,
+                            "t": "103",
+                            "Z": "490",
+                            "Y": "208"
+                        }
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "e": "executionReport",
+                            "E": 1720000000020,
+                            "s": "LTC-USDT",
+                            "S": "BUY",
+                            "o": "MARKET",
+                            "q": "5",
+                            "p": "0",
+                            "x": "TRADE",
+                            "X": "FILLED",
+                            "i": "230000000000000001",
+                            "l": "2",
+                            "z": "5",
+                            "L": "104",
+                            "n": "0",
+                            "N": "USDT",
+                            "T": 1720000000020,
+                            "t": "103",
+                            "Z": "490",
+                            "Y": "208"
+                        },
+                        "id": "230000000000000001",
+                        "clientOrderId": null,
+                        "symbol": "LTC/USDT",
+                        "timestamp": 1720000000020,
+                        "datetime": "2024-07-03T09:46:40.020Z",
+                        "lastTradeTimestamp": 1720000000020,
+                        "lastUpdateTimestamp": null,
+                        "type": "market",
+                        "timeInForce": "IOC",
+                        "postOnly": null,
+                        "side": "buy",
+                        "price": 98,
+                        "triggerPrice": null,
+                        "stopLossPrice": null,
+                        "takeProfitPrice": null,
+                        "average": 98,
+                        "cost": 490,
+                        "amount": 5,
+                        "filled": 5,
+                        "remaining": 0,
+                        "status": "closed",
+                        "fee": {
+                            "currency": "USDT",
+                            "cost": "0"
+                        },
+                        "trades": [],
+                        "reduceOnly": null,
+                        "fees": [
+                            {
+                                "currency": "USDT",
+                                "cost": 0
+                            }
+                        ],
+                        "stopPrice": null
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "id": "offline-id",
+                        "reqType": "sub",
+                        "dataType": "spot.executionReport"
+                    }
+                ],
+                "sentSkipKeys": [
+                    "id"
+                ]
+            }
+        ],
         "watchTicker": [
             {
                 "description": "linear swap ticker",
