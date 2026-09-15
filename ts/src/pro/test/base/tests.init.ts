@@ -5,12 +5,14 @@ import testWsCacheNative from "./test.cacheNative.js";
 import testWsSingleFlight from "./test.singleFlight.js";
 import testWsSingleFlightWiring from "./test.singleFlightWiring.js";
 import testWsKeepAliveTimeout from "./test.keepAliveTimeout.js";
+import testWsSnapshotReadiness from "./test.wsSnapshotReadiness.js";
 import testWsClientThrottleWiring from "./test.clientThrottleWiring.js";
 
 async function testBaseWs () {
     testWsOrderBook ();
     testWsCache ();
     testWsCacheNative (); // js-only: removeAt () has no port equivalent
+    testWsSnapshotReadiness (); // native JS test of the static WS transport helper
     // todo : testWsClose ();
     await testWsSingleFlight ();
     await testWsSingleFlightWiring ();
