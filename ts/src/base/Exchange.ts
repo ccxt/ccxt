@@ -2432,7 +2432,7 @@ export class BaseExchange {
         // wasmExecPathExample: '/opt/homebrew/opt/go/libexec/lib/wasm/wasm_exec.js';
         // libraryPath eg: '/Users/cjg/Git/lighter-go/lighter.wasm';
         if (libraryPath === undefined || libraryPath === '') {
-            throw new Error ('loadLighterLibrary() requires "libraryPath" that should point to "lighter.wasm". The binaries this version of ccxt is built against are in the ccxt repository under "ts/src/test/static/binaries", they can also be built from source using the official Lighter SDK or downloaded here https://github.com/ccxt/lighter-wasm. Please provide the path to it, the binary has to match your ccxt version.\nExample: exchanges.options["libraryPath"] = "/user/cjg/Git/lighter-wasm/lighter.wasm"');
+            throw new Error ('loadLighterLibrary() requires "libraryPath" that should point to "lighter-signer.wasm". The binaries this version of ccxt is built against are in the ccxt repository under "ts/src/test/static/binaries", they can also be built from source using the official Lighter SDK or downloaded here https://github.com/ccxt/lighter-wasm. Please provide the path to it, the binary has to match your ccxt version.\nExample: exchanges.options["libraryPath"] = "/user/cjg/Git/lighter-wasm/lighter-signer.wasm"');
         }
         if (!isNode) {
             throw new NotSupported (this.id + ' loadLighterLibrary() is only supported in node environment.');
