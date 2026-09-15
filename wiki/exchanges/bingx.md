@@ -852,7 +852,7 @@ fetches information on multiple orders made by the user
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified market symbol of the market orders were made in |
+| symbol | <code>string</code> | No | unified market symbol of the market orders were made in |
 | since | <code>int</code> | No | the earliest time in ms to fetch orders for |
 | limit | <code>int</code> | No | the maximum number of order structures to retrieve |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
@@ -861,7 +861,7 @@ fetches information on multiple orders made by the user
 
 
 ```javascript
-bingx.fetchOrders (symbol, since?, limit?, params?)
+bingx.fetchOrders (symbol?, since?, limit?, params?)
 ```
 
 
@@ -913,7 +913,7 @@ fetches information on multiple closed orders made by the user
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified market symbol of the closed orders |
+| symbol | <code>string</code> | No | unified market symbol of the closed orders |
 | since | <code>int</code> | No | timestamp in ms of the earliest order |
 | limit | <code>int</code> | No | the max number of closed orders to return |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
@@ -922,7 +922,7 @@ fetches information on multiple closed orders made by the user
 
 
 ```javascript
-bingx.fetchClosedOrders (symbol, since?, limit?, params?)
+bingx.fetchClosedOrders (symbol?, since?, limit?, params?)
 ```
 
 
@@ -944,7 +944,7 @@ fetches information on multiple canceled orders made by the user
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified market symbol of the canceled orders |
+| symbol | <code>string</code> | No | unified market symbol of the canceled orders |
 | since | <code>int</code> | No | timestamp in ms of the earliest order |
 | limit | <code>int</code> | No | the max number of canceled orders to return |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
@@ -953,7 +953,7 @@ fetches information on multiple canceled orders made by the user
 
 
 ```javascript
-bingx.fetchCanceledOrders (symbol, since?, limit?, params?)
+bingx.fetchCanceledOrders (symbol?, since?, limit?, params?)
 ```
 
 
