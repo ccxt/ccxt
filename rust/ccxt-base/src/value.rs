@@ -104,6 +104,7 @@ impl Value {
 
     /// Remove one symbol from a side-keyed position cache without consuming other scopes.
     pub fn remove_cache_symbol(&mut self, symbol: Value) {
+        // Invalid calls intentionally panic, including in release builds: transpiler dispatch must uphold this contract.
         assert_eq!(cache_kind(self).as_deref(), Some("ArrayCacheBySymbolBySide"),
             "remove_cache_symbol requires ArrayCacheBySymbolBySide");
         let Value::Str(symbol) = symbol else {
