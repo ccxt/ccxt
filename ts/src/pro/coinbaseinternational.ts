@@ -40,6 +40,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
             'urls': {
                 'api': {
                     'ws': 'wss://ws-md.international.coinbase.com',
+                    'v2': 'wss://drb.coinbase.com/ws/api/v2',
                 },
                 'test': {
                     'ws': 'wss://ws-md.n5e2.coinbase.com',
@@ -83,7 +84,6 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        this.checkRequiredCredentials ();
         let market: Market = undefined;
         let messageHash = name;
         let productIds: Strings = undefined;
@@ -114,7 +114,6 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         const signature = this.hmac (this.encode (auth), this.base64ToBinary (this.secret), sha256, 'base64');
         const subscribe: Dict = {
             'type': 'SUBSCRIBE',
-            // 'product_ids': productIds,
             'channels': [ name ],
             'time': timestamp,
             'key': this.apiKey,
@@ -144,7 +143,6 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        this.checkRequiredCredentials ();
         if (this.isEmpty (symbols)) {
             symbols = this.symbols;
         } else {

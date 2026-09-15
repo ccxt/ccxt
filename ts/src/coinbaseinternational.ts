@@ -2,11 +2,14 @@
 // ----------------------------------------------------------------------------
 
 import { sha256 } from '@noble/hashes/sha2.js';
+import { jwt } from './base/functions/rsa.js';
+import { ecdsa } from './base/functions/crypto.js';
+import { p256 } from '@noble/curves/nist.js';
 import Exchange from './abstract/coinbaseinternational.js';
-import { ExchangeError, ArgumentsRequired, BadRequest, InvalidOrder, PermissionDenied, DuplicateOrderId, AuthenticationError, NotSupported } from './base/errors.js';
+import { ExchangeError, ArgumentsRequired, InvalidOrder, AuthenticationError } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Int, Num, OrderSide, OrderType, Order, Trade, Ticker, Str, Transaction, Balances, Bool, Tickers, Strings, List, Market, Currency, CurrencyInterface, TransferEntry, Position, FundingRateHistory, Currencies, Dict, NullableDict, int, OHLCV, DepositAddress, MarginModification, Endpoint } from './base/types.js';
+import type { Int, Num, OrderSide, OrderType, Order, Trade, Ticker, Str, Transaction, Balances, Tickers, Strings, Market, Currency, CurrencyInterface, TransferEntry, Position, FundingRateHistory, Currencies, Dict, NullableDict, int, OHLCV, Endpoint } from './base/types.js';
 
 // ----------------------------------------------------------------------------
 
@@ -23,25 +26,22 @@ export default class coinbaseinternational extends Exchange {
             'certified': false,
             'pro': true,
             'rateLimit': 100, // 10 requests per second
-            'version': 'v1',
+            'version': 'v2',
             'userAgent': this.userAgents['chrome'],
-            'headers': {
-                'CB-VERSION': '2018-05-30',
-            },
             'has': {
                 'CORS': true,
                 'spot': true,
-                'margin': true,
+                'margin': false,
                 'swap': true,
-                'future': false,
-                'option': false,
+                'future': true,
+                'option': true,
                 'addMargin': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'cancelOrders': false,
                 'closeAllPositions': false,
                 'closePosition': false,
-                'createDepositAddress': true,
+                'createDepositAddress': false,
                 'createLimitBuyOrder': true,
                 'createLimitSellOrder': true,
                 'createMarketBuyOrder': true,
@@ -56,7 +56,7 @@ export default class coinbaseinternational extends Exchange {
                 'createStopMarketOrder': true,
                 'createStopOrder': true,
                 'editOrder': true,
-                'fetchAccounts': true,
+                'fetchAccounts': false,
                 'fetchBalance': true,
                 'fetchBidsAsks': false,
                 'fetchBorrowRateHistories': false,
@@ -68,7 +68,7 @@ export default class coinbaseinternational extends Exchange {
                 'fetchCurrencies': true,
                 'fetchDeposits': true,
                 'fetchDepositsWithdrawals': true,
-                'fetchFundingHistory': true,
+                'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': false,
@@ -90,7 +90,7 @@ export default class coinbaseinternational extends Exchange {
                 'fetchOpenInterestHistory': false,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
-                'fetchOrderBook': false,
+                'fetchOrderBook': true,
                 'fetchOrders': false,
                 'fetchPosition': true,
                 'fetchPositionHistory': false,
@@ -101,32 +101,30 @@ export default class coinbaseinternational extends Exchange {
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
-                'fetchTime': false,
+                'fetchTime': true,
                 'fetchTrades': false,
                 'fetchTradingFee': false,
                 'fetchTradingFees': false,
                 'fetchTransfers': true,
                 'fetchWithdrawals': true,
                 'reduceMargin': false,
-                'sandbox': true,
+                'sandbox': false,
                 'setLeverage': false,
-                'setMargin': true,
+                'setMargin': false,
                 'setMarginMode': false,
                 'setPositionMode': false,
-                'transfer': true,
-                'withdraw': true,
+                'transfer': false,
+                'withdraw': false,
             },
             'urls': {
                 'logo': 'https://github.com/ccxt/ccxt/assets/43336371/866ae638-6ab5-4ebf-ab2c-cdcce9545625',
                 'api': {
-                    'rest': 'https://api.international.coinbase.com/api',
-                },
-                'test': {
-                    'rest': 'https://api-n5e1.coinbase.com/api',
+                    'rest': 'https://drb.coinbase.com/api/v2',
                 },
                 'www': 'https://international.coinbase.com',
                 'doc': [
-                    'https://docs.cloud.coinbase.com/intx/docs',
+                    'https://docs.cdp.coinbase.com/coinbase-app/advanced-trade-apis/guides/derivatives/overview',
+                    'https://docs.deribit.com',
                 ],
                 'fees': [
                     'https://help.coinbase.com/en/international-exchange/trading-deposits-withdrawals/international-exchange-fees',
@@ -136,83 +134,131 @@ export default class coinbaseinternational extends Exchange {
             'requiredCredentials': {
                 'apiKey': true,
                 'secret': true,
-                'password': true,
             },
             'api': {
-                'v1': {
-                    'public': {
-                        'get': {
-                            'assets': { 'cost': 1 } as Endpoint<List>,
-                            'assets/{assets}': { 'cost': 1 } as Endpoint<Dict>,
-                            'assets/{asset}/networks': { 'cost': 1 } as Endpoint<List>,
-                            'instruments': { 'cost': 1 } as Endpoint<List>,
-                            'instruments/{instrument}': { 'cost': 1 } as Endpoint<Dict>,
-                            'instruments/{instrument}/quote': { 'cost': 1 } as Endpoint<Dict>,
-                            'instruments/{instrument}/funding': { 'cost': 1 } as Endpoint<Dict>,
-                            'instruments/{instrument}/candles': { 'cost': 1 } as Endpoint<Dict>,
-                            'instruments/volumes/daily': { 'cost': 1 } as Endpoint<Dict>,
-                            'position-offsets': { 'cost': 1 } as Endpoint<Dict>,
-                            'fee-rate-tiers': { 'cost': 1 } as Endpoint<List>,
-                        },
+                'public': {
+                    'post': {
+                        'auth': { 'cost': 1 } as Endpoint<Dict>,
                     },
-                    'private': {
-                        'get': {
-                            'address-book': { 'cost': 1 } as Endpoint<List>,
-                            'orders': { 'cost': 1 } as Endpoint<Dict>,
-                            'orders/{id}': { 'cost': 1 } as Endpoint<Dict>,
-                            'index/{index}/composition': { 'cost': 1 } as Endpoint<Dict>,
-                            'index/{index}/composition-history': { 'cost': 1 } as Endpoint<Dict>,
-                            'index/{index}/price': { 'cost': 1 } as Endpoint<Dict>,
-                            'index/{index}/candles': { 'cost': 1 } as Endpoint<Dict>,
-                            'portfolios': { 'cost': 1 } as Endpoint<List>,
-                            'portfolios/{portfolio}': { 'cost': 1 } as Endpoint<Dict>,
-                            'portfolios/{portfolio}/detail': { 'cost': 1 } as Endpoint<Dict>,
-                            'portfolios/{portfolio}/summary': { 'cost': 1 } as Endpoint<Dict>,
-                            'portfolios/{portfolio}/balances': { 'cost': 1 } as Endpoint<List>,
-                            'portfolios/{portfolio}/balances/{asset}': { 'cost': 1 } as Endpoint<Dict>,
-                            'portfolios/{portfolio}/positions': { 'cost': 1 } as Endpoint<List>,
-                            'portfolios/{portfolio}/positions/{instrument}': { 'cost': 1 } as Endpoint<Dict>,
-                            'portfolios/{portfolio}/position-limits': { 'cost': 1 } as Endpoint<Dict>,
-                            'portfolios/{portfolio}/position-limits/positions': { 'cost': 1 } as Endpoint<List>,
-                            'portfolios/{portfolio}/position-limits/positions/{instrument}': { 'cost': 1 } as Endpoint<Dict>,
-                            'portfolios/fills': { 'cost': 1 } as Endpoint<Dict>,
-                            'portfolios/{portfolio}/fills': { 'cost': 1 } as Endpoint<Dict>,
-                            'portfolios/fee-rates': { 'cost': 1 } as Endpoint<List>,
-                            'portfolios/{portfolio}/loans': { 'cost': 1 } as Endpoint<List>,
-                            'portfolios/{portfolio}/loans/{asset}': { 'cost': 1 } as Endpoint<Dict>,
-                            'portfolios/{portfolio}/loans/{asset}/availability': { 'cost': 1 } as Endpoint<Dict>,
-                            'portfolios/{portfolio}/margin-call-status': { 'cost': 1 } as Endpoint<Dict>,
-                            'transfers': { 'cost': 1 } as Endpoint<Dict>,
-                            'transfers/{transfer_uuid}': { 'cost': 1 } as Endpoint<Dict>,
-                            'transfers/withdraw/{portfolio}/{asset}/counterparty-withdrawal-limit': { 'cost': 1 } as Endpoint<Dict>,
-                        },
-                        'post': {
-                            'orders': { 'cost': 1 } as Endpoint<Dict>,
-                            'portfolios': { 'cost': 1 } as Endpoint<Dict>,
-                            'portfolios/margin': { 'cost': 1 } as Endpoint<Dict>,
-                            'portfolios/{portfolio}/cross-collateral-enabled': { 'cost': 1 } as Endpoint<Dict>,
-                            'portfolios/{portfolio}/auto-margin-enabled': { 'cost': 1 } as Endpoint<Dict>,
-                            'portfolios/{portfolio}/loans/{asset}': { 'cost': 1 } as Endpoint<Dict>,
-                            'portfolios/{portfolio}/loans/{asset}/preview': { 'cost': 1 } as Endpoint<Dict>,
-                            'portfolios/transfer': { 'cost': 1 } as Endpoint<Dict>,
-                            'portfolios/transfer-position': { 'cost': 1 } as Endpoint<Dict>,
-                            'transfers/withdraw': { 'cost': 1 } as Endpoint<Dict>,
-                            'transfers/address': { 'cost': 1 } as Endpoint<Dict>,
-                            'transfers/create-counterparty-id': { 'cost': 1 } as Endpoint<Dict>,
-                            'transfers/validate-counterparty-id': { 'cost': 1 } as Endpoint<Dict>,
-                            'transfers/withdraw/counterparty': { 'cost': 1 } as Endpoint<Dict>,
-                        },
-                        'put': {
-                            'orders/{id}': { 'cost': 1 } as Endpoint<Dict>,
-                            'portfolios/{portfolio}': { 'cost': 1 } as Endpoint<Dict>,
-                        },
-                        'delete': {
-                            'orders': { 'cost': 1 } as Endpoint<List>,
-                            'orders/{id}': { 'cost': 1 } as Endpoint<Dict>,
-                        },
-                        'patch': {
-                            'portfolios/{portfolio}': { 'cost': 1 } as Endpoint<Dict>,
-                        },
+                    'get': {
+                        'disable_heartbeat': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_announcements': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_block_rfq_trades': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_book_summary_by_currency': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_book_summary_by_instrument': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_combo_details': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_combo_ids': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_combos': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_contract_size': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_currencies': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_delivery_prices': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_expirations': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_funding_chart_data': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_funding_rate_history': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_funding_rate_value': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_historical_volatility': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_index_chart_data': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_index_price': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_index_price_names': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_instrument': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_instruments': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_last_settlements_by_currency': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_last_settlements_by_instrument': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_last_trades_by_currency': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_last_trades_by_currency_and_time': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_last_trades_by_instrument': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_last_trades_by_instrument_and_time': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_mark_price_history': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_order_book': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_order_book_by_instrument_id': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_supported_index_names': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_time': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_trade_volumes': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_tradingview_chart_data': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_volatility_index_data': { 'cost': 1 } as Endpoint<Dict>,
+                        'hello': { 'cost': 1 } as Endpoint<Dict>,
+                        'set_heartbeat': { 'cost': 1 } as Endpoint<Dict>,
+                        'status': { 'cost': 1 } as Endpoint<Dict>,
+                        'subscribe': { 'cost': 1 } as Endpoint<Dict>,
+                        'test': { 'cost': 1 } as Endpoint<Dict>,
+                        'ticker': { 'cost': 1 } as Endpoint<Dict>,
+                        'unsubscribe': { 'cost': 1 } as Endpoint<Dict>,
+                        'unsubscribe_all': { 'cost': 1 } as Endpoint<Dict>,
+                    },
+                },
+                'private': {
+                    'get': {
+                        'accept_block_rfq': { 'cost': 1 } as Endpoint<Dict>,
+                        'add_block_rfq_quote': { 'cost': 1 } as Endpoint<Dict>,
+                        'approve_block_trade': { 'cost': 1 } as Endpoint<Dict>,
+                        'buy': { 'cost': 1 } as Endpoint<Dict>,
+                        'cancel': { 'cost': 1 } as Endpoint<Dict>,
+                        'cancel_all': { 'cost': 1 } as Endpoint<Dict>,
+                        'cancel_all_block_rfq_quotes': { 'cost': 1 } as Endpoint<Dict>,
+                        'cancel_all_by_currency': { 'cost': 1 } as Endpoint<Dict>,
+                        'cancel_all_by_currency_pair': { 'cost': 1 } as Endpoint<Dict>,
+                        'cancel_all_by_instrument': { 'cost': 1 } as Endpoint<Dict>,
+                        'cancel_all_by_kind_or_type': { 'cost': 1 } as Endpoint<Dict>,
+                        'cancel_block_rfq': { 'cost': 1 } as Endpoint<Dict>,
+                        'cancel_block_rfq_quote': { 'cost': 1 } as Endpoint<Dict>,
+                        'cancel_block_rfq_trigger': { 'cost': 1 } as Endpoint<Dict>,
+                        'cancel_by_label': { 'cost': 1 } as Endpoint<Dict>,
+                        'change_margin_model': { 'cost': 1 } as Endpoint<Dict>,
+                        'close_position': { 'cost': 1 } as Endpoint<Dict>,
+                        'create_block_rfq': { 'cost': 1 } as Endpoint<Dict>,
+                        'create_combo': { 'cost': 1 } as Endpoint<Dict>,
+                        'disable_cancel_on_disconnect': { 'cost': 1 } as Endpoint<Dict>,
+                        'edit': { 'cost': 1 } as Endpoint<Dict>,
+                        'edit_block_rfq_quote': { 'cost': 1 } as Endpoint<Dict>,
+                        'edit_by_label': { 'cost': 1 } as Endpoint<Dict>,
+                        'enable_cancel_on_disconnect': { 'cost': 1 } as Endpoint<Dict>,
+                        'execute_block_trade': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_access_log': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_account_summaries': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_account_summary': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_block_rfq_makers': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_block_rfq_quotes': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_block_rfq_user_info': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_block_rfqs': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_block_trade': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_block_trade_requests': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_block_trades': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_broker_trade_requests': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_broker_trades': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_cancel_on_disconnect': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_leg_prices': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_margins': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_open_orders': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_open_orders_by_currency': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_open_orders_by_instrument': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_open_orders_by_label': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_order_history_by_currency': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_order_history_by_instrument': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_order_margin_by_ids': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_order_state': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_order_state_by_label': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_position': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_positions': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_settlement_history_by_currency': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_settlement_history_by_instrument': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_transaction_log': { 'cost': 10 } as Endpoint<Dict>, // 1 request per second
+                        'get_trigger_order_history': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_user_trades_by_currency': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_user_trades_by_currency_and_time': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_user_trades_by_instrument': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_user_trades_by_instrument_and_time': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_user_trades_by_order': { 'cost': 1 } as Endpoint<Dict>,
+                        'invalidate_block_trade_signature': { 'cost': 1 } as Endpoint<Dict>,
+                        'logout': { 'cost': 1 } as Endpoint<Dict>,
+                        'pme/simulate': { 'cost': 1 } as Endpoint<Dict>,
+                        'reject_block_trade': { 'cost': 1 } as Endpoint<Dict>,
+                        'sell': { 'cost': 1 } as Endpoint<Dict>,
+                        'simulate_block_trade': { 'cost': 1 } as Endpoint<Dict>,
+                        'simulate_portfolio': { 'cost': 1 } as Endpoint<Dict>,
+                        'subscribe': { 'cost': 1 } as Endpoint<Dict>,
+                        'unsubscribe': { 'cost': 1 } as Endpoint<Dict>,
+                        'unsubscribe_all': { 'cost': 1 } as Endpoint<Dict>,
+                        'verify_block_trade': { 'cost': 1 } as Endpoint<Dict>,
                     },
                 },
             },
@@ -244,45 +290,54 @@ export default class coinbaseinternational extends Exchange {
             },
             'precisionMode': TICK_SIZE,
             'exceptions': {
-                'exact': {},
+                'exact': {
+                    '13004': AuthenticationError,
+                },
                 'broad': {
-                    'DUPLICATE_CLIENT_ORDER_ID': DuplicateOrderId,
-                    'Order rejected': InvalidOrder,
-                    'market orders must be IoC': InvalidOrder,
-                    'tif is required': InvalidOrder,
-                    'Invalid replace order request': InvalidOrder,
-                    'Unauthorized': PermissionDenied,
-                    'invalid result_limit': BadRequest,
-                    'is a required field': BadRequest,
-                    'Not Found': BadRequest,
-                    'ip not allowed': AuthenticationError,
-                    'cbe spot routing instrument not supported': NotSupported,
+                    'invalid_credentials': AuthenticationError,
                 },
             },
             'timeframes': {
-                '1m': 'ONE_MINUTE',
-                '5m': 'FIVE_MINUTE',
-                '15m': 'FIFTEEN_MINUTE',
-                '30m': 'THIRTY_MINUTE',
-                '1h': 'ONE_HOUR',
-                '2h': 'TWO_HOUR',
-                '6h': 'SIX_HOUR',
-                '1d': 'ONE_DAY',
+                '1m': '1',
+                '5m': '5',
+                '15m': '15',
+                '30m': '30',
+                '1h': '60',
+                '2h': '120',
+                '6h': '360',
+                '1d': '1D',
             },
             'options': {
                 'brokerId': 'nfqkvdjp',
                 'portfolio': '', // default portfolio id
-                'withdraw': {
-                    'method': 'v1PrivatePostTransfersWithdraw', // use v1PrivatePostTransfersWithdrawCounterparty for counterparty withdrawals
-                },
                 'networksById': {
-                    'ethereum': 'ETH',
-                    'arbitrum': 'ARBITRUM',
-                    'avacchain': 'AVAX',
-                    'optimism': 'OPTIMISM',
-                    'polygon': 'MATIC',
-                    'solana': 'SOL',
-                    'bitcoin': 'BTC',
+                    'networks/algorand-mainnet': 'ALGO',
+                    'networks/aptos-mainnet': 'APT',
+                    'networks/arbitrum-mainnet': 'ARBITRUM',
+                    'networks/avacchain-mainnet': 'AVAX',
+                    'networks/base-mainnet': 'BASE',
+                    'networks/bitcoin-mainnet': 'BTC',
+                    'networks/bitcoincash-mainnet': 'BCH',
+                    'networks/bittensor-mainnet': 'TAO',
+                    'networks/bsc-mainnet': 'BSC',
+                    'networks/cardano-mainnet': 'ADA',
+                    'networks/cosmos-mainnet': 'ATOM',
+                    'networks/dfinity-mainnet': 'ICP',
+                    'networks/doge-mainnet': 'DOGE',
+                    'networks/ethereum-mainnet': 'ETH',
+                    'networks/filecoin-mainnet': 'FIL',
+                    'networks/hedera-mainnet': 'HBAR',
+                    'networks/hyperliquid-mainnet': 'HYPE',
+                    'networks/litecoin-mainnet': 'LTC',
+                    'networks/near-mainnet': 'NEAR',
+                    'networks/optimism-mainnet': 'OPTIMISM',
+                    'networks/polkadot-mainnet': 'DOT',
+                    'networks/polygon-mainnet': 'MATIC',
+                    'networks/ripple-mainnet': 'XRP',
+                    'networks/solana-mainnet': 'SOL',
+                    'networks/stellar-mainnet': 'XLM',
+                    'networks/sui-mainnet': 'SUI',
+                    'networks/vechain-mainnet': 'VET',
                 },
             },
             'features': {
@@ -295,7 +350,7 @@ export default class coinbaseinternational extends Exchange {
                         'triggerDirection': true,
                         'stopLossPrice': false, // todo implementation
                         'takeProfitPrice': false, // todo implementation
-                        'attachedStopLossTakeProfit': undefined,
+                        'attachedStopLossTakeProfit': undefined, // todo implementation
                         'timeInForce': {
                             'IOC': true,
                             'FOK': true,
@@ -307,17 +362,17 @@ export default class coinbaseinternational extends Exchange {
                         'trailing': false,
                         'leverage': false,
                         'marketBuyByCost': false,
-                        'marketBuyRequiresPrice': true,
-                        'selfTradePrevention': true, // todo: implement
+                        'marketBuyRequiresPrice': false,
+                        'selfTradePrevention': false,
                         'iceberg': false,
                     },
                     'createOrders': undefined,
                     'fetchMyTrades': {
                         'marginMode': false,
-                        'limit': 100,
+                        'limit': undefined,
                         'daysBack': undefined,
                         'untilDays': 10000,
-                        'symbolRequired': false,
+                        'symbolRequired': true,
                     },
                     'fetchOrder': {
                         'marginMode': false,
@@ -350,127 +405,408 @@ export default class coinbaseinternational extends Exchange {
                     },
                 },
                 'future': {
-                    'linear': undefined,
-                    'inverse': undefined,
+                    'linear': {
+                        'extends': 'default',
+                    },
+                    'inverse': {
+                        'extends': 'default',
+                    },
+                },
+                'option': {
+                    'linear': {
+                        'extends': 'default',
+                    },
+                    'inverse': {
+                        'extends': 'default',
+                    },
                 },
             },
         });
     }
 
-    async handlePortfolioAndParams (methodName: string, params = {}): Promise<[Str, Dict]> {
-        let portfolio: Str = undefined;
-        [ portfolio, params ] = this.handleOptionAndParams (params, methodName, 'portfolio');
-        if ((portfolio !== undefined) && (portfolio !== '')) {
-            return [ portfolio, params ];
-        }
-        const defaultPortfolio = this.safeString (this.options, 'portfolio');
-        if ((defaultPortfolio !== undefined) && (defaultPortfolio !== '')) {
-            return [ defaultPortfolio, params ];
-        }
-        const accounts = await this.fetchAccounts ();
-        for (let i = 0; i < accounts.length; i++) {
-            const account = accounts[i];
-            const info = this.safeDict (account, 'info', {});
-            if (this.safeBool (info, 'is_default') === true) {
-                const portfolioId = this.safeString (info, 'portfolio_id');
-                this.options['portfolio'] = portfolioId;
-                return [ portfolioId, params ];
-            }
-        }
-        throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a portfolio parameter or set the default portfolio with this.options["portfolio"]');
-    }
-
-    async handleNetworkIdAndParams (currencyCode: string, methodName: string, params = {}): Promise<[Str, Dict]> {
-        let networkId: Str = undefined;
-        [ networkId, params ] = this.handleOptionAndParams (params, methodName, 'network_arn_id');
-        if (networkId === undefined) {
-            await this.loadCurrencyNetworks (currencyCode);
-            const networks = this.currencies[currencyCode]['networks'];
-            const network = this.safeString2 (params, 'networkCode', 'network');
-            if (network === undefined) {
-                // find default network
-                if (this.isEmpty (networks)) {
-                    throw new BadRequest (this.id + ' createDepositAddress network not found for currency ' + currencyCode + ' please specify networkId in params');
-                }
-                const defaultNetwork = this.findDefaultNetwork (networks);
-                networkId = defaultNetwork['id'];
-            } else {
-                networkId = this.networkCodeToId (network, currencyCode);
-            }
-        }
-        return [ networkId, params ];
+    /**
+     * @method
+     * @name coinbaseinternational#fetchTime
+     * @description fetches the current integer timestamp in milliseconds from the exchange server
+     * @see https://docs.cdp.coinbase.com/api-reference/supporting/public-get_time
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int} the current integer timestamp in milliseconds from the exchange server
+     */
+    override async fetchTime (params = {}): Promise<Int> {
+        const response = await this.publicGetGetTime (params);
+        //
+        //     {
+        //         "jsonrpc": "2.0",
+        //         "result": 1788865676744,
+        //         "usIn": 1788865676744468,
+        //         "usOut": 1788865676744569,
+        //         "usDiff": 101,
+        //         "testnet": false
+        //     }
+        //
+        const timestamp = this.safeInteger (response, 'result');
+        return timestamp;
     }
 
     /**
      * @method
-     * @name coinbaseinternational#fetchAccounts
-     * @description fetch all the accounts associated with a profile
-     * @see https://docs.cloud.coinbase.com/intx/reference/getportfolios
+     * @name coinbaseinternational#fetchMarkets
+     * @description retrieves data on all markets for coinbaseinternational
+     * @see https://docs.cdp.coinbase.com/api-reference/market-data/public-get_instruments
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
+     * @returns {object[]} an array of objects representing market data
      */
-    override async fetchAccounts (params = {}) {
-        if (this.markets === undefined) {
-            await this.loadMarkets ();
-        }
-        const response = await this.v1PrivateGetPortfolios (params);
+    override async fetchMarkets (params = {}): Promise<Market[]> {
+        const response = await this.publicGetGetInstruments (params);
         //
-        //    [
-        //        {
-        //           "portfolio_id":"1ap32qsc-1-0",
-        //           "portfolio_uuid":"028d7f6c-b92c-7361-8b7e-2932711e5a22",
-        //           "name":"CCXT Portfolio 030624-17:16",
-        //           "user_uuid":"e6cf46b6-a32f-5fa7-addb-3324d4526fbd",
-        //           "maker_fee_rate":"0",
-        //           "taker_fee_rate":"0.0002",
-        //           "trading_lock":false,
-        //           "borrow_disabled":false,
-        //           "is_lsp":false,
-        //           "is_default":true,
-        //           "cross_collateral_enabled":false
-        //        }
-        //    ]
+        //     {
+        //         "jsonrpc": "2.0",
+        //         "id": 1788770469,
+        //         "result": [
+        //             {
+        //                 "block_trade_tick_size": 0.01,
+        //                 "lot_size": 100,
+        //                 "settlement_currency": "USDC",
+        //                 "index_id": 34000004,
+        //                 "creation_timestamp": 1786804445000,
+        //                 "state": "open",
+        //                 "max_liquidation_commission": 0.01,
+        //                 "base_currency_uuid": "b1646860-6b23-5f7d-a506-cba0902f0ca9",
+        //                 "taker_commission": 3.5e-4,
+        //                 "base_currency": "AAVE",
+        //                 "kind": "future",
+        //                 "underlying_type": "crypto",
+        //                 "instrument_id": 675320,
+        //                 "is_active": true,
+        //                 "instrument_type": "linear",
+        //                 "future_type": "linear",
+        //                 "expiration_timestamp": 32503708800000,
+        //                 "max_leverage": 50,
+        //                 "counter_currency": "USDC",
+        //                 "tick_size_steps": [],
+        //                 "quote_currency_uuid": "2b92315d-eab7-5bef-84fa-089a131333f5",
+        //                 "maker_commission": 1.5e-4,
+        //                 "tick_size": 0.01,
+        //                 "settlement_period": "perpetual",
+        //                 "product_group": "TIER_3",
+        //                 "block_trade_commission": 2.5e-4,
+        //                 "min_trade_amount": 0.01,
+        //                 "contract_size": 0.01,
+        //                 "price_index": "aave_usdc",
+        //                 "quote_currency": "USDC",
+        //                 "instrument_name": "AAVE_USDC-PERPETUAL",
+        //                 "max_non_default_leverage": 5.0,
+        //                 "block_trade_min_trade_amount": 200000
+        //             },
+        //             {
+        //                 "state": "open",
+        //                 "price_index": "eth_usd",
+        //                 "kind": "option",
+        //                 "instrument_name": "ETH-25JUN27-5500-P",
+        //                 "maker_commission": 0.0003,
+        //                 "taker_commission": 0.0003,
+        //                 "instrument_type": "reversed",
+        //                 "instrument_id": 677208,
+        //                 "expiration_timestamp": 1813910400000,
+        //                 "underlying_type": "crypto",
+        //                 "product_group": "ETH",
+        //                 "creation_timestamp": 1787173020000,
+        //                 "is_active": true,
+        //                 "contract_size": 1.0,
+        //                 "tick_size": 0.0001,
+        //                 "strike": 5.5e3,
+        //                 "counter_currency": "USD",
+        //                 "option_type": "put",
+        //                 "block_trade_commission": 0.0003,
+        //                 "min_trade_amount": 1,
+        //                 "block_trade_min_trade_amount": 250,
+        //                 "block_trade_tick_size": 0.0001,
+        //                 "settlement_currency": "ETH",
+        //                 "settlement_period": "month",
+        //                 "base_currency": "ETH",
+        //                 "index_id": 2000033,
+        //                 "quote_currency": "ETH",
+        //                 "tick_size_steps": [
+        //                     {
+        //                         "tick_size": 0.0005,
+        //                         "above_price": 0.005
+        //                     }
+        //                 ],
+        //                 "lot_size": 10,
+        //                 "base_currency_uuid": "d85dce9b-5b73-5c3c-8978-522ce1d1c1b4",
+        //                 "quote_currency_uuid": "d85dce9b-5b73-5c3c-8978-522ce1d1c1b4"
+        //             }
+        //         ],
+        //         "usIn": 1788770471610519,
+        //         "usOut": 1788770471610767,
+        //         "usDiff": 248,
+        //         "testnet": false
+        //     }
         //
-        return this.parseAccounts (response, params);
+        const instruments = this.safeList (response, 'result', []);
+        const parsedMarkets = this.parseMarkets (instruments);
+        return parsedMarkets;
     }
 
-    override parseAccount (account: any) {
-        //
-        //    {
-        //       "portfolio_id":"1ap32qsc-1-0",
-        //       "portfolio_uuid":"028d7f6c-b92c-7361-8b7e-2932711e5a22",
-        //       "name":"CCXT Portfolio 030624-17:16",
-        //       "user_uuid":"e6cf46b6-a32f-5fa7-addb-3324d4526fbd",
-        //       "maker_fee_rate":"0",
-        //       "taker_fee_rate":"0.0002",
-        //       "trading_lock":false,
-        //       "borrow_disabled":false,
-        //       "is_lsp":false,
-        //       "is_default":true,
-        //       "cross_collateral_enabled":false
-        //    }
-        //
-        return {
-            'id': this.safeString2 (account, 'portfolio_id', 'portfolio_uuid'),
-            'type': undefined,
-            'code': undefined,
-            'info': account,
+    override parseMarket (market: Dict): Market {
+        const instrumentName = this.safeString (market, 'instrument_name');
+        const lowercaseId = this.safeStringLower (market, 'instrument_name');
+        const baseId = this.safeString (market, 'base_currency');
+        const quoteId = this.safeString (market, 'counter_currency');
+        const settleId = this.safeString (market, 'settlement_currency', quoteId);
+        const kind = this.safeString (market, 'kind', '');
+        const settlementPeriod = this.safeString (market, 'settlement_period');
+        const isSpot = (kind === 'spot');
+        const isPerpetual = (settlementPeriod === 'perpetual');
+        const isFuture = !isPerpetual && (kind.indexOf ('future') >= 0);
+        const isOption = (kind.indexOf ('option') >= 0);
+        const comboPosition = kind.indexOf ('combo');
+        const isComboMarket = comboPosition >= 0;
+        const base = this.safeCurrencyCode (baseId);
+        const quote = this.safeCurrencyCode (quoteId);
+        const settle = this.safeCurrencyCode (settleId);
+        let type = 'swap';
+        if (isSpot) {
+            type = 'spot';
+        } else if (isFuture) {
+            type = 'future';
+        } else if (isOption) {
+            type = 'option';
+        }
+        let symbol = instrumentName;
+        if (!isComboMarket) {
+            symbol = base + '/' + quote;
+            if (!isSpot) {
+                symbol = symbol + ':' + settle;
+            }
+        }
+        const linear = isSpot ? undefined : (settle === quote);
+        const inverse = isSpot ? undefined : (settle !== quote);
+        const marketSettle = isSpot ? undefined : settle;
+        const marketSettleId = isSpot ? undefined : settleId;
+        const minTradeAmount = this.safeNumber (market, 'min_trade_amount');
+        const tickSize = this.safeNumber (market, 'tick_size');
+        const isFutureOrOption = isFuture || isOption;
+        const expiry = isFutureOrOption ? this.safeInteger (market, 'expiration_timestamp') : undefined;
+        const active = this.safeBool (market, 'is_active');
+        const strike = this.safeNumber (market, 'strike');
+        const optionType = this.safeString (market, 'option_type');
+        if (!isComboMarket && (isOption || isFuture)) {
+            const expiryString = this.yymmdd (expiry, '');
+            symbol = symbol + '-' + expiryString;
+        }
+        if (!isComboMarket && isOption) {
+            let optionTypeLetter = 'P';
+            if (optionType === 'call') {
+                optionTypeLetter = 'C';
+            }
+            const strikeString = this.numberToString (strike);
+            symbol = symbol + '-' + strikeString + '-' + optionTypeLetter;
+        }
+        const marketStructure = {
+            'id': instrumentName,
+            'lowercaseId': lowercaseId,
+            'symbol': symbol,
+            'base': base,
+            'quote': quote,
+            'settle': marketSettle,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'settleId': marketSettleId,
+            'type': type,
+            'spot': isSpot,
+            'margin': false,
+            'swap': isPerpetual,
+            'future': isFuture,
+            'option': isOption,
+            'active': active,
+            'contract': !isSpot,
+            'linear': linear,
+            'inverse': inverse,
+            'taker': this.safeNumber (market, 'taker_commission'),
+            'maker': this.safeNumber (market, 'maker_commission'),
+            'contractSize': isSpot ? undefined : this.safeNumber (market, 'contract_size'),
+            'expiry': expiry,
+            'expiryDatetime': this.iso8601 (expiry),
+            'strike': strike,
+            'optionType': optionType,
+            'precision': {
+                'amount': minTradeAmount,
+                'price': tickSize,
+            },
+            'limits': {
+                'leverage': {
+                    'min': undefined,
+                    'max': this.safeNumber (market, 'max_leverage'),
+                },
+                'amount': {
+                    'min': minTradeAmount,
+                    'max': undefined,
+                },
+                'price': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'cost': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'info': market,
+            'created': this.safeInteger (market, 'creation_timestamp'),
         };
+        const parsedMarket = this.safeMarketStructure (marketStructure);
+        return parsedMarket;
+    }
+
+    /**
+     * @method
+     * @name coinbaseinternational#fetchCurrencies
+     * @description fetches all available currencies on an exchange
+     * @see https://docs.cdp.coinbase.com/api-reference/market-data/public-get_currencies
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an associative dictionary of currencies
+     */
+    override async fetchCurrencies (params = {}): Promise<Currencies> {
+        const response = await this.publicGetGetCurrencies (params);
+        //
+        //     {
+        //         "jsonrpc": "2.0",
+        //         "result": [
+        //             {
+        //                 "decimals": 6,
+        //                 "currency": "AAVE",
+        //                 "apr": 0.0,
+        //                 "min_withdrawal_fee": 0.0,
+        //                 "withdrawal_fee": 0.0,
+        //                 "coin_type": "AAVE",
+        //                 "withdrawal_priorities": [],
+        //                 "network_fee": 0.0,
+        //                 "coinbase_networks": [
+        //                     {
+        //                         "display_name": "Ethereum",
+        //                         "resource_name": "networks/ethereum-mainnet"
+        //                     }
+        //                 ],
+        //                 "network_currency": "AAVE",
+        //                 "min_confirmations": 0,
+        //                 "currency_long": "Aave",
+        //                 "in_cross_collateral_pool": false,
+        //                 "onchain_operations_precision": 6,
+        //                 "currency_uuid": "b1646860-6b23-5f7d-a506-cba0902f0ca9"
+        //             }
+        //         ],
+        //         "usIn": 1788866173661805,
+        //         "usOut": 1788866173664998,
+        //         "usDiff": 3193,
+        //         "testnet": false
+        //     }
+        //
+        const currencies = this.safeList (response, 'result', []);
+        return this.parseCurrencies (currencies);
+    }
+
+    override parseCurrency (currency: Dict): CurrencyInterface {
+        //
+        //     {
+        //         "decimals": 6,
+        //         "currency": "AAVE",
+        //         "apr": 0.0,
+        //         "min_withdrawal_fee": 0.0,
+        //         "withdrawal_fee": 0.0,
+        //         "coin_type": "AAVE",
+        //         "withdrawal_priorities": [],
+        //         "network_fee": 0.0,
+        //         "coinbase_networks": [
+        //             {
+        //                 "display_name": "Ethereum",
+        //                 "resource_name": "networks/ethereum-mainnet"
+        //             }
+        //         ],
+        //         "network_currency": "AAVE",
+        //         "min_confirmations": 0,
+        //         "currency_long": "Aave",
+        //         "in_cross_collateral_pool": false,
+        //         "onchain_operations_precision": 6,
+        //         "currency_uuid": "b1646860-6b23-5f7d-a506-cba0902f0ca9"
+        //     }
+        //
+        const currencyId = this.safeString (currency, 'currency');
+        const code = this.safeCurrencyCode (currencyId);
+        const decimals = this.safeString2 (currency, 'onchain_operations_precision', 'decimals');
+        const precision = this.parseNumber (this.parsePrecision (decimals));
+        const networkFee = this.safeNumber (currency, 'network_fee');
+        const withdrawalFee = this.safeNumber (currency, 'withdrawal_fee');
+        const rawNetworks = this.safeList (currency, 'coinbase_networks', []);
+        const networks: Dict = {};
+        for (let i = 0; i < rawNetworks.length; i++) {
+            const rawNetwork = rawNetworks[i];
+            const networkId = this.safeString (rawNetwork, 'resource_name');
+            const network = this.networkIdToCode (networkId, code);
+            if (network !== undefined) {
+                networks[network] = this.safeNetwork ({
+                    'info': rawNetwork,
+                    'id': networkId,
+                    'name': this.safeString (rawNetwork, 'display_name'),
+                    'network': network,
+                    'active': undefined,
+                    'deposit': undefined,
+                    'withdraw': undefined,
+                    'precision': precision,
+                    'fee': networkFee,
+                    'limits': {
+                        'withdraw': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                        'deposit': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                    },
+                });
+            }
+        }
+        return this.safeCurrencyStructure ({
+            'id': currencyId,
+            'name': this.safeString (currency, 'currency_long'),
+            'code': code,
+            'precision': precision,
+            'info': currency,
+            'active': undefined,
+            'deposit': undefined,
+            'withdraw': undefined,
+            'networks': networks,
+            'fee': withdrawalFee,
+            'fees': {
+                'withdraw': withdrawalFee,
+            },
+            'limits': {
+                'withdraw': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'deposit': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+        });
     }
 
     /**
      * @method
      * @name coinbaseinternational#fetchOHLCV
      * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-     * @see https://docs.cdp.coinbase.com/intx/reference/getinstrumentcandles
+     * @see https://docs.cdp.coinbase.com/api-reference/market-data/public-get_tradingview_chart_data
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch, default 100 max 10000
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     override async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = 100, params = {}): Promise<OHLCV[]> {
         if (this.markets === undefined) {
@@ -483,49 +819,61 @@ export default class coinbaseinternational extends Exchange {
         }
         const market = this.market (symbol);
         const request: Dict = {
-            'instrument': market['id'],
-            'granularity': this.safeString (this.timeframes, timeframe, timeframe),
+            'instrument_name': market['id'],
+            'resolution': this.safeString (this.timeframes, timeframe, timeframe),
         };
-        if (since !== undefined) {
-            request['start'] = this.iso8601 (since);
+        const duration = this.parseTimeframe (timeframe);
+        const now = this.milliseconds ();
+        if (since === undefined) {
+            if (limit === undefined) {
+                limit = 100;
+            }
+            request['start_timestamp'] = now - (limit - 1) * duration * 1000;
+            request['end_timestamp'] = now;
         } else {
-            throw new ArgumentsRequired (this.id + ' fetchOHLCV() requires a since argument');
+            since = Math.max (since - 1, 0);
+            request['start_timestamp'] = since;
+            if (limit === undefined) {
+                request['end_timestamp'] = now;
+            } else {
+                request['end_timestamp'] = this.sum (since, limit * duration * 1000);
+            }
         }
-        const unitl = this.safeInteger (params, 'until');
-        if (unitl !== undefined) {
+        const until = this.safeInteger (params, 'until');
+        if (until !== undefined) {
             params = this.omit (params, 'until');
-            request['end'] = this.iso8601 (unitl);
+            request['end_timestamp'] = until;
         }
-        const response = await this.v1PublicGetInstrumentsInstrumentCandles (this.extend (request, params));
+        const response = await this.publicGetGetTradingviewChartData (this.extend (request, params));
         //
-        //   {
-        //       "aggregations": [
-        //         {
-        //           "start": "2024-04-23T00:00:00Z",
-        //           "open": "62884.4",
-        //           "high": "64710.6",
-        //           "low": "62884.4",
-        //           "close": "63508.4",
-        //           "volume": "3253.9983"
-        //         }
-        //       ]
-        //   }
+        //     {
+        //         "usOut": 1788853501919338,
+        //         "usIn": 1788853501916627,
+        //         "usDiff": 2711,
+        //         "testnet": false,
+        //         "result": {
+        //             "volume": [0.0001, 0.0168, 0],
+        //             "ticks": [1788853380000, 1788853440000, 1788853500000],
+        //             "status": "ok",
+        //             "open": [78494.0, 78444.0, 78441.0],
+        //             "low": [ 78494.0, 78441.0, 78441.0],
+        //             "high": [78494.0, 78444.0, 78441.0],
+        //             "cost": [7.8494, 1317.8151, 0],
+        //             "close": [78494.0, 78441.0, 78441.0]
+        //         },
+        //         "jsonrpc": "2.0"
+        //     }
         //
-        const candles = this.safeList (response, 'aggregations', []);
+        const result = this.safeDict (response, 'result', {});
+        const candles = this.convertTradingViewToOHLCV (result as any, 'ticks', 'open', 'high', 'low', 'close', 'volume', true);
         return this.parseOHLCVs (candles, market, timeframe, since, limit);
     }
 
     override parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
-        //
-        //   {
-        //     "start": "2024-04-23T00:00:00Z",
-        //     "open": "62884.4",
-        //     "high": "64710.6",
-        //     "low": "62884.4",
-        //     "close": "63508.4",
-        //     "volume": "3253.9983"
-        //   }
-        //
+        const isArray = Array.isArray (ohlcv);
+        if (isArray) {
+            return ohlcv as OHLCV;
+        }
         return [
             this.parse8601 (this.safeString2 (ohlcv, 'start', 'time')),
             this.safeNumber (ohlcv, 'open'),
@@ -540,7 +888,7 @@ export default class coinbaseinternational extends Exchange {
      * @method
      * @name coinbaseinternational#fetchFundingRateHistory
      * @description fetches historical funding rate prices
-     * @see https://docs.cloud.coinbase.com/intx/reference/getinstrumentfunding
+     * @see https://docs.cdp.coinbase.com/api-reference/market-data/public-get_funding_rate_history
      * @param {string} symbol unified symbol of the market to fetch the funding rate history for
      * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
      * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
@@ -555,43 +903,46 @@ export default class coinbaseinternational extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'paginate');
-        let maxEntriesPerRequest = 100;
-        [ maxEntriesPerRequest, params ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'maxEntriesPerRequest', maxEntriesPerRequest);
-        const pageKey = 'ccxtPageKey';
-        if (paginate) {
-            return await this.fetchPaginatedCallIncremental ('fetchFundingRateHistory', symbol, since, limit, params, pageKey, maxEntriesPerRequest) as FundingRateHistory[];
-        }
         const market = this.market (symbol);
-        const page = this.safeInteger (params, pageKey, 1) - 1;
-        const offSet = this.safeInteger2 (params, 'offset', 'result_offset', page * maxEntriesPerRequest);
+        const duration = this.parseTimeframe ('1h') * 1000;
+        const now = this.milliseconds ();
+        if (since === undefined) {
+            since = now - (30 * 24 * 60 * 60 * 1000);
+        }
         const request: Dict = {
-            'instrument': market['id'],
-            'result_offset': offSet,
+            'instrument_name': market['id'],
+            'start_timestamp': since,
+            'end_timestamp': now,
         };
         if (limit !== undefined) {
-            request['result_limit'] = limit;
+            const endTimestamp = this.sum (since, limit * duration);
+            request['end_timestamp'] = endTimestamp;
         }
-        const response = await this.v1PublicGetInstrumentsInstrumentFunding (this.extend (request, params));
+        const until = this.safeInteger (params, 'until');
+        if (until !== undefined) {
+            params = this.omit (params, 'until');
+            request['end_timestamp'] = until;
+        }
+        const response = await this.publicGetGetFundingRateHistory (this.extend (request, params));
         //
-        //    {
-        //        "pagination":{
-        //           "result_limit":"25",
-        //           "result_offset":"0"
-        //        },
-        //        "results":[
-        //           {
-        //              "instrument_id":"149264167780483072",
-        //              "funding_rate":"0.000011",
-        //              "mark_price":"47388.1",
-        //              "event_time":"2024-02-10T16:00:00Z"
-        //           },
-        //           ...
-        //        ]
-        //    }
+        //     {
+        //         "jsonrpc": "2.0",
+        //         "result": [
+        //             {
+        //                 "timestamp": 1786269600000,
+        //                 "index_price": 64832.34,
+        //                 "interest_8h": 0.0,
+        //                 "interest_1h": 0.0,
+        //                 "prev_index_price": 64773.05
+        //             },
+        //         ],
+        //         "usIn": 1788858185989192,
+        //         "usOut": 1788858185991663,
+        //         "usDiff": 2471,
+        //         "testnet": false
+        //     }
         //
-        const rawRates = this.safeList (response, 'results', []);
+        const rawRates = this.safeList (response, 'result', []);
         return this.parseFundingRateHistories (rawRates, market, since, limit);
     }
 
@@ -601,26 +952,29 @@ export default class coinbaseinternational extends Exchange {
 
     override parseFundingRate (contract: any, market: Market = undefined) {
         //
-        //    {
-        //       "instrument_id":"149264167780483072",
-        //       "funding_rate":"0.000011",
-        //       "mark_price":"47388.1",
-        //       "event_time":"2024-02-10T16:00:00Z"
-        //    }
+        // fetchFundingRateHistory
         //
-        const fundingDatetime = this.safeString2 (contract, 'event_time', 'time');
+        //     {
+        //         "timestamp": 1786269600000,
+        //         "index_price": 64832.34,
+        //         "interest_8h": 0.0,
+        //         "interest_1h": 0.0,
+        //         "prev_index_price": 64773.05
+        //     }
+        //
+        const timestamp = this.safeInteger (contract, 'timestamp');
         return {
             'info': contract,
             'symbol': this.safeSymbol (undefined, market),
-            'markPrice': this.safeNumber (contract, 'mark_price'),
-            'indexPrice': undefined,
+            'markPrice': undefined,
+            'indexPrice': this.safeNumber (contract, 'index_price'),
             'interestRate': undefined,
             'estimatedSettlePrice': undefined,
-            'timestamp': this.parse8601 (fundingDatetime),
-            'datetime': fundingDatetime,
-            'fundingRate': this.safeNumber (contract, 'funding_rate'),
-            'fundingTimestamp': this.parse8601 (fundingDatetime),
-            'fundingDatetime': fundingDatetime,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'fundingRate': this.safeNumber (contract, 'interest_8h'),
+            'fundingTimestamp': timestamp,
+            'fundingDatetime': this.iso8601 (timestamp),
             'nextFundingRate': undefined,
             'nextFundingTimestamp': undefined,
             'nextFundingDatetime': undefined,
@@ -632,965 +986,9 @@ export default class coinbaseinternational extends Exchange {
 
     /**
      * @method
-     * @name coinbaseinternational#fetchFundingHistory
-     * @description fetch the history of funding payments paid and received on this account
-     * @see https://docs.cdp.coinbase.com/intx/reference/gettransfers
-     * @param {string} [symbol] unified market symbol
-     * @param {int} [since] the earliest time in ms to fetch funding history for
-     * @param {int} [limit] the maximum number of funding history structures to retrieve
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
-     */
-    override async fetchFundingHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
-        if (this.markets === undefined) {
-            await this.loadMarkets ();
-        }
-        const request: Dict = {
-            'type': 'FUNDING',
-        };
-        let market: Market = undefined;
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-        }
-        let portfolios: Str = undefined;
-        [ portfolios, params ] = this.handleOptionAndParams (params, 'fetchFundingHistory', 'portfolios');
-        if (portfolios !== undefined) {
-            request['portfolios'] = portfolios;
-        }
-        if (since !== undefined) {
-            request['time_from'] = this.iso8601 (since);
-        }
-        if (limit !== undefined) {
-            request['result_limit'] = limit;
-        } else {
-            request['result_limit'] = 100;
-        }
-        const response = await this.v1PrivateGetTransfers (this.extend (request, params));
-        const fundings = this.safeList (response, 'results', []);
-        return this.parseIncomes (fundings, market, since, limit);
-    }
-
-    override parseIncome (income: any, market: Market = undefined) {
-        //
-        // {
-        //     "amount":"0.0008",
-        //     "asset":"USDC",
-        //     "created_at":"2024-02-22T16:00:00Z",
-        //     "from_portfolio":{
-        //        "id":"13yuk1fs-1-0",
-        //        "name":"Eng Test Portfolio - 2",
-        //        "uuid":"018712f2-5ff9-7de3-9010-xxxxxxxxx"
-        //     },
-        //     "instrument_id":"149264164756389888",
-        //     "instrument_symbol":"ETH-PERP",
-        //     "position_id":"1xy4v51m-1-2",
-        //     "status":"PROCESSED",
-        //     "to_portfolio":{
-        //        "name":"CB_FUND"
-        //     },
-        //     "transfer_type":"FUNDING",
-        //     "transfer_uuid":"a6b708df-2c44-32c5-bb98-xxxxxxxxxx",
-        //     "updated_at":"2024-02-22T16:00:00Z"
-        // }
-        //
-        const marketId = this.safeString (income, 'symbol');
-        market = this.safeMarket (marketId, market, undefined, 'contract');
-        const datetime = this.safeInteger (income, 'created_at');
-        const timestamp = this.parse8601 (datetime);
-        const currencyId = this.safeString (income, 'asset');
-        const code = this.safeCurrencyCode (currencyId);
-        return {
-            'info': income,
-            'symbol': market['symbol'],
-            'code': code,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'id': this.safeString (income, 'transfer_uuid'),
-            'amount': this.safeNumber (income, 'amount'),
-            'rate': undefined,
-        };
-    }
-
-    /**
-     * @method
-     * @name coinbaseinternational#fetchTransfers
-     * @description fetch a history of internal transfers made on an account
-     * @see https://docs.cdp.coinbase.com/intx/reference/gettransfers
-     * @param {string} code unified currency code of the currency transferred
-     * @param {int} [since] the earliest time in ms to fetch transfers for
-     * @param {int} [limit] the maximum number of  transfers structures to retrieve
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
-     */
-    override async fetchTransfers (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<TransferEntry[]> {
-        if (this.markets === undefined) {
-            await this.loadMarkets ();
-        }
-        const request: Dict = {
-            'type': 'INTERNAL',
-        };
-        let currency: Currency = undefined;
-        if (code !== undefined) {
-            currency = this.currency (code);
-        }
-        let portfolios: Str = undefined;
-        [ portfolios, params ] = this.handleOptionAndParams (params, 'fetchTransfers', 'portfolios');
-        if (portfolios !== undefined) {
-            request['portfolios'] = portfolios;
-        }
-        if (since !== undefined) {
-            request['time_from'] = this.iso8601 (since);
-        }
-        if (limit !== undefined) {
-            request['result_limit'] = limit;
-        } else {
-            request['result_limit'] = 100;
-        }
-        const response = await this.v1PrivateGetTransfers (this.extend (request, params));
-        const transfers = this.safeList (response, 'results', []);
-        return this.parseTransfers (transfers, currency, since, limit);
-    }
-
-    override parseTransfer (transfer: Dict, currency: Currency = undefined): TransferEntry {
-        //
-        // {
-        //     "amount":"0.0008",
-        //     "asset":"USDC",
-        //     "created_at":"2024-02-22T16:00:00Z",
-        //     "from_portfolio":{
-        //        "id":"13yuk1fs-1-0",
-        //        "name":"Eng Test Portfolio - 2",
-        //        "uuid":"018712f2-5ff9-7de3-9010-xxxxxxxxx"
-        //     },
-        //     "instrument_id":"149264164756389888",
-        //     "instrument_symbol":"ETH-PERP",
-        //     "position_id":"1xy4v51m-1-2",
-        //     "status":"PROCESSED",
-        //     "to_portfolio":{
-        //        "name":"CB_FUND"
-        //     },
-        //     "transfer_type":"FUNDING",
-        //     "transfer_uuid":"a6b708df-2c44-32c5-bb98-xxxxxxxxxx",
-        //     "updated_at":"2024-02-22T16:00:00Z"
-        // }
-        //
-        const datetime = this.safeInteger (transfer, 'created_at');
-        const timestamp = this.parse8601 (datetime);
-        const currencyId = this.safeString (transfer, 'asset');
-        const code = this.safeCurrencyCode (currencyId);
-        const fromPorfolio = this.safeDict (transfer, 'from_portfolio', {});
-        const fromId = this.safeString (fromPorfolio, 'id');
-        const toPorfolio = this.safeDict (transfer, 'to_portfolio', {});
-        const toId = this.safeString (toPorfolio, 'id');
-        return {
-            'info': transfer,
-            'id': this.safeString (transfer, 'transfer_uuid'),
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'currency': code,
-            'amount': this.safeNumber (transfer, 'amount'),
-            'fromAccount': fromId,
-            'toAccount': toId,
-            'status': this.parseTransferStatus (this.safeString (transfer, 'status')),
-        };
-    }
-
-    parseTransferStatus (status: Str): Str {
-        const statuses: Dict = {
-            'FAILED': 'failed',
-            'PROCESSED': 'ok',
-            'NEW': 'pending',
-            'STARTED': 'pending',
-        };
-        return this.safeString (statuses, status, status);
-    }
-
-    /**
-     * @method
-     * @name coinbaseinternational#createDepositAddress
-     * @description create a currency deposit address
-     * @see https://docs.cloud.coinbase.com/intx/reference/createaddress
-     * @see https://docs.cloud.coinbase.com/intx/reference/createcounterpartyid
-     * @param {string} code unified currency code of the currency for the deposit address
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.network_arn_id] Identifies the blockchain network (e.g., networks/ethereum-mainnet/assets/313ef8a9-ae5a-5f2f-8a56-572c0e2a4d5a) if not provided will pick default
-     * @param {string} [params.network] unified network code to identify the blockchain network
-     * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
-     */
-    override async createDepositAddress (code: string, params = {}): Promise<DepositAddress> {
-        if (this.markets === undefined) {
-            await this.loadMarkets ();
-        }
-        let method: Str = undefined;
-        [ method, params ] = this.handleOptionAndParams (params, 'createDepositAddress', 'method', 'v1PrivatePostTransfersAddress');
-        let portfolio: Str = undefined;
-        [ portfolio, params ] = await this.handlePortfolioAndParams ('createDepositAddress', params);
-        const request: Dict = {
-            'portfolio': portfolio,
-        };
-        if (method === 'v1PrivatePostTransfersAddress') {
-            const currency = this.currency (code);
-            request['asset'] = currency['id'];
-            let networkId: Str | Dict = undefined;
-            [ networkId, params ] = await this.handleNetworkIdAndParams (code, 'createDepositAddress', params);
-            request['network_arn_id'] = networkId;
-        }
-        let response = undefined;
-        if (method === 'v1PrivatePostTransfersCreateCounterpartyId') {
-            response = await this.v1PrivatePostTransfersCreateCounterpartyId (this.extend (request, params));
-        } else {
-            response = await this.v1PrivatePostTransfersAddress (this.extend (request, params));
-        }
-        //
-        // v1PrivatePostTransfersAddress
-        //    {
-        //        address: "3LkwYscRyh6tUR1XTqXSJQoJnK7ucC1F4n",
-        //        network_arn_id: "networks/bitcoin-mainnet/assets/6ecc0dcc-10a2-500e-b315-a3b9abae19ce",
-        //        destination_tag: "",
-        //    }
-        // v1PrivatePostTransfersCreateCounterpartyId
-        //    {
-        //        "portfolio_uuid":"018e0a8b-6b6b-70e0-9689-1e7926c2c8bc",
-        //        "counterparty_id":"CB2ZPUCZBE"
-        //    }
-        //
-        const tag = this.safeString (response, 'destination_tag');
-        const address = this.safeString2 (response, 'address', 'counterparty_id');
-        return {
-            'currency': code,
-            'tag': tag,
-            'address': address,
-            'network': undefined,
-            'info': response,
-        } as DepositAddress;
-    }
-
-    findDefaultNetwork (networks: any) {
-        const networksArray = this.toArray (networks);
-        for (let i = 0; i < networksArray.length; i++) {
-            const info = networksArray[i]['info'];
-            const is_default = this.safeBool (info, 'is_default', false);
-            if (is_default === true) {
-                return networksArray[i];
-            }
-        }
-        return networksArray[0];
-    }
-
-    async loadCurrencyNetworks (code: any, params = {}) {
-        const currency = this.currency (code);
-        const networks = this.safeDict (currency, 'networks');
-        if (networks !== undefined) {
-            return false;
-        }
-        const request: Dict = {
-            'asset': currency['id'],
-        };
-        const rawNetworks = await this.v1PublicGetAssetsAssetNetworks (request);
-        //
-        //    [
-        //        {
-        //            "asset_id":"1",
-        //            "asset_uuid":"2b92315d-eab7-5bef-84fa-089a131333f5",
-        //            "asset_name":"USDC",
-        //            "network_arn_id":"networks/ethereum-mainnet/assets/9bc140b4-69c3-5fc9-bd0d-b041bcf40039",
-        //            "min_withdrawal_amt":"1",
-        //            "max_withdrawal_amt":"100000000",
-        //            "network_confirms":35,
-        //            "processing_time":485,
-        //            "is_default":true,
-        //            "network_name":"ethereum",
-        //            "display_name":"Ethereum"
-        //        },
-        //        ....
-        //    ]
-        //
-        currency['networks'] = this.parseNetworks (rawNetworks);
-        return true;
-    }
-
-    parseNetworks (networks: any, params = {}) {
-        const result: Dict = {};
-        for (let i = 0; i < networks.length; i++) {
-            const network = this.extend (this.parseNetwork (networks[i]), params);
-            result[network['network']] = network;
-        }
-        return result;
-    }
-
-    parseNetwork (network: any, params = {}) {
-        //
-        //    {
-        //        "asset_id":"1",
-        //        "asset_uuid":"2b92315d-eab7-5bef-84fa-089a131333f5",
-        //        "asset_name":"USDC",
-        //        "network_arn_id":"networks/ethereum-mainnet/assets/9bc140b4-69c3-5fc9-bd0d-b041bcf40039",
-        //        "min_withdrawal_amt":"1",
-        //        "max_withdrawal_amt":"100000000",
-        //        "network_confirms":35,
-        //        "processing_time":485,
-        //        "is_default":true,
-        //        "network_name":"ethereum",
-        //        "display_name":"Ethereum"
-        //    }
-        //
-        const currencyId = this.safeString (network, 'asset_name');
-        const currencyCode = this.safeCurrencyCode (currencyId);
-        const networkId = this.safeString (network, 'network_arn_id');
-        const networkIdForCode = this.safeStringN (network, [ 'network_name', 'display_name', 'network_arn_id' ], '');
-        return this.safeNetwork ({
-            'info': network,
-            'id': networkId,
-            'name': this.safeString (network, 'display_name'),
-            'network': this.networkIdToCode (networkIdForCode, currencyCode),
-            'active': undefined,
-            'deposit': undefined,
-            'withdraw': undefined,
-            'precision': undefined,
-            'fee': undefined,
-            'limits': {
-                'withdraw': {
-                    'min': this.safeNumber (network, 'min_withdrawal_amt'),
-                    'max': this.safeNumber (network, 'max_withdrawal_amt'),
-                },
-                'deposit': {
-                    'min': undefined,
-                    'max': undefined,
-                },
-            },
-        });
-    }
-
-    /**
-     * @method
-     * @name coinbaseinternational#setMargin
-     * @description Either adds or reduces margin in order to set the margin to a specific value
-     * @see https://docs.cloud.coinbase.com/intx/reference/setportfoliomarginoverride
-     * @param {string} symbol unified market symbol of the market to set margin in
-     * @param {float} amount the amount to set the margin to
-     * @param {object} [params] parameters specific to the exchange API endpoint
-     * @returns {object} A [margin structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#add-margin-structure}
-     */
-    override async setMargin (symbol: string, amount: number, params = {}): Promise<MarginModification> {
-        let portfolio: Str = undefined;
-        [ portfolio, params ] = await this.handlePortfolioAndParams ('setMargin', params);
-        if (symbol !== undefined) {
-            throw new BadRequest (this.id + ' setMargin() only allows setting margin to full portfolio');
-        }
-        const request: Dict = {
-            'portfolio': portfolio,
-            'margin_override': amount,
-        };
-        const response: Dict = await this.v1PrivatePostPortfoliosMargin (this.extend (request, params));
-        return response as MarginModification;
-    }
-
-    /**
-     * @method
-     * @name coinbaseinternational#fetchDepositsWithdrawals
-     * @description fetch history of deposits and withdrawals
-     * @see https://docs.cloud.coinbase.com/intx/reference/gettransfers
-     * @param {string} [code] unified currency code for the currency of the deposit/withdrawals, default is undefined
-     * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
-     * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.portfolios] Identifies the portfolios by UUID (e.g., 892e8c7c-e979-4cad-b61b-55a197932cf1) or portfolio ID (e.g., 5189861793641175). Can provide single or multiple portfolios to filter by or fetches transfers for all portfolios if none are provided.
-     * @param {int} [params.until] Only find transfers updated before this time. Use timestamp format
-     * @param {string} [params.status] The current status of transfer. Possible values: [PROCESSED, NEW, FAILED, STARTED]
-     * @param {string} [params.type] The type of transfer Possible values: [DEPOSIT, WITHDRAW, REBATE, STIPEND, INTERNAL, FUNDING]
-     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {object} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
-     */
-    override async fetchDepositsWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
-        if (this.markets === undefined) {
-            await this.loadMarkets ();
-        }
-        let paginate: Bool = undefined;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchDepositsWithdrawals', 'paginate');
-        let maxEntriesPerRequest = 100;
-        [ maxEntriesPerRequest, params ] = this.handleOptionAndParams (params, 'fetchDepositsWithdrawals', 'maxEntriesPerRequest', maxEntriesPerRequest);
-        const pageKey = 'ccxtPageKey';
-        if (paginate === true) {
-            return await this.fetchPaginatedCallIncremental ('fetchDepositsWithdrawals', code, since, limit, params, pageKey, maxEntriesPerRequest) as Transaction[];
-        }
-        const page = this.safeInteger (params, pageKey, 1) - 1;
-        const offSet = this.safeInteger2 (params, 'offset', 'result_offset', page * maxEntriesPerRequest);
-        const request: Dict = {
-            'result_offset': offSet,
-        };
-        if (since !== undefined) {
-            request['time_from'] = this.iso8601 (since);
-        }
-        if (limit !== undefined) {
-            const newLimit = Math.min (limit, 100);
-            request['result_limit'] = newLimit;
-        }
-        let portfolios: Str = undefined;
-        [ portfolios, params ] = this.handleOptionAndParams (params, 'fetchDepositsWithdrawals', 'portfolios');
-        if (portfolios !== undefined) {
-            request['portfolios'] = portfolios;
-        }
-        let until: Int = undefined;
-        [ until, params ] = this.handleOptionAndParams (params, 'fetchDepositsWithdrawals', 'until');
-        if (until !== undefined) {
-            request['time_to'] = this.iso8601 (until);
-        }
-        const response = await this.v1PrivateGetTransfers (this.extend (request, params));
-        //
-        //    {
-        //        "pagination":{
-        //           "result_limit":25,
-        //           "result_offset":0
-        //        },
-        //        "results":[
-        //           {
-        //              "transfer_uuid":"8e471d77-4208-45a8-9e5b-f3bd8a2c1fc3",
-        //              "transfer_type":"WITHDRAW",
-        //              "amount":"1.000000",
-        //              "asset":"USDC",
-        //              "status":"PROCESSED",
-        //              "network_name":"ethereum",
-        //              "created_at":"2024-03-14T02:32:18.497795Z",
-        //              "updated_at":"2024-03-14T02:35:38.514588Z",
-        //              "from_portfolio":{
-        //                 "id":"1yun54bb-1-6",
-        //                 "uuid":"018e0a8b-6b6b-70e0-9689-1e7926c2c8bc",
-        //                 "name":"fungus technology o?Portfolio"
-        //              },
-        //              "to_address":"0xcdcE79F820BE9d6C5033db5c31d1AE3A8c2399bB"
-        //           }
-        //        ]
-        //    }
-        //
-        const rawTransactions = this.safeList (response, 'results', []);
-        return this.parseTransactions (rawTransactions);
-    }
-
-    /**
-     * @method
-     * @name coinbaseinternational#fetchPosition
-     * @see https://docs.cloud.coinbase.com/intx/reference/getportfolioposition
-     * @description fetch data on an open position
-     * @param {string} symbol unified market symbol of the market the position is held in
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
-     */
-    override async fetchPosition (symbol: string, params = {}) {
-        if (this.markets === undefined) {
-            await this.loadMarkets ();
-        }
-        symbol = this.symbol (symbol);
-        let portfolio: Str = undefined;
-        [ portfolio, params ] = await this.handlePortfolioAndParams ('fetchPosition', params);
-        const request: Dict = {
-            'portfolio': portfolio,
-            'instrument': this.marketId (symbol),
-        };
-        const position = await this.v1PrivateGetPortfoliosPortfolioPositionsInstrument (this.extend (request, params));
-        //
-        //    {
-        //        "symbol":"BTC-PERP",
-        //        "instrument_id":"114jqr89-0-0",
-        //        "instrument_uuid":"b3469e0b-222c-4f8a-9f68-1f9e44d7e5e0",
-        //        "vwap":"52482.3",
-        //        "net_size":"0",
-        //        "buy_order_size":"0.001",
-        //        "sell_order_size":"0",
-        //        "im_contribution":"0.2",
-        //        "unrealized_pnl":"0",
-        //        "mark_price":"52406.8",
-        //        "entry_vwap":"52472.9"
-        //    }
-        //
-        return this.parsePosition (position);
-    }
-
-    override parsePosition (position: Dict, market: Market = undefined) {
-        //
-        //    {
-        //       "symbol":"BTC-PERP",
-        //       "instrument_id":"114jqr89-0-0",
-        //       "instrument_uuid":"b3469e0b-222c-4f8a-9f68-1f9e44d7e5e0",
-        //       "vwap":"52482.3",
-        //       "net_size":"0",
-        //       "buy_order_size":"0.001",
-        //       "sell_order_size":"0",
-        //       "im_contribution":"0.2",
-        //       "unrealized_pnl":"0",
-        //       "mark_price":"52406.8",
-        //       "entry_vwap":"52472.9"
-        //    }
-        //
-        const marketId = this.safeString (position, 'symbol');
-        let quantity = this.safeString (position, 'net_size');
-        market = this.safeMarket (marketId, market, '-');
-        let side = 'long';
-        if (Precise.stringLe (quantity, '0')) {
-            side = 'short';
-            quantity = Precise.stringMul ('-1', quantity);
-        }
-        return this.safePosition ({
-            'info': position,
-            'id': this.safeString (position, 'id'),
-            'symbol': market['symbol'],
-            'entryPrice': undefined,
-            'markPrice': this.safeNumber (position, 'mark_price'),
-            'notional': undefined,
-            'collateral': undefined,
-            'unrealizedPnl': this.safeNumber (position, 'unrealized_pnl'),
-            'side': side,
-            'contracts': this.parseNumber (quantity),
-            'contractSize': this.safeNumber (market, 'contractSize'),
-            'timestamp': undefined,
-            'datetime': undefined,
-            'hedged': undefined,
-            'maintenanceMargin': undefined,
-            'maintenanceMarginPercentage': undefined,
-            'initialMargin': this.safeNumber (position, 'im_contribution'),
-            'initialMarginPercentage': undefined,
-            'leverage': undefined,
-            'liquidationPrice': undefined,
-            'marginRatio': undefined,
-            'marginMode': undefined,
-            'percentage': undefined,
-        });
-    }
-
-    /**
-     * @method
-     * @name coinbaseinternational#fetchPositions
-     * @see https://docs.cloud.coinbase.com/intx/reference/getportfoliopositions
-     * @description fetch all open positions
-     * @param {string[]} [symbols] list of unified market symbols
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
-     */
-    override async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
-        if (this.markets === undefined) {
-            await this.loadMarkets ();
-        }
-        let portfolio: Str = undefined;
-        [ portfolio, params ] = await this.handlePortfolioAndParams ('fetchPositions', params);
-        const request: Dict = {
-            'portfolio': portfolio,
-        };
-        const response = await this.v1PrivateGetPortfoliosPortfolioPositions (this.extend (request, params));
-        //
-        //    [
-        //        {
-        //           "symbol":"BTC-PERP",
-        //           "instrument_id":"114jqr89-0-0",
-        //           "instrument_uuid":"b3469e0b-222c-4f8a-9f68-1f9e44d7e5e0",
-        //           "vwap":"52482.3",
-        //           "net_size":"0",
-        //           "buy_order_size":"0.001",
-        //           "sell_order_size":"0",
-        //           "im_contribution":"0.2",
-        //           "unrealized_pnl":"0",
-        //           "mark_price":"52406.8",
-        //           "entry_vwap":"52472.9"
-        //        }
-        //    ]
-        //
-        const positions = this.parsePositions (response);
-        if (this.isEmpty (symbols)) {
-            return positions;
-        }
-        symbols = this.marketSymbols (symbols);
-        return this.filterByArrayPositions (positions, 'symbol', symbols, false);
-    }
-
-    /**
-     * @method
-     * @name coinbaseinternational#fetchWithdrawals
-     * @description fetch all withdrawals made from an account
-     * @see https://docs.cloud.coinbase.com/intx/reference/gettransfers
-     * @param {string} code unified currency code
-     * @param {int} [since] the earliest time in ms to fetch withdrawals for
-     * @param {int} [limit] the maximum number of withdrawals structures to retrieve
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.portfolios] Identifies the portfolios by UUID (e.g., 892e8c7c-e979-4cad-b61b-55a197932cf1) or portfolio ID (e.g., 5189861793641175). Can provide single or multiple portfolios to filter by or fetches transfers for all portfolios if none are provided.
-     * @param {int} [params.until] Only find transfers updated before this time. Use timestamp format
-     * @param {string} [params.status] The current status of transfer. Possible values: [PROCESSED, NEW, FAILED, STARTED]
-     * @param {string} [params.type] The type of transfer Possible values: [DEPOSIT, WITHDRAW, REBATE, STIPEND, INTERNAL, FUNDING]
-     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
-     */
-    override async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Transaction[]> {
-        if (this.markets === undefined) {
-            await this.loadMarkets ();
-        }
-        params['type'] = 'WITHDRAW';
-        return await this.fetchDepositsWithdrawals (code, since, limit, params);
-    }
-
-    /**
-     * @method
-     * @name coinbaseinternational#fetchDeposits
-     * @description fetch all deposits made to an account
-     * @param {string} code unified currency code
-     * @param {int} [since] the earliest time in ms to fetch deposits for
-     * @param {int} [limit] the maximum number of deposits structures to retrieve
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.portfolios] Identifies the portfolios by UUID (e.g., 892e8c7c-e979-4cad-b61b-55a197932cf1) or portfolio ID (e.g., 5189861793641175). Can provide single or multiple portfolios to filter by or fetches transfers for all portfolios if none are provided.
-     * @param {int} [params.until] Only find transfers updated before this time. Use timestamp format
-     * @param {string} [params.status] The current status of transfer. Possible values: [PROCESSED, NEW, FAILED, STARTED]
-     * @param {string} [params.type] The type of transfer Possible values: [DEPOSIT, WITHDRAW, REBATE, STIPEND, INTERNAL, FUNDING]
-     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
-     */
-    override async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Transaction[]> {
-        if (this.markets === undefined) {
-            await this.loadMarkets ();
-        }
-        params['type'] = 'DEPOSIT';
-        return await this.fetchDepositsWithdrawals (code, since, limit, params);
-    }
-
-    parseTransactionStatus (status: Str) {
-        const statuses: Dict = {
-            'PROCESSED': 'ok',
-            'NEW': 'pending',
-            'STARTED': 'pending',
-            'FAILED': 'canceled',
-        };
-        return this.safeString (statuses, status, status);
-    }
-
-    override parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
-        //
-        //    {
-        //        "idem":"8e471d77-4208-45a8-9e5b-f3bd8a2c1fc3"
-        //    }
-        // const transactionType = this.safeString (transaction, 'type');
-        const datetime = this.safeString (transaction, 'updated_at');
-        const fromPorfolio = this.safeDict (transaction, 'from_portfolio', {});
-        const addressFrom = this.safeStringN (transaction, [ 'from_address', 'from_cb_account', this.safeStringN (fromPorfolio, [ 'id', 'uuid', 'name' ]), 'from_counterparty_id' ]);
-        const toPorfolio = this.safeDict (transaction, 'from_portfolio', {});
-        const addressTo = this.safeStringN (transaction, [ 'to_address', 'to_cb_account', this.safeStringN (toPorfolio, [ 'id', 'uuid', 'name' ]), 'to_counterparty_id' ]);
-        const code = this.safeString (currency, 'code');
-        return {
-            'info': transaction,
-            'id': this.safeString (transaction, 'transfer_uuid'),
-            'txid': this.safeString (transaction, 'transaction_uuid'),
-            'timestamp': this.parse8601 (datetime),
-            'datetime': datetime,
-            'network': this.networkIdToCode (this.safeString (transaction, 'network_name'), code),
-            'address': undefined, // TODO check if withdraw or deposit and populate
-            'addressTo': addressTo,
-            'addressFrom': addressFrom,
-            'tag': undefined,
-            'tagTo': undefined,
-            'tagFrom': undefined,
-            'type': this.safeString (transaction, 'resource'),
-            'amount': this.safeNumber (transaction, 'amount'),
-            'currency': this.safeCurrencyCode (this.safeString (transaction, 'asset'), currency),
-            'status': this.parseTransactionStatus (this.safeString (transaction, 'status')),
-            'updated': this.parse8601 (datetime),
-            'fee': {
-                'cost': undefined,
-                'currency': undefined,
-            },
-        } as Transaction;
-    }
-
-    override parseTrade (trade: Dict, market: Market = undefined): Trade {
-        //
-        //    {
-        //       "portfolio_id":"1wp37qsc-1-0",
-        //       "portfolio_uuid":"018d7f6c-b92c-7361-8b7e-2932711e5a22",
-        //       "portfolio_name":"CCXT Portfolio 020624-17:16",
-        //       "fill_id":"1xbfy19y-1-184",
-        //       "exec_id":"280841526207070392",
-        //       "order_id":"1xbfv8yw-1-0",
-        //       "instrument_id":"114jqr89-0-0",
-        //       "instrument_uuid":"b3469e0b-222c-4f8a-9f68-1f9e44d7e5e0",
-        //       "symbol":"BTC-PERP",
-        //       "match_id":"280841526207053840",
-        //       "fill_price":"52500",
-        //       "fill_qty":"0.01",
-        //       "client_id":"1x59ctku-1-1",
-        //       "client_order_id":"ccxt3e4e2a5f-4a89-",
-        //       "order_qty":"0.01",
-        //       "limit_price":"52500",
-        //       "total_filled":"0.01",
-        //       "filled_vwap":"52500",
-        //       "expire_time":"",
-        //       "stop_price":"",
-        //       "side":"BUY",
-        //       "tif":"GTC",
-        //       "stp_mode":"BOTH",
-        //       "flags":"",
-        //       "fee":"0.105",
-        //       "fee_asset":"USDC",
-        //       "order_status":"DONE",
-        //       "event_time":"2024-02-15T00:43:57.631Z"
-        //    }
-        //
-        const marketId = this.safeString (trade, 'symbol');
-        const datetime = this.safeString (trade, 'event_time');
-        return this.safeTrade ({
-            'info': trade,
-            'id': this.safeString2 (trade, 'fill_id', 'exec_id'),
-            'order': this.safeString (trade, 'order_id'),
-            'timestamp': this.parse8601 (datetime),
-            'datetime': datetime,
-            'symbol': this.safeSymbol (marketId, market),
-            'type': undefined,
-            'side': this.safeStringLower (trade, 'side'),
-            'takerOrMaker': undefined,
-            'price': this.safeNumber (trade, 'fill_price'),
-            'amount': this.safeNumber (trade, 'fill_qty'),
-            'cost': undefined,
-            'fee': {
-                'cost': this.safeNumber (trade, 'fee'),
-                'currency': this.safeCurrencyCode (this.safeString (trade, 'fee_asset')),
-            },
-        });
-    }
-
-    /**
-     * @method
-     * @name coinbaseinternational#fetchMarkets
-     * @see https://docs.cloud.coinbase.com/intx/reference/getinstruments
-     * @description retrieves data on all markets for coinbaseinternational
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} an array of objects representing market data
-     */
-    override async fetchMarkets (params = {}): Promise<Market[]> {
-        const response = await this.v1PublicGetInstruments (params);
-        //
-        //    [
-        //        {
-        //           "instrument_id":"149264164756389888",
-        //           "instrument_uuid":"e9360798-6a10-45d6-af05-67c30eb91e2d",
-        //           "symbol":"ETH-PERP",
-        //           "type":"PERP",
-        //           "base_asset_id":"118059611793145856",
-        //           "base_asset_uuid":"d85dce9b-5b73-5c3c-8978-522ce1d1c1b4",
-        //           "base_asset_name":"ETH",
-        //           "quote_asset_id":"1",
-        //           "quote_asset_uuid":"2b92315d-eab7-5bef-84fa-089a131333f5",
-        //           "quote_asset_name":"USDC",
-        //           "base_increment":"0.0001",
-        //           "quote_increment":"0.01",
-        //           "price_band_percent":"0.02",
-        //           "market_order_percent":"0.0075",
-        //           "qty_24hr":"44434.8131",
-        //           "notional_24hr":"110943454.279785",
-        //           "avg_daily_qty":"1099171.6025",
-        //           "avg_daily_notional":"2637240145.456987",
-        //           "previous_day_qty":"78909.3939",
-        //           "open_interest":"1270.749",
-        //           "position_limit_qty":"1831.9527",
-        //           "position_limit_adq_pct":"0.05",
-        //           "replacement_cost":"0.23",
-        //           "base_imf":"0.1",
-        //           "min_notional_value":"10",
-        //           "funding_interval":"3600000000000",
-        //           "trading_state":"TRADING",
-        //           "quote":{
-        //              "best_bid_price":"2490.8",
-        //              "best_bid_size":"9.0515",
-        //              "best_ask_price":"2490.81",
-        //              "best_ask_size":"4.8486",
-        //              "trade_price":"2490.39",
-        //              "trade_qty":"0.9508",
-        //              "index_price":"2490.5",
-        //              "mark_price":"2490.8",
-        //              "settlement_price":"2490.81",
-        //              "limit_up":"2615.42",
-        //              "limit_down":"2366.34",
-        //              "predicted_funding":"0.000009",
-        //              "timestamp":"2024-02-10T16:07:39.454Z"
-        //           }
-        //        },
-        //        ...
-        //    ]
-        //
-        return this.parseMarkets (response);
-    }
-
-    override parseMarket (market: Dict): Market {
-        //
-        //   {
-        //       "instrument_id":"149264164756389888",
-        //       "instrument_uuid":"e9360798-6a10-45d6-af05-67c30eb91e2d",
-        //       "symbol":"ETH-PERP",
-        //       "type":"PERP",
-        //       "base_asset_id":"118059611793145856",
-        //       "base_asset_uuid":"d85dce9b-5b73-5c3c-8978-522ce1d1c1b4",
-        //       "base_asset_name":"ETH",
-        //       "quote_asset_id":"1",
-        //       "quote_asset_uuid":"2b92315d-eab7-5bef-84fa-089a131333f5",
-        //       "quote_asset_name":"USDC",
-        //       "base_increment":"0.0001",
-        //       "quote_increment":"0.01",
-        //       "price_band_percent":"0.02",
-        //       "market_order_percent":"0.0075",
-        //       "qty_24hr":"44434.8131",
-        //       "notional_24hr":"110943454.279785",
-        //       "avg_daily_qty":"1099171.6025",
-        //       "avg_daily_notional":"2637240145.456987",
-        //       "previous_day_qty":"78909.3939",
-        //       "open_interest":"1270.749",
-        //       "position_limit_qty":"1831.9527",
-        //       "position_limit_adq_pct":"0.05",
-        //       "replacement_cost":"0.23",
-        //       "base_imf":"0.1",
-        //       "min_notional_value":"10",
-        //       "funding_interval":"3600000000000",
-        //       "trading_state":"TRADING",
-        //       "quote":{
-        //          "best_bid_price":"2490.8",
-        //          "best_bid_size":"9.0515",
-        //          "best_ask_price":"2490.81",
-        //          "best_ask_size":"4.8486",
-        //          "trade_price":"2490.39",
-        //          "trade_qty":"0.9508",
-        //          "index_price":"2490.5",
-        //          "mark_price":"2490.8",
-        //          "settlement_price":"2490.81",
-        //          "limit_up":"2615.42",
-        //          "limit_down":"2366.34",
-        //          "predicted_funding":"0.000009",
-        //          "timestamp":"2024-02-10T16:07:39.454Z"
-        //       }
-        //    }
-        //
-        const marketId = this.safeString (market, 'symbol');
-        const baseId = this.safeString (market, 'base_asset_name');
-        const quoteId = this.safeString (market, 'quote_asset_name');
-        const typeId = this.safeString (market, 'type'); // 'SPOT', 'PERP'
-        const isSpot = (typeId === 'SPOT');
-        const fees = this.fees;
-        let symbol = baseId + '/' + quoteId;
-        let settleId: Str = undefined;
-        if (!isSpot) {
-            settleId = quoteId;
-            symbol += ':' + quoteId;
-        }
-        const isLinear = isSpot ? undefined : (settleId === quoteId);
-        const isInverse = isSpot ? undefined : (settleId !== quoteId);
-        if (marketId === undefined) {
-            throw new ExchangeError (this.id + ' parseMarket() missing marketId');
-        }
-        return this.safeMarketStructure ({
-            'id': marketId,
-            'lowercaseId': marketId.toLowerCase (),
-            'symbol': symbol,
-            'base': baseId,
-            'quote': quoteId,
-            'settle': settleId,
-            'baseId': baseId,
-            'quoteId': quoteId,
-            'settleId': settleId,
-            'type': isSpot ? 'spot' : 'swap',
-            'spot': isSpot,
-            'margin': false,
-            'swap': !isSpot,
-            'future': false,
-            'option': false,
-            'active': this.safeString (market, 'trading_state') === 'TRADING',
-            'contract': !isSpot,
-            'linear': isLinear,
-            'inverse': isInverse,
-            'taker': fees['trading']['taker'],
-            'maker': fees['trading']['maker'],
-            'contractSize': isSpot ? undefined : 1,
-            'expiry': undefined,
-            'expiryDatetime': undefined,
-            'strike': undefined,
-            'optionType': undefined,
-            'precision': {
-                'amount': this.safeNumber (market, 'base_increment'),
-                'price': this.safeNumber (market, 'quote_increment'),
-                'cost': this.safeNumber (market, 'quote_increment'),
-            },
-            'limits': {
-                'leverage': {
-                    'min': undefined,
-                    'max': this.safeNumber (market, 'base_imf'),
-                },
-                'amount': {
-                    'min': undefined,
-                    'max': isSpot ? undefined : this.safeNumber (market, 'position_limit_qty'),
-                },
-                'price': {
-                    'min': undefined,
-                    'max': undefined,
-                },
-                'cost': {
-                    'min': this.safeNumber (market, 'min_notional_value'),
-                    'max': undefined,
-                },
-            },
-            'info': market,
-            'created': undefined,
-        });
-    }
-
-    /**
-     * @method
-     * @name coinbaseinternational#fetchCurrencies
-     * @description fetches all available currencies on an exchange
-     * @see https://docs.cloud.coinbase.com/intx/reference/getassets
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an associative dictionary of currencies
-     */
-    override async fetchCurrencies (params = {}): Promise<Currencies> {
-        const currencies = await this.v1PublicGetAssets (params);
-        //
-        //    [
-        //        {
-        //           "asset_id":"1",
-        //           "asset_uuid":"2b92315d-eab7-5bef-84fa-089a131333f6",
-        //           "asset_name":"USDC",
-        //           "status":"ACTIVE",
-        //           "collateral_weight":1.0,
-        //           "supported_networks_enabled":true
-        //        },
-        //        ...
-        //    ]
-        //
-        return this.parseCurrencies (currencies);
-    }
-
-    override parseCurrency (currency: Dict): CurrencyInterface {
-        //
-        //    {
-        //       "asset_id":"1",
-        //       "asset_uuid":"2b92315d-eab7-5bef-84fa-089a131333f5",
-        //       "asset_name":"USDC",
-        //       "status":"ACTIVE",
-        //       "collateral_weight":1.0,
-        //       "supported_networks_enabled":true
-        //    }
-        //
-        const id = this.safeString (currency, 'asset_name');
-        const code = this.safeCurrencyCode (id);
-        const statusId = this.safeString (currency, 'status');
-        return this.safeCurrencyStructure ({
-            'id': id,
-            'name': code,
-            'code': code,
-            'precision': undefined,
-            'info': currency,
-            'active': (statusId === 'ACTIVE'),
-            'deposit': undefined,
-            'withdraw': undefined,
-            'networks': undefined,
-            'fee': undefined,
-            'fees': undefined,
-            'limits': this.limits,
-        });
-    }
-
-    /**
-     * @method
      * @name coinbaseinternational#fetchTickers
      * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-     * @see https://docs.cloud.coinbase.com/intx/reference/getinstruments
+     * @see https://docs.cdp.coinbase.com/api-reference/market-data/public-ticker
      * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
@@ -1600,18 +998,14 @@ export default class coinbaseinternational extends Exchange {
             await this.loadMarkets ();
         }
         symbols = this.marketSymbols (symbols);
-        const instruments = await this.v1PublicGetInstruments (params);
-        const tickers: Dict = {};
-        let rows: List = [];
-        if (Array.isArray (instruments)) {
-            rows = instruments;
+        if (symbols === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchTickers() requires a symbols argument');
         }
-        for (let i = 0; i < rows.length; i++) {
-            const instrument = rows[i];
-            const marketId = this.safeString (instrument, 'symbol');
-            const symbol = this.safeSymbol (marketId);
-            const quote = this.safeDict (instrument, 'quote', {});
-            tickers[symbol] = this.parseTicker (quote, this.safeMarket (marketId));
+        const tickers: Dict = {};
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            const ticker = await this.fetchTicker (symbol, params);
+            tickers[symbol] = ticker;
         }
         return this.filterByArray (tickers, 'symbol', symbols, true);
     }
@@ -1620,7 +1014,7 @@ export default class coinbaseinternational extends Exchange {
      * @method
      * @name coinbaseinternational#fetchTicker
      * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-     * @see https://docs.cloud.coinbase.com/intx/reference/getinstrumentquote
+     * @see https://docs.cdp.coinbase.com/api-reference/market-data/public-ticker
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
@@ -1631,51 +1025,94 @@ export default class coinbaseinternational extends Exchange {
         }
         const market = this.market (symbol);
         const request: Dict = {
-            'instrument': this.marketId (symbol),
+            'instrument_name': market['id'],
         };
-        const ticker = await this.v1PublicGetInstrumentsInstrumentQuote (this.extend (request, params));
+        const response = await this.publicGetTicker (this.extend (request, params));
+        //
+        //     {
+        //         "jsonrpc": "2.0",
+        //         "id": 1788867257,
+        //         "result": {
+        //             "timestamp": 1788867258984,
+        //             "state": "open",
+        //             "stats": {
+        //                 "high": 79695.0,
+        //                 "low": 78184.0,
+        //                 "price_change": -1.2347,
+        //                 "volume": 15.0492,
+        //                 "volume_usd": 1188223.3,
+        //                 "volume_notional": 1188367.9964
+        //             },
+        //             "index_price": 78451.93,
+        //             "instrument_name": "BTC_USDC",
+        //             "last_price": 78469.0,
+        //             "min_price": 76882.0,
+        //             "max_price": 80021.0,
+        //             "mark_price": 78451.93,
+        //             "best_ask_price": 78493.0,
+        //             "best_bid_price": 78465.0,
+        //             "best_ask_amount": 0.0004,
+        //             "best_bid_amount": 0.001
+        //         },
+        //         "usIn": 1788867259058846,
+        //         "usOut": 1788867259060040,
+        //         "usDiff": 1194,
+        //         "testnet": false
+        //     }
+        //
+        const ticker = this.safeDict (response, 'result', {});
         return this.parseTicker (ticker, market);
     }
 
     override parseTicker (ticker: object, market: Market = undefined): Ticker {
         //
-        //    {
-        //        "best_bid_price":"2490.8",
-        //        "best_bid_size":"9.0515",
-        //        "best_ask_price":"2490.81",
-        //        "best_ask_size":"4.8486",
-        //        "trade_price":"2490.39",
-        //        "trade_qty":"0.9508",
-        //        "index_price":"2490.5",
-        //        "mark_price":"2490.8",
-        //        "settlement_price":"2490.81",
-        //        "limit_up":"2615.42",
-        //        "limit_down":"2366.34",
-        //        "predicted_funding":"0.000009",
-        //        "timestamp":"2024-02-10T16:07:39.454Z"
-        //    }
+        //     {
+        //         "timestamp": 1788867258984,
+        //         "state": "open",
+        //         "stats": {
+        //             "high": 79695.0,
+        //             "low": 78184.0,
+        //             "price_change": -1.2347,
+        //             "volume": 15.0492,
+        //             "volume_usd": 1188223.3,
+        //             "volume_notional": 1188367.9964
+        //         },
+        //         "index_price": 78451.93,
+        //         "instrument_name": "BTC_USDC",
+        //         "last_price": 78469.0,
+        //         "min_price": 76882.0,
+        //         "max_price": 80021.0,
+        //         "mark_price": 78451.93,
+        //         "best_ask_price": 78493.0,
+        //         "best_bid_price": 78465.0,
+        //         "best_ask_amount": 0.0004,
+        //         "best_bid_amount": 0.001
+        //     }
         //
-        const datetime = this.safeString (ticker, 'timestamp');
+        const timestamp = this.safeInteger (ticker, 'timestamp');
+        const stats = this.safeDict (ticker, 'stats', {});
+        const last = this.safeNumber (ticker, 'last_price');
+        const marketId = this.safeString (ticker, 'instrument_name');
         return this.safeTicker ({
             'info': ticker,
-            'symbol': this.safeSymbol (undefined, market),
-            'timestamp': this.parse8601 (datetime),
-            'datetime': datetime,
+            'symbol': this.safeSymbol (marketId, market),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
             'bid': this.safeNumber (ticker, 'best_bid_price'),
-            'bidVolume': this.safeNumber (ticker, 'best_bid_size'),
+            'bidVolume': this.safeNumber (ticker, 'best_bid_amount'),
             'ask': this.safeNumber (ticker, 'best_ask_price'),
-            'askVolume': this.safeNumber (ticker, 'best_ask_size'),
-            'high': undefined,
-            'low': undefined,
+            'askVolume': this.safeNumber (ticker, 'best_ask_amount'),
+            'high': this.safeNumber (stats, 'high'),
+            'low': this.safeNumber (stats, 'low'),
             'open': undefined,
-            'close': undefined,
-            'last': undefined,
+            'close': last,
+            'last': last,
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
             'vwap': undefined,
-            'baseVolume': undefined,
-            'quoteVolume': undefined,
+            'baseVolume': this.safeNumber (stats, 'volume'),
+            'quoteVolume': this.safeNumber (stats, 'volume_notional'),
             'previousClose': undefined,
             'markPrice': this.safeNumber (ticker, 'mark_price'),
             'indexPrice': this.safeNumber (ticker, 'index_price'),
@@ -1684,119 +1121,837 @@ export default class coinbaseinternational extends Exchange {
 
     /**
      * @method
+     * @name coinbaseinternational#fetchOrderBook
+     * @description fetches a market order book
+     * @see https://docs.cdp.coinbase.com/api-reference/market-data/public-get_order_book
+     * @param {string} symbol unified market symbol
+     * @param {int} [limit] the maximum number of bids and asks to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+     */
+    override async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        const market = this.market (symbol);
+        const request: Dict = {
+            'instrument_name': market['id'],
+        };
+        if (limit !== undefined) {
+            request['depth'] = limit;
+        }
+        const response = await this.publicGetGetOrderBook (this.extend (request, params));
+        //
+        //     {
+        //         "jsonrpc": "2.0",
+        //         "result": {
+        //             "timestamp": 1788868357984,
+        //             "state": "open",
+        //             "stats": {
+        //                 "high": 79695.0,
+        //                 "low": 78184.0,
+        //                 "price_change": -1.2564,
+        //                 "volume": 15.14,
+        //                 "volume_usd": 1195335.73,
+        //                 "volume_notional": 1195481.8941
+        //             },
+        //             "change_id": 9047601566,
+        //             "index_price": 78375.89,
+        //             "instrument_name": "BTC_USDC",
+        //             "bids": [
+        //                 [78376.0, 0.0037],
+        //                 [78373.0, 0.04],
+        //                 [78369.0, 0.0006],
+        //                 [78361.0, 0.001],
+        //                 [78355.0, 0.001]
+        //             ],
+        //             "asks": [
+        //                 [78419.0, 0.0015],
+        //                 [78421.0, 0.0405],
+        //                 [78431.0, 0.0008],
+        //                 [78432.0, 0.0001],
+        //                 [78433.0, 0.009]
+        //             ],
+        //             "last_price": 78436.0,
+        //             "min_price": 76808.0,
+        //             "max_price": 79944.0,
+        //             "mark_price": 78375.89,
+        //             "best_ask_price": 78419.0,
+        //             "best_bid_price": 78376.0,
+        //             "best_ask_amount": 0.0015,
+        //             "best_bid_amount": 0.0037
+        //         },
+        //         "usIn": 1788868358451540,
+        //         "usOut": 1788868358451883,
+        //         "usDiff": 343,
+        //         "testnet": false
+        //     }
+        //
+        const result = this.safeDict (response, 'result', {});
+        const timestamp = this.safeInteger (result, 'timestamp');
+        return this.parseOrderBook (result, market['symbol'], timestamp);
+    }
+
+    /**
+     * @method
      * @name coinbaseinternational#fetchBalance
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
-     * @see https://docs.cloud.coinbase.com/intx/reference/getportfoliobalances
+     * @see https://docs.cdp.coinbase.com/api-reference/account-management/private-get_account_summaries
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.v3] default false, set true to use v3 api endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     override async fetchBalance (params = {}): Promise<Balances> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let portfolio: Str = undefined;
-        [ portfolio, params ] = await this.handlePortfolioAndParams ('fetchBalance', params);
-        const request: Dict = {
-            'portfolio': portfolio,
-        };
-        const balances = await this.v1PrivateGetPortfoliosPortfolioBalances (this.extend (request, params));
+        await this.authenticateV2 ();
+        const response = await this.privateGetGetAccountSummaries (params);
         //
-        //    [
-        //        {
-        //           "asset_id":"0-0-1",
-        //           "asset_name":"USDC",
-        //           "asset_uuid":"2b92315d-eab7-5bef-84fa-089a131333f5",
-        //           "quantity":"500000.0000000000",
-        //           "hold":"0",
-        //           "hold_available_for_collateral":"0",
-        //           "transfer_hold":"0",
-        //           "collateral_value":"500000.0",
-        //           "max_withdraw_amount":"500000.0000000000",
-        //           "loan":"0",
-        //           "loan_collateral_requirement":"0.0"
-        //        }
-        //    ]
+        // {
+        //     "id": 2515,
+        //     "jsonrpc": "2.0",
+        //     "result": {
+        //         "block_rfq_self_match_prevention": true,
+        //         "creation_timestamp": 1687352432143,
+        //         "email": "user@example.com",
+        //         "id": 10,
+        //         "interuser_transfers_enabled": false,
+        //         "login_enabled": false,
+        //         "mmp_enabled": false,
+        //         "referrer_id": null,
+        //         "security_keys_enabled": false,
+        //         "self_trading_extended_to_subaccounts": false,
+        //         "self_trading_reject_mode": "cancel_maker",
+        //         "summaries": [
+        //         {
+        //             "available_funds": 301.38059622,
+        //             "available_withdrawal_funds": 301.35396172,
+        //             "balance": 302.60065765,
+        //             "cross_collateral_enabled": false,
+        //             "currency": "BTC",
+        //             "delta_total": 31.602958,
+        //             "delta_total_map": {
+        //             "btc_usd": 31.594357699
+        //             },
+        //             "equity": 302.61869214,
+        //             "estimated_liquidation_ratio": 0.10098722,
+        //             "estimated_liquidation_ratio_map": {
+        //             "btc_usd": 0.1009872222854525
+        //             },
+        //             "fee_balance": 0,
+        //             "fees": {
+        //             "btc_usd": {
+        //                 "future": {
+        //                 "block_trade": 0.3,
+        //                 "default": {
+        //                     "maker": -0.0001,
+        //                     "taker": 0.00035000000000000005,
+        //                     "type": "fixed"
+        //                 }
+        //                 },
+        //                 "option": {
+        //                 "block_trade": 0.625,
+        //                 "default": {
+        //                     "maker": 0.625,
+        //                     "taker": 0.625,
+        //                     "type": "relative"
+        //                 }
+        //                 },
+        //                 "perpetual": {
+        //                 "block_trade": 0.3,
+        //                 "default": {
+        //                     "maker": -0.0001,
+        //                     "taker": 0.00035000000000000005,
+        //                     "type": "fixed"
+        //                 }
+        //                 }
+        //             }
+        //             },
+        //             "futures_pl": -0.32434225,
+        //             "futures_session_rpl": -0.03258105,
+        //             "futures_session_upl": 0.05921555,
+        //             "initial_margin": 1.24669592,
+        //             "limits": {
+        //             "limits_per_currency": false,
+        //             "matching_engine": {
+        //                 "cancel_all": {
+        //                 "burst": 250,
+        //                 "rate": 200
+        //                 },
+        //                 "guaranteed_quotes": {
+        //                 "burst": 2,
+        //                 "rate": 2
+        //                 },
+        //                 "max_quotes": {
+        //                 "burst": 10,
+        //                 "rate": 10
+        //                 },
+        //                 "quotes": {
+        //                 "burst": 500,
+        //                 "rate": 500
+        //                 },
+        //                 "spot": {
+        //                 "burst": 250,
+        //                 "rate": 200
+        //                 },
+        //                 "trading": {
+        //                 "total": {
+        //                     "burst": 250,
+        //                     "rate": 200
+        //                 }
+        //                 }
+        //             },
+        //             "non_matching_engine": {
+        //                 "burst": 1500,
+        //                 "rate": 1000
+        //             }
+        //             },
+        //             "maintenance_margin": 0.8857841,
+        //             "margin_balance": 302.62729214,
+        //             "margin_model": "segregated_sm",
+        //             "options_delta": -1.01962,
+        //             "options_gamma": 0.00001,
+        //             "options_gamma_map": {
+        //             "btc_usd": 0.00001
+        //             },
+        //             "options_pl": -0.0065,
+        //             "options_session_rpl": 0,
+        //             "options_session_upl": -0.0065,
+        //             "options_theta": 15.97071,
+        //             "options_value": -0.0086,
+        //             "options_vega": 0.0858,
+        //             "options_vega_map": {
+        //             "btc_usd": 0.0858
+        //             },
+        //             "portfolio_margining_enabled": false,
+        //             "projected_delta_total": 32.613978,
+        //             "projected_initial_margin": 1.01529592,
+        //             "projected_maintenance_margin": 0.7543841,
+        //             "session_rpl": -0.03258105,
+        //             "session_upl": 0.05271555,
+        //             "spot_reserve": 0,
+        //             "total_pl": -0.33084225
+        //         },
+        //         {
+        //             "additional_reserve": 0,
+        //             "available_funds": 99.999598,
+        //             "available_withdrawal_funds": 99.999597,
+        //             "balance": 100,
+        //             "cross_collateral_enabled": false,
+        //             "currency": "ETH",
+        //             "delta_total": 0,
+        //             "delta_total_map": {
+        //             "eth_usd": 0
+        //             },
+        //             "equity": 100,
+        //             "estimated_liquidation_ratio": 0,
+        //             "estimated_liquidation_ratio_map": {
+        //             "eth_usd": 0
+        //             },
+        //             "fee_balance": 0,
+        //             "fees": {
+        //             "eth_usd": {
+        //                 "future": {
+        //                 "block_trade": 0.2,
+        //                 "default": {
+        //                     "maker": -0.00005,
+        //                     "taker": 0.00025,
+        //                     "type": "fixed"
+        //                 }
+        //                 },
+        //                 "option": {
+        //                 "block_trade": 0.5,
+        //                 "default": {
+        //                     "maker": 0.5,
+        //                     "taker": 0.5,
+        //                     "type": "relative"
+        //                 }
+        //                 },
+        //                 "perpetual": {
+        //                 "block_trade": 0.2,
+        //                 "default": {
+        //                     "maker": -0.00005,
+        //                     "taker": 0.00025,
+        //                     "type": "fixed"
+        //                 }
+        //                 }
+        //             }
+        //             },
+        //             "futures_pl": 0,
+        //             "futures_session_rpl": 0,
+        //             "futures_session_upl": 0,
+        //             "initial_margin": 0.000402,
+        //             "limits": {
+        //             "limits_per_currency": false,
+        //             "matching_engine": {
+        //                 "cancel_all": {
+        //                 "burst": 250,
+        //                 "rate": 200
+        //                 },
+        //                 "guaranteed_quotes": {
+        //                 "burst": 2,
+        //                 "rate": 2
+        //                 },
+        //                 "max_quotes": {
+        //                 "burst": 10,
+        //                 "rate": 10
+        //                 },
+        //                 "quotes": {
+        //                 "burst": 500,
+        //                 "rate": 500
+        //                 },
+        //                 "spot": {
+        //                 "burst": 250,
+        //                 "rate": 200
+        //                 },
+        //                 "trading": {
+        //                 "total": {
+        //                     "burst": 250,
+        //                     "rate": 200
+        //                 }
+        //                 }
+        //             },
+        //             "non_matching_engine": {
+        //                 "burst": 1500,
+        //                 "rate": 1000
+        //             }
+        //             },
+        //             "maintenance_margin": 0,
+        //             "margin_balance": 100,
+        //             "margin_model": "segregated_sm",
+        //             "options_delta": 0,
+        //             "options_gamma": 0,
+        //             "options_gamma_map": {},
+        //             "options_pl": 0,
+        //             "options_session_rpl": 0,
+        //             "options_session_upl": 0,
+        //             "options_theta": 0,
+        //             "options_theta_map": {},
+        //             "options_value": 0,
+        //             "options_vega": 0,
+        //             "options_vega_map": {},
+        //             "portfolio_margining_enabled": false,
+        //             "projected_delta_total": 0,
+        //             "projected_initial_margin": 0.0002,
+        //             "projected_maintenance_margin": 0,
+        //             "session_rpl": 0,
+        //             "session_upl": 0,
+        //             "spot_reserve": 0.0002,
+        //             "total_pl": 0
+        //         }
+        //         ],
+        //         "system_name": "user",
+        //         "type": "main",
+        //         "username": "user"
+        //     }
+        // }
         //
-        return this.parseBalance (balances);
+        const result = this.safeDict (response, 'result', {});
+        const balances = this.safeDict (result, 'summaries', []);
+        const balance = this.parseBalance (balances);
+        return balance;
     }
 
     override parseBalance (response: any): Balances {
-        //
-        //    {
-        //       "asset_id":"0-0-1",
-        //       "asset_name":"USDC",
-        //       "asset_uuid":"2b92315d-eab7-5bef-84fa-089a131333f5",
-        //       "quantity":"500000.0000000000",
-        //       "hold":"0",
-        //       "hold_available_for_collateral":"0",
-        //       "transfer_hold":"0",
-        //       "collateral_value":"500000.0",
-        //       "max_withdraw_amount":"500000.0000000000",
-        //       "loan":"0",
-        //       "loan_collateral_requirement":"0.0"
-        //    }
-        //
+        const currencyId = this.safeString (response, 'currency');
+        const code = this.safeCurrencyCode (currencyId);
         const result: Dict = {
             'info': response,
         };
-        for (let i = 0; i < response.length; i++) {
-            const rawBalance = response[i];
-            const currencyId = this.safeString (rawBalance, 'asset_name');
-            const code = this.safeCurrencyCode (currencyId);
-            const account = this.account ();
-            account['total'] = this.safeString (rawBalance, 'quantity');
-            account['used'] = this.safeString (rawBalance, 'hold');
-            if (code !== undefined) {
-                result[code] = account;
-            }
+        const account = this.account ();
+        account['free'] = this.safeString (response, 'available_funds');
+        account['total'] = this.safeString (response, 'equity');
+        if (code !== undefined) {
+            result[code] = account;
         }
         return this.safeBalance (result);
     }
 
     /**
      * @method
-     * @name coinbaseinternational#transfer
-     * @description Transfer an amount of asset from one portfolio to another.
-     * @see https://docs.cloud.coinbase.com/intx/reference/createportfolioassettransfer
-     * @param {string} code unified currency code
-     * @param {float} amount amount to transfer
-     * @param {string} fromAccount account to transfer from
-     * @param {string} toAccount account to transfer to
+     * @name coinbaseinternational#fetchTransfers
+     * @description fetch a history of internal transfers made on an account
+     * @see https://docs.cdp.coinbase.com/api-reference/account-management/private-get_transaction_log
+     * @param {string} code unified currency code of the currency transferred
+     * @param {int} [since] the earliest time in ms to fetch transfers for
+     * @param {int} [limit] the maximum number of transfers structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [transfer structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#transfer-structure}
+     * @param {int} [params.until] timestamp in ms of the latest transfer to fetch
+     * @param {string} [params.continuation] continuation token for pagination
+     * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    override async transfer (code: string, amount: number, fromAccount: string, toAccount: string, params = {}): Promise<TransferEntry> {
+    override async fetchTransfers (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<TransferEntry[]> {
+        if (code === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchTransfers() requires a currency code argument');
+        }
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const currency = this.currency (code);
+        const now = this.milliseconds ();
+        if (since === undefined) {
+            since = now - (30 * 24 * 60 * 60 * 1000);
+        }
         const request: Dict = {
-            'asset': currency['id'],
-            'amount': amount,
-            'from': fromAccount,
-            'to': toAccount,
+            'currency': currency['id'],
+            'start_timestamp': since,
+            'end_timestamp': now,
+            'query': 'transfer',
         };
-        const response = await this.v1PrivatePostPortfoliosTransfer (this.extend (request, params));
-        const success = this.safeBool (response, 'success');
+        if (limit !== undefined) {
+            request['count'] = limit;
+        }
+        const until = this.safeInteger (params, 'until');
+        if (until !== undefined) {
+            params = this.omit (params, 'until');
+            request['end_timestamp'] = until;
+        }
+        await this.authenticateV2 ();
+        const response = await this.privateGetGetTransactionLog (this.extend (request, params));
+        //
+        //     {
+        //         "id": 4,
+        //         "jsonrpc": "2.0",
+        //         "result": {
+        //             "continuation": 61282,
+        //             "logs": [
+        //                 {
+        //                     "balance": 3001.22270418,
+        //                     "cashflow": -2.5,
+        //                     "change": -2.5,
+        //                     "commission": 0,
+        //                     "currency": "BTC",
+        //                     "equity": 3000.9275869,
+        //                     "id": 61312,
+        //                     "info": {
+        //                         "other_user": "Subaccount",
+        //                         "other_user_id": 27,
+        //                         "transfer_type": "subaccount"
+        //                     },
+        //                     "instrument_name": null,
+        //                     "interest_pl": null,
+        //                     "order_id": null,
+        //                     "position": null,
+        //                     "price": null,
+        //                     "side": "-",
+        //                     "timestamp": 1613659830333,
+        //                     "trade_id": null,
+        //                     "type": "transfer",
+        //                     "user_id": 7,
+        //                     "user_seq": 6009,
+        //                     "username": "TestUser"
+        //                 },
+        //             ]
+        //         }
+        //     }
+        //
+        const result = this.safeDict (response, 'result', {});
+        const transfers = this.safeList (result, 'logs', []);
+        return this.parseTransfers (transfers, currency, since, limit);
+    }
+
+    override parseTransfer (transfer: Dict, currency: Currency = undefined): TransferEntry {
+        //
+        //     {
+        //         "balance": 3001.22270418,
+        //         "cashflow": -2.5,
+        //         "change": -2.5,
+        //         "commission": 0,
+        //         "currency": "BTC",
+        //         "equity": 3000.9275869,
+        //         "id": 61312,
+        //         "info": {
+        //             "other_user": "Subaccount",
+        //             "other_user_id": 27,
+        //             "transfer_type": "subaccount"
+        //         },
+        //         "instrument_name": null,
+        //         "interest_pl": null,
+        //         "order_id": null,
+        //         "position": null,
+        //         "price": null,
+        //         "side": "-",
+        //         "timestamp": 1613659830333,
+        //         "trade_id": null,
+        //         "type": "transfer",
+        //         "user_id": 7,
+        //         "user_seq": 6009,
+        //         "username": "TestUser"
+        //     }
+        //
+        const transactionTimestamp = this.safeInteger (transfer, 'timestamp');
+        const currencyId = this.safeString (transfer, 'currency');
+        const info = this.safeDict (transfer, 'info', {});
         return {
-            'info': response,
+            'info': transfer,
+            'id': this.safeString (transfer, 'id'),
+            'timestamp': transactionTimestamp,
+            'datetime': this.iso8601 (transactionTimestamp),
+            'currency': this.safeCurrencyCode (currencyId, currency),
+            'amount': this.safeNumber (transfer, 'change'),
+            'fromAccount': this.safeString (transfer, 'username'),
+            'toAccount': this.safeString (info, 'other_user'),
+            'status': 'ok',
+        };
+    }
+
+    /**
+     * @method
+     * @name coinbaseinternational#fetchPosition
+     * @description fetch data on an open position
+     * @see https://docs.cdp.coinbase.com/api-reference/account-management/private-get_position
+     * @param {string} symbol unified market symbol of the market the position is held in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+     */
+    override async fetchPosition (symbol: string, params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        const market = this.market (symbol);
+        const request: Dict = {
+            'instrument_name': market['id'],
+        };
+        await this.authenticateV2 ();
+        const response = await this.privateGetGetPosition (this.extend (request, params));
+        //
+        //     {
+        //         "id": 404,
+        //         "jsonrpc": "2.0",
+        //         "result": {
+        //             "average_price": 0,
+        //             "delta": 0,
+        //             "direction": "buy",
+        //             "estimated_liquidation_price": 0,
+        //             "floating_profit_loss": 0,
+        //             "index_price": 3555.86,
+        //             "initial_margin": 0,
+        //             "instrument_name": "BTC-PERPETUAL",
+        //             "interest_value": 1.7362511643080387,
+        //             "kind": "future",
+        //             "leverage": 100,
+        //             "maintenance_margin": 0,
+        //             "mark_price": 3556.62,
+        //             "open_orders_margin": 0.000165889,
+        //             "realized_profit_loss": 0,
+        //             "settlement_price": 3555.44,
+        //             "size": 0,
+        //             "size_currency": 0,
+        //             "total_profit_loss": 0
+        //         }
+        //     }
+        //
+        const position = this.safeDict (response, 'result', {});
+        return this.parsePosition (position, market);
+    }
+
+    override parsePosition (position: Dict, market: Market = undefined) {
+        //
+        //     {
+        //         "average_price": 0,
+        //         "delta": 0,
+        //         "direction": "buy",
+        //         "estimated_liquidation_price": 0,
+        //         "floating_profit_loss": 0,
+        //         "index_price": 3555.86,
+        //         "initial_margin": 0,
+        //         "instrument_name": "BTC-PERPETUAL",
+        //         "interest_value": 1.7362511643080387,
+        //         "kind": "future",
+        //         "leverage": 100,
+        //         "maintenance_margin": 0,
+        //         "mark_price": 3556.62,
+        //         "open_orders_margin": 0.000165889,
+        //         "realized_profit_loss": 0,
+        //         "settlement_price": 3555.44,
+        //         "size": 0,
+        //         "size_currency": 0,
+        //         "total_profit_loss": 0
+        //     }
+        //
+        const instrumentName = this.safeString (position, 'instrument_name');
+        market = this.safeMarket (instrumentName, market);
+        let side = this.safeString (position, 'direction');
+        if (side === 'buy') {
+            side = 'long';
+        } else if (side === 'sell') {
+            side = 'short';
+        }
+        const notional = this.safeString (position, 'size_currency');
+        const initialMargin = this.safeString (position, 'initial_margin');
+        const maintenanceMargin = this.safeString (position, 'maintenance_margin');
+        return this.safePosition ({
+            'info': position,
             'id': undefined,
+            'symbol': market['symbol'],
+            'entryPrice': this.safeNumber (position, 'average_price'),
+            'markPrice': this.safeNumber (position, 'mark_price'),
+            'notional': this.parseNumber (Precise.stringAbs (notional)),
+            'collateral': undefined,
+            'unrealizedPnl': this.safeNumber (position, 'floating_profit_loss'),
+            'side': side,
+            'contracts': this.safeNumber (position, 'size'),
+            'contractSize': this.safeNumber (market, 'contractSize'),
             'timestamp': undefined,
             'datetime': undefined,
-            'currency': code,
-            'amount': amount,
-            'fromAccount': fromAccount,
-            'toAccount': toAccount,
-            'status': (success === true) ? 'ok' : 'failed',
+            'hedged': undefined,
+            'maintenanceMargin': this.parseNumber (maintenanceMargin),
+            'maintenanceMarginPercentage': undefined,
+            'initialMargin': this.parseNumber (initialMargin),
+            'initialMarginPercentage': undefined,
+            'leverage': this.safeNumber (position, 'leverage'),
+            'liquidationPrice': this.safeNumber (position, 'estimated_liquidation_price'),
+            'marginRatio': undefined,
+            'marginMode': undefined,
+            'percentage': undefined,
+        });
+    }
+
+    /**
+     * @method
+     * @name coinbaseinternational#fetchPositions
+     * @description fetch all open positions
+     * @see https://docs.cdp.coinbase.com/api-reference/account-management/private-get_positions
+     * @param {string[]} [symbols] list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+     */
+    override async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        await this.authenticateV2 ();
+        const response = await this.privateGetGetPositions (params);
+        //
+        //     {
+        //         "id": 2236,
+        //         "jsonrpc": "2.0",
+        //         "result": [
+        //             {
+        //                 "average_price": 7440.18,
+        //                 "delta": 0.006687487,
+        //                 "direction": "buy",
+        //                 "estimated_liquidation_price": 1.74,
+        //                 "floating_profit_loss": 0,
+        //                 "index_price": 7466.79,
+        //                 "initial_margin": 0.000197283,
+        //                 "instrument_name": "BTC-PERPETUAL",
+        //                 "interest_value": 1.7362511643080387,
+        //                 "kind": "future",
+        //                 "leverage": 34,
+        //                 "maintenance_margin": 0.000143783,
+        //                 "mark_price": 7476.65,
+        //                 "open_orders_margin": 0.000197288,
+        //                 "realized_funding": -1e-8,
+        //                 "realized_profit_loss": -9e-9,
+        //                 "settlement_price": 7476.65,
+        //                 "size": 50,
+        //                 "size_currency": 0.006687487,
+        //                 "total_profit_loss": 0.000032781
+        //             }
+        //         ]
+        //     }
+        //
+        const result = this.safeList (response, 'result', []);
+        const positions = this.parsePositions (result);
+        if (this.isEmpty (symbols)) {
+            return positions;
+        }
+        symbols = this.marketSymbols (symbols);
+        return this.filterByArrayPositions (positions, 'symbol', symbols, false);
+    }
+
+    /**
+     * @method
+     * @name coinbaseinternational#fetchDepositsWithdrawals
+     * @description fetch history of deposits and withdrawals
+     * @see https://docs.cdp.coinbase.com/api-reference/account-management/private-get_transaction_log
+     * @param {string} code unified currency code
+     * @param {int} [since] timestamp in ms of the earliest transaction to fetch
+     * @param {int} [limit] the maximum number of transactions to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest transaction to fetch
+     * @param {string} [params.query] transaction-log query filter
+     * @param {string} [params.continuation] continuation token for pagination
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+     */
+    override async fetchDepositsWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+        if (code === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchDepositsWithdrawals() requires a currency code argument');
+        }
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        const currency = this.currency (code);
+        const now = this.milliseconds ();
+        if (since === undefined) {
+            since = now - (30 * 24 * 60 * 60 * 1000);
+        }
+        const request: Dict = {
+            'currency': currency['id'],
+            'start_timestamp': since,
+            'end_timestamp': now,
         };
+        const until = this.safeInteger (params, 'until');
+        if (until !== undefined) {
+            params = this.omit (params, 'until');
+            request['end_timestamp'] = until;
+        }
+        if (limit !== undefined) {
+            request['count'] = limit;
+        }
+        await this.authenticateV2 ();
+        const response = await this.privateGetGetTransactionLog (this.extend (request, params));
+        //
+        //     {
+        //         "id": 4,
+        //         "jsonrpc": "2.0",
+        //         "result": {
+        //             "continuation": 61282,
+        //             "logs": [
+        //                 {
+        //                     "balance": 3003.72054712,
+        //                     "cashflow": 0.65,
+        //                     "change": 0.65,
+        //                     "commission": 0,
+        //                     "currency": "BTC",
+        //                     "equity": 3003.4876111,
+        //                     "id": 61291,
+        //                     "info": {
+        //                         "addr": "2N8prMvpZHr8aYqodX3S4yhz5wMxjY8La3p",
+        //                         "deposit_type": "wallet",
+        //                         "transaction": "de6eba075855f32c9510f338d3ca0900376cedcb9f7b142caccfbdc292d3237e"
+        //                     },
+        //                     "instrument_name": null,
+        //                     "interest_pl": null,
+        //                     "order_id": null,
+        //                     "position": null,
+        //                     "price": null,
+        //                     "side": "-",
+        //                     "timestamp": 1613657828414,
+        //                     "trade_id": null,
+        //                     "type": "deposit",
+        //                     "user_id": 7,
+        //                     "user_seq": 6007,
+        //                     "username": "TestUser"
+        //                 }
+        //             ]
+        //         }
+        //     }
+        //
+        const result = this.safeDict (response, 'result', {});
+        const transactions = this.safeList (result, 'logs', []);
+        return this.parseTransactions (transactions, currency, since, limit);
+    }
+
+    /**
+     * @method
+     * @name coinbaseinternational#fetchWithdrawals
+     * @description fetch all withdrawals made from an account
+     * @see https://docs.cdp.coinbase.com/api-reference/account-management/private-get_transaction_log
+     * @param {string} code unified currency code
+     * @param {int} [since] the earliest time in ms to fetch withdrawals for
+     * @param {int} [limit] the maximum number of withdrawals structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest transaction to fetch
+     * @param {string} [params.continuation] continuation token for pagination
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+     */
+    override async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Transaction[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        params['query'] = 'withdrawal';
+        return await this.fetchDepositsWithdrawals (code, since, limit, params);
+    }
+
+    /**
+     * @method
+     * @name coinbaseinternational#fetchDeposits
+     * @description fetch all deposits made to an account
+     * @see https://docs.cdp.coinbase.com/api-reference/account-management/private-get_transaction_log
+     * @param {string} code unified currency code
+     * @param {int} [since] the earliest time in ms to fetch deposits for
+     * @param {int} [limit] the maximum number of deposits structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest transaction to fetch
+     * @param {string} [params.continuation] continuation token for pagination
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+     */
+    override async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Transaction[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        params['query'] = 'deposit';
+        return await this.fetchDepositsWithdrawals (code, since, limit, params);
+    }
+
+    override parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
+        //
+        //     {
+        //         "balance": 3003.72054712,
+        //         "cashflow": 0.65,
+        //         "change": 0.65,
+        //         "commission": 0,
+        //         "currency": "BTC",
+        //         "equity": 3003.4876111,
+        //         "id": 61291,
+        //         "info": {
+        //             "addr": "2N8prMvpZHr8aYqodX3S4yhz5wMxjY8La3p",
+        //             "deposit_type": "wallet",
+        //             "transaction": "de6eba075855f32c9510f338d3ca0900376cedcb9f7b142caccfbdc292d3237e"
+        //         },
+        //         "instrument_name": null,
+        //         "interest_pl": null,
+        //         "order_id": null,
+        //         "position": null,
+        //         "price": null,
+        //         "side": "-",
+        //         "timestamp": 1613657828414,
+        //         "trade_id": null,
+        //         "type": "deposit",
+        //         "user_id": 7,
+        //         "user_seq": 6007,
+        //         "username": "TestUser"
+        //     }
+        //
+        const transactionTimestamp = this.safeInteger (transaction, 'timestamp');
+        const info = this.safeDict (transaction, 'info', {});
+        const transactionType = this.safeString (transaction, 'type');
+        const transactionId = this.safeString (transaction, 'id');
+        const currencyId = this.safeString (transaction, 'currency');
+        const address = this.safeString (info, 'addr');
+        return {
+            'info': transaction,
+            'id': transactionId,
+            'txid': this.safeString (info, 'transaction'),
+            'timestamp': transactionTimestamp,
+            'datetime': this.iso8601 (transactionTimestamp),
+            'network': undefined,
+            'address': address,
+            'addressTo': address,
+            'addressFrom': undefined,
+            'tag': undefined,
+            'tagTo': undefined,
+            'tagFrom': undefined,
+            'type': transactionType,
+            'amount': this.safeNumber (transaction, 'change'),
+            'currency': this.safeCurrencyCode (currencyId, currency),
+            'status': 'ok',
+            'updated': transactionTimestamp,
+            'fee': {
+                'cost': undefined,
+                'currency': undefined,
+            },
+        } as Transaction;
     }
 
     /**
      * @method
      * @name coinbaseinternational#createOrder
      * @description create a trade order
-     * @see https://docs.cloud.coinbase.com/intx/reference/createorder
+     * @see https://docs.cdp.coinbase.com/api-reference/trading/private-buy
+     * @see https://docs.cdp.coinbase.com/api-reference/trading/private-sell
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit'
      * @param {string} side 'buy' or 'sell'
@@ -1817,169 +1972,269 @@ export default class coinbaseinternational extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        let typeId = type.toUpperCase ();
         const triggerPrice = this.safeNumberN (params, [ 'triggerPrice', 'stopPrice', 'stop_price' ]);
-        const clientOrderIdprefix = this.safeString (this.options, 'brokerId', 'nfqkvdjp');
-        let clientOrderId = clientOrderIdprefix + '-' + this.uuid ();
-        clientOrderId = clientOrderId.slice (0, 17);
         if (side === undefined) {
             throw new ArgumentsRequired (this.id + ' createOrder() requires a side argument');
         }
         const request: Dict = {
-            'client_order_id': clientOrderId,
-            'side': side.toUpperCase (),
-            'instrument': market['id'],
-            'size': this.amountToPrecision (market['symbol'], amount),
+            'instrument_name': market['id'],
+            'amount': this.amountToPrecision (market['symbol'], amount),
+            'type': type,
         };
         if (triggerPrice !== undefined) {
             if (type === 'limit') {
-                typeId = 'STOP_LIMIT';
+                request['type'] = 'stop_limit';
             } else {
-                typeId = 'STOP';
+                request['type'] = 'stop_market';
             }
-            request['stop_price'] = triggerPrice;
+            request['trigger_price'] = triggerPrice;
         }
-        request['type'] = typeId;
         if (type === 'limit') {
             if (price === undefined) {
                 throw new InvalidOrder (this.id + ' createOrder() requires a price parameter for a limit order types');
             }
             request['price'] = price;
         }
-        let portfolio: Str = undefined;
-        [ portfolio, params ] = await this.handlePortfolioAndParams ('createOrder', params);
-        if (portfolio !== undefined) {
-            request['portfolio'] = portfolio;
-        }
         const postOnly = this.safeBool2 (params, 'postOnly', 'post_only');
-        let tif = this.safeString2 (params, 'tif', 'timeInForce');
-        // market orders must be IOC
-        if (typeId === 'MARKET') {
-            if (tif !== undefined && tif !== 'IOC') {
-                throw new InvalidOrder (this.id + ' createOrder() market orders must have tif set to "IOC"');
-            }
-            tif = 'IOC';
-        } else {
-            tif = (tif === undefined) ? 'GTC' : tif;
-        }
+        const timeInForce = this.safeString2 (params, 'tif', 'timeInForce');
         if (postOnly !== undefined) {
             request['post_only'] = postOnly;
+            request['reject_post_only'] = postOnly;
         }
-        request['tif'] = tif;
-        params = this.omit (params, [ 'client_order_id', 'user', 'postOnly', 'timeInForce' ]);
-        const response = await this.v1PrivatePostOrders (this.extend (request, params));
+        if (timeInForce !== undefined) {
+            const timeInForces: Dict = {
+                'GTC': 'good_til_cancelled',
+                'IOC': 'immediate_or_cancel',
+                'FOK': 'fill_or_kill',
+                'GTD': 'good_til_day',
+            };
+            request['time_in_force'] = this.safeString (timeInForces, timeInForce, timeInForce);
+        }
+        const clientOrderId = this.safeString2 (params, 'clientOrderId', 'client_order_id');
+        if (clientOrderId !== undefined) {
+            request['label'] = clientOrderId;
+        } else {
+            const brokerId = this.safeString (this.options, 'brokerId');
+            if (brokerId !== undefined) {
+                request['label'] = brokerId + '-' + this.uuid22 ();
+            }
+        }
+        params = this.omit (params, [ 'clientOrderId', 'client_order_id', 'postOnly', 'post_only', 'tif', 'timeInForce', 'triggerPrice', 'stopPrice', 'stop_price' ]);
+        await this.authenticateV2 ();
+        let response = undefined;
+        if (side === 'buy') {
+            response = await this.privateGetBuy (this.extend (request, params));
+        } else {
+            response = await this.privateGetSell (this.extend (request, params));
+        }
         //
-        //    {
-        //        "order_id":"1x96skvg-1-0",
-        //        "client_order_id":"ccxt",
-        //        "side":"BUY",
-        //        "instrument_id":"114jqr89-0-0",
-        //        "instrument_uuid":"b3469e0b-222c-4f8a-9f68-1f9e44d7e5e0",
-        //        "symbol":"BTC-PERP",
-        //        "portfolio_id":"1wp37qsc-1-0",
-        //        "portfolio_uuid":"018d7f6c-b92c-7361-8b7e-2932711e5a22",
-        //        "type":"LIMIT",
-        //        "price":"10000",
-        //        "size":"0.001",
-        //        "tif":"GTC",
-        //        "stp_mode":"BOTH",
-        //        "event_type":"NEW",
-        //        "order_status":"WORKING",
-        //        "leaves_qty":"0.001",
-        //        "exec_qty":"0",
-        //        "avg_price":"0",
-        //        "fee":"0"
-        //    }
+        //     {
+        //         "id": 6130,
+        //         "jsonrpc": "2.0",
+        //         "result": {
+        //             "order": {
+        //                 "amount": 21,
+        //                 "api": true,
+        //                 "average_price": 202.8,
+        //                 "creation_timestamp": 1590486335742,
+        //                 "direction": "sell",
+        //                 "filled_amount": 21,
+        //                 "instrument_name": "ETH-PERPETUAL",
+        //                 "is_liquidation": false,
+        //                 "is_rebalance": false,
+        //                 "label": "",
+        //                 "last_update_timestamp": 1590486335742,
+        //                 "max_show": 21,
+        //                 "order_id": "ETH-584864807",
+        //                 "order_state": "filled",
+        //                 "order_type": "limit",
+        //                 "post_only": false,
+        //                 "price": 198.75,
+        //                 "reduce_only": true,
+        //                 "replaced": false,
+        //                 "time_in_force": "good_til_cancelled",
+        //                 "web": false
+        //             },
+        //             "trades": [
+        //                 {
+        //                     "amount": 21,
+        //                     "direction": "sell",
+        //                     "fee": 0.00007766,
+        //                     "fee_currency": "ETH",
+        //                     "index_price": 202.86,
+        //                     "instrument_name": "ETH-PERPETUAL",
+        //                     "liquidity": "T",
+        //                     "mark_price": 202.79,
+        //                     "matching_id": null,
+        //                     "order_id": "ETH-584864807",
+        //                     "order_type": "limit",
+        //                     "post_only": false,
+        //                     "price": 202.8,
+        //                     "reduce_only": true,
+        //                     "state": "filled",
+        //                     "tick_direction": 0,
+        //                     "timestamp": 1590486335742,
+        //                     "trade_id": "ETH-2696097",
+        //                     "trade_seq": 1966068
+        //                 }
+        //             ]
+        //         }
+        //     }
         //
-        return this.parseOrder (response, market);
+        const result = this.safeDict (response, 'result', {});
+        const order = this.safeDict (result, 'order', {});
+        const trades = this.safeList (result, 'trades', []);
+        order['trades'] = trades;
+        return this.parseOrder (order, market);
     }
 
     override parseOrder (order: Dict, market: Market = undefined): Order {
         //
-        //    {
-        //        "order_id":"1x96skvg-1-0",
-        //        "client_order_id":"ccxt",
-        //        "side":"BUY",
-        //        "instrument_id":"114jqr89-0-0",
-        //        "instrument_uuid":"b3469e0b-222c-4f8a-9f68-1f9e44d7e5e0",
-        //        "symbol":"BTC-PERP",
-        //        "portfolio_id":"1wp37qsc-1-0",
-        //        "portfolio_uuid":"018d7f6c-b92c-7361-8b7e-2932711e5a22",
-        //        "type":"LIMIT",
-        //        "price":"10000",
-        //        "size":"0.001",
-        //        "tif":"GTC",
-        //        "stp_mode":"BOTH",
-        //        "event_type":"NEW",
-        //        "order_status":"WORKING",
-        //        "leaves_qty":"0.001",
-        //        "exec_qty":"0",
-        //        "avg_price":"0",
-        //        "fee":"0"
-        //    }
+        // createOrder, editOrder
         //
-        const marketId = this.safeString (order, 'symbol');
-        const feeCost = this.safeNumber (order, 'fee');
-        let fee: NullableDict = undefined;
-        if (feeCost !== undefined) {
-            fee = {
-                'cost': feeCost,
-            };
+        //     {
+        //         "amount": 21,
+        //         "api": true,
+        //         "average_price": 202.8,
+        //         "creation_timestamp": 1590486335742,
+        //         "direction": "sell",
+        //         "filled_amount": 21,
+        //         "instrument_name": "ETH-PERPETUAL",
+        //         "is_liquidation": false,
+        //         "is_rebalance": false,
+        //         "label": "",
+        //         "last_update_timestamp": 1590486335742,
+        //         "max_show": 21,
+        //         "order_id": "ETH-584864807",
+        //         "order_state": "filled",
+        //         "order_type": "limit",
+        //         "post_only": false,
+        //         "price": 198.75,
+        //         "reduce_only": true,
+        //         "replaced": false,
+        //         "time_in_force": "good_til_cancelled",
+        //         "web": false
+        //     }
+        //
+        // cancelOrder
+        //
+        //     {
+        //         "amount": 5,
+        //         "api": false,
+        //         "creation_timestamp": 1550575961291,
+        //         "direction": "sell",
+        //         "instrument_name": "ETH-PERPETUAL",
+        //         "is_liquidation": false,
+        //         "is_rebalance": false,
+        //         "label": "",
+        //         "last_update_timestamp": 1550575961291,
+        //         "max_show": 5,
+        //         "order_id": "ETH-SLIS-12",
+        //         "order_state": "untriggered",
+        //         "order_type": "stop_market",
+        //         "post_only": false,
+        //         "price": "market_price",
+        //         "reduce_only": false,
+        //         "time_in_force": "good_til_cancelled",
+        //         "trigger": "index_price",
+        //         "trigger_price": 144.73,
+        //         "triggered": false
+        //     }
+        //
+        // fetchOrder, fetchOpenOrders
+        //
+        //     {
+        //         "amount": 37,
+        //         "api": false,
+        //         "average_price": 118.94,
+        //         "creation_timestamp": 1550219749176,
+        //         "direction": "sell",
+        //         "filled_amount": 37,
+        //         "instrument_name": "ETH-PERPETUAL",
+        //         "is_liquidation": false,
+        //         "is_rebalance": false,
+        //         "label": "",
+        //         "last_update_timestamp": 1550219810944,
+        //         "max_show": 37,
+        //         "order_id": "ETH-331562",
+        //         "order_state": "filled",
+        //         "order_type": "limit",
+        //         "post_only": false,
+        //         "price": 118.94,
+        //         "reduce_only": false,
+        //         "time_in_force": "good_til_cancelled"
+        //     }
+        //
+        const instrumentName = this.safeString (order, 'instrument_name');
+        market = this.safeMarket (instrumentName, market);
+        const timestamp = this.safeInteger (order, 'creation_timestamp');
+        const lastUpdateTimestamp = this.safeInteger (order, 'last_update_timestamp');
+        const filled = this.safeNumber (order, 'filled_amount');
+        const amount = this.safeNumber (order, 'amount');
+        let remaining: Num = undefined;
+        if ((filled !== undefined) && (amount !== undefined)) {
+            remaining = amount - filled;
         }
-        const datetime = this.safeString2 (order, 'submit_time', 'event_time');
+        const price = this.safeNumber (order, 'price');
+        const average = this.safeNumber (order, 'average_price');
+        const filledString = this.safeString (order, 'filled_amount');
+        const averageString = this.safeString (order, 'average_price');
+        let cost: Num = undefined;
+        if ((filledString !== undefined) && (averageString !== undefined)) {
+            cost = this.parseNumber (Precise.stringMul (filledString, averageString));
+        }
         return this.safeOrder ({
             'info': order,
             'id': this.safeString (order, 'order_id'),
-            'clientOrderId': this.safeString (order, 'client_order_id'),
-            'timestamp': this.parse8601 (datetime),
-            'datetime': datetime,
-            'lastTradeTimestamp': undefined,
-            'symbol': this.safeSymbol (marketId, market),
-            'type': this.parseOrderType (this.safeString (order, 'type')),
-            'timeInForce': this.safeString (order, 'tif'),
-            'postOnly': undefined,
-            'side': this.safeStringLower (order, 'side'),
-            'price': this.safeString (order, 'price'),
-            'triggerPrice': this.safeString (order, 'stop_price'),
-            'amount': this.safeString (order, 'size'),
-            'filled': this.safeString (order, 'exec_qty'),
-            'remaining': this.safeString (order, 'leaves_qty'),
-            'cost': undefined,
-            'average': this.safeString (order, 'avg_price'),
-            'status': this.parseOrderStatus (this.safeString (order, 'order_status')),
-            'fee': fee,
-            'trades': undefined,
+            'clientOrderId': this.safeString (order, 'label'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': lastUpdateTimestamp,
+            'symbol': market['symbol'],
+            'type': this.parseOrderType (this.safeStringLower (order, 'order_type')),
+            'timeInForce': this.parseTimeInForce (this.safeString (order, 'time_in_force')),
+            'postOnly': this.safeBool (order, 'post_only'),
+            'side': this.safeString (order, 'direction'),
+            'price': price,
+            'triggerPrice': this.safeNumber2 (order, 'trigger_price', 'stop_price'),
+            'amount': amount,
+            'filled': filled,
+            'remaining': remaining,
+            'cost': cost,
+            'average': average,
+            'status': this.parseOrderStatus (this.safeStringLower (order, 'order_state')),
+            'fee': undefined,
+            'trades': this.safeList (order, 'trades'),
         }, market);
+    }
+
+    parseTimeInForce (timeInForce: Str) {
+        const timeInForces: Dict = {
+            'good_til_cancelled': 'GTC',
+            'fill_or_kill': 'FOK',
+            'immediate_or_cancel': 'IOC',
+            'good_til_day': 'GTD',
+        };
+        return this.safeString (timeInForces, timeInForce, timeInForce);
     }
 
     parseOrderStatus (status: Str) {
         const statuses: Dict = {
-            // order_status carries WORKING and DONE; the other keys are event_type
-            // values, which the same payload reports in its own field
-            'WORKING': 'open',
-            'NEW': 'open',
-            'PARTIAL_FILLED': 'open',
-            'FILLED': 'closed',
-            'CANCELED': 'canceled',
-            'REPLACED': 'canceled',
-            'PENDING_CANCEL': 'open',
-            'REJECTED': 'rejected',
-            'PENDING_NEW': 'open',
-            'EXPIRED': 'expired',
-            'PENDING_REPLACE': 'open',
+            'open': 'open',
+            'cancelled': 'canceled',
+            'filled': 'closed',
+            'rejected': 'rejected',
+            'untriggered': 'open',
         };
         return this.safeString (statuses, status, status);
     }
 
     parseOrderType (type: Str) {
-        if (type === 'UNKNOWN_ORDER_TYPE') {
-            return undefined;
-        }
         const types: Dict = {
-            'MARKET': 'market',
-            'LIMIT': 'limit',
-            'STOP': 'limit',
-            'STOP_LIMIT': 'limit',
+            'stop_limit': 'limit',
+            'take_limit': 'limit',
+            'stop_market': 'market',
+            'take_market': 'market',
         };
         return this.safeString (types, (type as string), type);
     }
@@ -1988,7 +2243,7 @@ export default class coinbaseinternational extends Exchange {
      * @method
      * @name coinbaseinternational#cancelOrder
      * @description cancels an open order
-     * @see https://docs.cloud.coinbase.com/intx/reference/cancelorder
+     * @see https://docs.cdp.coinbase.com/api-reference/trading/private-cancel
      * @param {string} id order id
      * @param {string} symbol not used by cancelOrder()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1998,47 +2253,53 @@ export default class coinbaseinternational extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let portfolio: Str = undefined;
-        [ portfolio, params ] = await this.handlePortfolioAndParams ('cancelOrder', params);
         const request: Dict = {
-            'portfolio': portfolio,
-            'id': id,
+            'order_id': id,
         };
         let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const orders = await this.v1PrivateDeleteOrdersId (this.extend (request, params));
+        await this.authenticateV2 ();
+        const response = await this.privateGetCancel (this.extend (request, params));
         //
-        //    {
-        //        "order_id":"1x96skvg-1-0",
-        //        "client_order_id":"ccxt",
-        //        "side":"BUY",
-        //        "instrument_id":"114jqr89-0-0",
-        //        "instrument_uuid":"b3469e0b-222c-4f8a-9f68-1f9e44d7e5e0",
-        //        "symbol":"BTC-PERP",
-        //        "portfolio_id":"1wp37qsc-1-0",
-        //        "portfolio_uuid":"018d7f6c-b92c-7361-8b7e-2932711e5a22",
-        //        "type":"LIMIT",
-        //        "price":"10000",
-        //        "size":"0.001",
-        //        "tif":"GTC",
-        //        "stp_mode":"BOTH",
-        //        "event_type":"CANCELED",
-        //        "order_status":"DONE",
-        //        "leaves_qty":"0.001",
-        //        "exec_qty":"0",
-        //        "avg_price":"0",
-        //        "fee":"0"
-        //    }
+        //     {
+        //         "id": 4214,
+        //         "jsonrpc": "2.0",
+        //         "result": {
+        //             "amount": 5,
+        //             "api": false,
+        //             "creation_timestamp": 1550575961291,
+        //             "direction": "sell",
+        //             "instrument_name": "ETH-PERPETUAL",
+        //             "is_liquidation": false,
+        //             "is_rebalance": false,
+        //             "label": "",
+        //             "last_update_timestamp": 1550575961291,
+        //             "max_show": 5,
+        //             "order_id": "ETH-SLIS-12",
+        //             "order_state": "untriggered",
+        //             "order_type": "stop_market",
+        //             "post_only": false,
+        //             "price": "market_price",
+        //             "reduce_only": false,
+        //             "time_in_force": "good_til_cancelled",
+        //             "trigger": "index_price",
+        //             "trigger_price": 144.73,
+        //             "triggered": false
+        //         }
+        //     }
         //
-        return this.parseOrder (orders, market);
+        const order = this.safeDict (response, 'result', {});
+        return this.parseOrder (order, market);
     }
 
     /**
      * @method
      * @name coinbaseinternational#cancelAllOrders
      * @description cancel all open orders
+     * @see https://docs.cdp.coinbase.com/api-reference/trading/private-cancel_all
+     * @see https://docs.cdp.coinbase.com/api-reference/trading/private-cancel_all_by_instrument
      * @param {string} [symbol] unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
@@ -2047,25 +2308,33 @@ export default class coinbaseinternational extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let portfolio: Str = undefined;
-        [ portfolio, params ] = await this.handlePortfolioAndParams ('cancelAllOrders', params);
-        const request: Dict = {
-            'portfolio': portfolio,
-        };
-        let market: Market = undefined;
-        if ((symbol !== undefined) && (symbol !== '')) {
-            market = this.market (symbol);
-            request['instrument'] = market['id'];
+        let response = undefined;
+        await this.authenticateV2 ();
+        if (symbol !== undefined) {
+            const market = this.market (symbol);
+            const request: Dict = {
+                'instrument_name': market['id'],
+            };
+            response = await this.privateGetCancelAllByInstrument (this.extend (request, params));
+        } else {
+            response = await this.privateGetCancelAll (params);
         }
-        const orders = await this.v1PrivateDeleteOrders (this.extend (request, params));
-        return this.parseOrders (orders, market);
+        //
+        //     {
+        //         "id": 47,
+        //         "jsonrpc": "2.0",
+        //         "result": 4
+        //     }
+        //
+        const order = this.safeOrder ({ 'info': response });
+        return [ order ];
     }
 
     /**
      * @method
      * @name coinbaseinternational#editOrder
      * @description edit a trade order
-     * @see https://docs.cloud.coinbase.com/intx/reference/modifyorder
+     * @see https://docs.cdp.coinbase.com/api-reference/trading/private-edit
      * @param {string} id cancel order id
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit'
@@ -2082,29 +2351,57 @@ export default class coinbaseinternational extends Exchange {
         }
         const market = this.market (symbol);
         const request: Dict = {
-            'id': id,
+            'order_id': id,
         };
-        let portfolio: Str = undefined;
-        [ portfolio, params ] = await this.handlePortfolioAndParams ('editOrder', params);
-        if (portfolio !== undefined) {
-            request['portfolio'] = portfolio;
-        }
         if (amount !== undefined) {
-            request['size'] = this.amountToPrecision (symbol, amount);
+            request['amount'] = this.amountToPrecision (symbol, amount);
         }
         if (price !== undefined) {
             request['price'] = this.priceToPrecision (symbol, price);
         }
         const triggerPrice = this.safeNumberN (params, [ 'stopPrice', 'stop_price', 'triggerPrice' ]);
         if (triggerPrice !== undefined) {
-            request['stop_price'] = triggerPrice;
+            request['trigger_price'] = triggerPrice;
         }
-        const clientOrderId = this.safeString2 (params, 'client_order_id', 'clientOrderId');
-        if (clientOrderId === undefined) {
-            throw new BadRequest (this.id + ' editOrder() requires a clientOrderId parameter');
-        }
-        request['client_order_id'] = clientOrderId;
-        const order = await this.v1PrivatePutOrdersId (this.extend (request, params));
+        params = this.omit (params, [ 'triggerPrice', 'stopPrice', 'stop_price' ]);
+        await this.authenticateV2 ();
+        const response = await this.privateGetEdit (this.extend (request, params));
+        //
+        //     {
+        //         "id": 9,
+        //         "jsonrpc": "2.0",
+        //         "result": {
+        //             "order": {
+        //                 "amount": 150,
+        //                 "api": true,
+        //                 "average_price": 0,
+        //                 "creation_timestamp": 1616155547764,
+        //                 "direction": "buy",
+        //                 "filled_amount": 0,
+        //                 "instrument_name": "BTC-PERPETUAL",
+        //                 "is_liquidation": false,
+        //                 "is_rebalance": false,
+        //                 "label": "i_love_deribit",
+        //                 "last_update_timestamp": 1616155550773,
+        //                 "max_show": 150,
+        //                 "order_id": "94166",
+        //                 "order_state": "open",
+        //                 "order_type": "limit",
+        //                 "post_only": false,
+        //                 "price": 50111,
+        //                 "reduce_only": false,
+        //                 "replaced": true,
+        //                 "time_in_force": "good_til_cancelled",
+        //                 "web": false
+        //             },
+        //             "trades": []
+        //         }
+        //     }
+        //
+        const result = this.safeDict (response, 'result', {});
+        const order = this.safeDict (result, 'order', {});
+        const trades = this.safeList (result, 'trades', []);
+        order['trades'] = trades;
         return this.parseOrder (order, market);
     }
 
@@ -2112,7 +2409,7 @@ export default class coinbaseinternational extends Exchange {
      * @method
      * @name coinbaseinternational#fetchOrder
      * @description fetches information on an order made by the user
-     * @see https://docs.cloud.coinbase.com/intx/reference/modifyorder
+     * @see https://docs.cdp.coinbase.com/api-reference/trading/private-get_order_state
      * @param {string} id the order id
      * @param {string} symbol unified market symbol that the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2126,38 +2423,39 @@ export default class coinbaseinternational extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        let portfolio: Str = undefined;
-        [ portfolio, params ] = await this.handlePortfolioAndParams ('fetchOrder', params);
         const request: Dict = {
-            'id': id,
-            'portfolio': portfolio,
+            'order_id': id,
         };
-        const order = await this.v1PrivateGetOrdersId (this.extend (request, params));
+        await this.authenticateV2 ();
+        const response = await this.privateGetGetOrderState (this.extend (request, params));
         //
-        //    {
-        //        "order_id":"1x96skvg-1-0",
-        //        "client_order_id":"ccxt",
-        //        "side":"BUY",
-        //        "instrument_id":"114jqr89-0-0",
-        //        "instrument_uuid":"b3469e0b-222c-4f8a-9f68-1f9e44d7e5e0",
-        //        "symbol":"BTC-PERP",
-        //        "portfolio_id":"1wp37qsc-1-0",
-        //        "portfolio_uuid":"018d7f6c-b92c-7361-8b7e-2932711e5a22",
-        //        "type":"LIMIT",
-        //        "price":"10000",
-        //        "size":"0.001",
-        //        "tif":"GTC",
-        //        "stp_mode":"BOTH",
-        //        "event_type":"NEW",
-        //        "event_time":"2024-02-14T03:25:14Z",
-        //        "submit_time":"2024-02-14T03:25:13.999Z",
-        //        "order_status":"WORKING",
-        //        "leaves_qty":"0.001",
-        //        "exec_qty":"0",
-        //        "avg_price":"0",
-        //        "fee":"0"
-        //    }
+        //     {
+        //         "id": 4316,
+        //         "jsonrpc": "2.0",
+        //         "result": {
+        //             "amount": 37,
+        //             "api": false,
+        //             "average_price": 118.94,
+        //             "creation_timestamp": 1550219749176,
+        //             "direction": "sell",
+        //             "filled_amount": 37,
+        //             "instrument_name": "ETH-PERPETUAL",
+        //             "is_liquidation": false,
+        //             "is_rebalance": false,
+        //             "label": "",
+        //             "last_update_timestamp": 1550219810944,
+        //             "max_show": 37,
+        //             "order_id": "ETH-331562",
+        //             "order_state": "filled",
+        //             "order_type": "limit",
+        //             "post_only": false,
+        //             "price": 118.94,
+        //             "reduce_only": false,
+        //             "time_in_force": "good_til_cancelled"
+        //         }
+        //     }
         //
+        const order = this.safeDict (response, 'result', {});
         return this.parseOrder (order, market);
     }
 
@@ -2165,7 +2463,7 @@ export default class coinbaseinternational extends Exchange {
      * @method
      * @name coinbaseinternational#fetchOpenOrders
      * @description fetches information on all currently open orders
-     * @see https://docs.cloud.coinbase.com/intx/reference/getorders
+     * @see https://docs.cdp.coinbase.com/api-reference/trading/private-get_open_orders_by_instrument
      * @param {string} symbol unified market symbol of the orders
      * @param {int} [since] timestamp in ms of the earliest order, default is undefined
      * @param {int} [limit] the maximum number of open order structures to retrieve
@@ -2179,72 +2477,48 @@ export default class coinbaseinternational extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let portfolio: Str = undefined;
-        [ portfolio, params ] = await this.handlePortfolioAndParams ('fetchOpenOrders', params);
-        let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOpenOrders', 'paginate');
-        let maxEntriesPerRequest = 100;
-        [ maxEntriesPerRequest, params ] = this.handleOptionAndParams (params, 'fetchOpenOrders', 'maxEntriesPerRequest', maxEntriesPerRequest);
-        const pageKey = 'ccxtPageKey';
-        if (paginate) {
-            return await this.fetchPaginatedCallIncremental ('fetchOpenOrders', symbol, since, limit, params, pageKey, maxEntriesPerRequest) as Order[];
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires a symbol argument');
         }
-        const page = this.safeInteger (params, pageKey, 1) - 1;
-        const offSet = this.safeInteger2 (params, 'offset', 'result_offset', page * maxEntriesPerRequest);
+        const market = this.market (symbol);
         const request: Dict = {
-            'portfolio': portfolio,
-            'result_offset': offSet,
+            'instrument_name': market['id'],
         };
-        let market: Market = undefined;
-        if ((symbol !== undefined) && (symbol !== '')) {
-            market = this.market (symbol);
-            request['instrument'] = symbol;
-        }
         if (limit !== undefined) {
-            if (limit > 100) {
-                throw new BadRequest (this.id + ' fetchOpenOrders() maximum limit is 100');
-            }
-            request['result_limit'] = limit;
+            request['count'] = limit;
         }
-        if (since !== undefined) {
-            request['ref_datetime'] = this.iso8601 (since);
-        }
-        const response = await this.v1PrivateGetOrders (this.extend (request, params));
+        await this.authenticateV2 ();
+        const response = await this.privateGetGetOpenOrdersByInstrument (this.extend (request, params));
         //
-        //    {
-        //        "pagination":{
-        //           "result_limit":25,
-        //           "result_offset":0
-        //        },
-        //        "results":[
-        //           {
-        //              "order_id":"1y4cm6b4-1-0",
-        //              "client_order_id":"ccxtd0dd4b5d-8e5f-",
-        //              "side":"SELL",
-        //              "instrument_id":"114jqr89-0-0",
-        //              "instrument_uuid":"b3469e0b-222c-4f8a-9f68-1f9e44d7e5e0",
-        //              "symbol":"BTC-PERP",
-        //              "portfolio_id":"1wp37qsc-1-0",
-        //              "portfolio_uuid":"018d7f6c-b92c-7361-8b7e-2932711e5a22",
-        //              "type":"LIMIT",
-        //              "price":"54000",
-        //              "size":"0.01",
-        //              "tif":"GTC",
-        //              "stp_mode":"BOTH",
-        //              "event_type":"NEW",
-        //              "event_time":"2024-02-24T16:46:37.413Z",
-        //              "submit_time":"2024-02-24T16:46:37.412Z",
-        //              "order_status":"WORKING",
-        //              "leaves_qty":"0.01",
-        //              "exec_qty":"0",
-        //              "avg_price":"0",
-        //              "fee":"0"
-        //           },
-        //           ...
-        //        ]
-        //    }
+        //     {
+        //         "id": 1953,
+        //         "jsonrpc": "2.0",
+        //         "result": [
+        //             {
+        //                 "amount": 10,
+        //                 "api": true,
+        //                 "average_price": 0,
+        //                 "creation_timestamp": 1550050597036,
+        //                 "direction": "buy",
+        //                 "filled_amount": 0,
+        //                 "instrument_name": "BTC-15FEB19-3250-P",
+        //                 "is_liquidation": false,
+        //                 "is_rebalance": false,
+        //                 "label": "fooBar",
+        //                 "last_update_timestamp": 1550050597036,
+        //                 "max_show": 10,
+        //                 "order_id": "146062",
+        //                 "order_state": "open",
+        //                 "order_type": "limit",
+        //                 "post_only": false,
+        //                 "price": 0.0028,
+        //                 "reduce_only": false,
+        //                 "time_in_force": "good_til_cancelled"
+        //             }
+        //         ]
+        //     }
         //
-        const rawOrders = this.safeList (response, 'results', []);
+        const rawOrders = this.safeList (response, 'result', []);
         return this.parseOrders (rawOrders, market, since, limit);
     }
 
@@ -2252,7 +2526,7 @@ export default class coinbaseinternational extends Exchange {
      * @method
      * @name coinbaseinternational#fetchMyTrades
      * @description fetch all trades made by the user
-     * @see https://docs.cloud.coinbase.com/intx/reference/getmultiportfoliofills
+     * @see https://docs.cdp.coinbase.com/api-reference/trading/private-get_user_trades_by_instrument
      * @param {string} symbol unified market symbol of the trades
      * @param {int} [since] timestamp in ms of the earliest order, default is undefined
      * @param {int} [limit] the maximum number of trade structures to fetch
@@ -2265,186 +2539,310 @@ export default class coinbaseinternational extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate');
-        const pageKey = 'ccxtPageKey';
-        let maxEntriesPerRequest = 100;
-        [ maxEntriesPerRequest, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'maxEntriesPerRequest', maxEntriesPerRequest);
-        if (paginate) {
-            return await this.fetchPaginatedCallIncremental ('fetchMyTrades', symbol, since, limit, params, pageKey, maxEntriesPerRequest) as Trade[];
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
         }
-        let market: Market = undefined;
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-        }
-        const page = this.safeInteger (params, pageKey, 1) - 1;
-        const offSet = this.safeInteger2 (params, 'offset', 'result_offset', page * maxEntriesPerRequest);
+        const market = this.market (symbol);
         const request: Dict = {
-            'result_offset': offSet,
+            'instrument_name': market['id'],
+            'include_old': true,
         };
         if (limit !== undefined) {
-            if (limit > 100) {
-                throw new BadRequest (this.id + ' fetchMyTrades() maximum limit is 100. Consider setting paginate to true to fetch more trades.');
-            }
-            request['result_limit'] = limit;
+            request['count'] = limit;
         }
-        if (since !== undefined) {
-            request['time_from'] = this.iso8601 (since);
-        }
-        const until = this.safeString (params, 'until');
-        if (until !== undefined) {
-            params = this.omit (params, [ 'until' ]);
-            request['ref_datetime'] = this.iso8601 (until);
-        }
-        const response = await this.v1PrivateGetPortfoliosFills (this.extend (request, params));
+        await this.authenticateV2 ();
+        const response = await this.privateGetGetUserTradesByInstrument (this.extend (request, params));
         //
-        //    {
-        //        "pagination":{
-        //           "result_limit":25,
-        //           "result_offset":0
-        //        },
-        //        "results":[
-        //           {
-        //              "portfolio_id":"1wp37qsc-1-0",
-        //              "portfolio_uuid":"018d7f6c-b92c-7361-8b7e-2932711e5a22",
-        //              "portfolio_name":"CCXT Portfolio 020624-17:16",
-        //              "fill_id":"1xbfy19y-1-184",
-        //              "exec_id":"280841526207070392",
-        //              "order_id":"1xbfv8yw-1-0",
-        //              "instrument_id":"114jqr89-0-0",
-        //              "instrument_uuid":"b3469e0b-222c-4f8a-9f68-1f9e44d7e5e0",
-        //              "symbol":"BTC-PERP",
-        //              "match_id":"280841526207053840",
-        //              "fill_price":"52500",
-        //              "fill_qty":"0.01",
-        //              "client_id":"1x59ctku-1-1",
-        //              "client_order_id":"ccxt3e4e2a5f-4a89-",
-        //              "order_qty":"0.01",
-        //              "limit_price":"52500",
-        //              "total_filled":"0.01",
-        //              "filled_vwap":"52500",
-        //              "expire_time":"",
-        //              "stop_price":"",
-        //              "side":"BUY",
-        //              "tif":"GTC",
-        //              "stp_mode":"BOTH",
-        //              "flags":"",
-        //              "fee":"0.105",
-        //              "fee_asset":"USDC",
-        //              "order_status":"DONE",
-        //              "event_time":"2024-02-15T00:43:57.631Z"
-        //           },
-        //        ]
-        //    }
+        //     {
+        //         "id": 9292,
+        //         "jsonrpc": "2.0",
+        //         "result": {
+        //             "has_more": false,
+        //             "trades": [
+        //                 {
+        //                     "amount": 1,
+        //                     "direction": "sell",
+        //                     "fee": 0.0004,
+        //                     "fee_currency": "BTC",
+        //                     "index_price": 8993.47,
+        //                     "instrument_name": "BTC-27MAY20-8750-C",
+        //                     "iv": 38.51,
+        //                     "liquidity": "M",
+        //                     "mark_price": 0.03135383,
+        //                     "matching_id": null,
+        //                     "order_id": "4008699030",
+        //                     "order_type": "limit",
+        //                     "post_only": false,
+        //                     "price": 0.028,
+        //                     "reduce_only": false,
+        //                     "state": "filled",
+        //                     "tick_direction": 1,
+        //                     "timestamp": 1590480620145,
+        //                     "trade_id": "48078936",
+        //                     "trade_seq": 1,
+        //                     "underlying_price": 8994.95
+        //                 },
+        //                 {
+        //                     "amount": 10,
+        //                     "direction": "buy",
+        //                     "fee": -2.1e-7,
+        //                     "fee_currency": "BTC",
+        //                     "index_price": 9679.48,
+        //                     "instrument_name": "BTC-26JUN20",
+        //                     "liquidity": "M",
+        //                     "mark_price": 9684,
+        //                     "matching_id": null,
+        //                     "order_id": "3993343822",
+        //                     "order_type": "limit",
+        //                     "post_only": false,
+        //                     "price": 9681.5,
+        //                     "reduce_only": false,
+        //                     "state": "filled",
+        //                     "tick_direction": 2,
+        //                     "timestamp": 1589923311862,
+        //                     "trade_id": "47958936",
+        //                     "trade_seq": 299513
+        //                 }
+        //             ]
+        //         }
+        //     }
         //
-        const trades = this.safeList (response, 'results', []);
+        const result = this.safeDict (response, 'result', {});
+        const trades = this.safeList (result, 'trades', []);
         return this.parseTrades (trades, market, since, limit);
     }
 
-    /**
-     * @method
-     * @name coinbaseinternational#withdraw
-     * @description make a withdrawal
-     * @see https://docs.cloud.coinbase.com/intx/reference/withdraw
-     * @see https://docs.cloud.coinbase.com/intx/reference/counterpartywithdraw
-     * @param {string} code unified currency code
-     * @param {float} amount the amount to withdraw
-     * @param {string} address the address to withdraw to
-     * @param {string} [tag] an optional tag for the withdrawal
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.add_network_fee_to_total] if true, deducts network fee from the portfolio, otherwise deduct fee from the withdrawal
-     * @param {string} [params.network_arn_id] Identifies the blockchain network (e.g., networks/ethereum-mainnet/assets/313ef8a9-ae5a-5f2f-8a56-572c0e2a4d5a)
-     * @param {string} [params.nonce] a unique integer representing the withdrawal request
-     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
-     */
-    override async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params = {}): Promise<Transaction> {
-        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
-        this.checkAddress (address);
-        if (this.markets === undefined) {
-            await this.loadMarkets ();
+    override parseTrade (trade: Dict, market: Market = undefined): Trade {
+        //
+        // fetchMyTrades
+        //
+        //     {
+        //         "amount": 1,
+        //         "direction": "sell",
+        //         "fee": 0.0004,
+        //         "fee_currency": "BTC",
+        //         "index_price": 8993.47,
+        //         "instrument_name": "BTC-27MAY20-8750-C",
+        //         "iv": 38.51,
+        //         "liquidity": "M",
+        //         "mark_price": 0.03135383,
+        //         "matching_id": null,
+        //         "order_id": "4008699030",
+        //         "order_type": "limit",
+        //         "post_only": false,
+        //         "price": 0.028,
+        //         "reduce_only": false,
+        //         "state": "filled",
+        //         "tick_direction": 1,
+        //         "timestamp": 1590480620145,
+        //         "trade_id": "48078936",
+        //         "trade_seq": 1,
+        //         "underlying_price": 8994.95
+        //     },
+        //     {
+        //         "amount": 10,
+        //         "direction": "buy",
+        //         "fee": -2.1e-7,
+        //         "fee_currency": "BTC",
+        //         "index_price": 9679.48,
+        //         "instrument_name": "BTC-26JUN20",
+        //         "liquidity": "M",
+        //         "mark_price": 9684,
+        //         "matching_id": null,
+        //         "order_id": "3993343822",
+        //         "order_type": "limit",
+        //         "post_only": false,
+        //         "price": 9681.5,
+        //         "reduce_only": false,
+        //         "state": "filled",
+        //         "tick_direction": 2,
+        //         "timestamp": 1589923311862,
+        //         "trade_id": "47958936",
+        //         "trade_seq": 299513
+        //     }
+        //
+        const instrumentName = this.safeString (trade, 'instrument_name');
+        market = this.safeMarket (instrumentName, market);
+        const timestamp = this.safeInteger (trade, 'timestamp');
+        const price = this.safeNumber (trade, 'price');
+        const amount = this.safeNumber (trade, 'amount');
+        const amountString = this.safeString (trade, 'amount');
+        const priceString = this.safeString (trade, 'price');
+        let cost: Num = undefined;
+        if ((amountString !== undefined) && (priceString !== undefined)) {
+            cost = this.parseNumber (Precise.stringMul (amountString, priceString));
         }
-        const currency = this.currency (code);
-        let portfolio: Str = undefined;
-        [ portfolio, params ] = await this.handlePortfolioAndParams ('withdraw', params);
-        let method: Str = undefined;
-        [ method, params ] = this.handleOptionAndParams (params, 'withdraw', 'method', 'v1PrivatePostTransfersWithdraw');
-        let networkId: Str | Dict = undefined;
-        [ networkId, params ] = await this.handleNetworkIdAndParams (code, 'withdraw', params);
-        const request: Dict = {
-            'portfolio': portfolio,
-            'type': 'send',
-            'asset': currency['id'],
-            'address': address,
-            'amount': amount,
-            'currency': currency['id'],
-            'network_arn_id': networkId,
-            'nonce': this.nonce (),
+        const feeCurrencyId = this.safeString (trade, 'fee_currency');
+        const feeCurrency = this.safeCurrencyCode (feeCurrencyId);
+        const fee = {
+            'cost': this.safeNumber (trade, 'fee'),
+            'currency': feeCurrency,
         };
-        let response = undefined;
-        if (method === 'v1PrivatePostTransfersWithdrawCounterparty') {
-            response = await this.v1PrivatePostTransfersWithdrawCounterparty (this.extend (request, params));
-        } else {
-            response = await this.v1PrivatePostTransfersWithdraw (this.extend (request, params));
-        }
-        //
-        //    {
-        //        "idem":"8e471d77-4208-45a8-9e5b-f3bd8a2c1fc3"
-        //    }
-        //
-        return this.parseTransaction (response, currency);
+        return this.safeTrade ({
+            'info': trade,
+            'id': this.safeString (trade, 'trade_id'),
+            'order': this.safeString (trade, 'order_id'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': market['symbol'],
+            'type': this.safeString (trade, 'order_type'),
+            'side': this.safeString (trade, 'direction'),
+            'takerOrMaker': undefined,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'fee': fee,
+        }, market);
     }
 
-    override sign (path: any, api: any = [], method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
-        const version = api[0];
-        const signed = api[1] === 'private';
-        let fullPath = '/' + version + '/' + this.implodeParams (path, params);
-        const query = this.omit (params, this.extractParams (path));
-        const savedPath = '/api' + fullPath;
-        if (method === 'GET' || method === 'DELETE') {
-            if (Object.keys (query).length > 0) {
-                fullPath += '?' + this.urlencodeWithArrayRepeat (query);
+    createAuthToken (seconds: Int, method: Str = undefined, url: Str = undefined, useEddsa = false) {
+        let uri: Str = undefined;
+        if (url !== undefined) {
+            uri = method + ' ' + url.replace ('https://', '');
+            const questionMarkPosition = uri.indexOf ('?');
+            if (questionMarkPosition > 0) {
+                uri = uri.slice (0, questionMarkPosition);
             }
         }
-        const url = this.urls['api']['rest'] + fullPath;
-        if (signed) {
-            this.checkRequiredCredentials ();
-            const nonce = this.nonce ().toString ();
-            let payload = '';
-            if (method !== 'GET') {
-                if (Object.keys (query).length > 0) {
-                    body = this.json (query);
-                    payload = body;
-                }
+        const nonce = this.randomBytes (16);
+        const issuer = 'cdp';
+        let audience: Str = undefined;
+        if (useEddsa) {
+            audience = 'cdp_service';
+        }
+        const request: Dict = {
+            'iss': issuer,
+            'nbf': seconds,
+            'exp': (seconds as number) + 120,
+            'sub': this.apiKey,
+            'iat': seconds,
+        };
+        if (audience !== undefined) {
+            request['aud'] = [ audience ];
+        }
+        if (uri !== undefined) {
+            if (useEddsa) {
+                request['uris'] = [ uri ];
+            } else {
+                request['uri'] = uri;
             }
-            const auth = nonce + method + savedPath + payload;
-            const signature = this.hmac (this.encode (auth), this.base64ToBinary (this.secret), sha256, 'base64');
+        }
+        if (useEddsa) {
+            const byteArray = this.base64ToBinary (this.secret);
+            const seed = this.arraySlice (byteArray, 0, 32);
+            const signedToken = jwt (request, seed, sha256, false, { 'kid': this.apiKey, 'nonce': nonce, 'alg': 'EdDSA' });
+            return signedToken;
+        }
+        const header = {
+            'alg': 'ES256',
+            'typ': 'JWT',
+            'kid': this.apiKey,
+            'nonce': nonce,
+        };
+        const encodedHeader = this.urlencodeBase64 (this.json (header));
+        const encodedRequest = this.urlencodeBase64 (this.json (request));
+        const token = encodedHeader + '.' + encodedRequest;
+        const signedHash = ecdsa (token, this.secret, p256, sha256);
+        const rawR = signedHash['r'];
+        const rawS = signedHash['s'];
+        const r = rawR.padStart (64, '0');
+        const s = rawS.padStart (64, '0');
+        const signature = this.urlencodeBase64 (this.base16ToBinary (r + s));
+        return token + '.' + signature;
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @description exchanges a CDP JWT for a Deribit gateway access token
+     * @see https://docs.cdp.coinbase.com/coinbase-app/advanced-trade-apis/guides/derivatives/technical#authentication
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {string} a Deribit gateway access token
+     */
+    async authenticateV2 (params = {}): Promise<string> {
+        const now = this.milliseconds ();
+        const token = this.token;
+        const tokenExpires = this.safeInteger (this.options, 'v2TokenExpires');
+        if ((token !== undefined) && (tokenExpires !== undefined) && (now < tokenExpires)) {
+            return token;
+        }
+        const response = await this.publicPostAuth (params);
+        const result = this.safeDict (response, 'result', {});
+        const accessToken = this.safeString (result, 'access_token');
+        const expiresIn = this.safeInteger (result, 'expires_in');
+        if (accessToken === undefined) {
+            throw new AuthenticationError (this.id + ' public/auth did not return an access token');
+        }
+        if (expiresIn === undefined) {
+            throw new AuthenticationError (this.id + ' public/auth did not return an expiry');
+        }
+        const tokenExpiresInMilliseconds = expiresIn * 1000;
+        this.token = accessToken;
+        this.options['v2TokenExpires'] = this.sum (now, tokenExpiresInMilliseconds);
+        return accessToken;
+    }
+
+    override sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+        const access = api;
+        const rpcMethod = access + '/' + path;
+        const url = this.urls['api']['rest'];
+        if ((access === 'public') && (path === 'auth')) {
+            this.checkRequiredCredentials ();
+            const seconds = this.seconds ();
+            const useV2CloudApiKey = this.safeBool (this.options, 'v2CloudAPiKey', false);
+            const secretIsPem = this.secret.startsWith ('-----BEGIN');
+            const secretEndsWithEquals = this.secret.endsWith ('=');
+            let useEddsa = false;
+            if (!secretIsPem && ((this.secret.length === 88) || useV2CloudApiKey || secretEndsWithEquals)) {
+                useEddsa = true;
+            }
+            const authUrl = this.urls['api']['rest'];
+            params = this.extend ({
+                'grant_type': 'coinbase_cdp',
+                'token': this.createAuthToken (seconds, method, authUrl, useEddsa),
+            }, params);
+        } else if (access === 'private') {
+            if ((this.token === undefined) || (this.token === '')) {
+                throw new AuthenticationError (this.id + ' requires an access token from public/auth');
+            }
             headers = {
-                'CB-ACCESS-TIMESTAMP': nonce,
-                'CB-ACCESS-SIGN': signature,
-                'CB-ACCESS-PASSPHRASE': this.password,
-                'CB-ACCESS-KEY': this.apiKey,
+                'Authorization': 'Bearer ' + this.token,
             };
         }
+        if (method === 'GET') {
+            let requestUrl = url + '/' + rpcMethod;
+            if (Object.keys (params).length > 0) {
+                requestUrl += '?' + this.urlencode (params);
+            }
+            return { 'url': requestUrl, 'method': method, 'body': body, 'headers': headers };
+        }
+        const request = {
+            'jsonrpc': '2.0',
+            'id': this.nonce (),
+            'method': rpcMethod,
+            'params': params,
+        };
+        body = this.json (request);
+        headers = this.extend ({ 'Content-Type': 'application/json' }, headers);
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
     override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
         //
-        //    {
-        //        "title":"io.javalin.http.BadRequestResponse: Order rejected (DUPLICATE_CLIENT_ORDER_ID - duplicate client order id detected)",
-        //        "status":400
-        //    }
+        //     { "jsonrpc": "2.0", "id": 1, "error": { "code": 13004, "message": "invalid_credentials" } }
         //
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }
-        const feedback = this.id + ' ' + body;
-        const errMsg = this.safeString (response, 'title');
-        if (errMsg !== undefined) {
-            this.throwExactlyMatchedException (this.exceptions['exact'], errMsg, feedback);
-            this.throwBroadlyMatchedException (this.exceptions['broad'], errMsg, feedback);
-            throw new ExchangeError (feedback);
+        const error = this.safeDict (response, 'error');
+        if (error === undefined) {
+            return undefined;
         }
-        return undefined;
+        const errorCode = this.safeString (error, 'code');
+        const errorMessage = this.safeString (error, 'message');
+        const feedback = this.id + ' ' + body;
+        this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
+        this.throwBroadlyMatchedException (this.exceptions['broad'], errorMessage, feedback);
+        throw new ExchangeError (feedback);
     }
 }
