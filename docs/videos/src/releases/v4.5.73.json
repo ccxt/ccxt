@@ -1,0 +1,38 @@
+{
+  "tag": "v4.5.73",
+  "previous": "v4.5.72",
+  "date": "2026-08-11",
+  "url": "https://github.com/ccxt/ccxt/releases/tag/v4.5.73",
+  "stats": {
+    "prs": 1,
+    "exchanges": 1,
+    "contributors": 1,
+    "newContributors": []
+  },
+  "highlights": [
+    {
+      "kind": "fix",
+      "title": "Binance streams, unstuck",
+      "detail": "watchOrderBook no longer stalls when spot and swap share a market id",
+      "prs": [
+        29762
+      ],
+      "visual": {
+        "type": "code",
+        "lines": [
+          "// BTCUSDT is both a spot and a swap id",
+          "before  first match wins, wrong symbol",
+          "after   type read from the stream URL"
+        ]
+      }
+    }
+  ],
+  "changes": [
+    {
+      "pr": 29762,
+      "kind": "fix",
+      "scope": "binance",
+      "title": "watchOrderBook market resolving"
+    }
+  ]
+}

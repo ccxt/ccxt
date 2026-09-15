@@ -1,0 +1,553 @@
+{
+  "tag": "v4.5.76",
+  "previous": "v4.5.75",
+  "date": "2026-08-26",
+  "url": "https://github.com/ccxt/ccxt/releases/tag/v4.5.76",
+  "stats": {
+    "prs": 75,
+    "exchanges": 23,
+    "contributors": 12,
+    "newContributors": [
+      "factec-kyle",
+      "huiboxes",
+      "akshaykumarhudedmani"
+    ]
+  },
+  "highlights": [
+    {
+      "kind": "feat",
+      "title": "Official CCXT MCP server",
+      "detail": "Give any AI agent 100+ exchanges and prediction markets",
+      "prs": [
+        29277
+      ],
+      "visual": {
+        "type": "command",
+        "text": "claude mcp add ccxt -- npx -y ccxt-mcp"
+      }
+    },
+    {
+      "kind": "perf",
+      "title": "Faster order books and math",
+      "detail": "Tuned across JS, Python, Go, C# and Java",
+      "prs": [
+        30048,
+        30024,
+        30043,
+        30089,
+        30090
+      ],
+      "visual": {
+        "type": "metrics",
+        "items": [
+          {
+            "value": "3.3×",
+            "label": "JS order book updates"
+          },
+          {
+            "value": "1.28×",
+            "label": "Python Precise math"
+          }
+        ]
+      }
+    },
+    {
+      "kind": "fix",
+      "title": "Race-free WebSocket login",
+      "detail": "Parallel watch calls now share one auth request",
+      "prs": [
+        29993,
+        29994,
+        29997,
+        29996,
+        30000,
+        29999,
+        29995,
+        29998
+      ],
+      "visual": {
+        "type": "chips",
+        "items": [
+          "LBank",
+          "Bitstamp",
+          "XT",
+          "Kraken",
+          "WhiteBIT",
+          "Bitrue",
+          "HashKey",
+          "DeepCoin"
+        ]
+      }
+    },
+    {
+      "kind": "core",
+      "title": "Typed C# cores",
+      "detail": "Plus one PHP fiber per HTTP call, down from three",
+      "prs": [
+        30066,
+        30039
+      ],
+      "visual": {
+        "type": "code",
+        "lines": [
+          "// before",
+          "Task<object> createOrder(object amount, …)",
+          "// after",
+          "Task<Order> createOrder(double amount, …)"
+        ]
+      }
+    }
+  ],
+  "changes": [
+    {
+      "pr": 29993,
+      "kind": "fix",
+      "scope": "lbank",
+      "title": "single-flight subscribeKey authenticate (refs #29393)"
+    },
+    {
+      "pr": 29994,
+      "kind": "fix",
+      "scope": "bitstamp",
+      "title": "single-flight websocket token authenticate (refs #29393)"
+    },
+    {
+      "pr": 29997,
+      "kind": "fix",
+      "scope": "xt",
+      "title": "single-flight listen key acquisition (refs #29393)"
+    },
+    {
+      "pr": 29996,
+      "kind": "fix",
+      "scope": "kraken",
+      "title": "single-flight websockets token authenticate (refs #29393)"
+    },
+    {
+      "pr": 30000,
+      "kind": "fix",
+      "scope": "whitebit",
+      "title": "single-flight websocket token authenticate (refs #29393)"
+    },
+    {
+      "pr": 29999,
+      "kind": "fix",
+      "scope": "bitrue",
+      "title": "single-flight listenKey authenticate (refs #29393)"
+    },
+    {
+      "pr": 29995,
+      "kind": "fix",
+      "scope": "hashkey",
+      "title": "single-flight listenKey authenticate (refs #29393)"
+    },
+    {
+      "pr": 30013,
+      "kind": "fix",
+      "scope": "tokocrypto",
+      "title": "route fetchTrades by symbol type and await the open/v1 response"
+    },
+    {
+      "pr": 30011,
+      "kind": "fix",
+      "scope": "bingx",
+      "title": "correct fetchTrades limits"
+    },
+    {
+      "pr": 29998,
+      "kind": "fix",
+      "scope": "deepcoin",
+      "title": "single-flight listenKey authenticate (refs #29393)"
+    },
+    {
+      "pr": 30016,
+      "kind": "fix",
+      "scope": "bybit",
+      "title": "anchor fetchOpenInterestHistory window when only since is given"
+    },
+    {
+      "pr": 30015,
+      "kind": "fix",
+      "scope": "bithumb",
+      "title": "remove incorrect ALT -> ArchLoot commonCurrencies mapping"
+    },
+    {
+      "pr": 30018,
+      "kind": "fix",
+      "scope": "gate",
+      "title": "convert since to seconds in fetchOpenInterestHistory"
+    },
+    {
+      "pr": 30020,
+      "kind": "chore",
+      "scope": null,
+      "title": "fix wiki-pushback"
+    },
+    {
+      "pr": 30021,
+      "kind": "fix",
+      "scope": "bingx",
+      "title": "reject unsupported Coin-M fetchTrades"
+    },
+    {
+      "pr": 30026,
+      "kind": "fix",
+      "scope": "bingx",
+      "title": "correct Coin-M open interest"
+    },
+    {
+      "pr": 30024,
+      "kind": "perf",
+      "scope": null,
+      "title": "python Precise"
+    },
+    {
+      "pr": 30025,
+      "kind": "docs",
+      "scope": "blog",
+      "title": "add \"Front-running the S-1\" Anthropic-IPO prediction-markets post"
+    },
+    {
+      "pr": 30012,
+      "kind": "fix",
+      "scope": "upbit",
+      "title": "do not default unknown order side to sell"
+    },
+    {
+      "pr": 29277,
+      "kind": "feat",
+      "scope": "mcp",
+      "title": "official CCXT MCP server"
+    },
+    {
+      "pr": 30029,
+      "kind": "chore",
+      "scope": "deps",
+      "title": "bump hono from 4.12.31 to 4.13.3 in /mcp"
+    },
+    {
+      "pr": 29647,
+      "kind": "chore",
+      "scope": "go",
+      "title": "trampoline async cores so Promise.all fans out like the C#/Java ports"
+    },
+    {
+      "pr": 30040,
+      "kind": "fix",
+      "scope": "java",
+      "title": "bump msgpack-core to 0.9.12 (CVE-2026-21452)"
+    },
+    {
+      "pr": 30039,
+      "kind": "chore",
+      "scope": "php",
+      "title": "one fiber per HTTP call (3 → 1) — collapse fetch2 and fetch"
+    },
+    {
+      "pr": 30030,
+      "kind": "chore",
+      "scope": "deps",
+      "title": "bump undici and ccxt in /mcp"
+    },
+    {
+      "pr": 30033,
+      "kind": "fix",
+      "scope": "whitebit",
+      "title": "parse TradFi futures as swaps"
+    },
+    {
+      "pr": 30032,
+      "kind": "chore",
+      "scope": "deps",
+      "title": "bump @hono/node-server from 1.19.14 to 1.19.17 in /mcp"
+    },
+    {
+      "pr": 30035,
+      "kind": "chore",
+      "scope": "deps",
+      "title": "bump fast-uri from 3.1.4 to 3.1.5 in /mcp"
+    },
+    {
+      "pr": 30031,
+      "kind": "chore",
+      "scope": "deps",
+      "title": "bump ip-address from 10.2.0 to 10.5.0 in /mcp"
+    },
+    {
+      "pr": 30034,
+      "kind": "fix",
+      "scope": "bingx",
+      "title": "parse position liquidation price"
+    },
+    {
+      "pr": 30023,
+      "kind": "fix",
+      "scope": "bingx",
+      "title": "parse Coin-M funding rate response"
+    },
+    {
+      "pr": 29975,
+      "kind": "fix",
+      "scope": "blofin",
+      "title": "order cost is the quote volume, not the margin"
+    },
+    {
+      "pr": 29948,
+      "kind": "fix",
+      "scope": "bingx",
+      "title": "ignore account updates without positions"
+    },
+    {
+      "pr": 30041,
+      "kind": "chore",
+      "scope": "go",
+      "title": "type wrapper optional locals and core body locals from TypeScript"
+    },
+    {
+      "pr": 30049,
+      "kind": "fix",
+      "scope": "pro",
+      "title": "js indexed order book side builds holes from no-op deltas"
+    },
+    {
+      "pr": 30048,
+      "kind": "perf",
+      "scope": "pro",
+      "title": "js order book side shift without copyWithin -3.3x"
+    },
+    {
+      "pr": 30053,
+      "kind": "feat",
+      "scope": "cs",
+      "title": "type wrapper optional scalar locals from TypeScript"
+    },
+    {
+      "pr": 30065,
+      "kind": "fix",
+      "scope": "paradex",
+      "title": "read reduceOnly from the flags array in parseOrder"
+    },
+    {
+      "pr": 30028,
+      "kind": "feat",
+      "scope": "benchmarks",
+      "title": "cross-language performance benchmark + blog post"
+    },
+    {
+      "pr": 30076,
+      "kind": "fix",
+      "scope": "bingx",
+      "title": "reject unsupported Coin-M leverage tiers"
+    },
+    {
+      "pr": 30068,
+      "kind": "fix",
+      "scope": "bingx",
+      "title": "reject unsupported Coin-M position mode"
+    },
+    {
+      "pr": 30069,
+      "kind": "fix",
+      "scope": "paradex",
+      "title": "omit zero trigger_price in parseOrder"
+    },
+    {
+      "pr": 30080,
+      "kind": "fix",
+      "scope": "typescript",
+      "title": "remove truth coercion"
+    },
+    {
+      "pr": 29798,
+      "kind": "perf",
+      "scope": "js",
+      "title": "getValueFromKeysInArray optimization"
+    },
+    {
+      "pr": 29804,
+      "kind": "perf",
+      "scope": null,
+      "title": "check string first"
+    },
+    {
+      "pr": 29806,
+      "kind": "perf",
+      "scope": null,
+      "title": "undefined optimization in type"
+    },
+    {
+      "pr": 30088,
+      "kind": "fix",
+      "scope": "bingx",
+      "title": "restrict position close by id to linear"
+    },
+    {
+      "pr": 30098,
+      "kind": "fix",
+      "scope": "p2b",
+      "title": "read errorCode from response root in handleErrors"
+    },
+    {
+      "pr": 30043,
+      "kind": "perf",
+      "scope": "go",
+      "title": "precise reorganization"
+    },
+    {
+      "pr": 30089,
+      "kind": "perf",
+      "scope": "c#",
+      "title": "precise optimization (c)"
+    },
+    {
+      "pr": 30090,
+      "kind": "perf",
+      "scope": "java",
+      "title": "precise optimization (c)"
+    },
+    {
+      "pr": 30093,
+      "kind": "fix",
+      "scope": "btse",
+      "title": "derive ticker percentage instead of using the raw ratio field"
+    },
+    {
+      "pr": 30066,
+      "kind": "feat",
+      "scope": "cs",
+      "title": "type the generated C# cores (incl. createOrder -> Task<Order>) and their parameters"
+    },
+    {
+      "pr": 30082,
+      "kind": "chore",
+      "scope": "ts",
+      "title": "require boolean conditions via strict-boolean-expressions"
+    },
+    {
+      "pr": 30084,
+      "kind": "fix",
+      "scope": "krakenfutures",
+      "title": "raise ExchangeNotAvailable on degraded fetchPositions response"
+    },
+    {
+      "pr": 30059,
+      "kind": "fix",
+      "scope": "xt",
+      "title": "support postOnly orders via timeInForce GTX"
+    },
+    {
+      "pr": 30111,
+      "kind": "chore",
+      "scope": "js",
+      "title": "persist emitAPI abstracts on master auto-commit"
+    },
+    {
+      "pr": 30083,
+      "kind": "fix",
+      "scope": null,
+      "title": "bitget parseUtaBalance fix"
+    },
+    {
+      "pr": 30110,
+      "kind": "feat",
+      "scope": "cs",
+      "title": "fold watch* Copy into cores and drop leftover wrappers"
+    },
+    {
+      "pr": 30112,
+      "kind": "docs",
+      "scope": null,
+      "title": "remove status page from docs site and sidebar"
+    },
+    {
+      "pr": 30099,
+      "kind": "fix",
+      "scope": "p2b",
+      "title": "map min_total to market limits.cost"
+    },
+    {
+      "pr": 30097,
+      "kind": "fix",
+      "scope": "pacifica",
+      "title": "resolve order symbol in parseOrder and return latest order state from fetchOrder"
+    },
+    {
+      "pr": 30101,
+      "kind": "fix",
+      "scope": "alpaca",
+      "title": "declare limits.cost.min of 10 for USD-quoted crypto markets"
+    },
+    {
+      "pr": 30096,
+      "kind": "fix",
+      "scope": "paradex",
+      "title": "expose liquidation_price in parsePosition"
+    },
+    {
+      "pr": 30070,
+      "kind": "fix",
+      "scope": "bingx",
+      "title": "normalize leverage side"
+    },
+    {
+      "pr": 30115,
+      "kind": "fix",
+      "scope": "xt",
+      "title": "satisfy strict-boolean-expressions lint on postOnly checks"
+    },
+    {
+      "pr": 30103,
+      "kind": "fix",
+      "scope": "alpaca",
+      "title": "classify error 40310000 by message, not by code"
+    },
+    {
+      "pr": 30064,
+      "kind": "fix",
+      "scope": "tokocrypto",
+      "title": "read market margin flag from marginTradingEnable"
+    },
+    {
+      "pr": 30091,
+      "kind": "fix",
+      "scope": "bingx",
+      "title": "reject unsupported Coin-M createOrders"
+    },
+    {
+      "pr": 30102,
+      "kind": "fix",
+      "scope": "alpaca",
+      "title": "fetchTickers without symbols defaults to all markets"
+    },
+    {
+      "pr": 30100,
+      "kind": "fix",
+      "scope": "alpaca",
+      "title": "fetchOHLCV since sent day-truncated, intraday ranges return empty"
+    },
+    {
+      "pr": 30118,
+      "kind": "fix",
+      "scope": "bingx",
+      "title": "satisfy strict-boolean-expressions lint on the inverse market check"
+    },
+    {
+      "pr": 30116,
+      "kind": "feat",
+      "scope": "transpiler",
+      "title": "basetests only transpilation"
+    },
+    {
+      "pr": 30126,
+      "kind": "fix",
+      "scope": "binance",
+      "title": "drop 'stock' from default fetchMarkets types"
+    },
+    {
+      "pr": 30127,
+      "kind": "fix",
+      "scope": "bybit",
+      "title": "increase paginationCalls in fetchLeveragetiers"
+    }
+  ]
+}

@@ -1,0 +1,349 @@
+{
+  "tag": "v4.5.75",
+  "previous": "v4.5.74",
+  "date": "2026-08-21",
+  "url": "https://github.com/ccxt/ccxt/releases/tag/v4.5.75",
+  "stats": {
+    "prs": 41,
+    "exchanges": 13,
+    "contributors": 10,
+    "newContributors": [
+      "shuxue6662-a11y",
+      "official-burak"
+    ]
+  },
+  "highlights": [
+    {
+      "kind": "perf",
+      "title": "Faster WebSocket caches",
+      "detail": "JS caches now stay on V8's fast array paths",
+      "prs": [
+        29945,
+        29952
+      ],
+      "visual": {
+        "type": "metrics",
+        "items": [
+          {
+            "value": "−93%",
+            "label": "append time, best case"
+          },
+          {
+            "value": "−63%",
+            "label": "append time, worst case"
+          }
+        ]
+      }
+    },
+    {
+      "kind": "core",
+      "title": "Single-flight WebSocket auth",
+      "detail": "Concurrent logins now share one request",
+      "prs": [
+        29903,
+        29977,
+        29984,
+        29987,
+        29992
+      ],
+      "visual": {
+        "type": "chips",
+        "items": [
+          "Binance",
+          "Aster",
+          "BingX"
+        ]
+      }
+    },
+    {
+      "kind": "fix",
+      "title": "Streams that resolve",
+      "detail": "watchPositions and watchOHLCV return what you asked for",
+      "prs": [
+        29981,
+        29972,
+        29943,
+        29976
+      ],
+      "visual": {
+        "type": "chips",
+        "items": [
+          "BitMEX",
+          "Crypto.com",
+          "Kraken",
+          "Kraken Futures"
+        ]
+      }
+    },
+    {
+      "kind": "fix",
+      "title": "Correct orders and withdrawals",
+      "detail": "Fixes on Toobit, Phemex and Poloniex requests",
+      "prs": [
+        29982,
+        29967,
+        29954,
+        29966
+      ],
+      "visual": {
+        "type": "code",
+        "lines": [
+          "// Toobit: reduce-only buy",
+          "before  \"SELL_CLOSE\"",
+          "after   \"BUY_CLOSE\"",
+          "// Poloniex: USDT on TRC20",
+          "before  network: \"TRON\"",
+          "after   network: \"TRX\""
+        ]
+      }
+    }
+  ],
+  "changes": [
+    {
+      "pr": 29914,
+      "kind": "test",
+      "scope": "bitmex",
+      "title": "skip the last-vs-median ticker check through the wind-down"
+    },
+    {
+      "pr": 29936,
+      "kind": "fix",
+      "scope": "bingx",
+      "title": "fix websocket balance routing"
+    },
+    {
+      "pr": 29920,
+      "kind": "fix",
+      "scope": "poloniex",
+      "title": "map futures v3 error codes"
+    },
+    {
+      "pr": 29937,
+      "kind": "fix",
+      "scope": "krakenfutures",
+      "title": "parse unrealizedPnl in parsePosition"
+    },
+    {
+      "pr": 29908,
+      "kind": "fix",
+      "scope": "binance",
+      "title": "deduplicate and merge keepAliveStockListenKey into keepAliveListenKey"
+    },
+    {
+      "pr": 29943,
+      "kind": "fix",
+      "scope": "krakenfutures",
+      "title": "don't resolve watchPositions with empty list on malformed frame"
+    },
+    {
+      "pr": 29942,
+      "kind": "fix",
+      "scope": "extended",
+      "title": "stop account ws frames falling through to handleOrderBook"
+    },
+    {
+      "pr": 29946,
+      "kind": "fix",
+      "scope": "binance",
+      "title": "guard option and stock from the linear/inverse rewrite in authenticate"
+    },
+    {
+      "pr": 29945,
+      "kind": "perf",
+      "scope": "pro",
+      "title": "speed up ArrayCache append hot path -63%..-93%"
+    },
+    {
+      "pr": 29950,
+      "kind": "chore",
+      "scope": "binance",
+      "title": "fold authenticateStock into authenticate"
+    },
+    {
+      "pr": 29951,
+      "kind": "fix",
+      "scope": "cs",
+      "title": "settle Future.reject once, under the resolve lock"
+    },
+    {
+      "pr": 29954,
+      "kind": "fix",
+      "scope": "poloniex",
+      "title": "TRC20 withdrawals must send network TRX, not TRON"
+    },
+    {
+      "pr": 29957,
+      "kind": "chore",
+      "scope": null,
+      "title": "move language workflows back to GitHub-hosted runners"
+    },
+    {
+      "pr": 29959,
+      "kind": "chore",
+      "scope": null,
+      "title": "Revert \"ci: move language workflows back to GitHub-hosted runners\""
+    },
+    {
+      "pr": 29962,
+      "kind": "fix",
+      "scope": "build",
+      "title": "go ws client casts panic when the transport hands a *WSClient"
+    },
+    {
+      "pr": 29964,
+      "kind": "fix",
+      "scope": "cs",
+      "title": "normalize mixed numeric boxes in sortBy keys"
+    },
+    {
+      "pr": 29966,
+      "kind": "fix",
+      "scope": "poloniex",
+      "title": "map unified clientOrderId to clOrdId for swap orders"
+    },
+    {
+      "pr": 29967,
+      "kind": "fix",
+      "scope": "phemex",
+      "title": "apply amount precision to swap order quantity in createOrder"
+    },
+    {
+      "pr": 29969,
+      "kind": "chore",
+      "scope": "binance",
+      "title": "centralize user-data type derivation in resolveAuthType"
+    },
+    {
+      "pr": 29970,
+      "kind": "fix",
+      "scope": "krakenfutures",
+      "title": "map open_orders cancel reason to unified status"
+    },
+    {
+      "pr": 29918,
+      "kind": "fix",
+      "scope": "kucoin",
+      "title": "priceChgPct on contracts is a ratio, so scale it"
+    },
+    {
+      "pr": 29976,
+      "kind": "fix",
+      "scope": "kraken",
+      "title": "watchOHLCV returned strings in descending order"
+    },
+    {
+      "pr": 29974,
+      "kind": "fix",
+      "scope": "toobit",
+      "title": "strip the _OPEN and _CLOSE suffix from the order side"
+    },
+    {
+      "pr": 29973,
+      "kind": "fix",
+      "scope": "foxbit",
+      "title": "drop the misspelt fecthOrderBook capability flag"
+    },
+    {
+      "pr": 29903,
+      "kind": "feat",
+      "scope": "base",
+      "title": "ws auth single-flight primitives"
+    },
+    {
+      "pr": 29972,
+      "kind": "fix",
+      "scope": "bitmex",
+      "title": "the watchPositions flag is spelled watchPostions"
+    },
+    {
+      "pr": 29977,
+      "kind": "chore",
+      "scope": "binance",
+      "title": "migrate authenticate to the singleFlight primitives"
+    },
+    {
+      "pr": 29984,
+      "kind": "fix",
+      "scope": "aster",
+      "title": "prevent concurrent ws auth races via base single-flight guard"
+    },
+    {
+      "pr": 29986,
+      "kind": "fix",
+      "scope": "binance",
+      "title": "reject the auth flight on an empty listenKey"
+    },
+    {
+      "pr": 29987,
+      "kind": "fix",
+      "scope": "bingx",
+      "title": "prevent concurrent ws auth races via base single-flight guard"
+    },
+    {
+      "pr": 29988,
+      "kind": "test",
+      "scope": "exchange",
+      "title": "exempt option markets from ticker percentage bounds"
+    },
+    {
+      "pr": 29980,
+      "kind": "chore",
+      "scope": "tests",
+      "title": "store JSON request fixture output as objects"
+    },
+    {
+      "pr": 29982,
+      "kind": "fix",
+      "scope": "toobit",
+      "title": "a reduce-only order was sent on the opposite side"
+    },
+    {
+      "pr": 29952,
+      "kind": "perf",
+      "scope": "js",
+      "title": "precise methods  (version 1)"
+    },
+    {
+      "pr": 29985,
+      "kind": "fix",
+      "scope": "phemex",
+      "title": "correct fetchPositionsADLRank jsdoc name and unify scale getters"
+    },
+    {
+      "pr": 30003,
+      "kind": "chore",
+      "scope": null,
+      "title": "remove this[method] from rest side"
+    },
+    {
+      "pr": 30008,
+      "kind": "chore",
+      "scope": "pro",
+      "title": "drop Client.resolve pending-results queue"
+    },
+    {
+      "pr": 30004,
+      "kind": "fix",
+      "scope": "java",
+      "title": "guard WsClient futures/rejections with a monitor"
+    },
+    {
+      "pr": 29981,
+      "kind": "fix",
+      "scope": "bitmex, cryptocom",
+      "title": "watchPositions never resolves for a symbol-filtered subscription"
+    },
+    {
+      "pr": 30010,
+      "kind": "fix",
+      "scope": "binance",
+      "title": "load stock markets if in options"
+    },
+    {
+      "pr": 29992,
+      "kind": "chore",
+      "scope": "pro",
+      "title": "inline the ws auth single-flight logic into authenticate()"
+    }
+  ]
+}

@@ -583,6 +583,7 @@ go/v4/                  GENERATED Go (every file is transpiled)
 rust/                   GENERATED Rust cargo workspace (gitignored except the binance reference venue)
 wiki/                   docs (Manual.md = authoritative API spec)
 examples/               per-language end-user examples
+docs/videos/            Remotion project for launch/release videos (skill: announcement-video)
 .claude/skills/         per-language usage skills (/ccxt-python, /ccxt-typescript, …)
                         — public API reference for callers, NOT for editing CCXT
 .claude/rules/          topic-scoped contributor rules (auto-load via `paths:` frontmatter);

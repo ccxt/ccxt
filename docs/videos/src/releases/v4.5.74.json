@@ -1,0 +1,784 @@
+{
+  "tag": "v4.5.74",
+  "previous": "v4.5.73",
+  "date": "2026-08-17",
+  "url": "https://github.com/ccxt/ccxt/releases/tag/v4.5.74",
+  "stats": {
+    "prs": 112,
+    "exchanges": 29,
+    "contributors": 12,
+    "newContributors": []
+  },
+  "highlights": [
+    {
+      "kind": "feat",
+      "title": "BTSE joins CCXT",
+      "detail": "Spot, perpetuals and dated futures, in every language",
+      "prs": [
+        27862
+      ],
+      "visual": {
+        "type": "code",
+        "lines": [
+          "import ccxt from \"ccxt\";",
+          "",
+          "const btse = new ccxt.btse();",
+          "await btse.loadMarkets();"
+        ]
+      }
+    },
+    {
+      "kind": "perf",
+      "title": "Faster order books everywhere",
+      "detail": "WebSocket book updates tuned in C#, Java, PHP, Python and Go",
+      "prs": [
+        29859,
+        29860,
+        29862,
+        29858,
+        29861
+      ],
+      "visual": {
+        "type": "metrics",
+        "items": [
+          {
+            "value": "−61%",
+            "label": "C# order book bisect"
+          },
+          {
+            "value": "−43%",
+            "label": "Java order book updates"
+          }
+        ]
+      }
+    },
+    {
+      "kind": "feat",
+      "title": "New exchange methods",
+      "detail": "Plus trailing stop orders on XT",
+      "prs": [
+        29782,
+        29779,
+        29765,
+        29764,
+        29766,
+        29763,
+        29811
+      ],
+      "visual": {
+        "type": "code",
+        "lines": [
+          "krakenfutures.fetchLedger()",
+          "krakenfutures.fetchTradingFees()",
+          "xt.fetchTradingFees()",
+          "woofipro.fetchOpenInterest(symbol)",
+          "weex.createTriggerOrder(…)",
+          "woo.cancelAllOrders()"
+        ]
+      }
+    },
+    {
+      "kind": "fix",
+      "title": "Accurate ticker data",
+      "detail": "Percent change and volume units fixed on 8 exchanges",
+      "prs": [
+        29857,
+        29855,
+        29856,
+        29842,
+        29851,
+        29852,
+        29841,
+        29840,
+        29807
+      ],
+      "visual": {
+        "type": "chips",
+        "items": [
+          "Bitget",
+          "Upbit",
+          "Toobit",
+          "HashKey",
+          "Poloniex",
+          "Alpaca",
+          "Delta",
+          "Deribit"
+        ]
+      }
+    }
+  ],
+  "changes": [
+    {
+      "pr": 29759,
+      "kind": "test",
+      "scope": null,
+      "title": "add empty dict test"
+    },
+    {
+      "pr": 29769,
+      "kind": "feat",
+      "scope": "okx",
+      "title": "add fiat deposit and withdrawal endpoints"
+    },
+    {
+      "pr": 29767,
+      "kind": "fix",
+      "scope": "doc",
+      "title": "correct lighter sdk url"
+    },
+    {
+      "pr": 29763,
+      "kind": "feat",
+      "scope": "woo",
+      "title": "cancelAllOrders via DELETE /v3/trade/allOrders"
+    },
+    {
+      "pr": 29764,
+      "kind": "feat",
+      "scope": "woofipro",
+      "title": "add fetchOpenInterest and fetchOpenInterests"
+    },
+    {
+      "pr": 29765,
+      "kind": "feat",
+      "scope": "xt",
+      "title": "add fetchTradingFee and fetchTradingFees"
+    },
+    {
+      "pr": 29768,
+      "kind": "test",
+      "scope": "whitebit",
+      "title": "add fetchOpenOrders and fetchClosedOrders static fixtures"
+    },
+    {
+      "pr": 29773,
+      "kind": "chore",
+      "scope": null,
+      "title": "coinex error mapping"
+    },
+    {
+      "pr": 29772,
+      "kind": "fix",
+      "scope": "ws",
+      "title": "retain results resolved without a waiter in ts, php and cs clients"
+    },
+    {
+      "pr": 29777,
+      "kind": "fix",
+      "scope": "tokocrypto",
+      "title": "declare ticker/24hr as dual-shape like binance does"
+    },
+    {
+      "pr": 29776,
+      "kind": "fix",
+      "scope": "cs",
+      "title": "default indexed orderbook snapshot to an empty dict like its siblings"
+    },
+    {
+      "pr": 29778,
+      "kind": "fix",
+      "scope": "cs",
+      "title": "count any inbound ws frame as keepalive liveness"
+    },
+    {
+      "pr": 29766,
+      "kind": "feat",
+      "scope": "weex",
+      "title": "add createTriggerOrder via capi/v3/algoOrder"
+    },
+    {
+      "pr": 29780,
+      "kind": "fix",
+      "scope": "bitrue",
+      "title": "declare the dapi ticker and klines shapes like their fapi twins"
+    },
+    {
+      "pr": 29781,
+      "kind": "fix",
+      "scope": "binance",
+      "title": "declare the dual-shape ticker/price leaves per the api docs"
+    },
+    {
+      "pr": 29779,
+      "kind": "feat",
+      "scope": "krakenfutures",
+      "title": "add fetchTradingFees"
+    },
+    {
+      "pr": 29782,
+      "kind": "feat",
+      "scope": "krakenfutures",
+      "title": "add fetchLedger"
+    },
+    {
+      "pr": 29783,
+      "kind": "fix",
+      "scope": "ci",
+      "title": "guard against entry-point imports in exchange files"
+    },
+    {
+      "pr": 29784,
+      "kind": "fix",
+      "scope": "weex",
+      "title": "enable has flags for implemented unWatchOrderBook methods"
+    },
+    {
+      "pr": 29785,
+      "kind": "test",
+      "scope": "whitebit",
+      "title": "add fetchMyTrades and fetchOrderTrades static fixtures"
+    },
+    {
+      "pr": 29787,
+      "kind": "fix",
+      "scope": "ci",
+      "title": "run scoped live tests for first-time exchange integrations"
+    },
+    {
+      "pr": 29788,
+      "kind": "fix",
+      "scope": "base",
+      "title": "take the primary symbol from the selected symbols array in private tests"
+    },
+    {
+      "pr": 29789,
+      "kind": "fix",
+      "scope": "base",
+      "title": "pass the symbol variable instead of a string literal in leverage-tiers and margin-modes tests"
+    },
+    {
+      "pr": 29790,
+      "kind": "fix",
+      "scope": "cli",
+      "title": "prefer the local typescript sources over built artifacts so new integrations work without any build steps"
+    },
+    {
+      "pr": 29791,
+      "kind": "fix",
+      "scope": "cli",
+      "title": "correct the inverted partial-function check that reversed method arguments whenever --param was used"
+    },
+    {
+      "pr": 29792,
+      "kind": "fix",
+      "scope": "cli",
+      "title": "make --no-keys actually strip credentials loaded from the keys files"
+    },
+    {
+      "pr": 29794,
+      "kind": "fix",
+      "scope": "cli",
+      "title": "detect implicit api methods under the ts-sources loader when placing the params object"
+    },
+    {
+      "pr": 29713,
+      "kind": "fix",
+      "scope": "krakenfutures",
+      "title": "fix positions REST fail-open and WS crash regressions"
+    },
+    {
+      "pr": 29664,
+      "kind": "fix",
+      "scope": "tokocrypto",
+      "title": "unwrap data.list envelope in fetchOHLCV for non-USDT markets"
+    },
+    {
+      "pr": 29712,
+      "kind": "chore",
+      "scope": null,
+      "title": "reuse go binary in the live-tests section"
+    },
+    {
+      "pr": 29795,
+      "kind": "chore",
+      "scope": "tests",
+      "title": "add static tests to Watch methods"
+    },
+    {
+      "pr": 29797,
+      "kind": "chore",
+      "scope": null,
+      "title": "fix injectWsMessages sleep"
+    },
+    {
+      "pr": 29799,
+      "kind": "fix",
+      "scope": "ci",
+      "title": "exclude deleted files from scoped exchange collection"
+    },
+    {
+      "pr": 29650,
+      "kind": "chore",
+      "scope": null,
+      "title": "js prop optim"
+    },
+    {
+      "pr": 29796,
+      "kind": "fix",
+      "scope": "exmo",
+      "title": "delist"
+    },
+    {
+      "pr": 29803,
+      "kind": "fix",
+      "scope": "xt",
+      "title": "regenerate implicit api to type step-rate endpoints"
+    },
+    {
+      "pr": 29802,
+      "kind": "fix",
+      "scope": "go",
+      "title": "compare numeric sort keys numerically in sortBy"
+    },
+    {
+      "pr": 29810,
+      "kind": "test",
+      "scope": "whitebit",
+      "title": "add deposit history static fixtures"
+    },
+    {
+      "pr": 29811,
+      "kind": "feat",
+      "scope": "xt",
+      "title": "add trailing stop order creation and cancellation"
+    },
+    {
+      "pr": 29808,
+      "kind": "fix",
+      "scope": "nado",
+      "title": "watchOrderBook"
+    },
+    {
+      "pr": 29812,
+      "kind": "docs",
+      "scope": "woo",
+      "title": "add developer.woox.io as primary doc url"
+    },
+    {
+      "pr": 29815,
+      "kind": "fix",
+      "scope": "bitstamp",
+      "title": "accumulate currencies locally instead of a shared options scratch key"
+    },
+    {
+      "pr": 29809,
+      "kind": "fix",
+      "scope": null,
+      "title": "bitstamp parseOrder id fix"
+    },
+    {
+      "pr": 29770,
+      "kind": "feat",
+      "scope": "lighter",
+      "title": "add ws api"
+    },
+    {
+      "pr": 29814,
+      "kind": "fix",
+      "scope": "go",
+      "title": "mirror the javascript delete semantics on missing keys in remove"
+    },
+    {
+      "pr": 29805,
+      "kind": "feat",
+      "scope": "kucoin",
+      "title": "uta fetchPosition new response field updateTime"
+    },
+    {
+      "pr": 29807,
+      "kind": "fix",
+      "scope": "deribit",
+      "title": "read baseVolume from stats.volume and quoteVolume from stats.volume_notional"
+    },
+    {
+      "pr": 29816,
+      "kind": "fix",
+      "scope": "hashkey",
+      "title": "omit the zero last price on dormant listings"
+    },
+    {
+      "pr": 29817,
+      "kind": "test",
+      "scope": "whitebit",
+      "title": "add fetchWithdrawals and fetchFundingHistory fixtures"
+    },
+    {
+      "pr": 29823,
+      "kind": "chore",
+      "scope": "woo",
+      "title": "dedupe transfer and transaction status parsers"
+    },
+    {
+      "pr": 29818,
+      "kind": "feat",
+      "scope": "xt",
+      "title": "add trailing stop order fetching"
+    },
+    {
+      "pr": 29819,
+      "kind": "fix",
+      "scope": "lbank",
+      "title": "unmap the price band ratios from the absolute price limits"
+    },
+    {
+      "pr": 29826,
+      "kind": "feat",
+      "scope": "xt",
+      "title": "add trailing stop orders mass cancellation"
+    },
+    {
+      "pr": 29824,
+      "kind": "test",
+      "scope": "whitebit",
+      "title": "add transfer and fetchAccounts fixtures, fix fetchAcсounts parsing"
+    },
+    {
+      "pr": 29831,
+      "kind": "test",
+      "scope": "whitebit",
+      "title": "add deposit address static fixtures"
+    },
+    {
+      "pr": 29827,
+      "kind": "chore",
+      "scope": "woo",
+      "title": "audit network mappings against live token networks"
+    },
+    {
+      "pr": 29829,
+      "kind": "fix",
+      "scope": "php",
+      "title": "compare strictly against the filter value in filter by"
+    },
+    {
+      "pr": 29833,
+      "kind": "chore",
+      "scope": "xt",
+      "title": "replace safeValue with typed safe methods"
+    },
+    {
+      "pr": 29836,
+      "kind": "test",
+      "scope": "whitebit",
+      "title": "add setLeverage, fetchBorrowInterest, fetchStatus and withdraw fixtures"
+    },
+    {
+      "pr": 29835,
+      "kind": "chore",
+      "scope": "woo",
+      "title": "remove dead v2 api section"
+    },
+    {
+      "pr": 29837,
+      "kind": "test",
+      "scope": "xt",
+      "title": "remove stale loadMarkets taker/maker skips"
+    },
+    {
+      "pr": 29844,
+      "kind": "test",
+      "scope": "whitebit",
+      "title": "add fetchTradingFees static fixtures"
+    },
+    {
+      "pr": 29845,
+      "kind": "fix",
+      "scope": "xt",
+      "title": "throw NotSupported for market-type guards instead of BadSymbol"
+    },
+    {
+      "pr": 29841,
+      "kind": "fix",
+      "scope": "alpaca",
+      "title": "quoteVolume was the trade count"
+    },
+    {
+      "pr": 29800,
+      "kind": "chore",
+      "scope": null,
+      "title": "add ws static tests to different exchanges"
+    },
+    {
+      "pr": 29842,
+      "kind": "fix",
+      "scope": "toobit",
+      "title": "scale swap baseVolume from contracts to base units"
+    },
+    {
+      "pr": 29840,
+      "kind": "fix",
+      "scope": "delta",
+      "title": "read spot quoteVolume from turnover_usd, not the base-denominated turnover"
+    },
+    {
+      "pr": 29821,
+      "kind": "feat",
+      "scope": "woofipro",
+      "title": "add margin mode and position margin methods"
+    },
+    {
+      "pr": 29854,
+      "kind": "perf",
+      "scope": "transpile",
+      "title": "skip impossible base-method renames"
+    },
+    {
+      "pr": 29857,
+      "kind": "fix",
+      "scope": "bitget",
+      "title": "price24hPcnt is a ratio, so scale it to a percentage"
+    },
+    {
+      "pr": 29851,
+      "kind": "fix",
+      "scope": "hashkey",
+      "title": "scale swap baseVolume from contracts to base units"
+    },
+    {
+      "pr": 29852,
+      "kind": "fix",
+      "scope": "poloniex",
+      "title": "scale swap baseVolume from contracts to base units"
+    },
+    {
+      "pr": 29855,
+      "kind": "fix",
+      "scope": "upbit",
+      "title": "signed_change_rate is a ratio, so scale it to a percentage"
+    },
+    {
+      "pr": 29856,
+      "kind": "fix",
+      "scope": "toobit",
+      "title": "'pcp' is a ratio, so scale it to a percentage"
+    },
+    {
+      "pr": 29847,
+      "kind": "fix",
+      "scope": "bybit",
+      "title": "fetchOrders classic accounts removal"
+    },
+    {
+      "pr": 29858,
+      "kind": "perf",
+      "scope": "python",
+      "title": "drop redundant OrderBookSide __getitem__ override and hoist hot lookups -23%"
+    },
+    {
+      "pr": 29862,
+      "kind": "perf",
+      "scope": "php",
+      "title": "drop exchangeArray on OrderBookSide update -31%"
+    },
+    {
+      "pr": 29865,
+      "kind": "fix",
+      "scope": "test",
+      "title": "tolerate quote-side rounding in the ticker volume identity"
+    },
+    {
+      "pr": 29875,
+      "kind": "test",
+      "scope": "pro",
+      "title": "pick most-active market for watchOrderBook live tests"
+    },
+    {
+      "pr": 29861,
+      "kind": "perf",
+      "scope": "go",
+      "title": "bound OrderBookSide index memmove -12%"
+    },
+    {
+      "pr": 29860,
+      "kind": "perf",
+      "scope": "java",
+      "title": "skip BigDecimal for the order book amount field -43%"
+    },
+    {
+      "pr": 29870,
+      "kind": "fix",
+      "scope": "pro",
+      "title": "python ArrayCache tuple index, max_size=0, and clear() reset"
+    },
+    {
+      "pr": 29878,
+      "kind": "fix",
+      "scope": "binance",
+      "title": "single-flight ws auth via existing client futures"
+    },
+    {
+      "pr": 29877,
+      "kind": "chore",
+      "scope": "pro",
+      "title": "type-hint Python ArrayCache"
+    },
+    {
+      "pr": 29880,
+      "kind": "fix",
+      "scope": "tests",
+      "title": "stop ws OHLCV live tests requesting sub-minute candles"
+    },
+    {
+      "pr": 29871,
+      "kind": "fix",
+      "scope": "pro",
+      "title": "php ArrayCache field-merge, two-field match, and clear()"
+    },
+    {
+      "pr": 29869,
+      "kind": "fix",
+      "scope": "pro",
+      "title": "reset ArrayCache maps on clear and stop short-OHLCV stale tails"
+    },
+    {
+      "pr": 29884,
+      "kind": "chore",
+      "scope": "pro",
+      "title": "python ArrayCache seen_updates_by_symbol for int counts"
+    },
+    {
+      "pr": 29872,
+      "kind": "fix",
+      "scope": "pro",
+      "title": "csharp ArrayCacheByTimestamp eviction and in-place merge"
+    },
+    {
+      "pr": 29873,
+      "kind": "fix",
+      "scope": "pro",
+      "title": "java ArrayCache hashmap, getLimit, BySide, and move-to-end"
+    },
+    {
+      "pr": 29859,
+      "kind": "perf",
+      "scope": "cs",
+      "title": "single-lock OrderBookSide bisect -61% and atomic Copy()"
+    },
+    {
+      "pr": 29876,
+      "kind": "fix",
+      "scope": "htx",
+      "title": "fetchStatus via live endpoints, drop the dead statuspage hosts"
+    },
+    {
+      "pr": 29881,
+      "kind": "fix",
+      "scope": "krakenfutures",
+      "title": "populate market maker/taker so parseTrade computes fees"
+    },
+    {
+      "pr": 29885,
+      "kind": "fix",
+      "scope": "toobit",
+      "title": "send amount for market sell orders"
+    },
+    {
+      "pr": 29891,
+      "kind": "test",
+      "scope": "pro",
+      "title": "add single-flight base ws unit test via client.future"
+    },
+    {
+      "pr": 29893,
+      "kind": "fix",
+      "scope": "toobit",
+      "title": "correct fetchLeverage response parsing and marginMode"
+    },
+    {
+      "pr": 29897,
+      "kind": "fix",
+      "scope": "php",
+      "title": "let ClientTrait spawn and delay take over in the async exchange"
+    },
+    {
+      "pr": 29898,
+      "kind": "docs",
+      "scope": "contributing",
+      "title": "require language mirrors for base ws runtime changes"
+    },
+    {
+      "pr": 29895,
+      "kind": "fix",
+      "scope": "build",
+      "title": "repair broken Python, PHP and Go base builds on master"
+    },
+    {
+      "pr": 29900,
+      "kind": "fix",
+      "scope": "pro",
+      "title": "store Go ArrayCache counts as ints with seenUpdatesBySymbol"
+    },
+    {
+      "pr": 29904,
+      "kind": "test",
+      "scope": "java",
+      "title": "point the connect-atomicity storm at a blackhole address"
+    },
+    {
+      "pr": 29905,
+      "kind": "fix",
+      "scope": "pro",
+      "title": "count the global and the symbol getLimit scopes independently"
+    },
+    {
+      "pr": 29886,
+      "kind": "fix",
+      "scope": null,
+      "title": "route OKX RPI order book updates"
+    },
+    {
+      "pr": 29906,
+      "kind": "fix",
+      "scope": "latoken",
+      "title": "drop non-positive book levels and skip the stale-ticker median check"
+    },
+    {
+      "pr": 29907,
+      "kind": "fix",
+      "scope": "bit2c",
+      "title": "drop dead zero-amount orders from the full book snapshot"
+    },
+    {
+      "pr": 29909,
+      "kind": "fix",
+      "scope": "binance",
+      "title": "skip stocks endpoint if apiKey is \"\""
+    },
+    {
+      "pr": 29912,
+      "kind": "fix",
+      "scope": "bybit",
+      "title": "fetchCrossBorrowRate"
+    },
+    {
+      "pr": 29911,
+      "kind": "fix",
+      "scope": "poloniex",
+      "title": "remove obsolete swap OHLCV timeframe restrictions"
+    },
+    {
+      "pr": 29910,
+      "kind": "fix",
+      "scope": "toobit",
+      "title": "convert network code to exchange id in withdraw()"
+    },
+    {
+      "pr": 29913,
+      "kind": "chore",
+      "scope": null,
+      "title": "fix abstract"
+    },
+    {
+      "pr": 27862,
+      "kind": "feat",
+      "scope": null,
+      "title": "BTSE integration"
+    },
+    {
+      "pr": 29916,
+      "kind": "chore",
+      "scope": null,
+      "title": "fix ws npm comamnd"
+    }
+  ]
+}

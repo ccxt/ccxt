@@ -1,0 +1,40 @@
+{
+  "name": "launch-video",
+  "version": "1.0.0",
+  "description": "My Remotion video",
+  "repository": {},
+  "license": "UNLICENSED",
+  "private": true,
+  "dependencies": {
+    "@remotion/cli": "4.0.524",
+    "@remotion/google-fonts": "4.0.524",
+    "@remotion/media": "4.0.524",
+    "@remotion/tailwind-v4": "4.0.524",
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
+    "remotion": "4.0.524",
+    "tailwindcss": "4.0.0"
+  },
+  "devDependencies": {
+    "@remotion/eslint-config-flat": "4.0.524",
+    "@types/react": "19.2.7",
+    "@types/web": "0.0.166",
+    "eslint": "9.19.0",
+    "prettier": "3.8.1",
+    "typescript": "5.9.3"
+  },
+  "scripts": {
+    "dev": "remotion studio",
+    "frames": "node scripts/contact-sheet.mjs",
+    "release:data": "node scripts/release-data.mjs",
+    "release:render": "node scripts/render-release.mjs",
+    "mcp-launch:music": "node scripts/music-mcp-launch.mjs",
+    "mcp-launch:render": "npm run mcp-launch:music && remotion render McpLaunch out/ccxt-mcp-launch.mp4 --crf 18 && npm run frames -- out/ccxt-mcp-launch.mp4",
+    "build": "remotion bundle",
+    "upgrade": "remotion upgrade",
+    "lint": "eslint src && tsc"
+  },
+  "sideEffects": [
+    "*.css"
+  ]
+}

@@ -1,0 +1,13 @@
+node_modules
+dist
+.DS_Store
+.env
+
+# rendered videos, frame sheets and soundtracks: large, and reproducible from the scripts
+out
+public/music
+
+# Remotion agent skills, installed per checkout with `npx remotion skills add`
+.agents
+.claude
+skills-lock.json
