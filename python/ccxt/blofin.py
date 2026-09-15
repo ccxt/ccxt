@@ -9,17 +9,12 @@ import hashlib
 from ccxt.base.types import ADL, Balances, Currency, Int, LedgerEntry, Leverage, Leverages, MarginMode, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, PositionModeInfo, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFeeInterface, Transaction, TransferEntry
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
-from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InsufficientFunds
-from ccxt.base.errors import InvalidAddress
 from ccxt.base.errors import InvalidOrder
-from ccxt.base.errors import OrderNotFound
-from ccxt.base.errors import DuplicateOrderId
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
-from ccxt.base.errors import InvalidNonce
 from ccxt.base.errors import NullResponse
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
@@ -151,7 +146,7 @@ class blofin(Exchange, ImplicitAPI):
                 'setPositionMode': True,
                 'signIn': False,
                 'transfer': True,
-                'withdraw': True,
+                'withdraw': False,
             },
             'timeframes': {
                 '1m': '1m',
@@ -423,8 +418,8 @@ class blofin(Exchange, ImplicitAPI):
                     '405': BadRequest,  # Method Not Allowed
                     '406': BadRequest,  # Not Acceptable
                     '429': RateLimitExceeded,  # Too Many Requests
-                    '152001': BadRequest,  # Parameter {} cannot be empty - verified live 2026-09-14 (withdrawal-apply without addrType)
-                    '152002': BadRequest,  # Parameter {} error - verified live 2026-09-14 (short-form chain id in withdrawal-apply; NOTE the live message omits the field name)
+                    '152001': BadRequest,  # Parameter {} cannot be empty
+                    '152002': BadRequest,  # Parameter {} error
                     '152003': BadRequest,  # Either parameter {} or {} is required
                     '152004': BadRequest,  # JSON syntax error
                     '152005': BadRequest,  # Parameter error: wrong or empty
@@ -457,46 +452,6 @@ class blofin(Exchange, ImplicitAPI):
                     '102065': BadRequest,  # Sell price is not within the price limit
                     '102068': BadRequest,  # Cancel failed as the order has been filled, triggered, canceled or does not exist
                     '103013': ExchangeError,  # Internal error; unable to process your request. Please try again.
-                    '102067': OrderNotFound,  # Order modification failed as the order has been filled, triggered, canceled or does not exist.
-                    '102089': BadRequest,  # Position mode mismatch
-                    '102148': DuplicateOrderId,  # Duplicate requestId, request ignored.
-                    '103003': InsufficientFunds,  # Order failed. Insufficient USDT margin in account
-                    '110006': InvalidOrder,  # You have pending cross orders. Please cancel them before adjusting your leverage.
-                    '110019': InvalidOrder,  # Setting failed. Cancel any open orders, and close positions first.
-                    '148082': BadRequest,  # Callback percentage range 0.1% - 100%
-                    '148083': BadRequest,  # Callback constant range
-                    '152011': PermissionDenied,  # Transaction API Key does not support brokerId
-                    '152012': BadRequest,  # BrokerId is required
-                    '152013': PermissionDenied,  # Unmatched brokerId, please check your API key's bound broker
-                    '152014': BadRequest,  # Instrument ID does not exist
-                    '152015': BadRequest,  # Number of instId values exceeds the maximum limit of 20
-                    '152020': InvalidAddress,  # Address binding not found.
-                    '152022': BadRequest,  # Current network is not available.
-                    '152023': PermissionDenied,  # This address is still within the 24-hour withdrawal lock period.
-                    '152024': PermissionDenied,  # Your account now can only withdraw to whitelist addresses.
-                    '152025': PermissionDenied,  # Deposits not supported yet, contact customer support for details.
-                    '152026': BadRequest,  # Amount precision error.
-                    '152027': BadRequest,  # The withdrawal must exceed the minimum limit.
-                    '152028': InsufficientFunds,  # Insufficient balance.
-                    '152029': PermissionDenied,  # The maximum daily withdrawal amount has been reached.
-                    '152030': DuplicateOrderId,  # Duplicated clientId.
-                    '152031': InvalidAddress,  # This address is not marked as verification-free. - verified live 2026-09-14 (account-policy rejection, address must carry the verification-free flag for api withdrawals)
-                    '152032': PermissionDenied,  # Quick withdrawal daily limit exceeded. Please complete 2FA verification.
-                    '152401': AuthenticationError,  # Access key does not exist
-                    '152402': AuthenticationError,  # Access key has expired
-                    '152404': PermissionDenied,  # This operation is not supported, Please check the requestPath or API key permissions. - verified live 2026-09-14 (api key without the withdrawal permission)
-                    '152405': InvalidNonce,  # Timestamp in header or signature has expired, need to be within 60s
-                    '152406': PermissionDenied,  # Your IP is not included in your API key's IP whitelist
-                    '152407': InvalidNonce,  # Repeated nonce, Reusing within 60 seconds is not allowed.
-                    '152408': AuthenticationError,  # Passphrase error
-                    '152409': AuthenticationError,  # Signature verification failed
-                    '152410': InvalidNonce,  # The value of ACCESS-TIMESTAMP needs to be a millisecond timestamp
-                    '152420': DuplicateOrderId,  # Duplicate order in batch request
-                    '152421': DuplicateOrderId,  # requestId already exists, please try again later
-                    '152422': BadRequest,  # Exactly one of callbackRatio and callbackSpread must be provided
-                    '152423': InvalidOrder,  # New size cannot be less than filled size
-                    '152428': BadRequest,  # Invalid trigger price type
-                    '152429': BadRequest,  # Request expired, ttl exceeded
                     'Order failed. Insufficient USDT margin in account': InsufficientFunds,  # Insufficient USDT margin in account
                 },
                 'broad': {
@@ -531,44 +486,10 @@ class blofin(Exchange, ImplicitAPI):
                     'USDT': 'TRC20',
                 },
                 'networks': {
-                    # code -> the withdrawal-apply chain identifier: the live
-                    # venue registry (GET /asset/currencies) returns display
-                    # names like 'Tron (TRC20)', NOT the short forms shown in
-                    # the doc's own Get Currencies response example - a bare
-                    # 'TRC20' in withdrawal-apply is rejected with 152002
-                    # 'Invalid parameter' (verified live 2026-09-14)
                     'BTC': 'Bitcoin',
-                    'ERC20': 'Ethereum (ERC20)',
-                    'TRC20': 'Tron (TRC20)',
-                    'BEP20': 'BNB Smart Chain (BEP20)',
-                    'MATIC': 'Polygon POS',
-                    'AVAXC': 'AVAX C-Chain',
-                    'SOL': 'Solana',
-                    'ARBITRUM': 'Arbitrum One',
-                    'OP': 'Optimism',
-                    'APT': 'APT (APT)',
-                    'TON': 'TON (Toncoin)',
-                    'KAIA': 'KAIA',
-                },
-                'networksById': {
-                    # id -> code for BOTH identifier families: live history
-                    # rows and the currencies registry carry the display
-                    # names (verified live 2026-09-15), while the doc
-                    # examples still show short forms - map both back to
-                    # unified codes so either era of data parses
-                    'Bitcoin': 'BTC',
-                    'Ethereum (ERC20)': 'ERC20',
-                    'Tron (TRC20)': 'TRC20',
-                    'BNB Smart Chain (BEP20)': 'BEP20',
-                    'BSC': 'BEP20',
-                    'Polygon POS': 'MATIC',
-                    'AVAX C-Chain': 'AVAXC',
-                    'Solana': 'SOL',
-                    'Arbitrum One': 'ARBITRUM',
-                    'Optimism': 'OP',
-                    'APT (APT)': 'APT',
-                    'TON (Toncoin)': 'TON',
-                    'KAIA': 'KAIA',
+                    'BEP20': 'BSC',
+                    'ERC20': 'ERC20',
+                    'TRC20': 'TRC20',
                 },
                 'fetchOpenInterestHistory': {
                     'timeframes': {
@@ -1594,7 +1515,7 @@ class blofin(Exchange, ImplicitAPI):
             else:
                 slLimitPrice = self.safe_string(params, 'stopLossLimitPrice')
                 if slLimitPrice is None:
-                    raise ArgumentsRequired(self.id + ' createTpslOrder() requires a "stopLossLimitPrice" parameter (instead of "price" argument) for stop loss orders when the order type is not market')
+                    raise ArgumentsRequired(self.id + ' createTpslOrder() requires a "stopLossLimitPrice" parameter(instead of "price" argument) for stop loss orders when the order type is not market')
                 request['slOrderPrice'] = self.price_to_precision(symbol, slLimitPrice)
                 params = self.omit(params, 'stopLossLimitPrice')
         if takeProfitPrice is not None:
@@ -1604,7 +1525,7 @@ class blofin(Exchange, ImplicitAPI):
             else:
                 tpLimitPrice = self.safe_string(params, 'takeProfitLimitPrice')
                 if tpLimitPrice is None:
-                    raise ArgumentsRequired(self.id + ' createTpslOrder() requires a "takeProfitLimitPrice" parameter (instead of "price" argument) for take profit orders when the order type is not market')
+                    raise ArgumentsRequired(self.id + ' createTpslOrder() requires a "takeProfitLimitPrice" parameter(instead of "price" argument) for take profit orders when the order type is not market')
                 request['tpOrderPrice'] = self.price_to_precision(symbol, tpLimitPrice)
                 params = self.omit(params, 'takeProfitLimitPrice')
         request['marginMode'] = marginMode
@@ -1866,84 +1787,6 @@ class blofin(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_transactions(data, currency, since, limit, params)
 
-    def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
-        """
-        make a withdrawal
-
-        https://docs.blofin.com/index.html#withdrawal
-
-        :param str code: unified currency code
-        :param float amount: the amount to withdraw, the withdrawal fee is not included and must be reserved on top
-        :param str address: the address to withdraw to, or a UID / email / phone number for an internal transfer
-        :param str tag: additional identifier(memo / payment id) required by certain networks
-        :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param str [params.network]: the unified network code for on-chain withdrawals, mapped to the exchange's chain name
-        :param str [params.dest]: 'onchain'(default) or 'internal' for an internal transfer
-        :param str [params.addrType]: address type, 1: wallet address, 2: UID, 3: email, 4: mobile phone
-        :param str [params.areaCode]: area code for the phone number, required when address is a phone number
-        :param str [params.clientId]: a client-supplied id of up to 32 case-sensitive alphanumerics
-        :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
-        """
-        # LIVE API vs DOCS quirks, verified against the venue 2026-09-14:
-        # - addrType is documented optional but the live venue rejects
-        #   on-chain withdrawals without it: 152001 "Parameter addrType
-        #   cannot be empty" - defaulted to 1 below
-        # - the chain identifiers accepted here are the DISPLAY NAMES from
-        #   GET /asset/currencies ("Tron (TRC20)", "Ethereum (ERC20)", ...);
-        #   the short forms shown in the doc examples ("TRC20") are rejected
-        #   with 152002 "Invalid parameter" - see options["networks"]
-        # - 152002 responses omit the offending field name even though the
-        #   error table documents the message as "Parameter {} error"
-        tag, params = self.handle_withdraw_tag_and_params(tag, params)
-        self.load_markets()
-        currency = self.currency(code)
-        request = {
-            'currency': currency['id'],
-            'address': address,
-            'amount': self.number_to_string(amount),
-        }
-        dest = self.safe_string(params, 'dest', 'onchain')
-        request['dest'] = dest
-        params = self.omit(params, 'dest')
-        if dest == 'onchain':
-            self.check_address(address)
-            # the doc's Request Parameters table marks addrType "Required:
-            # No", but the live venue rejects on-chain withdrawals without
-            # it (152001 "Parameter addrType cannot be empty") - default to
-            # 1 = wallet address, callers can override for other kinds
-            request['addrType'] = self.safe_string(params, 'addrType', '1')
-            params = self.omit(params, 'addrType')
-        if tag is not None:
-            request['tag'] = tag
-        # consume the unified network key unconditionally so it never leaks
-        # onto the wire; an explicit raw params['chain'] takes precedence
-        networkCode = None
-        networkCode, params = self.handle_network_code_and_params(params)
-        chain = self.safe_string(params, 'chain')
-        if chain is None:
-            if networkCode is not None:
-                request['chain'] = self.network_code_to_id(networkCode)
-            elif dest == 'onchain':
-                # required for on-chain withdrawals, optional for internal transfers
-                raise ArgumentsRequired(self.id + ' withdraw() requires a params["network"] or params["chain"] for on-chain withdrawals')
-        response = self.privatePostAssetWithdrawalApply(self.extend(request, params))
-        #
-        #     {
-        #         "code": "0",
-        #         "msg": "success",
-        #         "data": {
-        #             "withdrawId": "a1b2c3d4e5",
-        #             "clientId": "broker-20260706-0001"
-        #         }
-        #     }
-        #
-        data = self.safe_dict(response, 'data', {})
-        # the response carries only withdrawId + clientId, and this class's
-        # parseTransaction reads every field from the payload - seed the
-        # parsed structure from the request so the unified transaction
-        # reflects what was actually submitted
-        return self.parse_transaction(self.extend(request, data), currency)
-
     def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[LedgerEntry]:
         """
         fetch the history of changes, actions done by the user or operations that altered the balance of the user
@@ -2033,14 +1876,6 @@ class blofin(Exchange, ImplicitAPI):
         currencyId = self.safe_string(transaction, 'currency')
         code = self.safe_currency_code(currencyId)
         amount = self.safe_number(transaction, 'amount')
-        # live history rows carry the DISPLAY-NAME chain identifiers
-        # ('Tron (TRC20)', verified live 2026-09-15) even though the doc
-        # examples show short forms ('TRC20') - options['networksById']
-        # maps both families back to unified codes here. note the history
-        # amount is NET of the fee: a 30 USDT withdrawal-apply lands as
-        # amount 29 + fee 1
-        networkId = self.safe_string(transaction, 'chain')
-        networkCode = self.network_id_to_code(networkId)
         txid = self.safe_string(transaction, 'txId')
         timestamp = self.safe_integer(transaction, 'ts')
         feeCurrencyId = self.safe_string(transaction, 'feeCurrency')
@@ -2051,7 +1886,7 @@ class blofin(Exchange, ImplicitAPI):
             'id': id,
             'currency': code,
             'amount': amount,
-            'network': networkCode,
+            'network': None,
             'addressFrom': None,
             'addressTo': addressTo,
             'address': address,
