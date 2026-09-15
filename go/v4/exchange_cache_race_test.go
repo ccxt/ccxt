@@ -1,10 +1,8 @@
-package main
+package ccxt
 
 import (
 	"sync"
 	"testing"
-
-	ccxt "github.com/ccxt/ccxt/go/v4"
 )
 
 // ---------------------------------------------------------------------------
@@ -12,12 +10,20 @@ import (
 //
 // A WS-handler goroutine updating an existing cache entry must not mutate maps
 // that were already handed out to user goroutines (via ToArray -> WatchOrders
-// and friends). Run with -race: the old in-place merge inside Append triggered
-// "concurrent map read and map write".
+// and friends). The old in-place merge inside Append triggered a fatal
+// "concurrent map read and map write" -- that is a runtime *fatal*, not a
+// recoverable panic, so these tests fail even without -race; -race additionally
+// pins the blame to the exact Append line.
+//
+// These live in go/v4 (package ccxt) on purpose: that is the only Go tree CI
+// actually runs `go test` over ("Run Go Unit Tests" in .github/workflows/
+// go-app.yml -> `go test -C go -count=1 ./v4`). go/tests is a separate module
+// whose CI step only does `go build ./tests/main.go`, which ignores _test.go
+// files, so a regression guard placed there would never execute.
 // ---------------------------------------------------------------------------
 
 func TestArrayCacheBySymbolByIdConcurrentReadWrite(t *testing.T) {
-	cache := ccxt.NewArrayCacheBySymbolById()
+	cache := NewArrayCacheBySymbolById()
 
 	makeOrder := func(status string, filled float64) map[string]any {
 		return map[string]any{
@@ -71,7 +77,7 @@ func TestArrayCacheBySymbolByIdConcurrentReadWrite(t *testing.T) {
 }
 
 func TestArrayCacheBySymbolBySideConcurrentReadWrite(t *testing.T) {
-	cache := ccxt.NewArrayCacheBySymbolBySide()
+	cache := NewArrayCacheBySymbolBySide()
 
 	makePosition := func(contracts float64) map[string]any {
 		return map[string]any{
