@@ -1558,7 +1558,7 @@ export default class alpaca extends Exchange {
             'clientOrderId': this.safeString (order, 'client_order_id'),
             'timestamp': timestamp,
             'datetime': datetime,
-            'lastTradeTimestamp': this.parse8601 (this.safeString (order, 'filled_at')),
+            'lastTradeTimestamp': this.parse8601 (this.safeString (order, 'filled_at')), // set on complete fills only — per-fill timestamps for partials come from the account activities used by fetchMyTrades, and updated_at also moves on non-fill transitions so it is no substitute
             'status': status,
             'symbol': symbol,
             'type': orderType,
