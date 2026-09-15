@@ -1153,7 +1153,7 @@ func (this *Bingx) Describe() any {
 					"untilDays":      7,
 					"trigger":        false,
 					"trailing":       false,
-					"symbolRequired": true,
+					"symbolRequired": false,
 				},
 				"fetchClosedOrders": map[string]any{
 					"marginMode":       false,
@@ -1163,7 +1163,7 @@ func (this *Bingx) Describe() any {
 					"untilDays":        7,
 					"trigger":          false,
 					"trailing":         false,
-					"symbolRequired":   true,
+					"symbolRequired":   false,
 				},
 				"fetchOHLCV": map[string]any{
 					"limit": 1440,
@@ -5245,7 +5245,7 @@ func (this *Bingx) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any 
  * @description fetches information on multiple orders made by the user
  * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/All%20Orders
  * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Query%20Order%20history (returns less fields than above)
- * @param {string} symbol unified market symbol of the market orders were made in
+ * @param {string} [symbol] unified market symbol of the market orders were made in
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of order structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -5584,7 +5584,7 @@ func (this *Bingx) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
  * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Query%20Order%20history
  * @see https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/User's%20History%20Orders
  * @see https://bingx-api.github.io/docs/#/standard/contract-interface.html#Historical%20order
- * @param {string} symbol unified market symbol of the closed orders
+ * @param {string} [symbol] unified market symbol of the closed orders
  * @param {int} [since] timestamp in ms of the earliest order
  * @param {int} [limit] the max number of closed orders to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -5629,7 +5629,7 @@ func (this *Bingx) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
  * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Query%20Order%20history
  * @see https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/User's%20History%20Orders
  * @see https://bingx-api.github.io/docs/#/standard/contract-interface.html#Historical%20order
- * @param {string} symbol unified market symbol of the canceled orders
+ * @param {string} [symbol] unified market symbol of the canceled orders
  * @param {int} [since] timestamp in ms of the earliest order
  * @param {int} [limit] the max number of canceled orders to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -8684,7 +8684,7 @@ func (this *Bingx) FetchOrder(id string, options ...FetchOrderOptions) (Order, e
  * @description fetches information on multiple orders made by the user
  * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/All%20Orders
  * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Query%20Order%20history (returns less fields than above)
- * @param {string} symbol unified market symbol of the market orders were made in
+ * @param {string} [symbol] unified market symbol of the market orders were made in
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of order structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -8743,7 +8743,7 @@ func (this *Bingx) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Order, 
  * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Query%20Order%20history
  * @see https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/User's%20History%20Orders
  * @see https://bingx-api.github.io/docs/#/standard/contract-interface.html#Historical%20order
- * @param {string} symbol unified market symbol of the closed orders
+ * @param {string} [symbol] unified market symbol of the closed orders
  * @param {int} [since] timestamp in ms of the earliest order
  * @param {int} [limit] the max number of closed orders to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -8773,7 +8773,7 @@ func (this *Bingx) FetchClosedOrders(options ...FetchClosedOrdersOptions) ([]Ord
  * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Query%20Order%20history
  * @see https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/User's%20History%20Orders
  * @see https://bingx-api.github.io/docs/#/standard/contract-interface.html#Historical%20order
- * @param {string} symbol unified market symbol of the canceled orders
+ * @param {string} [symbol] unified market symbol of the canceled orders
  * @param {int} [since] timestamp in ms of the earliest order
  * @param {int} [limit] the max number of canceled orders to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
