@@ -221,14 +221,21 @@ func (this *BaseExchange) truncate(num any, precision int) float64 {
 	return result
 }
 
-// matchExponentPrefix emulates one match of `\d\.?\d*[eE]` anchored at i and
-// returns the end index of the match, or -1 when there is no match at i.
+// matchExponentPrefix emulates one match of `[-+]?\d\.?\d*[eE]` anchored at i
+// and returns the end index of the match, or -1 when there is no match at i.
 func matchExponentPrefix(s string, i int) int {
 	n := len(s)
-	if s[i] < '0' || s[i] > '9' { // \d
+	j := i
+	if s[j] == '-' || s[j] == '+' { // [-+]? — keep the mantissa sign out of the leftover
+		j++
+		if j >= n {
+			return -1
+		}
+	}
+	if s[j] < '0' || s[j] > '9' { // \d
 		return -1
 	}
-	j := i + 1
+	j++
 	if j < n && s[j] == '.' { // \.? greedy; on failure \d* cannot match '.' anyway
 		j++
 	}
@@ -244,7 +251,7 @@ func matchExponentPrefix(s string, i int) int {
 func (this *BaseExchange) PrecisionFromString(str2 any) int {
 	str := str2.(string)
 	if strings.ContainsAny(str, "eE") {
-		// equivalent to regexp `\d\.?\d*[eE]`.ReplaceAllString(str, "")
+		// equivalent to regexp `[-+]?\d\.?\d*[eE]`.ReplaceAllString(str, "")
 		var b strings.Builder
 		last := 0
 		for i := 0; i < len(str); {
