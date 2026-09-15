@@ -1741,6 +1741,13 @@ class Transpiler {
         // set so jsdoc code spans remain visible to the method-conversion
         // rules. runs after maskComments, so line-comment bodies are already
         // inert and cannot desync the state.
+        //
+        // the per-line quote-state reset is DELIBERATE: cross-line scanning
+        // is exactly what let stray apostrophes desync the earlier span
+        // design, and multi-line string content (jsdoc-derived docstring
+        // prose) is knowingly left to the long-standing collapse - see the
+        // coverage notes in the commit message. do not "fix" this into a
+        // multi-line scanner.
         const lines = js.split ('\n')
         for (let i = 0; i < lines.length; i++) {
             const line = lines[i]
