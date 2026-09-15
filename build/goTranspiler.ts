@@ -3878,3 +3878,7 @@ if (isMainEntry(import.meta.url)) {
         await transpiler.transpileEverything (force, false, examples, prediction);
     }
 }
+
+export {
+    NewTranspiler,
+}
