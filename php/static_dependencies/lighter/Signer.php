@@ -55,13 +55,13 @@ class Signer
         char* CreateClient(char* cUrl, char* cPrivateKey, int cChainId, int cApiKeyIndex, long long cAccountIndex);
         char* CheckClient(int cApiKeyIndex, long long cAccountIndex);
         SignedTxResponse SignChangePubKey(char* cPubKey, uint8_t cSkipNonce, long long cNonce, int cApiKeyIndex, long long cAccountIndex);
-        SignedTxResponse SignCreateOrder(int cMarketIndex, long long cClientOrderIndex, long long cBaseAmount, int cPrice, int cIsAsk, int cOrderType, int cTimeInForce, int cReduceOnly, int cTriggerPrice, long long cOrderExpiry, long long cIntegratorAccountIndex, int cIntegratorTakerFee, int cIntegratorMakerFee, uint8_t cSkipNonce, long long cNonce, int cApiKeyIndex, long long cAccountIndex);
-        SignedTxResponse SignCreateGroupedOrders(uint8_t cGroupingType, CreateOrderTxReq* cOrders, int cLen, long long cIntegratorAccountIndex, int cIntegratorTakerFee, int cIntegratorMakerFee, uint8_t cSkipNonce, long long cNonce, int cApiKeyIndex, long long cAccountIndex);
+        SignedTxResponse SignCreateOrder(int cMarketIndex, long long cClientOrderIndex, long long cBaseAmount, int cPrice, int cIsAsk, int cOrderType, int cTimeInForce, int cReduceOnly, int cTriggerPrice, long long cOrderExpiry, long long cIntegratorAccountIndex, int cIntegratorTakerFee, int cIntegratorMakerFee, uint8_t cSelfTradeBehaviorMode, uint8_t cSelfTradeEqualityMode, uint8_t cSkipNonce, long long cNonce, int cApiKeyIndex, long long cAccountIndex);
+        SignedTxResponse SignCreateGroupedOrders(uint8_t cGroupingType, CreateOrderTxReq* cOrders, int cLen, long long cIntegratorAccountIndex, int cIntegratorTakerFee, int cIntegratorMakerFee, uint8_t cSelfTradeBehaviorMode, uint8_t cSelfTradeEqualityMode, uint8_t cSkipNonce, long long cNonce, int cApiKeyIndex, long long cAccountIndex);
         SignedTxResponse SignCancelOrder(int cMarketIndex, long long cOrderIndex, uint8_t cSkipNonce, long long cNonce, int cApiKeyIndex, long long cAccountIndex);
         SignedTxResponse SignWithdraw(int cAssetIndex, int cRouteType, unsigned long long cAmount, uint8_t cSkipNonce, long long cNonce, int cApiKeyIndex, long long cAccountIndex);
         SignedTxResponse SignCreateSubAccount(uint8_t cSkipNonce, long long cNonce, int cApiKeyIndex, long long cAccountIndex);
-        SignedTxResponse SignCancelAllOrders(int cTimeInForce, long long cTime, uint8_t cSkipNonce, long long cNonce, int cApiKeyIndex, long long cAccountIndex);
-        SignedTxResponse SignModifyOrder(int cMarketIndex, long long cIndex, long long cBaseAmount, long long cPrice, long long cTriggerPrice, long long cIntegratorAccountIndex, int cIntegratorTakerFee, int cIntegratorMakerFee, uint8_t cSkipNonce, long long cNonce, int cApiKeyIndex, long long cAccountIndex);
+        SignedTxResponse SignCancelAllOrders(int cTimeInForce, long long cTime, int cCancelAllMarketIndex, uint8_t cSkipNonce, long long cNonce, int cApiKeyIndex, long long cAccountIndex);
+        SignedTxResponse SignModifyOrder(int cMarketIndex, long long cIndex, long long cBaseAmount, long long cPrice, long long cTriggerPrice, long long cIntegratorAccountIndex, int cIntegratorTakerFee, int cIntegratorMakerFee, uint8_t cSelfTradeBehaviorMode, uint8_t cSelfTradeEqualityMode, uint8_t cSkipNonce, long long cNonce, long long cOrderVersion, int cApiKeyIndex, long long cAccountIndex);
         SignedTxResponse SignTransfer(long long cToAccountIndex, int16_t cAssetIndex, uint8_t cFromRouteType, uint8_t cToRouteType, long long cAmount, long long cUsdcFee, char* cMemo, uint8_t cSkipNonce, long long cNonce, int cApiKeyIndex, long long cAccountIndex);
         SignedTxResponse SignCreatePublicPool(long long cOperatorFee, int cInitialTotalShares, long long cMinOperatorShareRate, uint8_t cSkipNonce, long long cNonce, int cApiKeyIndex, long long cAccountIndex);
         SignedTxResponse SignUpdatePublicPool(long long cPublicPoolIndex, int cStatus, long long cOperatorFee, int cMinOperatorShareRate, uint8_t cSkipNonce, long long cNonce, int cApiKeyIndex, long long cAccountIndex);
@@ -295,6 +295,8 @@ CDEF;
         int $integratorAccountIndex,
         int $integratorTakerFee,
         int $integratorMakerFee,
+        int $selfTradeBehaviorMode,
+        int $selfTradeEqualityMode,
         int $skipNonce,
         int $nonce,
         int $apiKeyIndex,
@@ -314,6 +316,8 @@ CDEF;
             $integratorAccountIndex,
             $integratorTakerFee,
             $integratorMakerFee,
+            $selfTradeBehaviorMode,
+            $selfTradeEqualityMode,
             $skipNonce,
             $nonce,
             $apiKeyIndex,
@@ -329,6 +333,8 @@ CDEF;
         int $integratorAccountIndex,
         int $integratorTakerFee,
         int $integratorMakerFee,
+        int $selfTradeBehaviorMode,
+        int $selfTradeEqualityMode,
         int $skipNonce,
         int $nonce,
         int $apiKeyIndex,
@@ -361,6 +367,8 @@ CDEF;
             $integratorAccountIndex,
             $integratorTakerFee,
             $integratorMakerFee,
+            $selfTradeBehaviorMode,
+            $selfTradeEqualityMode,
             $skipNonce,
             $nonce,
             $apiKeyIndex,
@@ -431,6 +439,7 @@ CDEF;
     public function signCancelAllOrders(
         int $timeInForce,
         int $time,
+        int $cancelAllMarketIndex,
         int $skipNonce,
         int $nonce,
         int $apiKeyIndex,
@@ -439,6 +448,7 @@ CDEF;
         $res = $this->ffi->SignCancelAllOrders(
             $timeInForce,
             $time,
+            $cancelAllMarketIndex,
             $skipNonce,
             $nonce,
             $apiKeyIndex,
@@ -457,8 +467,11 @@ CDEF;
         int $integratorAccountIndex,
         int $integratorTakerFee,
         int $integratorMakerFee,
+        int $selfTradeBehaviorMode,
+        int $selfTradeEqualityMode,
         int $skipNonce,
         int $nonce,
+        int $orderVersion,
         int $apiKeyIndex,
         int $accountIndex
     ): array {
@@ -471,8 +484,11 @@ CDEF;
             $integratorAccountIndex,
             $integratorTakerFee,
             $integratorMakerFee,
+            $selfTradeBehaviorMode,
+            $selfTradeEqualityMode,
             $skipNonce,
             $nonce,
+            $orderVersion,
             $apiKeyIndex,
             $accountIndex
         );
