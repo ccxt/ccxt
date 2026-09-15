@@ -1490,7 +1490,15 @@ public partial class krakenfutures : Exchange
             ((IDictionary<string,object>)request)["reduceOnly"] = true;
         }
         ((IDictionary<string,object>)request)["orderType"] = type;
-        if (isTrue(!isEqual(price, null)))
+        price = this.parseNumber(price); // some callers pass null instead of undefined, normalize it
+        bool isLimitOrder = isTrue(isTrue((isEqual(type, "lmt"))) || isTrue((isEqual(type, "post")))) || isTrue((isEqual(type, "ioc")));
+        string? limitPriceParam = this.safeString(parameters, "limitPrice"); // the venue's own field name, forwarded as-is by this.extend below
+        if (isTrue(isTrue(isTrue(isLimitOrder) && isTrue((isEqual(price, null)))) && isTrue((isEqual(limitPriceParam, null)))))
+        {
+            throw new ArgumentsRequired ((string)add(add(add(this.id, " createOrder () requires a price argument for "), type), " orders")) ;
+        }
+        bool isMarketOrder = (isEqual(type, "mkt"));
+        if (isTrue(isTrue((!isEqual(price, null))) && !isTrue(isMarketOrder)))
         {
             ((IDictionary<string,object>)request)["limitPrice"] = this.priceToPrecision(symbol, price);
         }
