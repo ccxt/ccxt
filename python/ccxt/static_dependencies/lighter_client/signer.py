@@ -7,7 +7,7 @@ class ApiKeyResponse(ctypes.Structure):
 
 class CreateOrderTxReq(ctypes.Structure):
     _fields_ = [
-        ("MarketIndex", ctypes.c_int),
+        ("MarketIndex", ctypes.c_int16),
         ("ClientOrderIndex", ctypes.c_longlong),
         ("BaseAmount", ctypes.c_longlong),
         ("Price", ctypes.c_uint32),
@@ -34,14 +34,59 @@ class SignedTxResponse(ctypes.Structure):
     ]
 
 lighterSigner = None
+lighterSignerPath = None
+
+# every symbol ccxt binds on the native signer, in the order they are bound below
+REQUIRED_SIGNER_SYMBOLS = [
+    'GenerateAPIKey', 'CreateClient', 'CheckClient', 'SignChangePubKey', 'SignCreateOrder',
+    'SignCreateGroupedOrders', 'SignCancelOrder', 'SignWithdraw', 'SignCreateSubAccount',
+    'SignCancelAllOrders', 'SignModifyOrder', 'SignTransfer', 'SignCreatePublicPool',
+    'SignUpdatePublicPool', 'SignMintShares', 'SignBurnShares', 'SignStakeAssets',
+    'SignUnstakeAssets', 'SignUpdateLeverage', 'CreateAuthToken', 'SignUpdateMargin',
+    'SignApproveIntegrator', 'Free',
+]
+
+# `SwitchAPIKey` was dropped from the signer when every signing function started taking
+# `api_key_index` and `account_index` on each call. A binary that still exports it predates
+# that change, so the argument lists below no longer line up with it: the trailing arguments
+# land in the wrong slots and the library reads an arbitrary pair of indices, failing with
+# `client is not created for apiKeyIndex: <n> accountIndex: <n>` even though the credentials
+# are correct. Such a binary cannot be used, so reject it while loading instead of signing
+# garbage later on.
+INCOMPATIBLE_SIGNER_SYMBOLS = ['SwitchAPIKey']
+
+SIGNER_ABI_HINT = 'Use the signer binary that matches your ccxt version - the ones ccxt is built and tested against are in the ccxt repository under "ts/src/test/static/binaries" - or rebuild it from the current https://github.com/elliottech/lighter-go. A binary that still exports "SwitchAPIKey" is too old for this version of ccxt.'
+
+
+def has_signer_symbol(library, name):
+    try:
+        getattr(library, name)
+        return True
+    except AttributeError:
+        return False
+
+
+def check_lighter_library_abi(library, path):
+    incompatible = [name for name in INCOMPATIBLE_SIGNER_SYMBOLS if has_signer_symbol(library, name)]
+    if incompatible:
+        raise RuntimeError('the lighter signer library at "' + str(path) + '" is too old for this version of ccxt: it still exports ' + ', '.join(incompatible) + ', which means its signing functions do not take apiKeyIndex/accountIndex on every call. Calling it would silently misalign the arguments and sign with the wrong indices. ' + SIGNER_ABI_HINT)
+    missing = [name for name in REQUIRED_SIGNER_SYMBOLS if not has_signer_symbol(library, name)]
+    if missing:
+        raise RuntimeError('the lighter signer library at "' + str(path) + '" is not compatible with this version of ccxt: it does not export ' + ', '.join(missing) + '. ' + SIGNER_ABI_HINT)
+    return library
+
 
 def load_lighter_library(path):
     global lighterSigner
+    global lighterSignerPath
 
     if lighterSigner is not None:
+        if (lighterSignerPath is not None) and (path != lighterSignerPath):
+            raise RuntimeError('the lighter signer library was already loaded from "' + str(lighterSignerPath) + '", it cannot be reloaded from "' + str(path) + '" in the same process. Use the same "libraryPath" for every lighter instance.')
         return lighterSigner
 
-    lighterSigner = ctypes.CDLL(path)
+    lighterSigner = check_lighter_library_abi(ctypes.CDLL(path), path)
+    lighterSignerPath = path
     lighterSigner.GenerateAPIKey.argtypes = []
     lighterSigner.GenerateAPIKey.restype = ApiKeyResponse
 
@@ -64,7 +109,7 @@ def load_lighter_library(path):
     lighterSigner.SignCancelOrder.argtypes = [ctypes.c_int, ctypes.c_longlong, ctypes.c_uint8, ctypes.c_longlong, ctypes.c_int, ctypes.c_longlong]
     lighterSigner.SignCancelOrder.restype = SignedTxResponse
 
-    lighterSigner.SignWithdraw.argtypes = [ctypes.c_int, ctypes.c_int, ctypes.c_longlong, ctypes.c_uint8, ctypes.c_longlong, ctypes.c_int, ctypes.c_longlong]
+    lighterSigner.SignWithdraw.argtypes = [ctypes.c_int, ctypes.c_int, ctypes.c_ulonglong, ctypes.c_uint8, ctypes.c_longlong, ctypes.c_int, ctypes.c_longlong]
     lighterSigner.SignWithdraw.restype = SignedTxResponse
 
     lighterSigner.SignCreateSubAccount.argtypes = [ctypes.c_uint8, ctypes.c_longlong, ctypes.c_int, ctypes.c_longlong]
@@ -103,9 +148,6 @@ def load_lighter_library(path):
     lighterSigner.CreateAuthToken.argtypes = [ctypes.c_longlong, ctypes.c_int, ctypes.c_longlong]
     lighterSigner.CreateAuthToken.restype = StrOrErr
 
-    # Note: SwitchAPIKey is no longer exported in the new binary
-    # All functions now take api_key_index directly, so switching is handled via parameters
-
     lighterSigner.SignUpdateMargin.argtypes = [ctypes.c_int, ctypes.c_longlong, ctypes.c_int, ctypes.c_uint8, ctypes.c_longlong, ctypes.c_int, ctypes.c_longlong]
     lighterSigner.SignUpdateMargin.restype = SignedTxResponse
 
@@ -131,7 +173,7 @@ def decode_and_free(ptr: Any) -> Optional[str]:
         # This is critical on Windows where different CRTs have separate heaps.
         lighterSigner.Free(ptr)
 
-def decode_api_key(result: SignedTxResponse) -> Union[Tuple[str, str, None], Tuple[None, None, str]]:
+def decode_api_key(result: ApiKeyResponse) -> Union[Tuple[str, str, None], Tuple[None, None, str]]:
     private_key_str = decode_and_free(result.privateKey)
     public_key_str = decode_and_free(result.publicKey)
     error = decode_and_free(result.err)

@@ -2448,10 +2448,43 @@ export class BaseExchange {
         const bytes = new Uint8Array (readFile (libraryPath, null) as Buffer); // it should point to lighter.wasm
         const { instance } = await WebAssembly.instantiate (bytes, go.importObject);
         go.run (instance);
+        this.checkLighterLibraryAbi (libraryPath);
         if (createClient) {
             this.lighterCreateClient (undefined, chainId, privateKey, apiKeyIndex, accountIndex);
         }
         return {}; // empty object we will read it from globalThis
+    }
+
+    lighterAbiHint () {
+        return 'Use the lighter library that matches your ccxt version - the builds ccxt is tested against are in the ccxt repository under "ts/src/test/static/binaries" and can also be downloaded from https://github.com/ccxt/lighter-wasm - a build that still exports "SwitchAPIKey" is too old for this version of ccxt.';
+    }
+
+    checkLighterLibraryAbi (libraryPath: any) {
+        // "SwitchAPIKey" was dropped from the lighter signer when every signing function
+        // started taking apiKeyIndex and accountIndex on each call. A build that still exports
+        // it predates that change, so the calls below hand it their trailing arguments in the
+        // wrong positions: it then looks for a client under an arbitrary pair of indices and
+        // fails with "client is not created for apiKeyIndex: <n> accountIndex: <n>" even though
+        // the credentials are correct. Refuse such a build here instead of signing garbage later
+        const wasmExports = globalThis as any;
+        if (wasmExports['SwitchAPIKey'] !== undefined) {
+            throw new NotSupported (this.id + ' the lighter library at "' + libraryPath + '" is too old for this version of ccxt: it still exports "SwitchAPIKey", which means its signing functions do not take apiKeyIndex/accountIndex on every call. ' + this.lighterAbiHint ());
+        }
+        const required = [
+            'CreateClient', 'CreateAuthToken', 'GenerateAPIKey', 'SignCreateOrder',
+            'SignCreateGroupedOrders', 'SignCancelOrder', 'SignCancelAllOrders', 'SignModifyOrder',
+            'SignWithdraw', 'SignCreateSubAccount', 'SignTransfer', 'SignUpdateLeverage',
+            'SignUpdateMargin', 'SignApproveIntegrator', 'SignChangePubKey',
+        ];
+        const missing: string[] = [];
+        for (let i = 0; i < required.length; i++) {
+            if (wasmExports[required[i]] === undefined) {
+                missing.push (required[i]);
+            }
+        }
+        if (missing.length > 0) {
+            throw new NotSupported (this.id + ' the lighter library at "' + libraryPath + '" is not compatible with this version of ccxt, it does not export ' + missing.join (', ') + '. ' + this.lighterAbiHint ());
+        }
     }
 
     lighterCreateClient (signer: any, chainId: any, privateKey: any, apiKeyIndex: any, accountIndex: any) {
@@ -2520,7 +2553,14 @@ export class BaseExchange {
 
     checkLighterSignedError (result: any) {
         if ('error' in result) {
-            throw new Error ('Lighter signing error: ' + result.error);
+            let message = 'Lighter signing error: ' + result.error;
+            // the signer keeps one client per (apiKeyIndex, accountIndex) pair, so this error
+            // means it was called with indices it has no client for - when they are not the
+            // indices ccxt passed, the library is not the one this version of ccxt binds against
+            if (String (result.error).indexOf ('client is not created for') >= 0) {
+                message += '. If the indices reported above are not the ones you configured then the lighter library set in options["libraryPath"] is not compatible with this version of ccxt. ' + this.lighterAbiHint ();
+            }
+            throw new Error (message);
         }
     }
 

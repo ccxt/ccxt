@@ -2398,7 +2398,7 @@ class BaseExchange(object):
     def load_lighter_library_helper(self, path, chainId, privateKey, apiKeyIndex, accountIndex, createClient):
         from ccxt.static_dependencies.lighter_client.signer import load_lighter_library
         if path is None:
-            raise NotSupported(self.id + ' load_lighter_library() requires a path to the lighter library. You can find it here https://github.com/elliottech/lighter-python/tree/main/lighter/signers. Please download the appropriate library for your system and provide the path to it.\nExample: exchange.options["libraryPath"] = "path/to/lighter-signer-linux-arm64.so"')
+            raise NotSupported(self.id + ' load_lighter_library() requires a path to the lighter library. The binaries this version of ccxt is built against are in the ccxt repository under "ts/src/test/static/binaries", they can also be downloaded here https://github.com/elliottech/lighter-python/tree/main/lighter/signers. Please download the appropriate library for your system and provide the path to it, the binary has to match your ccxt version.\nExample: exchange.options["libraryPath"] = "path/to/lighter-signer-linux-arm64.so"')
         if not os.path.isfile(path):
             raise NotSupported(self.id + ' the library path does not exist')
 
@@ -2406,6 +2406,20 @@ class BaseExchange(object):
         if createClient:
             self.lighter_create_client(lighterSigner, chainId, privateKey, apiKeyIndex, accountIndex)
         return lighterSigner
+
+    def raise_lighter_signer_error(self, method, error, request=None):
+        message = method + '() failed with error: ' + str(error)
+        # the native signer keeps one client per (apiKeyIndex, accountIndex) pair, so this
+        # particular error means it was called with indices it has no client for. When the
+        # indices it reports are not the ones ccxt passed, the signer binary is not the one
+        # this version of ccxt binds against and the arguments are landing in the wrong slots
+        if str(error).find('client is not created for') >= 0:
+            from ccxt.static_dependencies.lighter_client.signer import SIGNER_ABI_HINT
+            passed = ''
+            if request is not None:
+                passed = ' ccxt signed this request with apiKeyIndex: ' + str(self.safe_string(request, 'api_key_index')) + ' accountIndex: ' + str(self.safe_string(request, 'account_index')) + '.'
+            message += '.' + passed + ' If those indices are not the ones reported above then the signer library set in options["libraryPath"] is not compatible with this version of ccxt. ' + SIGNER_ABI_HINT
+        raise Exception(message)
 
     def lighter_create_client(self, lighterSigner, chainId, privateKey, apiKeyIndex, accountIndex):
         url = self.implode_hostname(self.urls['api']['public'])
@@ -2416,8 +2430,10 @@ class BaseExchange(object):
             apiKeyIndex,
             accountIndex,
         )
-        if res is not None and str(res).find('error'):
-            raise Exception('lighter_create_client(): Failed to create lighter client: ' + str(res))
+        # CreateClient returns a null pointer on success and an error string otherwise
+        if res is not None:
+            error = res.decode('utf-8') if isinstance(res, bytes) else str(res)
+            self.raise_lighter_signer_error('lighter_create_client', error, {'api_key_index': apiKeyIndex, 'account_index': accountIndex})
         return lighterSigner
 
     def lighter_sign_create_grouped_orders(self, signer, request):
@@ -2452,6 +2468,8 @@ class BaseExchange(object):
             request['api_key_index'],
             request['account_index']
         ))
+        if error:
+            self.raise_lighter_signer_error('lighter_sign_create_grouped_orders', error, request)
         return [tx_type, tx_info]
 
     def lighter_sign_create_order(self, signer, request):
@@ -2476,7 +2494,7 @@ class BaseExchange(object):
             request['account_index'],
         ))
         if error:
-            raise Exception('lighter_sign_create_order() failed with error: ' + str(error))
+            self.raise_lighter_signer_error('lighter_sign_create_order', error, request)
         return [tx_type, tx_info]
 
     def lighter_sign_cancel_order(self, signer, request):
@@ -2490,7 +2508,7 @@ class BaseExchange(object):
             request['account_index'],
         ))
         if error:
-            raise Exception('lighter_sign_cancel_order() failed with error: ' + str(error))
+            self.raise_lighter_signer_error('lighter_sign_cancel_order', error, request)
         return [tx_type, tx_info]
 
     def lighter_sign_withdraw(self, signer, request):
@@ -2505,7 +2523,7 @@ class BaseExchange(object):
             request['account_index'],
         ))
         if error:
-            raise Exception('lighter_sign_withdraw() failed with error: ' + str(error))
+            self.raise_lighter_signer_error('lighter_sign_withdraw', error, request)
         return [tx_type, tx_info]
 
     def lighter_sign_create_sub_account(self, signer, request):
@@ -2517,7 +2535,7 @@ class BaseExchange(object):
             request['account_index'],
         ))
         if error:
-            raise Exception('lighter_sign_create_sub_account() failed with error: ' + str(error))
+            self.raise_lighter_signer_error('lighter_sign_create_sub_account', error, request)
         return [tx_type, tx_info]
 
     def lighter_sign_cancel_all_orders(self, signer, request):
@@ -2531,7 +2549,7 @@ class BaseExchange(object):
             request['account_index'],
         ))
         if error:
-            raise Exception('lighter_sign_cancel_all_orders() failed with error: ' + str(error))
+            self.raise_lighter_signer_error('lighter_sign_cancel_all_orders', error, request)
         return [tx_type, tx_info]
 
     def lighter_sign_modify_order(self, signer, request):
@@ -2551,7 +2569,7 @@ class BaseExchange(object):
             request['account_index'],
         ))
         if error:
-            raise Exception('lighter_sign_modify_order() failed with error: ' + str(error))
+            self.raise_lighter_signer_error('lighter_sign_modify_order', error, request)
         return [tx_type, tx_info]
 
     def lighter_sign_transfer(self, signer, request):
@@ -2570,7 +2588,7 @@ class BaseExchange(object):
             request['account_index'],
         ))
         if error:
-            raise Exception('lighter_sign_transfer() failed with error: ' + str(error))
+            self.raise_lighter_signer_error('lighter_sign_transfer', error, request)
         return [tx_type, tx_info]
 
     def lighter_sign_update_leverage(self, signer, request):
@@ -2585,7 +2603,7 @@ class BaseExchange(object):
             request['account_index'],
         ))
         if error:
-            raise Exception('lighter_sign_update_leverage() failed with error: ' + str(error))
+            self.raise_lighter_signer_error('lighter_sign_update_leverage', error, request)
         return [tx_type, tx_info]
 
     def lighter_create_auth_token(self, signer, request):
@@ -2596,7 +2614,7 @@ class BaseExchange(object):
             request['account_index'],
         ))
         if error:
-            raise Exception('lighter_create_auth_token() failed with error: ' + str(error))
+            self.raise_lighter_signer_error('lighter_create_auth_token', error, request)
         return auth
 
     def lighter_sign_update_margin(self, signer, request):
@@ -2611,7 +2629,7 @@ class BaseExchange(object):
             request['account_index'],
         ))
         if error:
-            raise Exception('lighter_sign_update_margin() failed with error: ' + str(error))
+            self.raise_lighter_signer_error('lighter_sign_update_margin', error, request)
         return [tx_type, tx_info]
 
     def lighter_sign_approve_integrator(self, signer, request):
@@ -2629,14 +2647,14 @@ class BaseExchange(object):
             request['account_index'],
         ))
         if error:
-            raise Exception('lighter_sign_approve_integrator() failed with error: ' + str(error))
+            self.raise_lighter_signer_error('lighter_sign_approve_integrator', error, request)
         return [tx_type, tx_info, message_to_sign]
 
     def lighter_generate_api_key(self, signer):
         from ccxt.static_dependencies.lighter_client.signer import decode_api_key
         privateKey, publicKey, error = decode_api_key(signer.GenerateAPIKey())
         if error:
-            raise Exception('lighter_generate_api_key() failed with error: ' + str(error))
+            self.raise_lighter_signer_error('lighter_generate_api_key', error, None)
         return [privateKey, publicKey]
 
     def lighter_sign_change_pubkey(self, signer, request):
@@ -2649,7 +2667,7 @@ class BaseExchange(object):
             request['account_index'],
         ))
         if error:
-            raise Exception('lighter_sign_change_pubkey() failed with error: ' + str(error))
+            self.raise_lighter_signer_error('lighter_sign_change_pubkey', error, request)
         return [tx_type, tx_info, message_to_sign]
 
     def set_last_rest_request_timestamp(self):
