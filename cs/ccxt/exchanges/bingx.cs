@@ -1145,7 +1145,7 @@ public partial class bingx : Exchange
                         { "untilDays", 7 },
                         { "trigger", false },
                         { "trailing", false },
-                        { "symbolRequired", true },
+                        { "symbolRequired", false },
                     } },
                     { "fetchClosedOrders", new Dictionary<string, object>() {
                         { "marginMode", false },
@@ -1155,7 +1155,7 @@ public partial class bingx : Exchange
                         { "untilDays", 7 },
                         { "trigger", false },
                         { "trailing", false },
-                        { "symbolRequired", true },
+                        { "symbolRequired", false },
                     } },
                     { "fetchOHLCV", new Dictionary<string, object>() {
                         { "limit", 1440 },
@@ -1163,6 +1163,7 @@ public partial class bingx : Exchange
                 } },
                 { "defaultForInverse", new Dictionary<string, object>() {
                     { "extends", "defaultForLinear" },
+                    { "sandbox", false },
                     { "createOrders", null },
                     { "fetchOHLCV", new Dictionary<string, object>() {
                         { "limit", 1000 },
@@ -1176,6 +1177,7 @@ public partial class bingx : Exchange
                 } },
                 { "spot", new Dictionary<string, object>() {
                     { "extends", "defaultForLinear" },
+                    { "sandbox", false },
                     { "fetchCurrencies", new Dictionary<string, object>() {
                         { "private", true },
                     } },
@@ -1201,18 +1203,6 @@ public partial class bingx : Exchange
                     } },
                     { "inverse", new Dictionary<string, object>() {
                         { "extends", "defaultForInverse" },
-                    } },
-                } },
-                { "defaultForFuture", new Dictionary<string, object>() {
-                    { "extends", "defaultForLinear" },
-                    { "fetchOrders", null },
-                } },
-                { "future", new Dictionary<string, object>() {
-                    { "linear", new Dictionary<string, object>() {
-                        { "extends", "defaultForFuture" },
-                    } },
-                    { "inverse", new Dictionary<string, object>() {
-                        { "extends", "defaultForFuture" },
                     } },
                 } },
             } },
@@ -4526,7 +4516,7 @@ public partial class bingx : Exchange
             { "stopLossPrice", stopLossPrice },
             { "takeProfitPrice", takeProfitPrice },
             { "average", this.safeString2(order, "avgPrice", "ap") },
-            { "cost", this.safeString(order, "cummulativeQuoteQty") },
+            { "cost", this.safeString2(order, "cummulativeQuoteQty", "Z") },
             { "amount", this.safeStringN(order, new List<object>() {"origQty", "q", "quantity", "totalAmount"}) },
             { "filled", this.safeString2(order, "executedQty", "z") },
             { "remaining", null },
@@ -4991,7 +4981,7 @@ public partial class bingx : Exchange
      * @description fetches information on multiple orders made by the user
      * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/All%20Orders
      * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Query%20Order%20history (returns less fields than above)
-     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {string} [symbol] unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -5298,7 +5288,7 @@ public partial class bingx : Exchange
      * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Query%20Order%20history
      * @see https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/User's%20History%20Orders
      * @see https://bingx-api.github.io/docs/#/standard/contract-interface.html#Historical%20order
-     * @param {string} symbol unified market symbol of the closed orders
+     * @param {string} [symbol] unified market symbol of the closed orders
      * @param {int} [since] timestamp in ms of the earliest order
      * @param {int} [limit] the max number of closed orders to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -5325,7 +5315,7 @@ public partial class bingx : Exchange
      * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Query%20Order%20history
      * @see https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/User's%20History%20Orders
      * @see https://bingx-api.github.io/docs/#/standard/contract-interface.html#Historical%20order
-     * @param {string} symbol unified market symbol of the canceled orders
+     * @param {string} [symbol] unified market symbol of the canceled orders
      * @param {int} [since] timestamp in ms of the earliest order
      * @param {int} [limit] the max number of canceled orders to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint

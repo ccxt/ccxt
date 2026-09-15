@@ -1666,8 +1666,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1028: bool = true;
-            while { if !__for_first_1028 { i = add(&i, &Value::Int(1)); } __for_first_1028 = false; is_less_than(&i, &get_array_length(&settings)) } {
+            let mut __for_first_1030: bool = true;
+            while { if !__for_first_1030 { i = add(&i, &Value::Int(1)); } __for_first_1030 = false; is_less_than(&i, &get_array_length(&settings)) } {
             let mut marketId: Value = get_value(&get_value(&settings, &i), &Value::Str("symbol".to_string()));
             let mut market: Value = self.safe_market(&[marketId.clone()]);
             let mut symbol: Value = get_value(&market, &Value::Str("symbol".to_string()));
@@ -2524,8 +2524,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut timestamp: Value = self.milliseconds(); // unified sequence
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1029: bool = true;
-            while { if !__for_first_1029 { i = add(&i, &Value::Int(1)); } __for_first_1029 = false; is_less_than(&i, &get_array_length(&orders)) } {
+            let mut __for_first_1031: bool = true;
+            while { if !__for_first_1031 { i = add(&i, &Value::Int(1)); } __for_first_1031 = false; is_less_than(&i, &get_array_length(&orders)) } {
             let mut order: Value = get_value(&orders, &i);
             let mut order: Value = get_value(&orders, &i);
             let mut symbol: Value = self.safe_string_k(order.clone(), "symbol", &[]);
@@ -2605,8 +2605,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut ordersToReturn: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1030: bool = true;
-            while { if !__for_first_1030 { i = add(&i, &Value::Int(1)); } __for_first_1030 = false; is_less_than(&i, &get_array_length(&results)) } {
+            let mut __for_first_1032: bool = true;
+            while { if !__for_first_1032 { i = add(&i, &Value::Int(1)); } __for_first_1032 = false; is_less_than(&i, &get_array_length(&results)) } {
             let mut order: Value = get_value(&results, &i);
             let mut order: Value = get_value(&results, &i);
             let mut error: Value = self.safe_string_k(order.clone(), "error", &[]);
@@ -2688,8 +2688,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut ordersToReturn: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1031: bool = true;
-            while { if !__for_first_1031 { i = add(&i, &Value::Int(1)); } __for_first_1031 = false; is_less_than(&i, &get_array_length(&results)) } {
+            let mut __for_first_1033: bool = true;
+            while { if !__for_first_1033 { i = add(&i, &Value::Int(1)); } __for_first_1033 = false; is_less_than(&i, &get_array_length(&results)) } {
             let mut order: Value = get_value(&results, &i);
             let mut order: Value = get_value(&results, &i);
             let mut error: Value = self.safe_string_k(order.clone(), "error", &[]);
@@ -2723,8 +2723,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut actions: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1032: bool = true;
-            while { if !__for_first_1032 { i = add(&i, &Value::Int(1)); } __for_first_1032 = false; is_less_than(&i, &get_array_length(&ids)) } {
+            let mut __for_first_1034: bool = true;
+            while { if !__for_first_1034 { i = add(&i, &Value::Int(1)); } __for_first_1034 = false; is_less_than(&i, &get_array_length(&ids)) } {
             let mut id: Value = get_value(&ids, &i);
             let mut id: Value = get_value(&ids, &i);
             let mut request: Value = self.cancel_order_request(id.clone(), &[symbol.clone(), params.clone()]);
@@ -2741,8 +2741,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         params = self.omit(params.clone(), Value::Str("clientOrderIds".to_string()), &[]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1033: bool = true;
-            while { if !__for_first_1033 { i = add(&i, &Value::Int(1)); } __for_first_1033 = false; is_less_than(&i, &get_array_length(&clientOrderIds)) } {
+            let mut __for_first_1035: bool = true;
+            while { if !__for_first_1035 { i = add(&i, &Value::Int(1)); } __for_first_1035 = false; is_less_than(&i, &get_array_length(&clientOrderIds)) } {
             let mut cloid: Value = get_value(&clientOrderIds, &i);
             let mut cloid: Value = get_value(&clientOrderIds, &i);
             let mut cloidParams: Value = Value::Map({
@@ -3075,8 +3075,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1034: bool = true;
-            while { if !__for_first_1034 { i = add(&i, &Value::Int(1)); } __for_first_1034 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_1036: bool = true;
+            while { if !__for_first_1036 { i = add(&i, &Value::Int(1)); } __for_first_1036 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut entry: Value = get_value(&data, &i);
             let mut entry: Value = get_value(&data, &i);
             let mut timestamp: Value = self.safe_integer_k(entry.clone(), "created_at", &[]);
@@ -3145,8 +3145,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1035: bool = true;
-            while { if !__for_first_1035 { i = add(&i, &Value::Int(1)); } __for_first_1035 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_1037: bool = true;
+            while { if !__for_first_1037 { i = add(&i, &Value::Int(1)); } __for_first_1037 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut info: Value = get_value(&data, &i);
             let mut info: Value = get_value(&data, &i);
             let mut ticker: Value = self.parse_ticker(info.clone(), &[]);
@@ -3818,8 +3818,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1036: bool = true;
-            while { if !__for_first_1036 { i = add(&i, &Value::Int(1)); } __for_first_1036 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_1038: bool = true;
+            while { if !__for_first_1038 { i = add(&i, &Value::Int(1)); } __for_first_1038 = false; is_less_than(&i, &get_array_length(&data)) } {
             append_to_array(&mut result, self.parse_position(get_value(&data, &i), &[Value::Null]));
         }
         }
@@ -4546,7 +4546,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             m
         });
         let mut agentAddress: Value = Value::Null;
-        { let __destr_tmp = self.handle_option(Value::Str("createSubAccount".to_string()), Value::Str("agentAddress".to_string()), &[]); agentAddress = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
+        { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("createSubAccount".to_string()), Value::Str("agentAddress".to_string()), &[]); agentAddress = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut originAddress: Value = Value::Null;
         { let __destr_tmp = self.handle_origin_and_single_address(Value::Str("createSubAccount".to_string()), params.clone()); originAddress = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         if is_equal(&originAddress, &Value::Null) {
@@ -4565,7 +4565,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if is_equal(&subAccountPrivateKey, &Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" createSubAccount() requires a \"subAccountPrivateKey\"!".to_string()))));
         }
-        let mut timestamp: Value = self.milliseconds();
+        let mut timestamp: Value = Value::Null;
+        { let __destr_tmp = self.handle_param_integer(params.clone(), Value::Str("timestamp".to_string()), &[self.milliseconds()]); timestamp = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut expiryWindow: Value = Value::Null;
         { let __destr_tmp = self.handle_option_and_params2(params.clone(), Value::Str("createSubAccount".to_string()), Value::Str("expiryWindow".to_string()), Value::Str("expiry_window".to_string()), &[Value::Int(5000)]); expiryWindow = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut subaccountSignatureHeader: Value = Value::Map({
@@ -4601,7 +4602,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         add_element_to_object(&mut finalHeaders, &Value::Str("timestamp".to_string()), timestamp.clone());
         add_element_to_object(&mut finalHeaders, &Value::Str("expiry_window".to_string()), expiryWindow.clone());
         let mut request: Value = finalHeaders.clone();
-        let mut response: Value = self.private_post_account_subaccount_create(&[request.clone()]).await;
+        let __ws_arg_31 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_post_account_subaccount_create(&[__ws_arg_31]).await;
         return response;
 
     Value::Null
@@ -4619,8 +4621,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             m
         });
         let mut request: Value = self.post_action_request(operationType.clone(), sigPayload.clone(), params.clone());
-        let __ws_arg_31 = self.extend(request.clone(), &[params.clone()]);
-        return self.private_post_agent_bind(&[__ws_arg_31]).await;
+        let __ws_arg_32 = self.extend(request.clone(), &[params.clone()]);
+        return self.private_post_agent_bind(&[__ws_arg_32]).await;
 
     Value::Null
 }
@@ -4636,8 +4638,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             m
         });
         let mut request: Value = self.post_action_request(operationType.clone(), sigPayload.clone(), params.clone());
-        let __ws_arg_32 = self.extend(request.clone(), &[params.clone()]);
-        return self.private_post_account_api_keys_create(&[__ws_arg_32]).await;
+        let __ws_arg_33 = self.extend(request.clone(), &[params.clone()]);
+        return self.private_post_account_api_keys_create(&[__ws_arg_33]).await;
 
     Value::Null
 }
@@ -4654,8 +4656,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             m
         });
         let mut request: Value = self.post_action_request(operationType.clone(), sigPayload.clone(), params.clone());
-        let __ws_arg_33 = self.extend(request.clone(), &[params.clone()]);
-        return self.private_post_account_api_keys_revoke(&[__ws_arg_33]).await;
+        let __ws_arg_34 = self.extend(request.clone(), &[params.clone()]);
+        return self.private_post_account_api_keys_revoke(&[__ws_arg_34]).await;
 
     Value::Null
 }
@@ -4671,8 +4673,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             m
         });
         let mut request: Value = self.post_action_request(operationType.clone(), sigPayload.clone(), params.clone());
-        let __ws_arg_34 = self.extend(request.clone(), &[params.clone()]);
-        return self.private_post_account_api_keys(&[__ws_arg_34]).await;
+        let __ws_arg_35 = self.extend(request.clone(), &[params.clone()]);
+        return self.private_post_account_api_keys(&[__ws_arg_35]).await;
 
     Value::Null
 }
@@ -4690,8 +4692,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             m
         });
         let mut request: Value = self.post_action_request(operationType.clone(), sigPayload.clone(), params.clone());
-        let __ws_arg_35 = self.extend(request.clone(), &[params.clone()]);
-        return self.private_post_account_builder_codes_approve(&[__ws_arg_35]).await;
+        let __ws_arg_36 = self.extend(request.clone(), &[params.clone()]);
+        return self.private_post_account_builder_codes_approve(&[__ws_arg_36]).await;
 
     Value::Null
 }
@@ -4702,8 +4704,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("account".to_string(), address.clone());
             m
         });
-        let __ws_arg_36 = self.extend(request.clone(), &[]);
-        return self.public_get_account_builder_codes_approvals(&[__ws_arg_36]).await;
+        let __ws_arg_37 = self.extend(request.clone(), &[]);
+        return self.public_get_account_builder_codes_approvals(&[__ws_arg_37]).await;
 
     Value::Null
 }
@@ -4720,8 +4722,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             m
         });
         let mut request: Value = self.post_action_request(operationType.clone(), sigPayload.clone(), params.clone());
-        let __ws_arg_37 = self.extend(request.clone(), &[params.clone()]);
-        return self.private_post_account_builder_codes_revoke(&[__ws_arg_37]).await;
+        let __ws_arg_38 = self.extend(request.clone(), &[params.clone()]);
+        return self.private_post_account_builder_codes_revoke(&[__ws_arg_38]).await;
 
     Value::Null
 }
@@ -4842,8 +4844,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut sortedKeys: Value = self.sort(keys.clone(), &[]);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_1037: bool = true;
-                while { if !__for_first_1037 { i = add(&i, &Value::Int(1)); } __for_first_1037 = false; is_less_than(&i, &get_array_length(&sortedKeys)) } {
+                let mut __for_first_1039: bool = true;
+                while { if !__for_first_1039 { i = add(&i, &Value::Int(1)); } __for_first_1039 = false; is_less_than(&i, &get_array_length(&sortedKeys)) } {
                 let mut key: Value = get_value(&sortedKeys, &i);
                 let mut key: Value = get_value(&sortedKeys, &i);
                 add_element_to_object(&mut result, &key, self.sort_json_keys(get_value(&value, &key)));
@@ -4854,8 +4856,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut result: Value = Value::List(vec![]);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_1038: bool = true;
-                while { if !__for_first_1038 { i = add(&i, &Value::Int(1)); } __for_first_1038 = false; is_less_than(&i, &get_array_length(&value)) } {
+                let mut __for_first_1040: bool = true;
+                while { if !__for_first_1040 { i = add(&i, &Value::Int(1)); } __for_first_1040 = false; is_less_than(&i, &get_array_length(&value)) } {
                 append_to_array(&mut result, self.sort_json_keys(get_value(&value, &i)));
             }
             }

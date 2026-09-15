@@ -754,7 +754,7 @@ class bingx extends Exchange {
                         'untilDays' => 7,
                         'trigger' => false,
                         'trailing' => false,
-                        'symbolRequired' => true,
+                        'symbolRequired' => false,
                     ),
                     'fetchClosedOrders' => array(
                         'marginMode' => false,
@@ -764,7 +764,7 @@ class bingx extends Exchange {
                         'untilDays' => 7,
                         'trigger' => false,
                         'trailing' => false,
-                        'symbolRequired' => true,
+                        'symbolRequired' => false,
                     ),
                     'fetchOHLCV' => array(
                         'limit' => 1440,
@@ -772,6 +772,7 @@ class bingx extends Exchange {
                 ),
                 'defaultForInverse' => array(
                     'extends' => 'defaultForLinear',
+                    'sandbox' => false,
                     'createOrders' => null,
                     'fetchOHLCV' => array(
                         'limit' => 1000,
@@ -786,6 +787,7 @@ class bingx extends Exchange {
                 //
                 'spot' => array(
                     'extends' => 'defaultForLinear',
+                    'sandbox' => false,
                     'fetchCurrencies' => array(
                         'private' => true,
                     ),
@@ -811,18 +813,6 @@ class bingx extends Exchange {
                     ),
                     'inverse' => array(
                         'extends' => 'defaultForInverse',
-                    ),
-                ),
-                'defaultForFuture' => array(
-                    'extends' => 'defaultForLinear',
-                    'fetchOrders' => null,
-                ),
-                'future' => array(
-                    'linear' => array(
-                        'extends' => 'defaultForFuture',
-                    ),
-                    'inverse' => array(
-                        'extends' => 'defaultForFuture',
                     ),
                 ),
             ),
@@ -4124,7 +4114,8 @@ class bingx extends Exchange {
             'stopLossPrice' => $stopLossPrice,
             'takeProfitPrice' => $takeProfitPrice,
             'average' => $this->safe_string_2($order, 'avgPrice', 'ap'),
-            'cost' => $this->safe_string($order, 'cummulativeQuoteQty'),
+            // Spot WS: Z is cumulative quote amount; Y is last-fill quote amount.
+            'cost' => $this->safe_string_2($order, 'cummulativeQuoteQty', 'Z'),
             'amount' => $this->safe_string_n($order, array( 'origQty', 'q', 'quantity', 'totalAmount' )),
             'filled' => $this->safe_string_2($order, 'executedQty', 'z'),
             'remaining' => null,
@@ -4853,7 +4844,7 @@ class bingx extends Exchange {
          * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/All%20Orders
          * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Query%20Order%20history (returns less fields than above)
          *
-         * @param {string} $symbol unified $market $symbol of the $market $orders were made in
+         * @param {string} [$symbol] unified $market $symbol of the $market $orders were made in
          * @param {int} [$since] the earliest time in ms to fetch $orders for
          * @param {int} [$limit] the maximum number of order structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -5143,7 +5134,7 @@ class bingx extends Exchange {
          * @see https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/User's%20History%20Orders
          * @see https://bingx-api.github.io/docs/#/standard/contract-interface.html#Historical%20order
          *
-         * @param {string} $symbol unified market $symbol of the closed $orders
+         * @param {string} [$symbol] unified market $symbol of the closed $orders
          * @param {int} [$since] timestamp in ms of the earliest order
          * @param {int} [$limit] the max number of closed $orders to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -5171,7 +5162,7 @@ class bingx extends Exchange {
          * @see https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/User's%20History%20Orders
          * @see https://bingx-api.github.io/docs/#/standard/contract-interface.html#Historical%20order
          *
-         * @param {string} $symbol unified market $symbol of the canceled $orders
+         * @param {string} [$symbol] unified market $symbol of the canceled $orders
          * @param {int} [$since] timestamp in ms of the earliest order
          * @param {int} [$limit] the max number of canceled $orders to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint

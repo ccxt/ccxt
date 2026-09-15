@@ -761,7 +761,7 @@ class bingx(Exchange, ImplicitAPI):
                         'untilDays': 7,
                         'trigger': False,
                         'trailing': False,
-                        'symbolRequired': True,
+                        'symbolRequired': False,
                     },
                     'fetchClosedOrders': {
                         'marginMode': False,
@@ -771,7 +771,7 @@ class bingx(Exchange, ImplicitAPI):
                         'untilDays': 7,
                         'trigger': False,
                         'trailing': False,
-                        'symbolRequired': True,
+                        'symbolRequired': False,
                     },
                     'fetchOHLCV': {
                         'limit': 1440,
@@ -779,6 +779,7 @@ class bingx(Exchange, ImplicitAPI):
                 },
                 'defaultForInverse': {
                     'extends': 'defaultForLinear',
+                    'sandbox': False,
                     'createOrders': None,
                     'fetchOHLCV': {
                         'limit': 1000,
@@ -793,6 +794,7 @@ class bingx(Exchange, ImplicitAPI):
                 #
                 'spot': {
                     'extends': 'defaultForLinear',
+                    'sandbox': False,
                     'fetchCurrencies': {
                         'private': True,
                     },
@@ -818,18 +820,6 @@ class bingx(Exchange, ImplicitAPI):
                     },
                     'inverse': {
                         'extends': 'defaultForInverse',
-                    },
-                },
-                'defaultForFuture': {
-                    'extends': 'defaultForLinear',
-                    'fetchOrders': None,
-                },
-                'future': {
-                    'linear': {
-                        'extends': 'defaultForFuture',
-                    },
-                    'inverse': {
-                        'extends': 'defaultForFuture',
                     },
                 },
             },
@@ -3830,7 +3820,8 @@ class bingx(Exchange, ImplicitAPI):
             'stopLossPrice': stopLossPrice,
             'takeProfitPrice': takeProfitPrice,
             'average': self.safe_string_2(order, 'avgPrice', 'ap'),
-            'cost': self.safe_string(order, 'cummulativeQuoteQty'),
+            # Spot WS: Z is cumulative quote amount; Y is last-fill quote amount.
+            'cost': self.safe_string_2(order, 'cummulativeQuoteQty', 'Z'),
             'amount': self.safe_string_n(order, ['origQty', 'q', 'quantity', 'totalAmount']),
             'filled': self.safe_string_2(order, 'executedQty', 'z'),
             'remaining': None,
@@ -4507,7 +4498,7 @@ class bingx(Exchange, ImplicitAPI):
         https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/All%20Orders
         https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Query%20Order%20history(returns less fields than above)
 
-        :param str symbol: unified market symbol of the market orders were made in
+        :param str [symbol]: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -4779,7 +4770,7 @@ class bingx(Exchange, ImplicitAPI):
         https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/User's%20History%20Orders
         https://bingx-api.github.io/docs/#/standard/contract-interface.html#Historical%20order
 
-        :param str symbol: unified market symbol of the closed orders
+        :param str [symbol]: unified market symbol of the closed orders
         :param int [since]: timestamp in ms of the earliest order
         :param int [limit]: the max number of closed orders to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -4801,7 +4792,7 @@ class bingx(Exchange, ImplicitAPI):
         https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/User's%20History%20Orders
         https://bingx-api.github.io/docs/#/standard/contract-interface.html#Historical%20order
 
-        :param str symbol: unified market symbol of the canceled orders
+        :param str [symbol]: unified market symbol of the canceled orders
         :param int [since]: timestamp in ms of the earliest order
         :param int [limit]: the max number of canceled orders to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
