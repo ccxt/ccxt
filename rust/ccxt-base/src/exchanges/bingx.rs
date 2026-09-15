@@ -2070,7 +2070,7 @@ impl BingxCore {
         m.insert("untilDays".to_string(), Value::Int(7));
         m.insert("trigger".to_string(), Value::Bool(false));
         m.insert("trailing".to_string(), Value::Bool(false));
-        m.insert("symbolRequired".to_string(), Value::Bool(true));
+        m.insert("symbolRequired".to_string(), Value::Bool(false));
     m
 }));
         m.insert("fetchClosedOrders".to_string(), Value::Map({
@@ -2082,7 +2082,7 @@ impl BingxCore {
         m.insert("untilDays".to_string(), Value::Int(7));
         m.insert("trigger".to_string(), Value::Bool(false));
         m.insert("trailing".to_string(), Value::Bool(false));
-        m.insert("symbolRequired".to_string(), Value::Bool(true));
+        m.insert("symbolRequired".to_string(), Value::Bool(false));
     m
 }));
         m.insert("fetchOHLCV".to_string(), Value::Map({
@@ -2095,6 +2095,7 @@ impl BingxCore {
         m.insert("defaultForInverse".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("extends".to_string(), Value::Str("defaultForLinear".to_string()));
+        m.insert("sandbox".to_string(), Value::Bool(false));
         m.insert("createOrders".to_string(), Value::Null);
         m.insert("fetchOHLCV".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2114,6 +2115,7 @@ impl BingxCore {
         m.insert("spot".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("extends".to_string(), Value::Str("defaultForLinear".to_string()));
+        m.insert("sandbox".to_string(), Value::Bool(false));
         m.insert("fetchCurrencies".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("private".to_string(), Value::Bool(true));
@@ -2152,26 +2154,6 @@ impl BingxCore {
         m.insert("inverse".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("extends".to_string(), Value::Str("defaultForInverse".to_string()));
-    m
-}));
-    m
-}));
-        m.insert("defaultForFuture".to_string(), Value::Map({
-    let mut m = indexmap::IndexMap::new();
-        m.insert("extends".to_string(), Value::Str("defaultForLinear".to_string()));
-        m.insert("fetchOrders".to_string(), Value::Null);
-    m
-}));
-        m.insert("future".to_string(), Value::Map({
-    let mut m = indexmap::IndexMap::new();
-        m.insert("linear".to_string(), Value::Map({
-    let mut m = indexmap::IndexMap::new();
-        m.insert("extends".to_string(), Value::Str("defaultForFuture".to_string()));
-    m
-}));
-        m.insert("inverse".to_string(), Value::Map({
-    let mut m = indexmap::IndexMap::new();
-        m.insert("extends".to_string(), Value::Str("defaultForFuture".to_string()));
     m
 }));
     m
@@ -4536,7 +4518,7 @@ impl BingxCore {
 /*
  * @method
  * @name bingx#createMarketOrderWithCost
- * @description create a market order by providing the symbol, side and cost
+ * @description create a spot market order by providing the symbol, side and cost
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {string} side 'buy' or 'sell'
  * @param {float} cost how much you want to trade in units of the quote currency
@@ -4557,7 +4539,7 @@ impl BingxCore {
 /*
  * @method
  * @name bingx#createMarketBuyOrderWithCost
- * @description create a market buy order by providing the symbol and cost
+ * @description create a spot market buy order by providing the symbol and cost
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {float} cost how much you want to trade in units of the quote currency
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -4577,7 +4559,7 @@ impl BingxCore {
 /*
  * @method
  * @name bingx#createMarketSellOrderWithCost
- * @description create a market sell order by providing the symbol and cost
+ * @description create a spot market sell order by providing the symbol and cost
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {float} cost how much you want to trade in units of the quote currency
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -4620,6 +4602,10 @@ impl BingxCore {
          * @returns {object} request to be sent to the exchange
          */
         let mut market: Value = self.market(symbol.clone());
+        let mut cost: Value = self.safe_string2(params.clone(), Value::Str("cost".to_string()), Value::Str("quoteOrderQty".to_string()), &[]);
+        if is_true(&(is_equal(&get_value(&market, &Value::Str("contract".to_string())), &Value::Bool(true)))) && is_true(&(!is_equal(&cost, &Value::Null))) {
+            panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createOrder() with cost or quoteOrderQty is not supported for contract markets".to_string()))));
+        }
         let mut postOnly: Value = Value::Null;
         let mut marketType: Value = Value::Null;
         { let __destr_tmp = self.handle_market_type_and_params(Value::Str("createOrder".to_string()), &[market.clone(), params.clone()]); marketType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
@@ -4658,8 +4644,7 @@ impl BingxCore {
             add_element_to_object(&mut request, &Value::Str("timeInForce".to_string()), Value::Str("GTC".to_string()));
         }
         if is_true(&isSpot) {
-            let mut cost: Value = self.safe_string2(params.clone(), Value::Str("cost".to_string()), Value::Str("quoteOrderQty".to_string()), &[]);
-            params = self.omit(params.clone(), Value::Str("cost".to_string()), &[]);
+            params = self.omit(params.clone(), Value::List(vec![Value::Str("cost".to_string()), Value::Str("quoteOrderQty".to_string())]), &[]);
             if !is_equal(&cost, &Value::Null) {
                 add_element_to_object(&mut request, &Value::Str("quoteOrderQty".to_string()), self.parse_to_numeric(self.cost_to_precision(symbol.clone(), cost.clone())));
             }  else {
@@ -4782,7 +4767,11 @@ impl BingxCore {
                         add_element_to_object(&mut slRequest, &Value::Str("price".to_string()), self.parse_to_numeric(self.price_to_precision(symbol.clone(), slPrice.clone())));
                     }
                     let mut slQuantity: Value = self.safe_string_k(stopLossDict.clone(), "quantity", &[stringifiedAmount.clone()]);
-                    add_element_to_object(&mut slRequest, &Value::Str("quantity".to_string()), self.parse_to_numeric(self.amount_to_precision(symbol.clone(), slQuantity.clone())));
+                    let mut slQuantityRequest: Value = self.parse_to_numeric(slQuantity.clone());
+                    if !is_equal(&get_value(&market, &Value::Str("inverse".to_string())), &Value::Bool(true)) {
+                        slQuantityRequest = self.parse_to_numeric(self.amount_to_precision(symbol.clone(), slQuantity.clone()));
+                    }
+                    add_element_to_object(&mut slRequest, &Value::Str("quantity".to_string()), slQuantityRequest.clone());
                     add_element_to_object(&mut request, &Value::Str("stopLoss".to_string()), self.json(slRequest.clone()));
                 }
                 if is_true(&hasTakeProfit) {
@@ -4801,7 +4790,11 @@ impl BingxCore {
                         add_element_to_object(&mut tpRequest, &Value::Str("price".to_string()), self.parse_to_numeric(self.price_to_precision(symbol.clone(), slPrice.clone())));
                     }
                     let mut tkQuantity: Value = self.safe_string_k(takeProfitDict.clone(), "quantity", &[stringifiedAmount.clone()]);
-                    add_element_to_object(&mut tpRequest, &Value::Str("quantity".to_string()), self.parse_to_numeric(self.amount_to_precision(symbol.clone(), tkQuantity.clone())));
+                    let mut tkQuantityRequest: Value = self.parse_to_numeric(tkQuantity.clone());
+                    if !is_equal(&get_value(&market, &Value::Str("inverse".to_string())), &Value::Bool(true)) {
+                        tkQuantityRequest = self.parse_to_numeric(self.amount_to_precision(symbol.clone(), tkQuantity.clone()));
+                    }
+                    add_element_to_object(&mut tpRequest, &Value::Str("quantity".to_string()), tkQuantityRequest.clone());
                     add_element_to_object(&mut request, &Value::Str("takeProfit".to_string()), self.json(tpRequest.clone()));
                 }
             }
@@ -4854,7 +4847,8 @@ impl BingxCore {
  * @param {float} [params.triggerPrice] triggerPrice at which the attached take profit / stop loss order will be triggered
  * @param {float} [params.stopLossPrice] stop loss trigger price
  * @param {float} [params.takeProfitPrice] take profit trigger price
- * @param {float} [params.cost] the quote quantity that can be used as an alternative for the amount
+ * @param {float} [params.cost] *spot only* the quote quantity that can be used as an alternative for the amount
+ * @param {float} [params.quoteOrderQty] *spot only* the quote quantity, an alternative to params.cost
  * @param {float} [params.trailingAmount] *swap only* the quote amount to trail away from the current market price
  * @param {float} [params.trailingPercent] *swap only* the percent to trail away from the current market price
  * @param {object} [params.takeProfit] *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered
@@ -5529,7 +5523,7 @@ impl BingxCore {
         m.insert("stopLossPrice".to_string(), stopLossPrice.clone());
         m.insert("takeProfitPrice".to_string(), takeProfitPrice.clone());
         m.insert("average".to_string(), self.safe_string2(order.clone(), Value::Str("avgPrice".to_string()), Value::Str("ap".to_string()), &[]));
-        m.insert("cost".to_string(), self.safe_string_k(order.clone(), "cummulativeQuoteQty", &[]));
+        m.insert("cost".to_string(), self.safe_string2(order.clone(), Value::Str("cummulativeQuoteQty".to_string()), Value::Str("Z".to_string()), &[]));
         m.insert("amount".to_string(), self.safe_string_n(order.clone(), Value::List(vec![Value::Str("origQty".to_string()), Value::Str("q".to_string()), Value::Str("quantity".to_string()), Value::Str("totalAmount".to_string())]), &[]));
         m.insert("filled".to_string(), self.safe_string2(order.clone(), Value::Str("executedQty".to_string()), Value::Str("z".to_string()), &[]));
         m.insert("remaining".to_string(), Value::Null);
@@ -6007,7 +6001,7 @@ impl BingxCore {
  * @description fetches information on multiple orders made by the user
  * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/All%20Orders
  * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Query%20Order%20history (returns less fields than above)
- * @param {string} symbol unified market symbol of the market orders were made in
+ * @param {string} [symbol] unified market symbol of the market orders were made in
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of order structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -6325,7 +6319,7 @@ impl BingxCore {
  * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Query%20Order%20history
  * @see https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/User's%20History%20Orders
  * @see https://bingx-api.github.io/docs/#/standard/contract-interface.html#Historical%20order
- * @param {string} symbol unified market symbol of the closed orders
+ * @param {string} [symbol] unified market symbol of the closed orders
  * @param {int} [since] timestamp in ms of the earliest order
  * @param {int} [limit] the max number of closed orders to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -6358,7 +6352,7 @@ impl BingxCore {
  * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Query%20Order%20history
  * @see https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/User's%20History%20Orders
  * @see https://bingx-api.github.io/docs/#/standard/contract-interface.html#Historical%20order
- * @param {string} symbol unified market symbol of the canceled orders
+ * @param {string} [symbol] unified market symbol of the canceled orders
  * @param {int} [since] timestamp in ms of the earliest order
  * @param {int} [limit] the max number of canceled orders to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
