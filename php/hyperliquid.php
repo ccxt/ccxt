@@ -1633,7 +1633,14 @@ class hyperliquid extends Exchange {
 
     public function amount_to_precision(?string $symbol, mixed $amount) {
         $market = $this->market($symbol);
-        return $this->decimal_to_precision($amount, ROUND, $market['precision']['amount'], $this->precisionMode, $this->paddingMode);
+        $result = $this->decimal_to_precision($amount, ROUND, $market['precision']['amount'], $this->precisionMode, $this->paddingMode);
+        // a size of zero is meaningful to hyperliquid, a whole position tp/sl order is sent
+        // with grouping positionTpsl and size 0, so only reject a positive amount that
+        // became zero after rounding, never an explicitly requested zero
+        if (Precise::string_eq($result, '0') && Precise::string_gt($this->number_to_string($amount), '0')) {
+            throw new InvalidOrder($this->id . ' $amount of ' . $market['symbol'] . ' must be greater than minimum $amount precision of ' . $this->number_to_string($market['precision']['amount']));
+        }
+        return $result;
     }
 
     public function price_to_precision(?string $symbol, mixed $price): ?string {
