@@ -1628,6 +1628,8 @@ export default class bingx extends bingxRest {
             if ((updateTimestamp !== undefined) && (updateTimestamp > 0)) {
                 const orderId = this.safeString (parsedOrder, 'id');
                 if (orderId !== undefined) {
+                    // Linear scan bounded by ordersLimit (default 1000), avoiding cache-specific maps.
+                    // Match both id and symbol: several cached orders can share a symbol.
                     for (let i = 0; i < stored.length; i++) {
                         const previousOrder = stored[i];
                         if ((previousOrder['id'] === orderId) && (previousOrder['symbol'] === parsedOrder['symbol'])) {

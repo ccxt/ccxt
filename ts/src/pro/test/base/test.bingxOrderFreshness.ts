@@ -4,7 +4,8 @@ import bingx from '../../bingx.js';
 
 // Native handler/cache test: no sockets, credentials or exchange requests.
 function testBingxOrderFreshness (ExchangeClass: typeof bingx = bingx) {
-    const cases: [ string, number | undefined, number | undefined, boolean, string, string ][] = [
+    const cases: [ string, number | undefined, number | undefined, boolean, string, string, boolean? ][] = [
+        [ 'older update with another order of the same symbol first', 3000, 2000, true, 'FILLED', 'PARTIALLY_FILLED', true ],
         [ 'older partial after fill', 3000, 2000, true, 'FILLED', 'PARTIALLY_FILLED' ],
         [ 'older partial after cancellation', 3000, 2000, true, 'CANCELED', 'PARTIALLY_FILLED' ],
         [ 'older partial after partial', 3000, 2000, true, 'PARTIALLY_FILLED', 'PARTIALLY_FILLED' ],
@@ -19,7 +20,7 @@ function testBingxOrderFreshness (ExchangeClass: typeof bingx = bingx) {
         [ 'identical terminal duplicate', 3000, 3000, false, 'FILLED', 'FILLED' ],
     ];
     for (const row of cases) {
-        const [ name, previousTime, incomingTime, reject, previousStatus, incomingStatus ] = row;
+        const [ name, previousTime, incomingTime, reject, previousStatus, incomingStatus, prependOtherOrder = false ] = row;
         const exchange = new ExchangeClass ({});
         exchange.setMarkets ([ exchange.safeMarketStructure ({
             'id': 'LTC-USDT',
@@ -54,19 +55,29 @@ function testBingxOrderFreshness (ExchangeClass: typeof bingx = bingx) {
         const second = frame (incomingTime, incomingStatus);
         const rawFirst = JSON.stringify (first);
         const rawSecond = JSON.stringify (second);
+        if (prependOtherOrder) {
+            const other = frame (1000, 'PARTIALLY_FILLED');
+            other['o']['i'] = '2';
+            exchange.handleOrder (client, other);
+        }
         exchange.handleOrder (client, first);
         assert (exchange.orders !== undefined, name + ': cache initialized');
-        const before = JSON.stringify (exchange.orders[0]);
+        const orderIndex = prependOtherOrder ? 1 : 0;
+        const otherBefore = prependOtherOrder ? JSON.stringify (exchange.orders[0]) : undefined;
+        const before = JSON.stringify (exchange.orders[orderIndex]);
         exchange.handleOrder (client, second);
-        assert.equal (exchange.orders.length, 1, name + ': cache size');
-        assert.equal (resolutions, reject ? 2 : 4, name + ': subscriber resolutions');
+        assert.equal (exchange.orders.length, prependOtherOrder ? 2 : 1, name + ': cache size');
+        assert.equal (resolutions, (reject ? 2 : 4) + (prependOtherOrder ? 2 : 0), name + ': subscriber resolutions');
+        if (prependOtherOrder) {
+            assert.equal (JSON.stringify (exchange.orders[0]), otherBefore, name + ': unrelated order unchanged');
+        }
         if (reject) {
-            assert.equal (JSON.stringify (exchange.orders[0]), before, name + ': cached state');
+            assert.equal (JSON.stringify (exchange.orders[orderIndex]), before, name + ': cached state');
         } else {
             const expectedStatus = incomingStatus === 'FILLED' ? 'closed' : (incomingStatus === 'CANCELED' ? 'canceled' : 'open');
-            assert.equal (exchange.orders[0]['status'], expectedStatus, name + ': accepted status');
+            assert.equal (exchange.orders[orderIndex]['status'], expectedStatus, name + ': accepted status');
             const validIncomingTime = (typeof incomingTime === 'number') && (incomingTime > 0);
-            assert.equal (exchange.orders[0]['lastUpdateTimestamp'], validIncomingTime ? incomingTime : undefined, name + ': update time');
+            assert.equal (exchange.orders[orderIndex]['lastUpdateTimestamp'], validIncomingTime ? incomingTime : undefined, name + ': update time');
         }
         assert.equal (JSON.stringify (first), rawFirst, name + ': first raw frame');
         assert.equal (JSON.stringify (second), rawSecond, name + ': second raw frame');
