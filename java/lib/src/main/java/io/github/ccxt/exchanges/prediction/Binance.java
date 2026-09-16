@@ -250,7 +250,7 @@ public class Binance extends BinanceApi
             }
             this.setEvents(parsedEvents);
             return flatMarkets;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -347,7 +347,7 @@ public class Binance extends BinanceApi
                 offset = this.sum(offset, pageTopicsLength);
             }
             return collected;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -370,7 +370,7 @@ public class Binance extends BinanceApi
                 put( "marketTopicId", topicId );
             }};
             return (this.sapiPrivateGetMarketDetail(this.extend(request, parameters))).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -416,7 +416,7 @@ public class Binance extends BinanceApi
                 }
             }
             return result;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -546,7 +546,7 @@ public class Binance extends BinanceApi
             // title uses different words than the query
             Object postParams = this.omit(parameters, new ArrayList<Object>(Arrays.asList("tags", "l1Category", "l2Category")));
             return this.applyEventFetchParams(result, postParams, new ArrayList<Object>(Arrays.asList()));
-        }).thenApply(res -> Helpers.toTypedList(res, PredictionEvent::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, PredictionEvent::new));
 
     }
 
@@ -620,7 +620,7 @@ public class Binance extends BinanceApi
                 capped = this.arraySlice(collected, 0, limit);
             }
             return (this.completeRawTopics(capped)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -643,7 +643,7 @@ public class Binance extends BinanceApi
                 put( "eventId", id );
             }}, parameters)))).join();
             return this.safeDict(events, 0);
-        }).thenApply(PredictionEvent::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(PredictionEvent::new);
 
     }
 
@@ -948,7 +948,7 @@ final Object finalMarketSymbol = marketSymbol;
             //     { "marketId": 5567895, "lastTradePrice": "0.52" }
             //
             return this.parsePredictionTicker(response, ((Object)outcomeObj));
-        }).thenApply(PredictionTicker::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(PredictionTicker::new);
 
     }
 
@@ -1071,7 +1071,7 @@ final Object finalMarketSymbol = marketSymbol;
                 Helpers.addElementToObject(result, symbolKey, ticker);
             }
             return result;
-        }).thenApply(PredictionTickers::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(PredictionTickers::new);
 
     }
 
@@ -1113,7 +1113,7 @@ final Object finalMarketSymbol = marketSymbol;
             Long timestamp = this.safeInteger(response, "timestamp");
             Object orderbook = this.parseOrderBook(response, this.safeOutcomeSymbol(outcome, outcomeObj), timestamp, "bids", "asks", "price", "size");
             return this.safePredictionOrderBook(orderbook, outcomeObj);
-        }).thenApply(PredictionOrderBook::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(PredictionOrderBook::new);
 
     }
 
@@ -1165,7 +1165,7 @@ final Object finalMarketSymbol = marketSymbol;
                 }
             }
             return this.safeBalance(result);
-        }).thenApply(Balances::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Balances::new);
 
     }
 
@@ -1370,7 +1370,7 @@ final Object finalMarketSymbol = marketSymbol;
             Object orders = this.safeList(response, "orders", new ArrayList<Object>(Arrays.asList()));
             Object parsedOrders = this.parsePredictionOrders(orders, outcomeObj, since);
             return this.filterByOutcomeSinceLimit(parsedOrders, outcome, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, PredictionOrder::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, PredictionOrder::new));
 
     }
 
@@ -1480,7 +1480,7 @@ final Object finalMarketSymbol = marketSymbol;
             Object orders = this.safeList(response, "orders", new ArrayList<Object>(Arrays.asList()));
             Object parsedOrders = this.parsePredictionOrders(orders, outcomeObj, since);
             return this.filterByOutcomeSinceLimit(parsedOrders, outcome, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, PredictionOrder::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, PredictionOrder::new));
 
     }
 
@@ -1585,7 +1585,7 @@ final Object finalMarketSymbol = marketSymbol;
                 }
             }
             return filtered;
-        }).thenApply(res -> Helpers.toTypedList(res, PredictionPosition::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, PredictionPosition::new));
 
     }
 
@@ -1622,7 +1622,7 @@ final Object finalMarketSymbol = marketSymbol;
             Object parsedPositions = this.parsePredictionPositions(positions);
             Object filteredPositions = this.filterByOutcomeSinceLimit(parsedPositions, outcome, null);
             return this.safeDict(filteredPositions, 0);
-        }).thenApply(PredictionPosition::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(PredictionPosition::new);
 
     }
 
@@ -1793,7 +1793,7 @@ final Object finalMarketSymbol = marketSymbol;
             Object trades = this.safeList(response, "orders", new ArrayList<Object>(Arrays.asList()));
             Object parsedTrades = this.parsePredictionTrades(trades, outcomeObj);
             return this.filterByOutcomeSinceLimit(parsedTrades, outcome, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, PredictionTrade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, PredictionTrade::new));
 
     }
 
@@ -1952,7 +1952,7 @@ final Object finalMarketSymbol = marketSymbol;
             }
             Helpers.addElementToObject(this.options, "wallet", cachedWallet);
             return cachedWallet;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -2006,7 +2006,7 @@ final Object finalMarketSymbol = marketSymbol;
             // }
             //
             return response;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -2164,7 +2164,7 @@ final Object finalMarketSymbol = marketSymbol;
                 put( "fee", null );
                 put( "trades", new ArrayList<Object>(Arrays.asList()) );
             }}, market);
-        }).thenApply(PredictionOrder::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(PredictionOrder::new);
 
     }
 
@@ -2189,7 +2189,7 @@ final Object finalMarketSymbol = marketSymbol;
                 put( "cost", cost );
             }};
             return (this.createOrder((Object)(symbol), (Object)("market"), (Object)(side), (Object)(cost), (Object)(null), (Object)(this.extend(req, parameters)))).join();
-        }).thenApply(PredictionOrder::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(PredictionOrder::new);
 
     }
 
@@ -2212,7 +2212,7 @@ final Object finalMarketSymbol = marketSymbol;
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             Object orders = (this.cancelOrders((Object)(new ArrayList<Object>(Arrays.asList(id))), (Object)(outcome), (Object)(parameters))).join();
             return this.safeDict(orders, 0, new HashMap<String, Object>() {{}});
-        }).thenApply(PredictionOrder::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(PredictionOrder::new);
 
     }
 
@@ -2305,7 +2305,7 @@ final Object finalMarketSymbol = marketSymbol;
                 ((List<Object>)orders).add(this.safePredictionOrder(order));
             }
             return orders;
-        }).thenApply(res -> Helpers.toTypedList(res, PredictionOrder::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, PredictionOrder::new));
 
     }
 

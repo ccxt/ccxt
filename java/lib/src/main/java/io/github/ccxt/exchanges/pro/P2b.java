@@ -105,7 +105,7 @@ public class P2b extends io.github.ccxt.exchanges.P2b
             }};
             Map<String, Object> query = this.extend(subscribe, parameters);
             return (this.watch(url, messageHash, query, messageHash, null)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -149,7 +149,7 @@ public class P2b extends io.github.ccxt.exchanges.P2b
                 limit = Helpers.callDynamically(ohlcv, "getLimit", new Object[]{symbol, limit});
             }
             return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
-        }).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
 
     }
 
@@ -186,7 +186,7 @@ public class P2b extends io.github.ccxt.exchanges.P2b
             Object request = Helpers.objectKeys(tickerSubs);
             Object messageHash = Helpers.add(Helpers.add(name, "::"), Helpers.GetValue(market, "symbol"));
             return (this.subscribe(Helpers.add(name, ".subscribe"), messageHash, request, parameters)).join();
-        }).thenApply(Ticker::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Ticker::new);
 
     }
 
@@ -235,7 +235,7 @@ public class P2b extends io.github.ccxt.exchanges.P2b
             }};
             (this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes, null)).join();
             return this.filterByArray(this.tickers, "symbol", symbols);
-        }).thenApply(Tickers::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Tickers::new);
 
     }
 
@@ -259,7 +259,7 @@ public class P2b extends io.github.ccxt.exchanges.P2b
             Object limit = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
             return (this.watchTradesForSymbols((Object)(new ArrayList<Object>(Arrays.asList(symbol))), (Object)(since), (Object)(limit), (Object)(parameters))).join();
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -311,7 +311,7 @@ public class P2b extends io.github.ccxt.exchanges.P2b
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{tradeSymbol, limit});
             }
             return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -348,7 +348,7 @@ public class P2b extends io.github.ccxt.exchanges.P2b
             Object request = new ArrayList<Object>(Arrays.asList(Helpers.GetValue(market, "id"), limit, interval));
             Object orderbook = (this.subscribe(name, messageHash, request, parameters)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
-        }).thenApply(OrderBook::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OrderBook::new);
 
     }
 

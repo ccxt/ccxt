@@ -21,7 +21,7 @@ public class TestFetchStatus extends BaseTest {
         Object status = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchStatus", new Object[]{})).join();
         TestStatus.testStatus(exchange, skippedProperties, method, status, exchange.milliseconds());
         return true;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 

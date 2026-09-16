@@ -682,7 +682,7 @@ public class Gemini extends GeminiApi
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             return (this.fetchCurrenciesFromWeb(parameters)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -728,7 +728,7 @@ public class Gemini extends GeminiApi
             Helpers.addElementToObject(this.options, "tradingPairs", this.safeList(data, "tradingPairs"));
             Object currenciesArray = this.safeValue(data, "currencies", new ArrayList<Object>(Arrays.asList()));
             return this.parseCurrencies(currenciesArray);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -821,7 +821,7 @@ public class Gemini extends GeminiApi
                 return this.arrayConcat(Helpers.GetValue(promisesResult, 0), Helpers.GetValue(promisesResult, 1));
             }
             return (this.fetchMarketsFromAPI(parameters)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -932,7 +932,7 @@ public class Gemini extends GeminiApi
                 }});
             }
             return result;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -977,7 +977,7 @@ public class Gemini extends GeminiApi
                 ((List<Object>)result).add(this.parseMarket(rawResponse));
             }
             return result;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1055,7 +1055,7 @@ public class Gemini extends GeminiApi
                 }
             }
             return result;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1275,7 +1275,7 @@ public class Gemini extends GeminiApi
             }
             Map<String, Object> response = (this.publicGetV1BookSymbol(this.extend(request, parameters))).join();
             return this.parseOrderBook(response, Helpers.GetValue(market, "symbol"), null, "bids", "asks", "price", "amount");
-        }).thenApply(OrderBook::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OrderBook::new);
 
     }
 
@@ -1307,7 +1307,7 @@ public class Gemini extends GeminiApi
             //     }
             //
             return this.parseTicker(response, market);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1340,7 +1340,7 @@ public class Gemini extends GeminiApi
             //     }
             //
             return this.parseTicker(response, market);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1364,7 +1364,7 @@ public class Gemini extends GeminiApi
                 put( "average", Helpers.GetValue(tickerB, "average") );
                 put( "info", Helpers.GetValue(tickerB, "info") );
             }});
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1395,7 +1395,7 @@ public class Gemini extends GeminiApi
                 return (this.fetchTickerV2(symbol, parameters)).join();
             }
             return (this.fetchTickerV1AndV2(symbol, parameters)).join();
-        }).thenApply(Ticker::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Ticker::new);
 
     }
 
@@ -1538,7 +1538,7 @@ public class Gemini extends GeminiApi
             Object result = this.parseTickers(response, symbols);
             Object brokenPairs = this.safeList(this.options, "brokenPairs", new ArrayList<Object>(Arrays.asList()));
             return this.removeKeysFromDict(result, brokenPairs);
-        }).thenApply(Tickers::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Tickers::new);
 
     }
 
@@ -1658,7 +1658,7 @@ public class Gemini extends GeminiApi
             //     ]
             //
             return this.parseTrades(response, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -1751,7 +1751,7 @@ public class Gemini extends GeminiApi
     }});
             }
             return result;
-        }).thenApply(TradingFees::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(TradingFees::new);
 
     }
 
@@ -1775,7 +1775,7 @@ public class Gemini extends GeminiApi
             }
             Map<String, Object> response = (this.privatePostV1Balances(parameters)).join();
             return this.parseBalance(response);
-        }).thenApply(Balances::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Balances::new);
 
     }
 
@@ -2008,7 +2008,7 @@ public class Gemini extends GeminiApi
             //      }
             //
             return this.parseOrder(response);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -2068,7 +2068,7 @@ public class Gemini extends GeminiApi
                 market = this.market(symbol); // throws on non-existent symbol
             }
             return this.parseOrders(response, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -2186,7 +2186,7 @@ public class Gemini extends GeminiApi
             //      }
             //
             return this.parseOrder(response);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -2240,7 +2240,7 @@ public class Gemini extends GeminiApi
             //      }
             //
             return this.parseOrder(response);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -2286,7 +2286,7 @@ public class Gemini extends GeminiApi
             }
             List<Object> response = (this.privatePostV1Mytrades(this.extend(request, parameters))).join();
             return this.parseTrades(response, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -2353,7 +2353,7 @@ public class Gemini extends GeminiApi
                 throw new ExchangeError(Helpers.add(Helpers.add(this.id, " withdraw() failed: "), this.json(response))) ;
             }
             return this.parseTransaction(response, currency);
-        }).thenApply(Transaction::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Transaction::new);
 
     }
 
@@ -2402,7 +2402,7 @@ public class Gemini extends GeminiApi
             }
             List<Object> response = (this.privatePostV1Transfers(this.extend(request, parameters))).join();
             return this.parseTransactions(response);
-        }).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
 
     }
 
@@ -2525,7 +2525,7 @@ public class Gemini extends GeminiApi
             networkCode = (String) ((List<Object>) networkCodeparametersVariable).get(0);
             parameters = ((List<Object>) networkCodeparametersVariable).get(1);
             return this.safeValue(indexedByNetwork, networkCode);
-        }).thenApply(DepositAddress::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(DepositAddress::new);
 
     }
 
@@ -2573,7 +2573,7 @@ public class Gemini extends GeminiApi
             // one address structure per network, like every other venue (the endpoint is scoped to a
             // single network, so the last address the venue lists for it wins — same as before)
             return this.indexBy(results, "network");
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -2699,7 +2699,7 @@ public class Gemini extends GeminiApi
                 put( "network", null );
                 put( "info", response );
             }};
-        }).thenApply(DepositAddress::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(DepositAddress::new);
 
     }
 
@@ -2748,7 +2748,7 @@ public class Gemini extends GeminiApi
                 candles = response;
             }
             return this.parseOHLCVs(candles, market, timeframe, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
 
     }
 
@@ -2786,7 +2786,7 @@ public class Gemini extends GeminiApi
             //    }
             //
             return this.parseOpenInterest(response, market);
-        }).thenApply(OpenInterest::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OpenInterest::new);
 
     }
 

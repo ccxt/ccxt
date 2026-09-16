@@ -993,7 +993,7 @@ public class Woo extends WooApi
                 put( "url", null );
                 put( "info", response );
             }};
-        }).thenApply(Status::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Status::new);
 
     }
 
@@ -1024,7 +1024,7 @@ public class Woo extends WooApi
             //     }
             //
             return this.safeInteger(response, "timestamp");
-        }).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
 
     }
 
@@ -1082,7 +1082,7 @@ public class Woo extends WooApi
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Object rows = this.safeList(data, "rows", new ArrayList<Object>(Arrays.asList()));
             return this.parseMarkets(rows);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1241,7 +1241,7 @@ public class Woo extends WooApi
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Object rows = this.safeList(data, "rows", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(rows, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -1402,7 +1402,7 @@ public class Woo extends WooApi
             //
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseTradingFee(data, market);
-        }).thenApply(TradingFeeInterface::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(TradingFeeInterface::new);
 
     }
 
@@ -1478,7 +1478,7 @@ public class Woo extends WooApi
     }});
             }
             return result;
-        }).thenApply(TradingFees::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(TradingFees::new);
 
     }
 
@@ -1596,7 +1596,7 @@ public class Woo extends WooApi
                 }
             }
             return result;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1695,7 +1695,7 @@ public class Woo extends WooApi
                 throw new NotSupported(Helpers.add(this.id, " createMarketBuyOrderWithCost() supports spot orders only")) ;
             }
             return (this.createOrder((Object)(symbol), (Object)("market"), (Object)("buy"), (Object)(cost), (Object)(1), (Object)(parameters))).join();
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -1725,7 +1725,7 @@ public class Woo extends WooApi
                 throw new NotSupported(Helpers.add(this.id, " createMarketSellOrderWithCost() supports spot orders only")) ;
             }
             return (this.createOrder((Object)(symbol), (Object)("market"), (Object)("sell"), (Object)(cost), (Object)(1), (Object)(parameters))).join();
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -1764,7 +1764,7 @@ public class Woo extends WooApi
             Helpers.addElementToObject(parameters, "trailingAmount", trailingAmount);
             Helpers.addElementToObject(parameters, "trailingTriggerPrice", trailingTriggerPrice);
             return (this.createOrder((Object)(symbol), (Object)(type), (Object)(side), (Object)(amount), (Object)(price), (Object)(parameters))).join();
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -1803,7 +1803,7 @@ public class Woo extends WooApi
             Helpers.addElementToObject(parameters, "trailingPercent", trailingPercent);
             Helpers.addElementToObject(parameters, "trailingTriggerPrice", trailingTriggerPrice);
             return (this.createOrder((Object)(symbol), (Object)(type), (Object)(side), (Object)(amount), (Object)(price), (Object)(parameters))).join();
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -2007,7 +2007,7 @@ public class Woo extends WooApi
             data = this.safeDict(this.safeList(data, "rows"), 0, data);
             Helpers.addElementToObject(data, "timestamp", this.safeString(response, "timestamp"));
             return this.parseOrder(data, market);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -2138,7 +2138,7 @@ public class Woo extends WooApi
                 Helpers.addElementToObject(order, "orderId", id);
             }
             return this.parseOrder(order, market);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -2223,7 +2223,7 @@ public class Woo extends WooApi
                 Helpers.addElementToObject(data, "orderId", id);
             }
             return this.parseOrder(data, market);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -2279,7 +2279,7 @@ public class Woo extends WooApi
             return new ArrayList<Object>(Arrays.asList(this.safeOrder(new HashMap<String, Object>() {{
         put( "info", data );
     }})));
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -2316,7 +2316,7 @@ public class Woo extends WooApi
             // }
             //
             return response;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -2376,7 +2376,7 @@ public class Woo extends WooApi
             }
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseOrder(data, market);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -2451,7 +2451,7 @@ public class Woo extends WooApi
             Object data = this.safeValue(response, "data", new HashMap<String, Object>() {{}});
             Object orders = this.safeList(data, "rows", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(orders, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -2489,7 +2489,7 @@ public class Woo extends WooApi
                 put( "status", "INCOMPLETE" );
             }});
             return (this.fetchOrders((Object)(symbol), (Object)(since), (Object)(limit), (Object)(extendedParams))).join();
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -2527,7 +2527,7 @@ public class Woo extends WooApi
                 put( "status", "COMPLETED" );
             }});
             return (this.fetchOrders((Object)(symbol), (Object)(since), (Object)(limit), (Object)(extendedParams))).join();
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -2786,7 +2786,7 @@ public class Woo extends WooApi
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Long timestamp = this.safeInteger(response, "timestamp");
             return this.parseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "quantity");
-        }).thenApply(OrderBook::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OrderBook::new);
 
     }
 
@@ -2904,7 +2904,7 @@ public class Woo extends WooApi
                 put( "timestamp", Woo.this.safeInteger(response, "timestamp") );
             }}, first);
             return this.parseTicker(ticker, market);
-        }).thenApply(Ticker::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Ticker::new);
 
     }
 
@@ -2983,7 +2983,7 @@ public class Woo extends WooApi
                 ((List<Object>)result).add(this.parseTicker(ticker));
             }
             return this.filterByArrayTickers(result, "symbol", symbols);
-        }).thenApply(Tickers::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Tickers::new);
 
     }
 
@@ -3058,7 +3058,7 @@ public class Woo extends WooApi
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Object rows = this.safeList(data, "rows", new ArrayList<Object>(Arrays.asList()));
             return this.parseOHLCVs(rows, market, timeframe, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
 
     }
 
@@ -3122,7 +3122,7 @@ public class Woo extends WooApi
             // }
             Object trades = this.safeList(response, "rows", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(trades, market, since, limit, parameters);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -3213,7 +3213,7 @@ public class Woo extends WooApi
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Object trades = this.safeList(data, "rows", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(trades, market, since, limit, parameters);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -3287,7 +3287,7 @@ public class Woo extends WooApi
             Object subRows = this.safeList(subData, "rows", new ArrayList<Object>(Arrays.asList()));
             List<Object> rows = (List<Object>) this.arrayConcat(mainRows, subRows);
             return this.parseAccounts(rows, parameters);
-        }).thenApply(res -> Helpers.toTypedList(res, Account::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Account::new));
 
     }
 
@@ -3377,7 +3377,7 @@ public class Woo extends WooApi
             //
             Object data = this.safeDict(response, "data");
             return this.parseBalance(data);
-        }).thenApply(Balances::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Balances::new);
 
     }
 
@@ -3447,7 +3447,7 @@ public class Woo extends WooApi
             return this.parseDepositAddress(this.extend(data, new HashMap<String, Object>() {{
                 put( "network", Woo.this.safeString(request, "network") );
             }}), currency);
-        }).thenApply(DepositAddress::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(DepositAddress::new);
 
     }
 
@@ -3563,7 +3563,7 @@ public class Woo extends WooApi
             //
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return new ArrayList<Object>(Arrays.asList(currency, this.safeList(data, "rows", new ArrayList<Object>(Arrays.asList()))));
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -3591,7 +3591,7 @@ public class Woo extends WooApi
             Object currency = this.safeValue(currencyRows, 0);
             Object rows = this.safeList(currencyRows, 1);
             return this.parseLedger(rows, currency, since, limit, parameters);
-        }).thenApply(res -> Helpers.toTypedList(res, LedgerEntry::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, LedgerEntry::new));
 
     }
 
@@ -3700,7 +3700,7 @@ public class Woo extends WooApi
                 put( "tokenSide", "DEPOSIT" );
             }};
             return (this.fetchDepositsWithdrawals((Object)(code), (Object)(since), (Object)(limit), (Object)(this.extend(request, parameters)))).join();
-        }).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
 
     }
 
@@ -3728,7 +3728,7 @@ public class Woo extends WooApi
                 put( "tokenSide", "WITHDRAW" );
             }};
             return (this.fetchDepositsWithdrawals((Object)(code), (Object)(since), (Object)(limit), (Object)(this.extend(request, parameters)))).join();
-        }).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
 
     }
 
@@ -3759,7 +3759,7 @@ public class Woo extends WooApi
             Object currency = this.safeValue(currencyRows, 0);
             Object rows = this.safeList(currencyRows, 1, new ArrayList<Object>(Arrays.asList()));
             return this.parseTransactions(rows, currency, since, limit, parameters);
-        }).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
 
     }
 
@@ -3891,7 +3891,7 @@ public class Woo extends WooApi
                 Helpers.addElementToObject(transfer, "toAccount", toAccount);
             }
             return transfer;
-        }).thenApply(TransferEntry::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(TransferEntry::new);
 
     }
 
@@ -3971,7 +3971,7 @@ public class Woo extends WooApi
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Object rows = this.safeList(data, "rows", new ArrayList<Object>(Arrays.asList()));
             return this.parseTransfers(rows, currency, since, limit, parameters);
-        }).thenApply(res -> Helpers.toTypedList(res, TransferEntry::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, TransferEntry::new));
 
     }
 
@@ -4105,7 +4105,7 @@ public class Woo extends WooApi
                 put( "status", "pending" );
             }});
             return this.parseTransaction(transactionData, currency);
-        }).thenApply(Transaction::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Transaction::new);
 
     }
 
@@ -4154,7 +4154,7 @@ public class Woo extends WooApi
                 put( "amount", amount );
                 put( "symbol", finalSymbol );
             }});
-        }).thenApply(MarginLoan::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(MarginLoan::new);
 
     }
 
@@ -4431,7 +4431,7 @@ public class Woo extends WooApi
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Object rows = this.safeList(data, "rows", new ArrayList<Object>(Arrays.asList()));
             return this.parseIncomes(rows, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, FundingHistory::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, FundingHistory::new));
 
     }
 
@@ -4509,7 +4509,7 @@ public class Woo extends WooApi
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             return (this.fetchFundingRate(symbol, (Object)(parameters))).join();
-        }).thenApply(FundingRate::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(FundingRate::new);
 
     }
 
@@ -4561,7 +4561,7 @@ public class Woo extends WooApi
             Object rows = this.safeList(data, "rows", new ArrayList<Object>(Arrays.asList()));
             Object first = this.safeDict(rows, 0, new HashMap<String, Object>() {{}});
             return this.parseFundingRate(first, market);
-        }).thenApply(FundingRate::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(FundingRate::new);
 
     }
 
@@ -4610,7 +4610,7 @@ public class Woo extends WooApi
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Object rows = this.safeList(data, "rows", new ArrayList<Object>(Arrays.asList()));
             return this.parseFundingRates(rows, symbols);
-        }).thenApply(FundingRates::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(FundingRates::new);
 
     }
 
@@ -4705,7 +4705,7 @@ public class Woo extends WooApi
             }
             List<Object> sorted = this.sortBy(rates, "timestamp");
             return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, FundingRateHistory::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, FundingRateHistory::new));
 
     }
 
@@ -4746,7 +4746,7 @@ public class Woo extends WooApi
             //     }
             //
             return response;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -4794,7 +4794,7 @@ public class Woo extends WooApi
             }
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseLeverage(data, market);
-        }).thenApply(Leverage::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Leverage::new);
 
     }
 
@@ -4889,7 +4889,7 @@ public class Woo extends WooApi
             {
                 throw new NotSupported(Helpers.add(Helpers.add(Helpers.add(this.id, " fetchLeverage() is not supported for "), this.safeString(market, "type")), " markets")) ;
             }
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -4911,7 +4911,7 @@ public class Woo extends WooApi
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             return (this.modifyMarginHelper(symbol, amount, "ADD", parameters)).join();
-        }).thenApply(MarginModification::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(MarginModification::new);
 
     }
 
@@ -4933,7 +4933,7 @@ public class Woo extends WooApi
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             return (this.modifyMarginHelper(symbol, amount, "REDUCE", parameters)).join();
-        }).thenApply(MarginModification::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(MarginModification::new);
 
     }
 
@@ -4955,7 +4955,7 @@ public class Woo extends WooApi
                 put( "action", type );
             }};
             return (this.v1PrivatePostClientIsolatedMargin(this.extend(request, parameters))).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -5018,7 +5018,7 @@ public class Woo extends WooApi
             Object positions = this.safeList(result, "positions", new ArrayList<Object>(Arrays.asList()));
             Object first = this.safeDict(positions, 0, new HashMap<String, Object>() {{}});
             return this.parsePosition(first, market);
-        }).thenApply(Position::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Position::new);
 
     }
 
@@ -5088,7 +5088,7 @@ public class Woo extends WooApi
             Object result = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Object positions = this.safeList(result, "positions", new ArrayList<Object>(Arrays.asList()));
             return this.parsePositions(positions, symbols);
-        }).thenApply(res -> Helpers.toTypedList(res, Position::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Position::new));
 
     }
 
@@ -5260,7 +5260,7 @@ public class Woo extends WooApi
             String toCurrencyId = this.safeString(data, "buyToken", toCode);
             Map<String, Object> toCurrency = (Map<String, Object>) this.currency(toCurrencyId);
             return this.parseConversion(data, fromCurrency, toCurrency);
-        }).thenApply(Conversion::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Conversion::new);
 
     }
 
@@ -5303,7 +5303,7 @@ public class Woo extends WooApi
             //
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseConversion(data);
-        }).thenApply(Conversion::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Conversion::new);
 
     }
 
@@ -5360,7 +5360,7 @@ public class Woo extends WooApi
                 toCurrency = this.currency(toCurrencyId);
             }
             return this.parseConversion(data, fromCurrency, toCurrency);
-        }).thenApply(Conversion::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Conversion::new);
 
     }
 
@@ -5425,7 +5425,7 @@ public class Woo extends WooApi
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Object rows = this.safeList(data, "tradeVos", new ArrayList<Object>(Arrays.asList()));
             return this.parseConversions(rows, code, "sellAsset", "buyAsset", since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Conversion::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Conversion::new));
 
     }
 
@@ -5560,7 +5560,7 @@ public class Woo extends WooApi
                 }
             }
             return result;
-        }).thenApply(Currencies::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Currencies::new);
 
     }
 
@@ -5630,7 +5630,7 @@ public class Woo extends WooApi
             Object result = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Object positions = this.safeList(result, "positions", new ArrayList<Object>(Arrays.asList()));
             return this.parseADLRanks(positions, symbols);
-        }).thenApply(res -> Helpers.toTypedList(res, ADL::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, ADL::new));
 
     }
 

@@ -119,7 +119,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             }};
             Map<String, Object> message = this.extend(request, parameters);
             return (this.watch(url, messageHash, message, messageHash, null)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -151,7 +151,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             }};
             Map<String, Object> message = this.extend(request, parameters);
             return (this.watchMultiple(url, messageHashes, message, messageHashes, null)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -171,7 +171,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             return (this.watchPublic("ticker24h", symbol, parameters)).join();
-        }).thenApply(Ticker::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Ticker::new);
 
     }
 
@@ -199,7 +199,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             Object channel = "ticker24h";
             Object tickers = (this.watchPublicMultiple(channel, channel, symbols, parameters)).join();
             return this.filterByArray(tickers, "symbol", symbols);
-        }).thenApply(Tickers::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Tickers::new);
 
     }
 
@@ -269,7 +269,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             Object channel = "ticker24h";
             Object tickers = (this.watchPublicMultiple("bidask", channel, symbols, parameters)).join();
             return this.filterByArray(tickers, "symbol", symbols);
-        }).thenApply(Tickers::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Tickers::new);
 
     }
 
@@ -339,7 +339,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
             }
             return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -424,7 +424,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{tradeSymbol, limit});
             }
             return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -444,7 +444,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             return (this.unWatchTradesForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), parameters)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -487,7 +487,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
                 put( "symbols", finalSymbols );
             }};
             return (this.unWatchChannels("trades", channels, subMessageHashes, subscriptionArgs, parameters)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -537,7 +537,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
                 limit = Helpers.callDynamically(ohlcv, "getLimit", new Object[]{symbol, limit});
             }
             return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
-        }).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
 
     }
 
@@ -673,7 +673,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             }
             List<Object> filtered = this.filterBySinceLimit(candles, since, limit, 0, true);
             return this.createOHLCVObject(symbol, timeframe, filtered);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -695,7 +695,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             Object timeframe = Helpers.getArg(optionalArgs, 0, "1m");
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             return (this.unWatchOHLCVForSymbols(new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(symbol, timeframe)))), parameters)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -754,7 +754,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
                 put( "symbolsAndTimeframes", symbolsAndTimeframes );
             }};
             return (this.unWatchChannels("ohlcv", channels, subMessageHashes, subscriptionArgs, parameters)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -804,7 +804,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             Map<String, Object> message = this.extend(request, parameters);
             Object orderbook = (this.watch(url, messageHash, message, messageHash, subscription)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
-        }).thenApply(OrderBook::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OrderBook::new);
 
     }
 
@@ -860,7 +860,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             Map<String, Object> message = this.extend(request, parameters);
             Object orderbook = (this.watchMultiple(url, messageHashes, message, messageHashes, subscription)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
-        }).thenApply(OrderBook::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OrderBook::new);
 
     }
 
@@ -880,7 +880,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             return (this.unWatchOrderBookForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), parameters)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -923,7 +923,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
                 put( "symbols", finalSymbols );
             }};
             return (this.unWatchChannels("orderbook", channels, subMessageHashes, subscriptionArgs, parameters)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1042,7 +1042,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             }};
             Object orderbook = (this.watch(url, messageHash, this.extend(request, parameters), messageHash, subscription)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1164,7 +1164,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             }}, subscriptionArgs);
             Map<String, Object> message = this.extend(request, parameters);
             return (this.watchMultiple(url, unsubHashes, message, unsubHashes, subscription)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1253,7 +1253,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
                 limit = Helpers.callDynamically(orders, "getLimit", new Object[]{symbol, limit});
             }
             return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -1304,7 +1304,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
             }
             return this.filterBySymbolSinceLimit(trades, symbol, since, limit, true);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -1346,7 +1346,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             (this.authenticate()).join();
             Object request = this.createOrderRequest(symbol, type, side, amount, price, parameters);
             return (this.watchRequest("privateCreateOrder", request)).join();
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -1379,7 +1379,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             (this.authenticate()).join();
             Object request = this.editOrderRequest(id, symbol, type, side, amount, price, parameters);
             return (this.watchRequest("privateUpdateOrder", request)).join();
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -1407,7 +1407,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             (this.authenticate()).join();
             Object request = this.cancelOrderRequest(id, symbol, parameters);
             return (this.watchRequest("privateCancelOrder", request)).join();
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -1451,7 +1451,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
                 Helpers.addElementToObject(request, "market", Helpers.GetValue(market, "id"));
             }
             return (this.watchRequest("privateCancelOrders", this.extend(request, parameters))).join();
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -1509,7 +1509,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
                 put( "market", Helpers.GetValue(market, "id") );
             }};
             return (this.watchRequest("privateGetOrder", this.extend(request, parameters))).join();
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -1545,7 +1545,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             Object request = this.fetchOrdersRequest(symbol, since, limit, parameters);
             Object orders = (this.watchRequest("privateGetOrders", request)).join();
             return this.filterBySymbolSinceLimit(orders, symbol, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -1568,7 +1568,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             Helpers.addElementToObject(request, "requestId", messageHash);
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             return (this.watch(url, messageHashStr, request, messageHashStr, null)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1605,7 +1605,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             }
             Object orders = (this.watchRequest("privateGetOrdersOpen", this.extend(request, parameters))).join();
             return this.filterBySymbolSinceLimit(orders, symbol, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -1641,7 +1641,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             Object request = this.fetchMyTradesRequest(symbol, since, limit, parameters);
             Object myTrades = (this.watchRequest("privateGetTrades", request)).join();
             return this.filterBySymbolSinceLimit(myTrades, symbol, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -1706,7 +1706,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             (this.authenticate()).join();
             Object request = this.withdrawRequest(code, amount, address, tag, parameters);
             return (this.watchRequest("privateWithdrawAssets", request)).join();
-        }).thenApply(Transaction::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Transaction::new);
 
     }
 
@@ -1758,7 +1758,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             Object request = this.fetchWithdrawalsRequest(code, since, limit, parameters);
             Object withdraws = (this.watchRequest("privateGetWithdrawalHistory", request)).join();
             return this.filterByCurrencySinceLimit(withdraws, code, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
 
     }
 
@@ -1818,7 +1818,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             Object action = "getCandles";
             Object ohlcv = (this.watchRequest(action, request)).join();
             return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
-        }).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
 
     }
 
@@ -1850,7 +1850,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             Object request = this.fetchDepositsRequest(code, since, limit, parameters);
             Object deposits = (this.watchRequest("privateGetDepositHistory", request)).join();
             return this.filterByCurrencySinceLimit(deposits, code, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
 
     }
 
@@ -1899,7 +1899,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             }
             (this.authenticate()).join();
             return (this.watchRequest("privateGetAccount", parameters)).join();
-        }).thenApply(TradingFees::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(TradingFees::new);
 
     }
 
@@ -1918,7 +1918,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             return (this.watchRequest("getMarkets", parameters)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1941,7 +1941,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
                 (this.loadMarkets()).join();
             }
             return (this.watchRequest("getAssets", parameters)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -2013,7 +2013,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             }
             (this.authenticate()).join();
             return (this.watchRequest("privateGetBalance", parameters)).join();
-        }).thenApply(Balances::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Balances::new);
 
     }
 
@@ -2263,7 +2263,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
                 Helpers.addElementToObject(client.subscriptions, messageHash, future);
             }
             return future;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 

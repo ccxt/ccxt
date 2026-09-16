@@ -74,7 +74,7 @@ public class Kucoinfutures extends io.github.ccxt.exchanges.Kucoinfutures
                 put( "method", "futuresPublicGetAllTickers" );
             }};
             return (this.fetchTickers((Object)(symbols), (Object)(this.extend(request, parameters)))).join();
-        }).thenApply(Tickers::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Tickers::new);
 
     }
 
@@ -126,7 +126,7 @@ public class Kucoinfutures extends io.github.ccxt.exchanges.Kucoinfutures
                 put( "fromAccount", fromAccount );
                 put( "toAccount", finalToAccount );
             }});
-        }).thenApply(TransferEntry::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(TransferEntry::new);
 
     }
 

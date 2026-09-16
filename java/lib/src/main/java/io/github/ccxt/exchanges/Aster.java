@@ -1201,7 +1201,7 @@ public class Aster extends AsterApi
             //     ]
             //
             return this.parseCurrencies(sapiRows);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1367,7 +1367,7 @@ public class Aster extends AsterApi
             }
             List<Object> rows = (List<Object>) this.arrayConcat(sapiRows, fapiRowsFiltered);
             return this.parseMarkets(rows);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1524,7 +1524,7 @@ public class Aster extends AsterApi
             // }
             //
             return this.safeInteger(response, "serverTime");
-        }).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
 
     }
 
@@ -1621,7 +1621,7 @@ public class Aster extends AsterApi
                 }
             }
             return this.parseOHLCVs(this.toArray(response), market, timeframe, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
 
     }
 
@@ -1796,7 +1796,7 @@ public class Aster extends AsterApi
                 }
             }
             return this.parseTrades(response, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -1877,7 +1877,7 @@ public class Aster extends AsterApi
             // }
             //
             return this.parseTrades(response, market, since, limit, parameters);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -1942,7 +1942,7 @@ public class Aster extends AsterApi
             //
             Long timestamp = this.safeInteger(response, "T");
             return this.parseOrderBook(response, symbol, timestamp, "bids", "asks");
-        }).thenApply(OrderBook::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OrderBook::new);
 
     }
 
@@ -2098,7 +2098,7 @@ public class Aster extends AsterApi
             //    }
             //
             return this.parseTicker(response, market);
-        }).thenApply(Ticker::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Ticker::new);
 
     }
 
@@ -2168,7 +2168,7 @@ public class Aster extends AsterApi
             //     ]
             //
             return this.parseTickers(response, symbols);
-        }).thenApply(Tickers::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Tickers::new);
 
     }
 
@@ -2235,7 +2235,7 @@ public class Aster extends AsterApi
             }
             symbols = this.marketSymbols(symbols);
             return this.filterByArray(results, "symbol", symbols);
-        }).thenApply(LastPrices::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(LastPrices::new);
 
     }
 
@@ -2313,7 +2313,7 @@ public class Aster extends AsterApi
             //        }, ...
             //
             return this.parseTickers(response, symbols);
-        }).thenApply(Tickers::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Tickers::new);
 
     }
 
@@ -2418,7 +2418,7 @@ public class Aster extends AsterApi
             //     }
             //
             return this.parseFundingRate(response, market);
-        }).thenApply(FundingRate::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(FundingRate::new);
 
     }
 
@@ -2459,7 +2459,7 @@ public class Aster extends AsterApi
             //     ]
             //
             return this.parseFundingRates(response, symbols);
-        }).thenApply(FundingRates::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(FundingRates::new);
 
     }
 
@@ -2501,7 +2501,7 @@ public class Aster extends AsterApi
             //     ]
             //
             return this.parseFundingRates(response, symbols);
-        }).thenApply(FundingRates::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(FundingRates::new);
 
     }
 
@@ -2559,7 +2559,7 @@ public class Aster extends AsterApi
             //     ]
             //
             return this.parseFundingRateHistories(response, market);
-        }).thenApply(res -> Helpers.toTypedList(res, FundingRateHistory::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, FundingRateHistory::new));
 
     }
 
@@ -2616,7 +2616,7 @@ public class Aster extends AsterApi
                 data = this.safeList(response, "balances", new ArrayList<Object>(Arrays.asList()));
             }
             return this.parseBalance(data);
-        }).thenApply(Balances::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Balances::new);
 
     }
 
@@ -2684,7 +2684,7 @@ public class Aster extends AsterApi
             //     { "code": 200,"msg": "success" }
             //
             return response;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -2714,7 +2714,7 @@ public class Aster extends AsterApi
                 put( "info", response );
                 put( "hedged", Aster.this.safeBool(response, "dualSidePosition") );
             }};
-        }).thenApply(PositionModeInfo::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(PositionModeInfo::new);
 
     }
 
@@ -2746,7 +2746,7 @@ public class Aster extends AsterApi
             //     }
             //
             return (this.fapiPrivatePostV3PositionSideDual(this.extend(request, parameters))).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -2805,7 +2805,7 @@ public class Aster extends AsterApi
             //     }
             //
             return this.parseTradingFee(response, market);
-        }).thenApply(TradingFeeInterface::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(TradingFeeInterface::new);
 
     }
 
@@ -3005,7 +3005,7 @@ public class Aster extends AsterApi
             //    }
             //
             return this.parseOrder(response, market);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -3083,7 +3083,7 @@ public class Aster extends AsterApi
             //    }
             //
             return this.parseOrder(response, market);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -3168,7 +3168,7 @@ public class Aster extends AsterApi
             //        }, ...
             //
             return this.parseOrders(response, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -3262,7 +3262,7 @@ public class Aster extends AsterApi
             //    ]
             //
             return this.parseOrders(response, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -3337,7 +3337,7 @@ public class Aster extends AsterApi
             //    }
             //
             return this.parseOrder(response, market);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -3418,7 +3418,7 @@ public class Aster extends AsterApi
             //    ]
             //
             return this.parseOrders(response);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -3677,7 +3677,7 @@ public class Aster extends AsterApi
             return new ArrayList<Object>(Arrays.asList(this.safeOrder(new HashMap<String, Object>() {{
         put( "info", finalResponse );
     }})));
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -3726,7 +3726,7 @@ public class Aster extends AsterApi
                 response = (this.sapiPrivateDeleteV3Order(this.extend(request, parameters))).join();
             }
             return this.parseOrder(response, market);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -3778,7 +3778,7 @@ public class Aster extends AsterApi
                 response = (this.sapiPrivateDeleteV3AllOpenOrders(this.extend(request, parameters))).join();
             }
             return this.parseOrders(response, market);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -3823,7 +3823,7 @@ public class Aster extends AsterApi
             //     }
             //
             return response;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -3867,7 +3867,7 @@ public class Aster extends AsterApi
             //     ]
             //
             return this.parseLeverages(this.toArray(response), symbols, "symbol");
-        }).thenApply(Leverages::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Leverages::new);
 
     }
 
@@ -3963,7 +3963,7 @@ public class Aster extends AsterApi
             //
             //
             return this.parseMarginModes(this.toArray(response), symbols, "symbol", "swap");
-        }).thenApply(MarginModes::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(MarginModes::new);
 
     }
 
@@ -4064,7 +4064,7 @@ public class Aster extends AsterApi
             //
             Object modifications = this.parseMarginModifications(this.toArray(response));
             return this.filterBySymbolSinceLimit(modifications, symbol, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, MarginModification::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, MarginModification::new));
 
     }
 
@@ -4140,7 +4140,7 @@ public class Aster extends AsterApi
             return this.extend(this.parseMarginModification(response, market), new HashMap<String, Object>() {{
                 put( "code", code );
             }});
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -4161,7 +4161,7 @@ public class Aster extends AsterApi
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             return (this.modifyMarginHelper(symbol, amount, 2, parameters)).join();
-        }).thenApply(MarginModification::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(MarginModification::new);
 
     }
 
@@ -4182,7 +4182,7 @@ public class Aster extends AsterApi
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             return (this.modifyMarginHelper(symbol, amount, 1, parameters)).join();
-        }).thenApply(MarginModification::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(MarginModification::new);
 
     }
 
@@ -4261,7 +4261,7 @@ public class Aster extends AsterApi
             }
             List<Object> response = (this.fapiPrivateGetV3Income(this.extend(request, parameters))).join();
             return this.parseIncomes(response, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, FundingHistory::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, FundingHistory::new));
 
     }
 
@@ -4388,7 +4388,7 @@ public class Aster extends AsterApi
             //     ]
             //
             return this.parseLedger(response, currency, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, LedgerEntry::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, LedgerEntry::new));
 
     }
 
@@ -4653,7 +4653,7 @@ public class Aster extends AsterApi
             }
             symbols = this.marketSymbols(symbols);
             return this.filterByArrayPositions(result, "symbol", symbols, false);
-        }).thenApply(res -> Helpers.toTypedList(res, Position::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Position::new));
 
     }
 
@@ -4699,7 +4699,7 @@ public class Aster extends AsterApi
             {
                 throw new NotSupported(Helpers.add(Helpers.add(Helpers.add(this.id, ".options[\"fetchPositions\"][\"method\"] or params[\"method\"] = \""), defaultMethod), "\" is invalid, please choose between \"account\" and \"positionRisk\"")) ;
             }
-        }).thenApply(res -> Helpers.toTypedList(res, Position::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Position::new));
 
     }
 
@@ -4985,7 +4985,7 @@ public class Aster extends AsterApi
             Object result = this.parseAccountPositions(response, filterClosed);
             symbols = this.marketSymbols(symbols);
             return this.filterByArrayPositions(result, "symbol", symbols, false);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -5046,7 +5046,7 @@ public class Aster extends AsterApi
                 }
             }
             return Helpers.GetValue(this.options, "leverageBrackets");
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -5176,7 +5176,7 @@ public class Aster extends AsterApi
             //   }
             //
             return this.parseTransaction(response, currency);
-        }).thenApply(Transaction::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Transaction::new);
 
     }
 
@@ -5262,7 +5262,7 @@ public class Aster extends AsterApi
             Helpers.addElementToObject(request, "clientTranId", clientTranId);
             Map<String, Object> response = (this.sapiPrivatePostV3AssetWalletTransfer(this.extend(request, parameters))).join();
             return this.parseTransfer(response, currency);
-        }).thenApply(TransferEntry::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(TransferEntry::new);
 
     }
 
@@ -5467,7 +5467,7 @@ public class Aster extends AsterApi
 
             (Helpers.promiseAll(new ArrayList<Object>(Arrays.asList(this.loadMarkets(), this.signIn())))).join();
             return null;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -5499,7 +5499,7 @@ public class Aster extends AsterApi
             }
             (this.initializeClient(parameters)).join();
             return true;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -5571,7 +5571,7 @@ public class Aster extends AsterApi
                 }
             }
             return null;  // just c#
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 

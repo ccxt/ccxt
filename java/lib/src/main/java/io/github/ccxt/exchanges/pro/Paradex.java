@@ -97,7 +97,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
                 this.watch(url, messageHash, this.deepExtend(request, parameters), messageHash, null);
             }
             return ((io.github.ccxt.ws.Future)future).getFuture().join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -169,7 +169,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
             }
             return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -242,7 +242,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             }};
             Object orderbook = (this.watch(url, messageHash, this.deepExtend(request, parameters), messageHash, null)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
-        }).thenApply(OrderBook::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OrderBook::new);
 
     }
 
@@ -346,7 +346,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             }};
             Object messageHash = Helpers.add(Helpers.add(channel, "."), symbol);
             return (this.watch(url, messageHash, this.deepExtend(request, parameters), messageHash, null)).join();
-        }).thenApply(Ticker::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Ticker::new);
 
     }
 
@@ -401,7 +401,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
                 return result;
             }
             return this.filterByArray(this.tickers, "symbol", symbols);
-        }).thenApply(Tickers::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Tickers::new);
 
     }
 
@@ -457,7 +457,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
                 limit = Helpers.callDynamically(orders, "getLimit", new Object[]{symbol, limit});
             }
             return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -581,7 +581,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             }};
             Object messageHash = Helpers.add(Helpers.add(channel, "."), symbol);
             return (this.watch(url, messageHash, this.deepExtend(request, parameters), messageHash, null)).join();
-        }).thenApply(FundingRate::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(FundingRate::new);
 
     }
 
@@ -643,7 +643,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
                 return result;
             }
             return this.filterByArray(this.fundingRates, "symbol", symbols);
-        }).thenApply(FundingRates::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(FundingRates::new);
 
     }
 

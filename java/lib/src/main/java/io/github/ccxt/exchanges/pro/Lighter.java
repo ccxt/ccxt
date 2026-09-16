@@ -117,7 +117,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
                 put( "params", parameters );
             }};
             return (this.watch(url, messageHash, this.extend(request, parameters), messageHash, subscription)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -136,7 +136,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
                 put( "params", parameters );
             }};
             return (this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes, subscription)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -155,7 +155,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
                 put( "params", parameters );
             }};
             return (this.watch(url, messageHash, this.extend(request, parameters), messageHash, subscription)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -168,7 +168,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
             (this.preLoadLighterLibrary()).join();
             Helpers.addElementToObject(parameters, "auth", this.createAuth(parameters));
             return (this.subscribePublic(messageHash, parameters)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -280,7 +280,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
             Object messageHash = this.getMessageHash("orderbook", symbol);
             Object orderbook = (this.subscribePublic(messageHash, this.extend(request, parameters))).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
-        }).thenApply(OrderBook::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OrderBook::new);
 
     }
 
@@ -309,7 +309,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
             }};
             Object messageHash = this.getMessageHash("unsubscribe", symbol);
             return (this.unsubscribe(messageHash, this.extend(request, parameters))).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -417,7 +417,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
             }};
             Object messageHash = this.getMessageHash("ticker", symbol);
             return (this.subscribePublic(messageHash, this.extend(request, parameters))).join();
-        }).thenApply(Ticker::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Ticker::new);
 
     }
 
@@ -446,7 +446,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
             }};
             Object messageHash = this.getMessageHash("unsubscribe", symbol);
             return (this.unsubscribe(messageHash, this.extend(request, parameters))).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -500,7 +500,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
                 return result;
             }
             return this.filterByArray(this.tickers, "symbol", symbols);
-        }).thenApply(Tickers::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Tickers::new);
 
     }
 
@@ -529,7 +529,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
             }};
             Object messageHash = this.getMessageHash("unsubscribe");
             return (this.unsubscribe(messageHash, this.extend(request, parameters))).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -549,7 +549,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             return (this.watchTicker(symbol, (Object)(parameters))).join();
-        }).thenApply(Ticker::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Ticker::new);
 
     }
 
@@ -570,7 +570,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             return (this.watchTickers((Object)(symbols), (Object)(parameters))).join();
-        }).thenApply(Tickers::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Tickers::new);
 
     }
 
@@ -590,7 +590,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             return (this.unWatchTicker(symbol, parameters)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -611,7 +611,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             return (this.unWatchTickers(symbols, parameters)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -767,7 +767,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
             Object messageHash = this.getMessageHash("trade", Helpers.GetValue(market, "symbol"));
             Object trades = (this.subscribePublic(messageHash, this.extend(request, parameters))).join();
             return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -796,7 +796,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
             }};
             Object messageHash = this.getMessageHash("unsubscribe", symbol);
             return (this.unsubscribe(messageHash, this.extend(request, parameters))).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1019,7 +1019,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
             }
             return this.filterBySymbolSinceLimit(trades, symbol, since, limit, true);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -1056,7 +1056,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
                 put( "channel", Helpers.add("account_all_trades/", finalAccountIndex) );
             }};
             return (this.unsubscribe(messageHash, this.extend(request, parameters))).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1209,7 +1209,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
             }};
             Object messageHash = this.getMessageHash("liquidations", symbol);
             return (this.subscribePublic(messageHash, this.extend(request, parameters))).join();
-        }).thenApply(res -> Helpers.toTypedList(res, Liquidation::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Liquidation::new));
 
     }
 
@@ -1252,7 +1252,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
                 Helpers.addElementToObject(request, "channel", Helpers.add("user_stats/", this.numberToString(accountIndex)));
                 return (this.subscribePublic(messageHash, this.extend(request, parameters))).join();
             }
-        }).thenApply(Balances::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Balances::new);
 
     }
 
@@ -1400,7 +1400,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
                 limit = Helpers.callDynamically(orders, "getLimit", new Object[]{symbol, limit});
             }
             return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -1441,7 +1441,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
                 Helpers.addElementToObject(request, "channel", Helpers.add("account_all_orders/", this.numberToString(accountIndex)));
             }
             return (this.unsubscribe(messageHash, this.extend(request, parameters))).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1504,7 +1504,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
             }};
             Object rawMessage = (this.watch(url, messageHash, message, messageHash, subscription)).join();
             return this.parseOrder(this.deepExtend(rawMessage, order), market);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -1548,7 +1548,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
             }};
             Object rawMessage = (this.watch(url, messageHash, message, messageHash, subscription)).join();
             return this.parseOrder(rawMessage, market);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -1590,7 +1590,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
             }};
             Object rawMessage = (this.watch(url, messageHash, message, messageHash, subscription)).join();
             return this.parseOrders(new ArrayList<Object>(Arrays.asList(rawMessage)));
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -1831,7 +1831,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
             }};
             (client.send(request)).join();
             return null;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 }

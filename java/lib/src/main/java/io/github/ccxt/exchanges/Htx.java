@@ -2272,7 +2272,7 @@ public class Htx extends HtxApi
                 put( "url", null );
                 put( "info", finalResponse );
             }};
-        }).thenApply(Status::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Status::new);
 
     }
 
@@ -2313,7 +2313,7 @@ public class Htx extends HtxApi
             //     {"status":"ok","ts":1637504164707}
             //
             return this.safeInteger2(response, "data", "ts");
-        }).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
 
     }
 
@@ -2382,7 +2382,7 @@ public class Htx extends HtxApi
             Object data = this.safeValue(response, "data", new ArrayList<Object>(Arrays.asList()));
             Object first = this.safeValue(data, 0, new HashMap<String, Object>() {{}});
             return this.parseTradingFee(first, market);
-        }).thenApply(TradingFeeInterface::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(TradingFeeInterface::new);
 
     }
 
@@ -2415,7 +2415,7 @@ public class Htx extends HtxApi
                 Helpers.addElementToObject(result, symbol, (this.fetchTradingLimitsById(this.marketId(symbol), parameters)).join());
             }
             return result;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -2455,7 +2455,7 @@ public class Htx extends HtxApi
             //                  "market-buy-order-rate-must-less-than":  0.1        } }
             //
             return this.parseTradingLimits(this.safeValue(response, "data", new HashMap<String, Object>() {{}}));
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -2546,7 +2546,7 @@ public class Htx extends HtxApi
                 allMarkets = this.arrayConcat(allMarkets, Helpers.GetValue(promises, i));
             }
             return allMarkets;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -2922,7 +2922,7 @@ public class Htx extends HtxApi
                 }});
             }
             return result;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -3179,7 +3179,7 @@ public class Htx extends HtxApi
             Helpers.addElementToObject(ticker, "timestamp", timestamp);
             Helpers.addElementToObject(ticker, "datetime", this.iso8601(timestamp));
             return ticker;
-        }).thenApply(Ticker::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Ticker::new);
 
     }
 
@@ -3318,7 +3318,7 @@ public class Htx extends HtxApi
             Object rawTickers = this.safeList2(response, "data", "ticks", new ArrayList<Object>(Arrays.asList()));
             Object tickers = this.parseTickers(rawTickers, symbols, parameters);
             return this.filterByArrayTickers(tickers, "symbol", symbols);
-        }).thenApply(Tickers::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Tickers::new);
 
     }
 
@@ -3371,7 +3371,7 @@ public class Htx extends HtxApi
             Object tick = this.safeValue(response, "tick", new HashMap<String, Object>() {{}});
             Object data = this.safeList(tick, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseLastPrices(data, symbols);
-        }).thenApply(LastPrices::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(LastPrices::new);
 
     }
 
@@ -3502,7 +3502,7 @@ public class Htx extends HtxApi
                 return result;
             }
             throw new ExchangeError(Helpers.add(Helpers.add(this.id, " fetchOrderBook() returned unrecognized response: "), this.json(response))) ;
-        }).thenApply(OrderBook::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OrderBook::new);
 
     }
 
@@ -3730,7 +3730,7 @@ public class Htx extends HtxApi
                 throw new NotSupported(Helpers.add(this.id, " fetchOrderTrades() is only supported for spot markets")) ;
             }
             return (this.fetchSpotOrderTrades(id, symbol, since, limit, parameters)).join();
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -3766,7 +3766,7 @@ public class Htx extends HtxApi
             Map<String, Object> response = (this.spotPrivateGetV1OrderOrdersOrderIdMatchresults(this.extend(request, parameters))).join();
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(data, null, since, limit);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -3982,7 +3982,7 @@ public class Htx extends HtxApi
                 trades = this.safeValue(trades, "trades");
             }
             return this.parseTrades(trades, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -4082,7 +4082,7 @@ public class Htx extends HtxApi
             }
             result = this.sortBy(result, "timestamp");
             return this.filterBySymbolSinceLimit(result, Helpers.GetValue(market, "symbol"), since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -4296,7 +4296,7 @@ public class Htx extends HtxApi
             //
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseOHLCVs(data, market, timeframe, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
 
     }
 
@@ -4330,7 +4330,7 @@ public class Htx extends HtxApi
             //
             Object data = this.safeValue(response, "data");
             return this.parseAccounts(data);
-        }).thenApply(res -> Helpers.toTypedList(res, Account::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Account::new));
 
     }
 
@@ -4414,7 +4414,7 @@ public class Htx extends HtxApi
             }
             Object defaultAccount = this.safeValue(accounts, 0, new HashMap<String, Object>() {{}});
             return this.safeString(defaultAccount, "id");
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -4473,7 +4473,7 @@ public class Htx extends HtxApi
             Helpers.addElementToObject(this.options, "networkNamesByChainIds", new HashMap<String, Object>() {{}});
             Helpers.addElementToObject(this.options, "networkChainIdsByNames", new HashMap<String, Object>() {{}});
             return this.parseCurrencies(data);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -4927,7 +4927,7 @@ public class Htx extends HtxApi
                 result = this.safeBalance(result);
             }
             return result;
-        }).thenApply(Balances::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Balances::new);
 
     }
 
@@ -5173,7 +5173,7 @@ public class Htx extends HtxApi
                 order = this.safeValue(order, 0);
             }
             return this.parseOrder(order, market);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -5284,7 +5284,7 @@ public class Htx extends HtxApi
             //
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(data, market, since, limit);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -5298,7 +5298,7 @@ public class Htx extends HtxApi
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             return (this.fetchSpotOrdersByStates("pre-submitted,submitted,partial-filled,filled,partial-canceled,canceled", symbol, since, limit, parameters)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -5312,7 +5312,7 @@ public class Htx extends HtxApi
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             return (this.fetchSpotOrdersByStates("filled", symbol, since, limit, parameters)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -5431,7 +5431,7 @@ public class Htx extends HtxApi
                 orders = this.safeValue(orders, "orders", new ArrayList<Object>(Arrays.asList()));
             }
             return this.parseOrders(orders, market, since, limit);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -5474,7 +5474,7 @@ public class Htx extends HtxApi
                 Helpers.addElementToObject(request, "status", "6");
             }
             return (this.fetchContractOrders(symbol, since, limit, this.extend(request, parameters))).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -5534,7 +5534,7 @@ public class Htx extends HtxApi
             {
                 return (this.fetchSpotOrders(symbol, since, limit, parameters)).join();
             }
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -5617,7 +5617,7 @@ public class Htx extends HtxApi
                 }
                 return (this.fetchContractOrders(symbol, since, limit, this.extend(request, parameters))).join();
             }
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -5676,7 +5676,7 @@ public class Htx extends HtxApi
             {
                 return (this.fetchClosedContractOrders(symbol, since, limit, parameters)).join();
             }
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -6109,7 +6109,7 @@ public class Htx extends HtxApi
                 orders = this.safeValue(orders, "orders", new ArrayList<Object>(Arrays.asList()));
             }
             return this.parseOrders(orders, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -6497,7 +6497,7 @@ public class Htx extends HtxApi
             }
             Helpers.addElementToObject(parameters, "createMarketBuyOrderRequiresPrice", false);
             return (this.createOrder((Object)(symbol), (Object)("market"), (Object)("buy"), (Object)(cost), (Object)(null), (Object)(parameters))).join();
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -6535,7 +6535,7 @@ public class Htx extends HtxApi
             Helpers.addElementToObject(parameters, "trailingPercent", trailingPercent);
             Helpers.addElementToObject(parameters, "trailingTriggerPrice", trailingTriggerPrice);
             return (this.createOrder((Object)(symbol), (Object)(type), (Object)(side), (Object)(amount), (Object)(price), (Object)(parameters))).join();
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -6693,7 +6693,7 @@ public class Htx extends HtxApi
             }
             parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("triggerPrice", "stopPrice", "stop-price", "clientOrderId", "client-order-id", "operator", "timeInForce")));
             return this.extend(request, parameters);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -7192,7 +7192,7 @@ public class Htx extends HtxApi
                 throw new NullResponse(Helpers.add(this.id, " parseOrder() returned empty response")) ;
             }
             return this.parseOrder(result, market);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -7373,7 +7373,7 @@ public class Htx extends HtxApi
                 }
             }
             return this.parseOrders(result, market);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -7593,7 +7593,7 @@ public class Htx extends HtxApi
                 put( "id", id );
                 put( "status", "canceled" );
             }});
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -7812,7 +7812,7 @@ public class Htx extends HtxApi
             }
             Object data = this.safeDict(response, "data");
             return this.parseCancelOrders(data);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -8039,7 +8039,7 @@ public class Htx extends HtxApi
                 Object data = this.safeDict(response, "data");
                 return this.parseCancelOrders(data);
             }
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -8082,7 +8082,7 @@ public class Htx extends HtxApi
             //     }
             //
             return response;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -8155,7 +8155,7 @@ public class Htx extends HtxApi
             Object data = this.safeValue(response, "data", new ArrayList<Object>(Arrays.asList()));
             Object parsed = this.parseDepositAddresses(data, new ArrayList<Object>(Arrays.asList(Helpers.GetValue(currency, "code"))), false);
             return this.indexBy(parsed, "network");
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -8185,7 +8185,7 @@ public class Htx extends HtxApi
             Object indexedAddresses = (this.fetchDepositAddressesByNetwork(code, paramsOmited)).join();
             Object selectedNetworkCode = this.selectNetworkCodeFromUnifiedNetworks(Helpers.GetValue(currency, "code"), networkCode, indexedAddresses);
             return this.safeValue(indexedAddresses, selectedNetworkCode);
-        }).thenApply(DepositAddress::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(DepositAddress::new);
 
     }
 
@@ -8234,7 +8234,7 @@ public class Htx extends HtxApi
                 }
             }
             return addresses;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -8313,7 +8313,7 @@ public class Htx extends HtxApi
             //
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTransactions(data, currency, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
 
     }
 
@@ -8390,7 +8390,7 @@ public class Htx extends HtxApi
             //
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTransactions(data, currency, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
 
     }
 
@@ -8624,7 +8624,7 @@ public class Htx extends HtxApi
             //     }
             //
             return this.parseTransaction(response, currency);
-        }).thenApply(Transaction::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Transaction::new);
 
     }
 
@@ -8810,7 +8810,7 @@ public class Htx extends HtxApi
                 throw new NullResponse(Helpers.add(this.id, " parseTransfer() returned empty response")) ;
             }
             return this.parseTransfer(response, currency);
-        }).thenApply(TransferEntry::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(TransferEntry::new);
 
     }
 
@@ -8886,7 +8886,7 @@ public class Htx extends HtxApi
             //
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTransfers(data, currency, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, TransferEntry::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, TransferEntry::new));
 
     }
 
@@ -8940,7 +8940,7 @@ public class Htx extends HtxApi
             //
             Object data = this.safeValue(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseIsolatedBorrowRates(data);
-        }).thenApply(IsolatedBorrowRates::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(IsolatedBorrowRates::new);
 
     }
 
@@ -9104,7 +9104,7 @@ public class Htx extends HtxApi
             }
             List<Object> sorted = this.sortBy(rates, "timestamp");
             return this.filterBySymbolSinceLimit(sorted, Helpers.GetValue(market, "symbol"), since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, FundingRateHistory::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, FundingRateHistory::new));
 
     }
 
@@ -9222,7 +9222,7 @@ public class Htx extends HtxApi
                 result = this.safeValue(response, "data", new HashMap<String, Object>() {{}});
             }
             return this.parseFundingRate(result, market);
-        }).thenApply(FundingRate::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(FundingRate::new);
 
     }
 
@@ -9291,7 +9291,7 @@ public class Htx extends HtxApi
             //
             Object data = this.safeValue(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseFundingRates(data, symbols);
-        }).thenApply(FundingRates::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(FundingRates::new);
 
     }
 
@@ -9380,7 +9380,7 @@ public class Htx extends HtxApi
             Object data = this.safeValue(response, "data");
             Object interest = this.parseBorrowInterests(data, market);
             return this.filterByCurrencySinceLimit(interest, code, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, BorrowInterest::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, BorrowInterest::new));
 
     }
 
@@ -9795,7 +9795,7 @@ public class Htx extends HtxApi
             }
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseIncomes(data, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, FundingHistory::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, FundingHistory::new));
 
     }
 
@@ -9869,7 +9869,7 @@ public class Htx extends HtxApi
                 throw new NullResponse(Helpers.add(this.id, " setLeverage() returned empty response")) ;
             }
             return response;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -10150,7 +10150,7 @@ public class Htx extends HtxApi
                 }}));
             }
             return this.filterByArrayPositions(result, "symbol", symbols, false);
-        }).thenApply(res -> Helpers.toTypedList(res, Position::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Position::new));
 
     }
 
@@ -10250,7 +10250,7 @@ public class Htx extends HtxApi
             Helpers.addElementToObject(parsed, "timestamp", timestamp);
             Helpers.addElementToObject(parsed, "datetime", this.iso8601(timestamp));
             return parsed;
-        }).thenApply(Position::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Position::new);
 
     }
 
@@ -10407,7 +10407,7 @@ public class Htx extends HtxApi
             //
             Object data = this.safeValue(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseLedger(data, currency, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, LedgerEntry::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, LedgerEntry::new));
 
     }
 
@@ -10462,7 +10462,7 @@ public class Htx extends HtxApi
             //
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseLeverageTiers(data, symbols, "contract_code");
-        }).thenApply(LeverageTiers::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(LeverageTiers::new);
 
     }
 
@@ -10630,7 +10630,7 @@ public class Htx extends HtxApi
             Object data = this.safeValue(response, "data");
             Object tick = this.safeList(data, "tick");
             return this.parseOpenInterestsHistory(tick, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, OpenInterest::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, OpenInterest::new));
 
     }
 
@@ -10688,7 +10688,7 @@ public class Htx extends HtxApi
             }
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseOpenInterests(data, symbols);
-        }).thenApply(OpenInterests::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OpenInterests::new);
 
     }
 
@@ -10810,7 +10810,7 @@ public class Htx extends HtxApi
             Helpers.addElementToObject(openInterest, "timestamp", timestamp);
             Helpers.addElementToObject(openInterest, "datetime", this.iso8601(timestamp));
             return openInterest;
-        }).thenApply(OpenInterest::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OpenInterest::new);
 
     }
 
@@ -10922,7 +10922,7 @@ public class Htx extends HtxApi
                 put( "amount", amount );
                 put( "symbol", symbol );
             }});
-        }).thenApply(MarginLoan::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(MarginLoan::new);
 
     }
 
@@ -10965,7 +10965,7 @@ public class Htx extends HtxApi
             return this.extend(transaction, new HashMap<String, Object>() {{
                 put( "amount", amount );
             }});
-        }).thenApply(MarginLoan::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(MarginLoan::new);
 
     }
 
@@ -11016,7 +11016,7 @@ public class Htx extends HtxApi
                 put( "amount", amount );
                 put( "symbol", symbol );
             }});
-        }).thenApply(MarginLoan::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(MarginLoan::new);
 
     }
 
@@ -11065,7 +11065,7 @@ public class Htx extends HtxApi
             return this.extend(transaction, new HashMap<String, Object>() {{
                 put( "amount", amount );
             }});
-        }).thenApply(MarginLoan::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(MarginLoan::new);
 
     }
 
@@ -11253,7 +11253,7 @@ public class Htx extends HtxApi
             Object settlementRecord = this.safeValue(data, "settlement_record");
             Object settlements = this.parseSettlements(settlementRecord, market);
             return this.sortBy(settlements, "timestamp");
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -11316,7 +11316,7 @@ public class Htx extends HtxApi
             //
             Object data = this.safeList(response, "data");
             return this.parseDepositWithdrawFees(data, codes, "currency");
-        }).thenApply(DepositWithdrawFees::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(DepositWithdrawFees::new);
 
     }
 
@@ -11615,7 +11615,7 @@ public class Htx extends HtxApi
             //
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseLiquidations(data, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Liquidation::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Liquidation::new));
 
     }
 
@@ -11750,7 +11750,7 @@ public class Htx extends HtxApi
                 throw new NullResponse(Helpers.add(this.id, " parseOrder() returned empty response")) ;
             }
             return this.parseOrder(response, market);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -11801,7 +11801,7 @@ public class Htx extends HtxApi
             //     }
             //
             return response;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -11869,7 +11869,7 @@ public class Htx extends HtxApi
             }
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseADLRanks(data, symbols);
-        }).thenApply(res -> Helpers.toTypedList(res, ADL::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, ADL::new));
 
     }
 

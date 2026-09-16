@@ -473,7 +473,7 @@ public class Mudrex extends MudrexApi
             Object assetTicks = this.safeDict(data, "asset_ticks", new HashMap<String, Object>() {{}});
             Object ohlcvs = this.safeList(assetTicks, ((String)assetPair).toLowerCase(), new ArrayList<Object>(Arrays.asList()));
             return this.parseOHLCVs(ohlcvs, market, timeframe, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
 
     }
 
@@ -501,7 +501,7 @@ public class Mudrex extends MudrexApi
             return (this.fetchOHLCV((Object)(symbol), (Object)(timeframe), (Object)(since), (Object)(limit), (Object)(this.extend(parameters, new HashMap<String, Object>() {{
                 put( "price", "mark" );
             }})))).join();
-        }).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
 
     }
 
@@ -532,7 +532,7 @@ public class Mudrex extends MudrexApi
             Map<String, Object> response = (this.privateGetFuturesAssetId(this.extend(request, parameters))).join();
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseTicker(data, market);
-        }).thenApply(Ticker::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Ticker::new);
 
     }
 
@@ -578,7 +578,7 @@ public class Mudrex extends MudrexApi
                 Helpers.addElementToObject(resultTickers, symbol, this.parseTicker(t, m));
             }
             return this.filterByArrayTickers(resultTickers, "symbol", symbols);
-        }).thenApply(Tickers::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Tickers::new);
 
     }
 
@@ -684,7 +684,7 @@ public class Mudrex extends MudrexApi
                 ((List<Object>)result).add(this.parseMarket(Helpers.GetValue(aggregated, i)));
             }
             return result;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -812,7 +812,7 @@ public class Mudrex extends MudrexApi
             }
             Helpers.addElementToObject(response, "currency", currency);
             return this.parseBalance(response);
-        }).thenApply(Balances::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Balances::new);
 
     }
 
@@ -873,7 +873,7 @@ public class Mudrex extends MudrexApi
                 put( "longLeverage", Mudrex.this.safeNumber(data, "leverage") );
                 put( "shortLeverage", Mudrex.this.safeNumber(data, "leverage") );
             }};
-        }).thenApply(Leverage::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Leverage::new);
 
     }
 
@@ -914,7 +914,7 @@ public class Mudrex extends MudrexApi
             parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("marginType")));
             Map<String, Object> response = (this.privatePostFuturesAssetIdLeverage(this.extend(request, parameters))).join();
             return response;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1026,7 +1026,7 @@ public class Mudrex extends MudrexApi
             Object order = this.parseOrder(merged, market);
             Helpers.addElementToObject(order, "info", data);
             return order;
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -1075,7 +1075,7 @@ public class Mudrex extends MudrexApi
             Map<String, Object> response = (this.privatePatchFuturesOrdersOrderId(this.extend(request, parameters))).join();
             Object data = this.safeDict(response, "data", response);
             return this.parseOrder(data, market);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -1211,7 +1211,7 @@ public class Mudrex extends MudrexApi
             Map<String, Object> response = (this.privateDeleteFuturesOrdersOrderId(this.extend(request, parameters))).join();
             Object data = this.safeDict(response, "data", response);
             return this.parseOrder(data, market);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -1247,7 +1247,7 @@ public class Mudrex extends MudrexApi
             Map<String, Object> response = (this.privateGetFuturesOrdersOrderId(this.extend(request, parameters))).join();
             Object data = this.safeDict(response, "data", response);
             return this.parseOrder(data, market);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -1303,7 +1303,7 @@ public class Mudrex extends MudrexApi
                 ((List<Object>)orders).add(this.parseOrder(Helpers.GetValue(rows, i), market));
             }
             return this.filterBySymbolSinceLimit(orders, symbol, since, limit);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1328,7 +1328,7 @@ public class Mudrex extends MudrexApi
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             return (this.fetchOrdersByState("closed", symbol, since, limit, parameters)).join();
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -1353,7 +1353,7 @@ public class Mudrex extends MudrexApi
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             return (this.fetchOrdersByState("open", symbol, since, limit, parameters)).join();
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -1378,7 +1378,7 @@ public class Mudrex extends MudrexApi
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             return (this.fetchOrdersByState("closed", symbol, since, limit, parameters)).join();
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -1421,7 +1421,7 @@ public class Mudrex extends MudrexApi
                 ((List<Object>)outPos).add(pos);
             }
             return this.filterByArrayPositions(outPos, "symbol", symbols, false);
-        }).thenApply(res -> Helpers.toTypedList(res, Position::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Position::new));
 
     }
 
@@ -1481,7 +1481,7 @@ public class Mudrex extends MudrexApi
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Object positions = this.parsePositions(data, symbols);
             return this.filterBySinceLimit(positions, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Position::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Position::new));
 
     }
 
@@ -1616,7 +1616,7 @@ public class Mudrex extends MudrexApi
             parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("position_id")));
             Object response = (this.privatePostFuturesPositionsPositionIdClose(this.extend(request, parameters))).join();
             return response;
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -1667,7 +1667,7 @@ public class Mudrex extends MudrexApi
             parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("position_id")));
             Object response = (this.privatePostFuturesPositionsPositionIdAddMargin(this.extend(request, parameters))).join();
             return response;
-        }).thenApply(MarginModification::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(MarginModification::new);
 
     }
 
@@ -1688,7 +1688,7 @@ public class Mudrex extends MudrexApi
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             return (this.addMargin(symbol, (Object)(Helpers.opNeg(amount)), (Object)(parameters))).join();
-        }).thenApply(MarginModification::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(MarginModification::new);
 
     }
 
@@ -1818,7 +1818,7 @@ public class Mudrex extends MudrexApi
                 }
             }
             return this.parseTrades(rows, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -1964,7 +1964,7 @@ public class Mudrex extends MudrexApi
                 put( "toAccount", tw );
                 put( "status", "ok" );
             }};
-        }).thenApply(TransferEntry::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(TransferEntry::new);
 
     }
 }

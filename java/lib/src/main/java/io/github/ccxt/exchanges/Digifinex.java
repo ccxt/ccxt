@@ -734,7 +734,7 @@ public class Digifinex extends DigifinexApi
             Map<String, Object> groupedById = this.groupBy(data, "currency");
             Object values = Helpers.objectValues(groupedById);
             return this.parseCurrencies(values);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -807,7 +807,7 @@ public class Digifinex extends DigifinexApi
                 return (this.fetchMarketsV2(parameters)).join();
             }
             return (this.fetchMarketsV1(parameters)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -987,7 +987,7 @@ public class Digifinex extends DigifinexApi
                 }});
             }
             return result;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1080,7 +1080,7 @@ public class Digifinex extends DigifinexApi
                 }});
             }
             return result;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1213,7 +1213,7 @@ public class Digifinex extends DigifinexApi
             String balanceRequest = ((Helpers.isTrue((Helpers.isEqual(marketType, "swap"))))) ? "data" : "list";
             Object balances = this.safeValue(response, balanceRequest, new ArrayList<Object>(Arrays.asList()));
             return this.parseBalance(balances);
-        }).thenApply(Balances::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Balances::new);
 
     }
 
@@ -1308,7 +1308,7 @@ public class Digifinex extends DigifinexApi
                 timestamp = this.safeTimestamp(response, "date");
             }
             return this.parseOrderBook(orderBook, Helpers.GetValue(market, "symbol"), timestamp);
-        }).thenApply(OrderBook::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OrderBook::new);
 
     }
 
@@ -1417,7 +1417,7 @@ public class Digifinex extends DigifinexApi
                 }
             }
             return this.filterByArrayTickers(result, "symbol", symbols);
-        }).thenApply(Tickers::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Tickers::new);
 
     }
 
@@ -1517,7 +1517,7 @@ public class Digifinex extends DigifinexApi
                 throw new NullResponse(Helpers.add(this.id, " fetchTicker() returned empty response")) ;
             }
             return this.parseTicker(result, market);
-        }).thenApply(Ticker::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Ticker::new);
 
     }
 
@@ -1795,7 +1795,7 @@ public class Digifinex extends DigifinexApi
             //     }
             //
             return this.safeTimestamp(response, "server_time");
-        }).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
 
     }
 
@@ -1829,7 +1829,7 @@ public class Digifinex extends DigifinexApi
                 put( "url", null );
                 put( "info", response );
             }};
-        }).thenApply(Status::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Status::new);
 
     }
 
@@ -1916,7 +1916,7 @@ public class Digifinex extends DigifinexApi
             //
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(data, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -2064,7 +2064,7 @@ public class Digifinex extends DigifinexApi
                 candles = this.safeValue(response, "data", new ArrayList<Object>(Arrays.asList()));
             }
             return this.parseOHLCVs(candles, market, timeframe, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
 
     }
 
@@ -2142,7 +2142,7 @@ public class Digifinex extends DigifinexApi
             Helpers.addElementToObject(order, "amount", amount);
             Helpers.addElementToObject(order, "price", price);
             return order;
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -2260,7 +2260,7 @@ public class Digifinex extends DigifinexApi
                 ((List<Object>)result).add(individualOrder);
             }
             return this.parseOrders(result, market);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -2437,7 +2437,7 @@ public class Digifinex extends DigifinexApi
             }
             Helpers.addElementToObject(parameters, "createMarketBuyOrderRequiresPrice", false);
             return (this.createOrder((Object)(symbol), (Object)("market"), (Object)("buy"), (Object)(cost), (Object)(null), (Object)(parameters))).join();
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -2545,7 +2545,7 @@ public class Digifinex extends DigifinexApi
                     put( "orderId", Digifinex.this.safeString(finalResponse, "data") );
                 }});
             }
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -2618,7 +2618,7 @@ public class Digifinex extends DigifinexApi
             //     }
             //
             return this.parseCancelOrders(response);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -2922,7 +2922,7 @@ public class Digifinex extends DigifinexApi
             //
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(data, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -3055,7 +3055,7 @@ public class Digifinex extends DigifinexApi
             //
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(data, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -3176,7 +3176,7 @@ public class Digifinex extends DigifinexApi
                 throw new OrderNotFound(Helpers.add(Helpers.add(Helpers.add(this.id, " fetchOrder() order "), String.valueOf(id)), " not found")) ;
             }
             return this.parseOrder(order, market);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -3304,7 +3304,7 @@ public class Digifinex extends DigifinexApi
             String responseRequest = ((Helpers.isTrue((Helpers.isEqual(marketType, "swap"))))) ? "data" : "list";
             Object data = this.safeList(response, responseRequest, new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(data, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -3484,7 +3484,7 @@ public class Digifinex extends DigifinexApi
                 ledger = this.safeValue(data, "finance", new ArrayList<Object>(Arrays.asList()));
             }
             return this.parseLedger(ledger, currency, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, LedgerEntry::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, LedgerEntry::new));
 
     }
 
@@ -3557,7 +3557,7 @@ public class Digifinex extends DigifinexApi
                 throw new InvalidAddress(Helpers.add(Helpers.add(Helpers.add(this.id, " fetchDepositAddress() did not return an address for "), code), " - create the deposit address in the user settings on the exchange website first.")) ;
             }
             return address;
-        }).thenApply(DepositAddress::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(DepositAddress::new);
 
     }
 
@@ -3618,7 +3618,7 @@ public class Digifinex extends DigifinexApi
             return this.parseTransactions(data, currency, since, limit, new HashMap<String, Object>() {{
                 put( "type", finalType );
             }});
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -3643,7 +3643,7 @@ public class Digifinex extends DigifinexApi
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             return (this.fetchTransactionsByType("deposit", code, since, limit, parameters)).join();
-        }).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
 
     }
 
@@ -3668,7 +3668,7 @@ public class Digifinex extends DigifinexApi
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             return (this.fetchTransactionsByType("withdrawal", code, since, limit, parameters)).join();
-        }).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
 
     }
 
@@ -3899,7 +3899,7 @@ public class Digifinex extends DigifinexApi
                 throw new NullResponse(Helpers.add(this.id, " transfer() returned empty response")) ;
             }
             return this.parseTransfer(response, currency);
-        }).thenApply(TransferEntry::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(TransferEntry::new);
 
     }
 
@@ -3947,7 +3947,7 @@ public class Digifinex extends DigifinexApi
             //     }
             //
             return this.parseTransaction(response, currency);
-        }).thenApply(Transaction::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Transaction::new);
 
     }
 
@@ -3997,7 +3997,7 @@ public class Digifinex extends DigifinexApi
             Object rows = this.safeValue(response, "positions");
             Object interest = this.parseBorrowInterests(rows, market);
             return this.filterByCurrencySinceLimit(interest, code, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, BorrowInterest::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, BorrowInterest::new));
 
     }
 
@@ -4087,7 +4087,7 @@ public class Digifinex extends DigifinexApi
             }
             Map<String, Object> currency = (Map<String, Object>) this.currency(code);
             return this.parseBorrowRate(result, currency);
-        }).thenApply(CrossBorrowRate::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(CrossBorrowRate::new);
 
     }
 
@@ -4129,7 +4129,7 @@ public class Digifinex extends DigifinexApi
             //
             Object result = this.safeValue(response, "list", new ArrayList<Object>(Arrays.asList()));
             return this.parseBorrowRates(result, "currency");
-        }).thenApply(CrossBorrowRates::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(CrossBorrowRates::new);
 
     }
 
@@ -4223,7 +4223,7 @@ public class Digifinex extends DigifinexApi
             //
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseFundingRate(data, market);
-        }).thenApply(FundingRate::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(FundingRate::new);
 
     }
 
@@ -4243,7 +4243,7 @@ public class Digifinex extends DigifinexApi
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             return (this.fetchFundingRate(symbol, (Object)(parameters))).join();
-        }).thenApply(FundingRate::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(FundingRate::new);
 
     }
 
@@ -4378,7 +4378,7 @@ public class Digifinex extends DigifinexApi
             }
             List<Object> sorted = this.sortBy(rates, "timestamp");
             return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, FundingRateHistory::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, FundingRateHistory::new));
 
     }
 
@@ -4422,7 +4422,7 @@ public class Digifinex extends DigifinexApi
             //
             Object data = this.safeValue(response, "data", new HashMap<String, Object>() {{}});
             return this.parseTradingFee(data, market);
-        }).thenApply(TradingFeeInterface::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(TradingFeeInterface::new);
 
     }
 
@@ -4577,7 +4577,7 @@ public class Digifinex extends DigifinexApi
                 ((List<Object>)result).add(this.parsePosition(Helpers.GetValue(positions, i), market));
             }
             return this.filterByArrayPositions(result, "symbol", symbols, false);
-        }).thenApply(res -> Helpers.toTypedList(res, Position::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Position::new));
 
     }
 
@@ -4690,7 +4690,7 @@ public class Digifinex extends DigifinexApi
                 Helpers.addElementToObject(position, "marginRatio", this.safeNumber(response, "margin_rate"));
                 return position;
             }
-        }).thenApply(Position::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Position::new);
 
     }
 
@@ -4849,7 +4849,7 @@ public class Digifinex extends DigifinexApi
                 }
             }
             return (this.privateSwapPostAccountLeverage(this.extend(request, parameters))).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -4914,7 +4914,7 @@ public class Digifinex extends DigifinexApi
             //
             Object transfers = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTransfers(transfers, currency, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, TransferEntry::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, TransferEntry::new));
 
     }
 
@@ -4971,7 +4971,7 @@ public class Digifinex extends DigifinexApi
             Object data = this.safeValue(response, "data", new ArrayList<Object>(Arrays.asList()));
             symbols = this.marketSymbols(symbols);
             return this.parseLeverageTiers(data, symbols, "instrument_id");
-        }).thenApply(LeverageTiers::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(LeverageTiers::new);
 
     }
 
@@ -5032,7 +5032,7 @@ public class Digifinex extends DigifinexApi
             //
             Object data = this.safeValue(response, "data", new HashMap<String, Object>() {{}});
             return this.parseMarketLeverageTiers(data, market);
-        }).thenApply(res -> Helpers.toTypedList(res, LeverageTier::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, LeverageTier::new));
 
     }
 
@@ -5171,7 +5171,7 @@ final Object finalI = i;
             //
             Object data = this.safeList(response, "data");
             return this.parseDepositWithdrawFees(data, codes);
-        }).thenApply(DepositWithdrawFees::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(DepositWithdrawFees::new);
 
     }
 
@@ -5280,7 +5280,7 @@ final Object finalI = i;
             String side = this.safeString(parameters, "side");
             this.checkRequiredArgument("addMargin", side, "side", new ArrayList<Object>(Arrays.asList("long", "short")));
             return (this.modifyMarginHelper(symbol, amount, 1, parameters)).join();
-        }).thenApply(MarginModification::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(MarginModification::new);
 
     }
 
@@ -5304,7 +5304,7 @@ final Object finalI = i;
             String side = this.safeString(parameters, "side");
             this.checkRequiredArgument("reduceMargin", side, "side", new ArrayList<Object>(Arrays.asList("long", "short")));
             return (this.modifyMarginHelper(symbol, amount, 2, parameters)).join();
-        }).thenApply(MarginModification::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(MarginModification::new);
 
     }
 
@@ -5344,7 +5344,7 @@ final Object finalI = i;
             return this.extend(this.parseMarginModification(data, market), new HashMap<String, Object>() {{
                 put( "status", status );
             }});
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -5435,7 +5435,7 @@ final Object finalI = i;
             //
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseIncomes(data, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, FundingHistory::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, FundingHistory::new));
 
     }
 
@@ -5501,7 +5501,7 @@ final Object finalI = i;
                 put( "margin_mode", finalMarginMode );
             }};
             return (this.privateSwapPostAccountPositionMode(this.extend(request, parameters))).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 

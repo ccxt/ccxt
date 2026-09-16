@@ -191,7 +191,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 put( "args", args );
             }};
             return (this.watchMultiple(url, messageHashes, request, messageHashes, null)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -222,7 +222,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 put( "args", new ArrayList<Object>(Arrays.asList(Okx.this.deepExtend(firstArgument, parameters))) );
             }};
             return (this.watch(url, messageHash, request, messageHash, null)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -247,7 +247,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             Object limit = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
             return (this.watchTradesForSymbols((Object)(new ArrayList<Object>(Arrays.asList(symbol))), (Object)(since), (Object)(limit), (Object)(parameters))).join();
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -322,7 +322,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{tradeSymbol, limit});
             }
             return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -379,7 +379,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             }
             Object url = this.getUrl(channel, access);
             return (this.watchMultiple(url, messageHashes, request, messageHashes, null)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -398,7 +398,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             return (this.unWatchTradesForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), parameters)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -475,7 +475,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             symbol = this.symbol(symbol);
             Object fr = (this.watchFundingRates((Object)(new ArrayList<Object>(Arrays.asList(symbol))), (Object)(parameters))).join();
             return Helpers.GetValue(fr, symbol);
-        }).thenApply(FundingRate::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(FundingRate::new);
 
     }
 
@@ -536,7 +536,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 return result;
             }
             return this.filterByArray(this.fundingRates, "symbol", symbols);
-        }).thenApply(FundingRates::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(FundingRates::new);
 
     }
 
@@ -600,7 +600,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             symbol = Helpers.GetValue(market, "symbol");
             Object ticker = (this.watchTickers((Object)(new ArrayList<Object>(Arrays.asList(symbol))), (Object)(parameters))).join();
             return this.safeValue(ticker, symbol);
-        }).thenApply(Ticker::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Ticker::new);
 
     }
 
@@ -621,7 +621,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             return (this.unWatchTickers(new ArrayList<Object>(Arrays.asList(symbol)), parameters)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -657,7 +657,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 return newTickers;
             }
             return this.filterByArray(this.tickers, "symbol", symbols);
-        }).thenApply(Tickers::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Tickers::new);
 
     }
 
@@ -686,7 +686,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             symbol = Helpers.GetValue(market, "symbol");
             Object ticker = (this.watchMarkPrices((Object)(new ArrayList<Object>(Arrays.asList(symbol))), (Object)(parameters))).join();
             return Helpers.GetValue(ticker, symbol);
-        }).thenApply(Ticker::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Ticker::new);
 
     }
 
@@ -722,7 +722,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 return newTickers;
             }
             return this.filterByArray(this.tickers, "symbol", symbols);
-        }).thenApply(Tickers::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Tickers::new);
 
     }
 
@@ -772,7 +772,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             }};
             Object url = this.getUrl(channel, "public");
             return (this.watchMultiple(url, messageHashes, request, messageHashes, null)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -874,7 +874,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 return tickers;
             }
             return this.filterByArray(this.bidsasks, "symbol", symbols);
-        }).thenApply(Tickers::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Tickers::new);
 
     }
 
@@ -1045,7 +1045,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 return newLiquidations;
             }
             return this.filterBySymbolsSinceLimit(this.liquidations, symbols, since, limit, true);
-        }).thenApply(res -> Helpers.toTypedList(res, Liquidation::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Liquidation::new));
 
     }
 
@@ -1153,7 +1153,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 return newLiquidations;
             }
             return this.filterBySymbolsSinceLimit(this.liquidations, symbols, since, limit, true);
-        }).thenApply(res -> Helpers.toTypedList(res, Liquidation::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Liquidation::new));
 
     }
 
@@ -1343,7 +1343,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 limit = Helpers.callDynamically(ohlcv, "getLimit", new Object[]{symbol, limit});
             }
             return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
-        }).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
 
     }
 
@@ -1365,7 +1365,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             Object timeframe = Helpers.getArg(optionalArgs, 0, "1m");
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             return (this.unWatchOHLCVForSymbols(new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(symbol, timeframe)))), parameters)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1429,7 +1429,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             }
             List<Object> filtered = this.filterBySinceLimit(candles, since, limit, 0, true);
             return this.createOHLCVObject(symbol, timeframe, filtered);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1480,7 +1480,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             }};
             Object url = this.getUrl("candle", "public");
             return (this.watchMultiple(url, messageHashes, request, messageHashes, null)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1563,7 +1563,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             Object limit = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             return (this.watchOrderBookForSymbols((Object)(new ArrayList<Object>(Arrays.asList(symbol))), (Object)(limit), (Object)(parameters))).join();
-        }).thenApply(OrderBook::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OrderBook::new);
 
     }
 
@@ -1641,7 +1641,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             Object url = this.getUrl(depth, "public");
             Object orderbook = (this.watchMultiple(url, messageHashes, request, messageHashes, null)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
-        }).thenApply(OrderBook::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OrderBook::new);
 
     }
 
@@ -1710,7 +1710,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             }};
             Object url = this.getUrl(depth, "public");
             return (this.watchMultiple(url, messageHashes, request, messageHashes, null)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1732,7 +1732,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             return (this.unWatchOrderBookForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), parameters)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -2009,7 +2009,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 this.watch(url, messageHash, request, messageHash, null);
             }
             return ((io.github.ccxt.ws.Future)future).getFuture().join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -2033,7 +2033,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             }
             (this.authenticate()).join();
             return (this.subscribe("private", "account", "account", null, parameters)).join();
-        }).thenApply(Balances::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Balances::new);
 
     }
 
@@ -2246,7 +2246,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 limit = Helpers.callDynamically(orders, "getLimit", new Object[]{symbol, limit});
             }
             return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -2303,7 +2303,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 return ((Helpers.isTrue((Helpers.isEqual(newPositions, null))))) ? new ArrayList<Object>(Arrays.asList()) : newPositions;
             }
             return this.filterBySymbolsSinceLimit(this.positions, symbols, since, limit, true);
-        }).thenApply(res -> Helpers.toTypedList(res, Position::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Position::new));
 
     }
 
@@ -2486,7 +2486,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 limit = Helpers.callDynamically(orders, "getLimit", new Object[]{symbol, limit});
             }
             return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -2747,7 +2747,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 put( "args", new ArrayList<Object>(Arrays.asList(args)) );
             }};
             return (this.watch(url, messageHash, request, messageHash, null)).join();
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -2836,7 +2836,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 put( "args", new ArrayList<Object>(Arrays.asList(args)) );
             }};
             return (this.watch(url, messageHash, this.extend(request, parameters), messageHash, null)).join();
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -2890,7 +2890,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 put( "args", new ArrayList<Object>(Arrays.asList(Okx.this.extend(arg, finalParameters))) );
             }};
             return (this.watch(url, messageHash, request, messageHash, null)).join();
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -2947,7 +2947,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 put( "args", args );
             }};
             return (this.watch(url, messageHash, this.deepExtend(request, parameters), messageHash, null)).join();
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -2992,7 +2992,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
     }}, parameters))) );
             }};
             return (this.watch(url, messageHash, request, messageHash, null)).join();
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 

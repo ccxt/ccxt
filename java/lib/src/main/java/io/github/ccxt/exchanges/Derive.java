@@ -785,7 +785,7 @@ public class Derive extends DeriveApi
             // }
             //
             return this.safeInteger(response, "result");
-        }).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
 
     }
 
@@ -854,7 +854,7 @@ public class Derive extends DeriveApi
             //
             Object currencies = this.safeList(tokenResponse, "result", new ArrayList<Object>(Arrays.asList()));
             return this.parseCurrencies(currencies);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -955,7 +955,7 @@ public class Derive extends DeriveApi
             List<Object> result = (List<Object>) this.arrayConcat(spotMarkets, swapMarkets);
             result = (List<Object>) this.arrayConcat(result, optionMarkets);
             return result;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -973,7 +973,7 @@ public class Derive extends DeriveApi
             Object result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             Object data = this.safeList(result, "instruments", new ArrayList<Object>(Arrays.asList()));
             return this.parseMarkets(data);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -991,7 +991,7 @@ public class Derive extends DeriveApi
             Object result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             Object data = this.safeList(result, "instruments", new ArrayList<Object>(Arrays.asList()));
             return this.parseMarkets(data);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1009,7 +1009,7 @@ public class Derive extends DeriveApi
             Object result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             Object data = this.safeList(result, "instruments", new ArrayList<Object>(Arrays.asList()));
             return this.parseMarkets(data);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1226,7 +1226,7 @@ public class Derive extends DeriveApi
             //
             Object data = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             return this.parseTicker(data, market);
-        }).thenApply(Ticker::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Ticker::new);
 
     }
 
@@ -1404,7 +1404,7 @@ public class Derive extends DeriveApi
             Object result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             Object data = this.safeList(result, "trades", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(data, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -1560,7 +1560,7 @@ public class Derive extends DeriveApi
             }
             List<Object> sorted = this.sortBy(rates, "timestamp");
             return this.filterBySymbolSinceLimit(sorted, Helpers.GetValue(market, "symbol"), since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, FundingRateHistory::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, FundingRateHistory::new));
 
     }
 
@@ -1596,7 +1596,7 @@ public class Derive extends DeriveApi
             //
             Object data = this.safeDict(response, 0);
             return this.parseFundingRate(data);
-        }).thenApply(FundingRate::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(FundingRate::new);
 
     }
 
@@ -1881,7 +1881,7 @@ public class Derive extends DeriveApi
             Object order = this.parseOrder(rawOrder, market);
             Helpers.addElementToObject(order, "type", type);
             return order;
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -2054,7 +2054,7 @@ public class Derive extends DeriveApi
             Object rawOrder = this.safeDict(result, "order", new HashMap<String, Object>() {{}});
             Object order = this.parseOrder(rawOrder, market);
             return order;
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -2170,7 +2170,7 @@ public class Derive extends DeriveApi
                 Helpers.addElementToObject(extendParams, "client_order_id", clientOrderIdExchangeSpecific);
             }
             return this.extend(this.parseOrder(order, market), extendParams);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -2235,7 +2235,7 @@ public class Derive extends DeriveApi
             return new ArrayList<Object>(Arrays.asList(this.safeOrder(new HashMap<String, Object>() {{
         put( "info", finalResponse );
     }})));
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -2360,7 +2360,7 @@ public class Derive extends DeriveApi
             }
             Object orders = this.safeList(data, "orders", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(orders, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -2393,7 +2393,7 @@ public class Derive extends DeriveApi
                 put( "status", "open" );
             }});
             return (this.fetchOrders((Object)(symbol), (Object)(since), (Object)(limit), (Object)(extendedParams))).join();
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -2426,7 +2426,7 @@ public class Derive extends DeriveApi
                 put( "status", "filled" );
             }});
             return (this.fetchOrders((Object)(symbol), (Object)(since), (Object)(limit), (Object)(extendedParams))).join();
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -2459,7 +2459,7 @@ public class Derive extends DeriveApi
                 put( "status", "cancelled" );
             }});
             return (this.fetchOrders((Object)(symbol), (Object)(since), (Object)(limit), (Object)(extendedParams))).join();
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -2719,7 +2719,7 @@ public class Derive extends DeriveApi
             Object result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             Object trades = this.safeList(result, "trades", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(trades, market, since, limit, parameters);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -2829,7 +2829,7 @@ public class Derive extends DeriveApi
             }
             Object trades = this.safeList(result, "trades", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(trades, market, since, limit, parameters);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -2905,7 +2905,7 @@ public class Derive extends DeriveApi
             Object result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             Object positions = this.safeList(result, "positions", new ArrayList<Object>(Arrays.asList()));
             return this.parsePositions(positions, symbols);
-        }).thenApply(res -> Helpers.toTypedList(res, Position::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Position::new));
 
     }
 
@@ -3093,7 +3093,7 @@ public class Derive extends DeriveApi
             }
             Object events = this.safeList(result, "events", new ArrayList<Object>(Arrays.asList()));
             return this.parseIncomes(events, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, FundingHistory::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, FundingHistory::new));
 
     }
 
@@ -3202,7 +3202,7 @@ public class Derive extends DeriveApi
             //
             Object result = this.safeList(response, "result");
             return this.parseBalance(result);
-        }).thenApply(Balances::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Balances::new);
 
     }
 
@@ -3298,7 +3298,7 @@ public class Derive extends DeriveApi
             Object result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             Object events = this.safeList(result, "events", new ArrayList<Object>(Arrays.asList()));
             return this.parseTransactions(events, currency, since, limit, parameters);
-        }).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
 
     }
 
@@ -3362,7 +3362,7 @@ public class Derive extends DeriveApi
             Object result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             Object events = this.safeList(result, "events", new ArrayList<Object>(Arrays.asList()));
             return this.parseTransactions(events, currency, since, limit, parameters);
-        }).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
 
     }
 

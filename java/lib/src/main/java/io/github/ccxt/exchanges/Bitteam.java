@@ -528,7 +528,7 @@ public class Bitteam extends BitteamApi
             Object result = this.safeValue(response, "result", new HashMap<String, Object>() {{}});
             Object markets = this.safeValue(result, "pairs", new ArrayList<Object>(Arrays.asList()));
             return this.parseMarkets(markets);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -740,7 +740,7 @@ public class Bitteam extends BitteamApi
             Object result = this.parseCurrencies(currencies);
             ((Map<String,Object>)this.options).remove("_temp_currencies_statuses");
             return result;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -902,7 +902,7 @@ public class Bitteam extends BitteamApi
             Object result = this.safeValue(response, "result", new HashMap<String, Object>() {{}});
             Object data = this.safeList(result, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseOHLCVs(data, market, timeframe, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
 
     }
 
@@ -978,7 +978,7 @@ public class Bitteam extends BitteamApi
             Long timestamp = this.safeInteger(response, "timestamp");
             Object orderbook = this.parseOrderBook(response, symbol, timestamp);
             return orderbook;
-        }).thenApply(OrderBook::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OrderBook::new);
 
     }
 
@@ -1107,7 +1107,7 @@ public class Bitteam extends BitteamApi
             Object result = this.safeValue(response, "result", new HashMap<String, Object>() {{}});
             Object orders = this.safeList(result, "orders", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(orders, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -1180,7 +1180,7 @@ public class Bitteam extends BitteamApi
             //
             Object result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             return this.parseOrder(result, market);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -1212,7 +1212,7 @@ public class Bitteam extends BitteamApi
                 put( "type", "active" );
             }};
             return (this.fetchOrders((Object)(symbol), (Object)(since), (Object)(limit), (Object)(this.extend(request, parameters)))).join();
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -1244,7 +1244,7 @@ public class Bitteam extends BitteamApi
                 put( "type", "closed" );
             }};
             return (this.fetchOrders((Object)(symbol), (Object)(since), (Object)(limit), (Object)(this.extend(request, parameters)))).join();
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -1276,7 +1276,7 @@ public class Bitteam extends BitteamApi
                 put( "type", "cancelled" );
             }};
             return (this.fetchOrders((Object)(symbol), (Object)(since), (Object)(limit), (Object)(this.extend(request, parameters)))).join();
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -1348,7 +1348,7 @@ public class Bitteam extends BitteamApi
             //
             Object order = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             return this.parseOrder(order, market);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -1387,7 +1387,7 @@ public class Bitteam extends BitteamApi
             //
             Object result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             return this.parseOrder(result);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -1433,7 +1433,7 @@ public class Bitteam extends BitteamApi
             Object result = this.safeValue(response, "result", new HashMap<String, Object>() {{}});
             List<Object> orders = new ArrayList<Object>(Arrays.asList(result));
             return this.parseOrders(orders, market);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -1688,7 +1688,7 @@ public class Bitteam extends BitteamApi
                 ((List<Object>)tickers).add(ticker);
             }
             return this.filterByArrayTickers(tickers, "symbol", symbols);
-        }).thenApply(Tickers::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Tickers::new);
 
     }
 
@@ -1902,7 +1902,7 @@ public class Bitteam extends BitteamApi
             Object result = this.safeValue(response, "result", new HashMap<String, Object>() {{}});
             Object pair = this.safeDict(result, "pair", new HashMap<String, Object>() {{}});
             return this.parseTicker(pair, market);
-        }).thenApply(Ticker::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Ticker::new);
 
     }
 
@@ -2093,7 +2093,7 @@ public class Bitteam extends BitteamApi
             //     ]
             //
             return this.parseTrades(response, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -2269,7 +2269,7 @@ public class Bitteam extends BitteamApi
             Object result = this.safeValue(response, "result", new HashMap<String, Object>() {{}});
             Object trades = this.safeList(result, "trades", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(trades, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -2410,7 +2410,7 @@ public class Bitteam extends BitteamApi
             }
             Map<String, Object> response = (this.privateGetTradeApiCcxtBalance(parameters)).join();
             return this.parseBalance(response);
-        }).thenApply(Balances::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Balances::new);
 
     }
 
@@ -2613,7 +2613,7 @@ public class Bitteam extends BitteamApi
             Object result = this.safeValue(response, "result", new HashMap<String, Object>() {{}});
             Object transactions = this.safeList(result, "transactions", new ArrayList<Object>(Arrays.asList()));
             return this.parseTransactions(transactions, currency, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
 
     }
 

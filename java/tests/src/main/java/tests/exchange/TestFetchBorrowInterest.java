@@ -25,7 +25,7 @@ public class TestFetchBorrowInterest extends BaseTest {
             TestBorrowInterest.testBorrowInterest(exchange, skippedProperties, method, Helpers.GetValue(borrowInterest, i), code, symbol);
         }
         return true;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 

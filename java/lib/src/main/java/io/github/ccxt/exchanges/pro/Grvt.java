@@ -151,7 +151,7 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
             }};
             String apiPart = ((Helpers.isTrue(publicOrPrivate))) ? "publicMarket" : "privateTrading";
             return (this.watchMultiple(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), apiPart), messageHashes, payload, rawHashes, null)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -190,7 +190,7 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
                 put( "callerMethodName", "watchTicker" );
             }})))).join();
             return Helpers.GetValue(tickers, symbol);
-        }).thenApply(Ticker::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Ticker::new);
 
     }
 
@@ -250,7 +250,7 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
                 return tickers;
             }
             return this.filterByArray(this.tickers, "symbol", symbols);
-        }).thenApply(Tickers::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Tickers::new);
 
     }
 
@@ -370,7 +370,7 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
             Object limit = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
             return (this.watchTradesForSymbols((Object)(new ArrayList<Object>(Arrays.asList(symbol))), (Object)(since), (Object)(limit), (Object)(parameters))).join();
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -422,7 +422,7 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{tradeSymbol, limit});
             }
             return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -503,7 +503,7 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
             Helpers.addElementToObject(parameters, "callerMethodName", "watchOHLCV");
             Object result = (this.watchOHLCVForSymbols(new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(symbol, timeframe)))), since, limit, parameters)).join();
             return Helpers.GetValue(Helpers.GetValue(result, symbol), timeframe);
-        }).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
 
     }
 
@@ -557,7 +557,7 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
             }
             List<Object> filtered = this.filterBySinceLimit(stored, since, limit, 0, true);
             return this.createOHLCVObject(symbol, timeframe, filtered);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -637,7 +637,7 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
             }
             symbol = this.symbol(symbol);
             return (this.watchOrderBookForSymbols((Object)(new ArrayList<Object>(Arrays.asList(symbol))), (Object)(limit), (Object)(parameters))).join();
-        }).thenApply(OrderBook::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OrderBook::new);
 
     }
 
@@ -702,7 +702,7 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
             }};
             Object orderbook = (this.subscribeMultiple(messageHashes, this.extend(request, parameters), rawHashes)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
-        }).thenApply(OrderBook::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OrderBook::new);
 
     }
 
@@ -811,7 +811,7 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
                 this.client(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "privateTrading"));
             }
             return null;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -864,7 +864,7 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
             }
             return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -976,7 +976,7 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
                 return newPositions;
             }
             return this.filterBySymbolsSinceLimit(this.positions, symbols, since, limit, true);
-        }).thenApply(res -> Helpers.toTypedList(res, Position::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Position::new));
 
     }
 
@@ -1079,7 +1079,7 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
                 limit = Helpers.callDynamically(orders, "getLimit", new Object[]{symbol, limit});
             }
             return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 

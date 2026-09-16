@@ -21,7 +21,7 @@ public class TestFetchTicker extends BaseTest {
         Object ticker = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchTicker", new Object[]{symbol})).join();
         TestTicker.testTicker(exchange, skippedProperties, method, ticker, symbol);
         return true;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 

@@ -126,7 +126,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
             }};
             Object fullUrl = Helpers.add(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "public"), url);
             return (this.watch(fullUrl, messageHash, this.deepExtend(message, parameters), messageHash, null)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -153,7 +153,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
             }};
             Object result = (this.watch(url, messageHash, this.deepExtend(message, parameters), subscribeHash, null)).join();
             return result;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -193,7 +193,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
             }
             return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -269,7 +269,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
             Object url = Helpers.add(Helpers.add(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "public"), "/trading-api/v1/market-data/tick/"), Helpers.GetValue(market, "id"));
             String messageHash = Helpers.add("ticker::", symbol);
             return (this.watch(url, messageHash, parameters, messageHash, null)).join();  // no need to send a subscribe message, the server sends a ticker update on connect
-        }).thenApply(Ticker::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Ticker::new);
 
     }
 
@@ -367,7 +367,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
             }};
             Object orderbook = (this.watchPublic(url, messageHash, request, parameters)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
-        }).thenApply(OrderBook::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OrderBook::new);
 
     }
 
@@ -489,7 +489,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
                 limit = Helpers.callDynamically(orders, "getLimit", new Object[]{symbol, limit});
             }
             return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -629,7 +629,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
             }
             return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -746,7 +746,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
                 messageHash = Helpers.add(messageHash, Helpers.add("::", tradingAccountId));
             }
             return (this.watchPrivate(messageHash, messageHash, request, parameters)).join();
-        }).thenApply(Balances::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Balances::new);
 
     }
 
@@ -868,7 +868,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
                 return positions;
             }
             return this.filterBySymbolsSinceLimit(positions, symbols, since, limit, true);
-        }).thenApply(res -> Helpers.toTypedList(res, Position::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Position::new));
 
     }
 

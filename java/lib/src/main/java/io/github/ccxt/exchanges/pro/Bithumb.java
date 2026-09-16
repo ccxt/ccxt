@@ -79,7 +79,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
                 (client.send("PONG")).join();
             }
             return null;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -142,7 +142,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
                 return (this.watch(url, messageHash, request, messageHash, null)).join();
             }
             return (this.watch(url, messageHash, this.extend(request, parameters), messageHash, null)).join();
-        }).thenApply(Ticker::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Ticker::new);
 
     }
 
@@ -230,7 +230,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
                 return result;
             }
             return this.filterByArray(this.tickers, "symbol", symbols);
-        }).thenApply(Tickers::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Tickers::new);
 
     }
 
@@ -485,7 +485,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
             }
             Object orderbook = (this.watch(url, messageHash, request, messageHash, null)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
-        }).thenApply(OrderBook::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OrderBook::new);
 
     }
 
@@ -701,7 +701,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
             }
             return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -937,7 +937,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
             }});
             Object balance = (this.watch(url, messageHash, request, messageHash, null)).join();
             return balance;
-        }).thenApply(Balances::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Balances::new);
 
     }
 
@@ -1043,7 +1043,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "privateGen2");
             Client client = this.client(url);
             return client;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1102,7 +1102,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
                 limit = Helpers.callDynamically(orders, "getLimit", new Object[]{symbol, limit});
             }
             return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 

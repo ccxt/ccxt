@@ -602,7 +602,7 @@ public class Bydfi extends BydfiApi
             //     }
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseMarkets(data);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -782,7 +782,7 @@ public class Bydfi extends BydfiApi
             Object orderBook = this.parseOrderBook(data, Helpers.GetValue(market, "symbol"), timestamp, "bids", "asks", "price", "amount");
             Helpers.addElementToObject(orderBook, "nonce", this.safeInteger(data, "lastUpdateId"));
             return orderBook;
-        }).thenApply(OrderBook::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OrderBook::new);
 
     }
 
@@ -857,7 +857,7 @@ public class Bydfi extends BydfiApi
             //
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(data, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -948,7 +948,7 @@ public class Bydfi extends BydfiApi
             //
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(data, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -1135,7 +1135,7 @@ public class Bydfi extends BydfiApi
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             List<Object> result = this.parseOHLCVs(data, market, timeframe, since, limit);
             return result;
-        }).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
 
     }
 
@@ -1197,7 +1197,7 @@ public class Bydfi extends BydfiApi
             //
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTickers(data, symbols);
-        }).thenApply(Tickers::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Tickers::new);
 
     }
 
@@ -1228,7 +1228,7 @@ public class Bydfi extends BydfiApi
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Object ticker = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
             return this.parseTicker(ticker, market);
-        }).thenApply(Ticker::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Ticker::new);
 
     }
 
@@ -1317,7 +1317,7 @@ public class Bydfi extends BydfiApi
             //
             Object data = this.safeDict(response, "data");
             return this.parseFundingRate(data, market);
-        }).thenApply(FundingRate::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(FundingRate::new);
 
     }
 
@@ -1425,7 +1425,7 @@ public class Bydfi extends BydfiApi
             //
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseFundingRateHistories(data, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, FundingRateHistory::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, FundingRateHistory::new));
 
     }
 
@@ -1530,7 +1530,7 @@ public class Bydfi extends BydfiApi
             //
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseOrder(data, market);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -1727,7 +1727,7 @@ public class Bydfi extends BydfiApi
             Map<String, Object> response = (this.privatePostV1FapiTradeBatchPlaceOrder(this.extend(request, parameters))).join();
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(data);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -1768,7 +1768,7 @@ public class Bydfi extends BydfiApi
             Map<String, Object> response = (this.privatePostV1FapiTradeEditOrder(request)).join();
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseOrder(data);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -1822,7 +1822,7 @@ public class Bydfi extends BydfiApi
             Map<String, Object> response = (this.privatePostV1FapiTradeBatchEditOrder(this.extend(request, parameters))).join();
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(data);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -1927,7 +1927,7 @@ public class Bydfi extends BydfiApi
             //
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(data, market);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -2018,7 +2018,7 @@ public class Bydfi extends BydfiApi
             }
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(data, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -2083,7 +2083,7 @@ public class Bydfi extends BydfiApi
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Object order = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
             return this.parseOrder(order, market);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -2193,7 +2193,7 @@ public class Bydfi extends BydfiApi
             //
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(data, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -2444,7 +2444,7 @@ public class Bydfi extends BydfiApi
             Map<String, Object> response = (this.privatePostV1FapiTradeLeverage(this.extend(request, parameters))).join();
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return data;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -2497,7 +2497,7 @@ public class Bydfi extends BydfiApi
             //
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseLeverage(data, market);
-        }).thenApply(Leverage::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Leverage::new);
 
     }
 
@@ -2569,7 +2569,7 @@ public class Bydfi extends BydfiApi
             //
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parsePositions(data, symbols);
-        }).thenApply(res -> Helpers.toTypedList(res, Position::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Position::new));
 
     }
 
@@ -2607,7 +2607,7 @@ public class Bydfi extends BydfiApi
             Map<String, Object> response = (this.privateGetV1FapiTradePositions(this.extend(request, parameters))).join();
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parsePositions(data, new ArrayList<Object>(Arrays.asList(Helpers.GetValue(market, "symbol"))));
-        }).thenApply(res -> Helpers.toTypedList(res, Position::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Position::new));
 
     }
 
@@ -2782,7 +2782,7 @@ public class Bydfi extends BydfiApi
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Object positions = this.parsePositions(data);
             return this.filterBySinceLimit(positions, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Position::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Position::new));
 
     }
 
@@ -2872,7 +2872,7 @@ public class Bydfi extends BydfiApi
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Object positions = this.parsePositions(data, symbols);
             return this.filterBySinceLimit(positions, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Position::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Position::new));
 
     }
 
@@ -2928,7 +2928,7 @@ public class Bydfi extends BydfiApi
             //
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseMarginMode(data, market);
-        }).thenApply(MarginMode::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(MarginMode::new);
 
     }
 
@@ -2994,7 +2994,7 @@ public class Bydfi extends BydfiApi
                 put( "wallet", finalWallet );
             }};
             return (this.privatePostV1FapiUserDataMarginType(this.extend(request, parameters))).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -3056,7 +3056,7 @@ public class Bydfi extends BydfiApi
             //     }
             //
             return (this.privatePostV1FapiUserDataPositionSideDual(this.extend(request, parameters))).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -3134,7 +3134,7 @@ public class Bydfi extends BydfiApi
                 put( "info", response );
                 put( "hedged", hedged );
             }};
-        }).thenApply(PositionModeInfo::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(PositionModeInfo::new);
 
     }
 
@@ -3227,7 +3227,7 @@ public class Bydfi extends BydfiApi
             }
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseBalance(data);
-        }).thenApply(Balances::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Balances::new);
 
     }
 
@@ -3309,7 +3309,7 @@ public class Bydfi extends BydfiApi
                 Helpers.addElementToObject(transfer, "amount", amount);
             }
             return transfer;
-        }).thenApply(TransferEntry::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(TransferEntry::new);
 
     }
 
@@ -3397,7 +3397,7 @@ public class Bydfi extends BydfiApi
             //
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTransfers(data, currency, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, TransferEntry::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, TransferEntry::new));
 
     }
 
@@ -3476,7 +3476,7 @@ public class Bydfi extends BydfiApi
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             return (this.fetchTransactionsHelper("deposit", code, since, limit, parameters)).join();
-        }).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
 
     }
 
@@ -3501,7 +3501,7 @@ public class Bydfi extends BydfiApi
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             return (this.fetchTransactionsHelper("withdrawal", code, since, limit, parameters)).join();
-        }).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
 
     }
 
@@ -3616,7 +3616,7 @@ public class Bydfi extends BydfiApi
             }};
             parameters = this.extend(parameters, transactionParams);
             return this.parseTransactions(data, currency, since, limit, parameters);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 

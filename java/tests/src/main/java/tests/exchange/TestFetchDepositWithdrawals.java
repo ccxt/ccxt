@@ -27,7 +27,7 @@ public class TestFetchDepositWithdrawals extends BaseTest {
         }
         TestSharedMethods.AssertTimestampOrder(exchange, method, code, transactions);
         return true;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 

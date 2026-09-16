@@ -145,7 +145,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             symbol = this.safeSymbol(symbol);
             Object tickers = (this.watchTickers((Object)(new ArrayList<Object>(Arrays.asList(symbol))), (Object)(parameters))).join();
             return Helpers.GetValue(tickers, symbol);
-        }).thenApply(Ticker::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Ticker::new);
 
     }
 
@@ -173,7 +173,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Helpers.addElementToObject(parameters, "callerMethodName", "unWatchTicker");
             return (this.unWatchTickers(new ArrayList<Object>(Arrays.asList(symbol)), parameters)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -239,7 +239,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
                 return result;
             }
             return this.filterByArray(this.tickers, "symbol", symbols);
-        }).thenApply(Tickers::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Tickers::new);
 
     }
 
@@ -298,7 +298,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
                 ((List<Object>)messageHashes).add(Helpers.add("unsubscribe:ticker:", Helpers.GetValue(market, "symbol")));
             }
             return (this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes, null)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -327,7 +327,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             symbol = this.safeSymbol(symbol);
             Object tickers = (this.watchMarkPrices((Object)(new ArrayList<Object>(Arrays.asList(symbol))), (Object)(parameters))).join();
             return Helpers.GetValue(tickers, symbol);
-        }).thenApply(Ticker::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Ticker::new);
 
     }
 
@@ -350,7 +350,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Helpers.addElementToObject(parameters, "callerMethodName", "unWatchMarkPrice");
             return (this.unWatchMarkPrices(new ArrayList<Object>(Arrays.asList(symbol)), parameters)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -417,7 +417,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
                 return result;
             }
             return this.filterByArray(this.tickers, "symbol", symbols);
-        }).thenApply(Tickers::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Tickers::new);
 
     }
 
@@ -477,7 +477,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
                 ((List<Object>)messageHashes).add(Helpers.add("unsubscribe:ticker:", Helpers.GetValue(market, "symbol")));
             }
             return (this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes, null)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -626,7 +626,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
                 return result;
             }
             return this.filterByArray(this.bidsasks, "symbol", symbols);
-        }).thenApply(Tickers::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Tickers::new);
 
     }
 
@@ -680,7 +680,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
                 ((List<Object>)messageHashes).add(Helpers.add("unsubscribe:bidask:", Helpers.GetValue(market, "symbol")));
             }
             return (this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes, null)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -753,7 +753,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
             Helpers.addElementToObject(parameters, "callerMethodName", "watchTrades");
             return (this.watchTradesForSymbols((Object)(new ArrayList<Object>(Arrays.asList(symbol))), (Object)(since), (Object)(limit), (Object)(parameters))).join();
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -776,7 +776,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Helpers.addElementToObject(parameters, "callerMethodName", "unWatchTrades");
             return (this.unWatchTradesForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), parameters)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -842,7 +842,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{tradeSymbol, limit});
             }
             return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -894,7 +894,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
                 ((List<Object>)messageHashes).add(Helpers.add("unsubscribe:trade:", Helpers.GetValue(market, "symbol")));
             }
             return (this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes, null)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1121,7 +1121,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             Helpers.addElementToObject(parameters, "callerMethodName", "watchOrderBook");
             return (this.watchOrderBookForSymbols((Object)(new ArrayList<Object>(Arrays.asList(symbol))), (Object)(limit), (Object)(parameters))).join();
-        }).thenApply(OrderBook::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OrderBook::new);
 
     }
 
@@ -1146,7 +1146,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Helpers.addElementToObject(parameters, "callerMethodName", "unWatchOrderBook");
             return (this.unWatchOrderBookForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), parameters)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1207,7 +1207,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             }
             Object orderbook = (this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes, null)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
-        }).thenApply(OrderBook::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OrderBook::new);
 
     }
 
@@ -1268,7 +1268,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
                 ((List<Object>)messageHashes).add(Helpers.add("unsubscribe:orderbook:", Helpers.GetValue(market, "symbol")));
             }
             return (this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes, null)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1345,7 +1345,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             symbol = this.safeSymbol(symbol);
             Object result = (this.watchOHLCVForSymbols(new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(symbol, timeframe)))), since, limit, parameters)).join();
             return Helpers.GetValue(Helpers.GetValue(result, symbol), timeframe);
-        }).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
 
     }
 
@@ -1369,7 +1369,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             Helpers.addElementToObject(parameters, "callerMethodName", "unWatchOHLCV");
             return (this.unWatchOHLCVForSymbols(new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(symbol, timeframe)))), parameters)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1443,7 +1443,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             }
             List<Object> filtered = this.filterBySinceLimit(stored, since, limit, 0, true);
             return this.createOHLCVObject(symbol, timeframe, filtered);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1504,7 +1504,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
                 ((List<Object>)messageHashes).add(Helpers.add(Helpers.add(Helpers.add("unsubscribe:ohlcv:", Helpers.GetValue(market, "symbol")), ":"), unfiedTimeframe));
             }
             return (this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes, null)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1643,7 +1643,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
                 ((io.github.ccxt.ws.Future)future).getFuture().join();
             }
             return null;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1688,7 +1688,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             Long listenKeyRefreshRate = this.safeInteger(listenKeyRefreshOptions, "listenKeyRefreshRate", 3600000);
             this.scheduleCallback(listenKeyRefreshRate, "keepAliveListenKey", parameters);
             return null;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1739,7 +1739,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             Object messageHash = Helpers.add(type, ":balance");
             Object message = null;
             return (this.watch(url, messageHash, message, type, null)).join();
-        }).thenApply(Balances::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Balances::new);
 
     }
 
@@ -1786,7 +1786,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
                 client.resolve(Helpers.GetValue(this.balance, type), Helpers.add(type, ":balance"));
             }
             return null;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1933,7 +1933,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
                 return newPositions;
             }
             return this.filterBySymbolsSinceLimit(cache, symbols, since, limit, true);
-        }).thenApply(res -> Helpers.toTypedList(res, Position::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Position::new));
 
     }
 
@@ -1983,7 +1983,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
                 client.resolve(cache, "positions");
             }
             return null;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -2167,7 +2167,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
                 limit = Helpers.callDynamically(orders, "getLimit", new Object[]{symbol, limit});
             }
             return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -2222,7 +2222,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
             }
             return this.filterBySymbolSinceLimit(trades, symbol, since, limit, true);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 

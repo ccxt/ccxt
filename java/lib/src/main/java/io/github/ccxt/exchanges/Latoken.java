@@ -510,7 +510,7 @@ public class Latoken extends LatokenApi
             //     }
             //
             return this.safeInteger(response, "serverTime");
-        }).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
 
     }
 
@@ -634,7 +634,7 @@ public class Latoken extends LatokenApi
                 }
             }
             return result;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -685,7 +685,7 @@ public class Latoken extends LatokenApi
             //     ]
             //
             return this.parseCurrencies(response);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -801,7 +801,7 @@ public class Latoken extends LatokenApi
             Helpers.addElementToObject(result, "timestamp", maxTimestamp);
             Helpers.addElementToObject(result, "datetime", this.iso8601(maxTimestamp));
             return this.safeBalance(result);
-        }).thenApply(Balances::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Balances::new);
 
     }
 
@@ -887,7 +887,7 @@ public class Latoken extends LatokenApi
                 put( "bid", bids );
             }};
             return this.parseOrderBook(filtered, symbol, null, "bid", "ask", "price", "quantity");
-        }).thenApply(OrderBook::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OrderBook::new);
 
     }
 
@@ -987,7 +987,7 @@ public class Latoken extends LatokenApi
             //    }
             //
             return this.parseTicker(response, market);
-        }).thenApply(Ticker::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Ticker::new);
 
     }
 
@@ -1035,7 +1035,7 @@ public class Latoken extends LatokenApi
             //    ]
             //
             return this.parseTickers(response, symbols);
-        }).thenApply(Tickers::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Tickers::new);
 
     }
 
@@ -1179,7 +1179,7 @@ public class Latoken extends LatokenApi
             //     ]
             //
             return this.parseTrades(response, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -1213,7 +1213,7 @@ public class Latoken extends LatokenApi
             {
                 throw new NotSupported(Helpers.add(this.id, " not support this method")) ;
             }
-        }).thenApply(TradingFeeInterface::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(TradingFeeInterface::new);
 
     }
 
@@ -1249,7 +1249,7 @@ public class Latoken extends LatokenApi
                 put( "percentage", null );
                 put( "tierBased", null );
             }};
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1285,7 +1285,7 @@ public class Latoken extends LatokenApi
                 put( "percentage", null );
                 put( "tierBased", null );
             }};
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1350,7 +1350,7 @@ public class Latoken extends LatokenApi
             //     ]
             //
             return this.parseTrades(response, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -1568,7 +1568,7 @@ public class Latoken extends LatokenApi
             //     ]
             //
             return this.parseOrders(response, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -1654,7 +1654,7 @@ public class Latoken extends LatokenApi
             //     ]
             //
             return this.parseOrders(response, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -1715,7 +1715,7 @@ public class Latoken extends LatokenApi
             //     }
             //
             return this.parseOrder(response);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -1795,7 +1795,7 @@ public class Latoken extends LatokenApi
             //    }
             //
             return this.parseOrder(response, market);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -1845,7 +1845,7 @@ public class Latoken extends LatokenApi
             //     }
             //
             return this.parseOrder(response);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -1908,7 +1908,7 @@ public class Latoken extends LatokenApi
             return new ArrayList<Object>(Arrays.asList(this.safeOrder(new HashMap<String, Object>() {{
         put( "info", finalResponse );
     }})));
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -1973,7 +1973,7 @@ public class Latoken extends LatokenApi
             }
             Object content = this.safeList(response, "content", new ArrayList<Object>(Arrays.asList()));
             return this.parseTransactions(content, currency, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
 
     }
 
@@ -2125,7 +2125,7 @@ public class Latoken extends LatokenApi
             //
             Object transfers = this.safeList(response, "content", new ArrayList<Object>(Arrays.asList()));
             return this.parseTransfers(transfers, currency, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, TransferEntry::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, TransferEntry::new));
 
     }
 
@@ -2193,7 +2193,7 @@ public class Latoken extends LatokenApi
             //     }
             //
             return this.parseTransfer(response);
-        }).thenApply(TransferEntry::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(TransferEntry::new);
 
     }
 

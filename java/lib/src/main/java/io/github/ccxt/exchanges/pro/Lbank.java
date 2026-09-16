@@ -145,7 +145,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
             Map<String, Object> request = this.deepExtend(message, parameters);
             Object requestId = this.requestId();
             return (this.watch(url, messageHash, request, requestId, request)).join();
-        }).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
 
     }
 
@@ -194,7 +194,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
                 limit = Helpers.callDynamically(ohlcv, "getLimit", new Object[]{symbol, limit});
             }
             return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
-        }).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
 
     }
 
@@ -325,7 +325,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
             Map<String, Object> request = this.deepExtend(message, parameters);
             Object requestId = this.requestId();
             return (this.watch(url, messageHash, request, requestId, request)).join();
-        }).thenApply(Ticker::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Ticker::new);
 
     }
 
@@ -359,7 +359,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
             }};
             Map<String, Object> request = this.deepExtend(message, parameters);
             return (this.watch(url, messageHash, request, messageHash, request)).join();
-        }).thenApply(Ticker::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Ticker::new);
 
     }
 
@@ -490,7 +490,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
             Map<String, Object> request = this.deepExtend(message, parameters);
             Object requestId = this.requestId();
             return (this.watch(url, messageHash, request, requestId, request)).join();
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -530,7 +530,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
             Object trades = (this.watch(url, messageHash, request, messageHash, request)).join();
             List<Object> result = this.filterBySinceLimit(trades, since, limit, "timestamp", true);
             return this.sortBy(result, "timestamp");  // needed bcz of https://github.com/ccxt/ccxt/actions/runs/21364685870/job/61493905690?pr=27750#step:11:1067
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -685,7 +685,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
             Map<String, Object> request = this.deepExtend(message, parameters);
             Object orders = (this.watch(url, messageHash, request, messageHash, request)).join();
             return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -860,7 +860,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
             }};
             Map<String, Object> request = this.deepExtend(message, parameters);
             return (this.watch(url, messageHash, request, messageHash, request)).join();
-        }).thenApply(Balances::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Balances::new);
 
     }
 
@@ -940,7 +940,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
             Map<String, Object> request = this.deepExtend(subscribe, parameters);
             Object orderbook = (this.watch(url, messageHash, request, messageHash, null)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
-        }).thenApply(OrderBook::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OrderBook::new);
 
     }
 
@@ -984,7 +984,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
             Map<String, Object> request = this.deepExtend(subscribe, parameters);
             Object orderbook = (this.watch(url, messageHash, request, messageHash, null)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
-        }).thenApply(OrderBook::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OrderBook::new);
 
     }
 
@@ -1103,7 +1103,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
                 this.onError(client, e);
             }
             return null;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1212,7 +1212,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
             // that keeps an alone leader from crashing on an unhandled rejection
             ((io.github.ccxt.ws.Future)future).getFuture().join();
             return Helpers.GetValue(Helpers.GetValue(client.subscriptions, "authenticated"), "key");
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 }

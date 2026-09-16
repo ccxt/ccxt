@@ -117,7 +117,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
             Object data = this.safeDict(responseOjb, "data", new HashMap<String, Object>() {{}});
             Object statuses = this.safeList(data, "statuses", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(statuses);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -164,7 +164,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
             }
             Object parsedOrder = Helpers.GetValue(orders, 0);
             return parsedOrder;
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -217,7 +217,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
             Object first = this.safeDict(statuses, 0, new HashMap<String, Object>() {{}});
             Object parsedOrder = this.parseOrder(first, market);
             return parsedOrder;
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -264,7 +264,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
                 }}));
             }
             return orders;
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -289,7 +289,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             Object orders = (this.cancelOrdersWs((Object)(new ArrayList<Object>(Arrays.asList(id))), (Object)(symbol), (Object)(parameters))).join();
             return this.safeDict(orders, 0);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -328,7 +328,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
             Map<String, Object> message = this.extend(request, parameters);
             Object orderbook = (this.watch(url, messageHash, message, messageHash, null)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
-        }).thenApply(OrderBook::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OrderBook::new);
 
     }
 
@@ -367,7 +367,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
             }};
             Map<String, Object> message = this.extend(request, parameters);
             return (this.watch(url, messageHash, message, messageHash, null)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -456,7 +456,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
                 }} );
             }};
             return (this.watch(url, messageHash, this.extend(request, parameters), messageHash, null)).join();
-        }).thenApply(Ticker::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Ticker::new);
 
     }
 
@@ -492,7 +492,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
                 }} );
             }};
             return (this.watch(url, messageHash, this.extend(request, parameters), messageHash, null)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -550,7 +550,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
                 return this.filterByArrayTickers(tickers, "symbol", symbols);
             }
             return this.tickers;
-        }).thenApply(Tickers::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Tickers::new);
 
     }
 
@@ -585,7 +585,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
                 }} );
             }};
             return (this.watch(url, messageHash, this.extend(request, parameters), messageHash, null)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -645,7 +645,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
             }
             return this.filterBySymbolSinceLimit(trades, symbol, since, limit, true);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -690,7 +690,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
             }};
             Map<String, Object> message = this.extend(request, parameters);
             return (this.watch(url, messageHash, message, messageHash, null)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -886,7 +886,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
             }
             return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -923,7 +923,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
             }};
             Map<String, Object> message = this.extend(request, parameters);
             return (this.watch(url, messageHash, message, messageHash, null)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1088,7 +1088,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
                 limit = Helpers.callDynamically(ohlcv, "getLimit", new Object[]{symbol, limit});
             }
             return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
-        }).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
 
     }
 
@@ -1128,7 +1128,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
             String messagehash = Helpers.add("unsubscribe:", subMessageHash);
             Map<String, Object> message = this.extend(request, parameters);
             return (this.watch(url, messagehash, message, messagehash, null)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1252,7 +1252,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
             }};
             Map<String, Object> message = this.extend(request, parameters);
             return (this.watch(url, messageHash, message, topic, null)).join();
-        }).thenApply(Balances::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Balances::new);
 
     }
 
@@ -1301,7 +1301,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
             }};
             Map<String, Object> message = this.extend(request, parameters);
             return (this.watch(url, messageHash, message, messageHash, null)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1530,7 +1530,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
                 return newPositions;
             }
             return this.filterBySymbolsSinceLimit(cache, symbols, since, limit, true);
-        }).thenApply(res -> Helpers.toTypedList(res, Position::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Position::new));
 
     }
 
@@ -1623,7 +1623,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
             }};
             Map<String, Object> message = this.extend(request, parameters);
             return (this.watch(url, messageHash, message, messageHash, null)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1691,7 +1691,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
                 limit = Helpers.callDynamically(orders, "getLimit", new Object[]{symbol, limit});
             }
             return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -1736,7 +1736,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
             }};
             Map<String, Object> message = this.extend(request, parameters);
             return (this.watch(url, messageHash, message, messageHash, null)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 

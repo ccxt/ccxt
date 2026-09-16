@@ -1310,7 +1310,7 @@ public class Bitstamp extends BitstampApi
                 }});
             }
             return result;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1396,7 +1396,7 @@ public class Bitstamp extends BitstampApi
     }}));
             }
             return this.safeValue(Helpers.GetValue(this.options, "fetchMarkets"), "response");
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1430,7 +1430,7 @@ public class Bitstamp extends BitstampApi
             //     ]
             //
             return this.parseCurrencies(response);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1530,7 +1530,7 @@ public class Bitstamp extends BitstampApi
             Object orderbook = this.parseOrderBook(response, Helpers.GetValue(market, "symbol"), timestamp);
             Helpers.addElementToObject(orderbook, "nonce", microtimestamp);
             return orderbook;
-        }).thenApply(OrderBook::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OrderBook::new);
 
     }
 
@@ -1624,7 +1624,7 @@ public class Bitstamp extends BitstampApi
             // }
             //
             return this.parseTicker(ticker, market);
-        }).thenApply(Ticker::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Ticker::new);
 
     }
 
@@ -1666,7 +1666,7 @@ public class Bitstamp extends BitstampApi
             // }
             //
             return this.parseTickers(response, symbols);
-        }).thenApply(Tickers::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Tickers::new);
 
     }
 
@@ -1954,7 +1954,7 @@ public class Bitstamp extends BitstampApi
             //     ]
             //
             return this.parseTrades(response, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -2044,7 +2044,7 @@ public class Bitstamp extends BitstampApi
             Object data = this.safeValue(response, "data", new HashMap<String, Object>() {{}});
             Object ohlc = this.safeList(data, "ohlc", new ArrayList<Object>(Arrays.asList()));
             return this.parseOHLCVs(ohlc, market, timeframe, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
 
     }
 
@@ -2108,7 +2108,7 @@ public class Bitstamp extends BitstampApi
             //     ]
             //
             return this.parseBalance(response);
-        }).thenApply(Balances::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Balances::new);
 
     }
 
@@ -2157,7 +2157,7 @@ public class Bitstamp extends BitstampApi
                 tradingFee = new HashMap<String, Object>() {{}};
             }
             return this.parseTradingFee(tradingFee, market);
-        }).thenApply(TradingFeeInterface::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(TradingFeeInterface::new);
 
     }
 
@@ -2227,7 +2227,7 @@ public class Bitstamp extends BitstampApi
             //     ]
             //
             return this.parseTradingFees(response);
-        }).thenApply(TradingFees::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(TradingFees::new);
 
     }
 
@@ -2265,7 +2265,7 @@ public class Bitstamp extends BitstampApi
             //     ]
             //
             return this.parseTransactionFees(response);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -2329,7 +2329,7 @@ public class Bitstamp extends BitstampApi
             //
             Map<String, Object> responseByCurrencyId = this.groupBy(response, "currency");
             return this.parseDepositWithdrawFees(responseByCurrencyId, codes);
-        }).thenApply(DepositWithdrawFees::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(DepositWithdrawFees::new);
 
     }
 
@@ -2440,7 +2440,7 @@ public class Bitstamp extends BitstampApi
             Object order = this.parseOrder(orderResponse, market);
             Helpers.addElementToObject(order, "type", type);
             return order;
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -2491,7 +2491,7 @@ public class Bitstamp extends BitstampApi
             Object order = this.parseOrder(response, market);
             Helpers.addElementToObject(order, "type", type);
             return order;
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -2530,7 +2530,7 @@ public class Bitstamp extends BitstampApi
             //    }
             //
             return this.parseOrder(response);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -2584,7 +2584,7 @@ public class Bitstamp extends BitstampApi
             //
             Object canceled = this.safeList(response, "canceled");
             return this.parseOrders(canceled);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -2623,7 +2623,7 @@ public class Bitstamp extends BitstampApi
             }
             Map<String, Object> response = (this.privatePostOrderStatus(this.extend(request, parameters))).join();
             return this.parseOrderStatus(this.safeString(response, "status"));
-        }).thenApply(res -> (String) res);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> (String) res);
 
     }
 
@@ -2683,7 +2683,7 @@ public class Bitstamp extends BitstampApi
             //     }
             //
             return this.parseOrder(response, market);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -2733,7 +2733,7 @@ public class Bitstamp extends BitstampApi
             }
             List<Object> result = this.filterBy(response, "type", "2");
             return this.parseTrades(result, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -2804,7 +2804,7 @@ public class Bitstamp extends BitstampApi
             //
             Object values = this.safeValue(response, "funding_rate_history", new ArrayList<Object>(Arrays.asList()));
             return this.parseFundingRateHistories(values, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, FundingRateHistory::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, FundingRateHistory::new));
 
     }
 
@@ -2890,7 +2890,7 @@ public class Bitstamp extends BitstampApi
             }
             Object transactions = this.filterByArray(response, "type", new ArrayList<Object>(Arrays.asList("0", "1")), false);
             return this.parseTransactions(transactions, currency, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
 
     }
 
@@ -2952,7 +2952,7 @@ public class Bitstamp extends BitstampApi
             //     ]
             //
             return this.parseTransactions(response, null, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
 
     }
 
@@ -3378,7 +3378,7 @@ public class Bitstamp extends BitstampApi
                 currency = this.currency(code);
             }
             return this.parseLedger(response, currency, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, LedgerEntry::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, LedgerEntry::new));
 
     }
 
@@ -3415,7 +3415,7 @@ public class Bitstamp extends BitstampApi
             //     }
             //
             return this.parseFundingRate(response, market);
-        }).thenApply(FundingRate::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(FundingRate::new);
 
     }
 
@@ -3505,7 +3505,7 @@ public class Bitstamp extends BitstampApi
                 put( "status", "open" );
                 put( "type", "limit" );
             }});
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -3558,7 +3558,7 @@ public class Bitstamp extends BitstampApi
                 put( "address", address );
                 put( "tag", tag );
             }};
-        }).thenApply(DepositAddress::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(DepositAddress::new);
 
     }
 
@@ -3625,7 +3625,7 @@ public class Bitstamp extends BitstampApi
                 response = (this.privatePostWithdrawalOpen(this.extend(request, parameters))).join();
             }
             return this.parseTransaction(response, currency);
-        }).thenApply(Transaction::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Transaction::new);
 
     }
 
@@ -3680,7 +3680,7 @@ public class Bitstamp extends BitstampApi
             Helpers.addElementToObject(transfer, "fromAccount", fromAccount);
             Helpers.addElementToObject(transfer, "toAccount", toAccount);
             return transfer;
-        }).thenApply(TransferEntry::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(TransferEntry::new);
 
     }
 

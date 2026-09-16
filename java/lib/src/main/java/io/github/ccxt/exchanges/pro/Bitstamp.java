@@ -107,7 +107,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
             Map<String, Object> message = this.extend(request, parameters);
             Object orderbook = (this.watch(url, messageHash, message, messageHash, null)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
-        }).thenApply(OrderBook::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OrderBook::new);
 
     }
 
@@ -135,7 +135,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
             Object channel = Helpers.add("diff_order_book_", Helpers.GetValue(market, "id"));
             Object subHash = Helpers.add("orderbook:", symbol);
             return (this.unWatchChannel(channel, subHash, "orderbook", new ArrayList<Object>(Arrays.asList(symbol)), parameters)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -170,7 +170,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
                 put( "symbols", symbols );
             }};
             return (this.watch(url, unsubHash, this.extend(request, parameters), unsubHash, subscription)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -325,7 +325,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
             }
             return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -353,7 +353,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
             Object channel = Helpers.add("live_trades_", Helpers.GetValue(market, "id"));
             Object subHash = Helpers.add("trades:", symbol);
             return (this.unWatchChannel(channel, subHash, "trades", new ArrayList<Object>(Arrays.asList(symbol)), parameters)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -480,7 +480,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
             }};
             Map<String, Object> message = this.extend(request, parameters);
             return (this.watch(url, messageHash, message, messageHash, null)).join();
-        }).thenApply(FundingRate::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(FundingRate::new);
 
     }
 
@@ -561,7 +561,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
                 limit = Helpers.callDynamically(orders, "getLimit", new Object[]{symbol, limit});
             }
             return this.filterBySinceLimit(orders, since, limit, "timestamp", true);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -594,7 +594,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
             (this.authenticate()).join();
             Object channel = Helpers.add(Helpers.add(Helpers.add("private-my_orders_", Helpers.GetValue(market, "id")), "-"), Helpers.GetValue(this.options, "userId"));
             return (this.unWatchChannel(channel, channel, "orders", new ArrayList<Object>(Arrays.asList(symbol)), parameters)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -645,7 +645,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
             }
             return this.filterBySymbolSinceLimit(trades, symbol, since, limit, true);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -678,7 +678,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
             (this.authenticate()).join();
             Object channel = Helpers.add(Helpers.add(Helpers.add("private-my_trades_", Helpers.GetValue(market, "id")), "-"), Helpers.GetValue(this.options, "userId"));
             return (this.unWatchChannel(channel, channel, "myTrades", new ArrayList<Object>(Arrays.asList(symbol)), parameters)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1238,7 +1238,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
                 ((io.github.ccxt.ws.Future)future).getFuture().join();
             }
             return null;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1261,7 +1261,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
             }};
             Helpers.addElementToObject(subscription, "messageHash", messageHash);
             return (this.watch(url, messageHash, this.extend(request, parameters), messageHash, subscription)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 }

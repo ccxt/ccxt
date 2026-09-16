@@ -893,7 +893,7 @@ public class Kraken extends KrakenApi
             }
             Helpers.addElementToObject(this.options, "marketsByAltname", this.indexBy(result, "altname"));
             return result;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -928,7 +928,7 @@ public class Kraken extends KrakenApi
                 put( "url", null );
                 put( "info", response );
             }};
-        }).thenApply(Status::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Status::new);
 
     }
 
@@ -1004,7 +1004,7 @@ public class Kraken extends KrakenApi
             Object currencies = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             Object enhancedArray = this.addKeyInArrayItems(currencies, "_coin_id");
             return this.parseCurrencies(enhancedArray);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1160,7 +1160,7 @@ public class Kraken extends KrakenApi
             //
             Object result = this.safeValue(response, "result", new HashMap<String, Object>() {{}});
             return this.parseTradingFee(result, market);
-        }).thenApply(TradingFeeInterface::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(TradingFeeInterface::new);
 
     }
 
@@ -1251,7 +1251,7 @@ public class Kraken extends KrakenApi
                 orderbook = this.safeValue(result, wsName, orderbook);
             }
             return this.parseOrderBook(orderbook, symbol);
-        }).thenApply(OrderBook::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OrderBook::new);
 
     }
 
@@ -1356,7 +1356,7 @@ public class Kraken extends KrakenApi
                 Helpers.addElementToObject(result, symbol, this.parseTicker(ticker, market));
             }
             return this.filterByArrayTickers(result, "symbol", symbols);
-        }).thenApply(Tickers::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Tickers::new);
 
     }
 
@@ -1387,7 +1387,7 @@ public class Kraken extends KrakenApi
             Object tickerResult = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             Object ticker = this.safeValue(tickerResult, Helpers.GetValue(market, "id"));
             return this.parseTicker(ticker, market);
-        }).thenApply(Ticker::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Ticker::new);
 
     }
 
@@ -1482,7 +1482,7 @@ public class Kraken extends KrakenApi
             Object result = this.safeValue(response, "result", new HashMap<String, Object>() {{}});
             Object ohlcvs = this.safeList(result, Helpers.GetValue(market, "id"), new ArrayList<Object>(Arrays.asList()));
             return this.parseOHLCVs(ohlcvs, market, timeframe, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
 
     }
 
@@ -1626,7 +1626,7 @@ public class Kraken extends KrakenApi
                 ((List<Object>)items).add(value);
             }
             return this.parseLedger(items, currency, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, LedgerEntry::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, LedgerEntry::new));
 
     }
 
@@ -1668,7 +1668,7 @@ public class Kraken extends KrakenApi
                 ((List<Object>)items).add(value);
             }
             return this.parseLedger(items);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1681,7 +1681,7 @@ public class Kraken extends KrakenApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             Object items = (this.fetchLedgerEntriesByIds(new ArrayList<Object>(Arrays.asList(id)), code, parameters)).join();
             return Helpers.GetValue(items, 0);
-        }).thenApply(LedgerEntry::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(LedgerEntry::new);
 
     }
 
@@ -1926,7 +1926,7 @@ public class Kraken extends KrakenApi
             ((List<Object>)lastTrade).add(lastTradeId);
             Helpers.addElementToObject(trades, Helpers.subtract(length, 1), lastTrade);
             return this.parseTrades(trades, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -1990,7 +1990,7 @@ public class Kraken extends KrakenApi
             //     }
             //
             return this.parseBalance(response);
-        }).thenApply(Balances::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Balances::new);
 
     }
 
@@ -2020,7 +2020,7 @@ public class Kraken extends KrakenApi
                 put( "cost", cost );
             }};
             return (this.createOrder((Object)(symbol), (Object)("market"), (Object)(side), (Object)(cost), (Object)(null), (Object)(this.extend(req, parameters)))).join();
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -2045,7 +2045,7 @@ public class Kraken extends KrakenApi
                 (this.loadMarkets()).join();
             }
             return (this.createMarketOrderWithCost(symbol, (Object)("buy"), (Object)(cost), (Object)(parameters))).join();
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -2109,7 +2109,7 @@ public class Kraken extends KrakenApi
             // because kraken only returns something like this: { order: 'buy 10.00000000 LTCUSD @ market' }
             // this usingCost flag is used to help the parsing but omitted from the order
             return this.parseOrder(result);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -2198,7 +2198,7 @@ public class Kraken extends KrakenApi
             //
             Object result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             return this.parseOrders(this.safeList(result, "orders"));
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -2844,7 +2844,7 @@ final Object finalId = id;
             //
             Object result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             return this.parseOrder(result, market);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -2927,7 +2927,7 @@ final Object finalId = id;
             return this.parseOrder(this.extend(new HashMap<String, Object>() {{
                 put( "id", finalId );
             }}, Helpers.GetValue(result, id)));
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -3032,7 +3032,7 @@ final Object finalId = id;
                 result = this.arrayConcat(result, tradesFilteredBySymbol);
             }
             return result;
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -3074,7 +3074,7 @@ final Object finalId = id;
                 ((List<Object>)orders).add(order);
             }
             return orders;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -3159,7 +3159,7 @@ final Object finalId = id;
             }
             List<Object> tradesList = this.toArray(trades);
             return this.parseTrades(tradesList, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -3217,7 +3217,7 @@ final Object finalId = id;
             return this.safeOrder(new HashMap<String, Object>() {{
                 put( "info", finalResponse );
             }});
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -3253,7 +3253,7 @@ final Object finalId = id;
             return new ArrayList<Object>(Arrays.asList(this.safeOrder(new HashMap<String, Object>() {{
         put( "info", response );
     }})));
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -3289,7 +3289,7 @@ final Object finalId = id;
             return new ArrayList<Object>(Arrays.asList(this.safeOrder(new HashMap<String, Object>() {{
         put( "info", response );
     }})));
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -3339,7 +3339,7 @@ final Object finalId = id;
             //     }
             //
             return response;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -3442,7 +3442,7 @@ final Object finalId = id;
                 }}, item));
             }
             return this.parseOrders(orders, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -3551,7 +3551,7 @@ final Object finalId = id;
                 }}, item));
             }
             return this.parseOrders(orders, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -3770,7 +3770,7 @@ final Object finalId = id;
             //
             Object depositResult = this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
             return this.parseTransactionsByType("deposit", depositResult, code, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
 
     }
 
@@ -3801,7 +3801,7 @@ final Object finalId = id;
             //
             Object result = this.safeValue(response, "result", new HashMap<String, Object>() {{}});
             return this.safeTimestamp(result, "unixtime");
-        }).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
 
     }
 
@@ -3908,7 +3908,7 @@ final Object finalId = id;
                 rawWithdrawals = result;
             }
             return this.parseTransactionsByType("withdrawal", rawWithdrawals, code, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
 
     }
 
@@ -3945,7 +3945,7 @@ final Object finalId = id;
                 put( "new", "true" );
             }};
             return (this.fetchDepositAddress(code, (Object)(this.extend(request, parameters)))).join();
-        }).thenApply(DepositAddress::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(DepositAddress::new);
 
     }
 
@@ -3997,7 +3997,7 @@ final Object finalId = id;
             //     }
             //
             return this.safeValue(response, "result");
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -4082,7 +4082,7 @@ final Object finalId = id;
                 throw new InvalidAddress(Helpers.add(Helpers.add(this.id, " privatePostDepositAddresses() returned no addresses for "), code)) ;
             }
             return this.parseDepositAddress(firstResult, currency);
-        }).thenApply(DepositAddress::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(DepositAddress::new);
 
     }
 
@@ -4157,7 +4157,7 @@ final Object finalId = id;
                 return this.parseTransaction(result, currency);
             }
             throw new ExchangeError(Helpers.add(this.id, " withdraw() requires a 'key' parameter (withdrawal key name, as set up on your account)")) ;
-        }).thenApply(Transaction::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Transaction::new);
 
     }
 
@@ -4235,7 +4235,7 @@ final Object finalId = id;
             Object result = this.safeList(response, "result");
             Object results = this.parsePositions(result, symbols);
             return this.filterByArrayPositions(results, "symbol", symbols, false);
-        }).thenApply(res -> Helpers.toTypedList(res, Position::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Position::new));
 
     }
 
@@ -4317,7 +4317,7 @@ final Object finalId = id;
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             return (this.transfer(code, (Object)(amount), (Object)("spot"), (Object)("swap"), (Object)(parameters))).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -4373,7 +4373,7 @@ final Object finalId = id;
                 put( "fromAccount", finalFromAccountParsed );
                 put( "toAccount", toAccountParsed );
             }});
-        }).thenApply(TransferEntry::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(TransferEntry::new);
 
     }
 

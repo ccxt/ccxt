@@ -910,7 +910,7 @@ public class Cryptocom extends CryptocomApi
             Object currencyMap = this.safeDict(resultData, "currency_map", new HashMap<String, Object>() {{}});
             Object enhancedArray = this.addKeyInArrayItems(currencyMap, "_coin_id");
             return this.parseCurrencies(enhancedArray);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1176,7 +1176,7 @@ public class Cryptocom extends CryptocomApi
                 }});
             }
             return result;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1249,7 +1249,7 @@ public class Cryptocom extends CryptocomApi
             Object result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             Object data = this.safeList(result, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTickers(data, symbols);
-        }).thenApply(Tickers::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Tickers::new);
 
     }
 
@@ -1275,7 +1275,7 @@ public class Cryptocom extends CryptocomApi
             symbol = this.symbol(symbol);
             Object tickers = (this.fetchTickers((Object)(new ArrayList<Object>(Arrays.asList(symbol))), (Object)(parameters))).join();
             return this.safeValue(tickers, symbol);
-        }).thenApply(Ticker::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Ticker::new);
 
     }
 
@@ -1377,7 +1377,7 @@ public class Cryptocom extends CryptocomApi
             Object data = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             Object orders = this.safeList(data, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(orders, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -1456,7 +1456,7 @@ public class Cryptocom extends CryptocomApi
             Object result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             Object trades = this.safeList(result, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(trades, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -1551,7 +1551,7 @@ public class Cryptocom extends CryptocomApi
             Object result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             Object data = this.safeList(result, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseOHLCVs(data, market, timeframe, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
 
     }
 
@@ -1608,7 +1608,7 @@ public class Cryptocom extends CryptocomApi
             Object orderBook = this.safeValue(data, 0);
             Long timestamp = this.safeInteger(orderBook, "t");
             return this.parseOrderBook(orderBook, symbol, timestamp);
-        }).thenApply(OrderBook::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OrderBook::new);
 
     }
 
@@ -1699,7 +1699,7 @@ public class Cryptocom extends CryptocomApi
             //     }
             //
             return this.parseBalance(response);
-        }).thenApply(Balances::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Balances::new);
 
     }
 
@@ -1768,7 +1768,7 @@ public class Cryptocom extends CryptocomApi
             //
             Object order = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             return this.parseOrder(order, market);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -1962,7 +1962,7 @@ public class Cryptocom extends CryptocomApi
             //
             Object result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             return this.parseOrder(result, market);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -2057,7 +2057,7 @@ public class Cryptocom extends CryptocomApi
                 return this.parseOrders(ocoOrders);
             }
             return this.parseOrders(result);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -2256,7 +2256,7 @@ public class Cryptocom extends CryptocomApi
             Map<String, Object> response = (this.v1PrivatePostPrivateAmendOrder(request)).join();
             Object result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             return this.parseOrder(result);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -2320,7 +2320,7 @@ public class Cryptocom extends CryptocomApi
             return new ArrayList<Object>(Arrays.asList(this.safeOrder(new HashMap<String, Object>() {{
         put( "info", response );
     }})));
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -2368,7 +2368,7 @@ public class Cryptocom extends CryptocomApi
             //
             Object result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             return this.parseOrder(result, market);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -2415,7 +2415,7 @@ public class Cryptocom extends CryptocomApi
             Map<String, Object> response = (this.v1PrivatePostPrivateCancelOrderList(this.extend(request, parameters))).join();
             Object result = this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(result, market, null, null, parameters);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -2458,7 +2458,7 @@ public class Cryptocom extends CryptocomApi
             Map<String, Object> response = (this.v1PrivatePostPrivateCancelOrderList(this.extend(request, parameters))).join();
             Object result = this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(result, null, null, null, parameters);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -2534,7 +2534,7 @@ public class Cryptocom extends CryptocomApi
             Object data = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             Object orders = this.safeList(data, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(orders, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -2626,7 +2626,7 @@ public class Cryptocom extends CryptocomApi
             Object result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             Object trades = this.safeList(result, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(trades, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -2713,7 +2713,7 @@ public class Cryptocom extends CryptocomApi
             //
             Object result = this.safeDict(response, "result");
             return this.parseTransaction(result, currency);
-        }).thenApply(Transaction::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Transaction::new);
 
     }
 
@@ -2793,7 +2793,7 @@ public class Cryptocom extends CryptocomApi
                 }
             }
             return result;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -2822,7 +2822,7 @@ public class Cryptocom extends CryptocomApi
             }
             Object keys = Helpers.objectKeys(depositAddresses);
             return Helpers.GetValue(depositAddresses, Helpers.GetValue(keys, 0));
-        }).thenApply(DepositAddress::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(DepositAddress::new);
 
     }
 
@@ -2899,7 +2899,7 @@ public class Cryptocom extends CryptocomApi
             Object data = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             Object depositList = this.safeList(data, "deposit_list", new ArrayList<Object>(Arrays.asList()));
             return this.parseTransactions(depositList, currency, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
 
     }
 
@@ -2978,7 +2978,7 @@ public class Cryptocom extends CryptocomApi
             Object data = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             Object withdrawalList = this.safeList(data, "withdrawal_list", new ArrayList<Object>(Arrays.asList()));
             return this.parseTransactions(withdrawalList, currency, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
 
     }
 
@@ -3501,7 +3501,7 @@ public class Cryptocom extends CryptocomApi
             Object data = this.safeValue(response, "result");
             Object currencyMap = this.safeList(data, "currency_map");
             return this.parseDepositWithdrawFees(currencyMap, codes, "full_name");
-        }).thenApply(DepositWithdrawFees::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(DepositWithdrawFees::new);
 
     }
 
@@ -3583,7 +3583,7 @@ public class Cryptocom extends CryptocomApi
             Object result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             Object ledger = this.safeList(result, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseLedger(ledger, currency, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, LedgerEntry::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, LedgerEntry::new));
 
     }
 
@@ -3731,7 +3731,7 @@ public class Cryptocom extends CryptocomApi
             Object accounts = this.safeList(result, "sub_account_list", new ArrayList<Object>(Arrays.asList()));
             ((List<Object>)accounts).add(masterAccount);
             return this.parseAccounts(accounts, parameters);
-        }).thenApply(res -> Helpers.toTypedList(res, Account::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Account::new));
 
     }
 
@@ -3836,7 +3836,7 @@ public class Cryptocom extends CryptocomApi
             Object settlements = this.parseSettlements(data, market);
             List<Object> sorted = this.sortBy(settlements, "timestamp");
             return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -3931,7 +3931,7 @@ public class Cryptocom extends CryptocomApi
             Object data = this.safeList(result, "data", new ArrayList<Object>(Arrays.asList()));
             Object entry = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
             return this.parseFundingRate(entry, market);
-        }).thenApply(FundingRate::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(FundingRate::new);
 
     }
 
@@ -4070,7 +4070,7 @@ public class Cryptocom extends CryptocomApi
             }
             List<Object> sorted = this.sortBy(rates, "timestamp");
             return this.filterBySymbolSinceLimit(sorted, Helpers.GetValue(market, "symbol"), since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, FundingRateHistory::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, FundingRateHistory::new));
 
     }
 
@@ -4123,7 +4123,7 @@ public class Cryptocom extends CryptocomApi
             Object result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             Object data = this.safeList(result, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parsePosition(this.safeDict(data, 0), market);
-        }).thenApply(Position::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Position::new);
 
     }
 
@@ -4202,7 +4202,7 @@ public class Cryptocom extends CryptocomApi
                 ((List<Object>)result).add(this.parsePosition(entry, marketInner));
             }
             return this.filterByArrayPositions(result, "symbol", null, false);
-        }).thenApply(res -> Helpers.toTypedList(res, Position::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Position::new));
 
     }
 
@@ -4359,7 +4359,7 @@ public class Cryptocom extends CryptocomApi
             //
             Object result = this.safeDict(response, "result");
             return this.parseOrder(result, market);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -4404,7 +4404,7 @@ public class Cryptocom extends CryptocomApi
             //
             Object data = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             return this.parseTradingFee(data, market);
-        }).thenApply(TradingFeeInterface::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(TradingFeeInterface::new);
 
     }
 
@@ -4444,7 +4444,7 @@ public class Cryptocom extends CryptocomApi
             //
             Object result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             return this.parseTradingFees(result);
-        }).thenApply(TradingFees::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(TradingFees::new);
 
     }
 

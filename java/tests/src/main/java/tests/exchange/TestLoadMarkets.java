@@ -65,7 +65,7 @@ public class TestLoadMarkets extends BaseTest {
             }
         }
         return true;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 

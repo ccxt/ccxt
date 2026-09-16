@@ -963,7 +963,7 @@ public class Deribit extends DeribitApi
             //     }
             //
             return this.safeInteger(response, "result");
-        }).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
 
     }
 
@@ -1008,7 +1008,7 @@ public class Deribit extends DeribitApi
             //
             Object data = this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
             return this.parseCurrencies(data);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1092,7 +1092,7 @@ public class Deribit extends DeribitApi
                 put( "url", null );
                 put( "info", response );
             }};
-        }).thenApply(Status::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Status::new);
 
     }
 
@@ -1151,7 +1151,7 @@ public class Deribit extends DeribitApi
             //
             Object result = this.safeValue(response, "result", new ArrayList<Object>(Arrays.asList()));
             return this.parseAccounts(result);
-        }).thenApply(res -> Helpers.toTypedList(res, Account::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Account::new));
 
     }
 
@@ -1460,7 +1460,7 @@ public class Deribit extends DeribitApi
                 }
             }
             return result;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1573,7 +1573,7 @@ public class Deribit extends DeribitApi
             //
             Object result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             return this.parseBalance(result);
-        }).thenApply(Balances::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Balances::new);
 
     }
 
@@ -1623,7 +1623,7 @@ public class Deribit extends DeribitApi
                 put( "network", null );
                 put( "info", response );
             }};
-        }).thenApply(DepositAddress::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(DepositAddress::new);
 
     }
 
@@ -1678,7 +1678,7 @@ public class Deribit extends DeribitApi
                 put( "address", address );
                 put( "tag", null );
             }};
-        }).thenApply(DepositAddress::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(DepositAddress::new);
 
     }
 
@@ -1816,7 +1816,7 @@ public class Deribit extends DeribitApi
             //
             Object result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             return this.parseTicker(result, market);
-        }).thenApply(Ticker::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Ticker::new);
 
     }
 
@@ -1930,7 +1930,7 @@ public class Deribit extends DeribitApi
                 }
             }
             return this.filterByArrayTickers(tickers, "symbol", symbols);
-        }).thenApply(Tickers::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Tickers::new);
 
     }
 
@@ -2025,7 +2025,7 @@ public class Deribit extends DeribitApi
             Object result = this.safeValue(response, "result", new HashMap<String, Object>() {{}});
             Object ohlcvs = this.convertTradingViewToOHLCV(result, "ticks", "open", "high", "low", "close", "volume", true);
             return this.parseOHLCVs(ohlcvs, market, timeframe, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
 
     }
 
@@ -2208,7 +2208,7 @@ public class Deribit extends DeribitApi
             Object result = this.safeValue(response, "result", new HashMap<String, Object>() {{}});
             Object trades = this.safeList(result, "trades", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(trades, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -2345,7 +2345,7 @@ public class Deribit extends DeribitApi
                 Helpers.addElementToObject(parsedFees, symbol, fee);
             }
             return parsedFees;
-        }).thenApply(TradingFees::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(TradingFees::new);
 
     }
 
@@ -2424,7 +2424,7 @@ public class Deribit extends DeribitApi
             Object orderbook = this.parseOrderBook(result, Helpers.GetValue(market, "symbol"), timestamp);
             Helpers.addElementToObject(orderbook, "nonce", nonce);
             return orderbook;
-        }).thenApply(OrderBook::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OrderBook::new);
 
     }
 
@@ -2635,7 +2635,7 @@ public class Deribit extends DeribitApi
             //
             Object result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             return this.parseOrder(result, market);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -2829,7 +2829,7 @@ public class Deribit extends DeribitApi
             Object trades = this.safeValue(result, "trades", new ArrayList<Object>(Arrays.asList()));
             Helpers.addElementToObject(order, "trades", trades);
             return this.parseOrder(order, market);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -2886,7 +2886,7 @@ public class Deribit extends DeribitApi
             Object trades = this.safeValue(result, "trades", new ArrayList<Object>(Arrays.asList()));
             Helpers.addElementToObject(order, "trades", trades);
             return this.parseOrder(order);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -2917,7 +2917,7 @@ public class Deribit extends DeribitApi
             Map<String, Object> response = (this.privateGetCancel(this.extend(request, parameters))).join();
             Object result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             return this.parseOrder(result);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -2967,7 +2967,7 @@ public class Deribit extends DeribitApi
             return new ArrayList<Object>(Arrays.asList(this.safeOrder(new HashMap<String, Object>() {{
         put( "info", finalResponse );
     }})));
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -3013,7 +3013,7 @@ public class Deribit extends DeribitApi
             }
             Object result = this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(result, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -3066,7 +3066,7 @@ public class Deribit extends DeribitApi
             }
             Object result = this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(result, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -3134,7 +3134,7 @@ public class Deribit extends DeribitApi
             //
             Object result = this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(result, null, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -3236,7 +3236,7 @@ public class Deribit extends DeribitApi
             Object result = this.safeValue(response, "result", new HashMap<String, Object>() {{}});
             Object trades = this.safeList(result, "trades", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(trades, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -3300,7 +3300,7 @@ public class Deribit extends DeribitApi
             Object result = this.safeValue(response, "result", new HashMap<String, Object>() {{}});
             Object data = this.safeList(result, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTransactions(data, currency, since, limit, parameters);
-        }).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
 
     }
 
@@ -3368,7 +3368,7 @@ public class Deribit extends DeribitApi
             Object result = this.safeValue(response, "result", new HashMap<String, Object>() {{}});
             Object data = this.safeList(result, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTransactions(data, currency, since, limit, parameters);
-        }).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
 
     }
 
@@ -3581,7 +3581,7 @@ public class Deribit extends DeribitApi
             //
             Object result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             return this.parsePosition(result);
-        }).thenApply(Position::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Position::new);
 
     }
 
@@ -3648,7 +3648,7 @@ public class Deribit extends DeribitApi
             //
             Object result = this.safeList(response, "result");
             return this.parsePositions(result, symbols);
-        }).thenApply(res -> Helpers.toTypedList(res, Position::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Position::new));
 
     }
 
@@ -3691,7 +3691,7 @@ public class Deribit extends DeribitApi
             //     }
             //
             return this.parseVolatilityHistory(response);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -3800,7 +3800,7 @@ public class Deribit extends DeribitApi
             Object result = this.safeValue(response, "result", new HashMap<String, Object>() {{}});
             Object transfers = this.safeList(result, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTransfers(transfers, currency, since, limit, parameters);
-        }).thenApply(res -> Helpers.toTypedList(res, TransferEntry::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, TransferEntry::new));
 
     }
 
@@ -3867,7 +3867,7 @@ public class Deribit extends DeribitApi
             //
             Object result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             return this.parseTransfer(result, currency);
-        }).thenApply(TransferEntry::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(TransferEntry::new);
 
     }
 
@@ -3956,7 +3956,7 @@ public class Deribit extends DeribitApi
             }
             Map<String, Object> response = (this.privateGetWithdraw(this.extend(request, parameters))).join();
             return this.parseTransaction(response, currency);
-        }).thenApply(Transaction::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Transaction::new);
 
     }
 
@@ -4034,7 +4034,7 @@ public class Deribit extends DeribitApi
             //
             Object data = this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
             return this.parseDepositWithdrawFees(data, codes, "currency");
-        }).thenApply(DepositWithdrawFees::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(DepositWithdrawFees::new);
 
     }
 
@@ -4079,7 +4079,7 @@ public class Deribit extends DeribitApi
             //   }
             //
             return this.parseFundingRate(response, market);
-        }).thenApply(FundingRate::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(FundingRate::new);
 
     }
 
@@ -4183,7 +4183,7 @@ public class Deribit extends DeribitApi
                 ((List<Object>)rates).add(rate);
             }
             return this.filterBySymbolSinceLimit(rates, symbol, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, FundingRateHistory::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, FundingRateHistory::new));
 
     }
 
@@ -4312,7 +4312,7 @@ public class Deribit extends DeribitApi
             Object settlements = this.safeValue(result, "settlements", new ArrayList<Object>(Arrays.asList()));
             Object settlementsWithCursor = this.addPaginationCursorToResult(cursor, settlements);
             return this.parseLiquidations(settlementsWithCursor, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Liquidation::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Liquidation::new));
 
     }
 
@@ -4407,7 +4407,7 @@ public class Deribit extends DeribitApi
             Object result = this.safeValue(response, "result", new HashMap<String, Object>() {{}});
             Object settlements = this.safeList(result, "settlements", new ArrayList<Object>(Arrays.asList()));
             return this.parseLiquidations(settlements, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Liquidation::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Liquidation::new));
 
     }
 
@@ -4512,7 +4512,7 @@ public class Deribit extends DeribitApi
             //
             Object result = this.safeValue(response, "result", new HashMap<String, Object>() {{}});
             return this.parseGreeks(result, market);
-        }).thenApply(Greeks::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Greeks::new);
 
     }
 
@@ -4644,7 +4644,7 @@ public class Deribit extends DeribitApi
             Object result = this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
             Object chain = this.safeDict(result, 0, new HashMap<String, Object>() {{}});
             return this.parseOption(chain, null, market);
-        }).thenApply(Option::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Option::new);
 
     }
 
@@ -4707,7 +4707,7 @@ public class Deribit extends DeribitApi
             //
             Object result = this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
             return this.parseOptionChain(result, "base_currency", "instrument_name");
-        }).thenApply(OptionChain::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OptionChain::new);
 
     }
 
@@ -4828,7 +4828,7 @@ public class Deribit extends DeribitApi
             Object result = this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
             Object data = this.safeDict(result, 0, new HashMap<String, Object>() {{}});
             return this.parseOpenInterest(data, market);
-        }).thenApply(OpenInterest::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OpenInterest::new);
 
     }
 

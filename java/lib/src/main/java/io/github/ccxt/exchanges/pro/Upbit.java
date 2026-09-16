@@ -115,7 +115,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
                 ((List<Object>)finalMessage).add(Helpers.GetValue(subscriptions, key));
             }
             return (this.watchMultiple(url, messageHashes, finalMessage, messageHashes, null)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -135,7 +135,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             return (this.watchPublicMultiple(new ArrayList<Object>(Arrays.asList(symbol)), "ticker")).join();
-        }).thenApply(Ticker::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Ticker::new);
 
     }
 
@@ -163,7 +163,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
                 return tickers;
             }
             return this.filterByArray(this.tickers, "symbol", symbols);
-        }).thenApply(Tickers::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Tickers::new);
 
     }
 
@@ -187,7 +187,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
             Object limit = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
             return (this.watchTradesForSymbols((Object)(new ArrayList<Object>(Arrays.asList(symbol))), (Object)(since), (Object)(limit), (Object)(parameters))).join();
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -218,7 +218,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{tradeSymbol, limit});
             }
             return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -241,7 +241,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             Object orderbook = (this.watchPublicMultiple(new ArrayList<Object>(Arrays.asList(symbol)), "orderbook")).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
-        }).thenApply(OrderBook::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OrderBook::new);
 
     }
 
@@ -273,7 +273,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
             }
             Object timeFrameOHLCV = Helpers.add("candle.", timeframe);
             return (this.watchPublicMultiple(new ArrayList<Object>(Arrays.asList(symbol)), timeFrameOHLCV)).join();
-        }).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
 
     }
 
@@ -467,7 +467,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
             Object url = Helpers.add(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "/private");
             Client client = this.client(url);
             return client;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -534,7 +534,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
                 ((List<Object>)message).add(Helpers.GetValue(requests, i));
             }
             return (this.watch(url, messageHash, message, messageHash, null)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -570,7 +570,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
                 limit = Helpers.callDynamically(orders, "getLimit", new Object[]{symbol, limit});
             }
             return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -606,7 +606,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
             }
             return this.filterBySymbolSinceLimit(trades, symbol, since, limit, true);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -837,7 +837,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
             Object channel = "myAsset";
             String messageHash = "myAsset";
             return (this.watchPrivate(null, channel, messageHash)).join();
-        }).thenApply(Balances::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Balances::new);
 
     }
 

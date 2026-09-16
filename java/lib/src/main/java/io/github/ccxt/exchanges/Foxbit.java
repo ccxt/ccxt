@@ -448,7 +448,7 @@ public class Foxbit extends FoxbitApi
             // }
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseCurrencies(data);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -642,7 +642,7 @@ public class Foxbit extends FoxbitApi
             //   }
             Object markets = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseMarkets(markets);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -704,7 +704,7 @@ public class Foxbit extends FoxbitApi
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Object result = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
             return this.parseTicker(result, market);
-        }).thenApply(Ticker::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Ticker::new);
 
     }
 
@@ -753,7 +753,7 @@ public class Foxbit extends FoxbitApi
             //  }
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTickers(data, symbols);
-        }).thenApply(Tickers::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Tickers::new);
 
     }
 
@@ -794,7 +794,7 @@ public class Foxbit extends FoxbitApi
                 Helpers.addElementToObject(result, symbol, this.parseTradingFee(entry, market));
             }
             return result;
-        }).thenApply(TradingFees::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(TradingFees::new);
 
     }
 
@@ -853,7 +853,7 @@ public class Foxbit extends FoxbitApi
             //  }
             Long timestamp = this.safeInteger(response, "timestamp");
             return this.parseOrderBook(response, symbol, timestamp);
-        }).thenApply(OrderBook::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OrderBook::new);
 
     }
 
@@ -904,7 +904,7 @@ public class Foxbit extends FoxbitApi
             Map<String, Object> response = (this.v3PublicGetMarketsMarketTradesHistory(this.extend(request, parameters))).join();
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(data, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -968,7 +968,7 @@ public class Foxbit extends FoxbitApi
             //     ]
             // ]
             return this.parseOHLCVs(this.toArray(response), market, interval, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
 
     }
 
@@ -1024,7 +1024,7 @@ public class Foxbit extends FoxbitApi
                 }
             }
             return this.safeBalance(result);
-        }).thenApply(Balances::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Balances::new);
 
     }
 
@@ -1049,7 +1049,7 @@ public class Foxbit extends FoxbitApi
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             return (this.fetchOrdersByStatus("ACTIVE", symbol, since, limit, parameters)).join();
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -1074,7 +1074,7 @@ public class Foxbit extends FoxbitApi
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             return (this.fetchOrdersByStatus("FILLED", symbol, since, limit, parameters)).join();
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -1088,7 +1088,7 @@ public class Foxbit extends FoxbitApi
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             return (this.fetchOrdersByStatus("CANCELED", symbol, since, limit, parameters)).join();
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -1129,7 +1129,7 @@ public class Foxbit extends FoxbitApi
             Map<String, Object> response = (this.v3PrivateGetOrders(this.extend(request, parameters))).join();
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(data);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1232,7 +1232,7 @@ public class Foxbit extends FoxbitApi
             //     "client_order_id": "451637946501"
             // }
             return this.parseOrder(response, market);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -1338,7 +1338,7 @@ public class Foxbit extends FoxbitApi
             // }
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(data);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -1379,7 +1379,7 @@ public class Foxbit extends FoxbitApi
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Object result = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
             return this.parseOrder(result);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -1424,7 +1424,7 @@ public class Foxbit extends FoxbitApi
             return new ArrayList<Object>(Arrays.asList(this.safeOrder(new HashMap<String, Object>() {{
         put( "info", response );
     }})));
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -1473,7 +1473,7 @@ public class Foxbit extends FoxbitApi
             //     "funds_received": "290.0"
             // }
             return this.parseOrder(response);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -1548,7 +1548,7 @@ public class Foxbit extends FoxbitApi
             // }
             Object list = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(list, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -1613,7 +1613,7 @@ public class Foxbit extends FoxbitApi
             // }
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(data, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -1660,7 +1660,7 @@ public class Foxbit extends FoxbitApi
             //     }
             // }
             return this.parseDepositAddress(response, currency);
-        }).thenApply(DepositAddress::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(DepositAddress::new);
 
     }
 
@@ -1725,7 +1725,7 @@ public class Foxbit extends FoxbitApi
             // }
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTransactions(data, currency, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
 
     }
 
@@ -1805,7 +1805,7 @@ public class Foxbit extends FoxbitApi
             // }
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTransactions(data, currency, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
 
     }
 
@@ -1835,7 +1835,7 @@ public class Foxbit extends FoxbitApi
             List<Object> allTransactions = (List<Object>) this.arrayConcat(withdrawals, deposits);
             List<Object> result = this.sortBy(allTransactions, "timestamp");
             return result;
-        }).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
 
     }
 
@@ -1882,7 +1882,7 @@ public class Foxbit extends FoxbitApi
                 put( "url", null );
                 put( "info", response );
             }};
-        }).thenApply(Status::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Status::new);
 
     }
 
@@ -1973,7 +1973,7 @@ public class Foxbit extends FoxbitApi
             // }
             Object created = this.safeDict(response, "create", new HashMap<String, Object>() {{}});
             return this.parseOrder(created, market);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -2030,7 +2030,7 @@ public class Foxbit extends FoxbitApi
             //     "destination_tag": "123456"
             // }
             return this.parseTransaction(response);
-        }).thenApply(Transaction::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Transaction::new);
 
     }
 
@@ -2080,7 +2080,7 @@ public class Foxbit extends FoxbitApi
             Map<String, Object> response = (this.v3PrivateGetAccountsSymbolTransactions(this.extend(request, parameters))).join();
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseLedger(data, currency, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, LedgerEntry::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, LedgerEntry::new));
 
     }
 

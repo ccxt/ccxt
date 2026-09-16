@@ -33,7 +33,7 @@ public class TestFetchTickers extends BaseTest {
         Object results = (Helpers.promiseAll(new ArrayList<Object>(Arrays.asList(withoutSymbol, withSymbol)))).join();
         fetchTickersAmountsTest(exchange, skippedProperties, Helpers.GetValue(results, 0));
         return results;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
     public CompletableFuture<Object> fetchTickersHelperTest(BaseExchange exchange, Object skippedProperties, Object argSymbols2, Object... optionalArgs)
@@ -71,7 +71,7 @@ public class TestFetchTickers extends BaseTest {
             }
         }
         return response;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
     public static void fetchTickersAmountsTest(BaseExchange exchange, Object skippedProperties, Object tickers)

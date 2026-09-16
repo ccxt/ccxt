@@ -657,7 +657,7 @@ public class Ndax extends NdaxApi
                 put( "url", null );
                 put( "info", response );
             }};
-        }).thenApply(Status::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Status::new);
 
     }
 
@@ -723,7 +723,7 @@ public class Ndax extends NdaxApi
                 return responseInner;
             }
             return response;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -766,7 +766,7 @@ public class Ndax extends NdaxApi
             //        ...
             //
             return this.parseCurrencies(response);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -874,7 +874,7 @@ public class Ndax extends NdaxApi
             //     ]
             //
             return this.parseMarkets(response);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1052,7 +1052,7 @@ public class Ndax extends NdaxApi
             //     ]
             //
             return this.parseOrderBook(response, symbol);
-        }).thenApply(OrderBook::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OrderBook::new);
 
     }
 
@@ -1182,7 +1182,7 @@ public class Ndax extends NdaxApi
             //
             Object tickers = this.parseTickers(response);
             return this.filterByArrayTickers(tickers, "symbol", symbols);
-        }).thenApply(Tickers::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Tickers::new);
 
     }
 
@@ -1243,7 +1243,7 @@ public class Ndax extends NdaxApi
             //     }
             //
             return this.parseTicker(response, market);
-        }).thenApply(Ticker::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Ticker::new);
 
     }
 
@@ -1332,7 +1332,7 @@ public class Ndax extends NdaxApi
                 candles = response;
             }
             return this.parseOHLCVs(candles, market, timeframe, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
 
     }
 
@@ -1567,7 +1567,7 @@ public class Ndax extends NdaxApi
             //     ]
             //
             return this.parseTrades(response, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -1612,7 +1612,7 @@ public class Ndax extends NdaxApi
                 }});
             }
             return result;
-        }).thenApply(res -> Helpers.toTypedList(res, Account::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Account::new));
 
     }
 
@@ -1707,7 +1707,7 @@ public class Ndax extends NdaxApi
             //     ]
             //
             return this.parseBalance(response);
-        }).thenApply(Balances::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Balances::new);
 
     }
 
@@ -1860,7 +1860,7 @@ public class Ndax extends NdaxApi
                 currency = this.currency(code);
             }
             return this.parseLedger(response, currency, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, LedgerEntry::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, LedgerEntry::new));
 
     }
 
@@ -2065,7 +2065,7 @@ public class Ndax extends NdaxApi
             //     }
             //
             return this.parseOrder(response, market);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -2139,7 +2139,7 @@ public class Ndax extends NdaxApi
             //     }
             //
             return this.parseOrder(response, market);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -2235,7 +2235,7 @@ public class Ndax extends NdaxApi
             //     ]
             //
             return this.parseTrades(response, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -2285,7 +2285,7 @@ public class Ndax extends NdaxApi
             return new ArrayList<Object>(Arrays.asList(this.safeOrder(new HashMap<String, Object>() {{
         put( "info", response );
     }})));
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -2340,7 +2340,7 @@ public class Ndax extends NdaxApi
                 put( "id", id );
                 put( "clientOrderId", finalClientOrderId );
             }});
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -2434,7 +2434,7 @@ public class Ndax extends NdaxApi
             //     ]
             //
             return this.parseOrders(response, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -2537,7 +2537,7 @@ public class Ndax extends NdaxApi
             //     ]
             //
             return this.parseOrders(response, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -2627,7 +2627,7 @@ public class Ndax extends NdaxApi
             //     }
             //
             return this.parseOrder(response, market);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -2724,7 +2724,7 @@ public class Ndax extends NdaxApi
             Map<String, Object> grouped = this.groupBy(response, "ChangeReason");
             Object trades = this.safeList(grouped, "Trade", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(trades, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -2772,7 +2772,7 @@ public class Ndax extends NdaxApi
             //     }
             //
             return this.parseDepositAddress(response, currency);
-        }).thenApply(DepositAddress::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(DepositAddress::new);
 
     }
 
@@ -2834,7 +2834,7 @@ public class Ndax extends NdaxApi
                 put( "GenerateNewKey", true );
             }};
             return (this.fetchDepositAddress(code, (Object)(this.extend(request, parameters)))).join();
-        }).thenApply(DepositAddress::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(DepositAddress::new);
 
     }
 
@@ -2910,7 +2910,7 @@ public class Ndax extends NdaxApi
                 return this.parseTransactions(Helpers.parseJson(response), currency, since, limit);
             }
             return this.parseTransactions(response, currency, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
 
     }
 
@@ -2978,7 +2978,7 @@ public class Ndax extends NdaxApi
             //     ]
             //
             return this.parseTransactions(response, currency, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
 
     }
 
@@ -3264,7 +3264,7 @@ public class Ndax extends NdaxApi
             }};
             Map<String, Object> response = (this.privatePostCreateWithdrawTicket(this.deepExtend(withdrawRequest, parameters))).join();
             return this.parseTransaction(response, currency);
-        }).thenApply(Transaction::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Transaction::new);
 
     }
 

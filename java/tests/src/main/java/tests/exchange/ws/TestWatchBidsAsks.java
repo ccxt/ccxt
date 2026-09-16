@@ -24,7 +24,7 @@ public class TestWatchBidsAsks extends BaseTest {
         Object withSymbol = testWatchBidsAsksHelper(exchange, skippedProperties, new ArrayList<Object>(Arrays.asList(symbol)));
         (Helpers.promiseAll(new ArrayList<Object>(Arrays.asList(withSymbol, withoutSymbol)))).join();
             return null;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
     public CompletableFuture<Object> testWatchBidsAsksHelper(Exchange exchange, Object skippedProperties, Object argSymbols2, Object... optionalArgs)
@@ -90,7 +90,7 @@ public class TestWatchBidsAsks extends BaseTest {
             }
         }
         return true;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 

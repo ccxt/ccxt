@@ -527,7 +527,7 @@ public class Independentreserve extends IndependentreserveApi
                 }
             }
             return result;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -571,7 +571,7 @@ public class Independentreserve extends IndependentreserveApi
             }
             Map<String, Object> response = (this.privatePostGetAccounts(parameters)).join();
             return this.parseBalance(response);
-        }).thenApply(Balances::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Balances::new);
 
     }
 
@@ -603,7 +603,7 @@ public class Independentreserve extends IndependentreserveApi
             Map<String, Object> response = (this.publicGetGetOrderBook(this.extend(request, parameters))).join();
             Long timestamp = this.parse8601(this.safeString(response, "CreatedTimestampUtc"));
             return this.parseOrderBook(response, Helpers.GetValue(market, "symbol"), timestamp, "BuyOrders", "SellOrders", "Price", "Volume");
-        }).thenApply(OrderBook::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OrderBook::new);
 
     }
 
@@ -696,7 +696,7 @@ public class Independentreserve extends IndependentreserveApi
             //     "CreatedTimestampUtc":"2022-01-14T22:52:29.5029223Z"
             // }
             return this.parseTicker(response, market);
-        }).thenApply(Ticker::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Ticker::new);
 
     }
 
@@ -886,7 +886,7 @@ public class Independentreserve extends IndependentreserveApi
                 market = this.market(symbol);
             }
             return this.parseOrder(response, market);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -930,7 +930,7 @@ public class Independentreserve extends IndependentreserveApi
             Map<String, Object> response = (this.privatePostGetOpenOrders(this.extend(request, parameters))).join();
             Object data = this.safeList(response, "Data", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(data, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -974,7 +974,7 @@ public class Independentreserve extends IndependentreserveApi
             Map<String, Object> response = (this.privatePostGetClosedOrders(this.extend(request, parameters))).join();
             Object data = this.safeList(response, "Data", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(data, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -1019,7 +1019,7 @@ public class Independentreserve extends IndependentreserveApi
             }
             Object data = this.safeList(response, "Data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(data, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -1102,7 +1102,7 @@ public class Independentreserve extends IndependentreserveApi
             Map<String, Object> response = (this.publicGetGetRecentTrades(this.extend(request, parameters))).join();
             Object trades = this.safeList(response, "Trades", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(trades, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -1166,7 +1166,7 @@ public class Independentreserve extends IndependentreserveApi
     }});
             }
             return result;
-        }).thenApply(TradingFees::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(TradingFees::new);
 
     }
 
@@ -1219,7 +1219,7 @@ public class Independentreserve extends IndependentreserveApi
                 put( "info", finalResponse );
                 put( "id", Helpers.GetValue(finalResponse, "OrderGuid") );
             }}, market);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -1264,7 +1264,7 @@ public class Independentreserve extends IndependentreserveApi
             //    }
             //
             return this.parseOrder(response);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -1301,7 +1301,7 @@ public class Independentreserve extends IndependentreserveApi
             //    }
             //
             return this.parseDepositAddress(response);
-        }).thenApply(DepositAddress::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(DepositAddress::new);
 
     }
 
@@ -1393,7 +1393,7 @@ public class Independentreserve extends IndependentreserveApi
             //    }
             //
             return this.parseTransaction(response, currency);
-        }).thenApply(Transaction::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Transaction::new);
 
     }
 

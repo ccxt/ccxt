@@ -274,7 +274,7 @@ public class Paymium extends PaymiumApi
             }
             Map<String, Object> response = (this.privateGetUser(parameters)).join();
             return this.parseBalance(response);
-        }).thenApply(Balances::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Balances::new);
 
     }
 
@@ -305,7 +305,7 @@ public class Paymium extends PaymiumApi
             }};
             Map<String, Object> response = (this.publicGetDataCurrencyDepth(this.extend(request, parameters))).join();
             return this.parseOrderBook(response, Helpers.GetValue(market, "symbol"), null, "bids", "asks", "price", "amount");
-        }).thenApply(OrderBook::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OrderBook::new);
 
     }
 
@@ -403,7 +403,7 @@ public class Paymium extends PaymiumApi
             // }
             //
             return this.parseTicker(ticker, market);
-        }).thenApply(Ticker::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Ticker::new);
 
     }
 
@@ -464,7 +464,7 @@ public class Paymium extends PaymiumApi
             }};
             List<Object> response = (this.publicGetDataCurrencyTrades(this.extend(request, parameters))).join();
             return this.parseTrades(response, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -497,7 +497,7 @@ public class Paymium extends PaymiumApi
             //     }
             //
             return this.parseDepositAddress(response);
-        }).thenApply(DepositAddress::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(DepositAddress::new);
 
     }
 
@@ -533,7 +533,7 @@ public class Paymium extends PaymiumApi
             //     }
             //
             return this.parseDepositAddress(response);
-        }).thenApply(DepositAddress::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(DepositAddress::new);
 
     }
 
@@ -569,7 +569,7 @@ public class Paymium extends PaymiumApi
             //     ]
             //
             return this.parseDepositAddresses(response, codes, false);
-        }).thenApply(res -> Helpers.toTypedList(res, DepositAddress::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, DepositAddress::new));
 
     }
 
@@ -636,7 +636,7 @@ public class Paymium extends PaymiumApi
                 put( "info", response );
                 put( "id", Paymium.this.safeString(response, "uuid") );
             }}, market);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -664,7 +664,7 @@ public class Paymium extends PaymiumApi
             return this.safeOrder(new HashMap<String, Object>() {{
                 put( "info", response );
             }});
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -739,7 +739,7 @@ public class Paymium extends PaymiumApi
             //     }
             //
             return this.parseTransfer(response, currency);
-        }).thenApply(TransferEntry::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(TransferEntry::new);
 
     }
 

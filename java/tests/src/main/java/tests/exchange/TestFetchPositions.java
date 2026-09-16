@@ -40,7 +40,7 @@ public class TestFetchPositions extends BaseTest {
         }
         // TestSharedMethods.AssertTimestampOrder (exchange, method, symbol, positionsForSymbol);
         return true;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 

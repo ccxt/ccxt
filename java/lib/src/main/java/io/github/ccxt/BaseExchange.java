@@ -4890,7 +4890,7 @@ public Object describe()
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchAccounts() is not supported yet")) ;
-        }, VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Account::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Account::new));
 
     }
 
@@ -4907,7 +4907,7 @@ public Object describe()
                 return (this.watchLiquidationsForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), since, limit, parameters)).join();
             }
             throw new NotSupported(Helpers.add(this.id, " watchLiquidations() is not supported yet")) ;
-        }, VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Liquidation::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Liquidation::new));
 
     }
 
@@ -4920,7 +4920,7 @@ public Object describe()
             Object limit = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " watchLiquidationsForSymbols() is not supported yet")) ;
-        }, VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Liquidation::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Liquidation::new));
 
     }
 
@@ -4937,7 +4937,7 @@ public Object describe()
                 return this.watchMyLiquidationsForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), since, limit, parameters);
             }
             throw new NotSupported(Helpers.add(this.id, " watchMyLiquidations() is not supported yet")) ;
-        }, VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Liquidation::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Liquidation::new));
 
     }
 
@@ -4950,7 +4950,7 @@ public Object describe()
             Object limit = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " watchMyLiquidationsForSymbols() is not supported yet")) ;
-        }, VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Liquidation::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Liquidation::new));
 
     }
 
@@ -4962,7 +4962,7 @@ public Object describe()
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " unWatchOrders() is not supported yet")) ;
-        }, VIRTUAL_EXECUTOR);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -4973,7 +4973,7 @@ public Object describe()
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " unWatchTrades() is not supported yet")) ;
-        }, VIRTUAL_EXECUTOR);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -4984,7 +4984,7 @@ public Object describe()
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " unWatchTradesForSymbols() is not supported yet")) ;
-        }, VIRTUAL_EXECUTOR);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -4997,7 +4997,7 @@ public Object describe()
             Object limit = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " watchOHLCVForSymbols() is not supported yet")) ;
-        }, VIRTUAL_EXECUTOR);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -5008,7 +5008,7 @@ public Object describe()
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " unWatchOHLCVForSymbols() is not supported yet")) ;
-        }, VIRTUAL_EXECUTOR);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -5019,7 +5019,7 @@ public Object describe()
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " unWatchOrderBookForSymbols() is not supported yet")) ;
-        }, VIRTUAL_EXECUTOR);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -5031,7 +5031,7 @@ public Object describe()
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " unWatchPositions() is not supported yet")) ;
-        }, VIRTUAL_EXECUTOR);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -5042,7 +5042,7 @@ public Object describe()
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " unWatchTicker() is not supported yet")) ;
-        }, VIRTUAL_EXECUTOR);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -5053,7 +5053,7 @@ public Object describe()
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " unWatchMarkPrice() is not supported yet")) ;
-        }, VIRTUAL_EXECUTOR);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -5065,7 +5065,7 @@ public Object describe()
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " unWatchMarkPrices() is not supported yet")) ;
-        }, VIRTUAL_EXECUTOR);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -5077,7 +5077,7 @@ public Object describe()
             Object codes = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchDepositAddresses() is not supported yet")) ;
-        }, VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, DepositAddress::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, DepositAddress::new));
 
     }
 
@@ -5095,7 +5095,7 @@ public Object describe()
             {
                 throw new NotSupported(Helpers.add(this.id, " fetchMarginMode() is not supported yet")) ;
             }
-        }, VIRTUAL_EXECUTOR).thenApply(MarginMode::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(MarginMode::new);
 
     }
 
@@ -5107,7 +5107,7 @@ public Object describe()
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchMarginModes () is not supported yet")) ;
-        }, VIRTUAL_EXECUTOR).thenApply(MarginModes::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(MarginModes::new);
 
     }
 
@@ -5118,7 +5118,7 @@ public Object describe()
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " unWatchOrderBook() is not supported yet")) ;
-        }, VIRTUAL_EXECUTOR);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -5129,7 +5129,7 @@ public Object describe()
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchTime() is not supported yet")) ;
-        }, VIRTUAL_EXECUTOR).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
 
     }
 
@@ -5141,7 +5141,7 @@ public Object describe()
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchTradingLimits() is not supported yet")) ;
-        }, VIRTUAL_EXECUTOR);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -5240,7 +5240,7 @@ public Object describe()
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchCrossBorrowRates() is not supported yet")) ;
-        }, VIRTUAL_EXECUTOR).thenApply(CrossBorrowRates::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(CrossBorrowRates::new);
 
     }
 
@@ -5251,7 +5251,7 @@ public Object describe()
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchIsolatedBorrowRates() is not supported yet")) ;
-        }, VIRTUAL_EXECUTOR).thenApply(IsolatedBorrowRates::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(IsolatedBorrowRates::new);
 
     }
 
@@ -5269,7 +5269,7 @@ public Object describe()
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchLeverageTiers() is not supported yet")) ;
-        }, VIRTUAL_EXECUTOR).thenApply(LeverageTiers::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(LeverageTiers::new);
 
     }
 
@@ -5329,7 +5329,7 @@ public Object describe()
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchFundingRates() is not supported yet")) ;
-        }, VIRTUAL_EXECUTOR).thenApply(FundingRates::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(FundingRates::new);
 
     }
 
@@ -5341,7 +5341,7 @@ public Object describe()
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchFundingIntervals() is not supported yet")) ;
-        }, VIRTUAL_EXECUTOR).thenApply(FundingRates::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(FundingRates::new);
 
     }
 
@@ -5352,7 +5352,7 @@ public Object describe()
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " watchFundingRate() is not supported yet")) ;
-        }, VIRTUAL_EXECUTOR).thenApply(FundingRate::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(FundingRate::new);
 
     }
 
@@ -5364,7 +5364,7 @@ public Object describe()
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " watchFundingRates() is not supported yet")) ;
-        }, VIRTUAL_EXECUTOR).thenApply(FundingRates::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(FundingRates::new);
 
     }
 
@@ -5376,7 +5376,7 @@ public Object describe()
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " unWatchFundingRates() is not supported yet")) ;
-        }, VIRTUAL_EXECUTOR);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -5387,7 +5387,7 @@ public Object describe()
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             return (this.watchFundingRates(symbols, parameters)).join();
-        }, VIRTUAL_EXECUTOR).thenApply(FundingRates::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(FundingRates::new);
 
     }
 
@@ -5398,7 +5398,7 @@ public Object describe()
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " transfer() is not supported yet")) ;
-        }, VIRTUAL_EXECUTOR).thenApply(TransferEntry::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(TransferEntry::new);
 
     }
 
@@ -5410,7 +5410,7 @@ public Object describe()
             Object tag = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " withdraw() is not supported yet")) ;
-        }, VIRTUAL_EXECUTOR).thenApply(Transaction::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Transaction::new);
 
     }
 
@@ -5421,7 +5421,7 @@ public Object describe()
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " createDepositAddress() is not supported yet")) ;
-        }, VIRTUAL_EXECUTOR).thenApply(DepositAddress::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(DepositAddress::new);
 
     }
 
@@ -5433,7 +5433,7 @@ public Object describe()
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " setLeverage() is not supported yet")) ;
-        }, VIRTUAL_EXECUTOR);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -5451,7 +5451,7 @@ public Object describe()
             {
                 throw new NotSupported(Helpers.add(this.id, " fetchLeverage() is not supported yet")) ;
             }
-        }, VIRTUAL_EXECUTOR).thenApply(Leverage::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Leverage::new);
 
     }
 
@@ -5463,7 +5463,7 @@ public Object describe()
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchLeverages() is not supported yet")) ;
-        }, VIRTUAL_EXECUTOR).thenApply(Leverages::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Leverages::new);
 
     }
 
@@ -5475,7 +5475,7 @@ public Object describe()
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " setPositionMode() is not supported yet")) ;
-        }, VIRTUAL_EXECUTOR);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -5486,7 +5486,7 @@ public Object describe()
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " addMargin() is not supported yet")) ;
-        }, VIRTUAL_EXECUTOR).thenApply(MarginModification::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(MarginModification::new);
 
     }
 
@@ -5497,7 +5497,7 @@ public Object describe()
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " reduceMargin() is not supported yet")) ;
-        }, VIRTUAL_EXECUTOR).thenApply(MarginModification::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(MarginModification::new);
 
     }
 
@@ -5508,7 +5508,7 @@ public Object describe()
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " setMargin() is not supported yet")) ;
-        }, VIRTUAL_EXECUTOR).thenApply(MarginModification::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(MarginModification::new);
 
     }
 
@@ -5520,7 +5520,7 @@ public Object describe()
             Object timeframe = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchLongShortRatio() is not supported yet")) ;
-        }, VIRTUAL_EXECUTOR).thenApply(LongShortRatio::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(LongShortRatio::new);
 
     }
 
@@ -5535,7 +5535,7 @@ public Object describe()
             Object limit = Helpers.getArg(optionalArgs, 3, null);
             Object parameters = Helpers.getArg(optionalArgs, 4, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchLongShortRatioHistory() is not supported yet")) ;
-        }, VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, LongShortRatio::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, LongShortRatio::new));
 
     }
 
@@ -5550,7 +5550,7 @@ public Object describe()
             Object limit = Helpers.getArg(optionalArgs, 3, null);
             Object parameters = Helpers.getArg(optionalArgs, 4, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchMarginAdjustmentHistory() is not supported yet")) ;
-        }, VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, MarginModification::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, MarginModification::new));
 
     }
 
@@ -5562,7 +5562,7 @@ public Object describe()
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " setMarginMode() is not supported yet")) ;
-        }, VIRTUAL_EXECUTOR);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -5573,7 +5573,7 @@ public Object describe()
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchDepositAddressesByNetwork() is not supported yet")) ;
-        }, VIRTUAL_EXECUTOR);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -5587,7 +5587,7 @@ public Object describe()
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchOpenInterestHistory() is not supported yet")) ;
-        }, VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, OpenInterest::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, OpenInterest::new));
 
     }
 
@@ -5599,7 +5599,7 @@ public Object describe()
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchOpenInterests() is not supported yet")) ;
-        }, VIRTUAL_EXECUTOR).thenApply(OpenInterests::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OpenInterests::new);
 
     }
 
@@ -5610,7 +5610,7 @@ public Object describe()
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " signIn() is not supported yet")) ;
-        }, VIRTUAL_EXECUTOR);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -5621,7 +5621,7 @@ public Object describe()
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchPaymentMethods() is not supported yet")) ;
-        }, VIRTUAL_EXECUTOR);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -7435,7 +7435,7 @@ public Object describe()
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchBorrowRate is deprecated, please use fetchCrossBorrowRate or fetchIsolatedBorrowRate instead")) ;
-        }, VIRTUAL_EXECUTOR);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -7446,7 +7446,7 @@ public Object describe()
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " repayCrossMargin is not support yet")) ;
-        }, VIRTUAL_EXECUTOR).thenApply(MarginLoan::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(MarginLoan::new);
 
     }
 
@@ -7457,7 +7457,7 @@ public Object describe()
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " repayIsolatedMargin is not support yet")) ;
-        }, VIRTUAL_EXECUTOR).thenApply(MarginLoan::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(MarginLoan::new);
 
     }
 
@@ -7468,7 +7468,7 @@ public Object describe()
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " borrowCrossMargin is not support yet")) ;
-        }, VIRTUAL_EXECUTOR).thenApply(MarginLoan::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(MarginLoan::new);
 
     }
 
@@ -7479,7 +7479,7 @@ public Object describe()
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " borrowIsolatedMargin is not support yet")) ;
-        }, VIRTUAL_EXECUTOR).thenApply(MarginLoan::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(MarginLoan::new);
 
     }
 
@@ -7491,7 +7491,7 @@ public Object describe()
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " borrowMargin is deprecated, please use borrowCrossMargin or borrowIsolatedMargin instead")) ;
-        }, VIRTUAL_EXECUTOR).thenApply(MarginLoan::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(MarginLoan::new);
 
     }
 
@@ -7503,7 +7503,7 @@ public Object describe()
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " repayMargin is deprecated, please use repayCrossMargin or repayIsolatedMargin instead")) ;
-        }, VIRTUAL_EXECUTOR).thenApply(MarginLoan::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(MarginLoan::new);
 
     }
 
@@ -7522,7 +7522,7 @@ public Object describe()
                 message = ". If you want to build OHLCV candles from trade executions data, visit https://github.com/ccxt/ccxt/tree/master/examples/ and see \"build-ohlcv-bars\" file";
             }
             throw new NotSupported(Helpers.add(Helpers.add(this.id, " fetchOHLCV() is not supported yet"), message)) ;
-        }, VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
 
     }
 
@@ -7536,7 +7536,7 @@ public Object describe()
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchSpotOHLCV() is not supported yet")) ;
-        }, VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
 
     }
 
@@ -7550,7 +7550,7 @@ public Object describe()
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchContractOHLCV() is not supported yet")) ;
-        }, VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
 
     }
 
@@ -7569,7 +7569,7 @@ public Object describe()
                 message = ". If you want to build OHLCV candles from trade executions data, visit https://github.com/ccxt/ccxt/tree/master/examples/ and see \"build-ohlcv-bars\" file";
             }
             throw new NotSupported(Helpers.add(Helpers.add(this.id, " fetchOHLCVWs() is not supported yet. Try using fetchOHLCV instead."), message)) ;
-        }, VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
 
     }
 
@@ -7583,7 +7583,7 @@ public Object describe()
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " watchOHLCV() is not supported yet")) ;
-        }, VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
 
     }
 
@@ -7730,7 +7730,7 @@ public Object describe()
             {
                 throw new BadResponse((String)errorMessage) ;
             }
-        }, VIRTUAL_EXECUTOR);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -8327,7 +8327,7 @@ public Object describe()
                 }
             }
             return this.markets;
-        }, VIRTUAL_EXECUTOR);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -8866,7 +8866,7 @@ public Object describe()
                 }
             }
             return null;  // this line is never reached, but exists for c# value return requirement
-        }, VIRTUAL_EXECUTOR);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -8882,7 +8882,7 @@ public Object describe()
             Object body = Helpers.getArg(optionalArgs, 4, null);
             Object config = Helpers.getArg(optionalArgs, 5, new HashMap<String, Object>() {{}});
             return (this.fetch2(path, api, method, parameters, headers, body, config)).join();
-        }, VIRTUAL_EXECUTOR);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -8908,7 +8908,7 @@ public Object describe()
             }
             this.accountsById = this.indexBy(this.accounts, "id");
             return this.accounts;
-        }, VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Account::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Account::new));
 
     }
 
@@ -9007,7 +9007,7 @@ public Object describe()
             Object limit = Helpers.getArg(optionalArgs, 3, null);
             Object parameters = Helpers.getArg(optionalArgs, 4, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchBorrowInterest() is not supported yet")) ;
-        }, VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, BorrowInterest::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, BorrowInterest::new));
 
     }
 
@@ -9021,7 +9021,7 @@ public Object describe()
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchLedger() is not supported yet")) ;
-        }, VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, LedgerEntry::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, LedgerEntry::new));
 
     }
 
@@ -9033,7 +9033,7 @@ public Object describe()
             Object code = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchLedgerEntry() is not supported yet")) ;
-        }, VIRTUAL_EXECUTOR).thenApply(LedgerEntry::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(LedgerEntry::new);
 
     }
 
@@ -9224,7 +9224,7 @@ public Object describe()
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchBalance() is not supported yet")) ;
-        }, VIRTUAL_EXECUTOR).thenApply(Balances::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Balances::new);
 
     }
 
@@ -9235,7 +9235,7 @@ public Object describe()
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchBalanceWs() is not supported yet")) ;
-        }, VIRTUAL_EXECUTOR).thenApply(Balances::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Balances::new);
 
     }
 
@@ -9251,7 +9251,7 @@ public Object describe()
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " watchBalance() is not supported yet")) ;
-        }, VIRTUAL_EXECUTOR).thenApply(Balances::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Balances::new);
 
     }
 
@@ -9263,7 +9263,7 @@ public Object describe()
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Object balance = (this.fetchBalance(parameters)).join();
             return Helpers.GetValue(balance, part);
-        }, VIRTUAL_EXECUTOR).thenApply(Balance::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Balance::new);
 
     }
 
@@ -9274,7 +9274,7 @@ public Object describe()
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             return (this.fetchPartialBalance("free", parameters)).join();
-        }, VIRTUAL_EXECUTOR).thenApply(Balance::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Balance::new);
 
     }
 
@@ -9285,7 +9285,7 @@ public Object describe()
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             return (this.fetchPartialBalance("used", parameters)).join();
-        }, VIRTUAL_EXECUTOR).thenApply(Balance::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Balance::new);
 
     }
 
@@ -9296,7 +9296,7 @@ public Object describe()
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             return (this.fetchPartialBalance("total", parameters)).join();
-        }, VIRTUAL_EXECUTOR).thenApply(Balance::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Balance::new);
 
     }
 
@@ -9307,7 +9307,7 @@ public Object describe()
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchStatus() is not supported yet")) ;
-        }, VIRTUAL_EXECUTOR).thenApply(Status::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Status::new);
 
     }
 
@@ -9322,7 +9322,7 @@ public Object describe()
                 throw new NotSupported(Helpers.add(this.id, " fetchTransactionFee() is not supported yet")) ;
             }
             return (this.fetchTransactionFees(new ArrayList<Object>(Arrays.asList(code)), parameters)).join();
-        }, VIRTUAL_EXECUTOR);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -9334,7 +9334,7 @@ public Object describe()
             Object codes = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchTransactionFees() is not supported yet")) ;
-        }, VIRTUAL_EXECUTOR);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -9346,7 +9346,7 @@ public Object describe()
             Object codes = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchDepositWithdrawFees() is not supported yet")) ;
-        }, VIRTUAL_EXECUTOR).thenApply(DepositWithdrawFees::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(DepositWithdrawFees::new);
 
     }
 
@@ -9362,7 +9362,7 @@ public Object describe()
             }
             Object fees = (this.fetchDepositWithdrawFees(new ArrayList<Object>(Arrays.asList(code)), parameters)).join();
             return this.safeValue(fees, code);
-        }, VIRTUAL_EXECUTOR).thenApply(DepositWithdrawFee::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(DepositWithdrawFee::new);
 
     }
 
@@ -9396,7 +9396,7 @@ public Object describe()
                 throw new ExchangeError(Helpers.add(Helpers.add(this.id, " fetchCrossBorrowRate() could not find the borrow rate for currency code "), code)) ;
             }
             return rate;
-        }, VIRTUAL_EXECUTOR).thenApply(CrossBorrowRate::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(CrossBorrowRate::new);
 
     }
 
@@ -9418,7 +9418,7 @@ public Object describe()
                 throw new ExchangeError(Helpers.add(Helpers.add(this.id, " fetchIsolatedBorrowRate() could not find the borrow rate for market symbol "), symbol)) ;
             }
             return rate;
-        }, VIRTUAL_EXECUTOR).thenApply(IsolatedBorrowRate::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(IsolatedBorrowRate::new);
 
     }
 
@@ -9666,7 +9666,7 @@ public Object describe()
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchSpotTickers() is not supported yet")) ;
-        }, VIRTUAL_EXECUTOR).thenApply(Tickers::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Tickers::new);
 
     }
 
@@ -9678,7 +9678,7 @@ public Object describe()
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchContractTickers() is not supported yet")) ;
-        }, VIRTUAL_EXECUTOR).thenApply(Tickers::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Tickers::new);
 
     }
 
@@ -9691,7 +9691,7 @@ public Object describe()
             Object limit = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchOrderBooks() is not supported yet")) ;
-        }, VIRTUAL_EXECUTOR).thenApply(OrderBooks::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OrderBooks::new);
 
     }
 
@@ -9703,7 +9703,7 @@ public Object describe()
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " unWatchTickers() is not supported yet")) ;
-        }, VIRTUAL_EXECUTOR);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -9714,7 +9714,7 @@ public Object describe()
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " unWatchFundingRate() is not supported yet")) ;
-        }, VIRTUAL_EXECUTOR);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -9725,7 +9725,7 @@ public Object describe()
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " createTwapOrder() is not supported yet")) ;
-        }, VIRTUAL_EXECUTOR).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -9737,7 +9737,7 @@ public Object describe()
             Object amount = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " createConvertTrade() is not supported yet")) ;
-        }, VIRTUAL_EXECUTOR).thenApply(Conversion::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Conversion::new);
 
     }
 
@@ -9749,7 +9749,7 @@ public Object describe()
             Object code = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchConvertTrade() is not supported yet")) ;
-        }, VIRTUAL_EXECUTOR).thenApply(Conversion::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Conversion::new);
 
     }
 
@@ -9763,7 +9763,7 @@ public Object describe()
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchConvertTradeHistory() is not supported yet")) ;
-        }, VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Conversion::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Conversion::new));
 
     }
 
@@ -9775,7 +9775,7 @@ public Object describe()
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchPositionMode() is not supported yet")) ;
-        }, VIRTUAL_EXECUTOR).thenApply(PositionModeInfo::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(PositionModeInfo::new);
 
     }
 
@@ -9786,7 +9786,7 @@ public Object describe()
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchADLRank() is not supported yet")) ;
-        }, VIRTUAL_EXECUTOR).thenApply(ADL::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(ADL::new);
 
     }
 
@@ -9798,7 +9798,7 @@ public Object describe()
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchPositionsADLRank() is not supported yet")) ;
-        }, VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, ADL::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, ADL::new));
 
     }
 
@@ -9826,7 +9826,7 @@ public Object describe()
             {
                 throw new NotSupported(Helpers.add(this.id, " fetchPositionsADLRank() is not supported yet")) ;
             }
-        }, VIRTUAL_EXECUTOR).thenApply(ADL::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(ADL::new);
 
     }
 
@@ -9905,7 +9905,7 @@ public Object describe()
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " createSpotOrders() is not supported yet")) ;
-        }, VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -9916,7 +9916,7 @@ public Object describe()
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " createContractOrders() is not supported yet")) ;
-        }, VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -9928,7 +9928,7 @@ public Object describe()
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " cancelSpotOrder() is not supported yet")) ;
-        }, VIRTUAL_EXECUTOR).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -9940,7 +9940,7 @@ public Object describe()
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " cancelContractOrder() is not supported yet")) ;
-        }, VIRTUAL_EXECUTOR).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -9952,7 +9952,7 @@ public Object describe()
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " cancelAllSpotOrders() is not supported yet")) ;
-        }, VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -9964,7 +9964,7 @@ public Object describe()
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " cancelAllContractOrders() is not supported yet")) ;
-        }, VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -9975,7 +9975,7 @@ public Object describe()
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " cancelAllOrdersAfter() is not supported yet")) ;
-        }, VIRTUAL_EXECUTOR);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -9986,7 +9986,7 @@ public Object describe()
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " cancelOrdersForSymbols() is not supported yet")) ;
-        }, VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -10000,7 +10000,7 @@ public Object describe()
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchMyLiquidations() is not supported yet")) ;
-        }, VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Liquidation::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Liquidation::new));
 
     }
 
@@ -10013,7 +10013,7 @@ public Object describe()
             Object limit = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchLiquidations() is not supported yet")) ;
-        }, VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Liquidation::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Liquidation::new));
 
     }
 
@@ -10024,7 +10024,7 @@ public Object describe()
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchGreeks() is not supported yet")) ;
-        }, VIRTUAL_EXECUTOR).thenApply(Greeks::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Greeks::new);
 
     }
 
@@ -10036,7 +10036,7 @@ public Object describe()
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchAllGreeks() is not supported yet")) ;
-        }, VIRTUAL_EXECUTOR);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -10047,7 +10047,7 @@ public Object describe()
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchOptionChain() is not supported yet")) ;
-        }, VIRTUAL_EXECUTOR).thenApply(OptionChain::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OptionChain::new);
 
     }
 
@@ -10058,7 +10058,7 @@ public Object describe()
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchOption() is not supported yet")) ;
-        }, VIRTUAL_EXECUTOR).thenApply(Option::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Option::new);
 
     }
 
@@ -10070,7 +10070,7 @@ public Object describe()
             Object amount = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchConvertQuote() is not supported yet")) ;
-        }, VIRTUAL_EXECUTOR).thenApply(Conversion::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Conversion::new);
 
     }
 
@@ -10084,7 +10084,7 @@ public Object describe()
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchDepositsWithdrawals() is not supported yet")) ;
-        }, VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
 
     }
 
@@ -10098,7 +10098,7 @@ public Object describe()
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchDeposits() is not supported yet")) ;
-        }, VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
 
     }
 
@@ -10112,7 +10112,7 @@ public Object describe()
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchWithdrawals() is not supported yet")) ;
-        }, VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
 
     }
 
@@ -10126,7 +10126,7 @@ public Object describe()
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchDepositsWs() is not supported yet")) ;
-        }, VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
 
     }
 
@@ -10140,7 +10140,7 @@ public Object describe()
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchWithdrawalsWs() is not supported yet")) ;
-        }, VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
 
     }
 
@@ -10154,7 +10154,7 @@ public Object describe()
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchFundingRateHistory() is not supported yet")) ;
-        }, VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, FundingRateHistory::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, FundingRateHistory::new));
 
     }
 
@@ -10168,7 +10168,7 @@ public Object describe()
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchFundingHistory() is not supported yet")) ;
-        }, VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, FundingHistory::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, FundingHistory::new));
 
     }
 
@@ -10213,7 +10213,7 @@ public Object describe()
             {
                 throw new NotSupported(Helpers.add(this.id, " fetchDepositAddress() is not supported yet")) ;
             }
-        }, VIRTUAL_EXECUTOR).thenApply(DepositAddress::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(DepositAddress::new);
 
     }
 
@@ -10224,7 +10224,7 @@ public Object describe()
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchContractDepositAddress() is not supported yet")) ;
-        }, VIRTUAL_EXECUTOR).thenApply(DepositAddress::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(DepositAddress::new);
 
     }
 
@@ -10588,7 +10588,7 @@ public Object describe()
             }
             Helpers.addElementToObject(this.options, "timeDifference", Helpers.subtract(after, serverTime));
             return Helpers.GetValue(this.options, "timeDifference");
-        }, VIRTUAL_EXECUTOR);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -10618,7 +10618,7 @@ public Object describe()
             {
                 throw new NotSupported(Helpers.add(this.id, " fetchMarketLeverageTiers() is not supported yet")) ;
             }
-        }, VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, LeverageTier::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, LeverageTier::new));
 
     }
 
@@ -10629,7 +10629,7 @@ public Object describe()
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " createSubAccount() is not supported yet")) ;
-        }, VIRTUAL_EXECUTOR);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -11083,7 +11083,7 @@ public Object describe()
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchLastPrices() is not supported yet")) ;
-        }, VIRTUAL_EXECUTOR).thenApply(LastPrices::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(LastPrices::new);
 
     }
 
@@ -11094,7 +11094,7 @@ public Object describe()
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchTradingFees() is not supported yet")) ;
-        }, VIRTUAL_EXECUTOR).thenApply(TradingFees::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(TradingFees::new);
 
     }
 
@@ -11105,7 +11105,7 @@ public Object describe()
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchTradingFeesWs() is not supported yet")) ;
-        }, VIRTUAL_EXECUTOR).thenApply(TradingFees::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(TradingFees::new);
 
     }
 
@@ -11116,7 +11116,7 @@ public Object describe()
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchConvertCurrencies() is not supported yet")) ;
-        }, VIRTUAL_EXECUTOR).thenApply(Currencies::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Currencies::new);
 
     }
 
@@ -11187,7 +11187,7 @@ public Object describe()
             {
                 throw new NotSupported(Helpers.add(this.id, " fetchFundingRate () is not supported yet")) ;
             }
-        }, VIRTUAL_EXECUTOR).thenApply(FundingRate::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(FundingRate::new);
 
     }
 
@@ -11219,7 +11219,7 @@ public Object describe()
             {
                 throw new NotSupported(Helpers.add(this.id, " fetchFundingInterval() is not supported yet")) ;
             }
-        }, VIRTUAL_EXECUTOR).thenApply(FundingRate::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(FundingRate::new);
 
     }
 
@@ -11253,7 +11253,7 @@ public Object describe()
             {
                 throw new NotSupported(Helpers.add(this.id, " fetchMarkOHLCV () is not supported yet")) ;
             }
-        }, VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
 
     }
 
@@ -11287,7 +11287,7 @@ public Object describe()
             {
                 throw new NotSupported(Helpers.add(this.id, " fetchIndexOHLCV () is not supported yet")) ;
             }
-        }, VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
 
     }
 
@@ -11321,7 +11321,7 @@ public Object describe()
             {
                 throw new NotSupported(Helpers.add(this.id, " fetchPremiumIndexOHLCV () is not supported yet")) ;
             }
-        }, VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
 
     }
 
@@ -11606,7 +11606,7 @@ public Object describe()
             {
                 throw new NotSupported(Helpers.add(this.id, " fetchTransactions () is not supported yet")) ;
             }
-        }, VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
 
     }
 
@@ -11806,7 +11806,7 @@ public Object describe()
             Object key = ((Helpers.isTrue((Helpers.isEqual(method, "fetchOHLCV"))))) ? 0 : "timestamp";
             List<Object> sortedRes = this.sortBy(uniqueResults, key);
             return this.filterBySinceLimit(sortedRes, since, limit, key);
-        }, VIRTUAL_EXECUTOR);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -11850,7 +11850,7 @@ public Object describe()
                 }
             }
             return new ArrayList<Object>(Arrays.asList());
-        }, VIRTUAL_EXECUTOR);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -11934,7 +11934,7 @@ public Object describe()
             Object uniqueResults = ((Object)this.removeRepeatedElementsFromArray(result));
             Object key = ((Helpers.isTrue((Helpers.isEqual(method, "fetchOHLCV"))))) ? 0 : "timestamp";
             return this.filterBySinceLimit(uniqueResults, since, limit, key);
-        }, VIRTUAL_EXECUTOR);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -12066,7 +12066,7 @@ public Object describe()
             Object sorted = this.sortCursorPaginatedResult(result);
             Object key = ((Helpers.isTrue((Helpers.isEqual(method, "fetchOHLCV"))))) ? 0 : "timestamp";
             return this.filterBySinceLimit(sorted, since, limit, key);
-        }, VIRTUAL_EXECUTOR);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -12127,7 +12127,7 @@ public Object describe()
             Object sorted = this.sortCursorPaginatedResult(result);
             Object key = ((Helpers.isTrue((Helpers.isEqual(method, "fetchOHLCV"))))) ? 0 : "timestamp";
             return this.filterBySinceLimit(sorted, since, limit, key);
-        }, VIRTUAL_EXECUTOR);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -12570,7 +12570,7 @@ public Object describe()
 
             (Helpers.promiseAll(new ArrayList<Object>(Arrays.asList(this.loadMarkets(), this.signIn())))).join();
             return null;
-        }, VIRTUAL_EXECUTOR);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -12615,7 +12615,7 @@ public Object describe()
             Object code = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchTransfer () is not supported yet")) ;
-        }, VIRTUAL_EXECUTOR).thenApply(TransferEntry::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(TransferEntry::new);
 
     }
 
@@ -12629,7 +12629,7 @@ public Object describe()
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchTransfers () is not supported yet")) ;
-        }, VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, TransferEntry::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, TransferEntry::new));
 
     }
 
@@ -12641,7 +12641,7 @@ public Object describe()
             Object timeframe = Helpers.getArg(optionalArgs, 0, "1m");
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " unWatchOHLCV () is not supported yet")) ;
-        }, VIRTUAL_EXECUTOR);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -12653,7 +12653,7 @@ public Object describe()
             Object tag = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " withdrawWs () is not supported yet")) ;
-        }, VIRTUAL_EXECUTOR).thenApply(Transaction::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Transaction::new);
 
     }
 
@@ -12665,7 +12665,7 @@ public Object describe()
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " unWatchMyTrades () is not supported yet")) ;
-        }, VIRTUAL_EXECUTOR);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -12679,7 +12679,7 @@ public Object describe()
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchOrdersByStatusWs () is not supported yet")) ;
-        }, VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -12691,7 +12691,7 @@ public Object describe()
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " unWatchBidsAsks () is not supported yet")) ;
-        }, VIRTUAL_EXECUTOR);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -12886,7 +12886,7 @@ public Object describe()
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             return false;  // stub
-        }, VIRTUAL_EXECUTOR);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 }

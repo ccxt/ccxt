@@ -487,7 +487,7 @@ public class Coinmate extends CoinmateApi
             //     }
             //
             return this.safeInteger(response, "serverTime");
-        }).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
 
     }
 
@@ -588,7 +588,7 @@ public class Coinmate extends CoinmateApi
                 }});
             }
             return result;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -633,7 +633,7 @@ public class Coinmate extends CoinmateApi
             }
             Map<String, Object> response = (this.privatePostBalances(parameters)).join();
             return this.parseBalance(response);
-        }).thenApply(Balances::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Balances::new);
 
     }
 
@@ -667,7 +667,7 @@ public class Coinmate extends CoinmateApi
             Object orderbook = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Object timestamp = this.safeTimestamp(orderbook, "timestamp");
             return this.parseOrderBook(orderbook, Helpers.GetValue(market, "symbol"), timestamp, "bids", "asks", "price", "amount");
-        }).thenApply(OrderBook::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OrderBook::new);
 
     }
 
@@ -714,7 +714,7 @@ public class Coinmate extends CoinmateApi
             //
             Object data = this.safeDict(response, "data");
             return this.parseTicker(data, market);
-        }).thenApply(Ticker::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Ticker::new);
 
     }
 
@@ -769,7 +769,7 @@ public class Coinmate extends CoinmateApi
                 Helpers.addElementToObject(result, Helpers.GetValue(market, "symbol"), ticker);
             }
             return this.filterByArrayTickers(result, "symbol", symbols);
-        }).thenApply(Tickers::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Tickers::new);
 
     }
 
@@ -858,7 +858,7 @@ public class Coinmate extends CoinmateApi
             Map<String, Object> response = (this.privatePostTransferHistory(this.extend(request, parameters))).join();
             Object items = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTransactions(items, null, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
 
     }
 
@@ -1054,7 +1054,7 @@ public class Coinmate extends CoinmateApi
                 Helpers.addElementToObject(transaction, "status", "pending");
             }
             return transaction;
-        }).thenApply(Transaction::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Transaction::new);
 
     }
 
@@ -1102,7 +1102,7 @@ public class Coinmate extends CoinmateApi
             Map<String, Object> response = (this.privatePostTradeHistory(this.extend(request, parameters))).join();
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(data, null, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -1225,7 +1225,7 @@ public class Coinmate extends CoinmateApi
             //
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(data, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -1273,7 +1273,7 @@ public class Coinmate extends CoinmateApi
                 put( "percentage", true );
                 put( "tierBased", true );
             }};
-        }).thenApply(TradingFeeInterface::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(TradingFeeInterface::new);
 
     }
 
@@ -1303,7 +1303,7 @@ public class Coinmate extends CoinmateApi
             }};
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(data, null, since, limit, extension);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -1347,7 +1347,7 @@ public class Coinmate extends CoinmateApi
             Map<String, Object> response = (this.privatePostOrderHistory(this.extend(request, parameters))).join();
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(data, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -1534,7 +1534,7 @@ public class Coinmate extends CoinmateApi
                 put( "info", finalResponse );
                 put( "id", id );
             }}, market);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -1571,7 +1571,7 @@ public class Coinmate extends CoinmateApi
             Map<String, Object> response = (this.privatePostOrderById(this.extend(request, parameters))).join();
             Object data = this.safeDict(response, "data");
             return this.parseOrder(data, market);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -1609,7 +1609,7 @@ public class Coinmate extends CoinmateApi
             //
             Object data = this.safeDict(response, "data");
             return this.parseOrder(data);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 

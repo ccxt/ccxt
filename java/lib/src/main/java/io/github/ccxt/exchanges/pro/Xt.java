@@ -175,7 +175,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
                 ((io.github.ccxt.ws.Future)future).getFuture().join();
             }
             return Helpers.GetValue(client.subscriptions, "token");
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -292,7 +292,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
             }};
             Object url = Helpers.add(Helpers.add(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), tradeType), "/"), tail);
             return (this.watch(url, messageHash, request, messageHash, subscription)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -375,7 +375,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
                 subscriptionParams = this.omit(subscriptionParams, "symbolsAndTimeframes");
             }
             return (this.watch(url, messageHash, this.extend(request, parameters), messageHash, this.extend(subscription, subscriptionParams))).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -406,7 +406,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
             String method = this.safeString(parameters, "method", defaultMethod);
             Object name = Helpers.add(Helpers.add(method, "@"), Helpers.GetValue(market, "id"));
             return (this.subscribe(name, "public", "watchTicker", market, null, parameters)).join();
-        }).thenApply(Ticker::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Ticker::new);
 
     }
 
@@ -438,7 +438,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
             Object name = Helpers.add(Helpers.add(method, "@"), Helpers.GetValue(market, "id"));
             String messageHash = Helpers.add("unsubscribe::", name);
             return (this.unSubscribe(messageHash, name, "public", "unWatchTicker", defaultMethod, market, null, parameters)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -478,7 +478,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
                 return tickers;
             }
             return this.filterByArray(this.tickers, "symbol", symbols);
-        }).thenApply(Tickers::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Tickers::new);
 
     }
 
@@ -518,7 +518,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
                 return tickers;
             }
             return this.filterByArray(this.tickers, "symbol", symbols);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -556,7 +556,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
                 limit = Helpers.callDynamically(ohlcv, "getLimit", new Object[]{symbol, limit});
             }
             return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
-        }).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
 
     }
 
@@ -589,7 +589,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
             return (this.unSubscribe(messageHash, name, "public", "unWatchOHLCV", "ohlcv", market, new ArrayList<Object>(Arrays.asList(symbol)), parameters, new HashMap<String, Object>() {{
                 put( "symbolsAndTimeframes", symbolsAndTimeframes );
             }})).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -625,7 +625,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
             }
             return this.filterBySinceLimit(trades, since, limit, "timestamp");
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -653,7 +653,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
             Object name = Helpers.add("trade@", Helpers.GetValue(market, "id"));
             String messageHash = Helpers.add("unsubscribe::", name);
             return (this.unSubscribe(messageHash, name, "public", "unWatchTrades", "trades", market, new ArrayList<Object>(Arrays.asList(symbol)), parameters)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -692,7 +692,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
             }
             Object orderbook = (this.subscribe(name, "public", "watchOrderBook", market, null, parameters)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
-        }).thenApply(OrderBook::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OrderBook::new);
 
     }
 
@@ -729,7 +729,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
             }
             String messageHash = Helpers.add("unsubscribe::", name);
             return (this.unSubscribe(messageHash, name, "public", "unWatchOrderBook", "orderbook", market, new ArrayList<Object>(Arrays.asList(symbol)), parameters)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -770,7 +770,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
                 limit = Helpers.callDynamically(orders, "getLimit", new Object[]{symbol, limit});
             }
             return this.filterBySinceLimit(orders, since, limit, "timestamp");
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -811,7 +811,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
             }
             return this.filterBySinceLimit(trades, since, limit, "timestamp");
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -836,7 +836,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
             }
             Object name = "balance";
             return (this.subscribe(name, "private", "watchBalance", null, null, parameters)).join();
-        }).thenApply(Balances::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Balances::new);
 
     }
 
@@ -882,7 +882,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
                 return newPositions;
             }
             return this.filterBySymbolsSinceLimit(cache, symbols, since, limit, true);
-        }).thenApply(res -> Helpers.toTypedList(res, Position::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Position::new));
 
     }
 
@@ -912,7 +912,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
             }
             Object name = Helpers.add("fund_rate@", Helpers.GetValue(market, "id"));
             return (this.subscribe(name, "public", "watchFundingRate", market, null, parameters)).join();
-        }).thenApply(FundingRate::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(FundingRate::new);
 
     }
 
@@ -943,7 +943,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
             Object name = Helpers.add("fund_rate@", Helpers.GetValue(market, "id"));
             String messageHash = Helpers.add("unsubscribe::", name);
             return (this.unSubscribe(messageHash, name, "public", "unWatchFundingRate", "fund_rate", market, null, parameters)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1025,7 +1025,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
                 client.resolve(cache, "position::contract");
             }
             return null;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 

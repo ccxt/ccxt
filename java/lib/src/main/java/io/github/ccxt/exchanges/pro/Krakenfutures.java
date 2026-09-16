@@ -115,7 +115,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
                 this.watch(url, messageHash, message, messageHash, null);
             }
             return ((io.github.ccxt.ws.Future)future).getFuture().join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -140,7 +140,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
                 put( "limit", limit );
             }}, parameters)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
-        }).thenApply(OrderBook::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OrderBook::new);
 
     }
 
@@ -188,7 +188,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
             Helpers.addElementToObject(subscribe, "product_ids", marketIds);
             Map<String, Object> request = this.extend(subscribe, parameters);
             return (this.watch(url, messageHash, request, messageHash, null)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -222,7 +222,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
             }};
             Map<String, Object> request = this.extend(subscribe, parameters);
             return (this.watch(url, messageHash, request, messageHash, null)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -248,7 +248,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
             symbol = this.symbol(symbol);
             Object tickers = (this.watchTickers((Object)(new ArrayList<Object>(Arrays.asList(symbol))), (Object)(parameters))).join();
             return Helpers.GetValue(tickers, symbol);
-        }).thenApply(Ticker::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Ticker::new);
 
     }
 
@@ -281,7 +281,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
                 return result;
             }
             return this.filterByArray(this.tickers, "symbol", symbols);
-        }).thenApply(Tickers::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Tickers::new);
 
     }
 
@@ -309,7 +309,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
                 return result;
             }
             return this.filterByArray(this.bidsasks, "symbol", symbols);
-        }).thenApply(Tickers::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Tickers::new);
 
     }
 
@@ -333,7 +333,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
             Object limit = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
             return (this.watchTradesForSymbols((Object)(new ArrayList<Object>(Arrays.asList(symbol))), (Object)(since), (Object)(limit), (Object)(parameters))).join();
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -364,7 +364,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{tradeSymbol, limit});
             }
             return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -386,7 +386,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
             Object limit = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             return (this.watchOrderBookForSymbols((Object)(new ArrayList<Object>(Arrays.asList(symbol))), (Object)(limit), (Object)(parameters))).join();
-        }).thenApply(OrderBook::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OrderBook::new);
 
     }
 
@@ -427,7 +427,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
                 return newPositions;
             }
             return this.filterBySymbolsSinceLimit(this.positions, symbols, since, limit, true);
-        }).thenApply(res -> Helpers.toTypedList(res, Position::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Position::new));
 
     }
 
@@ -620,7 +620,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
                 limit = Helpers.callDynamically(orders, "getLimit", new Object[]{symbol, limit});
             }
             return this.filterBySinceLimit(orders, since, limit, "timestamp", true);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -661,7 +661,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
             }
             return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -699,7 +699,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
                 messageHash = Helpers.add(messageHash, Helpers.add(":", account));
             }
             return (this.subscribePrivate(name, messageHash, parameters)).join();
-        }).thenApply(Balances::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Balances::new);
 
     }
 
@@ -1897,7 +1897,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
                 }};
             }
             return (this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes, subscriptionArgs)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 

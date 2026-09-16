@@ -27,7 +27,7 @@ public class TestFetchMyTrades extends BaseTest {
         }
         TestSharedMethods.AssertTimestampOrder(exchange, method, symbol, trades);
         return true;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 

@@ -533,7 +533,7 @@ public class Bitvavo extends BitvavoApi
             //     { "time": 1590379519148 }
             //
             return this.safeInteger(response, "time");
-        }).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
 
     }
 
@@ -572,7 +572,7 @@ public class Bitvavo extends BitvavoApi
             //    }
             //
             return this.parseMarkets(response);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -696,7 +696,7 @@ final Object finalBase = base;
             //     ]
             //
             return this.parseCurrencies(response);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -845,7 +845,7 @@ final Object finalBase = base;
             //     }
             //
             return this.parseTicker(response, market);
-        }).thenApply(Ticker::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Ticker::new);
 
     }
 
@@ -941,7 +941,7 @@ final Object finalBase = base;
             //     ]
             //
             return this.parseTickers(response, symbols);
-        }).thenApply(Tickers::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Tickers::new);
 
     }
 
@@ -1006,7 +1006,7 @@ final Object finalBase = base;
             //     ]
             //
             return this.parseTrades(response, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -1143,7 +1143,7 @@ final Object finalBase = base;
             //     }
             //
             return this.parseTradingFees(response);
-        }).thenApply(TradingFees::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(TradingFees::new);
 
     }
 
@@ -1211,7 +1211,7 @@ final Object finalBase = base;
             //     }
             //
             return this.parseTradingFee(response, market);
-        }).thenApply(TradingFeeInterface::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(TradingFeeInterface::new);
 
     }
 
@@ -1277,7 +1277,7 @@ final Object finalBase = base;
             Object orderbook = this.parseOrderBook(response, Helpers.GetValue(market, "symbol"));
             Helpers.addElementToObject(orderbook, "nonce", this.safeInteger(response, "nonce"));
             return orderbook;
-        }).thenApply(OrderBook::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OrderBook::new);
 
     }
 
@@ -1378,7 +1378,7 @@ final Object finalBase = base;
             //     ]
             //
             return this.parseOHLCVs(this.toArray(response), market, timeframe, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
 
     }
 
@@ -1434,7 +1434,7 @@ final Object finalBase = base;
             //     ]
             //
             return this.parseBalance(response);
-        }).thenApply(Balances::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Balances::new);
 
     }
 
@@ -1474,7 +1474,7 @@ final Object finalBase = base;
             //
             Object accounts = this.safeList(response, "items", new ArrayList<Object>(Arrays.asList()));
             return this.parseAccounts(accounts);
-        }).thenApply(res -> Helpers.toTypedList(res, Account::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Account::new));
 
     }
 
@@ -1565,7 +1565,7 @@ final Object finalBase = base;
             //     }
             //
             return this.parseTransfer(response, currency);
-        }).thenApply(TransferEntry::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(TransferEntry::new);
 
     }
 
@@ -1640,7 +1640,7 @@ final Object finalBase = base;
             //
             Object items = this.safeList(response, "items", new ArrayList<Object>(Arrays.asList()));
             return this.parseTransfers(items, currency, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, TransferEntry::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, TransferEntry::new));
 
     }
 
@@ -1687,7 +1687,7 @@ final Object finalBase = base;
             //     }
             //
             return this.parseTransfer(response, currency);
-        }).thenApply(TransferEntry::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(TransferEntry::new);
 
     }
 
@@ -1780,7 +1780,7 @@ final Object finalBase = base;
                 put( "address", address );
                 put( "tag", tag );
             }};
-        }).thenApply(DepositAddress::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(DepositAddress::new);
 
     }
 
@@ -1977,7 +1977,7 @@ final Object finalBase = base;
             //      }
             //
             return this.parseOrder(response, market);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -2062,7 +2062,7 @@ final Object finalBase = base;
             Object request = this.editOrderRequest(id, symbol, type, side, amount, price, parameters);
             Map<String, Object> response = (this.privatePutOrder(request)).join();
             return this.parseOrder(response, market);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -2127,7 +2127,7 @@ final Object finalBase = base;
             //     }
             //
             return this.parseOrder(response, market);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -2178,7 +2178,7 @@ final Object finalBase = base;
             //     ]
             //
             return this.parseOrders(response, market);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -2227,7 +2227,7 @@ final Object finalBase = base;
             //     }
             //
             return response;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -2301,7 +2301,7 @@ final Object finalBase = base;
             //     }
             //
             return this.parseOrder(response, market);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -2407,7 +2407,7 @@ final Object finalBase = base;
             //     ]
             //
             return this.parseOrders(response, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -2480,7 +2480,7 @@ final Object finalBase = base;
             //     ]
             //
             return this.parseOrders(response, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -2697,7 +2697,7 @@ final Object finalBase = base;
             //     ]
             //
             return this.parseTrades(response, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -2770,7 +2770,7 @@ final Object finalBase = base;
             //
             Object items = this.safeList(response, "items", new ArrayList<Object>(Arrays.asList()));
             return this.parseLedger(items, currency, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, LedgerEntry::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, LedgerEntry::new));
 
     }
 
@@ -2894,7 +2894,7 @@ final Object finalBase = base;
             //     }
             //
             return this.parseTransaction(response, currency);
-        }).thenApply(Transaction::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Transaction::new);
 
     }
 
@@ -2970,7 +2970,7 @@ final Object finalBase = base;
             return this.parseTransactions(response, currency, since, limit, new HashMap<String, Object>() {{
                 put( "type", "withdrawal" );
             }});
-        }).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
 
     }
 
@@ -3044,7 +3044,7 @@ final Object finalBase = base;
             return this.parseTransactions(response, currency, since, limit, new HashMap<String, Object>() {{
                 put( "type", "deposit" );
             }});
-        }).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
 
     }
 
@@ -3244,7 +3244,7 @@ final Object finalBase = base;
             //   ]
             //
             return this.parseDepositWithdrawFees(response, codes, "symbol");
-        }).thenApply(DepositWithdrawFees::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(DepositWithdrawFees::new);
 
     }
 

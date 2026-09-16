@@ -27,7 +27,7 @@ public class TestFetchLedger extends BaseTest {
         }
         TestSharedMethods.AssertTimestampOrder(exchange, method, code, items);
         return true;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 

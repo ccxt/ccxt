@@ -57,7 +57,7 @@ public class TestWatchOrders extends BaseTest {
             }
         }
         return true;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 

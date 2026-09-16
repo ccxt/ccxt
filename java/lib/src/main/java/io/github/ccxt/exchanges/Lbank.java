@@ -548,7 +548,7 @@ public class Lbank extends LbankApi
             //     }
             //
             return this.safeInteger(response, "data");
-        }).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
 
     }
 
@@ -603,7 +603,7 @@ public class Lbank extends LbankApi
             Map<String, Object> grouped = this.groupBy(currenciesData, "assetCode");
             Object values = Helpers.objectValues(grouped);
             return this.parseCurrencies(values);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -691,7 +691,7 @@ public class Lbank extends LbankApi
             List<Object> marketsPromises = new ArrayList<Object>(Arrays.asList(this.fetchSpotMarkets(parameters), this.fetchSwapMarkets(parameters)));
             Object resolvedMarkets = (Helpers.promiseAll(marketsPromises)).join();
             return this.arrayConcat(Helpers.GetValue(resolvedMarkets, 0), Helpers.GetValue(resolvedMarkets, 1));
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -781,7 +781,7 @@ public class Lbank extends LbankApi
                 }});
             }
             return result;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -888,7 +888,7 @@ public class Lbank extends LbankApi
                 }});
             }
             return result;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1014,7 +1014,7 @@ public class Lbank extends LbankApi
             Object data = this.safeValue(response, "data", new ArrayList<Object>(Arrays.asList()));
             Object first = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
             return this.parseTicker(first, market);
-        }).thenApply(Ticker::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Ticker::new);
 
     }
 
@@ -1111,7 +1111,7 @@ public class Lbank extends LbankApi
             //
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTickers(data, symbols);
-        }).thenApply(Tickers::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Tickers::new);
 
     }
 
@@ -1214,7 +1214,7 @@ public class Lbank extends LbankApi
                 return this.parseOrderBook(orderbook, Helpers.GetValue(market, "symbol"), timestamp, "bids", "asks", "price", "volume");
             }
             return this.parseOrderBook(orderbook, Helpers.GetValue(market, "symbol"), timestamp, "bids", "asks");
-        }).thenApply(OrderBook::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OrderBook::new);
 
     }
 
@@ -1413,7 +1413,7 @@ public class Lbank extends LbankApi
             //
             Object trades = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(trades, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -1504,7 +1504,7 @@ public class Lbank extends LbankApi
             // ]
             //
             return this.parseOHLCVs(ohlcvs, market, timeframe, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
 
     }
 
@@ -1730,7 +1730,7 @@ public class Lbank extends LbankApi
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Object responseForSwap = (this.fetchFundingRates((Object)(new ArrayList<Object>(Arrays.asList(Helpers.GetValue(market, "symbol")))), (Object)(parameters))).join();
             return this.safeValue(responseForSwap, Helpers.GetValue(market, "symbol"));
-        }).thenApply(FundingRate::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(FundingRate::new);
 
     }
 
@@ -1784,7 +1784,7 @@ public class Lbank extends LbankApi
             // }
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseFundingRates(data, symbols);
-        }).thenApply(FundingRates::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(FundingRates::new);
 
     }
 
@@ -1859,7 +1859,7 @@ public class Lbank extends LbankApi
                 throw new NullResponse(Helpers.add(this.id, " fetchBalance() returned empty response")) ;
             }
             return balanceResult;
-        }).thenApply(Balances::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Balances::new);
 
     }
 
@@ -1905,7 +1905,7 @@ public class Lbank extends LbankApi
                 put( "category", Helpers.GetValue(market, "id") );
             }})))).join();
             return this.safeDict(result, symbol);
-        }).thenApply(TradingFeeInterface::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(TradingFeeInterface::new);
 
     }
 
@@ -1938,7 +1938,7 @@ public class Lbank extends LbankApi
                 Helpers.addElementToObject(result, ((String)symbol), fee);
             }
             return result;
-        }).thenApply(TradingFees::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(TradingFees::new);
 
     }
 
@@ -1970,7 +1970,7 @@ public class Lbank extends LbankApi
             }
             Helpers.addElementToObject(parameters, "createMarketBuyOrderRequiresPrice", false);
             return (this.createOrder((Object)(symbol), (Object)("market"), (Object)("buy"), (Object)(cost), (Object)(null), (Object)(parameters))).join();
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -2102,7 +2102,7 @@ public class Lbank extends LbankApi
                 put( "id", Lbank.this.safeString(result, "order_id") );
                 put( "info", result );
             }}, market);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -2310,7 +2310,7 @@ public class Lbank extends LbankApi
                 return (this.fetchOrderSupplement(id, symbol, parameters)).join();
             }
             return (this.fetchOrderDefault(id, symbol, parameters)).join();
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -2358,7 +2358,7 @@ public class Lbank extends LbankApi
             //
             Object result = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseOrder(result);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -2413,7 +2413,7 @@ public class Lbank extends LbankApi
             {
                 throw new BadRequest(Helpers.add(this.id, " fetchOrder() can only fetch one order at a time")) ;
             }
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -2483,7 +2483,7 @@ public class Lbank extends LbankApi
             //
             Object trades = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(trades, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -2559,7 +2559,7 @@ public class Lbank extends LbankApi
             Object result = this.safeValue(response, "data", new HashMap<String, Object>() {{}});
             Object orders = this.safeList(result, "orders", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(orders, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -2633,7 +2633,7 @@ public class Lbank extends LbankApi
             Object result = this.safeValue(response, "data", new HashMap<String, Object>() {{}});
             Object orders = this.safeList(result, "orders", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(orders, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -2689,7 +2689,7 @@ public class Lbank extends LbankApi
             //  }
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseOrder(data);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -2741,7 +2741,7 @@ public class Lbank extends LbankApi
             //
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(data);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -2788,7 +2788,7 @@ public class Lbank extends LbankApi
                 response = (this.fetchDepositAddressDefault(code, parameters)).join();
             }
             return response;
-        }).thenApply(DepositAddress::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(DepositAddress::new);
 
     }
 
@@ -2836,7 +2836,7 @@ public class Lbank extends LbankApi
                 put( "address", address );
                 put( "tag", tag );
             }};
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -2886,7 +2886,7 @@ public class Lbank extends LbankApi
                 put( "address", address );
                 put( "tag", tag );
             }};
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -2957,7 +2957,7 @@ public class Lbank extends LbankApi
                 put( "info", result );
                 put( "id", Lbank.this.safeString(result, "withdrawId") );
             }};
-        }).thenApply(Transaction::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Transaction::new);
 
     }
 
@@ -3140,7 +3140,7 @@ public class Lbank extends LbankApi
             Object data = this.safeValue(response, "data", new HashMap<String, Object>() {{}});
             Object deposits = this.safeList(data, "depositOrders", new ArrayList<Object>(Arrays.asList()));
             return this.parseTransactions(deposits, currency, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
 
     }
 
@@ -3209,7 +3209,7 @@ public class Lbank extends LbankApi
             Object data = this.safeValue(response, "data", new HashMap<String, Object>() {{}});
             Object withdraws = this.safeList(data, "withdraws", new ArrayList<Object>(Arrays.asList()));
             return this.parseTransactions(withdraws, currency, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
 
     }
 
@@ -3255,7 +3255,7 @@ public class Lbank extends LbankApi
                 result = (this.fetchPublicTransactionFees(parameters)).join();
             }
             return result;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -3336,7 +3336,7 @@ public class Lbank extends LbankApi
                 put( "deposit", new HashMap<String, Object>() {{}} );
                 put( "info", response );
             }};
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -3416,7 +3416,7 @@ public class Lbank extends LbankApi
                 put( "deposit", new HashMap<String, Object>() {{}} );
                 put( "info", response );
             }};
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -3461,7 +3461,7 @@ public class Lbank extends LbankApi
                 response = (this.fetchPublicDepositWithdrawFees(codes, parameters)).join();
             }
             return response;
-        }).thenApply(DepositWithdrawFees::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(DepositWithdrawFees::new);
 
     }
 
@@ -3511,7 +3511,7 @@ public class Lbank extends LbankApi
             //
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseDepositWithdrawFees(data, codes, "coin");
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -3553,7 +3553,7 @@ public class Lbank extends LbankApi
             //
             Object data = this.safeValue(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parsePublicDepositWithdrawFees(data, codes);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 

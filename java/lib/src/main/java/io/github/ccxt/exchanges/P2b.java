@@ -406,7 +406,7 @@ public class P2b extends P2bApi
             //
             Object markets = this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
             return this.parseMarkets(markets);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -520,7 +520,7 @@ public class P2b extends P2bApi
             //
             Object result = this.safeValue(response, "result", new HashMap<String, Object>() {{}});
             return this.parseTickers(result, symbols);
-        }).thenApply(Tickers::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Tickers::new);
 
     }
 
@@ -574,7 +574,7 @@ public class P2b extends P2bApi
                 put( "timestamp", timestamp );
                 put( "datetime", P2b.this.iso8601(timestamp) );
             }}, this.parseTicker(result, market));
-        }).thenApply(Ticker::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Ticker::new);
 
     }
 
@@ -704,7 +704,7 @@ public class P2b extends P2bApi
             Object result = this.safeValue(response, "result", new HashMap<String, Object>() {{}});
             Long timestamp = this.safeIntegerProduct(response, "current_time", 1000);
             return this.parseOrderBook(result, Helpers.GetValue(market, "symbol"), timestamp, "bids", "asks", 0, 1);
-        }).thenApply(OrderBook::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OrderBook::new);
 
     }
 
@@ -769,7 +769,7 @@ public class P2b extends P2bApi
             //
             Object result = this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(result, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -906,7 +906,7 @@ public class P2b extends P2bApi
             //
             Object result = this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
             return this.parseOHLCVs(result, market, timeframe, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
 
     }
 
@@ -966,7 +966,7 @@ public class P2b extends P2bApi
             //
             Object result = this.safeValue(response, "result", new HashMap<String, Object>() {{}});
             return this.parseBalance(result);
-        }).thenApply(Balances::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Balances::new);
 
     }
 
@@ -1064,7 +1064,7 @@ public class P2b extends P2bApi
             //
             Object result = this.safeDict(response, "result");
             return this.parseOrder(result, market);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -1123,7 +1123,7 @@ public class P2b extends P2bApi
             //
             Object result = this.safeDict(response, "result");
             return this.parseOrder(result);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -1194,7 +1194,7 @@ public class P2b extends P2bApi
             //
             Object result = this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(result, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -1261,7 +1261,7 @@ public class P2b extends P2bApi
             Object result = this.safeValue(response, "result", new HashMap<String, Object>() {{}});
             Object records = this.safeList(result, "records", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(records, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -1359,7 +1359,7 @@ public class P2b extends P2bApi
             Object result = this.safeValue(response, "result", new HashMap<String, Object>() {{}});
             Object deals = this.safeList(result, "deals", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(deals, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -1468,7 +1468,7 @@ public class P2b extends P2bApi
                 orders = this.arrayConcat(orders, parsedOrders);
             }
             return orders;
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 

@@ -25,7 +25,7 @@ public class TestAfterConstruct extends BaseTest {
             testOptionsNetworks(exchange, skippedProperties);
         }
         return true;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
     public static void testOptionsNetworks(BaseExchange exchange, Object skippedProperties)

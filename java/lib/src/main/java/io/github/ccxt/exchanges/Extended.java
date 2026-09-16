@@ -530,7 +530,7 @@ public class Extended extends ExtendedApi
                 Helpers.addElementToObject(this.options, "currenciesByNumericId", this.indexByStringifiedNumericId(this.currencies));
             }
             return markets;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -677,7 +677,7 @@ public class Extended extends ExtendedApi
             //
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseMarkets(data);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -876,7 +876,7 @@ public class Extended extends ExtendedApi
             //
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseCurrencies(data);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -993,7 +993,7 @@ public class Extended extends ExtendedApi
             //
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseTicker(data, market);
-        }).thenApply(Ticker::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Ticker::new);
 
     }
 
@@ -1060,7 +1060,7 @@ public class Extended extends ExtendedApi
                 }
             }
             return this.filterByArrayTickers(tickers, "symbol", symbols);
-        }).thenApply(Tickers::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Tickers::new);
 
     }
 
@@ -1182,7 +1182,7 @@ public class Extended extends ExtendedApi
                 Helpers.addElementToObject(orderbook, "asks", this.arraySlice(Helpers.GetValue(orderbook, "asks"), 0, limit));
             }
             return orderbook;
-        }).thenApply(OrderBook::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OrderBook::new);
 
     }
 
@@ -1229,7 +1229,7 @@ public class Extended extends ExtendedApi
             //
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(data, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -1319,7 +1319,7 @@ public class Extended extends ExtendedApi
                 ((List<Object>)result).add(entry);
             }
             return this.parseTrades(result, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -1411,7 +1411,7 @@ public class Extended extends ExtendedApi
                 ((List<Object>)result).add(entry);
             }
             return this.parseFundingHistories(result, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, FundingHistory::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, FundingHistory::new));
 
     }
 
@@ -1608,7 +1608,7 @@ public class Extended extends ExtendedApi
             //
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseOHLCVs(data, market, timeframe, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
 
     }
 
@@ -1723,7 +1723,7 @@ public class Extended extends ExtendedApi
             }
             List<Object> sorted = this.sortBy(result, "timestamp");
             return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, FundingRateHistory::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, FundingRateHistory::new));
 
     }
 
@@ -1815,7 +1815,7 @@ public class Extended extends ExtendedApi
             //
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseOpenInterestsHistory(data, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, OpenInterest::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, OpenInterest::new));
 
     }
 
@@ -1889,7 +1889,7 @@ public class Extended extends ExtendedApi
             //
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseBalance(data);
-        }).thenApply(Balances::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Balances::new);
 
     }
 
@@ -1949,7 +1949,7 @@ public class Extended extends ExtendedApi
             //
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseAccount(data);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1994,7 +1994,7 @@ public class Extended extends ExtendedApi
             //
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseAccounts(data);
-        }).thenApply(res -> Helpers.toTypedList(res, Account::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Account::new));
 
     }
 
@@ -2074,7 +2074,7 @@ public class Extended extends ExtendedApi
                 ((List<Object>)result).add(entry);
             }
             return this.parseLedger(result, currency, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, LedgerEntry::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, LedgerEntry::new));
 
     }
 
@@ -2217,7 +2217,7 @@ public class Extended extends ExtendedApi
                 ((List<Object>)result).add(entry);
             }
             return this.parseTransactions(result, currency, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
 
     }
 
@@ -2245,7 +2245,7 @@ public class Extended extends ExtendedApi
             return (this.fetchTransactions((Object)(code), (Object)(since), (Object)(limit), (Object)(this.extend(new HashMap<String, Object>() {{
                 put( "type", "DEPOSIT" );
             }}, parameters)))).join();
-        }).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
 
     }
 
@@ -2273,7 +2273,7 @@ public class Extended extends ExtendedApi
             return (this.fetchTransactions((Object)(code), (Object)(since), (Object)(limit), (Object)(this.extend(new HashMap<String, Object>() {{
                 put( "type", "WITHDRAWAL" );
             }}, parameters)))).join();
-        }).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
 
     }
 
@@ -2353,7 +2353,7 @@ public class Extended extends ExtendedApi
                 put( "comment", null );
                 put( "internal", false );
             }};
-        }).thenApply(Transaction::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Transaction::new);
 
     }
 
@@ -2418,7 +2418,7 @@ public class Extended extends ExtendedApi
                 ((List<Object>)result).add(entry);
             }
             return this.parseTransfers(result, currency, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, TransferEntry::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, TransferEntry::new));
 
     }
 
@@ -2505,7 +2505,7 @@ public class Extended extends ExtendedApi
                 put( "toAccount", finalToAccount );
                 put( "status", finalStatus );
             }};
-        }).thenApply(TransferEntry::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(TransferEntry::new);
 
     }
 
@@ -2695,7 +2695,7 @@ public class Extended extends ExtendedApi
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Object first = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
             return this.parseTradingFee(first, market);
-        }).thenApply(TradingFeeInterface::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(TradingFeeInterface::new);
 
     }
 
@@ -2743,7 +2743,7 @@ public class Extended extends ExtendedApi
                 }
             }
             return result;
-        }).thenApply(TradingFees::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(TradingFees::new);
 
     }
 
@@ -2805,7 +2805,7 @@ public class Extended extends ExtendedApi
             //
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseLeverage(this.safeDict(data, 0, new HashMap<String, Object>() {{}}), market);
-        }).thenApply(Leverage::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Leverage::new);
 
     }
 
@@ -2845,7 +2845,7 @@ public class Extended extends ExtendedApi
             //
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseLeverage(data, market);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -2927,7 +2927,7 @@ public class Extended extends ExtendedApi
             //
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parsePositions(data, symbols);
-        }).thenApply(res -> Helpers.toTypedList(res, Position::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Position::new));
 
     }
 
@@ -2948,7 +2948,7 @@ public class Extended extends ExtendedApi
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Object positions = (this.fetchPositions((Object)(new ArrayList<Object>(Arrays.asList(symbol))), (Object)(parameters))).join();
             return this.safeDict(positions, 0);
-        }).thenApply(Position::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Position::new);
 
     }
 
@@ -3038,7 +3038,7 @@ public class Extended extends ExtendedApi
             }
             Object positions = this.parsePositions(result, symbols);
             return this.filterBySinceLimit(positions, since, limit, "timestamp");
-        }).thenApply(res -> Helpers.toTypedList(res, Position::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Position::new));
 
     }
 
@@ -3139,7 +3139,7 @@ public class Extended extends ExtendedApi
             account = Helpers.GetValue(accountData, "info");
             Helpers.addElementToObject(this.options, "account", account);
             return account;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -3522,7 +3522,7 @@ public class Extended extends ExtendedApi
                 put( "price", priceString );
                 put( "amount", amountString );
             }};
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -3583,7 +3583,7 @@ public class Extended extends ExtendedApi
             Helpers.addElementToObject(data, "timestamp", now);
             Helpers.addElementToObject(data, "status", "NEW");
             return this.parseOrder(this.extend(request, data), market);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -3687,7 +3687,7 @@ public class Extended extends ExtendedApi
             Helpers.addElementToObject(responseData, "timestamp", now);
             Helpers.addElementToObject(responseData, "status", "NEW");
             return this.parseOrder(this.extend(request, responseData), market);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -3756,7 +3756,7 @@ public class Extended extends ExtendedApi
                 put( "symbol", orderSymbol );
                 put( "status", "canceled" );
             }}, market);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -3818,7 +3818,7 @@ public class Extended extends ExtendedApi
             //     }
             //
             return new ArrayList<Object>(Arrays.asList());
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -3856,7 +3856,7 @@ public class Extended extends ExtendedApi
             //     }
             //
             return new ArrayList<Object>(Arrays.asList());
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -3886,7 +3886,7 @@ public class Extended extends ExtendedApi
             return new HashMap<String, Object>() {{
                 put( "info", response );
             }};
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -3942,7 +3942,7 @@ public class Extended extends ExtendedApi
                 order = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             }
             return this.parseOrder(order, market);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -4005,7 +4005,7 @@ public class Extended extends ExtendedApi
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             List<Object> orders = this.parseOrders(data, market, since, limit);
             return this.filterBySymbolSinceLimit(orders, symbol, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -4101,7 +4101,7 @@ public class Extended extends ExtendedApi
             }
             List<Object> orders = this.parseOrders(result, market, since, limit);
             return this.filterBySymbolSinceLimit(orders, symbol, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -4129,7 +4129,7 @@ public class Extended extends ExtendedApi
             Object orders = (this.fetchOrders((Object)(symbol), (Object)(since), (Object)(null), (Object)(parameters))).join();
             Object closedOrders = this.filterBy(orders, "status", "closed");
             return this.filterBySymbolSinceLimit(closedOrders, symbol, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -4157,7 +4157,7 @@ public class Extended extends ExtendedApi
             Object orders = (this.fetchOrders((Object)(symbol), (Object)(since), (Object)(null), (Object)(parameters))).join();
             Object canceledOrders = this.filterBy(orders, "status", "canceled");
             return this.filterBySymbolSinceLimit(canceledOrders, symbol, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 

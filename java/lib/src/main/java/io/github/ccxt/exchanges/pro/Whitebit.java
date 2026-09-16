@@ -126,7 +126,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
                 limit = Helpers.callDynamically(ohlcv, "getLimit", new Object[]{symbol, limit});
             }
             return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
-        }).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
 
     }
 
@@ -213,7 +213,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
             Object reqParams = new ArrayList<Object>(Arrays.asList(Helpers.GetValue(market, "id"), limit, priceInterval, true));
             Object orderbook = (this.watchPublic(messageHash, method, reqParams, parameters)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
-        }).thenApply(OrderBook::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OrderBook::new);
 
     }
 
@@ -326,7 +326,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
             String messageHash = Helpers.add("ticker:", symbol);
             // every time we want to subscribe to another market we have to "re-subscribe" sending it all again
             return (this.watchMultipleSubscription(messageHash, method, symbol, false, parameters)).join();
-        }).thenApply(Ticker::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Ticker::new);
 
     }
 
@@ -369,7 +369,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
             }};
             (this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes, null)).join();
             return this.filterByArray(this.tickers, "symbol", symbols);
-        }).thenApply(Tickers::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Tickers::new);
 
     }
 
@@ -460,7 +460,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
             }
             return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -550,7 +550,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
             }
             return this.filterBySymbolSinceLimit(trades, symbol, since, limit, true);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -705,7 +705,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
             }
             return this.filterBySymbolSinceLimit(trades, symbol, since, limit, true);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -935,7 +935,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
             // an empty params array subscribes to updates for all assets,
             // listing all tickers explicitly is rejected with "invalid argument"
             return (this.watchPrivate(messageHash, method, new ArrayList<Object>(Arrays.asList()), parameters)).join();
-        }).thenApply(Balances::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Balances::new);
 
     }
 
@@ -974,7 +974,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
                 client.resolve(this.balance, subscriptionHash);
             }
             return null;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1085,7 +1085,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
             }};
             Map<String, Object> message = this.extend(request, parameters);
             return (this.watch(url, messageHash, message, messageHash, null)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1170,7 +1170,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
                     return (this.watch(url, messageHash, resubRequest, method, subscription)).join();
                 }
             }
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1192,7 +1192,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
             }};
             Map<String, Object> message = this.extend(request, parameters);
             return (this.watch(url, messageHash, message, messageHash, null)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1290,7 +1290,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
             // keeps an alone-leader rejection from crashing the process
             ((io.github.ccxt.ws.Future)future).getFuture().join();
             return authorized;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 

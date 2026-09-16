@@ -21,7 +21,7 @@ public class TestFetchBalance extends BaseTest {
         Object response = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchBalance", new Object[]{})).join();
         TestBalance.testBalance(exchange, skippedProperties, method, response);
         return true;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 

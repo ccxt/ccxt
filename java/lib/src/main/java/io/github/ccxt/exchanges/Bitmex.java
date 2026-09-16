@@ -777,7 +777,7 @@ public class Bitmex extends BitmexApi
             //     }
             //
             return this.parseCurrencies(response);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1135,7 +1135,7 @@ public class Bitmex extends BitmexApi
             //  ]
             //
             return this.parseMarkets(response);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1439,7 +1439,7 @@ public class Bitmex extends BitmexApi
             //     ]
             //
             return this.parseBalance(response);
-        }).thenApply(Balances::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Balances::new);
 
     }
 
@@ -1499,7 +1499,7 @@ public class Bitmex extends BitmexApi
             Helpers.addElementToObject(result, "bids", this.sortBy(Helpers.GetValue(result, "bids"), 0, true));
             Helpers.addElementToObject(result, "asks", this.sortBy(Helpers.GetValue(result, "asks"), 0));
             return result;
-        }).thenApply(OrderBook::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OrderBook::new);
 
     }
 
@@ -1532,7 +1532,7 @@ public class Bitmex extends BitmexApi
                 return Helpers.GetValue(response, 0);
             }
             throw new OrderNotFound(Helpers.add(Helpers.add(Helpers.add(this.id, ": The order "), id), " not found.")) ;
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -1601,7 +1601,7 @@ public class Bitmex extends BitmexApi
             }
             List<Object> response = (this.privateGetOrder(request)).join();
             return this.parseOrders(response, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -1631,7 +1631,7 @@ public class Bitmex extends BitmexApi
                 }} );
             }};
             return (this.fetchOrders((Object)(symbol), (Object)(since), (Object)(limit), (Object)(this.deepExtend(request, parameters)))).join();
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -1658,7 +1658,7 @@ public class Bitmex extends BitmexApi
             Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             Object orders = (this.fetchOrders((Object)(symbol), (Object)(since), (Object)(limit), (Object)(parameters))).join();
             return this.filterByArray(orders, "status", new ArrayList<Object>(Arrays.asList("closed", "canceled")), false);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -1779,7 +1779,7 @@ public class Bitmex extends BitmexApi
             //     ]
             //
             return this.parseTrades(response, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -1972,7 +1972,7 @@ public class Bitmex extends BitmexApi
             //     ]
             //
             return this.parseLedger(response, currency, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, LedgerEntry::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, LedgerEntry::new));
 
     }
 
@@ -2021,7 +2021,7 @@ public class Bitmex extends BitmexApi
             List<Object> response = (this.privateGetUserWalletHistory(this.extend(request, parameters))).join();
             Object transactions = this.filterByArray(response, "transactType", new ArrayList<Object>(Arrays.asList("Withdrawal", "Deposit")), false);
             return this.parseTransactions(transactions, currency, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
 
     }
 
@@ -2154,7 +2154,7 @@ public class Bitmex extends BitmexApi
                 throw new BadSymbol(Helpers.add(Helpers.add(Helpers.add(this.id, " fetchTicker() symbol "), symbol), " not found")) ;
             }
             return this.parseTicker(ticker, market);
-        }).thenApply(Ticker::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Ticker::new);
 
     }
 
@@ -2193,7 +2193,7 @@ public class Bitmex extends BitmexApi
                 }
             }
             return this.filterByArrayTickers(result, "symbol", symbols);
-        }).thenApply(Tickers::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Tickers::new);
 
     }
 
@@ -2352,7 +2352,7 @@ public class Bitmex extends BitmexApi
                 }
             }
             return result;
-        }).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
 
     }
 
@@ -2704,7 +2704,7 @@ public class Bitmex extends BitmexApi
             //     ]
             //
             return this.parseTrades(response, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -2839,7 +2839,7 @@ public class Bitmex extends BitmexApi
             }
             Map<String, Object> response = (this.privatePostOrder(this.extend(request, parameters))).join();
             return this.parseOrder(response, market);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -2924,7 +2924,7 @@ public class Bitmex extends BitmexApi
             Helpers.addElementToObject(request, "text", brokerId);
             Map<String, Object> response = (this.privatePutOrder(this.extend(request, parameters))).join();
             return this.parseOrder(response);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -2971,7 +2971,7 @@ public class Bitmex extends BitmexApi
                 }
             }
             return this.parseOrder(order);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -3010,7 +3010,7 @@ public class Bitmex extends BitmexApi
             }
             List<Object> response = (this.privateDeleteOrder(this.extend(request, parameters))).join();
             return this.parseOrders(response);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -3082,7 +3082,7 @@ public class Bitmex extends BitmexApi
             //     ]
             //
             return this.parseOrders(response, market);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -3121,7 +3121,7 @@ public class Bitmex extends BitmexApi
             //     }
             //
             return response;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -3147,7 +3147,7 @@ public class Bitmex extends BitmexApi
             }
             Object leverages = (this.fetchPositions((Object)(symbols), (Object)(parameters))).join();
             return this.parseLeverages(leverages, symbols, "symbol");
-        }).thenApply(Leverages::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Leverages::new);
 
     }
 
@@ -3284,7 +3284,7 @@ public class Bitmex extends BitmexApi
             //
             Object results = this.parsePositions(response, symbols);
             return this.filterByArrayPositions(results, "symbol", symbols, false);
-        }).thenApply(res -> Helpers.toTypedList(res, Position::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Position::new));
 
     }
 
@@ -3504,7 +3504,7 @@ public class Bitmex extends BitmexApi
             //     }
             //
             return this.parseTransaction(response, currency);
-        }).thenApply(Transaction::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Transaction::new);
 
     }
 
@@ -3546,7 +3546,7 @@ public class Bitmex extends BitmexApi
             symbols = this.marketSymbols(symbols);
             Object result = this.parseFundingRates(filteredResponse);
             return this.filterByArray(result, "symbol", symbols);
-        }).thenApply(FundingRates::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(FundingRates::new);
 
     }
 
@@ -3665,7 +3665,7 @@ public class Bitmex extends BitmexApi
             //    ]
             //
             return this.parseFundingRateHistories(response, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, FundingRateHistory::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, FundingRateHistory::new));
 
     }
 
@@ -3732,7 +3732,7 @@ public class Bitmex extends BitmexApi
                 put( "leverage", finalLeverage );
             }};
             return (this.privatePostPositionLeverage(this.extend(request, parameters))).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -3777,7 +3777,7 @@ public class Bitmex extends BitmexApi
                 put( "enabled", enabled );
             }};
             return (this.privatePostPositionIsolate(this.extend(request, parameters))).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -3828,7 +3828,7 @@ public class Bitmex extends BitmexApi
                 put( "address", Helpers.replace(((String)Helpers.replace(response, (String)"\"", (String)"")), "\"", "") );
                 put( "tag", null );
             }};
-        }).thenApply(DepositAddress::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(DepositAddress::new);
 
     }
 
@@ -3961,7 +3961,7 @@ public class Bitmex extends BitmexApi
             //    ]
             //
             return this.parseDepositWithdrawFees(assets, codes, "asset");
-        }).thenApply(DepositWithdrawFees::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(DepositWithdrawFees::new);
 
     }
 
@@ -4003,7 +4003,7 @@ public class Bitmex extends BitmexApi
             //
             symbols = this.marketSymbols(symbols);
             return this.parseOpenInterests(response, symbols);
-        }).thenApply(OpenInterests::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OpenInterests::new);
 
     }
 
@@ -4125,7 +4125,7 @@ public class Bitmex extends BitmexApi
             //     ]
             //
             return this.parseLiquidations(this.toArray(response), market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Liquidation::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Liquidation::new));
 
     }
 
@@ -4295,7 +4295,7 @@ public class Bitmex extends BitmexApi
             //     ]
             //
             return this.parseADLRanks(response, symbols);
-        }).thenApply(res -> Helpers.toTypedList(res, ADL::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, ADL::new));
 
     }
 
@@ -4495,7 +4495,7 @@ public class Bitmex extends BitmexApi
             //    ]
             //
             return this.parseSettlements(response, market, since, limit);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -4590,7 +4590,7 @@ public class Bitmex extends BitmexApi
             //     }
             //
             return this.parseOrder(response, market);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 

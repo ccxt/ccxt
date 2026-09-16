@@ -445,7 +445,7 @@ public class Mercado extends MercadoApi
                 }});
             }
             return result;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -475,7 +475,7 @@ public class Mercado extends MercadoApi
             }};
             Map<String, Object> response = (this.publicGetCoinOrderbook(this.extend(request, parameters))).join();
             return this.parseOrderBook(response, Helpers.GetValue(market, "symbol"));
-        }).thenApply(OrderBook::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OrderBook::new);
 
     }
 
@@ -560,7 +560,7 @@ public class Mercado extends MercadoApi
             //     }
             //
             return this.parseTicker(ticker, market);
-        }).thenApply(Ticker::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Ticker::new);
 
     }
 
@@ -646,7 +646,7 @@ public class Mercado extends MercadoApi
                 response = (this.publicGetCoinTrades(this.extend(request, parameters))).join();
             }
             return this.parseTrades(response, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -696,7 +696,7 @@ public class Mercado extends MercadoApi
             }
             Map<String, Object> response = (this.privatePostGetAccountInfo(parameters)).join();
             return this.parseBalance(response);
-        }).thenApply(Balances::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Balances::new);
 
     }
 
@@ -766,7 +766,7 @@ public class Mercado extends MercadoApi
                 put( "info", finalResponse );
                 put( "id", String.valueOf(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(finalResponse, "response_data"), "order"), "order_id")) );
             }}, market);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -826,7 +826,7 @@ public class Mercado extends MercadoApi
             Object responseData = this.safeValue(response, "response_data", new HashMap<String, Object>() {{}});
             Object order = this.safeDict(responseData, "order", new HashMap<String, Object>() {{}});
             return this.parseOrder(order, market);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -951,7 +951,7 @@ public class Mercado extends MercadoApi
             Object responseData = this.safeValue(response, "response_data", new HashMap<String, Object>() {{}});
             Object order = this.safeDict(responseData, "order");
             return this.parseOrder(order, market);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -1038,7 +1038,7 @@ public class Mercado extends MercadoApi
             Object responseData = this.safeValue(response, "response_data", new HashMap<String, Object>() {{}});
             Object withdrawal = this.safeDict(responseData, "withdrawal");
             return this.parseTransaction(withdrawal, currency);
-        }).thenApply(Transaction::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Transaction::new);
 
     }
 
@@ -1136,7 +1136,7 @@ public class Mercado extends MercadoApi
             // parseTradingViewOHLCV applies the same default 't','o','h','l','c','v' column names and
             // then parseOHLCVs, and takes the raw response without narrowing it to a candle matrix
             return this.parseTradingViewOHLCV(response, market, timeframe, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
 
     }
 
@@ -1175,7 +1175,7 @@ public class Mercado extends MercadoApi
             Object responseData = this.safeValue(response, "response_data", new HashMap<String, Object>() {{}});
             Object orders = this.safeList(responseData, "orders", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(orders, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -1215,7 +1215,7 @@ public class Mercado extends MercadoApi
             Object responseData = this.safeValue(response, "response_data", new HashMap<String, Object>() {{}});
             Object orders = this.safeList(responseData, "orders", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(orders, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -1257,7 +1257,7 @@ public class Mercado extends MercadoApi
             List<Object> orders = this.parseOrders(ordersRaw, market, since, limit);
             Object trades = this.ordersToTrades(orders);
             return this.filterBySymbolSinceLimit(trades, Helpers.GetValue(market, "symbol"), since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 

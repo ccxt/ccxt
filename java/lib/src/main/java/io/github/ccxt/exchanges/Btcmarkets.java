@@ -421,7 +421,7 @@ public class Btcmarkets extends BtcmarketsApi
                 response = (this.privateGetWithdrawals(this.extend(request, parameters))).join();
             }
             return this.parseTransactions(response, currency, since, limit);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -446,7 +446,7 @@ public class Btcmarkets extends BtcmarketsApi
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             return (this.fetchTransactionsWithMethod("privateGetTransfers", code, since, limit, parameters)).join();
-        }).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
 
     }
 
@@ -471,7 +471,7 @@ public class Btcmarkets extends BtcmarketsApi
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             return (this.fetchTransactionsWithMethod("privateGetDeposits", code, since, limit, parameters)).join();
-        }).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
 
     }
 
@@ -496,7 +496,7 @@ public class Btcmarkets extends BtcmarketsApi
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             return (this.fetchTransactionsWithMethod("privateGetWithdrawals", code, since, limit, parameters)).join();
-        }).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
 
     }
 
@@ -666,7 +666,7 @@ public class Btcmarkets extends BtcmarketsApi
             //     ]
             //
             return this.parseMarkets(response);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -766,7 +766,7 @@ public class Btcmarkets extends BtcmarketsApi
             //     }
             //
             return this.parse8601(this.safeString(response, "timestamp"));
-        }).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
 
     }
 
@@ -811,7 +811,7 @@ public class Btcmarkets extends BtcmarketsApi
             }
             Map<String, Object> response = (this.privateGetAccountsMeBalances(parameters)).join();
             return this.parseBalance(response);
-        }).thenApply(Balances::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Balances::new);
 
     }
 
@@ -878,7 +878,7 @@ public class Btcmarkets extends BtcmarketsApi
             //     ]
             //
             return this.parseOHLCVs(this.toArray(response), market, timeframe, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
 
     }
 
@@ -928,7 +928,7 @@ public class Btcmarkets extends BtcmarketsApi
             Object orderbook = this.parseOrderBook(response, symbol, timestamp);
             Helpers.addElementToObject(orderbook, "nonce", this.safeInteger(response, "snapshotId"));
             return orderbook;
-        }).thenApply(OrderBook::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OrderBook::new);
 
     }
 
@@ -1025,7 +1025,7 @@ public class Btcmarkets extends BtcmarketsApi
             //     }
             //
             return this.parseTicker(response, market);
-        }).thenApply(Ticker::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Ticker::new);
 
     }
 
@@ -1045,7 +1045,7 @@ public class Btcmarkets extends BtcmarketsApi
             }};
             Map<String, Object> response = (this.publicGetMarketsMarketIdTicker(this.extend(request, parameters))).join();
             return this.parseTicker(response, market);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1161,7 +1161,7 @@ public class Btcmarkets extends BtcmarketsApi
             //     ]
             //
             return this.parseTrades(response, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -1271,7 +1271,7 @@ public class Btcmarkets extends BtcmarketsApi
             //     }
             //
             return this.parseOrder(response, market);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -1328,7 +1328,7 @@ public class Btcmarkets extends BtcmarketsApi
             Object unprocessedRequests = this.safeList(response, "unprocessedRequests", new ArrayList<Object>(Arrays.asList()));
             List<Object> orders = (List<Object>) this.arrayConcat(cancelOrders, unprocessedRequests);
             return this.parseOrders(orders);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -1364,7 +1364,7 @@ public class Btcmarkets extends BtcmarketsApi
             //    }
             //
             return this.parseOrder(response);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -1527,7 +1527,7 @@ public class Btcmarkets extends BtcmarketsApi
             }};
             Map<String, Object> response = (this.privateGetOrdersId(this.extend(request, parameters))).join();
             return this.parseOrder(response);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -1574,7 +1574,7 @@ public class Btcmarkets extends BtcmarketsApi
             }
             List<Object> response = (this.privateGetOrders(this.extend(request, parameters))).join();
             return this.parseOrders(response, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -1602,7 +1602,7 @@ public class Btcmarkets extends BtcmarketsApi
                 put( "status", "open" );
             }};
             return (this.fetchOrders((Object)(symbol), (Object)(since), (Object)(limit), (Object)(this.extend(request, parameters)))).join();
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -1628,7 +1628,7 @@ public class Btcmarkets extends BtcmarketsApi
             Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             Object orders = (this.fetchOrders((Object)(symbol), (Object)(since), (Object)(limit), (Object)(parameters))).join();
             return this.filterBy(orders, "status", "closed");
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -1700,7 +1700,7 @@ public class Btcmarkets extends BtcmarketsApi
             //     ]
             //
             return this.parseTrades(response, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -1765,7 +1765,7 @@ public class Btcmarkets extends BtcmarketsApi
             //      }
             //
             return this.parseTransaction(response, currency);
-        }).thenApply(Transaction::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Transaction::new);
 
     }
 

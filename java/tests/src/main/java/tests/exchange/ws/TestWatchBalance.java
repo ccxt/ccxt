@@ -46,7 +46,7 @@ public class TestWatchBalance extends BaseTest {
             now = exchange.milliseconds();
         }
             return null;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 

@@ -823,7 +823,7 @@ public class Tokocrypto extends TokocryptoApi
             // }
             //
             return this.safeInteger(response, "timestamp");
-        }).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
 
     }
 
@@ -1005,7 +1005,7 @@ public class Tokocrypto extends TokocryptoApi
                 ((List<Object>)result).add(entry);
             }
             return result;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1080,7 +1080,7 @@ public class Tokocrypto extends TokocryptoApi
             Object orderbook = this.parseOrderBook(data, symbol, timestamp);
             Helpers.addElementToObject(orderbook, "nonce", this.safeInteger(data, "lastUpdateId"));
             return orderbook;
-        }).thenApply(OrderBook::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OrderBook::new);
 
     }
 
@@ -1364,7 +1364,7 @@ public class Tokocrypto extends TokocryptoApi
             //
             List<Object> responseList = this.toArray(response);
             return this.parseTrades(responseList, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -1491,7 +1491,7 @@ public class Tokocrypto extends TokocryptoApi
                 return this.parseTickers(new ArrayList<Object>(Arrays.asList(response)), symbols);
             }
             return this.parseTickers(response, symbols);
-        }).thenApply(Tickers::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Tickers::new);
 
     }
 
@@ -1565,7 +1565,7 @@ public class Tokocrypto extends TokocryptoApi
                 return this.parseTicker(firstTicker, market);
             }
             return this.parseTicker(response, market);
-        }).thenApply(Ticker::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Ticker::new);
 
     }
 
@@ -1591,7 +1591,7 @@ public class Tokocrypto extends TokocryptoApi
             }
             List<Object> response = (this.binanceGetTickerBookTicker(parameters)).join();
             return this.parseTickers(response, symbols);
-        }).thenApply(Tickers::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Tickers::new);
 
     }
 
@@ -1750,7 +1750,7 @@ public class Tokocrypto extends TokocryptoApi
                 }
             }
             return this.parseOHLCVs(data, market, timeframe, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
 
     }
 
@@ -1806,7 +1806,7 @@ public class Tokocrypto extends TokocryptoApi
             //     }
             //
             return this.parseBalanceCustom(response, type, marginMode);
-        }).thenApply(Balances::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Balances::new);
 
     }
 
@@ -2254,7 +2254,7 @@ public class Tokocrypto extends TokocryptoApi
             //
             Object rawOrder = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseOrder(rawOrder, market);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -2313,7 +2313,7 @@ public class Tokocrypto extends TokocryptoApi
             Object list = this.safeValue(data, "list", new ArrayList<Object>(Arrays.asList()));
             Object rawOrder = this.safeDict(list, 0, new HashMap<String, Object>() {{}});
             return this.parseOrder(rawOrder);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -2394,7 +2394,7 @@ public class Tokocrypto extends TokocryptoApi
             Object data = this.safeValue(response, "data", new HashMap<String, Object>() {{}});
             Object orders = this.safeList(data, "list", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(orders, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -2422,7 +2422,7 @@ public class Tokocrypto extends TokocryptoApi
                 put( "type", 1 );
             }}; // -1 = all, 1 = open, 2 = closed
             return (this.fetchOrders((Object)(symbol), (Object)(since), (Object)(limit), (Object)(this.extend(request, parameters)))).join();
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -2450,7 +2450,7 @@ public class Tokocrypto extends TokocryptoApi
                 put( "type", 2 );
             }}; // -1 = all, 1 = open, 2 = closed
             return (this.fetchOrders((Object)(symbol), (Object)(since), (Object)(limit), (Object)(this.extend(request, parameters)))).join();
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -2504,7 +2504,7 @@ public class Tokocrypto extends TokocryptoApi
             //
             Object rawOrder = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseOrder(rawOrder);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -2583,7 +2583,7 @@ public class Tokocrypto extends TokocryptoApi
             Object data = this.safeValue(response, "data", new HashMap<String, Object>() {{}});
             Object trades = this.safeList(data, "list", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(trades, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -2652,7 +2652,7 @@ public class Tokocrypto extends TokocryptoApi
                 put( "address", address );
                 put( "tag", finalTag );
             }};
-        }).thenApply(DepositAddress::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(DepositAddress::new);
 
     }
 
@@ -2731,7 +2731,7 @@ public class Tokocrypto extends TokocryptoApi
             Object data = this.safeValue(response, "data", new HashMap<String, Object>() {{}});
             Object deposits = this.safeList(data, "list", new ArrayList<Object>(Arrays.asList()));
             return this.parseTransactions(deposits, currency, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
 
     }
 
@@ -2805,7 +2805,7 @@ public class Tokocrypto extends TokocryptoApi
             Object data = this.safeValue(response, "data", new HashMap<String, Object>() {{}});
             Object withdrawals = this.safeList(data, "list", new ArrayList<Object>(Arrays.asList()));
             return this.parseTransactions(withdrawals, currency, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
 
     }
 
@@ -3021,7 +3021,7 @@ public class Tokocrypto extends TokocryptoApi
             //     }
             //
             return this.parseTransaction(response, currency);
-        }).thenApply(Transaction::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Transaction::new);
 
     }
 

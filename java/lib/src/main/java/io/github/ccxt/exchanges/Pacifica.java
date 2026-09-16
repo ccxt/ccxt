@@ -755,7 +755,7 @@ public class Pacifica extends PacificaApi
                 return false;
             }
             return true;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -789,7 +789,7 @@ public class Pacifica extends PacificaApi
                 Helpers.addElementToObject(this.options, "builderFee", false); // disable builder fee if an error occurs
             }
             return true;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -849,7 +849,7 @@ public class Pacifica extends PacificaApi
             // }
             Object markets = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseMarkets(markets);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -869,7 +869,7 @@ public class Pacifica extends PacificaApi
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Object markets = (this.fetchMarkets((Object)(parameters))).join();
             return this.filterBy(markets, "type", "swap");
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1115,7 +1115,7 @@ public class Pacifica extends PacificaApi
             Helpers.addElementToObject(result, "timestamp", timestamp);
             Helpers.addElementToObject(result, "datetime", this.iso8601(timestamp));
             return this.safeBalance(result);
-        }).thenApply(Balances::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Balances::new);
 
     }
 
@@ -1168,7 +1168,7 @@ public class Pacifica extends PacificaApi
             {
                 return this.parseLeverageFromSetting(symbol, setting);
             }
-        }).thenApply(Leverage::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Leverage::new);
 
     }
 
@@ -1247,7 +1247,7 @@ public class Pacifica extends PacificaApi
             //   "code": null
             // }
             return this.parseAccountSettings(this.safeList(response, "data", new ArrayList<Object>(Arrays.asList())));
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1266,7 +1266,7 @@ public class Pacifica extends PacificaApi
                 Helpers.addElementToObject(this.options, "settings", settings);
             }
             return null;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1344,7 +1344,7 @@ public class Pacifica extends PacificaApi
             {
                 return this.parseMarginModeFromSetting(symbol, setting);
             }
-        }).thenApply(MarginMode::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(MarginMode::new);
 
     }
 
@@ -1443,7 +1443,7 @@ public class Pacifica extends PacificaApi
             }};
             Long timestamp = this.safeInteger(data, "t");
             return this.parseOrderBook(result, this.safeSymbol(null, market), timestamp, "bids", "asks", "p", "a");
-        }).thenApply(OrderBook::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OrderBook::new);
 
     }
 
@@ -1487,7 +1487,7 @@ public class Pacifica extends PacificaApi
             //
             Object result = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseFundingRates(result, symbols);
-        }).thenApply(FundingRates::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(FundingRates::new);
 
     }
 
@@ -1636,7 +1636,7 @@ public class Pacifica extends PacificaApi
             //
             Object candles = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseOHLCVs(candles, market, timeframe, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
 
     }
 
@@ -1708,7 +1708,7 @@ public class Pacifica extends PacificaApi
             //
             Object recentTrades = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(recentTrades, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -1803,7 +1803,7 @@ public class Pacifica extends PacificaApi
             //
             Object data = this.addPaginationCursorToResult(response);
             return this.parseTrades(data, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -1975,7 +1975,7 @@ public class Pacifica extends PacificaApi
                 put( "info", finalResponse );
                 put( "symbol", symbol );
             }});
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -2263,7 +2263,7 @@ public class Pacifica extends PacificaApi
                 }}));
             }
             return ordersToReturn;
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -2342,7 +2342,7 @@ public class Pacifica extends PacificaApi
                 }}));
             }
             return ordersToReturn;
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -2418,7 +2418,7 @@ public class Pacifica extends PacificaApi
             return new ArrayList<Object>(Arrays.asList(this.safeOrder(new HashMap<String, Object>() {{
         put( "info", response );
     }})));
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -2500,7 +2500,7 @@ public class Pacifica extends PacificaApi
                 put( "info", finalResponse );
                 put( "symbol", finalSymbol );
             }});
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -2580,7 +2580,7 @@ public class Pacifica extends PacificaApi
                 put( "info", response );
                 put( "symbol", symbol );
             }});
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -2705,7 +2705,7 @@ public class Pacifica extends PacificaApi
             }
             List<Object> sorted = this.sortBy(result, "timestamp");
             return this.filterBySinceLimit(sorted, since, limit, "timestamp");
-        }).thenApply(res -> Helpers.toTypedList(res, FundingRateHistory::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, FundingRateHistory::new));
 
     }
 
@@ -2765,7 +2765,7 @@ public class Pacifica extends PacificaApi
                 }
             }
             return this.filterByArrayTickers(result, "symbol", symbols);
-        }).thenApply(Tickers::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Tickers::new);
 
     }
 
@@ -2831,7 +2831,7 @@ public class Pacifica extends PacificaApi
             Object orders = (this.fetchOrders((Object)(symbol), (Object)(null), (Object)(null), (Object)(parameters))).join(); // don't filter here because we don't want to catch open orders
             Object closedOrders = this.filterByArray(orders, "status", new ArrayList<Object>(Arrays.asList("closed")), false);
             return this.filterBySymbolSinceLimit(closedOrders, symbol, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -2863,7 +2863,7 @@ public class Pacifica extends PacificaApi
             Object orders = (this.fetchOrders((Object)(symbol), (Object)(null), (Object)(null), (Object)(parameters))).join(); // don't filter here because we don't want to catch open orders
             Object closedOrders = this.filterByArray(orders, "status", new ArrayList<Object>(Arrays.asList("canceled")), false);
             return this.filterBySymbolSinceLimit(closedOrders, symbol, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -2895,7 +2895,7 @@ public class Pacifica extends PacificaApi
             Object orders = (this.fetchOrders((Object)(symbol), (Object)(null), (Object)(null), (Object)(parameters))).join(); // don't filter here because we don't want to catch open orders
             Object closedOrders = this.filterByArray(orders, "status", new ArrayList<Object>(Arrays.asList("canceled", "closed", "rejected")), false);
             return this.filterBySymbolSinceLimit(closedOrders, symbol, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -2966,7 +2966,7 @@ public class Pacifica extends PacificaApi
             //
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(data, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -3055,7 +3055,7 @@ public class Pacifica extends PacificaApi
             Object data = this.addPaginationCursorToResult(response);
             List<Object> orders = this.parseOrders(data, market, since, limit);
             return orders;
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -3163,7 +3163,7 @@ public class Pacifica extends PacificaApi
                 lastInfo = Helpers.GetValue(sorted, 0);
             }
             return this.parseOrder(lastInfo, market);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -3368,7 +3368,7 @@ public class Pacifica extends PacificaApi
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Object positions = (this.fetchPositions((Object)(new ArrayList<Object>(Arrays.asList(symbol))), (Object)(parameters))).join();
             return this.safeDict(positions, 0, new HashMap<String, Object>() {{}});
-        }).thenApply(Position::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Position::new);
 
     }
 
@@ -3429,7 +3429,7 @@ public class Pacifica extends PacificaApi
                 ((List<Object>)result).add(this.parsePosition(Helpers.GetValue(data, i)));
             }
             return this.filterByArrayPositions(result, "symbol", symbols, false);
-        }).thenApply(res -> Helpers.toTypedList(res, Position::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Position::new));
 
     }
 
@@ -3531,7 +3531,7 @@ public class Pacifica extends PacificaApi
             //     "success": true
             // }
             return response;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -3574,7 +3574,7 @@ public class Pacifica extends PacificaApi
             //     "success": true
             // }
             return response;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -3613,7 +3613,7 @@ public class Pacifica extends PacificaApi
             return new HashMap<String, Object>() {{
                 put( "info", response );
             }};
-        }).thenApply(Transaction::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Transaction::new);
 
     }
 
@@ -3671,7 +3671,7 @@ public class Pacifica extends PacificaApi
             // }
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseTradingFee(data, market);
-        }).thenApply(TradingFeeInterface::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(TradingFeeInterface::new);
 
     }
 
@@ -3732,7 +3732,7 @@ public class Pacifica extends PacificaApi
             symbols = this.marketSymbols(symbols);
             Object swapMarkets = (this.fetchSwapMarkets()).join();
             return this.parseOpenInterests(swapMarkets, symbols);
-        }).thenApply(OpenInterests::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OpenInterests::new);
 
     }
 
@@ -3758,7 +3758,7 @@ public class Pacifica extends PacificaApi
             }
             Object ois = (this.fetchOpenInterests((Object)(new ArrayList<Object>(Arrays.asList(symbol))), (Object)(parameters))).join();
             return Helpers.GetValue(ois, symbol);
-        }).thenApply(OpenInterest::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OpenInterest::new);
 
     }
 
@@ -3873,7 +3873,7 @@ public class Pacifica extends PacificaApi
             // }
             Object data = this.addPaginationCursorToResult(response);
             return this.parseLedger(data, null, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, LedgerEntry::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, LedgerEntry::new));
 
     }
 
@@ -4007,7 +4007,7 @@ public class Pacifica extends PacificaApi
             // }
             Object data = this.addPaginationCursorToResult(response);
             return this.parseIncomes(data, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, FundingHistory::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, FundingHistory::new));
 
     }
 
@@ -4094,7 +4094,7 @@ public class Pacifica extends PacificaApi
                 put( "fromAccount", Pacifica.this.safeString(request, "account") );
                 put( "toAccount", toAccount );
             }});
-        }).thenApply(TransferEntry::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(TransferEntry::new);
 
     }
 
@@ -4229,7 +4229,7 @@ public class Pacifica extends PacificaApi
             // }
             //
             return response;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -4245,7 +4245,7 @@ public class Pacifica extends PacificaApi
             }};
             Object request = this.postActionRequest(operationType, sigPayload, parameters);
             return (this.privatePostAgentBind(this.extend(request, parameters))).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -4259,7 +4259,7 @@ public class Pacifica extends PacificaApi
             Map<String, Object> sigPayload = new HashMap<String, Object>() {{}};
             Object request = this.postActionRequest(operationType, sigPayload, parameters);
             return (this.privatePostAccountApiKeysCreate(this.extend(request, parameters))).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -4275,7 +4275,7 @@ public class Pacifica extends PacificaApi
             }};
             Object request = this.postActionRequest(operationType, sigPayload, parameters);
             return (this.privatePostAccountApiKeysRevoke(this.extend(request, parameters))).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -4289,7 +4289,7 @@ public class Pacifica extends PacificaApi
             Map<String, Object> sigPayload = new HashMap<String, Object>() {{}};
             Object request = this.postActionRequest(operationType, sigPayload, parameters);
             return (this.privatePostAccountApiKeys(this.extend(request, parameters))).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -4306,7 +4306,7 @@ public class Pacifica extends PacificaApi
             }};
             Object request = this.postActionRequest(operationType, sigPayload, parameters);
             return (this.privatePostAccountBuilderCodesApprove(this.extend(request, parameters))).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -4319,7 +4319,7 @@ public class Pacifica extends PacificaApi
                 put( "account", address );
             }};
             return (this.publicGetAccountBuilderCodesApprovals(this.extend(request))).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -4335,7 +4335,7 @@ public class Pacifica extends PacificaApi
             }};
             Object request = this.postActionRequest(operationType, sigPayload, parameters);
             return (this.privatePostAccountBuilderCodesRevoke(this.extend(request, parameters))).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 

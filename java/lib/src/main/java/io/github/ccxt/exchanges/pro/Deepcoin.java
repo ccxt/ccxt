@@ -175,7 +175,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
                 put( "id", requestId );
             }};
             return (this.watch(url, messageHash, this.deepExtend(request, parameters), messageHash, subscription)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -205,7 +205,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
                 put( "id", requestId );
             }});
             return (this.watch(url, unsubHash, this.deepExtend(request, parameters), unsubHash, subscription)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -218,7 +218,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
             Object listenKey = (this.authenticate()).join();
             Object url = Helpers.add(Helpers.add(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "private"), "?listenKey="), listenKey);
             return (this.watch(url, messageHash, null, "private", parameters)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -297,7 +297,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
             // keeps an alone-leader rejection from killing the process
             ((io.github.ccxt.ws.Future)future).getFuture().join();
             return listenKey;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -323,7 +323,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
             Object market = this.market(symbol);
             String messageHash = Helpers.add(Helpers.add("ticker", "::"), Helpers.GetValue(market, "symbol"));
             return (this.watchPublic(market, messageHash, "7", parameters)).join();
-        }).thenApply(Ticker::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Ticker::new);
 
     }
 
@@ -352,7 +352,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
                 put( "topic", "ticker" );
             }};
             return (this.unWatchPublic(market, messageHash, "7", parameters, subscription)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -497,7 +497,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
             }
             return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -526,7 +526,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
                 put( "topic", "trades" );
             }};
             return (this.unWatchPublic(market, messageHash, "2", parameters, subscription)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -695,7 +695,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
                 limit = Helpers.callDynamically(ohlcv, "getLimit", new Object[]{symbol, limit});
             }
             return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
-        }).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
 
     }
 
@@ -732,7 +732,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
                 put( "symbolsAndTimeframes", new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(finalSymbol, timeframe)))) );
             }};
             return (this.unWatchPublic(market, messageHash, "11", parameters, subscription, suffix)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -837,7 +837,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
             parameters = ((List<Object>) suffixparametersVariable).get(1);
             Object orderbook = (this.watchPublic(market, messageHash, "25", parameters, suffix)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
-        }).thenApply(OrderBook::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OrderBook::new);
 
     }
 
@@ -871,7 +871,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
                 put( "topic", "orderbook" );
             }};
             return (this.unWatchPublic(market, messageHash, "25", parameters, subscription, suffix)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1082,7 +1082,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
             }
             return this.filterBySymbolSinceLimit(trades, symbol, since, limit, true);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -1177,7 +1177,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
                 limit = Helpers.callDynamically(orders, "getLimit", new Object[]{symbol, limit});
             }
             return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -1349,7 +1349,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
                 return positions;
             }
             return this.filterBySymbolsSinceLimit(this.positions, symbols, since, limit, true);
-        }).thenApply(res -> Helpers.toTypedList(res, Position::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Position::new));
 
     }
 

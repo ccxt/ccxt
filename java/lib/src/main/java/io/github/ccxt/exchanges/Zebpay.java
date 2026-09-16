@@ -406,7 +406,7 @@ public class Zebpay extends ZebpayApi
                 put( "url", null );
                 put( "info", finalResponse );
             }};
-        }).thenApply(Status::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Status::new);
 
     }
 
@@ -454,7 +454,7 @@ public class Zebpay extends ZebpayApi
             //
             Long time = this.safeInteger(data, "timestamp");
             return time;
-        }).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
 
     }
 
@@ -495,7 +495,7 @@ public class Zebpay extends ZebpayApi
             Object spotMarkets = this.safeList(promises, 0, new ArrayList<Object>(Arrays.asList()));
             Object futureMarkets = this.safeList(promises, 1, new ArrayList<Object>(Arrays.asList()));
             return this.arrayConcat(spotMarkets, futureMarkets);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -547,7 +547,7 @@ public class Zebpay extends ZebpayApi
             //
             Object rows = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseCurrencies(rows);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -715,7 +715,7 @@ public class Zebpay extends ZebpayApi
                 data = this.safeDict(responseData, 0, new HashMap<String, Object>() {{}});
             }
             return this.parseTradingFee(data, market);
-        }).thenApply(TradingFeeInterface::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(TradingFeeInterface::new);
 
     }
 
@@ -771,7 +771,7 @@ public class Zebpay extends ZebpayApi
                 }
             }
             return result;
-        }).thenApply(TradingFees::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(TradingFees::new);
 
     }
 
@@ -829,7 +829,7 @@ public class Zebpay extends ZebpayApi
             Object orderbook = this.parseOrderBook(bookData, Helpers.GetValue(market, "symbol"), null, "bids", "asks", 0, 1);
             Helpers.addElementToObject(orderbook, "nonce", this.safeInteger(bookData, "nonce"));
             return orderbook;
-        }).thenApply(OrderBook::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OrderBook::new);
 
     }
 
@@ -867,7 +867,7 @@ public class Zebpay extends ZebpayApi
             }
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseTicker(data, market);
-        }).thenApply(Ticker::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Ticker::new);
 
     }
 
@@ -921,7 +921,7 @@ public class Zebpay extends ZebpayApi
             //
             Object tickerList = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTickers(tickerList, symbols);
-        }).thenApply(Tickers::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Tickers::new);
 
     }
 
@@ -1032,7 +1032,7 @@ public class Zebpay extends ZebpayApi
             //
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseOHLCVs(data, market, timeframe, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
 
     }
 
@@ -1090,7 +1090,7 @@ public class Zebpay extends ZebpayApi
             //
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(data, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -1138,7 +1138,7 @@ public class Zebpay extends ZebpayApi
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Object items = this.safeList(data, "items", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(items, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -1199,7 +1199,7 @@ public class Zebpay extends ZebpayApi
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             List<Object> trades = new ArrayList<Object>(Arrays.asList(data));
             return this.parseTrades(trades);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -1315,7 +1315,7 @@ public class Zebpay extends ZebpayApi
             //     }
             //
             return this.parseBalance(response);
-        }).thenApply(Balances::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Balances::new);
 
     }
 
@@ -1415,7 +1415,7 @@ public class Zebpay extends ZebpayApi
             //
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseOrder(data, market);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -1501,7 +1501,7 @@ public class Zebpay extends ZebpayApi
             //    }
             //
             return this.parseOrder(this.safeDict(response, "data", new HashMap<String, Object>() {{}}));
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -1546,7 +1546,7 @@ public class Zebpay extends ZebpayApi
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Object parsedOrder = this.parseOrder(data);
             return new ArrayList<Object>(Arrays.asList(parsedOrder));
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -1631,7 +1631,7 @@ public class Zebpay extends ZebpayApi
             //     }
             //
             return this.parseOrders(orders, market, null, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -1698,7 +1698,7 @@ public class Zebpay extends ZebpayApi
             //
             Object responseData = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseOrder(responseData, market);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -1792,7 +1792,7 @@ public class Zebpay extends ZebpayApi
             Map<String, Object> response = (this.privateSwapPostV1TradePositionClose(this.extend(request, parameters))).join();
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseOrder(data, market);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -1831,7 +1831,7 @@ public class Zebpay extends ZebpayApi
             //
             Object leveragePreferences = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseLeverages(leveragePreferences, symbols, "symbol");
-        }).thenApply(Leverages::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Leverages::new);
 
     }
 
@@ -1866,7 +1866,7 @@ public class Zebpay extends ZebpayApi
             //
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseLeverage(data, market);
-        }).thenApply(Leverage::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Leverage::new);
 
     }
 
@@ -1905,7 +1905,7 @@ public class Zebpay extends ZebpayApi
             //
             Map<String, Object> response = (this.privateSwapPostV1TradeUpdateUserLeverage(this.extend(request, parameters))).join();
             return response;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1951,7 +1951,7 @@ public class Zebpay extends ZebpayApi
             Object positions = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Object result = this.parsePositions(positions);
             return this.filterByArrayPositions(result, "symbol", symbols, false);
-        }).thenApply(res -> Helpers.toTypedList(res, Position::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Position::new));
 
     }
 
@@ -2006,7 +2006,7 @@ public class Zebpay extends ZebpayApi
                 put( "amount", amount );
                 put( "direction", "in" );
             }});
-        }).thenApply(MarginModification::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(MarginModification::new);
 
     }
 
@@ -2055,7 +2055,7 @@ public class Zebpay extends ZebpayApi
                 put( "amount", amount );
                 put( "direction", "out" );
             }});
-        }).thenApply(MarginModification::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(MarginModification::new);
 
     }
 
@@ -2138,7 +2138,7 @@ public class Zebpay extends ZebpayApi
                 }});
             }
             return result;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -2222,7 +2222,7 @@ public class Zebpay extends ZebpayApi
                 }}));
             }
             return result;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 

@@ -641,7 +641,7 @@ public class Bullish extends BullishApi
             //     }
             //
             return this.safeInteger(response, "timestamp");
-        }).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
 
     }
 
@@ -705,7 +705,7 @@ public class Bullish extends BullishApi
             //     ]
             //
             return this.parseCurrencies(response);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -760,7 +760,7 @@ public class Bullish extends BullishApi
             }
             List<Object> response = (this.publicGetV1Markets(parameters)).join();
             return this.parseMarkets(response);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1178,7 +1178,7 @@ public class Bullish extends BullishApi
             //
             Long timestamp = this.safeInteger(response, "timestamp");
             return this.parseOrderBook(response, symbol, timestamp, "bids", "asks", "price", "priceLevelQuantity");
-        }).thenApply(OrderBook::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OrderBook::new);
 
     }
 
@@ -1244,7 +1244,7 @@ public class Bullish extends BullishApi
             //     ]
             //
             return this.parseTrades(response, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -1327,7 +1327,7 @@ public class Bullish extends BullishApi
                 response = (this.privateGetV1HistoryTrades(this.extend(request, parameters))).join();
             }
             return this.parseTrades(response, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -1365,7 +1365,7 @@ public class Bullish extends BullishApi
                 }}, parameters);
             }
             return (this.fetchMyTrades((Object)(symbol), (Object)(since), (Object)(limit), (Object)(parameters))).join();
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -1532,7 +1532,7 @@ public class Bullish extends BullishApi
             //     }
             //
             return this.parseTicker(response, market);
-        }).thenApply(Ticker::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Ticker::new);
 
     }
 
@@ -1656,7 +1656,7 @@ public class Bullish extends BullishApi
                 }
             }
             return new ArrayList<Object>(Arrays.asList());
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1740,7 +1740,7 @@ public class Bullish extends BullishApi
             //
             List<Object> ohlcvs = this.toArray(response);
             return this.parseOHLCVs(ohlcvs, market, timeframe, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
 
     }
 
@@ -1831,7 +1831,7 @@ public class Bullish extends BullishApi
             }
             List<Object> sorted = this.sortBy(rates, "timestamp");
             return this.filterBySymbolSinceLimit(sorted, Helpers.GetValue(market, "symbol"), since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, FundingRateHistory::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, FundingRateHistory::new));
 
     }
 
@@ -1929,7 +1929,7 @@ public class Bullish extends BullishApi
                 throw new BadRequest(Helpers.add(this.id, " fetchOrders() method parameter must be either \"privateGetV2Orders\" or \"privateGetV2HistoryOrders\"")) ;
             }
             return this.parseOrders(response, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -2031,7 +2031,7 @@ public class Bullish extends BullishApi
                 put( "status", "OPEN" );
             }};
             return (this.fetchOrders((Object)(symbol), (Object)(since), (Object)(limit), (Object)(this.extend(request, parameters)))).join();
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -2061,7 +2061,7 @@ public class Bullish extends BullishApi
                 put( "method", "privateGetV2Orders" );
             }};
             return (this.fetchOrders((Object)(symbol), (Object)(since), (Object)(limit), (Object)(this.extend(request, parameters)))).join();
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -2091,7 +2091,7 @@ public class Bullish extends BullishApi
                 put( "method", "privateGetV2Orders" );
             }};
             return (this.fetchOrders((Object)(symbol), (Object)(since), (Object)(limit), (Object)(this.extend(request, parameters)))).join();
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -2121,7 +2121,7 @@ public class Bullish extends BullishApi
                 put( "method", "privateGetV2HistoryOrders" );
             }};
             return (this.fetchOrders((Object)(symbol), (Object)(since), (Object)(limit), (Object)(this.extend(request, parameters)))).join();
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -2183,7 +2183,7 @@ public class Bullish extends BullishApi
             //     }
             //
             return this.parseOrder(response, market);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -2263,7 +2263,7 @@ public class Bullish extends BullishApi
             //     }
             //
             return this.parseOrder(response, market);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -2325,7 +2325,7 @@ public class Bullish extends BullishApi
             }
             Map<String, Object> response = (this.privatePostV2Command(this.extend(request, parameters))).join();
             return this.parseOrder(response, market);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -2371,7 +2371,7 @@ public class Bullish extends BullishApi
             //     }
             //
             return this.parseOrder(response, market);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -2416,7 +2416,7 @@ public class Bullish extends BullishApi
             //
             List<Object> orders = new ArrayList<Object>(Arrays.asList(response));
             return this.parseOrders(orders, market);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -2630,7 +2630,7 @@ public class Bullish extends BullishApi
                 currency = this.currency(code);
             }
             return this.parseTransactions(data, currency, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
 
     }
 
@@ -2690,7 +2690,7 @@ public class Bullish extends BullishApi
             //     }
             //
             return this.parseTransaction(response, currency);
-        }).thenApply(Transaction::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Transaction::new);
 
     }
 
@@ -2823,7 +2823,7 @@ public class Bullish extends BullishApi
             }
             Helpers.addElementToObject(this.options, "tradingAccountId", tradingAccountId);
             return tradingAccountId;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -2923,7 +2923,7 @@ public class Bullish extends BullishApi
             //     ]
             //
             return this.parseAccounts(response, parameters);
-        }).thenApply(res -> Helpers.toTypedList(res, Account::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Account::new));
 
     }
 
@@ -3005,7 +3005,7 @@ public class Bullish extends BullishApi
                 }
             }
             return this.parseDepositAddress(data, currency);
-        }).thenApply(DepositAddress::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(DepositAddress::new);
 
     }
 
@@ -3074,7 +3074,7 @@ public class Bullish extends BullishApi
                 //
                 return this.parseBalance(response);
             }
-        }).thenApply(Balances::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Balances::new);
 
     }
 
@@ -3157,7 +3157,7 @@ public class Bullish extends BullishApi
             //
             Object results = this.parsePositions(response, symbols);
             return this.filterByArrayPositions(results, "symbol", symbols, false);
-        }).thenApply(res -> Helpers.toTypedList(res, Position::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Position::new));
 
     }
 
@@ -3304,7 +3304,7 @@ public class Bullish extends BullishApi
             //     ]
             //
             return this.parseTransfers(response, currency, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, TransferEntry::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, TransferEntry::new));
 
     }
 
@@ -3354,7 +3354,7 @@ public class Bullish extends BullishApi
                 Helpers.addElementToObject(transfer, "currency", code);
             }
             return transfer;
-        }).thenApply(TransferEntry::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(TransferEntry::new);
 
     }
 
@@ -3473,7 +3473,7 @@ public class Bullish extends BullishApi
             //     ]
             //
             return this.parseBorrowRateHistory(response, code, since, limit);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -3570,7 +3570,7 @@ public class Bullish extends BullishApi
             //     }
             //
             return this.parseOpenInterest(response, market);
-        }).thenApply(OpenInterest::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OpenInterest::new);
 
     }
 
@@ -3736,7 +3736,7 @@ public class Bullish extends BullishApi
             this.token = token;
             Helpers.addElementToObject(this.options, "tokenExpires", this.sum(this.milliseconds(), Helpers.multiply(Helpers.multiply(Helpers.multiply(1000, 60), 60), 24))); // token expires in 24 hours
             return token;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -3756,7 +3756,7 @@ public class Bullish extends BullishApi
             {
                 return this.token;
             }
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 

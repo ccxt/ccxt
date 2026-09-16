@@ -198,7 +198,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             }});
             Object url = this.getUrlByMarketType(Helpers.GetValue(market, "type"), Helpers.GetValue(market, "linear"));
             return (this.subscribePublic(url, symbol, messageHash, null, parameters)).join();
-        }).thenApply(Ticker::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Ticker::new);
 
     }
 
@@ -234,7 +234,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                 put( "marketId", Helpers.GetValue(market, "id") );
             }});
             return (this.unsubscribePublic(market, subMessageHash, topic, parameters)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -329,7 +329,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
             }
             return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -362,7 +362,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                 put( "marketId", Helpers.GetValue(market, "id") );
             }});
             return (this.unsubscribePublic(market, subMessageHash, topic, parameters)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -453,7 +453,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                 limit = Helpers.callDynamically(ohlcv, "getLimit", new Object[]{symbol, limit});
             }
             return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
-        }).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
 
     }
 
@@ -487,7 +487,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             Object topic = "ohlcv";
             Helpers.addElementToObject(parameters, "symbolsAndTimeframes", new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(Helpers.GetValue(market, "symbol"), timeframe)))));
             return (this.unsubscribePublic(market, subMessageHash, topic, parameters)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -594,7 +594,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             }
             Object orderbook = (this.subscribePublic(url, symbol, messageHash, method, parameters)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
-        }).thenApply(OrderBook::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OrderBook::new);
 
     }
 
@@ -637,7 +637,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                 Helpers.addElementToObject(parameters, "data_type", "incremental");
             }
             return (this.unsubscribePublic(market, subMessageHash, topic, parameters)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -789,7 +789,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                 client.reject(e, messageHash);
             }
             return null;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1102,7 +1102,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
             }
             return this.filterBySymbolSinceLimit(trades, symbol, since, limit, true);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -1257,7 +1257,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                 limit = Helpers.callDynamically(orders, "getLimit", new Object[]{symbol, limit});
             }
             return this.filterBySinceLimit(orders, since, limit, "timestamp", true);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -1917,7 +1917,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                 return newPositions;
             }
             return this.filterBySymbolsSinceLimit(this.safeValue(this.safeValue(this.positions, url), marginMode), symbols, since, limit, false);
-        }).thenApply(res -> Helpers.toTypedList(res, Position::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Position::new));
 
     }
 
@@ -2213,7 +2213,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             // "accounts.*" and "accounts" is returned so we're setting channel = "accounts.*" and
             // messageHash = "accounts" allowing handleBalance to freely resolve the topic in the message
             return (this.subscribePrivate(channel, messageHash, type, subType, parameters, subscriptionParams)).join();
-        }).thenApply(Balances::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Balances::new);
 
     }
 
@@ -2755,7 +2755,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                 client.reset(error);
             }
             return null;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -3332,7 +3332,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                 Helpers.addElementToObject(subscription, "method", method);
             }
             return (this.watch(url, messageHash, this.extend(request, parameters), messageHash, subscription)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -3373,7 +3373,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                 parameters = this.omit(parameters, "symbolsAndTimeframes");
             }
             return (this.watch(url, messageHash, this.extend(request, parameters), messageHash, subscription)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -3420,7 +3420,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             }};
             (this.authenticate(authParams)).join();
             return (this.watch(url, messageHash, this.extend(request, parameters), channel, extendedSubsription)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -3505,7 +3505,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                 this.watch(url, messageHash, request, messageHash, subscription);
             }
             return ((io.github.ccxt.ws.Future)future).getFuture().join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 }

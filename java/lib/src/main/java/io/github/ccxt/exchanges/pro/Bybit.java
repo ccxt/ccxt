@@ -270,7 +270,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             }
             url = this.implodeHostname(url);
             return url;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -336,7 +336,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
                 }} );
             }};
             return (this.watch(url, requestId, request, requestId, true)).join();
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -391,7 +391,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
                 }} );
             }};
             return (this.watch(url, requestId, request, requestId, true)).join();
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -441,7 +441,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
                 }} );
             }};
             return (this.watch(url, requestId, request, requestId, true)).join();
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -479,7 +479,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             topic = Helpers.add(topic, Helpers.add(".", Helpers.GetValue(market, "id")));
             Object topics = new ArrayList<Object>(Arrays.asList(topic));
             return (this.watchTopics(url, new ArrayList<Object>(Arrays.asList(messageHash)), topics, parameters)).join();
-        }).thenApply(Ticker::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Ticker::new);
 
     }
 
@@ -526,7 +526,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
                 return result;
             }
             return this.filterByArray(this.tickers, "symbol", symbols);
-        }).thenApply(Tickers::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Tickers::new);
 
     }
 
@@ -568,7 +568,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             }
             Object url = (this.getUrlByMarketType(Helpers.GetValue(symbols, 0), false, "watchTickers", parameters)).join();
             return (this.unWatchTopics(url, "ticker", symbols, messageHashes, subMessageHashes, topics, parameters)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -589,7 +589,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             return (this.unWatchTickers(new ArrayList<Object>(Arrays.asList(symbol)), parameters)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -784,7 +784,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
                 return ticker;
             }
             return this.filterByArray(this.bidsasks, "symbol", symbols);
-        }).thenApply(Tickers::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Tickers::new);
 
     }
 
@@ -833,7 +833,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             Helpers.addElementToObject(parameters, "callerMethodName", "watchOHLCV");
             Object result = (this.watchOHLCVForSymbols(new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(symbol, timeframe)))), since, limit, parameters)).join();
             return Helpers.GetValue(Helpers.GetValue(result, symbol), timeframe);
-        }).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
 
     }
 
@@ -887,7 +887,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             }
             List<Object> filtered = this.filterBySinceLimit(stored, since, limit, 0, true);
             return this.createOHLCVObject(symbol, timeframe, filtered);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -933,7 +933,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
                 put( "symbolsAndTimeframes", symbolsAndTimeframes );
             }};
             return (this.unWatchTopics(url, "ohlcv", symbols, messageHashes, subMessageHashes, rawHashes, parameters, subExtension)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -957,7 +957,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             Helpers.addElementToObject(parameters, "callerMethodName", "watchOHLCV");
             return (this.unWatchOHLCVForSymbols(new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(symbol, timeframe)))), parameters)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1062,7 +1062,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             Object limit = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             return (this.watchOrderBookForSymbols((Object)(new ArrayList<Object>(Arrays.asList(symbol))), (Object)(limit), (Object)(parameters))).join();
-        }).thenApply(OrderBook::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OrderBook::new);
 
     }
 
@@ -1129,7 +1129,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             }
             Object orderbook = (this.watchTopics(url, messageHashes, topics, parameters)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
-        }).thenApply(OrderBook::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OrderBook::new);
 
     }
 
@@ -1180,7 +1180,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             }
             Object url = (this.getUrlByMarketType(Helpers.GetValue(symbols, 0), false, "watchOrderBook", parameters)).join();
             return (this.unWatchTopics(url, "orderbook", symbols, messageHashes, subMessageHashes, topics, parameters)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1201,7 +1201,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             return (this.unWatchOrderBookForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), parameters)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1317,7 +1317,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             Object limit = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
             return (this.watchTradesForSymbols((Object)(new ArrayList<Object>(Arrays.asList(symbol))), (Object)(since), (Object)(limit), (Object)(parameters))).join();
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -1371,7 +1371,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{tradeSymbol, limit});
             }
             return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -1410,7 +1410,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
                 ((List<Object>)subMessageHashes).add(Helpers.add("trade:", symbol));
             }
             return (this.unWatchTopics(url, "trades", symbols, messageHashes, subMessageHashes, topics, parameters)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1430,7 +1430,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             return (this.unWatchTradesForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), parameters)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1628,7 +1628,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
             }
             return this.filterBySymbolSinceLimit(trades, symbol, since, limit, true);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -1679,7 +1679,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
                 topic = "execution.fast";
             }
             return (this.unWatchTopics(url, "myTrades", new ArrayList<Object>(Arrays.asList()), new ArrayList<Object>(Arrays.asList(messageHash)), new ArrayList<Object>(Arrays.asList(subHash)), new ArrayList<Object>(Arrays.asList(topic)), parameters)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1895,7 +1895,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
                 return newPositions;
             }
             return this.filterBySymbolsSinceLimit(cache, symbols, since, limit, true);
-        }).thenApply(res -> Helpers.toTypedList(res, Position::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Position::new));
 
     }
 
@@ -1954,7 +1954,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
                 client.resolve(cache, "position");
             }
             return null;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -2076,7 +2076,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             (this.authenticate(url)).join();
             Object topics = new ArrayList<Object>(Arrays.asList("position"));
             return (this.unWatchTopics(url, "positions", symbols, new ArrayList<Object>(Arrays.asList(messageHash)), new ArrayList<Object>(Arrays.asList(subHash)), topics, parameters)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -2120,7 +2120,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
                 return newLiquidation;
             }
             return this.filterBySymbolsSinceLimit(this.liquidations, new ArrayList<Object>(Arrays.asList(symbol)), since, limit, true);
-        }).thenApply(res -> Helpers.toTypedList(res, Liquidation::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Liquidation::new));
 
     }
 
@@ -2277,7 +2277,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
                 limit = Helpers.callDynamically(orders, "getLimit", new Object[]{symbol, limit});
             }
             return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -2318,7 +2318,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             }};
             Object topics = this.safeValue(topicsByMarket, this.getPrivateType(url));
             return (this.unWatchTopics(url, "orders", new ArrayList<Object>(Arrays.asList()), new ArrayList<Object>(Arrays.asList(messageHash)), new ArrayList<Object>(Arrays.asList(subHash)), topics, parameters)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -2554,7 +2554,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             }
             Object topics = new ArrayList<Object>(Arrays.asList(this.safeValue(topicByMarket, this.getPrivateType(url))));
             return (this.watchTopics(url, new ArrayList<Object>(Arrays.asList(messageHash)), topics, parameters)).join();
-        }).thenApply(Balances::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Balances::new);
 
     }
 
@@ -2843,7 +2843,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             }};
             Map<String, Object> message = this.extend(request, parameters);
             return (this.watchMultiple(url, messageHashes, message, messageHashes, null)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -2869,7 +2869,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             }};
             Map<String, Object> message = this.extend(request, parameters);
             return (this.watchMultiple(url, messageHashes, message, messageHashes, this.extend(subscription, subExtension))).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -2899,7 +2899,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
                 this.watch(url, messageHash, message, messageHash, null);
             }
             return ((io.github.ccxt.ws.Future)future).getFuture().join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 

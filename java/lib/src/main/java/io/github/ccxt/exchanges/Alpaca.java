@@ -691,7 +691,7 @@ public class Alpaca extends AlpacaApi
             Object jetlag = Helpers.slice(timestamp, jetlagStrStart, jetlagStrEnd);
             Object iso = Helpers.subtract(this.parseToInt(this.parse8601(localTime)), Helpers.multiply(Helpers.multiply(this.parseToNumeric(jetlag), 3600), 1000));
             return iso;
-        }).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
 
     }
 
@@ -737,7 +737,7 @@ public class Alpaca extends AlpacaApi
             //     ]
             //
             return this.parseMarkets(assets);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -942,7 +942,7 @@ public class Alpaca extends AlpacaApi
                 symbolTradesList = symbolTrades;
             }
             return this.parseTrades(symbolTradesList, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -1017,7 +1017,7 @@ public class Alpaca extends AlpacaApi
             Object rawOrderbook = this.safeDict(orderbooks, id, new HashMap<String, Object>() {{}});
             Long timestamp = this.parse8601(this.safeString(rawOrderbook, "t"));
             return this.parseOrderBook(rawOrderbook, Helpers.GetValue(market, "symbol"), timestamp, "b", "a", "p", "s");
-        }).thenApply(OrderBook::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OrderBook::new);
 
     }
 
@@ -1170,7 +1170,7 @@ public class Alpaca extends AlpacaApi
                 throw new NotSupported(Helpers.add(Helpers.add(Helpers.add(this.id, " fetchOHLCV() does not support "), method), ", marketPublicGetV1beta3CryptoLocBars and marketPublicGetV1beta3CryptoLocLatestBars are supported")) ;
             }
             return this.parseOHLCVs(ohlcvs, market, timeframe, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
 
     }
 
@@ -1217,7 +1217,7 @@ public class Alpaca extends AlpacaApi
             symbol = this.symbol(symbol);
             Object tickers = (this.fetchTickers((Object)(new ArrayList<Object>(Arrays.asList(symbol))), (Object)(parameters))).join();
             return this.safeDict(tickers, symbol);
-        }).thenApply(Ticker::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Ticker::new);
 
     }
 
@@ -1347,7 +1347,7 @@ public class Alpaca extends AlpacaApi
                 ((List<Object>)results).add(ticker);
             }
             return this.filterByArray(results, "symbol", symbols);
-        }).thenApply(Tickers::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Tickers::new);
 
     }
 
@@ -1389,7 +1389,7 @@ public class Alpaca extends AlpacaApi
                 put( "cost", cost );
             }};
             return (this.createOrder((Object)(symbol), (Object)("market"), (Object)(side), (Object)(0), (Object)(null), (Object)(this.extend(req, parameters)))).join();
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -1417,7 +1417,7 @@ public class Alpaca extends AlpacaApi
                 put( "cost", cost );
             }};
             return (this.createOrder((Object)(symbol), (Object)("market"), (Object)("buy"), (Object)(0), (Object)(null), (Object)(this.extend(req, parameters)))).join();
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -1445,7 +1445,7 @@ public class Alpaca extends AlpacaApi
                 put( "cost", cost );
             }};
             return (this.createOrder((Object)(symbol), (Object)("market"), (Object)("sell"), (Object)(cost), (Object)(null), (Object)(this.extend(req, parameters)))).join();
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -1561,7 +1561,7 @@ public class Alpaca extends AlpacaApi
             //   }
             //
             return this.parseOrder(order, market);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -1593,7 +1593,7 @@ public class Alpaca extends AlpacaApi
             //   }
             //
             return this.parseOrder(response);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -1627,7 +1627,7 @@ public class Alpaca extends AlpacaApi
         put( "info", response );
     }})));
             }
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -1659,7 +1659,7 @@ public class Alpaca extends AlpacaApi
             String marketId = this.safeString(order, "symbol");
             Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
             return this.parseOrder(order, market);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -1760,7 +1760,7 @@ public class Alpaca extends AlpacaApi
             //     ]
             //
             return this.parseOrders(response, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -1790,7 +1790,7 @@ public class Alpaca extends AlpacaApi
                 put( "status", "open" );
             }};
             return (this.fetchOrders((Object)(symbol), (Object)(since), (Object)(limit), (Object)(this.extend(request, parameters)))).join();
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -1820,7 +1820,7 @@ public class Alpaca extends AlpacaApi
                 put( "status", "closed" );
             }};
             return (this.fetchOrders((Object)(symbol), (Object)(since), (Object)(limit), (Object)(this.extend(request, parameters)))).join();
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -1888,7 +1888,7 @@ public class Alpaca extends AlpacaApi
             parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId")));
             Map<String, Object> response = (this.traderPrivatePatchV2OrdersOrderId(this.extend(request, parameters))).join();
             return this.parseOrder(response, market);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -1966,7 +1966,7 @@ public class Alpaca extends AlpacaApi
             put( "clientOrderId", Alpaca.this.safeString(order, "client_order_id") );
             put( "timestamp", timestamp );
             put( "datetime", datetime );
-            put( "lastTradeTimeStamp", null );
+            put( "lastTradeTimestamp", Alpaca.this.parse8601(Alpaca.this.safeString(order, "filled_at")) );
             put( "status", status );
             put( "symbol", symbol );
             put( "type", finalOrderType );
@@ -1991,10 +1991,22 @@ public class Alpaca extends AlpacaApi
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "pending_new", "open" );
             put( "accepted", "open" );
+            put( "accepted_for_bidding", "open" );
             put( "new", "open" );
             put( "partially_filled", "open" );
             put( "activated", "open" );
+            put( "done_for_day", "open" );
+            put( "stopped", "open" );
+            put( "suspended", "open" );
+            put( "held", "open" );
+            put( "pending_replace", "open" );
+            put( "pending_cancel", "canceling" );
             put( "filled", "closed" );
+            put( "calculated", "closed" );
+            put( "canceled", "canceled" );
+            put( "replaced", "canceled" );
+            put( "expired", "expired" );
+            put( "rejected", "rejected" );
         }};
         return this.safeString(statuses, status, status);
     }
@@ -2082,7 +2094,7 @@ public class Alpaca extends AlpacaApi
             //     ]
             //
             return this.parseTrades(response, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -2184,7 +2196,7 @@ public class Alpaca extends AlpacaApi
             //     }
             //
             return this.parseDepositAddress(response, currency);
-        }).thenApply(DepositAddress::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(DepositAddress::new);
 
     }
 
@@ -2270,7 +2282,7 @@ public class Alpaca extends AlpacaApi
             //     }
             //
             return this.parseTransaction(response, currency);
-        }).thenApply(Transaction::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Transaction::new);
 
     }
 
@@ -2374,7 +2386,7 @@ public class Alpaca extends AlpacaApi
                 }
             }
             return this.parseTransactions(results, currency, since, limit, parameters);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -2399,7 +2411,7 @@ public class Alpaca extends AlpacaApi
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             return (this.fetchTransactionsHelper("BOTH", code, since, limit, parameters)).join();
-        }).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
 
     }
 
@@ -2424,7 +2436,7 @@ public class Alpaca extends AlpacaApi
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             return (this.fetchTransactionsHelper("INCOMING", code, since, limit, parameters)).join();
-        }).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
 
     }
 
@@ -2449,7 +2461,7 @@ public class Alpaca extends AlpacaApi
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             return (this.fetchTransactionsHelper("OUTGOING", code, since, limit, parameters)).join();
-        }).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
 
     }
 
@@ -2676,7 +2688,7 @@ public class Alpaca extends AlpacaApi
             //     }
             //
             return this.parseBalance(response);
-        }).thenApply(Balances::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Balances::new);
 
     }
 

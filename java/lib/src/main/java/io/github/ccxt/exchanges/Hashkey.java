@@ -796,7 +796,7 @@ public class Hashkey extends HashkeyApi
             //     }
             //
             return this.safeInteger(response, "serverTime");
-        }).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
 
     }
 
@@ -825,7 +825,7 @@ public class Hashkey extends HashkeyApi
                 put( "url", null );
                 put( "info", response );
             }};
-        }).thenApply(Status::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Status::new);
 
     }
 
@@ -1029,7 +1029,7 @@ public class Hashkey extends HashkeyApi
                 markets = new ArrayList<Object>(Arrays.asList(response)); // if user provides params.symbol the exchange returns a single object instead of list of objects
             }
             return this.parseMarkets(markets);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1370,7 +1370,7 @@ public class Hashkey extends HashkeyApi
             //     }
             //
             return this.parseCurrencies(coins);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1484,7 +1484,7 @@ public class Hashkey extends HashkeyApi
             //
             Long timestamp = this.safeInteger(response, "t");
             return this.parseOrderBook(response, symbol, timestamp, "b", "a");
-        }).thenApply(OrderBook::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OrderBook::new);
 
     }
 
@@ -1532,7 +1532,7 @@ public class Hashkey extends HashkeyApi
             //     ]
             //
             return this.parseTrades(response, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -1631,7 +1631,7 @@ public class Hashkey extends HashkeyApi
                 throw new NotSupported(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " "), methodName), "() is not supported for "), marketType), " type of markets")) ;
             }
             return this.parseTrades(response, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -1834,7 +1834,7 @@ public class Hashkey extends HashkeyApi
             //
             List<Object> ohlcvs = this.toArray(response);
             return this.parseOHLCVs(ohlcvs, market, timeframe, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
 
     }
 
@@ -1899,7 +1899,7 @@ public class Hashkey extends HashkeyApi
             //
             Object ticker = this.safeDict(response, 0, new HashMap<String, Object>() {{}});
             return this.parseTicker(ticker, market);
-        }).thenApply(Ticker::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Ticker::new);
 
     }
 
@@ -1926,7 +1926,7 @@ public class Hashkey extends HashkeyApi
             symbols = this.marketSymbols(symbols);
             List<Object> response = (this.publicGetQuoteV1Ticker24hr(parameters)).join();
             return this.parseTickers(response, symbols);
-        }).thenApply(Tickers::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Tickers::new);
 
     }
 
@@ -2017,7 +2017,7 @@ public class Hashkey extends HashkeyApi
             //     ]
             //
             return this.parseLastPrices(response, symbols);
-        }).thenApply(LastPrices::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(LastPrices::new);
 
     }
 
@@ -2104,7 +2104,7 @@ public class Hashkey extends HashkeyApi
             {
                 throw new NotSupported(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " "), methodName), "() is not supported for "), marketType), " type of markets")) ;
             }
-        }).thenApply(Balances::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Balances::new);
 
     }
 
@@ -2225,7 +2225,7 @@ public class Hashkey extends HashkeyApi
             Object depositAddress = this.parseDepositAddress(response, currency);
             Helpers.addElementToObject(depositAddress, "network", networkCode);
             return depositAddress;
-        }).thenApply(DepositAddress::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(DepositAddress::new);
 
     }
 
@@ -2329,7 +2329,7 @@ public class Hashkey extends HashkeyApi
             return this.parseTransactions(response, currency, since, limit, new HashMap<String, Object>() {{
                 put( "type", "deposit" );
             }});
-        }).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
 
     }
 
@@ -2407,7 +2407,7 @@ public class Hashkey extends HashkeyApi
             return this.parseTransactions(response, currency, since, limit, new HashMap<String, Object>() {{
                 put( "type", "withdrawal" );
             }});
-        }).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
 
     }
 
@@ -2468,7 +2468,7 @@ public class Hashkey extends HashkeyApi
             //     }
             //
             return this.parseTransaction(response, currency);
-        }).thenApply(Transaction::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Transaction::new);
 
     }
 
@@ -2634,7 +2634,7 @@ public class Hashkey extends HashkeyApi
             //     }
             //
             return this.parseTransfer(response, currency);
-        }).thenApply(TransferEntry::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(TransferEntry::new);
 
     }
 
@@ -2694,7 +2694,7 @@ public class Hashkey extends HashkeyApi
             //     ]
             //
             return this.parseAccounts(response, parameters);
-        }).thenApply(res -> Helpers.toTypedList(res, Account::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Account::new));
 
     }
 
@@ -2836,7 +2836,7 @@ public class Hashkey extends HashkeyApi
             //     ]
             //
             return this.parseLedger(response, currency, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, LedgerEntry::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, LedgerEntry::new));
 
     }
 
@@ -2951,7 +2951,7 @@ public class Hashkey extends HashkeyApi
             {
                 throw new NotSupported(Helpers.add(Helpers.add(Helpers.add(this.id, " createOrder() is not supported for "), Helpers.GetValue(market, "type")), " type of markets")) ;
             }
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -2983,7 +2983,7 @@ public class Hashkey extends HashkeyApi
                 put( "cost", cost );
             }};
             return (this.createOrder((Object)(symbol), (Object)("market"), (Object)("buy"), (Object)(cost), (Object)(null), (Object)(this.extend(req, parameters)))).join();
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -3046,7 +3046,7 @@ public class Hashkey extends HashkeyApi
                 response = (this.privatePostApiV1SpotOrder(request)).join(); // the endpoint for market buy orders by cost and other orders
             }
             return this.parseOrder(response, market);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -3282,7 +3282,7 @@ public class Hashkey extends HashkeyApi
             //     }
             //
             return this.parseOrder(response, market);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -3350,7 +3350,7 @@ public class Hashkey extends HashkeyApi
                 ((List<Object>)responseOrders).add(responseOrder);
             }
             return this.parseOrders(responseOrders);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -3424,7 +3424,7 @@ public class Hashkey extends HashkeyApi
                 throw new NotSupported(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " "), methodName), "() is not supported for "), marketType), " type of markets")) ;
             }
             return this.parseOrder(response);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -3479,7 +3479,7 @@ public class Hashkey extends HashkeyApi
             Object order = this.safeOrder(response);
             Helpers.addElementToObject(order, "info", response);
             return new ArrayList<Object>(Arrays.asList(order));
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -3533,7 +3533,7 @@ public class Hashkey extends HashkeyApi
             Object order = this.safeOrder(response);
             Helpers.addElementToObject(order, "info", response);
             return new ArrayList<Object>(Arrays.asList(order));
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -3608,7 +3608,7 @@ public class Hashkey extends HashkeyApi
                 throw new NotSupported(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " "), methodName), "() is not supported for "), marketType), " type of markets")) ;
             }
             return this.parseOrder(response);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -3670,7 +3670,7 @@ public class Hashkey extends HashkeyApi
             {
                 throw new NotSupported(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " "), methodName), "() is not supported for "), marketType), " type of markets")) ;
             }
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -3732,7 +3732,7 @@ public class Hashkey extends HashkeyApi
                 response = (this.privateGetApiV1SpotOpenOrders(this.extend(request, parameters))).join();
             }
             return this.parseOrders(response, market, since, limit);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -3803,7 +3803,7 @@ public class Hashkey extends HashkeyApi
                 response = (this.privateGetApiV1FuturesOpenOrders(this.extend(request, parameters))).join();
             }
             return this.parseOrders(response, market, since, limit);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -3916,7 +3916,7 @@ public class Hashkey extends HashkeyApi
                 throw new NotSupported(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " "), methodName), "() is not supported for "), marketType), " type of markets")) ;
             }
             return this.parseOrders(response, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -4229,7 +4229,7 @@ public class Hashkey extends HashkeyApi
             //
             Object rate = this.safeDict(response, 0, new HashMap<String, Object>() {{}});
             return this.parseFundingRate(rate, market);
-        }).thenApply(FundingRate::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(FundingRate::new);
 
     }
 
@@ -4265,7 +4265,7 @@ public class Hashkey extends HashkeyApi
             //     ]
             //
             return this.parseFundingRates(response, symbols);
-        }).thenApply(FundingRates::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(FundingRates::new);
 
     }
 
@@ -4372,7 +4372,7 @@ public class Hashkey extends HashkeyApi
             }
             List<Object> sorted = this.sortBy(rates, "timestamp");
             return this.filterBySinceLimit(sorted, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, FundingRateHistory::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, FundingRateHistory::new));
 
     }
 
@@ -4413,7 +4413,7 @@ public class Hashkey extends HashkeyApi
             return (this.fetchPositionsForSymbol((Object)(Helpers.GetValue(symbols, 0)), (Object)(this.extend(new HashMap<String, Object>() {{
                 put( "methodName", "fetchPositions" );
             }}, parameters)))).join();
-        }).thenApply(res -> Helpers.toTypedList(res, Position::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Position::new));
 
     }
 
@@ -4473,7 +4473,7 @@ public class Hashkey extends HashkeyApi
             //     ]
             //
             return this.parsePositions(response, new ArrayList<Object>(Arrays.asList(symbol)));
-        }).thenApply(res -> Helpers.toTypedList(res, Position::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Position::new));
 
     }
 
@@ -4550,7 +4550,7 @@ public class Hashkey extends HashkeyApi
             //
             Object leverage = this.safeDict(response, 0, new HashMap<String, Object>() {{}});
             return this.parseLeverage(leverage, market);
-        }).thenApply(Leverage::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Leverage::new);
 
     }
 
@@ -4607,7 +4607,7 @@ public class Hashkey extends HashkeyApi
             //     }
             //
             return this.parseLeverage(response, market);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -4656,7 +4656,7 @@ public class Hashkey extends HashkeyApi
                 put( "marginType", finalMarginMode );
             }};
             return (this.privatePostApiV1FuturesMarginType(this.extend(request, parameters))).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -4678,7 +4678,7 @@ public class Hashkey extends HashkeyApi
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             return (this.modifyMarginHelper(symbol, amount, "add", parameters)).join();
-        }).thenApply(MarginModification::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(MarginModification::new);
 
     }
 
@@ -4700,7 +4700,7 @@ public class Hashkey extends HashkeyApi
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             return (this.modifyMarginHelper(symbol, amount, "reduce", parameters)).join();
-        }).thenApply(MarginModification::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(MarginModification::new);
 
     }
 
@@ -4758,7 +4758,7 @@ public class Hashkey extends HashkeyApi
                 put( "type", finalType );
                 put( "amount", amount );
             }});
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -4810,7 +4810,7 @@ public class Hashkey extends HashkeyApi
             Object data = this.safeList(response, "contracts", new ArrayList<Object>(Arrays.asList()));
             symbols = this.marketSymbols(symbols);
             return this.parseLeverageTiers(data, symbols, "symbol");
-        }).thenApply(LeverageTiers::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(LeverageTiers::new);
 
     }
 
@@ -4955,7 +4955,7 @@ final Object finalI = i;
             {
                 throw new NotSupported(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " "), methodName), "() is not supported for "), Helpers.GetValue(market, "type")), " type of markets")) ;
             }
-        }).thenApply(TradingFeeInterface::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(TradingFeeInterface::new);
 
     }
 
@@ -5009,7 +5009,7 @@ final Object finalI = i;
                 Helpers.addElementToObject(result, ((String)Helpers.GetValue(parsedFee, "symbol")), parsedFee);
             }
             return result;
-        }).thenApply(TradingFees::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(TradingFees::new);
 
     }
 

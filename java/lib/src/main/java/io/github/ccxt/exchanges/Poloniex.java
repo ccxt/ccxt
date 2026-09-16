@@ -975,7 +975,7 @@ public class Poloniex extends PoloniexApi
                 candles = response;
             }
             return this.parseOHLCVs(candles, market, timeframe, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
 
     }
 
@@ -993,7 +993,7 @@ public class Poloniex extends PoloniexApi
                 Helpers.addElementToObject(this.options, "currenciesByNumericId", this.indexBy(this.currencies, "numericId"));
             }
             return markets;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1015,7 +1015,7 @@ public class Poloniex extends PoloniexApi
             List<Object> promises = new ArrayList<Object>(Arrays.asList(this.fetchSpotMarkets(parameters), this.fetchSwapMarkets(parameters)));
             Object results = (Helpers.promiseAll(promises)).join();
             return this.arrayConcat(Helpers.GetValue(results, 0), Helpers.GetValue(results, 1));
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1050,7 +1050,7 @@ public class Poloniex extends PoloniexApi
             //     ]
             //
             return this.parseMarkets(markets);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1102,7 +1102,7 @@ public class Poloniex extends PoloniexApi
             //
             Object markets = this.safeList(response, "data");
             return this.parseMarkets(markets);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1310,7 +1310,7 @@ public class Poloniex extends PoloniexApi
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Map<String, Object> response = (this.publicGetTimestamp(parameters)).join();
             return this.safeInteger(response, "serverTime");
-        }).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
 
     }
 
@@ -1498,7 +1498,7 @@ public class Poloniex extends PoloniexApi
             //     ]
             //
             return this.parseTickers(response, symbols);
-        }).thenApply(Tickers::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Tickers::new);
 
     }
 
@@ -1547,7 +1547,7 @@ public class Poloniex extends PoloniexApi
             //        },
             //
             return this.parseCurrencies(response);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1657,7 +1657,7 @@ public class Poloniex extends PoloniexApi
             //     }
             //
             return this.parseTicker(response, market);
-        }).thenApply(Ticker::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Ticker::new);
 
     }
 
@@ -1864,7 +1864,7 @@ public class Poloniex extends PoloniexApi
             //     ]
             //
             return this.parseTrades(trades, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -1989,7 +1989,7 @@ public class Poloniex extends PoloniexApi
             //
             List<Object> result = this.parseTrades(response, market, since, limit);
             return result;
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -2343,7 +2343,7 @@ public class Poloniex extends PoloniexApi
                 put( "status", "open" );
             }};
             return this.parseOrders(response, market, since, limit, extension);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -2438,7 +2438,7 @@ public class Poloniex extends PoloniexApi
             //
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(data, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -2498,7 +2498,7 @@ public class Poloniex extends PoloniexApi
             //     }
             //
             return this.parseOrder(response, market);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -2665,7 +2665,7 @@ public class Poloniex extends PoloniexApi
                 put( "type", type );
             }});
             return this.parseOrder(response, market);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -2738,7 +2738,7 @@ public class Poloniex extends PoloniexApi
             //   }
             //
             return this.parseOrder(response);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -2823,7 +2823,7 @@ public class Poloniex extends PoloniexApi
             //     ]
             //
             return this.parseOrders(response, market);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -2901,7 +2901,7 @@ public class Poloniex extends PoloniexApi
             Object order = this.parseOrder(response);
             Helpers.addElementToObject(order, "id", id);
             return order;
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -2916,7 +2916,7 @@ public class Poloniex extends PoloniexApi
             Object orders = (this.fetchOpenOrders((Object)(symbol), (Object)(null), (Object)(null), (Object)(parameters))).join();
             Map<String, Object> indexed = this.indexBy(orders, "id");
             return ((Helpers.isTrue((Helpers.inOp(indexed, id))))) ? "open" : "closed";
-        }).thenApply(res -> (String) res);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> (String) res);
 
     }
 
@@ -2968,7 +2968,7 @@ public class Poloniex extends PoloniexApi
             //     ]
             //
             return this.parseTrades(trades);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -3107,7 +3107,7 @@ public class Poloniex extends PoloniexApi
             //     ]
             //
             return this.parseBalance(response);
-        }).thenApply(Balances::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Balances::new);
 
     }
 
@@ -3150,7 +3150,7 @@ public class Poloniex extends PoloniexApi
     }});
             }
             return result;
-        }).thenApply(TradingFees::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(TradingFees::new);
 
     }
 
@@ -3245,7 +3245,7 @@ public class Poloniex extends PoloniexApi
                 put( "datetime", Poloniex.this.iso8601(timestamp) );
                 put( "nonce", null );
             }};
-        }).thenApply(OrderBook::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OrderBook::new);
 
     }
 
@@ -3278,7 +3278,7 @@ public class Poloniex extends PoloniexApi
             //     }
             //
             return this.parseDepositAddressSpecial(response, currency, networkEntry);
-        }).thenApply(DepositAddress::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(DepositAddress::new);
 
     }
 
@@ -3317,7 +3317,7 @@ public class Poloniex extends PoloniexApi
                 throw new ExchangeError(Helpers.add(this.id, " fetchDepositAddress() returned an empty response, you might need to try \"createDepositAddress\" at first and then use \"fetchDepositAddress\"")) ;
             }
             return this.parseDepositAddressSpecial(response, currency, networkEntry);
-        }).thenApply(DepositAddress::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(DepositAddress::new);
 
     }
 
@@ -3420,7 +3420,7 @@ public class Poloniex extends PoloniexApi
             //    }
             //
             return this.parseTransfer(response, currency);
-        }).thenApply(TransferEntry::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(TransferEntry::new);
 
     }
 
@@ -3496,7 +3496,7 @@ public class Poloniex extends PoloniexApi
             //     }
             //
             return this.parseTransaction(response, currency);
-        }).thenApply(Transaction::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Transaction::new);
 
     }
 
@@ -3591,7 +3591,7 @@ public class Poloniex extends PoloniexApi
             //     }
             //
             return response;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -3628,7 +3628,7 @@ public class Poloniex extends PoloniexApi
             List<Object> depositTransactions = this.parseTransactions(deposits, currency, since, limit);
             List<Object> transactions = (List<Object>) this.arrayConcat(depositTransactions, withdrawalTransactions);
             return this.filterByCurrencySinceLimit(this.sortBy(transactions, "timestamp"), code, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
 
     }
 
@@ -3661,7 +3661,7 @@ public class Poloniex extends PoloniexApi
             Object withdrawals = this.safeValue(response, "withdrawals", new ArrayList<Object>(Arrays.asList()));
             List<Object> transactions = this.parseTransactions(withdrawals, currency, since, limit);
             return this.filterByCurrencySinceLimit(transactions, code, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
 
     }
 
@@ -3722,7 +3722,7 @@ public class Poloniex extends PoloniexApi
                 Helpers.addElementToObject(data, currencyId, Helpers.GetValue(entry, currencyId));
             }
             return this.parseDepositWithdrawFees(data, codes);
-        }).thenApply(DepositWithdrawFees::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(DepositWithdrawFees::new);
 
     }
 
@@ -3856,7 +3856,7 @@ public class Poloniex extends PoloniexApi
             Object deposits = this.safeValue(response, "deposits", new ArrayList<Object>(Arrays.asList()));
             List<Object> transactions = this.parseTransactions(deposits, currency, since, limit);
             return this.filterByCurrencySinceLimit(transactions, code, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
 
     }
 
@@ -4017,7 +4017,7 @@ public class Poloniex extends PoloniexApi
             }};
             Map<String, Object> response = (this.swapPrivatePostV3PositionLeverage(this.extend(request, parameters))).join();
             return response;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -4089,7 +4089,7 @@ public class Poloniex extends PoloniexApi
             //    }
             //
             return this.parseLeverage(response, market);
-        }).thenApply(Leverage::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Leverage::new);
 
     }
 
@@ -4168,7 +4168,7 @@ public class Poloniex extends PoloniexApi
                 put( "info", response );
                 put( "hedged", hedged );
             }};
-        }).thenApply(PositionModeInfo::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(PositionModeInfo::new);
 
     }
 
@@ -4202,7 +4202,7 @@ public class Poloniex extends PoloniexApi
             //    }
             //
             return response;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -4263,7 +4263,7 @@ public class Poloniex extends PoloniexApi
             //
             Object positions = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parsePositions(positions, symbols);
-        }).thenApply(res -> Helpers.toTypedList(res, Position::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Position::new));
 
     }
 
@@ -4385,7 +4385,7 @@ public class Poloniex extends PoloniexApi
             }
             Object data = this.safeDict(response, "data");
             return this.parseMarginModification(data, market);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -4427,7 +4427,7 @@ public class Poloniex extends PoloniexApi
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             return (this.modifyMarginHelper(symbol, Helpers.opNeg(amount), "reduce", parameters)).join();
-        }).thenApply(MarginModification::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(MarginModification::new);
 
     }
 
@@ -4447,7 +4447,7 @@ public class Poloniex extends PoloniexApi
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             return (this.modifyMarginHelper(symbol, amount, "add", parameters)).join();
-        }).thenApply(MarginModification::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(MarginModification::new);
 
     }
 

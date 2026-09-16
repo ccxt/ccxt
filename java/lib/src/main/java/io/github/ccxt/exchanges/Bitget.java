@@ -3697,7 +3697,7 @@ public class Bitget extends BitgetApi
                 return new ArrayList<Object>(Arrays.asList(accountIsUTa, parameters));
             }
             return new ArrayList<Object>(Arrays.asList(defaultValue, parameters));
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -3728,7 +3728,7 @@ public class Bitget extends BitgetApi
             //
             Object data = this.safeValue(response, "data", new HashMap<String, Object>() {{}});
             return this.safeInteger(data, "serverTime");
-        }).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
 
     }
 
@@ -3763,7 +3763,7 @@ public class Bitget extends BitgetApi
                 return (this.fetchUtaMarkets(parameters)).join();
             }
             return (this.fetchDefaultMarkets(parameters)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -4086,7 +4086,7 @@ public class Bitget extends BitgetApi
                 }}));
             }
             return result;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -4372,7 +4372,7 @@ public class Bitget extends BitgetApi
                 }}));
             }
             return result;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -4426,7 +4426,7 @@ public class Bitget extends BitgetApi
             //
             Object data = this.safeValue(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseCurrencies(data);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -4669,7 +4669,7 @@ public class Bitget extends BitgetApi
             //
             Object result = this.safeValue(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseMarketLeverageTiers(result, market);
-        }).thenApply(res -> Helpers.toTypedList(res, LeverageTier::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, LeverageTier::new));
 
     }
 
@@ -4883,7 +4883,7 @@ final Object finalMinNotional = minNotional;
             //
             Object rawTransactions = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTransactions(rawTransactions, null, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
 
     }
 
@@ -4974,7 +4974,7 @@ final Object finalMinNotional = minNotional;
                 Helpers.addElementToObject(result, "network", networkCode);
             }
             return result;
-        }).thenApply(Transaction::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Transaction::new);
 
     }
 
@@ -5117,7 +5117,7 @@ final Object finalMinNotional = minNotional;
             //
             Object rawTransactions = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTransactions(rawTransactions, currency, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
 
     }
 
@@ -5313,7 +5313,7 @@ final Object finalMinNotional = minNotional;
             //
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseDepositAddress(data, currency);
-        }).thenApply(DepositAddress::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(DepositAddress::new);
 
     }
 
@@ -5430,7 +5430,7 @@ final Object finalMinNotional = minNotional;
             String asksKey = ((Helpers.isTrue((Helpers.isEqual(uta, true))))) ? "a" : "asks";
             Long timestamp = this.safeInteger(data, "ts");
             return this.parseOrderBook(data, Helpers.GetValue(market, "symbol"), timestamp, bidsKey, asksKey);
-        }).thenApply(OrderBook::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OrderBook::new);
 
     }
 
@@ -5755,7 +5755,7 @@ final Object finalMinNotional = minNotional;
             //
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTicker(Helpers.GetValue(data, 0), market);
-        }).thenApply(Ticker::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Ticker::new);
 
     }
 
@@ -5797,7 +5797,7 @@ final Object finalMinNotional = minNotional;
             }
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTicker(Helpers.GetValue(data, 0), market);
-        }).thenApply(Ticker::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Ticker::new);
 
     }
 
@@ -5989,7 +5989,7 @@ final Object finalMinNotional = minNotional;
             //
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTickers(data, symbols);
-        }).thenApply(Tickers::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Tickers::new);
 
     }
 
@@ -6331,7 +6331,7 @@ final Object finalMinNotional = minNotional;
             //
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(data, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -6418,7 +6418,7 @@ final Object finalMinNotional = minNotional;
             //
             Object data = this.safeValue(response, "data", new HashMap<String, Object>() {{}});
             return this.parseTradingFee(data, market);
-        }).thenApply(TradingFeeInterface::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(TradingFeeInterface::new);
 
     }
 
@@ -6625,7 +6625,7 @@ final Object finalMinNotional = minNotional;
                 Helpers.addElementToObject(result, symbol, fee);
             }
             return result;
-        }).thenApply(TradingFees::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(TradingFees::new);
 
     }
 
@@ -6908,7 +6908,7 @@ final Object finalMinNotional = minNotional;
                 candles = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             }
             return this.parseOHLCVs(candles, market, timeframe, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
 
     }
 
@@ -7083,7 +7083,7 @@ final Object finalMinNotional = minNotional;
             //
             Object data = this.safeValue(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseBalance(data);
-        }).thenApply(Balances::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Balances::new);
 
     }
 
@@ -7652,7 +7652,7 @@ final Object finalMinNotional = minNotional;
                 put( "createMarketBuyOrderRequiresPrice", false );
             }};
             return (this.createOrder((Object)(symbol), (Object)("market"), (Object)("buy"), (Object)(cost), (Object)(null), (Object)(this.extend(req, parameters)))).join();
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -7784,7 +7784,7 @@ final Object finalMinNotional = minNotional;
             //
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseOrder(data, market);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -8350,7 +8350,7 @@ final Object finalMinNotional = minNotional;
             //
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(data, market);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -8485,7 +8485,7 @@ final Object finalMinNotional = minNotional;
             Object orderInfo = this.safeValue(data, "successList", new ArrayList<Object>(Arrays.asList()));
             List<Object> both = (List<Object>) this.arrayConcat(orderInfo, failure);
             return this.parseOrders(both, market);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -8772,7 +8772,7 @@ final Object finalMinNotional = minNotional;
             //
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseOrder(data, market);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -8981,7 +8981,7 @@ final Object finalMinNotional = minNotional;
                 }
             }
             return this.parseOrder(order, market);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -9033,7 +9033,7 @@ final Object finalMinNotional = minNotional;
             //
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(data, market);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -9154,7 +9154,7 @@ final Object finalMinNotional = minNotional;
             Object data = this.safeValue(response, "data", new HashMap<String, Object>() {{}});
             Object orders = this.safeList(data, "successList", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(orders, market);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -9280,7 +9280,7 @@ final Object finalMinNotional = minNotional;
                 responseList = resultList;
             }
             return this.parseOrders(responseList);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -9479,7 +9479,7 @@ final Object finalMinNotional = minNotional;
             }
             Object first = this.safeDict(dataList, 0, new HashMap<String, Object>() {{}});
             return this.parseOrder(first, market);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -9940,7 +9940,7 @@ final Object finalMinNotional = minNotional;
                 return this.parseOrders(result, market, since, limit);
             }
             return this.parseOrders(data, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -9982,7 +9982,7 @@ final Object finalMinNotional = minNotional;
             }
             Object orders = (this.fetchCanceledAndClosedOrders((Object)(symbol), (Object)(since), (Object)(limit), (Object)(parameters))).join();
             return this.filterBy(orders, "status", "closed");
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -10024,7 +10024,7 @@ final Object finalMinNotional = minNotional;
             }
             Object orders = (this.fetchCanceledAndClosedOrders((Object)(symbol), (Object)(since), (Object)(limit), (Object)(parameters))).join();
             return this.filterBy(orders, "status", "canceled");
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -10389,7 +10389,7 @@ final Object finalMinNotional = minNotional;
             }
             Object orders = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(orders, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -10545,7 +10545,7 @@ final Object finalMinNotional = minNotional;
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Object orders = this.safeList(data, "list", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(orders, market, since, limit);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -10688,7 +10688,7 @@ final Object finalMinNotional = minNotional;
                 return this.parseLedger(bills, currency, since, limit);
             }
             return this.parseLedger(data, currency, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, LedgerEntry::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, LedgerEntry::new));
 
     }
 
@@ -11069,7 +11069,7 @@ final Object finalMinNotional = minNotional;
                 return this.parseTrades(fills, market, since, limit);
             }
             return this.parseTrades(data, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -11191,7 +11191,7 @@ final Object finalMinNotional = minNotional;
             }
             Object first = this.safeDict(result, 0, new HashMap<String, Object>() {{}});
             return this.parsePosition(first, market);
-        }).thenApply(Position::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Position::new);
 
     }
 
@@ -11422,7 +11422,7 @@ final Object finalMinNotional = minNotional;
             }
             symbols = this.marketSymbols(symbols);
             return this.filterByArrayPositions(result, "symbol", symbols, false);
-        }).thenApply(res -> Helpers.toTypedList(res, Position::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Position::new));
 
     }
 
@@ -11789,7 +11789,7 @@ final Object finalMinNotional = minNotional;
             }
             List<Object> sorted = this.sortBy(rates, "timestamp");
             return this.filterBySymbolSinceLimit(sorted, Helpers.GetValue(market, "symbol"), since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, FundingRateHistory::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, FundingRateHistory::new));
 
     }
 
@@ -11853,7 +11853,7 @@ final Object finalMinNotional = minNotional;
             }
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseFundingRate(Helpers.GetValue(data, 0), market);
-        }).thenApply(FundingRate::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(FundingRate::new);
 
     }
 
@@ -11956,7 +11956,7 @@ final Object finalMinNotional = minNotional;
             symbols = this.marketSymbols(symbols);
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseFundingRates(data, symbols);
-        }).thenApply(FundingRates::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(FundingRates::new);
 
     }
 
@@ -11985,7 +11985,7 @@ final Object finalMinNotional = minNotional;
                 put( "method", "publicMixGetV2MixMarketCurrentFundRate" );
             }}, parameters);
             return (this.fetchFundingRates((Object)(symbols), (Object)(parameters))).join();
-        }).thenApply(FundingRates::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(FundingRates::new);
 
     }
 
@@ -12171,7 +12171,7 @@ final Object finalMinNotional = minNotional;
                 bills = this.filterByArray(bills, "type", new ArrayList<Object>(Arrays.asList("CONTRACT_MAIN_SETTLE_FEE_USER_IN", "CONTRACT_MAIN_SETTLE_FEE_USER_OUT")), false);
             }
             return this.parseFundingHistories(bills, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, FundingHistory::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, FundingHistory::new));
 
     }
 
@@ -12279,7 +12279,7 @@ final Object finalMinNotional = minNotional;
                 put( "amount", Bitget.this.parseNumber(amount) );
                 put( "type", type );
             }});
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -12338,7 +12338,7 @@ final Object finalMinNotional = minNotional;
                 throw new ArgumentsRequired(Helpers.add(this.id, " reduceMargin() requires a holdSide parameter, either long or short")) ;
             }
             return (this.modifyMarginHelper(symbol, amount, "reduce", parameters)).join();
-        }).thenApply(MarginModification::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(MarginModification::new);
 
     }
 
@@ -12364,7 +12364,7 @@ final Object finalMinNotional = minNotional;
                 throw new ArgumentsRequired(Helpers.add(this.id, " addMargin() requires a holdSide parameter, either long or short")) ;
             }
             return (this.modifyMarginHelper(symbol, amount, "add", parameters)).join();
-        }).thenApply(MarginModification::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(MarginModification::new);
 
     }
 
@@ -12429,7 +12429,7 @@ final Object finalMinNotional = minNotional;
             //
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseLeverage(data, market);
-        }).thenApply(Leverage::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Leverage::new);
 
     }
 
@@ -12514,7 +12514,7 @@ final Object finalMinNotional = minNotional;
                 response = (this.privateMixPostV2MixAccountSetLeverage(this.extend(request, parameters))).join();
             }
             return response;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -12581,7 +12581,7 @@ final Object finalMinNotional = minNotional;
             //     }
             //
             return response;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -12636,7 +12636,7 @@ final Object finalMinNotional = minNotional;
                 response = (this.privateMixPostV2MixAccountSetPositionMode(this.extend(request, parameters))).join();
             }
             return response;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -12689,7 +12689,7 @@ final Object finalMinNotional = minNotional;
             }
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseOpenInterest(data, market);
-        }).thenApply(OpenInterest::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OpenInterest::new);
 
     }
 
@@ -12812,7 +12812,7 @@ final Object finalMinNotional = minNotional;
             //
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTransfers(data, currency, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, TransferEntry::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, TransferEntry::new));
 
     }
 
@@ -12886,7 +12886,7 @@ final Object finalMinNotional = minNotional;
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Helpers.addElementToObject(data, "ts", this.safeInteger(response, "requestTime"));
             return this.parseTransfer(data, currency);
-        }).thenApply(TransferEntry::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(TransferEntry::new);
 
     }
 
@@ -13065,7 +13065,7 @@ final Object finalMinNotional = minNotional;
             //
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseDepositWithdrawFees(data, codes, "coin");
-        }).thenApply(DepositWithdrawFees::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(DepositWithdrawFees::new);
 
     }
 
@@ -13109,7 +13109,7 @@ final Object finalMinNotional = minNotional;
             //
             Object data = this.safeValue(response, "data", new HashMap<String, Object>() {{}});
             return this.parseMarginLoan(data, currency);
-        }).thenApply(MarginLoan::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(MarginLoan::new);
 
     }
 
@@ -13157,7 +13157,7 @@ final Object finalMinNotional = minNotional;
             //
             Object data = this.safeValue(response, "data", new HashMap<String, Object>() {{}});
             return this.parseMarginLoan(data, currency, market);
-        }).thenApply(MarginLoan::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(MarginLoan::new);
 
     }
 
@@ -13206,7 +13206,7 @@ final Object finalMinNotional = minNotional;
             //
             Object data = this.safeValue(response, "data", new HashMap<String, Object>() {{}});
             return this.parseMarginLoan(data, currency, market);
-        }).thenApply(MarginLoan::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(MarginLoan::new);
 
     }
 
@@ -13251,7 +13251,7 @@ final Object finalMinNotional = minNotional;
             //
             Object data = this.safeValue(response, "data", new HashMap<String, Object>() {{}});
             return this.parseMarginLoan(data, currency);
-        }).thenApply(MarginLoan::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(MarginLoan::new);
 
     }
 
@@ -13451,7 +13451,7 @@ final Object finalMinNotional = minNotional;
             Object data = this.safeValue(response, "data", new HashMap<String, Object>() {{}});
             Object liquidations = this.safeList(data, "resultList", new ArrayList<Object>(Arrays.asList()));
             return this.parseLiquidations(liquidations, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Liquidation::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Liquidation::new));
 
     }
 
@@ -13576,7 +13576,7 @@ final Object finalMinNotional = minNotional;
             Object first = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
             Helpers.addElementToObject(first, "timestamp", timestamp);
             return this.parseIsolatedBorrowRate(first, market);
-        }).thenApply(IsolatedBorrowRate::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(IsolatedBorrowRate::new);
 
     }
 
@@ -13717,7 +13717,7 @@ final Object finalMinNotional = minNotional;
             Long timestamp = this.safeInteger(response, "requestTime");
             Helpers.addElementToObject(result, "timestamp", timestamp);
             return this.parseBorrowRate(result, currency);
-        }).thenApply(CrossBorrowRate::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(CrossBorrowRate::new);
 
     }
 
@@ -13895,7 +13895,7 @@ final Object finalMinNotional = minNotional;
             Object rows = this.safeValue(data, "resultList", new ArrayList<Object>(Arrays.asList()));
             Object interest = this.parseBorrowInterests(rows, market);
             return this.filterByCurrencySinceLimit(interest, code, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, BorrowInterest::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, BorrowInterest::new));
 
     }
 
@@ -14004,7 +14004,7 @@ final Object finalMinNotional = minNotional;
             Object data = this.safeValue(response, "data", new HashMap<String, Object>() {{}});
             Object order = this.safeList2(data, "successList", "list", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrder(Helpers.GetValue(order, 0), market);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -14051,7 +14051,7 @@ final Object finalMinNotional = minNotional;
             Object data = this.safeValue(response, "data", new HashMap<String, Object>() {{}});
             Object orderInfo = this.safeList2(data, "successList", "list", new ArrayList<Object>(Arrays.asList()));
             return this.parsePositions(orderInfo, null, parameters);
-        }).thenApply(res -> Helpers.toTypedList(res, Position::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Position::new));
 
     }
 
@@ -14116,7 +14116,7 @@ final Object finalMinNotional = minNotional;
             //
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseMarginMode(data, market);
-        }).thenApply(MarginMode::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(MarginMode::new);
 
     }
 
@@ -14204,7 +14204,7 @@ final Object finalMinNotional = minNotional;
             Object responseList = this.safeList(data, "list", new ArrayList<Object>(Arrays.asList()));
             Object positions = this.parsePositions(responseList, symbols, parameters);
             return this.filterBySinceLimit(positions, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Position::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Position::new));
 
     }
 
@@ -14258,7 +14258,7 @@ final Object finalMinNotional = minNotional;
             String toCurrencyId = this.safeString(data, "toCoin", toCode);
             Map<String, Object> toCurrency = (Map<String, Object>) this.currency(toCurrencyId);
             return this.parseConversion(data, fromCurrency, toCurrency);
-        }).thenApply(Conversion::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Conversion::new);
 
     }
 
@@ -14326,7 +14326,7 @@ final Object finalMinNotional = minNotional;
             String toCurrencyId = this.safeString(data, "toCoin", toCode);
             Map<String, Object> toCurrency = (Map<String, Object>) this.currency(toCurrencyId);
             return this.parseConversion(data, null, toCurrency);
-        }).thenApply(Conversion::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Conversion::new);
 
     }
 
@@ -14403,7 +14403,7 @@ final Object finalMinNotional = minNotional;
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Object dataList = this.safeList(data, "dataList", new ArrayList<Object>(Arrays.asList()));
             return this.parseConversions(dataList, code, "fromCoin", "toCoin", since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Conversion::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Conversion::new));
 
     }
 
@@ -14540,7 +14540,7 @@ final Object finalMinNotional = minNotional;
                 }
             }
             return result;
-        }).thenApply(Currencies::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Currencies::new);
 
     }
 
@@ -14589,7 +14589,7 @@ final Object finalMinNotional = minNotional;
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Object first = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
             return this.parseFundingRate(first, market);
-        }).thenApply(FundingRate::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(FundingRate::new);
 
     }
 
@@ -14638,7 +14638,7 @@ final Object finalMinNotional = minNotional;
             }
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseLongShortRatioHistory(data, market);
-        }).thenApply(res -> Helpers.toTypedList(res, LongShortRatio::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, LongShortRatio::new));
 
     }
 

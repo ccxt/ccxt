@@ -122,7 +122,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
             Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
             Helpers.addElementToObject(parameters, "callerMethodName", "watchTrades");
             return (this.watchTradesForSymbols((Object)(new ArrayList<Object>(Arrays.asList(symbol))), (Object)(since), (Object)(limit), (Object)(parameters))).join();
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -158,7 +158,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
             }
             List<Object> result = this.filterBySinceLimit(trades, since, limit, "timestamp", true);
             return this.sortBy(result, "timestamp");  // needed bcz of https://github.com/ccxt/ccxt/actions/runs/20755599430/job/59597237029?pr=27624#step:11:611
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -226,7 +226,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             Helpers.addElementToObject(parameters, "callerMethodName", "watchOrderBook");
             return (this.watchOrderBookForSymbols((Object)(new ArrayList<Object>(Arrays.asList(symbol))), (Object)(limit), (Object)(parameters))).join();
-        }).thenApply(OrderBook::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OrderBook::new);
 
     }
 
@@ -267,7 +267,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
             }
             Object orderbook = (this.watchMultipleWrapper(true, channelName, callerMethodName, symbols, parameters)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
-        }).thenApply(OrderBook::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OrderBook::new);
 
     }
 
@@ -341,7 +341,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
             symbol = Helpers.GetValue(market, "symbol");
             Object result = (this.watchTickers((Object)(new ArrayList<Object>(Arrays.asList(symbol))), (Object)(parameters))).join();
             return Helpers.GetValue(result, symbol);
-        }).thenApply(Ticker::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Ticker::new);
 
     }
 
@@ -373,7 +373,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
                 return tickers;
             }
             return this.filterByArray(this.tickers, "symbol", symbols);
-        }).thenApply(Tickers::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Tickers::new);
 
     }
 
@@ -461,7 +461,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
                 return tickers;
             }
             return this.filterByArray(this.bidsasks, "symbol", symbols);
-        }).thenApply(Tickers::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Tickers::new);
 
     }
 
@@ -520,7 +520,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
             Helpers.addElementToObject(parameters, "callerMethodName", "watchOHLCV");
             Object result = (this.watchOHLCVForSymbols(new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(symbol, timeframe)))), since, limit, parameters)).join();
             return Helpers.GetValue(Helpers.GetValue(result, symbol), timeframe);
-        }).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
 
     }
 
@@ -562,7 +562,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
             }
             List<Object> filtered = this.filterBySinceLimit(candles, since, limit, 0, true);
             return this.createOHLCVObject(symbol, timeframe, filtered);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -642,7 +642,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
             Object request = this.getSubscriptionRequest(new ArrayList<Object>(Arrays.asList(sub)));
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue((Helpers.GetValue(this.urls, "api")), "ws"), marketType), "private");
             return (this.watch(url, messageHash, this.deepExtend(request, parameters), messageHash, null)).join();
-        }).thenApply(Balances::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Balances::new);
 
     }
 
@@ -696,7 +696,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
             Helpers.addElementToObject(parameters, "callerMethodName", "watchOrders");
             Object symbolsArray = ((Helpers.isTrue((!Helpers.isEqual(symbol, null))))) ? new ArrayList<Object>(Arrays.asList(symbol)) : new ArrayList<Object>(Arrays.asList());
             return (this.watchOrdersForSymbols((Object)(symbolsArray), (Object)(since), (Object)(limit), (Object)(parameters))).join();
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -737,7 +737,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
                 limit = Helpers.callDynamically(orders, "getLimit", new Object[]{tradeSymbol, limit});
             }
             return this.filterBySinceLimit(orders, since, limit, "timestamp", true);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -809,7 +809,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
                 return newPositions;
             }
             return this.filterBySymbolsSinceLimit(this.positions, symbols, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Position::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Position::new));
 
     }
 
@@ -880,7 +880,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
             Object request = this.getSubscriptionRequest(new ArrayList<Object>(Arrays.asList(requestParams)));
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue((Helpers.GetValue(this.urls, "api")), "ws"), marketType), "public");
             return (this.watch(url, messageHash, this.deepExtend(request, parameters), messageHash, null)).join();
-        }).thenApply(FundingRate::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(FundingRate::new);
 
     }
 
@@ -998,7 +998,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
             String privateOrPublic = ((Helpers.isTrue(isPublic))) ? "public" : "private";
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue((Helpers.GetValue(this.urls, "api")), "ws"), marketType), privateOrPublic);
             return (this.watchMultiple(url, messageHashes, this.deepExtend(request, parameters), messageHashes, null)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1097,7 +1097,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue((Helpers.GetValue(this.urls, "api")), "ws"), marketType), "private");
             (this.watch(url, messageHash, this.deepExtend(request, parameters), messageHash, null)).join();
             return null;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 }

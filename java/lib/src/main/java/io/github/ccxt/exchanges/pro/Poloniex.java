@@ -158,7 +158,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
                 Helpers.addElementToObject(client.subscriptions, messageHash, future);
             }
             return future;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -209,7 +209,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
             }
             Map<String, Object> request = this.extend(subscribe, parameters);
             return (this.watch(url, messageHash, request, messageHash, null)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -235,7 +235,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
                 put( "params", parameters );
             }};
             return (this.watch(url, messageHash, subscribe, messageHash, null)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -331,7 +331,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
             Object orders = (this.tradeRequest("createOrder", this.extend(request, parameters))).join();
             Object order = this.safeDict(orders, 0);
             return order;
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -362,7 +362,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
             Object orders = (this.cancelOrdersWs((Object)(new ArrayList<Object>(Arrays.asList(id))), (Object)(symbol), (Object)(parameters))).join();
             Object order = this.safeDict(orders, 0);
             return order;
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -393,7 +393,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
                 put( "orderIds", ids );
             }};
             return (this.tradeRequest("cancelOrders", this.extend(request, parameters))).join();
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -419,7 +419,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
             }
             (this.authenticate()).join();
             return (this.tradeRequest("cancelAllOrders", parameters)).join();
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -485,7 +485,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
                 limit = Helpers.callDynamically(ohlcv, "getLimit", new Object[]{symbol, limit});
             }
             return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
-        }).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
 
     }
 
@@ -511,7 +511,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
             symbol = this.symbol(symbol);
             Object tickers = (this.watchTickers((Object)(new ArrayList<Object>(Arrays.asList(symbol))), (Object)(parameters))).join();
             return this.safeValue(tickers, symbol);
-        }).thenApply(Ticker::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Ticker::new);
 
     }
 
@@ -543,7 +543,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
                 return newTickers;
             }
             return this.filterByArray(this.tickers, "symbol", symbols);
-        }).thenApply(Tickers::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Tickers::new);
 
     }
 
@@ -567,7 +567,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
             Object limit = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
             return (this.watchTradesForSymbols((Object)(new ArrayList<Object>(Arrays.asList(symbol))), (Object)(since), (Object)(limit), (Object)(parameters))).join();
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -621,7 +621,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{tradeSymbol, limit});
             }
             return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -653,7 +653,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
             parameters = ((List<Object>) nameparametersVariable).get(1);
             Object orderbook = (this.subscribe(name, name, false, new ArrayList<Object>(Arrays.asList(symbol)), parameters)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
-        }).thenApply(OrderBook::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OrderBook::new);
 
     }
 
@@ -694,7 +694,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
                 limit = Helpers.callDynamically(orders, "getLimit", new Object[]{symbol, limit});
             }
             return this.filterBySinceLimit(orders, since, limit, "timestamp", true);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -736,7 +736,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
             }
             return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -761,7 +761,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
             Object name = "balances";
             (this.authenticate()).join();
             return (this.subscribe(name, name, true, null, parameters)).join();
-        }).thenApply(Balances::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Balances::new);
 
     }
 

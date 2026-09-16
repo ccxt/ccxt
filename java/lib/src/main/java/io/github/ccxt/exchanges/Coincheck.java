@@ -449,7 +449,7 @@ public class Coincheck extends CoincheckApi
                 put( "url", null );
                 put( "info", response );
             }};
-        }).thenApply(Status::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Status::new);
 
     }
 
@@ -473,7 +473,7 @@ public class Coincheck extends CoincheckApi
             }
             Map<String, Object> response = (this.privateGetAccountsBalance(parameters)).join();
             return this.parseBalance(response);
-        }).thenApply(Balances::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Balances::new);
 
     }
 
@@ -518,7 +518,7 @@ public class Coincheck extends CoincheckApi
                 }}));
             }
             return result;
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -600,7 +600,7 @@ public class Coincheck extends CoincheckApi
             }};
             Map<String, Object> response = (this.publicGetOrderBooks(this.extend(request, parameters))).join();
             return this.parseOrderBook(response, Helpers.GetValue(market, "symbol"));
-        }).thenApply(OrderBook::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OrderBook::new);
 
     }
 
@@ -685,7 +685,7 @@ public class Coincheck extends CoincheckApi
             // }
             //
             return this.parseTicker(ticker, market);
-        }).thenApply(Ticker::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Ticker::new);
 
     }
 
@@ -837,7 +837,7 @@ public class Coincheck extends CoincheckApi
             //
             Object transactions = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(transactions, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -885,7 +885,7 @@ public class Coincheck extends CoincheckApi
             //
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(data, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -949,7 +949,7 @@ public class Coincheck extends CoincheckApi
     }});
             }
             return result;
-        }).thenApply(TradingFees::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(TradingFees::new);
 
     }
 
@@ -1011,7 +1011,7 @@ public class Coincheck extends CoincheckApi
                 put( "id", id );
                 put( "info", response );
             }}, market);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -1043,7 +1043,7 @@ public class Coincheck extends CoincheckApi
             //    }
             //
             return this.parseOrder(response);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -1110,7 +1110,7 @@ public class Coincheck extends CoincheckApi
             return this.parseTransactions(data, currency, since, limit, new HashMap<String, Object>() {{
                 put( "type", "deposit" );
             }});
-        }).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
 
     }
 
@@ -1174,7 +1174,7 @@ public class Coincheck extends CoincheckApi
             return this.parseTransactions(data, currency, since, limit, new HashMap<String, Object>() {{
                 put( "type", "withdrawal" );
             }});
-        }).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
 
     }
 

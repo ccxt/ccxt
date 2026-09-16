@@ -22,7 +22,7 @@ public class TestFetchTransactionFees extends BaseTest {
         // const withdrawKeys = Object.keys (fees['withdraw']);
         // todo : Assert each entry
         return null;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 

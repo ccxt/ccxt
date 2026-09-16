@@ -75,7 +75,7 @@ public class Kucoinfutures extends KucoinfuturesApi
             }};
             Map<String, Object> extendedRequest = this.extend(request, parameters);
             return (this.fetchTickers((Object)(symbols), (Object)(extendedRequest))).join();
-        }).thenApply(Tickers::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Tickers::new);
 
     }
 
@@ -127,7 +127,7 @@ public class Kucoinfutures extends KucoinfuturesApi
                 put( "fromAccount", fromAccount );
                 put( "toAccount", finalToAccount );
             }});
-        }).thenApply(TransferEntry::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(TransferEntry::new);
 
     }
 

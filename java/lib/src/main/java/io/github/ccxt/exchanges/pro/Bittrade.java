@@ -112,7 +112,7 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
                 put( "params", parameters );
             }};
             return (this.watch(url, messageHash, this.extend(request, parameters), messageHash, subscription)).join();
-        }).thenApply(Ticker::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Ticker::new);
 
     }
 
@@ -203,7 +203,7 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
             }
             return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -308,7 +308,7 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
                 limit = Helpers.callDynamically(ohlcv, "getLimit", new Object[]{symbol, limit});
             }
             return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
-        }).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
 
     }
 
@@ -406,7 +406,7 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
             }};
             Object orderbook = (this.watch(url, messageHash, this.extend(request, parameters), messageHash, subscription)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
-        }).thenApply(OrderBook::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OrderBook::new);
 
     }
 
@@ -492,7 +492,7 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
                 client.reject(e, messageHash);
             }
             return null;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -713,7 +713,7 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
                 put( "pong", Bittrade.this.safeInteger(message, "ping") );
             }})).join();
             return null;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 

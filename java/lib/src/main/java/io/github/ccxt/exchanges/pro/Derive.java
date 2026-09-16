@@ -93,7 +93,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
                 put( "method", "subscribe" );
             }});
             return (this.watch(url, messageHash, request, messageHash, subscription)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -139,7 +139,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
             }};
             Object orderbook = (this.watchPublic(topic, request, subscription)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
-        }).thenApply(OrderBook::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OrderBook::new);
 
     }
 
@@ -213,7 +213,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
                 put( "params", parameters );
             }};
             return (this.watchPublic(topic, request, subscription)).join();
-        }).thenApply(Ticker::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Ticker::new);
 
     }
 
@@ -363,7 +363,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
                 put( "name", topic );
             }};
             return (this.unWatchPublic(messageHash, request, subscription)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -398,7 +398,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
                 put( "name", topic );
             }};
             return (this.unWatchPublic(messageHah, request, subscription)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -417,7 +417,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
                 put( "method", "unsubscribe" );
             }});
             return (this.watch(url, messageHash, request, messageHash, subscription)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -532,7 +532,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{Helpers.GetValue(market, "symbol"), limit});
             }
             return this.filterBySymbolSinceLimit(trades, symbol, since, limit, true);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -598,7 +598,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
                 this.watch(url, messageHash, message, messageHash, message);
             }
             return ((io.github.ccxt.ws.Future)future).getFuture().join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -618,7 +618,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
                 put( "method", "subscribe" );
             }});
             return (this.watch(url, messageHash, request, messageHash, subscription)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -677,7 +677,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
                 limit = Helpers.callDynamically(orders, "getLimit", new Object[]{symbol, limit});
             }
             return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -822,7 +822,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
             }
             return this.filterBySymbolSinceLimit(trades, symbol, since, limit, true);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 

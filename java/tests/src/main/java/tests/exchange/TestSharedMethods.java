@@ -538,7 +538,7 @@ public class TestSharedMethods extends BaseTest {
         //
         Assert(Helpers.isTrue(!Helpers.isEqual(bestBid, null)) && Helpers.isTrue(!Helpers.isEqual(bestAsk, null)), Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(logText, " "), exchange.id), " could not get best bid/ask for "), symbol), " using "), usedMethod), " while testing "), method));
         return new ArrayList<Object>(Arrays.asList(bestBid, bestAsk));
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
     public static CompletableFuture<Object> fetchOrder(BaseExchange exchange, Object symbol, Object orderId, Object skippedProperties)
@@ -596,7 +596,7 @@ public class TestSharedMethods extends BaseTest {
             }
         }
         return fetchedOrder;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
     public static void AssertOrderState(BaseExchange exchange, Object skippedProperties, Object method, Object order, Object AssertedStatus, Object strictCheck)

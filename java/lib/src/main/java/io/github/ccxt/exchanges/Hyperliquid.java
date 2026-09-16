@@ -455,7 +455,7 @@ public class Hyperliquid extends HyperliquidApi
                 put( "url", null );
                 put( "info", response );
             }};
-        }).thenApply(Status::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Status::new);
 
     }
 
@@ -480,7 +480,7 @@ public class Hyperliquid extends HyperliquidApi
             // { specialStatuses: null, time: '1764617438643' }
             //
             return this.safeInteger(response, "time");
-        }).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
 
     }
 
@@ -525,7 +525,7 @@ public class Hyperliquid extends HyperliquidApi
             // const meta = this.safeList (response, 'universe', []);
             Helpers.addElementToObject(this.options, "cachedCurrenciesById", new HashMap<String, Object>() {{}}); // used to map hip3 markets
             return this.parseCurrencies(tokens);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -623,7 +623,7 @@ public class Hyperliquid extends HyperliquidApi
                 result = this.arrayConcat(result, Helpers.GetValue(promises, i));
             }
             return result;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -792,7 +792,7 @@ public class Hyperliquid extends HyperliquidApi
             //
             //
             return markets;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -856,7 +856,7 @@ public class Hyperliquid extends HyperliquidApi
                 ((List<Object>)result).add(data);
             }
             return this.parseMarkets(result);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1087,7 +1087,7 @@ public class Hyperliquid extends HyperliquidApi
                 ((List<Object>)markets).add(this.safeMarketStructure(entry));
             }
             return markets;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1347,7 +1347,7 @@ public class Hyperliquid extends HyperliquidApi
             Helpers.addElementToObject(result, "timestamp", timestamp);
             Helpers.addElementToObject(result, "datetime", this.iso8601(timestamp));
             return this.safeBalance(result);
-        }).thenApply(Balances::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Balances::new);
 
     }
 
@@ -1407,7 +1407,7 @@ public class Hyperliquid extends HyperliquidApi
             }};
             Long timestamp = this.safeInteger(response, "time");
             return this.parseOrderBook(result, Helpers.GetValue(market, "symbol"), timestamp, "bids", "asks", "px", "sz");
-        }).thenApply(OrderBook::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OrderBook::new);
 
     }
 
@@ -1481,7 +1481,7 @@ public class Hyperliquid extends HyperliquidApi
                 Helpers.addElementToObject(result, symbol, ticker);
             }
             return this.filterByArrayTickers(result, "symbol", symbols);
-        }).thenApply(Tickers::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Tickers::new);
 
     }
 
@@ -1509,7 +1509,7 @@ public class Hyperliquid extends HyperliquidApi
                 throw new BadSymbol(Helpers.add(Helpers.add(this.id, " fetchFundingRate() could not find a funding rate for "), symbol)) ;
             }
             return rate;
-        }).thenApply(FundingRate::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(FundingRate::new);
 
     }
 
@@ -1574,7 +1574,7 @@ public class Hyperliquid extends HyperliquidApi
                 ((List<Object>)result).add(data);
             }
             return this.parseFundingRates(result, symbols);
-        }).thenApply(FundingRates::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(FundingRates::new);
 
     }
 
@@ -1748,7 +1748,7 @@ public class Hyperliquid extends HyperliquidApi
                 candles = response;
             }
             return this.parseOHLCVs(candles, market, timeframe, originalSince, limit, useTail);
-        }).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
 
     }
 
@@ -1854,7 +1854,7 @@ public class Hyperliquid extends HyperliquidApi
                 fills = response;
             }
             return this.parseTrades(fills, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -2154,7 +2154,7 @@ public class Hyperliquid extends HyperliquidApi
                 response = null; // ignore this
             }
             return response;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -2196,7 +2196,7 @@ public class Hyperliquid extends HyperliquidApi
             // }
             //
             return (this.privatePostExchange(request)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -2213,7 +2213,7 @@ public class Hyperliquid extends HyperliquidApi
                 return false;
             }
             return true;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -2245,7 +2245,7 @@ public class Hyperliquid extends HyperliquidApi
                 Helpers.addElementToObject(this.options, "builderFee", false); // disable builder fee if an error occurs
             }
             return true;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -2318,7 +2318,7 @@ public class Hyperliquid extends HyperliquidApi
                 Helpers.addElementToObject(this.options, "enableUnifiedMargin", enableUnifiedMargin); // cache this for future calls
             }
             return new ArrayList<Object>(Arrays.asList(enableUnifiedMargin, parameters));
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -2378,7 +2378,7 @@ public class Hyperliquid extends HyperliquidApi
             // }
             //
             return (this.privatePostExchange(request)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -2437,7 +2437,7 @@ public class Hyperliquid extends HyperliquidApi
             // }
             //
             return (this.privatePostExchange(request)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -2468,7 +2468,7 @@ public class Hyperliquid extends HyperliquidApi
             Helpers.addElementToObject(request, "signature", signature);
             Map<String, Object> response = (this.privatePostExchange(this.extend(request, parameters))).join();
             return response;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -2509,7 +2509,7 @@ public class Hyperliquid extends HyperliquidApi
             var globalParams = ((List<Object>) orderglobalParamsVariable).get(1);
             Object orders = (this.createOrders((Object)(new ArrayList<Object>(Arrays.asList(order))), (Object)(globalParams))).join();
             return Helpers.GetValue(orders, 0);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -2605,7 +2605,7 @@ public class Hyperliquid extends HyperliquidApi
                 put( "status", "running" );
                 put( "oid", orderId );
             }}, market);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -2667,7 +2667,7 @@ public class Hyperliquid extends HyperliquidApi
                 }
             }
             return this.parseOrders(ordersToBeParsed);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -2942,7 +2942,7 @@ public class Hyperliquid extends HyperliquidApi
             }
             Object orders = (this.cancelOrders((Object)(new ArrayList<Object>(Arrays.asList(id))), (Object)(symbol), (Object)(parameters))).join();
             return this.safeDict(orders, 0);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -3005,7 +3005,7 @@ public class Hyperliquid extends HyperliquidApi
                 }}));
             }
             return orders;
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -3084,7 +3084,7 @@ public class Hyperliquid extends HyperliquidApi
                 put( "status", status );
                 put( "oid", id );
             }}, market);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -3253,7 +3253,7 @@ final Object finalClientOrderId = clientOrderId;
             return new ArrayList<Object>(Arrays.asList(this.safeOrder(new HashMap<String, Object>() {{
         put( "info", response );
     }})));
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -3310,7 +3310,7 @@ final Object finalClientOrderId = clientOrderId;
             //     }
             //
             return response;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -3499,7 +3499,7 @@ final Object finalClientOrderId = clientOrderId;
             var globalParams = ((List<Object>) orderglobalParamsVariable).get(1);
             Object orders = (this.editOrders((Object)(new ArrayList<Object>(Arrays.asList(order))), (Object)(globalParams))).join();
             return Helpers.GetValue(orders, 0);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -3564,7 +3564,7 @@ final Object finalClientOrderId = clientOrderId;
             Object dataObject = this.safeDict(responseObject, "data", new HashMap<String, Object>() {{}});
             Object statuses = this.safeList(dataObject, "statuses", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(statuses);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -3615,7 +3615,7 @@ final Object finalClientOrderId = clientOrderId;
             // }
             //
             return response;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -3698,7 +3698,7 @@ final Object finalClientOrderId = clientOrderId;
             }
             List<Object> sorted = this.sortBy(result, "timestamp");
             return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, FundingRateHistory::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, FundingRateHistory::new));
 
     }
 
@@ -3798,7 +3798,7 @@ final Object finalClientOrderId = clientOrderId;
                 ((List<Object>)orderWithStatus).add(this.extend(order, extendOrder));
             }
             return this.parseOrders(orderWithStatus, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -3829,7 +3829,7 @@ final Object finalClientOrderId = clientOrderId;
             Object orders = (this.fetchOrders((Object)(symbol), (Object)(null), (Object)(null), (Object)(parameters))).join(); // don't filter here because we don't want to catch open orders
             Object closedOrders = this.filterByArray(orders, "status", new ArrayList<Object>(Arrays.asList("closed")), false);
             return this.filterBySymbolSinceLimit(closedOrders, symbol, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -3860,7 +3860,7 @@ final Object finalClientOrderId = clientOrderId;
             Object orders = (this.fetchOrders((Object)(symbol), (Object)(null), (Object)(null), (Object)(parameters))).join(); // don't filter here because we don't want to catch open orders
             Object closedOrders = this.filterByArray(orders, "status", new ArrayList<Object>(Arrays.asList("canceled")), false);
             return this.filterBySymbolSinceLimit(closedOrders, symbol, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -3891,7 +3891,7 @@ final Object finalClientOrderId = clientOrderId;
             Object orders = (this.fetchOrders((Object)(symbol), (Object)(null), (Object)(null), (Object)(parameters))).join(); // don't filter here because we don't want to catch open orders
             Object closedOrders = this.filterByArray(orders, "status", new ArrayList<Object>(Arrays.asList("canceled", "closed", "rejected")), false);
             return this.filterBySymbolSinceLimit(closedOrders, symbol, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -3995,7 +3995,7 @@ final Object finalClientOrderId = clientOrderId;
             }
             Object deduplicated = Helpers.objectValues(deduplicatedByOid);
             return this.parseOrders(deduplicated, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -4077,7 +4077,7 @@ final Object finalClientOrderId = clientOrderId;
             //
             Object data = this.safeDict(response, "order");
             return this.parseOrder(data, market);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -4394,7 +4394,7 @@ final Object finalClientOrderId = clientOrderId;
                 myFills = response;
             }
             return this.parseTrades(myFills, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -4486,7 +4486,7 @@ final Object finalClientOrderId = clientOrderId;
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Object positions = (this.fetchPositions((Object)(new ArrayList<Object>(Arrays.asList(symbol))), (Object)(parameters))).join();
             return this.safeDict(positions, 0, new HashMap<String, Object>() {{}});
-        }).thenApply(Position::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Position::new);
 
     }
 
@@ -4613,7 +4613,7 @@ final Object finalClientOrderId = clientOrderId;
                 ((List<Object>)result).add(this.parsePosition(Helpers.GetValue(data, i)));
             }
             return this.filterByArrayPositions(result, "symbol", symbols, false);
-        }).thenApply(res -> Helpers.toTypedList(res, Position::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Position::new));
 
     }
 
@@ -4780,7 +4780,7 @@ final Object finalClientOrderId = clientOrderId;
             //     }
             //
             return response;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -4847,7 +4847,7 @@ final Object finalClientOrderId = clientOrderId;
             //     }
             //
             return response;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -4870,7 +4870,7 @@ final Object finalClientOrderId = clientOrderId;
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             return (this.modifyMarginHelper(symbol, amount, "add", parameters)).join();
-        }).thenApply(MarginModification::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(MarginModification::new);
 
     }
 
@@ -4893,7 +4893,7 @@ final Object finalClientOrderId = clientOrderId;
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             return (this.modifyMarginHelper(symbol, amount, "reduce", parameters)).join();
-        }).thenApply(MarginModification::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(MarginModification::new);
 
     }
 
@@ -4949,7 +4949,7 @@ final Object finalClientOrderId = clientOrderId;
             return this.extend(this.parseMarginModification(response, market), new HashMap<String, Object>() {{
                 put( "code", Hyperliquid.this.safeString(response, "status") );
             }});
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -5125,7 +5125,7 @@ final Object finalClientOrderId = clientOrderId;
                 Map<String, Object> response = (this.privatePostExchange(request)).join();
                 return this.parseTransfer(response);
             }
-        }).thenApply(TransferEntry::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(TransferEntry::new);
 
     }
 
@@ -5231,7 +5231,7 @@ final Object finalClientOrderId = clientOrderId;
             }};
             Map<String, Object> response = (this.privatePostExchange(request)).join();
             return this.parseTransaction(response);
-        }).thenApply(Transaction::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Transaction::new);
 
     }
 
@@ -5367,7 +5367,7 @@ final Object finalClientOrderId = clientOrderId;
                 put( "userAddRate", Hyperliquid.this.safeString(response, "userAddRate") );
             }};
             return this.parseTradingFee(data, market);
-        }).thenApply(TradingFeeInterface::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(TradingFeeInterface::new);
 
     }
 
@@ -5479,7 +5479,7 @@ final Object finalClientOrderId = clientOrderId;
             // ]
             //
             return this.parseLedger(response, null, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, LedgerEntry::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, LedgerEntry::new));
 
     }
 
@@ -5634,7 +5634,7 @@ final Object finalClientOrderId = clientOrderId;
                 deposits = this.filterByArray(records, "type", new ArrayList<Object>(Arrays.asList("deposit")), false);
             }
             return this.parseTransactions(deposits, null, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
 
     }
 
@@ -5728,7 +5728,7 @@ final Object finalClientOrderId = clientOrderId;
                 withdrawals = this.filterByArray(records, "type", new ArrayList<Object>(Arrays.asList("withdraw")), false);
             }
             return this.parseTransactions(withdrawals, null, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
 
     }
 
@@ -5754,7 +5754,7 @@ final Object finalClientOrderId = clientOrderId;
             symbols = this.marketSymbols(symbols);
             Object swapMarkets = (this.fetchSwapMarkets()).join();
             return this.parseOpenInterests(swapMarkets, symbols);
-        }).thenApply(OpenInterests::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OpenInterests::new);
 
     }
 
@@ -5779,7 +5779,7 @@ final Object finalClientOrderId = clientOrderId;
             }
             Object ois = (this.fetchOpenInterests((Object)(new ArrayList<Object>(Arrays.asList(symbol))), (Object)(parameters))).join();
             return Helpers.GetValue(ois, symbol);
-        }).thenApply(OpenInterest::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OpenInterest::new);
 
     }
 
@@ -5889,7 +5889,7 @@ final Object finalClientOrderId = clientOrderId;
             // ]
             //
             return this.parseIncomes(response, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, FundingHistory::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, FundingHistory::new));
 
     }
 
@@ -5963,7 +5963,7 @@ final Object finalClientOrderId = clientOrderId;
             Helpers.addElementToObject(request, "signature", signature);
             Map<String, Object> response = (this.privatePostExchange(this.extend(request, parameters))).join();
             return response;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -6001,7 +6001,7 @@ final Object finalClientOrderId = clientOrderId;
             Helpers.addElementToObject(request, "signature", signature);
             Map<String, Object> response = (this.privatePostExchange(this.extend(request, parameters))).join();
             return response;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 

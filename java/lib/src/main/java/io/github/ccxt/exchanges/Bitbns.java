@@ -357,7 +357,7 @@ public class Bitbns extends BitbnsApi
                 put( "url", null );
                 put( "info", response );
             }};
-        }).thenApply(Status::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Status::new);
 
     }
 
@@ -471,7 +471,7 @@ public class Bitbns extends BitbnsApi
                 }});
             }
             return result;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -523,7 +523,7 @@ public class Bitbns extends BitbnsApi
             //
             Long timestamp = this.safeInteger(response, "timestamp");
             return this.parseOrderBook(response, Helpers.GetValue(market, "symbol"), timestamp);
-        }).thenApply(OrderBook::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OrderBook::new);
 
     }
 
@@ -641,7 +641,7 @@ public class Bitbns extends BitbnsApi
             //     }
             //
             return this.parseTickers(response, symbols);
-        }).thenApply(Tickers::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Tickers::new);
 
     }
 
@@ -717,7 +717,7 @@ public class Bitbns extends BitbnsApi
             //
             // note that "Money" stands for INR - the only fiat in bitbns
             return this.parseBalance(response);
-        }).thenApply(Balances::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Balances::new);
 
     }
 
@@ -903,7 +903,7 @@ public class Bitbns extends BitbnsApi
             //
             Object parsed = ((Helpers.isTrue((Helpers.isEqual(response, null))))) ? new HashMap<String, Object>() {{}} : response;
             return this.parseOrder(parsed, market);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -949,7 +949,7 @@ public class Bitbns extends BitbnsApi
             response = (this.v2PostCancel(this.extend(request, parameters))).join();
             Object parsed = ((Helpers.isTrue((Helpers.isEqual(response, null))))) ? new HashMap<String, Object>() {{}} : response;
             return this.parseOrder(parsed, market);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -1017,7 +1017,7 @@ public class Bitbns extends BitbnsApi
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Object first = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
             return this.parseOrder(first, market);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -1085,7 +1085,7 @@ public class Bitbns extends BitbnsApi
             //
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(data, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -1264,7 +1264,7 @@ public class Bitbns extends BitbnsApi
             //
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(data, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -1308,7 +1308,7 @@ public class Bitbns extends BitbnsApi
             //     }
             //
             return this.parseTrades(response, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -1370,7 +1370,7 @@ public class Bitbns extends BitbnsApi
             //
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTransactions(data, currency, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
 
     }
 
@@ -1412,7 +1412,7 @@ public class Bitbns extends BitbnsApi
             //
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTransactions(data, currency, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
 
     }
 
@@ -1563,7 +1563,7 @@ public class Bitbns extends BitbnsApi
                 put( "address", address );
                 put( "tag", tag );
             }};
-        }).thenApply(DepositAddress::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(DepositAddress::new);
 
     }
 

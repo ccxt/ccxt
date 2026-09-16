@@ -118,7 +118,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
             }};
             Map<String, Object> request = this.extend(subscribe, message);
             return (this.watch(url, messageHash, request, messageHash, subscribe)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -153,7 +153,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
             Object message = this.extend(request, parameters);
             Object orderbook = (this.watchPublic(topic, message)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
-        }).thenApply(OrderBook::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OrderBook::new);
 
     }
 
@@ -225,7 +225,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
             }};
             Object message = this.extend(request, parameters);
             return (this.watchPublic(topic, message)).join();
-        }).thenApply(Ticker::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Ticker::new);
 
     }
 
@@ -329,7 +329,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
             Object message = this.extend(request, parameters);
             Object tickers = (this.watchPublic(topic, message)).join();
             return this.filterByArray(tickers, "symbol", symbols);
-        }).thenApply(Tickers::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Tickers::new);
 
     }
 
@@ -401,7 +401,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
             Object message = this.extend(request, parameters);
             Object tickers = (this.watchPublic(topic, message)).join();
             return this.filterByArray(tickers, "symbol", symbols);
-        }).thenApply(Tickers::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Tickers::new);
 
     }
 
@@ -504,7 +504,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
                 limit = Helpers.callDynamically(ohlcv, "getLimit", new Object[]{Helpers.GetValue(market, "symbol"), limit});
             }
             return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
-        }).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
 
     }
 
@@ -590,7 +590,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{Helpers.GetValue(market, "symbol"), limit});
             }
             return this.filterBySymbolSinceLimit(trades, symbol, since, limit, true);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -775,7 +775,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
                 this.watch(url, messageHash, message, messageHash, null);
             }
             return ((io.github.ccxt.ws.Future)future).getFuture().join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -793,7 +793,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
             }};
             Map<String, Object> request = this.extend(subscribe, message);
             return (this.watch(url, messageHash, request, messageHash, subscribe)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -811,7 +811,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
             }};
             Map<String, Object> request = this.extend(subscribe, message);
             return (this.watchMultiple(url, messageHashes, request, messageHashes, subscribe)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -862,7 +862,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
                 limit = Helpers.callDynamically(orders, "getLimit", new Object[]{symbol, limit});
             }
             return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -913,7 +913,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
                 limit = Helpers.callDynamically(orders, "getLimit", new Object[]{symbol, limit});
             }
             return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -1246,7 +1246,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
                 return newPositions;
             }
             return this.filterBySymbolsSinceLimit(this.positions, symbols, since, limit, true);
-        }).thenApply(res -> Helpers.toTypedList(res, Position::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Position::new));
 
     }
 
@@ -1293,7 +1293,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
                 client.resolve(cache, "positions");
             }
             return null;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1459,7 +1459,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
             }};
             Object message = this.extend(request, parameters);
             return (this.watchPrivate(messageHash, message)).join();
-        }).thenApply(Balances::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Balances::new);
 
     }
 
@@ -1648,7 +1648,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
                 put( "event", "pong" );
             }})).join();
             return null;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 

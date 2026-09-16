@@ -90,7 +90,7 @@ public class Dydx extends io.github.ccxt.exchanges.Dydx
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
             }
             return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -122,7 +122,7 @@ public class Dydx extends io.github.ccxt.exchanges.Dydx
                 put( "id", Helpers.GetValue(market, "id") );
             }};
             return (this.watch(url, messageHash, this.extend(request, parameters), messageHash, null)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -235,7 +235,7 @@ public class Dydx extends io.github.ccxt.exchanges.Dydx
             }};
             Object orderbook = (this.watch(url, messageHash, this.extend(request, parameters), messageHash, null)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
-        }).thenApply(OrderBook::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OrderBook::new);
 
     }
 
@@ -267,7 +267,7 @@ public class Dydx extends io.github.ccxt.exchanges.Dydx
                 put( "id", Helpers.GetValue(market, "id") );
             }};
             return (this.watch(url, messageHash, this.extend(request, parameters), messageHash, null)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -370,7 +370,7 @@ public class Dydx extends io.github.ccxt.exchanges.Dydx
                 limit = Helpers.callDynamically(ohlcv, "getLimit", new Object[]{symbol, limit});
             }
             return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
-        }).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
 
     }
 
@@ -406,7 +406,7 @@ public class Dydx extends io.github.ccxt.exchanges.Dydx
                 put( "id", Helpers.add(Helpers.add(Helpers.GetValue(market, "id"), "/"), resolution) );
             }};
             return (this.watch(url, messageHash, this.extend(request, parameters), messageHash, null)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 

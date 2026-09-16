@@ -667,7 +667,7 @@ public class Bittrade extends BittradeApi
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Map<String, Object> response = (this.publicGetCommonTimestamp(parameters)).join();
             return this.safeInteger(response, "data");
-        }).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
 
     }
 
@@ -700,7 +700,7 @@ public class Bittrade extends BittradeApi
                 Helpers.addElementToObject(result, symbol, (this.fetchTradingLimitsById(this.marketId(symbol), parameters)).join());
             }
             return result;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -731,7 +731,7 @@ public class Bittrade extends BittradeApi
             //                  "market-buy-order-rate-must-less-than":  0.1        } }
             //
             return this.parseTradingLimits(this.safeValue(response, "data", new HashMap<String, Object>() {{}}));
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -910,7 +910,7 @@ public class Bittrade extends BittradeApi
                 }});
             }
             return result;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1072,7 +1072,7 @@ public class Bittrade extends BittradeApi
                 return result;
             }
             throw new ExchangeError(Helpers.add(Helpers.add(this.id, " fetchOrderBook() returned unrecognized response: "), this.json(response))) ;
-        }).thenApply(OrderBook::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OrderBook::new);
 
     }
 
@@ -1125,7 +1125,7 @@ public class Bittrade extends BittradeApi
             Helpers.addElementToObject(ticker, "timestamp", timestamp);
             Helpers.addElementToObject(ticker, "datetime", this.iso8601(timestamp));
             return ticker;
-        }).thenApply(Ticker::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Ticker::new);
 
     }
 
@@ -1164,7 +1164,7 @@ public class Bittrade extends BittradeApi
                 Helpers.addElementToObject(result, symbol, ticker);
             }
             return this.filterByArrayTickers(result, "symbol", symbols);
-        }).thenApply(Tickers::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Tickers::new);
 
     }
 
@@ -1292,7 +1292,7 @@ public class Bittrade extends BittradeApi
             Map<String, Object> response = (this.privateGetOrderOrdersIdMatchresults(this.extend(request, parameters))).join();
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(data, null, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -1337,7 +1337,7 @@ public class Bittrade extends BittradeApi
             Map<String, Object> response = (this.privateGetOrderMatchresults(this.extend(request, parameters))).join();
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(data, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -1409,7 +1409,7 @@ public class Bittrade extends BittradeApi
             }
             result = this.sortBy(result, "timestamp");
             return this.filterBySymbolSinceLimit(result, Helpers.GetValue(market, "symbol"), since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -1479,7 +1479,7 @@ public class Bittrade extends BittradeApi
             //
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseOHLCVs(data, market, timeframe, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
 
     }
 
@@ -1502,7 +1502,7 @@ public class Bittrade extends BittradeApi
             }
             Map<String, Object> response = (this.privateGetAccountAccounts(parameters)).join();
             return this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-        }).thenApply(res -> Helpers.toTypedList(res, Account::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Account::new));
 
     }
 
@@ -1565,7 +1565,7 @@ public class Bittrade extends BittradeApi
             //
             Object currencies = this.safeValue(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseCurrencies(currencies);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1686,7 +1686,7 @@ public class Bittrade extends BittradeApi
                 throw new NotSupported(Helpers.add(Helpers.add(Helpers.add(this.id, " fetchBalance() does not support the "), method), " method")) ;
             }
             return this.parseBalance(response);
-        }).thenApply(Balances::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Balances::new);
 
     }
 
@@ -1739,7 +1739,7 @@ public class Bittrade extends BittradeApi
             //                         "canceled-at":  0                      }  ] }
             //
             return this.parseOrders(Helpers.GetValue(response, "data"), market, since, limit);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1769,7 +1769,7 @@ public class Bittrade extends BittradeApi
             Map<String, Object> response = (this.privateGetOrderOrdersId(this.extend(request, parameters))).join();
             Object order = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseOrder(order);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -1793,7 +1793,7 @@ public class Bittrade extends BittradeApi
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             return (this.fetchOrdersByStates("pre-submitted,submitted,partial-filled,filled,partial-canceled,canceled", symbol, since, limit, parameters)).join();
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -1822,7 +1822,7 @@ public class Bittrade extends BittradeApi
                 return (this.fetchOpenOrdersV2(symbol, since, limit, parameters)).join();
             }
             return (this.fetchOpenOrdersV1(symbol, since, limit, parameters)).join();
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -1840,7 +1840,7 @@ public class Bittrade extends BittradeApi
                 throw new ArgumentsRequired(Helpers.add(this.id, " fetchOpenOrdersV1() requires a symbol argument")) ;
             }
             return (this.fetchOrdersByStates("pre-submitted,submitted,partial-filled", symbol, since, limit, parameters)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1864,7 +1864,7 @@ public class Bittrade extends BittradeApi
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             return (this.fetchOrdersByStates("filled,partial-canceled,canceled", symbol, since, limit, parameters)).join();
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -1936,7 +1936,7 @@ public class Bittrade extends BittradeApi
             //
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(data, market, since, limit);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -2072,7 +2072,7 @@ public class Bittrade extends BittradeApi
             }
             Helpers.addElementToObject(parameters, "createMarketBuyOrderRequiresPrice", false);
             return (this.createOrder((Object)(symbol), (Object)("market"), (Object)("buy"), (Object)(cost), (Object)(null), (Object)(parameters))).join();
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -2195,7 +2195,7 @@ public class Bittrade extends BittradeApi
                 put( "clientOrderId", null );
                 put( "average", null );
             }}, market);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -2228,7 +2228,7 @@ public class Bittrade extends BittradeApi
                 put( "id", id );
                 put( "status", "canceled" );
             }});
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -2296,7 +2296,7 @@ public class Bittrade extends BittradeApi
             //     }
             //
             return this.parseCancelOrders(response);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -2404,7 +2404,7 @@ public class Bittrade extends BittradeApi
             return new ArrayList<Object>(Arrays.asList(this.safeOrder(new HashMap<String, Object>() {{
         put( "info", data );
     }})));
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -2487,7 +2487,7 @@ public class Bittrade extends BittradeApi
             // return response
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTransactions(data, currency, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
 
     }
 
@@ -2539,7 +2539,7 @@ public class Bittrade extends BittradeApi
             // return response
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTransactions(data, currency, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
 
     }
 
@@ -2711,7 +2711,7 @@ public class Bittrade extends BittradeApi
             //     }
             //
             return this.parseTransaction(response, currency);
-        }).thenApply(Transaction::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Transaction::new);
 
     }
 

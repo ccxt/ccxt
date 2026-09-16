@@ -543,7 +543,7 @@ public class Luno extends LunoApi
             Map<String, Object> grouped = this.groupBy(currenciesData, "native_currency");
             Object values = Helpers.objectValues(grouped);
             return this.parseCurrencies(values);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -739,7 +739,7 @@ public class Luno extends LunoApi
                 }});
             }
             return result;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -774,7 +774,7 @@ public class Luno extends LunoApi
                 }});
             }
             return result;
-        }).thenApply(res -> Helpers.toTypedList(res, Account::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Account::new));
 
     }
 
@@ -841,7 +841,7 @@ public class Luno extends LunoApi
             //     }
             //
             return this.parseBalance(response);
-        }).thenApply(Balances::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Balances::new);
 
     }
 
@@ -881,7 +881,7 @@ public class Luno extends LunoApi
             }
             Long timestamp = this.safeInteger(response, "timestamp");
             return this.parseOrderBook(response, Helpers.GetValue(market, "symbol"), timestamp, "bids", "asks", "price", "volume");
-        }).thenApply(OrderBook::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OrderBook::new);
 
     }
 
@@ -1007,7 +1007,7 @@ public class Luno extends LunoApi
             }};
             Map<String, Object> response = (this.privateGetOrdersId(this.extend(request, parameters))).join();
             return this.parseOrder(response);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -1038,7 +1038,7 @@ public class Luno extends LunoApi
             Map<String, Object> response = (this.privateGetListorders(this.extend(request, parameters))).join();
             Object orders = this.safeList(response, "orders", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(orders, market, since, limit);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1063,7 +1063,7 @@ public class Luno extends LunoApi
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             return (this.fetchOrdersByState(null, symbol, since, limit, parameters)).join();
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -1088,7 +1088,7 @@ public class Luno extends LunoApi
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             return (this.fetchOrdersByState("PENDING", symbol, since, limit, parameters)).join();
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -1113,7 +1113,7 @@ public class Luno extends LunoApi
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             return (this.fetchOrdersByState("COMPLETE", symbol, since, limit, parameters)).join();
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -1192,7 +1192,7 @@ public class Luno extends LunoApi
                 Helpers.addElementToObject(result, symbol, this.parseTicker(ticker, market));
             }
             return this.filterByArrayTickers(result, "symbol", symbols);
-        }).thenApply(Tickers::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Tickers::new);
 
     }
 
@@ -1230,7 +1230,7 @@ public class Luno extends LunoApi
             //     "status":"ACTIVE"
             // }
             return this.parseTicker(response, market);
-        }).thenApply(Ticker::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Ticker::new);
 
     }
 
@@ -1389,7 +1389,7 @@ public class Luno extends LunoApi
             //
             Object trades = this.safeList(response, "trades", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(trades, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -1450,7 +1450,7 @@ public class Luno extends LunoApi
             //
             Object ohlcvs = this.safeList(response, "candles", new ArrayList<Object>(Arrays.asList()));
             return this.parseOHLCVs(ohlcvs, market, timeframe, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
 
     }
 
@@ -1532,7 +1532,7 @@ public class Luno extends LunoApi
             //
             Object trades = this.safeList(response, "trades", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(trades, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -1575,7 +1575,7 @@ public class Luno extends LunoApi
                 put( "percentage", null );
                 put( "tierBased", null );
             }};
-        }).thenApply(TradingFeeInterface::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(TradingFeeInterface::new);
 
     }
 
@@ -1643,7 +1643,7 @@ public class Luno extends LunoApi
                 put( "info", finalResponse );
                 put( "id", Helpers.GetValue(finalResponse, "order_id") );
             }}, market);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -1680,7 +1680,7 @@ public class Luno extends LunoApi
             return this.safeOrder(new HashMap<String, Object>() {{
                 put( "info", response );
             }});
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -1710,7 +1710,7 @@ public class Luno extends LunoApi
                 put( "max_row", Luno.this.sum(finalEntry, finalLimit) );
             }};
             return (this.fetchLedger((Object)(code), (Object)(since), (Object)(limit), (Object)(this.extend(request, parameters)))).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1791,7 +1791,7 @@ public class Luno extends LunoApi
             Map<String, Object> response = (this.privateGetAccountsIdTransactions(this.extend(parameters, request))).join();
             Object entries = this.safeValue(response, "transactions", new ArrayList<Object>(Arrays.asList()));
             return this.parseLedger(entries, currency, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, LedgerEntry::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, LedgerEntry::new));
 
     }
 
@@ -1945,7 +1945,7 @@ public class Luno extends LunoApi
             //     }
             //
             return this.parseDepositAddress(response, currency);
-        }).thenApply(DepositAddress::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(DepositAddress::new);
 
     }
 
@@ -1996,7 +1996,7 @@ public class Luno extends LunoApi
             //     }
             //
             return this.parseDepositAddress(response, currency);
-        }).thenApply(DepositAddress::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(DepositAddress::new);
 
     }
 
@@ -2071,7 +2071,7 @@ public class Luno extends LunoApi
             Helpers.addElementToObject(Helpers.GetValue(result, "withdraw"), "fee", this.safeNumber(response, "fee"));
             Helpers.addElementToObject(Helpers.GetValue(result, "withdraw"), "percentage", false);
             return this.assignDefaultDepositWithdrawFees(result, currency);
-        }).thenApply(DepositWithdrawFee::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(DepositWithdrawFee::new);
 
     }
 

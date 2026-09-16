@@ -790,7 +790,7 @@ public class Toobit extends ToobitApi
                 put( "url", null );
                 put( "info", response );
             }};
-        }).thenApply(Status::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Status::new);
 
     }
 
@@ -815,7 +815,7 @@ public class Toobit extends ToobitApi
             //     }
             //
             return this.safeInteger(response, "serverTime");
-        }).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
 
     }
 
@@ -976,7 +976,7 @@ public class Toobit extends ToobitApi
                 }
             }
             return result;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1207,7 +1207,7 @@ public class Toobit extends ToobitApi
                 }
             }
             return result;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1350,7 +1350,7 @@ public class Toobit extends ToobitApi
             //
             Long timestamp = this.safeInteger(response, "t");
             return this.parseOrderBook(response, Helpers.GetValue(market, "symbol"), timestamp, "b", "a");
-        }).thenApply(OrderBook::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OrderBook::new);
 
     }
 
@@ -1398,7 +1398,7 @@ public class Toobit extends ToobitApi
             //    ]
             //
             return this.parseTrades(response, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -1586,7 +1586,7 @@ public class Toobit extends ToobitApi
                 candles = response;
             }
             return this.parseOHLCVs(candles, market, timeframe, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
 
     }
 
@@ -1662,7 +1662,7 @@ public class Toobit extends ToobitApi
             //        ...
             //
             return this.parseTickers(response, symbols, parameters);
-        }).thenApply(Tickers::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Tickers::new);
 
     }
 
@@ -1747,7 +1747,7 @@ public class Toobit extends ToobitApi
             //        },
             //
             return this.parseLastPrices(response, symbols);
-        }).thenApply(LastPrices::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(LastPrices::new);
 
     }
 
@@ -1812,7 +1812,7 @@ public class Toobit extends ToobitApi
             //        }, ...
             //
             return this.parseBidsAsksCustom(response, symbols);
-        }).thenApply(Tickers::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Tickers::new);
 
     }
 
@@ -1891,7 +1891,7 @@ public class Toobit extends ToobitApi
             //        },...
             //
             return this.parseFundingRates(response, symbols);
-        }).thenApply(FundingRates::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(FundingRates::new);
 
     }
 
@@ -1981,7 +1981,7 @@ public class Toobit extends ToobitApi
             //        }, ...
             //
             return this.parseFundingRateHistories(response, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, FundingRateHistory::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, FundingRateHistory::new));
 
     }
 
@@ -2031,7 +2031,7 @@ public class Toobit extends ToobitApi
                 response = (this.privateGetApiV1Account()).join();
             }
             return this.parseBalance(response);
-        }).thenApply(Balances::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Balances::new);
 
     }
 
@@ -2125,7 +2125,7 @@ public class Toobit extends ToobitApi
             //     }
             //
             return this.parseOrder(response, market);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -2489,7 +2489,7 @@ public class Toobit extends ToobitApi
                 throw new OrderNotFound(Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " order "), id), " can not be canceled, "), this.json(response))) ;
             }
             return this.parseOrder(response, market);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -2541,7 +2541,7 @@ public class Toobit extends ToobitApi
             return new ArrayList<Object>(Arrays.asList(this.safeOrder(new HashMap<String, Object>() {{
         put( "info", finalResponse );
     }})));
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -2594,7 +2594,7 @@ public class Toobit extends ToobitApi
             }
             Object result = this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(result, market);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -2665,7 +2665,7 @@ public class Toobit extends ToobitApi
             //    }
             //
             return this.parseOrder(response, market);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -2718,7 +2718,7 @@ public class Toobit extends ToobitApi
                 response = (this.privateGetApiV1FuturesOpenOrders(this.extend(request, parameters))).join();
             }
             return this.parseOrders(response, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -2777,7 +2777,7 @@ public class Toobit extends ToobitApi
                 throw new NotSupported(Helpers.add(Helpers.add(Helpers.add(this.id, " fetchOrders() is not supported for "), marketType), " markets")) ;
             }
             return this.parseOrders(response, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -2847,7 +2847,7 @@ public class Toobit extends ToobitApi
                 }});
             }
             return this.parseOrders(ordersList, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -2908,7 +2908,7 @@ public class Toobit extends ToobitApi
                 response = (this.privateGetApiV1FuturesUserTrades(request)).join();
             }
             return this.parseTrades(response, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -2952,7 +2952,7 @@ public class Toobit extends ToobitApi
             //    }
             //
             return this.parseTransfer(response, currency);
-        }).thenApply(TransferEntry::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(TransferEntry::new);
 
     }
 
@@ -3053,7 +3053,7 @@ public class Toobit extends ToobitApi
             //     },
             //
             return this.parseLedger(response, currency, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, LedgerEntry::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, LedgerEntry::new));
 
     }
 
@@ -3160,7 +3160,7 @@ public class Toobit extends ToobitApi
             Object fee = this.parseTradingFee(entry, market);
             Helpers.addElementToObject(result, Helpers.GetValue(market, "symbol"), fee);
             return result;
-        }).thenApply(TradingFees::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(TradingFees::new);
 
     }
 
@@ -3199,7 +3199,7 @@ public class Toobit extends ToobitApi
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             return (this.fetchDepositsOrWithdrawalsHelper("deposits", code, since, limit, parameters)).join();
-        }).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
 
     }
 
@@ -3224,7 +3224,7 @@ public class Toobit extends ToobitApi
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             return (this.fetchDepositsOrWithdrawalsHelper("withdrawals", code, since, limit, parameters)).join();
-        }).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
 
     }
 
@@ -3271,7 +3271,7 @@ public class Toobit extends ToobitApi
                 response = (this.privateGetApiV1AccountWithdrawOrders(this.extend(request, parameters))).join();
             }
             return this.parseTransactions(response, currency, since, limit, parameters);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -3422,7 +3422,7 @@ public class Toobit extends ToobitApi
             //     }
             //
             return this.parseDepositAddress(response, currency);
-        }).thenApply(DepositAddress::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(DepositAddress::new);
 
     }
 
@@ -3497,7 +3497,7 @@ public class Toobit extends ToobitApi
             // }
             //
             return this.parseTransaction(response, currency);
-        }).thenApply(Transaction::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Transaction::new);
 
     }
 
@@ -3542,7 +3542,7 @@ public class Toobit extends ToobitApi
             // {"code":200,"symbolId":"BTC-SWAP-USDT","marginType":"ISOLATED"}
             //
             return response;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -3581,7 +3581,7 @@ public class Toobit extends ToobitApi
             // {"code":200,"symbolId":"BTC-SWAP-USDT","leverage":"19"}
             //
             return response;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -3620,7 +3620,7 @@ public class Toobit extends ToobitApi
             //
             Object data = this.safeDict(response, 0, new HashMap<String, Object>() {{}});
             return this.parseLeverage(data, market);
-        }).thenApply(Leverage::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Leverage::new);
 
     }
 
@@ -3701,7 +3701,7 @@ public class Toobit extends ToobitApi
             //    ]
             //
             return this.parsePositions(response, symbols);
-        }).thenApply(res -> Helpers.toTypedList(res, Position::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Position::new));
 
     }
 

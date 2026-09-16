@@ -486,7 +486,7 @@ public class Limitless extends LimitlessApi
                 return this.arraySlice(markets, 0, maxMarkets);
             }
             return markets;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -750,7 +750,7 @@ public class Limitless extends LimitlessApi
             Object eventVar = this.parseEvent(wrapped);
             this.indexEventOutcomes(eventVar);
             return eventVar;
-        }).thenApply(PredictionEvent::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(PredictionEvent::new);
 
     }
 
@@ -1174,7 +1174,7 @@ public class Limitless extends LimitlessApi
                 put( "book", Helpers.GetValue(responses, 1) );
             }};
             return this.parsePredictionTicker(tickerInput, outcomeObj);
-        }).thenApply(PredictionTicker::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(PredictionTicker::new);
 
     }
 
@@ -1458,7 +1458,7 @@ public class Limitless extends LimitlessApi
                 }
             }
             return result;
-        }).thenApply(PredictionTickers::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(PredictionTickers::new);
 
     }
 
@@ -1528,7 +1528,7 @@ public class Limitless extends LimitlessApi
                 ((List<Object>)filtered).add(row);
             }
             return this.parsePredictionTrades(filtered, outcomeObj, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, PredictionTrade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, PredictionTrade::new));
 
     }
 
@@ -1626,7 +1626,7 @@ public class Limitless extends LimitlessApi
                 put( "nonce", null );
             }};
             return this.safePredictionOrderBook(orderbook, outcomeObj);
-        }).thenApply(PredictionOrderBook::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(PredictionOrderBook::new);
 
     }
 
@@ -1794,7 +1794,7 @@ public class Limitless extends LimitlessApi
                 ((List<Object>)result).add(Helpers.GetValue(candles, Helpers.GetValue(bucketOrder, i)));
             }
             return this.filterBySinceLimit(result, since, limit, 0);
-        }).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
 
     }
 
@@ -1857,7 +1857,7 @@ public class Limitless extends LimitlessApi
             // lives under 'outcome', so the base outcome filter would drop every order; the per-slug
             // endpoint already scopes results and parsePredictionOrder resolves the outcome via outcomes_by_id
             return this.parsePredictionOrders(this.toArray(response), null, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, PredictionOrder::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, PredictionOrder::new));
 
     }
 
@@ -1890,7 +1890,7 @@ public class Limitless extends LimitlessApi
                 put( "statuses", new ArrayList<Object>(Arrays.asList("LIVE")) );
             }});
             return (this.fetchOrders((Object)(outcome), (Object)(since), (Object)(limit), (Object)(parameters))).join();
-        }).thenApply(res -> Helpers.toTypedList(res, PredictionOrder::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, PredictionOrder::new));
 
     }
 
@@ -1923,7 +1923,7 @@ public class Limitless extends LimitlessApi
                 put( "statuses", new ArrayList<Object>(Arrays.asList("MATCHED")) );
             }});
             return (this.fetchOrders((Object)(outcome), (Object)(since), (Object)(limit), (Object)(parameters))).join();
-        }).thenApply(res -> Helpers.toTypedList(res, PredictionOrder::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, PredictionOrder::new));
 
     }
 
@@ -2074,7 +2074,7 @@ public class Limitless extends LimitlessApi
                 }
             }
             return this.parsePredictionOrders(found);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -2106,7 +2106,7 @@ public class Limitless extends LimitlessApi
                 throw new OrderNotFound(Helpers.add(Helpers.add(this.id, " fetchOrder() could not find order "), id)) ;
             }
             return order;
-        }).thenApply(PredictionOrder::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(PredictionOrder::new);
 
     }
 
@@ -2419,7 +2419,7 @@ public class Limitless extends LimitlessApi
             Map<String, Object> response = (this.limitlessPrivateGetProfilesMe(parameters)).join();
             List<Object> responseList = new ArrayList<Object>(Arrays.asList(response));
             return this.parseAccounts(responseList);
-        }).thenApply(res -> Helpers.toTypedList(res, Account::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Account::new));
 
     }
 
@@ -2624,7 +2624,7 @@ public class Limitless extends LimitlessApi
                 Helpers.addElementToObject(parsedOrder, "status", "open");
             }
             return parsedOrder;
-        }).thenApply(PredictionOrder::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(PredictionOrder::new);
 
     }
 
@@ -2784,7 +2784,7 @@ public class Limitless extends LimitlessApi
             Object approveData = Helpers.add(Helpers.add("0x095ea7b3", this.padHexAddress(spender)), amountHex);
             Object txHash = (this.sendEvmTransaction(rpcUrl, chainId, owner, token, "0x0", approveData, gasLimit)).join();
             return (this.waitForTransactionReceipt(rpcUrl, txHash)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -2824,7 +2824,7 @@ public class Limitless extends LimitlessApi
                 Helpers.addElementToObject(order, "status", "canceled");
             }
             return order;
-        }).thenApply(PredictionOrder::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(PredictionOrder::new);
 
     }
 
@@ -2871,7 +2871,7 @@ public class Limitless extends LimitlessApi
                 put( "id", finalConditionId );
                 put( "conditionId", finalConditionId );
             }};
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -2910,7 +2910,7 @@ public class Limitless extends LimitlessApi
                 throw new OrderNotFound((String)feedback) ;
             }
             return this.parsePredictionOrders(canceled);
-        }).thenApply(res -> Helpers.toTypedList(res, PredictionOrder::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, PredictionOrder::new));
 
     }
 
@@ -2961,7 +2961,7 @@ public class Limitless extends LimitlessApi
             return new ArrayList<Object>(Arrays.asList(this.safePredictionOrder(new HashMap<String, Object>() {{
         put( "info", response );
     }})));
-        }).thenApply(res -> Helpers.toTypedList(res, PredictionOrder::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, PredictionOrder::new));
 
     }
 
@@ -3090,7 +3090,7 @@ public class Limitless extends LimitlessApi
             }
             Object parsedTrades = this.parsePredictionTrades(trades);
             return this.filterByOutcomeSinceLimit(parsedTrades, outcomeSymbol, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, PredictionTrade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, PredictionTrade::new));
 
     }
 
@@ -3382,7 +3382,7 @@ public class Limitless extends LimitlessApi
                 }
             }
             return result;
-        }).thenApply(res -> Helpers.toTypedList(res, PredictionPosition::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, PredictionPosition::new));
 
     }
 
@@ -3623,7 +3623,7 @@ public class Limitless extends LimitlessApi
             }}, parameters);
             Object postParams = this.omit(searchParams, new ArrayList<Object>(Arrays.asList("tags")));
             return this.applyEventFetchParams(result, postParams, queries);
-        }).thenApply(res -> Helpers.toTypedList(res, PredictionEvent::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, PredictionEvent::new));
 
     }
 
@@ -3687,7 +3687,7 @@ public class Limitless extends LimitlessApi
                 }
             }
             return allRaw;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -3766,7 +3766,7 @@ public class Limitless extends LimitlessApi
                 }
             }
             return allRaw;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 

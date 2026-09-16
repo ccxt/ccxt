@@ -136,7 +136,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
                 }};
                 return (this.watchSwapPublic(channel, messageHash, requestParams, parameters)).join();
             }
-        }).thenApply(Ticker::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Ticker::new);
 
     }
 
@@ -285,7 +285,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
                 return result;
             }
             return this.filterByArray(this.tickers, "symbol", symbols);
-        }).thenApply(Tickers::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Tickers::new);
 
     }
 
@@ -506,7 +506,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
                 return tickers;
             }
             return this.filterByArray(this.bidsasks, "symbol", symbols);
-        }).thenApply(Tickers::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Tickers::new);
 
     }
 
@@ -571,7 +571,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
                 put( "params", new ArrayList<Object>(Arrays.asList(channel)) );
             }};
             return (this.watch(url, messageHash, this.extend(request, parameters), messageHash, null)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -589,7 +589,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
                 put( "params", new ArrayList<Object>(Arrays.asList(channel)) );
             }};
             return (this.watch(url, messageHash, this.extend(request, parameters), channel, null)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -606,7 +606,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
             }};
             Map<String, Object> message = this.extend(request, parameters);
             return (this.watch(url, messageHash, message, messageHash, null)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -632,7 +632,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
             }};
             Map<String, Object> message = this.extend(request, parameters);
             return (this.watch(url, messageHash, message, channel, null)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -687,7 +687,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
                 limit = Helpers.callDynamically(ohlcv, "getLimit", new Object[]{symbol, limit});
             }
             return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
-        }).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
 
     }
 
@@ -897,7 +897,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
             }
             orderbook = this.requireValue(orderbook, "watchOrderBook() orderbook is required");
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
-        }).thenApply(OrderBook::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OrderBook::new);
 
     }
 
@@ -1143,7 +1143,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
             }
             return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -1283,7 +1283,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
             }
             return this.filterBySymbolSinceLimit(trades, symbol, since, limit, true);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -1496,7 +1496,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
                 limit = Helpers.callDynamically(orders, "getLimit", new Object[]{symbol, limit});
             }
             return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -1800,7 +1800,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
             {
                 return (this.watchSwapPrivate(messageHash, parameters)).join();
             }
-        }).thenApply(Balances::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Balances::new);
 
     }
 
@@ -1892,7 +1892,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
             return (this.watchSwapPublic(channel, messageHash, requestParams, parameters)).join();
-        }).thenApply(FundingRate::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(FundingRate::new);
 
     }
 
@@ -1927,7 +1927,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
             Client client = this.client(url);
             this.handleUnsubscriptions(client, new ArrayList<Object>(Arrays.asList(messageHash)));
             return null;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1998,7 +1998,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
             Client client = this.client(url);
             this.handleUnsubscriptions(client, new ArrayList<Object>(Arrays.asList(messageHash)));
             return null;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -2049,7 +2049,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
             this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes, null);
             this.handleUnsubscriptions(client, messageHashes);
             return null;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -2107,7 +2107,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
             this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes, null);
             this.handleUnsubscriptions(client, messageHashes);
             return null;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -2157,7 +2157,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
             Client client = this.client(url);
             this.handleUnsubscriptions(client, new ArrayList<Object>(Arrays.asList(messageHash)));
             return null;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -2208,7 +2208,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
             Client client = this.client(url);
             this.handleUnsubscriptions(client, new ArrayList<Object>(Arrays.asList(messageHash)));
             return null;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -2253,7 +2253,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
             Client client = this.client(url);
             this.handleUnsubscriptions(client, new ArrayList<Object>(Arrays.asList(messageHash)));
             return null;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -2372,7 +2372,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
             Long listenKeyRefreshRate = this.safeInteger(this.options, "listenKeyRefreshRate", 1200000);
             this.scheduleCallback(listenKeyRefreshRate, "keepAliveListenKey", listenKey, parameters);
             return listenKey;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -2404,7 +2404,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
                 ((Map<String,Object>)this.clients).remove((String)url);
             }
             return null;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 

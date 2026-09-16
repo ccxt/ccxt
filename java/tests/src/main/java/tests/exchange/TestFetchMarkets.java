@@ -30,7 +30,7 @@ public class TestFetchMarkets extends BaseTest {
         }
         detectMarketConflicts(exchange, markets);
         return true;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
     public Object detectMarketConflicts(BaseExchange exchange, Object marketValues)

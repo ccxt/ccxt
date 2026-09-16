@@ -68,7 +68,7 @@ public class TestWatchTradesForSymbols extends BaseTest {
         }
         Assert(Helpers.isEqual(Helpers.getArrayLength(returnedSymbols), Helpers.getArrayLength(symbols)), Helpers.add(Helpers.add(logText, "only received part of symbols: "), exchange.json(returnedSymbols)));
         return true;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 

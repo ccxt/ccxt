@@ -257,7 +257,7 @@ public class Opinion extends OpinionApi
                 return this.arraySlice(flatMarkets, 0, userLimit);
             }
             return flatMarkets;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -285,7 +285,7 @@ public class Opinion extends OpinionApi
                 }
             }
             return (super.fetchOutcome(outcomeSymbol)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -561,7 +561,7 @@ final Object finalTokenId = tokenId;
             }
             this.populateOutcomes();
             return this.applyEventFetchParams(parsedEvents, parameters, queries);
-        }).thenApply(res -> Helpers.toTypedList(res, PredictionEvent::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, PredictionEvent::new));
 
     }
 
@@ -598,7 +598,7 @@ final Object finalTokenId = tokenId;
             Object eventVar = this.parseEvent(data);
             this.indexEventOutcomes(eventVar);
             return eventVar;
-        }).thenApply(PredictionEvent::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(PredictionEvent::new);
 
     }
 
@@ -774,7 +774,7 @@ final Object finalTokenId = tokenId;
                 put( "book", bookResponse );
             }};
             return this.parsePredictionTicker(response, ((Object)outcomeObj));
-        }).thenApply(PredictionTicker::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(PredictionTicker::new);
 
     }
 
@@ -894,7 +894,7 @@ final Object finalTokenId = tokenId;
                 }
             }
             return result;
-        }).thenApply(PredictionTickers::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(PredictionTickers::new);
 
     }
 
@@ -940,7 +940,7 @@ final Object finalTokenId = tokenId;
             Long timestamp = this.safeInteger(result, "timestamp");
             Object orderbook = this.parseOrderBook(result, this.safeOutcomeSymbol(outcome, outcomeObj), timestamp, "bids", "asks", "price", "size");
             return this.safePredictionOrderBook(orderbook, outcomeObj);
-        }).thenApply(PredictionOrderBook::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(PredictionOrderBook::new);
 
     }
 
@@ -1004,7 +1004,7 @@ final Object finalTokenId = tokenId;
             }
             List<Object> sorted = this.sortBy(candles, 0);
             return this.filterBySinceLimit(sorted, since, limit, 0);
-        }).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
 
     }
 
@@ -1072,7 +1072,7 @@ final Object finalTokenId = tokenId;
                 throw new ExchangeError(Helpers.add(Helpers.add(this.id, " loadQuoteToken() could not find quote token "), quoteTokenAddress)) ;
             }
             return quoteToken;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1099,7 +1099,7 @@ final Object finalTokenId = tokenId;
             String multiSignAddress = this.safeString(walletUsers, "56", this.walletAddress);
             Helpers.addElementToObject(this.options, "multiSignAddress", multiSignAddress);
             return multiSignAddress;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1319,7 +1319,7 @@ final Object finalTokenId = tokenId;
             Object result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             Object orderData = this.safeDict(result, "orderData", new HashMap<String, Object>() {{}});
             return this.parsePredictionOrder(orderData, ((Object)outcomeObj));
-        }).thenApply(PredictionOrder::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(PredictionOrder::new);
 
     }
 
@@ -1356,7 +1356,7 @@ final Object finalTokenId = tokenId;
                 put( "status", status );
                 put( "info", response );
             }});
-        }).thenApply(PredictionOrder::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(PredictionOrder::new);
 
     }
 
@@ -1475,7 +1475,7 @@ final Object finalTokenId = tokenId;
             Object result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             Object orders = this.safeList(result, "list", new ArrayList<Object>(Arrays.asList()));
             return this.parsePredictionOrders(orders, outcomeObj, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, PredictionOrder::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, PredictionOrder::new));
 
     }
 
@@ -1508,7 +1508,7 @@ final Object finalTokenId = tokenId;
             Object result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             Object orderData = this.safeDict(result, "orderData", new HashMap<String, Object>() {{}});
             return this.parsePredictionOrder(orderData, outcomeObj);
-        }).thenApply(PredictionOrder::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(PredictionOrder::new);
 
     }
 
@@ -1537,7 +1537,7 @@ final Object finalTokenId = tokenId;
                 put( "status", "1" );
             }};
             return (this.fetchOrders((Object)(outcome), (Object)(since), (Object)(limit), (Object)(this.extend(request, parameters)))).join();
-        }).thenApply(res -> Helpers.toTypedList(res, PredictionOrder::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, PredictionOrder::new));
 
     }
 
@@ -1566,7 +1566,7 @@ final Object finalTokenId = tokenId;
                 put( "status", "2,3,4,5" );
             }};
             return (this.fetchOrders((Object)(outcome), (Object)(since), (Object)(limit), (Object)(this.extend(request, parameters)))).join();
-        }).thenApply(res -> Helpers.toTypedList(res, PredictionOrder::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, PredictionOrder::new));
 
     }
 
@@ -1623,7 +1623,7 @@ final Object finalTokenId = tokenId;
                 }
             }
             return this.parsePredictionTrades(trades, outcomeObj, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, PredictionTrade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, PredictionTrade::new));
 
     }
 
@@ -1673,7 +1673,7 @@ final Object finalTokenId = tokenId;
             Helpers.addElementToObject(cached, idStr, market);
             Helpers.addElementToObject(this.options, cacheKey, cached);
             return market;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1741,7 +1741,7 @@ final Object finalTokenId = tokenId;
                 Helpers.addElementToObject(rawBalance, "symbol", this.safeString(quoteToken, "symbol", "USDT"));
             }
             return this.parseBalance(response);
-        }).thenApply(Balances::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Balances::new);
 
     }
 
@@ -1836,7 +1836,7 @@ final Object finalTokenId = tokenId;
                 }
             }
             return filtered;
-        }).thenApply(res -> Helpers.toTypedList(res, PredictionPosition::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, PredictionPosition::new));
 
     }
 
@@ -1942,7 +1942,7 @@ final Object finalTokenId = tokenId;
             Object response = (this.opinionPrivatePostAuthApiKey(parameters)).join();
             Object result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             return this.setApiCredentials(result);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1963,7 +1963,7 @@ final Object finalTokenId = tokenId;
             Object response = (this.opinionPrivateGetAuthApiKey(parameters)).join();
             Object result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             return this.setApiCredentials(result);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1989,7 +1989,7 @@ final Object finalTokenId = tokenId;
             // sign() treats an empty key as absent
             this.apiKey = "";
             return response;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -2032,7 +2032,7 @@ final Object finalTokenId = tokenId;
                 creds = (this.createApiKey()).join();
             }
             return this.safeString(creds, "apiKey");
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -2104,7 +2104,7 @@ final Object finalTokenId = tokenId;
                 put( "marketId", marketId );
             }};
             return (this.watch(url, messageHash, subscribeMsg, subscriptionKey, null)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -2212,7 +2212,7 @@ final Object finalTokenId = tokenId;
             }
             Object orderbook = ((io.github.ccxt.ws.Future)future).getFuture().join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
-        }).thenApply(PredictionOrderBook::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(PredictionOrderBook::new);
 
     }
 
@@ -2228,7 +2228,7 @@ final Object finalTokenId = tokenId;
             Helpers.callDynamically(orderbook, "reset", new Object[]{snapshot});
             Helpers.addElementToObject(this.orderbooks, ((String)sym), orderbook);
             return null;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -2290,7 +2290,7 @@ final Object finalTokenId = tokenId;
             Object sym = this.safeOutcomeSymbol(outcome, outcomeObj);
             String messageHash = Helpers.add("ticker::", sym);
             return (this.subscribeOpinionChannel(messageHash, "market.last.price", marketId)).join();
-        }).thenApply(PredictionTicker::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(PredictionTicker::new);
 
     }
 
@@ -2356,7 +2356,7 @@ final Object finalTokenId = tokenId;
             String messageHash = Helpers.add("trades::", sym);
             Object trades = (this.subscribeOpinionChannel(messageHash, "market.last.trade", marketId)).join();
             return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
-        }).thenApply(res -> Helpers.toTypedList(res, PredictionTrade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, PredictionTrade::new));
 
     }
 
@@ -2446,7 +2446,7 @@ final Object finalTokenId = tokenId;
             Object orders = (this.subscribeOpinionChannel(messageHash, "trade.order.update", marketId)).join();
             Object sym = this.safeOutcomeSymbol(outcome, outcomeObj);
             return this.filterByValueSinceLimit(orders, "outcome", sym, since, limit, "timestamp", true);
-        }).thenApply(res -> Helpers.toTypedList(res, PredictionOrder::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, PredictionOrder::new));
 
     }
 
@@ -2580,7 +2580,7 @@ final Object finalTokenId = tokenId;
             Object trades = (this.subscribeOpinionChannel(messageHash, "trade.record.new", marketId)).join();
             Object sym = this.safeOutcomeSymbol(outcome, outcomeObj);
             return this.filterByValueSinceLimit(trades, "outcome", sym, since, limit, "timestamp", true);
-        }).thenApply(res -> Helpers.toTypedList(res, PredictionTrade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, PredictionTrade::new));
 
     }
 

@@ -169,7 +169,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
                 parameters = this.omit(parameters, "symbolsAndTimeframes");
             }
             return (this.watch(url, messageHash, this.extend(request, parameters), subscribeHash, subscription)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -227,7 +227,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
                 put( "id", uuid );
             }};
             return (this.watch(url, messageHash, this.extend(request, parameters), messageHash, subscription)).join();
-        }).thenApply(Ticker::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Ticker::new);
 
     }
 
@@ -259,7 +259,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             Object topic = "ticker";
             Object methodName = "unWatchTicker";
             return (this.unWatch(messageHash, subMessageHash, messageHash, dataType, topic, market, methodName, parameters)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -498,7 +498,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
                 return filtered;
             }
             return result;
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -531,7 +531,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             Object topic = "trades";
             Object methodName = "unWatchTrades";
             return (this.unWatch(messageHash, subMessageHash, messageHash, dataType, topic, market, methodName, parameters)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -723,7 +723,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             }
             Object orderbook = (this.watch(url, messageHash, this.deepExtend(request, parameters), subscriptionHash, subscriptionArgs)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
-        }).thenApply(OrderBook::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OrderBook::new);
 
     }
 
@@ -756,7 +756,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             Object topic = "orderbook";
             Object methodName = "unWatchOrderBook";
             return (this.unWatch(messageHash, subMessageHash, messageHash, subMessageHash, topic, market, methodName, parameters)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1106,7 +1106,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
                 limit = Helpers.callDynamically(ohlcv, "getLimit", new Object[]{symbol, limit});
             }
             return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
-        }).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
 
     }
 
@@ -1144,7 +1144,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             List<Object> symbolsAndTimeframes = new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(Helpers.GetValue(market, "symbol"), timeframe))));
             Helpers.addElementToObject(parameters, "symbolsAndTimeframes", symbolsAndTimeframes);
             return (this.unWatch(messageHash, subMessageHash, messageHash, subMessageHash, topic, market, methodName, parameters)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1230,7 +1230,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
                 limit = Helpers.callDynamically(orders, "getLimit", new Object[]{symbol, limit});
             }
             return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -1316,7 +1316,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
             }
             return this.filterBySymbolSinceLimit(trades, symbol, since, limit, true);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -1396,7 +1396,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
                 put( "id", uuid );
             }};
             return (this.watch(url, messageHash, request, subscriptionHash, subscription)).join();
-        }).thenApply(Balances::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Balances::new);
 
     }
 
@@ -1445,7 +1445,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
                 client.resolve(Helpers.GetValue(this.balance, type), Helpers.add(type, ":balance"));
             }
             return null;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1528,7 +1528,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
                 return newPositions;
             }
             return this.filterBySymbolsSinceLimit(this.positions, symbols, since, limit, true);
-        }).thenApply(res -> Helpers.toTypedList(res, Position::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Position::new));
 
     }
 
@@ -1582,7 +1582,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
                 client.resolve(cache, "swap:positions");
             }
             return null;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1788,7 +1788,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             Long listenKeyRefreshRate = this.safeInteger(this.options, "listenKeyRefreshRate", 3600000);
             this.scheduleCallback(listenKeyRefreshRate, "keepAliveListenKey", parameters);
             return null;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1847,7 +1847,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
                 ((io.github.ccxt.ws.Future)future).getFuture().join();
             }
             return null;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1876,7 +1876,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
                 client.reset(error);
             }
             return null;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 

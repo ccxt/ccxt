@@ -113,7 +113,7 @@ public class Mudrex extends io.github.ccxt.exchanges.Mudrex
             }};
             Map<String, Object> request = this.extend(subscribe, parameters);
             return (this.watch(url, messageHash, request, messageHash, null)).join();
-        }).thenApply(Ticker::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Ticker::new);
 
     }
 
@@ -159,7 +159,7 @@ public class Mudrex extends io.github.ccxt.exchanges.Mudrex
                 return result;
             }
             return this.filterByArrayTickers(this.tickers, "symbol", symbols);
-        }).thenApply(Tickers::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Tickers::new);
 
     }
 
@@ -208,7 +208,7 @@ public class Mudrex extends io.github.ccxt.exchanges.Mudrex
                 limit = Helpers.callDynamically(ohlcv, "getLimit", new Object[]{symbol, limit});
             }
             return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
-        }).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
 
     }
 

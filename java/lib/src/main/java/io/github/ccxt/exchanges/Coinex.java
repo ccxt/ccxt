@@ -1272,7 +1272,7 @@ public class Coinex extends CoinexApi
             //
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseCurrencies(data);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1373,7 +1373,7 @@ public class Coinex extends CoinexApi
             Object spotMarkets = Helpers.GetValue(promises, 0);
             Object swapMarkets = Helpers.GetValue(promises, 1);
             return this.arrayConcat(spotMarkets, swapMarkets);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1470,7 +1470,7 @@ public class Coinex extends CoinexApi
                 }});
             }
             return result;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1575,7 +1575,7 @@ public class Coinex extends CoinexApi
                 }});
             }
             return result;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1732,7 +1732,7 @@ public class Coinex extends CoinexApi
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Object result = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
             return this.parseTicker(result, market);
-        }).thenApply(Ticker::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Ticker::new);
 
     }
 
@@ -1824,7 +1824,7 @@ public class Coinex extends CoinexApi
             //
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTickers(data, symbols);
-        }).thenApply(Tickers::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Tickers::new);
 
     }
 
@@ -1854,7 +1854,7 @@ public class Coinex extends CoinexApi
             //
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.safeInteger(data, "timestamp");
-        }).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
 
     }
 
@@ -1903,7 +1903,7 @@ public class Coinex extends CoinexApi
             Object depth = this.safeDict(data, "depth", new HashMap<String, Object>() {{}});
             Long timestamp = this.safeInteger(depth, "updated_at");
             return this.parseOrderBook(depth, symbol, timestamp);
-        }).thenApply(OrderBook::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OrderBook::new);
 
     }
 
@@ -2046,7 +2046,7 @@ public class Coinex extends CoinexApi
             //     }
             //
             return this.parseTrades(Helpers.GetValue(response, "data"), market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -2085,7 +2085,7 @@ public class Coinex extends CoinexApi
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Object result = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
             return this.parseTradingFee(result, market);
-        }).thenApply(TradingFeeInterface::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(TradingFeeInterface::new);
 
     }
 
@@ -2131,7 +2131,7 @@ public class Coinex extends CoinexApi
                 Helpers.addElementToObject(result, symbol, this.parseTradingFee(entry, market));
             }
             return result;
-        }).thenApply(TradingFees::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(TradingFees::new);
 
     }
 
@@ -2233,7 +2233,7 @@ public class Coinex extends CoinexApi
             //
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseOHLCVs(data, market, timeframe, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
 
     }
 
@@ -2304,7 +2304,7 @@ public class Coinex extends CoinexApi
                 }
             }
             return this.safeBalance(result);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -2350,7 +2350,7 @@ public class Coinex extends CoinexApi
                 }
             }
             return this.safeBalance(result);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -2399,7 +2399,7 @@ public class Coinex extends CoinexApi
                 }
             }
             return this.safeBalance(result);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -2445,7 +2445,7 @@ public class Coinex extends CoinexApi
                 }
             }
             return this.safeBalance(result);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -2489,7 +2489,7 @@ public class Coinex extends CoinexApi
             {
                 return (this.fetchSpotBalance(parameters)).join();
             }
-        }).thenApply(Balances::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Balances::new);
 
     }
 
@@ -2815,7 +2815,7 @@ public class Coinex extends CoinexApi
             }
             Helpers.addElementToObject(parameters, "createMarketBuyOrderRequiresPrice", false);
             return (this.createOrder((Object)(symbol), (Object)("market"), (Object)("buy"), (Object)(cost), (Object)(null), (Object)(parameters))).join();
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -3044,7 +3044,7 @@ public class Coinex extends CoinexApi
             }
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseOrder(data, market);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -3174,7 +3174,7 @@ public class Coinex extends CoinexApi
                 ((List<Object>)results).add(order);
             }
             return results;
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -3256,7 +3256,7 @@ public class Coinex extends CoinexApi
                 ((List<Object>)results).add(order);
             }
             return results;
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -3351,7 +3351,7 @@ public class Coinex extends CoinexApi
             }
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseOrder(data, market);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -3451,7 +3451,7 @@ public class Coinex extends CoinexApi
                 ((List<Object>)result).add(order);
             }
             return result;
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -3571,7 +3571,7 @@ public class Coinex extends CoinexApi
                 data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             }
             return this.parseOrder(data, market);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -3629,7 +3629,7 @@ public class Coinex extends CoinexApi
             return new ArrayList<Object>(Arrays.asList(this.safeOrder(new HashMap<String, Object>() {{
         put( "info", finalResponse );
     }})));
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -3674,7 +3674,7 @@ public class Coinex extends CoinexApi
             }
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseOrder(data, market);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -3785,7 +3785,7 @@ public class Coinex extends CoinexApi
             }
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(data, market, since, limit);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -3820,7 +3820,7 @@ public class Coinex extends CoinexApi
                 Helpers.addElementToObject(Helpers.GetValue(openOrders, i), "status", "open");
             }
             return openOrders;
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -3850,7 +3850,7 @@ public class Coinex extends CoinexApi
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             return (this.fetchOrdersByStatus("finished", symbol, since, limit, parameters)).join();
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -3899,7 +3899,7 @@ public class Coinex extends CoinexApi
             //
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseDepositAddress(data, currency);
-        }).thenApply(DepositAddress::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(DepositAddress::new);
 
     }
 
@@ -3949,7 +3949,7 @@ public class Coinex extends CoinexApi
             //
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseDepositAddress(data, currency);
-        }).thenApply(DepositAddress::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(DepositAddress::new);
 
     }
 
@@ -4054,7 +4054,7 @@ public class Coinex extends CoinexApi
             }
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(data, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -4165,7 +4165,7 @@ public class Coinex extends CoinexApi
                 ((List<Object>)result).add(this.parsePosition(Helpers.GetValue(position, i), market));
             }
             return this.filterByArrayPositions(result, "symbol", symbols, false);
-        }).thenApply(res -> Helpers.toTypedList(res, Position::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Position::new));
 
     }
 
@@ -4239,7 +4239,7 @@ public class Coinex extends CoinexApi
             //
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parsePosition(Helpers.GetValue(data, 0), market);
-        }).thenApply(Position::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Position::new);
 
     }
 
@@ -4371,7 +4371,7 @@ public class Coinex extends CoinexApi
                 put( "leverage", finalLeverage );
             }};
             return (this.v2PrivatePostFuturesAdjustPositionLeverage(this.extend(request, parameters))).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -4425,7 +4425,7 @@ public class Coinex extends CoinexApi
                 put( "leverage", finalLeverage );
             }};
             return (this.v2PrivatePostFuturesAdjustPositionLeverage(this.extend(request, parameters))).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -4483,7 +4483,7 @@ public class Coinex extends CoinexApi
             //
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseLeverageTiers(data, symbols, "market");
-        }).thenApply(LeverageTiers::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(LeverageTiers::new);
 
     }
 
@@ -4588,7 +4588,7 @@ final Object finalI = i;
                 put( "amount", Coinex.this.parseNumber(amount) );
                 put( "status", status );
             }});
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -4682,7 +4682,7 @@ final Object finalI = i;
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             return (this.modifyMarginHelper(symbol, amount, "add", parameters)).join();
-        }).thenApply(MarginModification::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(MarginModification::new);
 
     }
 
@@ -4703,7 +4703,7 @@ final Object finalI = i;
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             return (this.modifyMarginHelper(symbol, amount, "reduce", parameters)).join();
-        }).thenApply(MarginModification::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(MarginModification::new);
 
     }
 
@@ -4793,7 +4793,7 @@ final Object finalI = i;
                 }});
             }
             return result;
-        }).thenApply(res -> Helpers.toTypedList(res, FundingHistory::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, FundingHistory::new));
 
     }
 
@@ -4846,7 +4846,7 @@ final Object finalI = i;
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Object first = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
             return this.parseFundingRate(first, market);
-        }).thenApply(FundingRate::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(FundingRate::new);
 
     }
 
@@ -4866,7 +4866,7 @@ final Object finalI = i;
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             return (this.fetchFundingRate(symbol, (Object)(parameters))).join();
-        }).thenApply(FundingRate::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(FundingRate::new);
 
     }
 
@@ -4982,7 +4982,7 @@ final Object finalI = i;
             //
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseFundingRates(data, symbols);
-        }).thenApply(FundingRates::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(FundingRates::new);
 
     }
 
@@ -5061,7 +5061,7 @@ final Object finalI = i;
             //
             Object transaction = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseTransaction(transaction, currency);
-        }).thenApply(Transaction::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Transaction::new);
 
     }
 
@@ -5171,7 +5171,7 @@ final Object finalI = i;
             }
             List<Object> sorted = this.sortBy(rates, "timestamp");
             return this.filterBySymbolSinceLimit(sorted, Helpers.GetValue(market, "symbol"), since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, FundingRateHistory::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, FundingRateHistory::new));
 
     }
 
@@ -5364,7 +5364,7 @@ final Object finalI = i;
                 put( "fromAccount", finalFromAccount );
                 put( "toAccount", finalToAccount );
             }});
-        }).thenApply(TransferEntry::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(TransferEntry::new);
 
     }
 
@@ -5478,7 +5478,7 @@ final Object finalI = i;
             //
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTransfers(data, currency, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, TransferEntry::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, TransferEntry::new));
 
     }
 
@@ -5552,7 +5552,7 @@ final Object finalI = i;
             //
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTransactions(data, currency, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
 
     }
 
@@ -5623,7 +5623,7 @@ final Object finalI = i;
             //
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTransactions(data, currency, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
 
     }
 
@@ -5718,7 +5718,7 @@ final Object finalI = i;
             //
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseIsolatedBorrowRate(data, market);
-        }).thenApply(IsolatedBorrowRate::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(IsolatedBorrowRate::new);
 
     }
 
@@ -5787,7 +5787,7 @@ final Object finalI = i;
             Object rows = this.safeValue(response, "data", new ArrayList<Object>(Arrays.asList()));
             Object interest = this.parseBorrowInterests(rows, market);
             return this.filterByCurrencySinceLimit(interest, code, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, BorrowInterest::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, BorrowInterest::new));
 
     }
 
@@ -5880,7 +5880,7 @@ final Object finalI = i;
                 put( "amount", amount );
                 put( "symbol", symbol );
             }});
-        }).thenApply(MarginLoan::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(MarginLoan::new);
 
     }
 
@@ -5927,7 +5927,7 @@ final Object finalI = i;
                 put( "amount", amount );
                 put( "symbol", symbol );
             }});
-        }).thenApply(MarginLoan::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(MarginLoan::new);
 
     }
 
@@ -6019,7 +6019,7 @@ final Object finalI = i;
             //
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseDepositWithdrawFee(data, currency);
-        }).thenApply(DepositWithdrawFee::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(DepositWithdrawFee::new);
 
     }
 
@@ -6100,7 +6100,7 @@ final Object finalI = i;
                 }
             }
             return result;
-        }).thenApply(DepositWithdrawFees::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(DepositWithdrawFees::new);
 
     }
 
@@ -6232,7 +6232,7 @@ final Object finalI = i;
             //
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseLeverage(data, market);
-        }).thenApply(Leverage::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Leverage::new);
 
     }
 
@@ -6347,7 +6347,7 @@ final Object finalI = i;
             Object records = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Object positions = this.parsePositions(records);
             return this.filterBySymbolSinceLimit(positions, symbol, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Position::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Position::new));
 
     }
 
@@ -6420,7 +6420,7 @@ final Object finalI = i;
             //
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseOrder(data, market);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -6700,7 +6700,7 @@ final Object finalI = i;
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Object modifications = this.parseMarginModifications(data, null, "market", "swap");
             return this.filterBySymbolSinceLimit(modifications, symbol, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, MarginModification::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, MarginModification::new));
 
     }
 }

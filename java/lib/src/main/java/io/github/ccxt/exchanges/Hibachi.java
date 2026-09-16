@@ -468,7 +468,7 @@ public class Hibachi extends HibachiApi
             // },
             Object rows = this.safeList(response, "futureContracts");
             return this.parseMarkets(rows);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -580,7 +580,7 @@ public class Hibachi extends HibachiApi
             // }
             //
             return this.parseBalance(response);
-        }).thenApply(Balances::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Balances::new);
 
     }
 
@@ -751,7 +751,7 @@ public class Hibachi extends HibachiApi
                 tradesList = trades;
             }
             return this.parseTrades(tradesList, market);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -806,7 +806,7 @@ public class Hibachi extends HibachiApi
                 put( "stats", statsResponse );
             }};
             return this.parseTicker(ticker, market);
-        }).thenApply(Ticker::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Ticker::new);
 
     }
 
@@ -946,7 +946,7 @@ public class Hibachi extends HibachiApi
             }};
             Map<String, Object> response = (this.privateGetTradeOrder(this.extend(request, parameters))).join();
             return this.parseOrder(response, market);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -992,7 +992,7 @@ public class Hibachi extends HibachiApi
     }});
             }
             return result;
-        }).thenApply(TradingFees::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(TradingFees::new);
 
     }
 
@@ -1164,7 +1164,7 @@ public class Hibachi extends HibachiApi
                 put( "id", Hibachi.this.safeString(response, "orderId") );
                 put( "status", "pending" );
             }});
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -1222,7 +1222,7 @@ public class Hibachi extends HibachiApi
                 }}));
             }
             return ret;
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -1296,7 +1296,7 @@ public class Hibachi extends HibachiApi
                 put( "id", id );
                 put( "status", "pending" );
             }});
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -1355,7 +1355,7 @@ public class Hibachi extends HibachiApi
                 }}));
             }
             return ret;
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -1401,7 +1401,7 @@ public class Hibachi extends HibachiApi
                 put( "id", id );
                 put( "status", "canceled" );
             }});
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -1449,7 +1449,7 @@ public class Hibachi extends HibachiApi
                 }}));
             }
             return ret;
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -1496,7 +1496,7 @@ public class Hibachi extends HibachiApi
             return new ArrayList<Object>(Arrays.asList(this.safeOrder(new HashMap<String, Object>() {{
         put( "info", response );
     }})));
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -1604,7 +1604,7 @@ public class Hibachi extends HibachiApi
                 put( "comment", null );
                 put( "internal", null );
             }};
-        }).thenApply(Transaction::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Transaction::new);
 
     }
 
@@ -1699,7 +1699,7 @@ public class Hibachi extends HibachiApi
             //     }
             // }
             return this.parseOrderBook(formattedResponse, symbol, this.milliseconds(), "bid", "ask", "price", "quantity");
-        }).thenApply(OrderBook::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OrderBook::new);
 
     }
 
@@ -1764,7 +1764,7 @@ public class Hibachi extends HibachiApi
                 tradesList = trades;
             }
             return this.parseTrades(tradesList, market, since, limit, parameters);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -1849,7 +1849,7 @@ public class Hibachi extends HibachiApi
             //     }
             // ]
             return this.parseOrders(response, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -1935,7 +1935,7 @@ public class Hibachi extends HibachiApi
             Object orders = this.safeList(response, "orders", new ArrayList<Object>(Arrays.asList()));
             List<Object> parsedOrders = this.parseOrders(orders, market);
             return this.filterBySymbolSinceLimit(parsedOrders, symbol, since, limit);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1964,7 +1964,7 @@ public class Hibachi extends HibachiApi
             Object orders = (this.fetchOrdersByStatus("filled", symbol, since, limit, parameters)).join();
             Object filtered = this.filterBy(orders, "status", "closed");
             return this.filterBySinceLimit(filtered, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -1993,7 +1993,7 @@ public class Hibachi extends HibachiApi
             Object orders = (this.fetchOrdersByStatus(null, symbol, since, limit, parameters)).join();
             Object filtered = this.filterBy(orders, "status", "canceled");
             return this.filterBySinceLimit(filtered, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -2058,7 +2058,7 @@ public class Hibachi extends HibachiApi
             //
             Object klines = this.safeList(response, "klines", new ArrayList<Object>(Arrays.asList()));
             return this.parseOHLCVs(klines, market, timeframe, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
 
     }
 
@@ -2131,7 +2131,7 @@ public class Hibachi extends HibachiApi
             //
             Object data = this.safeList(response, "positions", new ArrayList<Object>(Arrays.asList()));
             return this.parsePositions(data, symbols);
-        }).thenApply(res -> Helpers.toTypedList(res, Position::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Position::new));
 
     }
 
@@ -2466,7 +2466,7 @@ public class Hibachi extends HibachiApi
             Object rowsTradingHistory = this.safeList(responseTradingHistory, "tradingHistory", new ArrayList<Object>(Arrays.asList()));
             List<Object> rows = (List<Object>) this.arrayConcat(rowsCapitalHistory, rowsTradingHistory);
             return this.parseLedger(rows, currency, since, limit, parameters);
-        }).thenApply(res -> Helpers.toTypedList(res, LedgerEntry::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, LedgerEntry::new));
 
     }
 
@@ -2501,7 +2501,7 @@ public class Hibachi extends HibachiApi
                 put( "address", Hibachi.this.safeString(response, "depositAddressEvm") );
                 put( "tag", null );
             }};
-        }).thenApply(DepositAddress::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(DepositAddress::new);
 
     }
 
@@ -2598,7 +2598,7 @@ public class Hibachi extends HibachiApi
             // }
             Object transactions = this.safeList(response, "transactions", new ArrayList<Object>(Arrays.asList()));
             return this.parseTransactions(transactions, currency, since, limit, parameters);
-        }).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
 
     }
 
@@ -2625,7 +2625,7 @@ public class Hibachi extends HibachiApi
             Object transactions = (this.fetchDepositsWithdrawals((Object)(code), (Object)(since), (Object)(null), (Object)(parameters))).join();
             List<Object> deposits = this.filterBy(transactions, "type", "deposit");
             return this.filterBySinceLimit(deposits, since, limit, "timestamp");
-        }).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
 
     }
 
@@ -2652,7 +2652,7 @@ public class Hibachi extends HibachiApi
             Object transactions = (this.fetchDepositsWithdrawals((Object)(code), (Object)(since), (Object)(null), (Object)(parameters))).join();
             List<Object> withdrawals = this.filterBy(transactions, "type", "withdrawal");
             return this.filterBySinceLimit(withdrawals, since, limit, "timestamp");
-        }).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
 
     }
 
@@ -2760,7 +2760,7 @@ public class Hibachi extends HibachiApi
             Object settlements = this.parseSettlements(data, market);
             List<Object> sorted = this.sortBy(settlements, "timestamp");
             return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -2783,7 +2783,7 @@ public class Hibachi extends HibachiApi
             //     { "timestampMs":1754077574040 }
             //
             return this.safeInteger(response, "timestampMs");
-        }).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
 
     }
 
@@ -2823,7 +2823,7 @@ public class Hibachi extends HibachiApi
                 put( "datetime", Hibachi.this.iso8601(timestamp) );
                 put( "info", response );
             }}, market);
-        }).thenApply(OpenInterest::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OpenInterest::new);
 
     }
 
@@ -2888,7 +2888,7 @@ public class Hibachi extends HibachiApi
                 put( "previousFundingDatetime", null );
                 put( "interval", "8h" );
             }};
-        }).thenApply(FundingRate::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(FundingRate::new);
 
     }
 
@@ -2949,7 +2949,7 @@ public class Hibachi extends HibachiApi
             }
             List<Object> sorted = this.sortBy(rates, "timestamp");
             return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, FundingRateHistory::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, FundingRateHistory::new));
 
     }
 }

@@ -2114,7 +2114,7 @@ public class Kucoin extends KucoinApi
                 response = (this.publicGetTimestamp(parameters)).join();
             }
             return this.safeInteger(response, "data");
-        }).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
 
     }
 
@@ -2173,7 +2173,7 @@ public class Kucoin extends KucoinApi
                 put( "url", null );
                 put( "info", finalResponse );
             }};
-        }).thenApply(Status::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Status::new);
 
     }
 
@@ -2404,7 +2404,7 @@ public class Kucoin extends KucoinApi
                 (this.loadTimeDifference()).join();
             }
             return result;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -2582,7 +2582,7 @@ public class Kucoin extends KucoinApi
                 }});
             }
             return result;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -2795,7 +2795,7 @@ public class Kucoin extends KucoinApi
                 (this.loadTimeDifference()).join();
             }
             return result;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -2819,7 +2819,7 @@ public class Kucoin extends KucoinApi
                 Helpers.addElementToObject(this.options, "hf", this.safeBool(result, "data"));
             }
             return true;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -2916,7 +2916,7 @@ public class Kucoin extends KucoinApi
             Object brokenCurrencies = this.handleOption("fetchCurrencies", "brokenCurrencies", new ArrayList<Object>(Arrays.asList()));
             Object filteredCurrencies = this.filterOutByArray(currenciesData, "currency", brokenCurrencies); // remove broken entries
             return this.parseCurrencies(filteredCurrencies);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -3067,7 +3067,7 @@ public class Kucoin extends KucoinApi
                 }});
             }
             return result;
-        }).thenApply(res -> Helpers.toTypedList(res, Account::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Account::new));
 
     }
 
@@ -3115,7 +3115,7 @@ public class Kucoin extends KucoinApi
                 put( "withdraw", withdrawFees );
                 put( "deposit", new HashMap<String, Object>() {{}} );
             }};
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -3176,7 +3176,7 @@ public class Kucoin extends KucoinApi
             //
             Object data = this.safeDict(response, "data");
             return this.parseDepositWithdrawFee(data, currency);
-        }).thenApply(DepositWithdrawFee::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(DepositWithdrawFee::new);
 
     }
 
@@ -3662,7 +3662,7 @@ public class Kucoin extends KucoinApi
                 }
             }
             return this.filterByArrayTickers(result, "symbol", symbols);
-        }).thenApply(Tickers::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Tickers::new);
 
     }
 
@@ -3750,7 +3750,7 @@ public class Kucoin extends KucoinApi
             Object data = this.safeList(response, "data");
             Object tickers = this.parseTickers(data, symbols);
             return this.filterByArrayTickers(tickers, "symbol", symbols);
-        }).thenApply(Tickers::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Tickers::new);
 
     }
 
@@ -3778,7 +3778,7 @@ public class Kucoin extends KucoinApi
             Map<String, Object> response = (this.publicGetMarkPriceAllSymbols(parameters)).join();
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTickers(data);
-        }).thenApply(Tickers::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Tickers::new);
 
     }
 
@@ -3906,7 +3906,7 @@ public class Kucoin extends KucoinApi
                 result = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             }
             return this.parseSpotOrUtaTicker(result, market);
-        }).thenApply(Ticker::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Ticker::new);
 
     }
 
@@ -3946,7 +3946,7 @@ public class Kucoin extends KucoinApi
                 Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
                 return this.parseSpotOrUtaTicker(data, market);
             }
-        }).thenApply(Ticker::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Ticker::new);
 
     }
 
@@ -4025,7 +4025,7 @@ public class Kucoin extends KucoinApi
             {
                 return (this.fetchSpotOHLCV((Object)(symbol), (Object)(timeframe), (Object)(since), (Object)(limit), (Object)(parameters))).join();
             }
-        }).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
 
     }
 
@@ -4135,7 +4135,7 @@ public class Kucoin extends KucoinApi
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Object result = this.safeList(data, "list", new ArrayList<Object>(Arrays.asList()));
             return this.parseOHLCVs(result, market, timeframe, since, limit);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -4211,7 +4211,7 @@ public class Kucoin extends KucoinApi
             //
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseOHLCVs(data, market, timeframe, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
 
     }
 
@@ -4295,7 +4295,7 @@ public class Kucoin extends KucoinApi
             //
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseOHLCVs(data, market, timeframe, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
 
     }
 
@@ -4349,7 +4349,7 @@ public class Kucoin extends KucoinApi
             //
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseDepositAddress(data, currency);
-        }).thenApply(DepositAddress::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(DepositAddress::new);
 
     }
 
@@ -4423,7 +4423,7 @@ public class Kucoin extends KucoinApi
                 throw new ExchangeError(Helpers.add(this.id, " fetchDepositAddress() returned an empty response, you might try to run createDepositAddress() first and try again")) ;
             }
             return this.parseDepositAddress(data, currency);
-        }).thenApply(DepositAddress::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(DepositAddress::new);
 
     }
 
@@ -4476,7 +4476,7 @@ public class Kucoin extends KucoinApi
                 put( "address", address );
                 put( "tag", Kucoin.this.safeString(data, "memo") );
             }};
-        }).thenApply(DepositAddress::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(DepositAddress::new);
 
     }
 
@@ -4601,7 +4601,7 @@ public class Kucoin extends KucoinApi
                 put( "currency", Helpers.GetValue(currency, "code") );
             }});
             return this.indexBy(parsed, "network");
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -4771,7 +4771,7 @@ public class Kucoin extends KucoinApi
             Object orderbook = this.parseOrderBook(data, Helpers.GetValue(market, "symbol"), timestamp, "bids", "asks", Helpers.subtract(level, 2), Helpers.subtract(level, 1));
             Helpers.addElementToObject(orderbook, "nonce", this.safeInteger(data, "sequence"));
             return orderbook;
-        }).thenApply(OrderBook::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OrderBook::new);
 
     }
 
@@ -4843,7 +4843,7 @@ public class Kucoin extends KucoinApi
             {
                 throw new NotSupported(Helpers.add(Helpers.add(this.id, " createOrder() does not support market "), Helpers.GetValue(market, "type"))) ;
             }
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -4981,7 +4981,7 @@ public class Kucoin extends KucoinApi
             //
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseOrder(data, market);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -5173,7 +5173,7 @@ public class Kucoin extends KucoinApi
             //
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseOrder(data, market);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -5409,7 +5409,7 @@ public class Kucoin extends KucoinApi
             //
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseOrder(data, market);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -5627,7 +5627,7 @@ public class Kucoin extends KucoinApi
                 put( "cost", cost );
             }};
             return (this.createOrder((Object)(symbol), (Object)("market"), (Object)(side), (Object)(cost), (Object)(null), (Object)(this.extend(req, parameters)))).join();
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -5653,7 +5653,7 @@ public class Kucoin extends KucoinApi
                 (this.loadMarkets()).join();
             }
             return (this.createMarketOrderWithCost(symbol, (Object)("buy"), (Object)(cost), (Object)(parameters))).join();
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -5679,7 +5679,7 @@ public class Kucoin extends KucoinApi
                 (this.loadMarkets()).join();
             }
             return (this.createMarketOrderWithCost(symbol, (Object)("sell"), (Object)(cost), (Object)(parameters))).join();
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -5736,7 +5736,7 @@ public class Kucoin extends KucoinApi
             {
                 throw new NotSupported(Helpers.add(this.id, " createOrders() does not support the markets of the orders provided")) ;
             }
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -5856,7 +5856,7 @@ public class Kucoin extends KucoinApi
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             data = this.safeList(data, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(data);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -5920,7 +5920,7 @@ public class Kucoin extends KucoinApi
             //
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(data);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -5982,7 +5982,7 @@ public class Kucoin extends KucoinApi
             //
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseOrder(data, market);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -6047,7 +6047,7 @@ public class Kucoin extends KucoinApi
             {
                 return (this.cancelContractOrder((Object)(id), (Object)(symbol), (Object)(parameters))).join();
             }
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -6210,7 +6210,7 @@ public class Kucoin extends KucoinApi
                     put( "id", finalOrderId );
                 }});
             }
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -6270,7 +6270,7 @@ public class Kucoin extends KucoinApi
             return this.safeOrder(new HashMap<String, Object>() {{
                 put( "info", finalResponse );
             }});
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -6348,7 +6348,7 @@ public class Kucoin extends KucoinApi
             //
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseOrder(data, market);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -6407,7 +6407,7 @@ public class Kucoin extends KucoinApi
             {
                 return (this.cancelAllContractOrders((Object)(symbol), (Object)(parameters))).join();
             }
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -6495,7 +6495,7 @@ public class Kucoin extends KucoinApi
             return new ArrayList<Object>(Arrays.asList(this.safeOrder(new HashMap<String, Object>() {{
         put( "info", finalResponse );
     }})));
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -6550,7 +6550,7 @@ public class Kucoin extends KucoinApi
             return new ArrayList<Object>(Arrays.asList(this.safeOrder(new HashMap<String, Object>() {{
         put( "info", data );
     }})));
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -6614,7 +6614,7 @@ public class Kucoin extends KucoinApi
             return this.parseOrders(orders, market, null, null, new HashMap<String, Object>() {{
                 put( "status", "canceled" );
             }});
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -6699,7 +6699,7 @@ public class Kucoin extends KucoinApi
             {
                 return (this.fetchContractOrdersByStatus(status, symbol, since, limit, parameters)).join();
             }
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -6830,7 +6830,7 @@ public class Kucoin extends KucoinApi
             Object responseData = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Object orders = this.safeList(responseData, "items", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(orders, market, since, limit);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -6967,7 +6967,7 @@ public class Kucoin extends KucoinApi
             Object responseData = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Object orders = this.safeList(responseData, "items", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(orders, market, since, limit);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -7121,7 +7121,7 @@ public class Kucoin extends KucoinApi
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Object orders = this.safeList(data, "items", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(orders, market, since, limit);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -7171,7 +7171,7 @@ public class Kucoin extends KucoinApi
                 return (this.fetchPaginatedCallDynamic("fetchClosedOrders", symbol, since, limit, parameters)).join();
             }
             return (this.fetchOrdersByStatus("done", symbol, since, limit, parameters)).join();
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -7224,7 +7224,7 @@ public class Kucoin extends KucoinApi
                 return (this.fetchPaginatedCallDynamic("fetchOpenOrders", symbol, since, limit, parameters)).join();
             }
             return (this.fetchOrdersByStatus("active", symbol, since, limit, parameters)).join();
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -7293,7 +7293,7 @@ public class Kucoin extends KucoinApi
             {
                 return (this.fetchContractOrder(id, symbol, parameters)).join();
             }
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -7421,7 +7421,7 @@ public class Kucoin extends KucoinApi
                 responseData = this.safeValue(responseData, 0);
             }
             return this.parseOrder(responseData, market);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -7510,7 +7510,7 @@ public class Kucoin extends KucoinApi
             Object market = ((Helpers.isTrue((!Helpers.isEqual(symbol, null))))) ? this.market(symbol) : null;
             Object responseData = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseOrder(responseData, market);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -7614,7 +7614,7 @@ public class Kucoin extends KucoinApi
             //
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseOrder(data, market);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -8183,7 +8183,7 @@ public class Kucoin extends KucoinApi
                 put( "orderId", id );
             }};
             return (this.fetchMyTrades((Object)(symbol), (Object)(since), (Object)(limit), (Object)(this.extend(request, parameters)))).join();
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -8244,7 +8244,7 @@ public class Kucoin extends KucoinApi
             {
                 return (this.fetchMyContractTrades(symbol, since, limit, parameters)).join();
             }
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -8412,7 +8412,7 @@ public class Kucoin extends KucoinApi
                 tradesList = this.toArray(trades);
             }
             return this.parseTrades(tradesList, market, since, limit);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -8510,7 +8510,7 @@ public class Kucoin extends KucoinApi
                 tradesList = trades;
             }
             return this.parseTrades(tradesList, market, since, limit);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -8630,7 +8630,7 @@ public class Kucoin extends KucoinApi
                 tradesList = trades;
             }
             return this.parseTrades(tradesList, market, since, limit);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -8757,7 +8757,7 @@ public class Kucoin extends KucoinApi
                 tradesList = trades;
             }
             return this.parseTrades(tradesList, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -9239,7 +9239,7 @@ public class Kucoin extends KucoinApi
                 put( "percentage", true );
                 put( "tierBased", true );
             }};
-        }).thenApply(TradingFeeInterface::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(TradingFeeInterface::new);
 
     }
 
@@ -9318,7 +9318,7 @@ public class Kucoin extends KucoinApi
             //
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseTransaction(data, currency);
-        }).thenApply(Transaction::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Transaction::new);
 
     }
 
@@ -9589,7 +9589,7 @@ public class Kucoin extends KucoinApi
             return this.parseTransactions(items, currency, since, limit, new HashMap<String, Object>() {{
                 put( "type", "deposit" );
             }});
-        }).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
 
     }
 
@@ -9664,7 +9664,7 @@ public class Kucoin extends KucoinApi
             return this.parseTransactions(responseData, currency, since, limit, new HashMap<String, Object>() {{
                 put( "type", "deposit" );
             }});
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -9787,7 +9787,7 @@ public class Kucoin extends KucoinApi
             return this.parseTransactions(items, currency, since, limit, new HashMap<String, Object>() {{
                 put( "type", "withdrawal" );
             }});
-        }).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
 
     }
 
@@ -9862,7 +9862,7 @@ public class Kucoin extends KucoinApi
             return this.parseTransactions(responseData, currency, since, limit, new HashMap<String, Object>() {{
                 put( "type", "withdrawal" );
             }});
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -10105,7 +10105,7 @@ public class Kucoin extends KucoinApi
                 }
             }
             return this.safeBalance(result);
-        }).thenApply(Balances::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Balances::new);
 
     }
 
@@ -10173,7 +10173,7 @@ public class Kucoin extends KucoinApi
                 Helpers.addElementToObject(result, currencyCode, account);
             }
             return this.safeBalance(result);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -10331,7 +10331,7 @@ public class Kucoin extends KucoinApi
                 }
             }
             return this.safeBalance(result);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -10369,7 +10369,7 @@ public class Kucoin extends KucoinApi
                 return (this.transferUta(code, amount, fromAccount, toAccount, parameters)).join();
             }
             return (this.transferClassic(code, amount, fromAccount, toAccount, parameters)).join();
-        }).thenApply(TransferEntry::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(TransferEntry::new);
 
     }
 
@@ -10482,7 +10482,7 @@ public class Kucoin extends KucoinApi
                 Helpers.addElementToObject(transfer, "status", "ok");
             }
             return transfer;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -10589,7 +10589,7 @@ public class Kucoin extends KucoinApi
                 Helpers.addElementToObject(transfer, "status", "ok");
             }
             return transfer;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -11132,7 +11132,7 @@ public class Kucoin extends KucoinApi
             Object data = this.safeDict(response, "data");
             Object items = this.safeList2(data, "items", "dataList", new ArrayList<Object>(Arrays.asList()));
             return this.parseLedger(items, currency, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, LedgerEntry::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, LedgerEntry::new));
 
     }
 
@@ -11332,7 +11332,7 @@ public class Kucoin extends KucoinApi
             Object interest = this.parseBorrowInterests(assets, market);
             List<Object> filteredByCurrency = this.filterByCurrencySinceLimit(interest, code, since, limit);
             return this.filterBySymbolSinceLimit(filteredByCurrency, symbol, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, BorrowInterest::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, BorrowInterest::new));
 
     }
 
@@ -11490,7 +11490,7 @@ public class Kucoin extends KucoinApi
             Object data = this.safeDict(response, "data");
             Object rows = this.safeList(data, "items", new ArrayList<Object>(Arrays.asList()));
             return this.parseBorrowRateHistories(rows, codes, since, limit);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -11562,7 +11562,7 @@ public class Kucoin extends KucoinApi
             Object data = this.safeDict(response, "data");
             Object rows = this.safeList(data, "items", new ArrayList<Object>(Arrays.asList()));
             return this.parseBorrowRateHistory(rows, code, since, limit);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -11642,7 +11642,7 @@ public class Kucoin extends KucoinApi
             //
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseBorrowRate(data, currency);
-        }).thenApply(CrossBorrowRate::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(CrossBorrowRate::new);
 
     }
 
@@ -11688,7 +11688,7 @@ public class Kucoin extends KucoinApi
             //
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseMarginLoan(data, currency);
-        }).thenApply(MarginLoan::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(MarginLoan::new);
 
     }
 
@@ -11738,7 +11738,7 @@ public class Kucoin extends KucoinApi
             //
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseMarginLoan(data, currency);
-        }).thenApply(MarginLoan::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(MarginLoan::new);
 
     }
 
@@ -11782,7 +11782,7 @@ public class Kucoin extends KucoinApi
             //
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseMarginLoan(data, currency);
-        }).thenApply(MarginLoan::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(MarginLoan::new);
 
     }
 
@@ -11830,7 +11830,7 @@ public class Kucoin extends KucoinApi
             //
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseMarginLoan(data, currency);
-        }).thenApply(MarginLoan::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(MarginLoan::new);
 
     }
 
@@ -11897,7 +11897,7 @@ public class Kucoin extends KucoinApi
             //
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseDepositWithdrawFees(data, codes, "currency");
-        }).thenApply(DepositWithdrawFees::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(DepositWithdrawFees::new);
 
     }
 
@@ -11952,7 +11952,7 @@ public class Kucoin extends KucoinApi
             return this.extend(parsed, new HashMap<String, Object>() {{
                 put( "marginMode", finalMarginMode );
             }});
-        }).thenApply(Leverage::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Leverage::new);
 
     }
 
@@ -12047,7 +12047,7 @@ public class Kucoin extends KucoinApi
                 response = (this.privatePostPositionUpdateUserLeverage(this.extend(request, parameters))).join();
             }
             return response;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -12120,7 +12120,7 @@ public class Kucoin extends KucoinApi
                 put( "longLeverage", leverageNum );
                 put( "shortLeverage", leverageNum );
             }};
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -12141,7 +12141,7 @@ public class Kucoin extends KucoinApi
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             return (this.fetchFundingRate(symbol, (Object)(parameters))).join();
-        }).thenApply(FundingRate::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(FundingRate::new);
 
     }
 
@@ -12215,7 +12215,7 @@ public class Kucoin extends KucoinApi
             }
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseFundingRate(data, market);
-        }).thenApply(FundingRate::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(FundingRate::new);
 
     }
 
@@ -12274,7 +12274,7 @@ public class Kucoin extends KucoinApi
                 }
             }
             return this.parseFundingRates(rates, symbols);
-        }).thenApply(FundingRates::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(FundingRates::new);
 
     }
 
@@ -12439,7 +12439,7 @@ public class Kucoin extends KucoinApi
             }
             Object result = this.safeList(response, resultKey, new ArrayList<Object>(Arrays.asList()));
             return this.parseFundingRateHistories(result, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, FundingRateHistory::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, FundingRateHistory::new));
 
     }
 
@@ -12602,7 +12602,7 @@ public class Kucoin extends KucoinApi
                 }});
             }
             return fees;
-        }).thenApply(res -> Helpers.toTypedList(res, FundingHistory::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, FundingHistory::new));
 
     }
 
@@ -12719,7 +12719,7 @@ public class Kucoin extends KucoinApi
                 position = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             }
             return this.parsePosition(position, market);
-        }).thenApply(Position::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Position::new);
 
     }
 
@@ -12764,7 +12764,7 @@ public class Kucoin extends KucoinApi
             }
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parsePositions(data, symbols);
-        }).thenApply(res -> Helpers.toTypedList(res, Position::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Position::new));
 
     }
 
@@ -12913,7 +12913,7 @@ public class Kucoin extends KucoinApi
             Object data = this.safeDict(response, "data");
             Object items = this.safeList(data, "items", new ArrayList<Object>(Arrays.asList()));
             return this.parsePositions(items, symbols);
-        }).thenApply(res -> Helpers.toTypedList(res, Position::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Position::new));
 
     }
 
@@ -13245,7 +13245,7 @@ public class Kucoin extends KucoinApi
                 orders = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             }
             return this.parseOrders(orders, market);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -13332,7 +13332,7 @@ public class Kucoin extends KucoinApi
                 put( "amount", Kucoin.this.amountToPrecision(symbol, amount) );
                 put( "direction", "in" );
             }});
-        }).thenApply(MarginModification::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(MarginModification::new);
 
     }
 
@@ -13385,7 +13385,7 @@ public class Kucoin extends KucoinApi
                 put( "timestamp", null );
                 put( "datetime", null );
             }};
-        }).thenApply(MarginModification::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(MarginModification::new);
 
     }
 
@@ -13494,7 +13494,7 @@ public class Kucoin extends KucoinApi
             //
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseMarginMode(data, market);
-        }).thenApply(MarginMode::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(MarginMode::new);
 
     }
 
@@ -13558,7 +13558,7 @@ public class Kucoin extends KucoinApi
             //
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseMarginMode(data, market);  // widened to Dict to match the base setMarginMode return ({}) — narrowing it to MarginMode breaks the Go IExchange interface
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -13597,7 +13597,7 @@ public class Kucoin extends KucoinApi
             //     }
             //
             return response;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -13625,7 +13625,7 @@ public class Kucoin extends KucoinApi
                 put( "info", data );
                 put( "hedged", Helpers.isEqual(finalPositionMode, 1) );
             }};
-        }).thenApply(PositionModeInfo::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(PositionModeInfo::new);
 
     }
 
@@ -13676,7 +13676,7 @@ public class Kucoin extends KucoinApi
                 response = (this.futuresPrivatePostOrders(this.extend(request, parameters))).join();
             }
             return this.parseOrder(response, market);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -13737,7 +13737,7 @@ public class Kucoin extends KucoinApi
             //
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseMarketLeverageTiers(data, market);
-        }).thenApply(res -> Helpers.toTypedList(res, LeverageTier::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, LeverageTier::new));
 
     }
 
@@ -13881,7 +13881,7 @@ final Object finalMarket = market;
                 }
             }
             return result;
-        }).thenApply(LeverageTiers::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(LeverageTiers::new);
 
     }
 
@@ -13933,7 +13933,7 @@ final Object finalMarket = market;
             //
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseOpenInterests(data, symbols);
-        }).thenApply(OpenInterests::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OpenInterests::new);
 
     }
 
@@ -14035,7 +14035,7 @@ final Object finalMarket = market;
             Map<String, Object> response = (this.utaGetMarketOpenInterest(this.extend(request, parameters))).join();
             Object data = this.safeList(response, "data");
             return this.parseOpenInterestsHistory(data, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, OpenInterest::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, OpenInterest::new));
 
     }
 
@@ -14063,7 +14063,7 @@ final Object finalMarket = market;
                 Helpers.addElementToObject(this.options, "uta", uta);
             }
             return uta;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -14309,7 +14309,7 @@ final Object finalMarket = market;
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Object items = this.safeList(data, "items", new ArrayList<Object>(Arrays.asList()));
             return this.parseTransfers(items, currency, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, TransferEntry::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, TransferEntry::new));
 
     }
 
@@ -14383,7 +14383,7 @@ final Object finalMarket = market;
             //
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseADLRanks(data, symbols);
-        }).thenApply(res -> Helpers.toTypedList(res, ADL::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, ADL::new));
 
     }
 

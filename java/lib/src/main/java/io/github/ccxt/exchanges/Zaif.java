@@ -350,7 +350,7 @@ public class Zaif extends ZaifApi
             //     ]
             //
             return this.parseMarkets(markets);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -474,7 +474,7 @@ public class Zaif extends ZaifApi
             }
             Map<String, Object> response = (this.privatePostGetInfo(parameters)).join();
             return this.parseBalance(response);
-        }).thenApply(Balances::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Balances::new);
 
     }
 
@@ -505,7 +505,7 @@ public class Zaif extends ZaifApi
             }};
             Map<String, Object> response = (this.publicGetDepthPair(this.extend(request, parameters))).join();
             return this.parseOrderBook(response, Helpers.GetValue(market, "symbol"));
-        }).thenApply(OrderBook::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OrderBook::new);
 
     }
 
@@ -588,7 +588,7 @@ public class Zaif extends ZaifApi
             // }
             //
             return this.parseTicker(ticker, market);
-        }).thenApply(Ticker::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Ticker::new);
 
     }
 
@@ -684,7 +684,7 @@ public class Zaif extends ZaifApi
                 }
             }
             return this.parseTrades(trades, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -730,7 +730,7 @@ public class Zaif extends ZaifApi
                 put( "info", response );
                 put( "id", String.valueOf(Helpers.GetValue(data, "order_id")) );
             }}, market);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -771,7 +771,7 @@ public class Zaif extends ZaifApi
             //
             Object data = this.safeDict(response, "return", new HashMap<String, Object>() {{}});
             return this.parseOrder(data);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -868,7 +868,7 @@ public class Zaif extends ZaifApi
             Map<String, Object> response = (this.privatePostActiveOrders(this.extend(request, parameters))).join();
             Object data = this.safeDict(response, "return", new HashMap<String, Object>() {{}});
             return this.parseOrders(data, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -906,7 +906,7 @@ public class Zaif extends ZaifApi
             Map<String, Object> response = (this.privatePostTradeHistory(this.extend(request, parameters))).join();
             Object data = this.safeDict(response, "return", new HashMap<String, Object>() {{}});
             return this.parseOrders(data, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -970,7 +970,7 @@ public class Zaif extends ZaifApi
             //
             Object returnData = this.safeDict(result, "return", new HashMap<String, Object>() {{}});
             return this.parseTransaction(returnData, currency);
-        }).thenApply(Transaction::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Transaction::new);
 
     }
 

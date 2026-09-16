@@ -54,7 +54,7 @@ public class TestFetchTrades extends BaseTest {
             (helperTestFetchTradesSideSequence(exchange, skippedProperties, symbol, method, trades)).join();
         }
         return true;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
     public CompletableFuture<Object> helperTestFetchTradesSideSequence(BaseExchange exchange, Object skippedProperties, Object symbol, Object method, Object trades)
@@ -106,7 +106,7 @@ public class TestFetchTrades extends BaseTest {
             lastSide = side;
         }
         return true;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 

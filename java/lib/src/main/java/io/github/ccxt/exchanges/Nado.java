@@ -442,7 +442,7 @@ public class Nado extends NadoApi
             return this.parseOrder(this.extend(new HashMap<String, Object>() {{
                 put( "place_order", placeOrder );
             }}, response), market);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -583,7 +583,7 @@ public class Nado extends NadoApi
                 put( "place_order", placeOrder );
             }};
             return this.extend(request, parameters);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -639,7 +639,7 @@ public class Nado extends NadoApi
             return this.parseOrder(this.extend(new HashMap<String, Object>() {{
                 put( "place_order", placeOrder );
             }}, response), market);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -768,7 +768,7 @@ public class Nado extends NadoApi
                 put( "cancel_and_place", cancelAndPlace );
             }};
             return this.extend(request, parameters);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -794,7 +794,7 @@ public class Nado extends NadoApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             Object orders = (this.cancelOrders((Object)(new ArrayList<Object>(Arrays.asList(id))), (Object)(symbol), (Object)(parameters))).join();
             return this.safeDict(orders, 0);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -845,7 +845,7 @@ public class Nado extends NadoApi
                 }}, Helpers.GetValue(cancelledOrders, i)), market));
             }
             return result;
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -908,7 +908,7 @@ public class Nado extends NadoApi
                 put( "cancel_product_orders", cancelProductOrders );
             }};
             return this.extend(request, parameters);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -961,7 +961,7 @@ public class Nado extends NadoApi
                 }}, Helpers.GetValue(cancelledOrders, i)), market));
             }
             return result;
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -1036,7 +1036,7 @@ public class Nado extends NadoApi
                 put( "cancel_orders", cancelOrders );
             }};
             return this.extend(request, parameters);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1090,7 +1090,7 @@ public class Nado extends NadoApi
             //
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseOrder(data, market);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -1191,7 +1191,7 @@ public class Nado extends NadoApi
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Object orders = this.safeList(data, "orders", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(orders, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -1278,7 +1278,7 @@ public class Nado extends NadoApi
             return this.parseOrders(orders, market, since, limit, new HashMap<String, Object>() {{
                 put( "status", "open" );
             }});
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -1379,7 +1379,7 @@ public class Nado extends NadoApi
                 }
             }
             return this.parseOrders(closedOrders, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -1407,7 +1407,7 @@ public class Nado extends NadoApi
                 put( "trigger", true );
                 put( "status_types", new ArrayList<Object>(Arrays.asList("cancelled", "internal_error")) );
             }})))).join();
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -1435,7 +1435,7 @@ public class Nado extends NadoApi
                 put( "trigger", true );
                 put( "status_types", new ArrayList<Object>(Arrays.asList("cancelled", "internal_error", "triggered", "triggering", "twap_executing", "twap_completed")) );
             }})))).join();
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -1535,7 +1535,7 @@ public class Nado extends NadoApi
                 ((List<Object>)trades).add(this.extend(tx, match));
             }
             return this.parseTrades(trades, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -1590,7 +1590,7 @@ public class Nado extends NadoApi
             //
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseBalance(data);
-        }).thenApply(Balances::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Balances::new);
 
     }
 
@@ -1617,7 +1617,7 @@ public class Nado extends NadoApi
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             return (this.queryTransactionsByEventType("deposit_collateral", "deposit", "fetchDeposits", code, since, limit, parameters)).join();
-        }).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
 
     }
 
@@ -1644,7 +1644,7 @@ public class Nado extends NadoApi
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             return (this.queryTransactionsByEventType("withdraw_collateral", "withdrawal", "fetchWithdrawals", code, since, limit, parameters)).join();
-        }).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
 
     }
 
@@ -1748,7 +1748,7 @@ public class Nado extends NadoApi
                 ((List<Object>)transactions).add(this.parseTransaction(transaction, currency));
             }
             return this.filterByCurrencySinceLimit(transactions, code, since, limit);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1843,7 +1843,7 @@ public class Nado extends NadoApi
                 }}, position)));
             }
             return this.filterByArrayPositions(result, "symbol", symbols, false);
-        }).thenApply(res -> Helpers.toTypedList(res, Position::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Position::new));
 
     }
 
@@ -1874,7 +1874,7 @@ public class Nado extends NadoApi
             //     }
             //
             return this.safeInteger(response, "server_time");
-        }).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
 
     }
 
@@ -1912,7 +1912,7 @@ public class Nado extends NadoApi
                 put( "url", null );
                 put( "info", response );
             }};
-        }).thenApply(Status::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Status::new);
 
     }
 
@@ -2085,7 +2085,7 @@ public class Nado extends NadoApi
                 }}));
             }
             return markets;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -2132,7 +2132,7 @@ public class Nado extends NadoApi
                 }
             }
             return result;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -2171,7 +2171,7 @@ public class Nado extends NadoApi
             //
             List<Object> tickers = this.toArray(response);
             return this.parseTickers(tickers, symbols);
-        }).thenApply(Tickers::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Tickers::new);
 
     }
 
@@ -2200,7 +2200,7 @@ public class Nado extends NadoApi
                 throw new BadSymbol(Helpers.add(Helpers.add(this.id, " fetchTicker() ticker not found for "), symbol)) ;
             }
             return ticker;
-        }).thenApply(Ticker::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Ticker::new);
 
     }
 
@@ -2253,7 +2253,7 @@ public class Nado extends NadoApi
             //
             Object data = this.safeDict(response, tickerId, new HashMap<String, Object>() {{}});
             return this.parseFundingRate(data, market);
-        }).thenApply(FundingRate::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(FundingRate::new);
 
     }
 
@@ -2331,7 +2331,7 @@ public class Nado extends NadoApi
             }
             List<Object> sorted = this.sortBy(result, "timestamp");
             return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, FundingHistory::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, FundingHistory::new));
 
     }
 
@@ -2386,7 +2386,7 @@ public class Nado extends NadoApi
                 ((List<Object>)rates).add(this.safeDict(response, ticker, new HashMap<String, Object>() {{}}));
             }
             return this.parseFundingRates(rates, symbols);
-        }).thenApply(FundingRates::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(FundingRates::new);
 
     }
 
@@ -2439,7 +2439,7 @@ public class Nado extends NadoApi
             //
             Object data = this.safeDict(response, tickerId, new HashMap<String, Object>() {{}});
             return this.parseOpenInterest(data, market);
-        }).thenApply(OpenInterest::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OpenInterest::new);
 
     }
 
@@ -2494,7 +2494,7 @@ public class Nado extends NadoApi
                 ((List<Object>)interests).add(this.safeDict(response, ticker, new HashMap<String, Object>() {{}}));
             }
             return this.parseOpenInterests(interests, symbols);
-        }).thenApply(OpenInterests::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OpenInterests::new);
 
     }
 
@@ -2541,7 +2541,7 @@ public class Nado extends NadoApi
             //
             Long timestamp = this.safeInteger(response, "timestamp");
             return this.parseOrderBook(response, Helpers.GetValue(market, "symbol"), timestamp);
-        }).thenApply(OrderBook::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OrderBook::new);
 
     }
 
@@ -2591,7 +2591,7 @@ public class Nado extends NadoApi
             //     ]
             //
             return this.parseTrades(response, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -2655,7 +2655,7 @@ public class Nado extends NadoApi
             //
             Object data = this.safeList(response, "candlesticks", new ArrayList<Object>(Arrays.asList()));
             return this.parseOHLCVs(data, market, timeframe, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
 
     }
 
@@ -3573,7 +3573,7 @@ public class Nado extends NadoApi
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Helpers.addElementToObject(this.options, "gatewayContracts", data);
             return data;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 

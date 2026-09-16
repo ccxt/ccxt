@@ -741,7 +741,7 @@ public class Btse extends BtseApi
             //     }
             //
             return this.safeTimestamp(response, "epoch");
-        }).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
 
     }
 
@@ -767,7 +767,7 @@ public class Btse extends BtseApi
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Object markets = this.safeList(data, "symbols", new ArrayList<Object>(Arrays.asList()));
             return this.parseMarkets(markets);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1033,7 +1033,7 @@ public class Btse extends BtseApi
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             List<Object> result = this.parseOHLCVs(data, market, timeframe, since, limit);
             return result;
-        }).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
 
     }
 
@@ -1100,7 +1100,7 @@ public class Btse extends BtseApi
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Long timestamp = this.safeInteger(data, "timestamp");
             return this.parseOrderBook(data, Helpers.GetValue(market, "symbol"), timestamp, "bids", "asks");
-        }).thenApply(OrderBook::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OrderBook::new);
 
     }
 
@@ -1197,7 +1197,7 @@ public class Btse extends BtseApi
                 }
             }
             return result;
-        }).thenApply(res -> Helpers.toTypedList(res, FundingRateHistory::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, FundingRateHistory::new));
 
     }
 
@@ -1278,7 +1278,7 @@ public class Btse extends BtseApi
                 response = (this.privateGetFuturesApiV23UserWallet(this.extend(request, parameters))).join();
             }
             return this.parseBalance(response);
-        }).thenApply(Balances::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Balances::new);
 
     }
 
@@ -1453,7 +1453,7 @@ public class Btse extends BtseApi
                 Helpers.addElementToObject(result, symbolKey, tiersList);
             }
             return result;
-        }).thenApply(LeverageTiers::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(LeverageTiers::new);
 
     }
 
@@ -1480,7 +1480,7 @@ public class Btse extends BtseApi
             }
             Object result = (this.fetchLeverageTiers((Object)(new ArrayList<Object>(Arrays.asList(symbol))), (Object)(parameters))).join();
             return Helpers.GetValue(result, symbol);
-        }).thenApply(res -> Helpers.toTypedList(res, LeverageTier::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, LeverageTier::new));
 
     }
 
@@ -1507,7 +1507,7 @@ public class Btse extends BtseApi
             Map<String, Object> response = (this.publicGetPublicApiMarketV1Ticker24hr(parameters)).join();
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTickers(data, symbols);
-        }).thenApply(Tickers::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Tickers::new);
 
     }
 
@@ -1572,7 +1572,7 @@ public class Btse extends BtseApi
                 data = this.safeDict(rows, 0, new HashMap<String, Object>() {{}});
             }
             return this.parseTicker(data, market);
-        }).thenApply(Ticker::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Ticker::new);
 
     }
 
@@ -1658,7 +1658,7 @@ public class Btse extends BtseApi
                 interest = this.safeDict(rows, 0, new HashMap<String, Object>() {{}});
             }
             return this.parseOpenInterest(interest, market);
-        }).thenApply(OpenInterest::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OpenInterest::new);
 
     }
 
@@ -1693,7 +1693,7 @@ public class Btse extends BtseApi
                 }
             }
             return this.parseOpenInterests(rows, symbols);
-        }).thenApply(OpenInterests::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OpenInterests::new);
 
     }
 
@@ -1749,7 +1749,7 @@ public class Btse extends BtseApi
                 data = this.safeDict(rows, 0, new HashMap<String, Object>() {{}});
             }
             return this.parseFundingRate(data, market);
-        }).thenApply(FundingRate::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(FundingRate::new);
 
     }
 
@@ -1784,7 +1784,7 @@ public class Btse extends BtseApi
                 }
             }
             return this.parseFundingRates(rows, symbols);
-        }).thenApply(FundingRates::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(FundingRates::new);
 
     }
 
@@ -1926,7 +1926,7 @@ public class Btse extends BtseApi
                 }
             }
             return result;
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -2070,7 +2070,7 @@ public class Btse extends BtseApi
                 rows = response;
             }
             return this.parseTrades(rows, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -2120,7 +2120,7 @@ public class Btse extends BtseApi
                 }});
             }
             return (this.fetchMyTrades((Object)(symbol), (Object)(since), (Object)(limit), (Object)(parameters))).join();
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -2280,7 +2280,7 @@ public class Btse extends BtseApi
             {
                 return (this.createContractOrder(symbol, type, side, amount, price, parameters)).join();
             }
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -2514,7 +2514,7 @@ public class Btse extends BtseApi
             }
             Object order = this.safeDict(response, 0, new HashMap<String, Object>() {{}});
             return this.parseOrder(order, market);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -2771,7 +2771,7 @@ public class Btse extends BtseApi
                 order = this.safeDict(response, 0, new HashMap<String, Object>() {{}});
             }
             return this.parseOrder(order, market);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -2849,7 +2849,7 @@ public class Btse extends BtseApi
                 order = this.safeDict(order, 0, new HashMap<String, Object>() {{}});
             }
             return this.parseOrder(((Object)order), market);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -2945,7 +2945,7 @@ public class Btse extends BtseApi
             }
             Object order = this.safeDict(response, 0, new HashMap<String, Object>() {{}});
             return this.parseOrder(order, market);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -3015,7 +3015,7 @@ public class Btse extends BtseApi
             }
             Object order = this.safeDict(response, 0, new HashMap<String, Object>() {{}});
             return this.parseOrder(order, market);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -3067,7 +3067,7 @@ public class Btse extends BtseApi
                 response = (this.privateDeleteFuturesApiV23Order(this.extend(request, parameters))).join();
             }
             return this.parseOrders(response, market);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -3106,7 +3106,7 @@ public class Btse extends BtseApi
                 response = (this.privatePostFuturesApiV3TradeOrdersCancelAllAfter(this.extend(request, parameters))).join();
             }
             return response;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -3163,7 +3163,7 @@ public class Btse extends BtseApi
             // and a data envelope and filter client-side
             Object rows = this.safeList(response, "data", ((Object)response));
             return this.parseOrders(rows, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -3396,7 +3396,7 @@ public class Btse extends BtseApi
     }});
             }
             return result;
-        }).thenApply(TradingFees::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(TradingFees::new);
 
     }
 
@@ -3499,7 +3499,7 @@ public class Btse extends BtseApi
                 }
             }
             return new ArrayList<Object>(Arrays.asList(rows, currency));
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -3529,7 +3529,7 @@ public class Btse extends BtseApi
             var rows = ((List<Object>) rowscurrencyVariable).get(0);
             var currency = ((List<Object>) rowscurrencyVariable).get(1);
             return this.parseTransactions(rows, currency, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
 
     }
 
@@ -3559,7 +3559,7 @@ public class Btse extends BtseApi
             var rows = ((List<Object>) rowscurrencyVariable).get(0);
             var currency = ((List<Object>) rowscurrencyVariable).get(1);
             return this.parseTransactions(rows, currency, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
 
     }
 
@@ -3589,7 +3589,7 @@ public class Btse extends BtseApi
             var rows = ((List<Object>) rowscurrencyVariable).get(0);
             var currency = ((List<Object>) rowscurrencyVariable).get(1);
             return this.parseTransactions(rows, currency, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
 
     }
 
@@ -3749,7 +3749,7 @@ public class Btse extends BtseApi
             //
             Object rows = this.safeList(response, "data", ((Object)response));
             return this.parseLedger(rows, currency, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, LedgerEntry::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, LedgerEntry::new));
 
     }
 
@@ -3892,7 +3892,7 @@ public class Btse extends BtseApi
                 put( "percentage", true );
                 put( "tierBased", true );
             }};
-        }).thenApply(TradingFeeInterface::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(TradingFeeInterface::new);
 
     }
 
@@ -3924,7 +3924,7 @@ public class Btse extends BtseApi
                 rows = response;
             }
             return this.parsePositions(rows, symbols);
-        }).thenApply(res -> Helpers.toTypedList(res, Position::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Position::new));
 
     }
 
@@ -3950,7 +3950,7 @@ public class Btse extends BtseApi
                 put( "symbol", Btse.this.futuresRequestId(market) );
             }}, parameters);
             return (this.fetchPositions((Object)(new ArrayList<Object>(Arrays.asList(symbol))), (Object)(parameters))).join();
-        }).thenApply(res -> Helpers.toTypedList(res, Position::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Position::new));
 
     }
 
@@ -4110,7 +4110,7 @@ public class Btse extends BtseApi
                 put( "info", data );
                 put( "hedged", hedged );
             }};
-        }).thenApply(PositionModeInfo::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(PositionModeInfo::new);
 
     }
 
@@ -4148,7 +4148,7 @@ public class Btse extends BtseApi
                 put( "positionMode", positionMode );
             }};
             return (this.privatePostFuturesApiV3TradePositionMode(this.extend(request, parameters))).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -4175,7 +4175,7 @@ public class Btse extends BtseApi
             List<Object> response = (this.privateGetFuturesApiV3TradeLeverage(this.extend(request, parameters))).join();
             Object data = this.safeDict(response, 0, new HashMap<String, Object>() {{}});
             return this.parseMarginMode(data, market);
-        }).thenApply(MarginMode::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(MarginMode::new);
 
     }
 
@@ -4267,7 +4267,7 @@ public class Btse extends BtseApi
                 put( "positionMode", finalPositionMode );
             }};
             return (this.privatePostFuturesApiV3TradePositionMode(this.extend(request, parameters))).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -4325,7 +4325,7 @@ public class Btse extends BtseApi
                 order = response;
             }
             return this.parseOrder(order, market);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -4400,7 +4400,7 @@ public class Btse extends BtseApi
             Helpers.addElementToObject(result, "longLeverage", longLeverage);
             Helpers.addElementToObject(result, "shortLeverage", shortLeverage);
             return result;
-        }).thenApply(Leverage::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Leverage::new);
 
     }
 
@@ -4447,7 +4447,7 @@ public class Btse extends BtseApi
             }
             Map<String, Object> response = (this.privatePostFuturesApiV3TradeLeverage(this.extend(request, parameters))).join();
             return response;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 

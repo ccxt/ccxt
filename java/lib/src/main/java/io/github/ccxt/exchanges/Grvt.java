@@ -788,7 +788,7 @@ public class Grvt extends GrvtApi
             (this.initializeClient(parameters)).join();
             (this.loadAccountInfos()).join();
             return true;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -818,7 +818,7 @@ public class Grvt extends GrvtApi
             //
             Helpers.addElementToObject(this.options, "signInExpiration", Helpers.add(now, 86400000)); // 24 hours
             return response;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -852,7 +852,7 @@ public class Grvt extends GrvtApi
             //
             Helpers.addElementToObject(this.options, "signInExpiration", Helpers.add(now, 86400000)); // 24 hours
             return response;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -934,7 +934,7 @@ public class Grvt extends GrvtApi
                 }
             }
             return null;  // just c#
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -988,7 +988,7 @@ public class Grvt extends GrvtApi
             Object response = Helpers.GetValue(results, 0);
             Object result = this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
             return this.parseMarkets(result);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1123,7 +1123,7 @@ public class Grvt extends GrvtApi
             //
             Object responseResult = this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
             return this.parseCurrencies(responseResult);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1227,7 +1227,7 @@ public class Grvt extends GrvtApi
             //
             Object result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             return this.parseTicker(result, market);
-        }).thenApply(Ticker::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Ticker::new);
 
     }
 
@@ -1345,7 +1345,7 @@ public class Grvt extends GrvtApi
             Long timestamp = this.parse8601(this.safeString(result, "event_time"));
             String marketId = this.safeString(result, "instrument");
             return this.parseOrderBook(result, this.safeSymbol(marketId), timestamp, "bids", "asks", "price", "size");
-        }).thenApply(OrderBook::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OrderBook::new);
 
     }
 
@@ -1411,7 +1411,7 @@ public class Grvt extends GrvtApi
             //
             Object result = this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(result, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -1592,7 +1592,7 @@ public class Grvt extends GrvtApi
             //
             Object candles = this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
             return this.parseOHLCVs(candles, market, timeframe, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
 
     }
 
@@ -1688,7 +1688,7 @@ public class Grvt extends GrvtApi
             //
             Object result = this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
             return this.parseFundingRateHistories(result, market);
-        }).thenApply(res -> Helpers.toTypedList(res, FundingRateHistory::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, FundingRateHistory::new));
 
     }
 
@@ -1781,7 +1781,7 @@ public class Grvt extends GrvtApi
             //
             Object result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             return this.parseBalance(result);
-        }).thenApply(Balances::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Balances::new);
 
     }
 
@@ -1905,7 +1905,7 @@ public class Grvt extends GrvtApi
                 Object result = this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
                 return this.parseTransactions(result, currency, since, limit);
             }
-        }).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
 
     }
 
@@ -1989,7 +1989,7 @@ public class Grvt extends GrvtApi
                 Object result = this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
                 return this.parseTransactions(result, currency, since, limit);
             }
-        }).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
 
     }
 
@@ -2034,7 +2034,7 @@ public class Grvt extends GrvtApi
             Object rows = this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
             Object transfers = this.parseTransfers(rows, currency, since, limit);
             return transfers;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -2245,7 +2245,7 @@ public class Grvt extends GrvtApi
             Object transfers = this.parseTransfers(rows, currency, since, limit);
             Object filteredResults = this.filterTransfersByType(transfers, "internal", false);
             return Helpers.GetValue(filteredResults, 1);
-        }).thenApply(res -> Helpers.toTypedList(res, TransferEntry::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, TransferEntry::new));
 
     }
 
@@ -2353,7 +2353,7 @@ public class Grvt extends GrvtApi
             //
             Object result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             return this.parseTransfer(result, currency);
-        }).thenApply(TransferEntry::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(TransferEntry::new);
 
     }
 
@@ -2473,7 +2473,7 @@ public class Grvt extends GrvtApi
                 Helpers.addElementToObject(this.options, "accountId", subAccountId);
             }
             return true;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -2528,7 +2528,7 @@ public class Grvt extends GrvtApi
             //
             Object result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             return this.parseTransaction(result, currency);
-        }).thenApply(Transaction::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Transaction::new);
 
     }
 
@@ -2777,7 +2777,7 @@ public class Grvt extends GrvtApi
             //
             Object data = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             return this.parseOrder(data, market);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -2934,7 +2934,7 @@ public class Grvt extends GrvtApi
             //
             Object result = this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(result, null, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -3003,7 +3003,7 @@ public class Grvt extends GrvtApi
             //
             Object result = this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
             return this.parsePositions(result, symbols);
-        }).thenApply(res -> Helpers.toTypedList(res, Position::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Position::new));
 
     }
 
@@ -3101,7 +3101,7 @@ public class Grvt extends GrvtApi
             //
             Object results = this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
             return this.parseLeverages(results, symbols);
-        }).thenApply(Leverages::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Leverages::new);
 
     }
 
@@ -3140,7 +3140,7 @@ public class Grvt extends GrvtApi
             //    }
             //
             return this.parseLeverage(response, market);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -3210,7 +3210,7 @@ public class Grvt extends GrvtApi
             //
             Object results = this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
             return this.parseLeverages(results, symbols);
-        }).thenApply(MarginModes::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(MarginModes::new);
 
     }
 
@@ -3310,7 +3310,7 @@ public class Grvt extends GrvtApi
             //
             Object result = this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
             return this.parseIncomes(result, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, FundingHistory::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, FundingHistory::new));
 
     }
 
@@ -3452,7 +3452,7 @@ public class Grvt extends GrvtApi
             //
             Object result = this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(result, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -3543,7 +3543,7 @@ public class Grvt extends GrvtApi
             //
             Object result = this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(result, null, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -3640,7 +3640,7 @@ public class Grvt extends GrvtApi
             //
             Object result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             return this.parseOrder(result);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -3862,7 +3862,7 @@ public class Grvt extends GrvtApi
             //
             Object result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             return this.parseOrders(new ArrayList<Object>(Arrays.asList(result)));
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -3908,7 +3908,7 @@ public class Grvt extends GrvtApi
             //
             Object result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             return this.parseOrder(result);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 

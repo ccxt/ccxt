@@ -31,7 +31,7 @@ public class TestFetchMyLiquidations extends BaseTest {
         }
         TestSharedMethods.AssertTimestampOrder(exchange, method, code, items);
         return true;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 

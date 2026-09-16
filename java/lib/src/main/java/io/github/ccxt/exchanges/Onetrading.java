@@ -487,7 +487,7 @@ public class Onetrading extends OnetradingApi
             //     }
             //
             return this.safeInteger(response, "epoch_millis");
-        }).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
 
     }
 
@@ -518,7 +518,7 @@ public class Onetrading extends OnetradingApi
             //     ]
             //
             return this.parseCurrencies(response);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -578,7 +578,7 @@ public class Onetrading extends OnetradingApi
             //     ]
             //
             return this.parseMarkets(response);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -726,7 +726,7 @@ public class Onetrading extends OnetradingApi
             {
                 throw new NotSupported(Helpers.add(Helpers.add(Helpers.add(this.id, " fetchTradingFees() does not support "), method), ", fetchPrivateTradingFees and fetchPublicTradingFees are supported")) ;
             }
-        }).thenApply(TradingFees::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(TradingFees::new);
 
     }
 
@@ -809,7 +809,7 @@ public class Onetrading extends OnetradingApi
     }});
             }
             return result;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -887,7 +887,7 @@ public class Onetrading extends OnetradingApi
     }});
             }
             return result;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1011,7 +1011,7 @@ public class Onetrading extends OnetradingApi
             //     }
             //
             return this.parseTicker(response, market);
-        }).thenApply(Ticker::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Ticker::new);
 
     }
 
@@ -1069,7 +1069,7 @@ public class Onetrading extends OnetradingApi
                 }
             }
             return this.filterByArrayTickers(result, "symbol", symbols);
-        }).thenApply(Tickers::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Tickers::new);
 
     }
 
@@ -1160,7 +1160,7 @@ public class Onetrading extends OnetradingApi
             //
             Long timestamp = this.parse8601(this.safeString(response, "time"));
             return this.parseOrderBook(response, Helpers.GetValue(market, "symbol"), timestamp, "bids", "asks", "price", "amount");
-        }).thenApply(OrderBook::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OrderBook::new);
 
     }
 
@@ -1275,7 +1275,7 @@ public class Onetrading extends OnetradingApi
             //
             Object ohlcv = this.safeList(response, "candlesticks");
             return this.parseOHLCVs(ohlcv, market, timeframe, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
 
     }
 
@@ -1428,7 +1428,7 @@ public class Onetrading extends OnetradingApi
             //     }
             //
             return this.parseBalance(response);
-        }).thenApply(Balances::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Balances::new);
 
     }
 
@@ -1658,7 +1658,7 @@ public class Onetrading extends OnetradingApi
             //     }
             //
             return this.parseOrder(response, market);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -1708,7 +1708,7 @@ public class Onetrading extends OnetradingApi
             // responds with an empty body
             //
             return this.parseOrder(response);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -1747,7 +1747,7 @@ public class Onetrading extends OnetradingApi
             return new ArrayList<Object>(Arrays.asList(this.safeOrder(new HashMap<String, Object>() {{
         put( "info", response );
     }})));
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -1785,7 +1785,7 @@ public class Onetrading extends OnetradingApi
                 put( "info", response );
             }});
             return new ArrayList<Object>(Arrays.asList(order));
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -1856,7 +1856,7 @@ public class Onetrading extends OnetradingApi
             //     }
             //
             return this.parseOrder(response);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -1988,7 +1988,7 @@ public class Onetrading extends OnetradingApi
             //
             Object orderHistory = this.safeList(response, "order_history", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(orderHistory, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -2017,7 +2017,7 @@ public class Onetrading extends OnetradingApi
                 put( "with_cancelled_and_rejected", true );
             }};
             return (this.fetchOpenOrders((Object)(symbol), (Object)(since), (Object)(limit), (Object)(this.extend(request, parameters)))).join();
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -2091,7 +2091,7 @@ public class Onetrading extends OnetradingApi
                 market = this.market(symbol);
             }
             return this.parseTrades(tradeHistory, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -2174,7 +2174,7 @@ public class Onetrading extends OnetradingApi
             //
             Object tradeHistory = this.safeList(response, "trade_history", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(tradeHistory, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 

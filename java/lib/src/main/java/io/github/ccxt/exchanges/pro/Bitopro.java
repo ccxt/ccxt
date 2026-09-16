@@ -73,7 +73,7 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
 
             Object url = Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.GetValue(Helpers.GetValue(this.urls, "ws"), "public"), "/"), path), "/"), marketId);
             return (this.watch(url, messageHash, null, messageHash, null)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -118,7 +118,7 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
             }
             Object orderbook = (this.watchPublic("order-books", messageHash, endPart)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
-        }).thenApply(OrderBook::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OrderBook::new);
 
     }
 
@@ -193,7 +193,7 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
             }
             return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -278,7 +278,7 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
             }
             return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -437,7 +437,7 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
             symbol = Helpers.GetValue(market, "symbol");
             String messageHash = Helpers.add(Helpers.add("TICKER", ":"), symbol);
             return (this.watchPublic("tickers", messageHash, Helpers.GetValue(market, "id"))).join();
-        }).thenApply(Ticker::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Ticker::new);
 
     }
 
@@ -539,7 +539,7 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
             Object url = Helpers.add(Helpers.add(Helpers.GetValue(Helpers.GetValue(this.urls, "ws"), "private"), "/"), "account-balance");
             this.authenticate(url);
             return (this.watch(url, messageHash, null, messageHash, null)).join();
-        }).thenApply(Balances::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Balances::new);
 
     }
 

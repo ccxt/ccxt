@@ -754,7 +754,7 @@ public class Paradex extends ParadexApi
             //     }
             //
             return this.safeInteger(response, "server_time");
-        }).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
 
     }
 
@@ -787,7 +787,7 @@ public class Paradex extends ParadexApi
                 put( "url", null );
                 put( "info", response );
             }};
-        }).thenApply(Status::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Status::new);
 
     }
 
@@ -841,7 +841,7 @@ public class Paradex extends ParadexApi
             //
             Object data = this.safeList(response, "results");
             return this.parseMarkets(data);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1100,7 +1100,7 @@ public class Paradex extends ParadexApi
             Object data = this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
             Object first = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
             return this.parseTradingFee(first, market);
-        }).thenApply(TradingFeeInterface::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(TradingFeeInterface::new);
 
     }
 
@@ -1151,7 +1151,7 @@ public class Paradex extends ParadexApi
                 Helpers.addElementToObject(result, ((String)symbol), fee);
             }
             return result;
-        }).thenApply(TradingFees::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(TradingFees::new);
 
     }
 
@@ -1234,7 +1234,7 @@ public class Paradex extends ParadexApi
             //
             Object data = this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
             return this.parseOHLCVs(data, market, timeframe, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
 
     }
 
@@ -1302,7 +1302,7 @@ public class Paradex extends ParadexApi
             //
             Object data = this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
             return this.parseTickers(data, symbols);
-        }).thenApply(Tickers::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Tickers::new);
 
     }
 
@@ -1354,7 +1354,7 @@ public class Paradex extends ParadexApi
             Object data = this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
             Object ticker = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
             return this.parseTicker(ticker, market);
-        }).thenApply(Ticker::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Ticker::new);
 
     }
 
@@ -1454,7 +1454,7 @@ public class Paradex extends ParadexApi
             Map<String, Object> response = (this.publicGetMarketsSummary(this.extend(request, parameters))).join();
             Object data = this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
             return this.parseFundingRates(data, symbols);
-        }).thenApply(FundingRates::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(FundingRates::new);
 
     }
 
@@ -1485,7 +1485,7 @@ public class Paradex extends ParadexApi
                 throw new BadSymbol(Helpers.add(Helpers.add(this.id, " fetchFundingRate() could not find a funding rate for "), symbol)) ;
             }
             return rate;
-        }).thenApply(FundingRate::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(FundingRate::new);
 
     }
 
@@ -1604,7 +1604,7 @@ public class Paradex extends ParadexApi
             Object orderbook = this.parseOrderBook(response, Helpers.GetValue(market, "symbol"), timestamp);
             Helpers.addElementToObject(orderbook, "nonce", this.safeInteger(response, "seq_no"));
             return orderbook;
-        }).thenApply(OrderBook::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OrderBook::new);
 
     }
 
@@ -1680,7 +1680,7 @@ public class Paradex extends ParadexApi
                 Helpers.addElementToObject(Helpers.GetValue(trades, i), "next", this.safeString(response, "next"));
             }
             return this.parseTrades(trades, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -1804,7 +1804,7 @@ public class Paradex extends ParadexApi
             Object data = this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
             Object interest = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
             return this.parseOpenInterest(interest, market);
-        }).thenApply(OpenInterest::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OpenInterest::new);
 
     }
 
@@ -1902,7 +1902,7 @@ public class Paradex extends ParadexApi
             //
             Helpers.addElementToObject(this.options, "systemConfig", response);
             return this.safeDict(this.options, "systemConfig", new HashMap<String, Object>() {{}});
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1928,7 +1928,7 @@ public class Paradex extends ParadexApi
                 put( "version", 1 );
             }};
             return domain;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1959,7 +1959,7 @@ public class Paradex extends ParadexApi
             Object account = this.retrieveStarkAccount(signature, Helpers.GetValue(systemConfig, "paraclear_account_hash"), Helpers.GetValue(systemConfig, "paraclear_account_proxy_hash"));
             Helpers.addElementToObject(this.options, "paradexAccount", account);
             return account;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1987,7 +1987,7 @@ public class Paradex extends ParadexApi
             Helpers.addElementToObject(parameters, "public_key", Helpers.GetValue(account, "publicKey"));
             Map<String, Object> response = (this.privatePostOnboarding(parameters)).join();
             return response;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -2057,7 +2057,7 @@ public class Paradex extends ParadexApi
             Helpers.addElementToObject(this.options, "authToken", token);
             Helpers.addElementToObject(this.options, "expires", expires);
             return token;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -2374,7 +2374,7 @@ public class Paradex extends ParadexApi
             Helpers.addElementToObject(request, "signature", signature);
             Helpers.addElementToObject(request, "signature_timestamp", Helpers.GetValue(orderReq, "timestamp"));
             return request;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -2445,7 +2445,7 @@ public class Paradex extends ParadexApi
             //
             Object order = this.parseOrder(response, market);
             return order;
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -2528,7 +2528,7 @@ public class Paradex extends ParadexApi
             //     }
             //
             return this.parseOrder(response, market);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -2601,7 +2601,7 @@ public class Paradex extends ParadexApi
                 }}));
             }
             return parsedOrders;
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -2645,7 +2645,7 @@ public class Paradex extends ParadexApi
             // if success, no response...
             //
             return this.parseOrder(response);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -2743,7 +2743,7 @@ public class Paradex extends ParadexApi
                 }}, market));
             }
             return orders;
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -2783,7 +2783,7 @@ public class Paradex extends ParadexApi
             return new ArrayList<Object>(Arrays.asList(this.safeOrder(new HashMap<String, Object>() {{
         put( "info", response );
     }})));
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -2851,7 +2851,7 @@ public class Paradex extends ParadexApi
             //     }
             //
             return this.parseOrder(response);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -2954,7 +2954,7 @@ public class Paradex extends ParadexApi
                 Helpers.addElementToObject(orders, 0, first);
             }
             return this.parseOrders(orders, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -3025,7 +3025,7 @@ public class Paradex extends ParadexApi
             //
             Object orders = this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(orders, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -3062,7 +3062,7 @@ public class Paradex extends ParadexApi
             //
             Object data = this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
             return this.parseBalance(data);
-        }).thenApply(Balances::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Balances::new);
 
     }
 
@@ -3169,7 +3169,7 @@ public class Paradex extends ParadexApi
                 Helpers.addElementToObject(Helpers.GetValue(trades, i), "next", this.safeString(response, "next"));
             }
             return this.parseTrades(trades, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -3196,7 +3196,7 @@ public class Paradex extends ParadexApi
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Object positions = (this.fetchPositions((Object)(new ArrayList<Object>(Arrays.asList(Helpers.GetValue(market, "symbol")))), (Object)(parameters))).join();
             return this.safeDict(positions, 0, new HashMap<String, Object>() {{}});
-        }).thenApply(Position::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Position::new);
 
     }
 
@@ -3250,7 +3250,7 @@ public class Paradex extends ParadexApi
             //
             Object data = this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
             return this.parsePositions(data, symbols);
-        }).thenApply(res -> Helpers.toTypedList(res, Position::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Position::new));
 
     }
 
@@ -3373,7 +3373,7 @@ public class Paradex extends ParadexApi
             //
             Object data = this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
             return this.parseLiquidations(data, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Liquidation::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Liquidation::new));
 
     }
 
@@ -3481,7 +3481,7 @@ public class Paradex extends ParadexApi
                 }
             }
             return this.parseTransactions(deposits, null, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
 
     }
 
@@ -3565,7 +3565,7 @@ public class Paradex extends ParadexApi
                 }
             }
             return this.parseTransactions(deposits, null, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
 
     }
 
@@ -3645,7 +3645,7 @@ public class Paradex extends ParadexApi
             //
             Object rows = this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
             return this.parseTransfers(rows, currency, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, TransferEntry::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, TransferEntry::new));
 
     }
 
@@ -3803,7 +3803,7 @@ public class Paradex extends ParadexApi
             //
             Object configs = this.safeList(response, "configs");
             return this.parseMarginMode(this.safeDict(configs, 0), market);
-        }).thenApply(MarginMode::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(MarginMode::new);
 
     }
 
@@ -3857,7 +3857,7 @@ public class Paradex extends ParadexApi
                 put( "margin_type", Paradex.this.encodeMarginMode(marginMode) );
             }};
             return (this.privatePostAccountMarginMarket(this.extend(request, parameters))).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -3900,7 +3900,7 @@ public class Paradex extends ParadexApi
             //
             Object configs = this.safeList(response, "configs");
             return this.parseLeverage(this.safeDict(configs, 0), market);
-        }).thenApply(Leverage::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Leverage::new);
 
     }
 
@@ -3965,7 +3965,7 @@ public class Paradex extends ParadexApi
                 put( "margin_type", Paradex.this.encodeMarginMode(finalMarginMode) );
             }};
             return (this.privatePostAccountMarginMarket(this.extend(request, parameters))).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -4030,7 +4030,7 @@ public class Paradex extends ParadexApi
             Object data = this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
             Object greeks = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
             return this.parseGreeks(greeks, market);
-        }).thenApply(Greeks::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Greeks::new);
 
     }
 
@@ -4095,7 +4095,7 @@ public class Paradex extends ParadexApi
             //
             Object results = this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
             return this.parseAllGreeks(results, symbols);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -4240,7 +4240,7 @@ public class Paradex extends ParadexApi
             //
             Object results = this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
             return this.parseIncomes(results, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, FundingHistory::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, FundingHistory::new));
 
     }
 
@@ -4361,7 +4361,7 @@ public class Paradex extends ParadexApi
             }
             List<Object> sorted = this.sortBy(rates, "timestamp");
             return this.filterBySymbolSinceLimit(sorted, Helpers.GetValue(market, "symbol"), since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, FundingRateHistory::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, FundingRateHistory::new));
 
     }
 

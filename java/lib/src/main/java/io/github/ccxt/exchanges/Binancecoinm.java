@@ -57,7 +57,7 @@ public class Binancecoinm extends BinancecoinmApi
             // transfer from spot wallet to coinm futures wallet
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             return (this.futuresTransfer(code, amount, 3, parameters)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -69,7 +69,7 @@ public class Binancecoinm extends BinancecoinmApi
             // transfer from coinm futures wallet to spot wallet
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             return (this.futuresTransfer(code, amount, 4, parameters)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 }

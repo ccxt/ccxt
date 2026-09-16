@@ -132,7 +132,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
                 subscribe = this.extend(subscribe, this.createWSAuth(name, productIds));
             }
             return (this.watch(url, messageHash, subscribe, messageHash, null)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -214,7 +214,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
             Helpers.addElementToObject(this.options, "unSubscriptionPending", false);
             Helpers.addElementToObject(this.options, "unSubscription", null);
             return res;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -263,7 +263,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
                 subscribe = this.extend(subscribe, this.createWSAuth(name, productIds));
             }
             return (this.watchMultiple(url, messageHashes, subscribe, messageHashes, null)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -332,7 +332,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
             Helpers.addElementToObject(this.options, "unSubscriptionPending", false);
             Helpers.addElementToObject(this.options, "unSubscription", null);
             return res;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -390,7 +390,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
             }
             Object name = "ticker";
             return (this.subscribe(name, false, symbol, parameters)).join();
-        }).thenApply(Ticker::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Ticker::new);
 
     }
 
@@ -415,7 +415,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
             }
             Object name = "ticker";
             return (this.unSubscribe("ticker", name, false, symbol)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -453,7 +453,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
                 return tickers;
             }
             return this.tickers;
-        }).thenApply(Tickers::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Tickers::new);
 
     }
 
@@ -482,7 +482,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
                 symbols = this.symbols;
             }
             return (this.unSubscribeMultiple("ticker", "ticker_batch", false, symbols)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -689,7 +689,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
             }
             return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -714,7 +714,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
             }
             Object name = "market_trades";
             return (this.unSubscribe("trades", name, false, symbol)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -750,7 +750,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{tradeSymbol, limit});
             }
             return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -775,7 +775,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
             }
             Object name = "market_trades";
             return (this.unSubscribeMultiple("trades", name, false, symbols, parameters)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -810,7 +810,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
                 limit = Helpers.callDynamically(orders, "getLimit", new Object[]{symbol, limit});
             }
             return this.filterBySinceLimit(orders, since, limit, "timestamp", true);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -836,7 +836,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
             }
             Object name = "user";
             return (this.unSubscribe("orders", name, true, this.symbol(symbol))).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -866,7 +866,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
             symbol = Helpers.GetValue(market, "symbol");
             Object orderbook = (this.subscribe(name, false, symbol, parameters)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
-        }).thenApply(OrderBook::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OrderBook::new);
 
     }
 
@@ -892,7 +892,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
             symbol = this.symbol(symbol);
             Object name = "level2";
             return (this.unSubscribe("orderbook", name, false, symbol)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -920,7 +920,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
             Object name = "level2";
             Object orderbook = (this.subscribeMultiple(name, false, symbols, parameters)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
-        }).thenApply(OrderBook::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OrderBook::new);
 
     }
 

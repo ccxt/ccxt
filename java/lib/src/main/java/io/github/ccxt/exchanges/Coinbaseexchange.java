@@ -734,7 +734,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
             //   }
             //
             return this.parseCurrencies(response);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -930,7 +930,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
                 }}));
             }
             return result;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -975,7 +975,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
             //
             List<Object> accounts = this.toArray(response);
             return this.parseAccounts(accounts, parameters);
-        }).thenApply(res -> Helpers.toTypedList(res, Account::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Account::new));
 
     }
 
@@ -1042,7 +1042,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
             }
             Map<String, Object> response = (this.privateGetAccounts(parameters)).join();
             return this.parseBalance(response);
-        }).thenApply(Balances::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Balances::new);
 
     }
 
@@ -1093,7 +1093,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
             Object orderbook = this.parseOrderBook(response, symbol);
             Helpers.addElementToObject(orderbook, "nonce", this.safeInteger(response, "sequence"));
             return orderbook;
-        }).thenApply(OrderBook::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OrderBook::new);
 
     }
 
@@ -1246,7 +1246,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
                 Helpers.addElementToObject(result, symbol, this.parseTicker(first, market));
             }
             return this.filterByArrayTickers(result, "symbol", symbols);
-        }).thenApply(Tickers::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Tickers::new);
 
     }
 
@@ -1306,7 +1306,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
             //     }
             //
             return this.parseTicker(response, market);
-        }).thenApply(Ticker::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Ticker::new);
 
     }
 
@@ -1453,7 +1453,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
             }
             List<Object> response = (this.privateGetFills(this.extend(request, parameters))).join();
             return this.parseTrades(response, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -1501,7 +1501,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
             //    ]
             //
             return this.parseTrades(response, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -1547,7 +1547,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
     }});
             }
             return result;
-        }).thenApply(TradingFees::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(TradingFees::new);
 
     }
 
@@ -1651,7 +1651,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
             //     ]
             //
             return this.parseOHLCVs(this.toArray(response), market, timeframe, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
 
     }
 
@@ -1676,7 +1676,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
             //     }
             //
             return this.safeTimestamp(response, "epoch");
-        }).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
 
     }
 
@@ -1812,7 +1812,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
                 response = (this.privateGetOrdersClientClientOid(this.extend(request, parameters))).join();
             }
             return this.parseOrder(response);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -1850,7 +1850,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
             }};
             List<Object> response = (this.privateGetFills(this.extend(request, parameters))).join();
             return this.parseTrades(response, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -1879,7 +1879,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
                 put( "status", "all" );
             }};
             return (this.fetchOpenOrders((Object)(symbol), (Object)(since), (Object)(limit), (Object)(this.extend(request, parameters)))).join();
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -1940,7 +1940,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
             }
             List<Object> response = (this.privateGetOrders(this.extend(request, parameters))).join();
             return this.parseOrders(response, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -1969,7 +1969,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
                 put( "status", "done" );
             }};
             return (this.fetchOpenOrders((Object)(symbol), (Object)(since), (Object)(limit), (Object)(this.extend(request, parameters)))).join();
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -2073,7 +2073,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
             //     }
             //
             return this.parseOrder(response, market);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -2126,7 +2126,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
             return this.safeOrder(new HashMap<String, Object>() {{
                 put( "info", finalResponse );
             }});
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -2161,7 +2161,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
             return new ArrayList<Object>(Arrays.asList(this.safeOrder(new HashMap<String, Object>() {{
         put( "info", response );
     }})));
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -2172,7 +2172,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             return (this.privateGetPaymentMethods(parameters)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -2230,7 +2230,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
                 throw new ExchangeError(Helpers.add(Helpers.add(this.id, " withdraw() error: "), this.json(response))) ;
             }
             return this.parseTransaction(response, currency);
-        }).thenApply(Transaction::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Transaction::new);
 
     }
 
@@ -2393,7 +2393,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
                 Helpers.addElementToObject(Helpers.GetValue(entries, i), "currency", code);
             }
             return this.parseLedger(entries, currency, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, LedgerEntry::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, LedgerEntry::new));
 
     }
 
@@ -2525,7 +2525,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
                 }
             }
             return this.parseTransactions(response, currency, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
 
     }
 
@@ -2553,7 +2553,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
             return (this.fetchDepositsWithdrawals((Object)(code), (Object)(since), (Object)(limit), (Object)(this.extend(new HashMap<String, Object>() {{
                 put( "type", "deposit" );
             }}, parameters)))).join();
-        }).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
 
     }
 
@@ -2581,7 +2581,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
             return (this.fetchDepositsWithdrawals((Object)(code), (Object)(since), (Object)(limit), (Object)(this.extend(new HashMap<String, Object>() {{
                 put( "type", "withdraw" );
             }}, parameters)))).join();
-        }).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
 
     }
 
@@ -2742,7 +2742,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
                 put( "tag", tag );
                 put( "info", response );
             }};
-        }).thenApply(DepositAddress::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(DepositAddress::new);
 
     }
 
@@ -2843,7 +2843,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
                 }
             }
             return response;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 }

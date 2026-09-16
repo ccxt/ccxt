@@ -782,7 +782,7 @@ public class Bithumb extends BithumbApi
                 }
             }
             return result;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -887,7 +887,7 @@ public class Bithumb extends BithumbApi
                 response = (this.privatePostInfoBalance(this.extend(request, parameters))).join();
             }
             return this.parseBalance(response);
-        }).thenApply(Balances::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Balances::new);
 
     }
 
@@ -999,7 +999,7 @@ public class Bithumb extends BithumbApi
                 timestamp = this.safeInteger(data, "timestamp");
             }
             return this.parseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "quantity");
-        }).thenApply(OrderBook::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OrderBook::new);
 
     }
 
@@ -1366,7 +1366,7 @@ public class Bithumb extends BithumbApi
                 }
             }
             return this.filterByArrayTickers(result, "symbol", symbols);
-        }).thenApply(Tickers::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Tickers::new);
 
     }
 
@@ -1463,7 +1463,7 @@ public class Bithumb extends BithumbApi
                 data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             }
             return this.parseTicker(data, market);
-        }).thenApply(Ticker::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Ticker::new);
 
     }
 
@@ -1636,7 +1636,7 @@ public class Bithumb extends BithumbApi
                 data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             }
             return this.parseOHLCVs(data, market, timeframe, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
 
     }
 
@@ -1861,7 +1861,7 @@ public class Bithumb extends BithumbApi
                 data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             }
             return this.parseTrades(data, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -1950,7 +1950,7 @@ public class Bithumb extends BithumbApi
             //
             Object data = this.safeList(response, "batch_orders_response", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(data, market);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -2148,7 +2148,7 @@ public class Bithumb extends BithumbApi
                 put( "side", finalSide );
                 put( "id", finalId );
             }});
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -2183,7 +2183,7 @@ public class Bithumb extends BithumbApi
             }
             Helpers.addElementToObject(parameters, "createMarketBuyOrderRequiresPrice", false);
             return (this.createOrder((Object)(symbol), (Object)("market"), (Object)("buy"), (Object)(cost), (Object)(null), (Object)(parameters))).join();
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -2249,7 +2249,7 @@ public class Bithumb extends BithumbApi
             //     }
             //
             return this.parseOrder(response, market);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -2417,7 +2417,7 @@ public class Bithumb extends BithumbApi
             }};
             Map<String, Object> parsedOrder = this.extend(data, orderData);
             return this.parseOrder(parsedOrder, market);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -2761,7 +2761,7 @@ public class Bithumb extends BithumbApi
             }
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(data, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -2883,7 +2883,7 @@ public class Bithumb extends BithumbApi
                 data = response;
             }
             return this.parseOrders(data, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -2914,7 +2914,7 @@ public class Bithumb extends BithumbApi
             Helpers.addElementToObject(parameters, "state", "done");
             Object orders = (this.fetchOrders((Object)(symbol), (Object)(since), (Object)(limit), (Object)(parameters))).join();
             return this.filterBySinceLimit(orders, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -2945,7 +2945,7 @@ public class Bithumb extends BithumbApi
             Helpers.addElementToObject(parameters, "state", "cancel");
             Object orders = (this.fetchOrders((Object)(symbol), (Object)(since), (Object)(limit), (Object)(parameters))).join();
             return this.filterBySinceLimit(orders, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -3048,7 +3048,7 @@ public class Bithumb extends BithumbApi
             return this.extend(this.parseOrder(response, market), new HashMap<String, Object>() {{
                 put( "id", id );
             }});
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -3112,7 +3112,7 @@ public class Bithumb extends BithumbApi
             //
             Object data = this.safeList(response, "success", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(data, market);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -3126,7 +3126,7 @@ public class Bithumb extends BithumbApi
                 put( "side", Helpers.GetValue(order, "side") );
             }};
             return (this.cancelOrder((Object)(((String)Helpers.GetValue(order, "id"))), (Object)(Helpers.GetValue(order, "symbol")), (Object)(this.extend(request, parameters)))).join();
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -3260,7 +3260,7 @@ public class Bithumb extends BithumbApi
                 response = (this.privatePostTradeBtcWithdrawal(this.extend(request, parameters))).join();
             }
             return this.parseTransaction(response, currency);
-        }).thenApply(Transaction::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Transaction::new);
 
     }
 
@@ -3406,7 +3406,7 @@ public class Bithumb extends BithumbApi
             //     ]
             //
             return response;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -3470,7 +3470,7 @@ public class Bithumb extends BithumbApi
             //     }
             //
             return this.parseTransaction(response, currency);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -3551,7 +3551,7 @@ public class Bithumb extends BithumbApi
             //     ]
             //
             return this.parseTransactions(response, currency, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
 
     }
 
@@ -3615,7 +3615,7 @@ public class Bithumb extends BithumbApi
             //     }
             //
             return this.parseTransaction(response, currency);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -3696,7 +3696,7 @@ public class Bithumb extends BithumbApi
             //     ]
             //
             return this.parseTransactions(response, currency, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
 
     }
 
@@ -3750,7 +3750,7 @@ public class Bithumb extends BithumbApi
             //     }
             //
             return this.parseDepositAddress(response, currency);
-        }).thenApply(DepositAddress::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(DepositAddress::new);
 
     }
 
@@ -3804,7 +3804,7 @@ public class Bithumb extends BithumbApi
             //     }
             //
             return this.parseDepositAddress(response, currency);
-        }).thenApply(DepositAddress::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(DepositAddress::new);
 
     }
 
@@ -3849,7 +3849,7 @@ public class Bithumb extends BithumbApi
             //     ]
             //
             return this.parseDepositAddresses(response, codes, false, new HashMap<String, Object>() {{}});
-        }).thenApply(res -> Helpers.toTypedList(res, DepositAddress::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, DepositAddress::new));
 
     }
 

@@ -25,7 +25,7 @@ public class TestFetchOpenInterestHistory extends BaseTest {
             TestOpenInterest.testOpenInterest(exchange, skippedProperties, method, Helpers.GetValue(openInterestHistory, i));
         }
         return true;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 

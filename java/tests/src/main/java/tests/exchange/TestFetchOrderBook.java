@@ -21,7 +21,7 @@ public class TestFetchOrderBook extends BaseTest {
         Object orderbook = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchOrderBook", new Object[]{symbol})).join();
         TestOrderBook.testOrderBook(exchange, skippedProperties, method, orderbook, symbol);
         return true;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 

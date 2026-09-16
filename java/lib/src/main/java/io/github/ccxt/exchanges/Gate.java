@@ -2022,7 +2022,7 @@ public class Gate extends GateApi
                 }
             }
             return Helpers.GetValue(this.options, "unifiedAccount");
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -2033,7 +2033,7 @@ public class Gate extends GateApi
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             return (this.privateUnifiedPutUnifiedMode(parameters)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -2058,7 +2058,7 @@ public class Gate extends GateApi
             //     }
             //
             return this.safeInteger(response, "server_time");
-        }).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
 
     }
 
@@ -2198,7 +2198,7 @@ public class Gate extends GateApi
             }
             Object results = (Helpers.promiseAll(rawPromises)).join();
             return this.arraysConcat(results);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -2329,7 +2329,7 @@ public class Gate extends GateApi
                 }});
             }
             return result;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -2360,7 +2360,7 @@ public class Gate extends GateApi
                 }
             }
             return result;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -2391,7 +2391,7 @@ public class Gate extends GateApi
                 }
             }
             return result;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -2728,7 +2728,7 @@ public class Gate extends GateApi
                 }
             }
             return result;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -2758,7 +2758,7 @@ public class Gate extends GateApi
                 }
             }
             return underlyings;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -2988,7 +2988,7 @@ public class Gate extends GateApi
             //    ]
             //
             return this.parseCurrencies(response);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -3118,7 +3118,7 @@ public class Gate extends GateApi
             //    ]
             //
             return this.parseFundingRate(response);
-        }).thenApply(FundingRate::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(FundingRate::new);
 
     }
 
@@ -3198,7 +3198,7 @@ public class Gate extends GateApi
             //    ]
             //
             return this.parseFundingRates(response, symbols);
-        }).thenApply(FundingRates::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(FundingRates::new);
 
     }
 
@@ -3339,7 +3339,7 @@ public class Gate extends GateApi
     }});
             }
             return result;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -3373,7 +3373,7 @@ public class Gate extends GateApi
             currency = (Map<String, Object>) this.safeCurrency(currencyId, currency);
             Object parsed = this.parseDepositAddresses(chains, null, false);
             return this.indexBy(parsed, "network");
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -3405,7 +3405,7 @@ public class Gate extends GateApi
             Object chainsIndexedById = chainsIndexedByIdRaw;
             Object selectedNetworkIdOrCode = this.selectNetworkCodeFromUnifiedNetworks(code, networkCode, chainsIndexedById);
             return Helpers.GetValue(chainsIndexedById, ((String)selectedNetworkIdOrCode));
-        }).thenApply(DepositAddress::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(DepositAddress::new);
 
     }
 
@@ -3472,7 +3472,7 @@ public class Gate extends GateApi
             //    }
             //
             return this.parseTradingFee(response, market);
-        }).thenApply(TradingFeeInterface::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(TradingFeeInterface::new);
 
     }
 
@@ -3510,7 +3510,7 @@ public class Gate extends GateApi
             //    }
             //
             return this.parseTradingFees(response);
-        }).thenApply(TradingFees::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(TradingFees::new);
 
     }
 
@@ -3637,7 +3637,7 @@ public class Gate extends GateApi
     }});
             }
             return result;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -3682,7 +3682,7 @@ public class Gate extends GateApi
             //    ]
             //
             return this.parseDepositWithdrawFees(response, codes, "currency");
-        }).thenApply(DepositWithdrawFees::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(DepositWithdrawFees::new);
 
     }
 
@@ -3819,7 +3819,7 @@ public class Gate extends GateApi
             //    ]
             //
             return this.parseFundingHistories(response, symbol, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, FundingHistory::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, FundingHistory::new));
 
     }
 
@@ -4007,7 +4007,7 @@ public class Gate extends GateApi
             Object result = this.parseOrderBook(response, symbol, timestamp, "bids", "asks", priceKey, amountKey);
             Helpers.addElementToObject(result, "nonce", nonce);
             return result;
-        }).thenApply(OrderBook::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OrderBook::new);
 
     }
 
@@ -4078,7 +4078,7 @@ public class Gate extends GateApi
                 throw new NullResponse(Helpers.add(this.id, " fetchTicker() returned empty response")) ;
             }
             return this.parseTicker(ticker, market);
-        }).thenApply(Ticker::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Ticker::new);
 
     }
 
@@ -4262,7 +4262,7 @@ public class Gate extends GateApi
                 throw new NotSupported(Helpers.add(this.id, " fetchTickers() not support this market type, provide symbols or set params[\"defaultType\"] to one from spot/margin/swap/future/option")) ;
             }
             return this.parseTickers(response, symbols);
-        }).thenApply(Tickers::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Tickers::new);
 
     }
 
@@ -4600,7 +4600,7 @@ public class Gate extends GateApi
                 }
             }
             return this.safeBalance(result);
-        }).thenApply(Balances::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Balances::new);
 
     }
 
@@ -4707,7 +4707,7 @@ public class Gate extends GateApi
                 response = (this.publicSpotGetCandlesticks(this.extend(request, parameters))).join();
             }
             return this.parseOHLCVs(this.toArray(response), market, timeframe, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
 
     }
 
@@ -4733,7 +4733,7 @@ public class Gate extends GateApi
             Helpers.addElementToObject(request, "interval", this.safeString(this.timeframes, timeframe, timeframe));
             List<Object> response = (this.publicOptionsGetCandlesticks(this.extend(request, parameters))).join();
             return this.parseOHLCVs(this.toArray(response), market, timeframe, since, limit);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -4821,7 +4821,7 @@ public class Gate extends GateApi
             }
             List<Object> sorted = this.sortBy(rates, "timestamp");
             return this.filterBySymbolSinceLimit(sorted, Helpers.GetValue(market, "symbol"), since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, FundingRateHistory::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, FundingRateHistory::new));
 
     }
 
@@ -4995,7 +4995,7 @@ public class Gate extends GateApi
             //     ]
             //
             return this.parseTrades(response, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -5054,7 +5054,7 @@ public class Gate extends GateApi
                 put( "order_id", id );
             }}))).join();
             return response;
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -5229,7 +5229,7 @@ public class Gate extends GateApi
             //     ]
             //
             return this.parseTrades(response, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -5471,7 +5471,7 @@ final Object finalPointFee = pointFee;
             parameters = ((List<Object>) requestparametersVariable).get(1);
             List<Object> response = (this.privateWalletGetDeposits(this.extend(request, parameters))).join();
             return this.parseTransactions(response, currency);
-        }).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
 
     }
 
@@ -5531,7 +5531,7 @@ final Object finalPointFee = pointFee;
             parameters = ((List<Object>) requestparametersVariable).get(1);
             List<Object> response = (this.privateWalletGetWithdrawals(this.extend(request, parameters))).join();
             return this.parseTransactions(response, currency);
-        }).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
 
     }
 
@@ -5591,7 +5591,7 @@ final Object finalPointFee = pointFee;
             //    }
             //
             return this.parseTransaction(response, currency);
-        }).thenApply(Transaction::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Transaction::new);
 
     }
 
@@ -5901,7 +5901,7 @@ final Object finalPointFee = pointFee;
             //     {"id": 7615567}
             //
             return this.parseOrder(response, market);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -5981,7 +5981,7 @@ final Object finalPointFee = pointFee;
                 response = (this.privateFuturesPostSettleBatchOrders(ordersRequests)).join();
             }
             return this.parseOrders(response);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -6337,7 +6337,7 @@ final Object finalPointFee = pointFee;
                 put( "createMarketBuyOrderRequiresPrice", false );
             }});
             return (this.createOrder((Object)(symbol), (Object)("market"), (Object)("buy"), (Object)(cost), (Object)(null), (Object)(parameters))).join();
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -6472,7 +6472,7 @@ final Object finalPointFee = pointFee;
             //     }
             //
             return this.parseOrder(response, market);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -6995,7 +6995,7 @@ final Object finalRebate = rebate;
                 throw new NotSupported(Helpers.add(this.id, " fetchOrder() not support this market type")) ;
             }
             return this.parseOrder(response, market);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -7024,7 +7024,7 @@ final Object finalRebate = rebate;
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             return (this.fetchOrdersByStatus("open", symbol, since, limit, parameters)).join();
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -7112,7 +7112,7 @@ final Object finalRebate = rebate;
             }
             List<Object> response = (this.privateFuturesGetSettleOrdersTimerange(this.extend(request, parameters))).join();
             return this.parseOrders(response, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -7408,7 +7408,7 @@ final Object finalRebate = rebate;
             }
             List<Object> orders = this.parseOrders(result, market, since, limit);
             return this.filterBySymbolSinceLimit(orders, symbol, since, limit);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -7569,7 +7569,7 @@ final Object finalRebate = rebate;
             //     }
             //
             return this.parseOrder(response, market);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -7638,7 +7638,7 @@ final Object finalRebate = rebate;
             }
             List<Object> response = (this.privateFuturesPostSettleBatchCancelOrders(finalList)).join();
             return this.parseOrders(response);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -7691,7 +7691,7 @@ final Object finalRebate = rebate;
             // ]
             //
             return this.parseOrders(response);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -7796,7 +7796,7 @@ final Object finalRebate = rebate;
             //    ]
             //
             return this.parseOrders(response, market);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -7875,7 +7875,7 @@ final Object finalRebate = rebate;
             //    }
             //
             return this.parseTransfer(response, currency);
-        }).thenApply(TransferEntry::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(TransferEntry::new);
 
     }
 
@@ -7996,7 +7996,7 @@ final Object finalRebate = rebate;
             //     }
             //
             return response;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -8264,7 +8264,7 @@ final Object finalRebate = rebate;
                 throw new NullResponse(Helpers.add(this.id, " fetchPosition() returned empty response")) ;
             }
             return this.parsePosition(response, market);
-        }).thenApply(Position::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Position::new);
 
     }
 
@@ -8402,7 +8402,7 @@ final Object finalRebate = rebate;
                 responseList = this.toArray(response);
             }
             return this.parsePositions(responseList, symbols);
-        }).thenApply(res -> Helpers.toTypedList(res, Position::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Position::new));
 
     }
 
@@ -8541,7 +8541,7 @@ final Object finalRebate = rebate;
             //    ]
             //
             return this.parseLeverageTiers(response, symbols, "name");
-        }).thenApply(LeverageTiers::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(LeverageTiers::new);
 
     }
 
@@ -8596,7 +8596,7 @@ final Object finalRebate = rebate;
                 response = (this.publicDeliveryGetSettleRiskLimitTiers(this.extend(request, requestParams))).join();
             }
             return this.parseMarketLeverageTiers(response, market);
-        }).thenApply(res -> Helpers.toTypedList(res, LeverageTier::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, LeverageTier::new));
 
     }
 
@@ -8713,7 +8713,7 @@ final Object finalI = i;
             // empty response
             //
             return this.parseMarginLoan(response, currency);
-        }).thenApply(MarginLoan::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(MarginLoan::new);
 
     }
 
@@ -8762,7 +8762,7 @@ final Object finalI = i;
                 response = this.safeDict(response, 0);
             }
             return this.parseMarginLoan(response, currency);
-        }).thenApply(MarginLoan::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(MarginLoan::new);
 
     }
 
@@ -8817,7 +8817,7 @@ final Object finalI = i;
             //     }
             //
             return this.parseMarginLoan(response, currency);
-        }).thenApply(MarginLoan::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(MarginLoan::new);
 
     }
 
@@ -8865,7 +8865,7 @@ final Object finalI = i;
                 response = (this.privateMarginPostCrossLoans(this.extend(request, parameters))).join();
             }
             return this.parseMarginLoan(response, currency);
-        }).thenApply(MarginLoan::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(MarginLoan::new);
 
     }
 
@@ -9006,7 +9006,7 @@ final Object finalI = i;
             }
             Object interest = this.parseBorrowInterests(response, market);
             return this.filterByCurrencySinceLimit(interest, code, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, BorrowInterest::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, BorrowInterest::new));
 
     }
 
@@ -9188,7 +9188,7 @@ final Object finalI = i;
                 throw new NotSupported(Helpers.add(this.id, " modifyMarginHelper() not support this market type")) ;
             }
             return this.parseMarginModification(response, market);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -9258,7 +9258,7 @@ final Object finalI = i;
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             return (this.modifyMarginHelper(symbol, Helpers.opNeg(amount), parameters)).join();
-        }).thenApply(MarginModification::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(MarginModification::new);
 
     }
 
@@ -9280,7 +9280,7 @@ final Object finalI = i;
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             return (this.modifyMarginHelper(symbol, amount, parameters)).join();
-        }).thenApply(MarginModification::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(MarginModification::new);
 
     }
 
@@ -9359,7 +9359,7 @@ final Object finalI = i;
             //    ]
             //
             return this.parseOpenInterestsHistory(response, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, OpenInterest::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, OpenInterest::new));
 
     }
 
@@ -9461,7 +9461,7 @@ final Object finalI = i;
             Object settlements = this.parseSettlements(response, market);
             List<Object> sorted = this.sortBy(settlements, "timestamp");
             return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -9573,7 +9573,7 @@ final Object finalI = i;
             Object settlements = this.parseSettlements(data, market);
             List<Object> sorted = this.sortBy(settlements, "timestamp");
             return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -9809,7 +9809,7 @@ final Object finalI = i;
             //     ]
             //
             return this.parseLedger(response, currency, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, LedgerEntry::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, LedgerEntry::new));
 
     }
 
@@ -9977,7 +9977,7 @@ final Object finalI = i;
             var query = ((List<Object>) requestqueryVariable).get(1);
             Helpers.addElementToObject(request, "dual_mode", hedged);
             return (this.privateFuturesPostSettleDualMode(this.extend(request, query))).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -10033,7 +10033,7 @@ final Object finalI = i;
                 }
             }
             return underlyings;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -10095,7 +10095,7 @@ final Object finalI = i;
             //     ]
             //
             return this.parseLiquidations(this.toArray(response), market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Liquidation::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Liquidation::new));
 
     }
 
@@ -10194,7 +10194,7 @@ final Object finalI = i;
             //     ]
             //
             return this.parseLiquidations(this.toArray(response), market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Liquidation::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Liquidation::new));
 
     }
 
@@ -10350,7 +10350,7 @@ final Object finalI = i;
                 }
             }
             throw new NullResponse(Helpers.add(Helpers.add(this.id, " fetchGreeks() could not find greeks for "), symbol)) ;
-        }).thenApply(Greeks::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Greeks::new);
 
     }
 
@@ -10435,7 +10435,7 @@ final Object finalI = i;
                 side = ""; // side is not used but needs to be present, otherwise crashes in php
             }
             return (this.createOrder((Object)(symbol), (Object)("market"), (Object)(side), (Object)(0), (Object)(null), (Object)(parameters))).join();
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -10488,7 +10488,7 @@ final Object finalI = i;
                 throw new NotSupported(Helpers.add(Helpers.add(Helpers.add(this.id, " fetchLeverage() does not support "), this.safeString(market, "type")), " markets")) ;
             }
             return this.parseLeverage(response, market);
-        }).thenApply(Leverage::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Leverage::new);
 
     }
 
@@ -10527,7 +10527,7 @@ final Object finalI = i;
                 response = (this.publicMarginGetCurrencyPairs(parameters)).join(); // deprecated
             }
             return this.parseLeverages(this.toArray(response), symbols, marketIdRequest, "spot");
-        }).thenApply(Leverages::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Leverages::new);
 
     }
 
@@ -10610,7 +10610,7 @@ final Object finalI = i;
             //     }
             //
             return this.parseOption(response, null, market);
-        }).thenApply(Option::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Option::new);
 
     }
 
@@ -10683,7 +10683,7 @@ final Object finalI = i;
             //     ]
             //
             return this.parseOptionChain(this.toArray(response), null, "name");
-        }).thenApply(OptionChain::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OptionChain::new);
 
     }
 
@@ -10855,7 +10855,7 @@ final Object finalI = i;
                 responseList = this.toArray(response);
             }
             return this.parsePositions(responseList, symbols, parameters);
-        }).thenApply(res -> Helpers.toTypedList(res, Position::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Position::new));
 
     }
 

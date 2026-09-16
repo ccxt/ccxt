@@ -441,7 +441,7 @@ public class Upbit extends UpbitApi
             }
             Map<String, Object> currency = (Map<String, Object>) this.currency(code);
             return (this.fetchCurrencyById(Helpers.GetValue(currency, "id"), parameters)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -546,7 +546,7 @@ public class Upbit extends UpbitApi
                     }} );
                 }} );
             }};
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -564,7 +564,7 @@ public class Upbit extends UpbitApi
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             return (this.fetchMarketById(Helpers.GetValue(market, "id"), parameters)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -676,7 +676,7 @@ public class Upbit extends UpbitApi
                     put( "info", response );
                 }} );
             }});
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -707,7 +707,7 @@ public class Upbit extends UpbitApi
             //    ]
             //
             return this.parseMarkets(response);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -834,7 +834,7 @@ public class Upbit extends UpbitApi
             //                  "modified":  false    }   ]
             //
             return this.parseBalance(response);
-        }).thenApply(Balances::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Balances::new);
 
     }
 
@@ -929,7 +929,7 @@ public class Upbit extends UpbitApi
     }});
             }
             return result;
-        }).thenApply(OrderBooks::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OrderBooks::new);
 
     }
 
@@ -953,7 +953,7 @@ public class Upbit extends UpbitApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             Object orderbooks = (this.fetchOrderBooks((Object)(new ArrayList<Object>(Arrays.asList(symbol))), (Object)(limit), (Object)(parameters))).join();
             return this.safeValue(orderbooks, symbol);
-        }).thenApply(OrderBook::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OrderBook::new);
 
     }
 
@@ -1116,7 +1116,7 @@ public class Upbit extends UpbitApi
             //                     "timestamp":  1542883543813  } ]
             //
             return this.parseTickers(tickers, symbols);
-        }).thenApply(Tickers::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Tickers::new);
 
     }
 
@@ -1167,7 +1167,7 @@ public class Upbit extends UpbitApi
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Object tickers = (this.fetchTickers((Object)(new ArrayList<Object>(Arrays.asList(symbol))), (Object)(parameters))).join();
             return this.safeValue(tickers, symbol);
-        }).thenApply(Ticker::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Ticker::new);
 
     }
 
@@ -1313,7 +1313,7 @@ public class Upbit extends UpbitApi
             //              "sequential_id":  15428917910540000 }  ]
             //
             return this.parseTrades(response, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -1390,7 +1390,7 @@ public class Upbit extends UpbitApi
                 put( "percentage", true );
                 put( "tierBased", false );
             }};
-        }).thenApply(TradingFeeInterface::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(TradingFeeInterface::new);
 
     }
 
@@ -1429,7 +1429,7 @@ public class Upbit extends UpbitApi
                 }
             }
             return response;
-        }).thenApply(TradingFees::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(TradingFees::new);
 
     }
 
@@ -1541,7 +1541,7 @@ public class Upbit extends UpbitApi
             //
             List<Object> ohlcvs = this.toArray(response);
             return this.parseOHLCVs(ohlcvs, market, timeframe, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
 
     }
 
@@ -1742,7 +1742,7 @@ public class Upbit extends UpbitApi
             //     }
             //
             return this.parseOrder(response);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -1792,7 +1792,7 @@ public class Upbit extends UpbitApi
             //     }
             //
             return this.parseOrder(response);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -1957,7 +1957,7 @@ public class Upbit extends UpbitApi
             Helpers.addElementToObject(result, "side", this.safeString(response, "side"));
             Helpers.addElementToObject(result, "market", this.safeString(response, "market"));
             return this.parseOrder(result);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -2015,7 +2015,7 @@ public class Upbit extends UpbitApi
             //     ]
             //
             return this.parseTransactions(response, currency, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
 
     }
 
@@ -2068,7 +2068,7 @@ public class Upbit extends UpbitApi
             //     }
             //
             return this.parseTransaction(response, currency);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -2127,7 +2127,7 @@ public class Upbit extends UpbitApi
             //     ]
             //
             return this.parseTransactions(response, currency, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
 
     }
 
@@ -2180,7 +2180,7 @@ public class Upbit extends UpbitApi
             //     }
             //
             return this.parseTransaction(response, currency);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -2524,7 +2524,7 @@ public class Upbit extends UpbitApi
             //     ]
             //
             return this.parseOrders(response, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -2599,7 +2599,7 @@ public class Upbit extends UpbitApi
             //     ]
             //
             return this.parseOrders(response, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -2674,7 +2674,7 @@ public class Upbit extends UpbitApi
             //     ]
             //
             return this.parseOrders(response, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -2748,7 +2748,7 @@ public class Upbit extends UpbitApi
             //     }
             //
             return this.parseOrder(response);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -2794,7 +2794,7 @@ public class Upbit extends UpbitApi
             //     ]
             //
             return this.parseDepositAddresses(response, codes, false);
-        }).thenApply(res -> Helpers.toTypedList(res, DepositAddress::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, DepositAddress::new));
 
     }
 
@@ -2868,7 +2868,7 @@ public class Upbit extends UpbitApi
             //    }
             //
             return this.parseDepositAddress(response);
-        }).thenApply(DepositAddress::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(DepositAddress::new);
 
     }
 
@@ -2919,7 +2919,7 @@ public class Upbit extends UpbitApi
                 throw new AddressPending(Helpers.add(Helpers.add(Helpers.add(this.id, " is generating "), code), " deposit address, call fetchDepositAddress or createDepositAddress one more time later to retrieve the generated address")) ;
             }
             return this.parseDepositAddress(response);
-        }).thenApply(DepositAddress::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(DepositAddress::new);
 
     }
 
@@ -2993,7 +2993,7 @@ public class Upbit extends UpbitApi
             //     }
             //
             return this.parseTransaction(response);
-        }).thenApply(Transaction::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Transaction::new);
 
     }
 

@@ -84,7 +84,7 @@ public class Independentreserve extends io.github.ccxt.exchanges.Independentrese
             String messageHash = Helpers.add("trades:", symbol);
             Object trades = (this.watch(url, messageHash, null, messageHash, null)).join();
             return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -193,7 +193,7 @@ public class Independentreserve extends io.github.ccxt.exchanges.Independentrese
             }};
             Object orderbook = (this.watch(url, messageHash, null, messageHash, subscription)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
-        }).thenApply(OrderBook::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OrderBook::new);
 
     }
 

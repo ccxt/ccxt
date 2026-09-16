@@ -103,7 +103,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
                 return null;
             }
             return (this.watchMultiple(url, messageHashes, message, messageHashes, null)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -136,7 +136,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
                 return null;
             }
             return (this.watchMultiple(url, messageHashes, message, messageHashes, null)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -259,7 +259,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
             Object topic = Helpers.add(Helpers.add("ticker", "."), Helpers.GetValue(market, "id"));
             String messageHash = Helpers.add(Helpers.add("ticker", ":"), symbol);
             return (this.watchPublic(new ArrayList<Object>(Arrays.asList(topic)), new ArrayList<Object>(Arrays.asList(messageHash)), parameters)).join();
-        }).thenApply(Ticker::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Ticker::new);
 
     }
 
@@ -279,7 +279,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             return (this.unWatchTickers(new ArrayList<Object>(Arrays.asList(symbol)), parameters)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -315,7 +315,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
             }
             (this.watchPublic(topics, messageHashes, parameters)).join();
             return this.filterByArray(this.tickers, "symbol", symbols);
-        }).thenApply(Tickers::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Tickers::new);
 
     }
 
@@ -350,7 +350,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
                 ((List<Object>)messageHashes).add(Helpers.add("unsubscribe:ticker:", symbol));
             }
             return (this.watchPublic(topics, messageHashes, parameters, true)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -463,7 +463,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
             }
             (this.watchPublic(topics, messageHashes, parameters)).join();
             return this.filterByArray(this.bidsasks, "symbol", symbols);
-        }).thenApply(Tickers::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Tickers::new);
 
     }
 
@@ -497,7 +497,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
                 ((List<Object>)messageHashes).add(Helpers.add("unsubscribe:bidask:", symbol));
             }
             return (this.watchPublic(topics, messageHashes, parameters, true)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -588,7 +588,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
             Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             Object result = (this.watchOHLCVForSymbols(new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(symbol, timeframe)))), since, limit, parameters)).join();
             return Helpers.GetValue(Helpers.GetValue(result, symbol), timeframe);
-        }).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
 
     }
 
@@ -610,7 +610,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
             Object timeframe = Helpers.getArg(optionalArgs, 0, "1m");
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             return (this.unWatchOHLCVForSymbols(new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(symbol, timeframe)))), parameters)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -664,7 +664,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
             }
             List<Object> filtered = this.filterBySinceLimit(candles, since, limit, 0, true);
             return this.createOHLCVObject(symbol, timeframe, filtered);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -705,7 +705,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
                 ((List<Object>)messageHashes).add(Helpers.add(Helpers.add(Helpers.add("unsubscribe:candles:", Helpers.GetValue(market, "symbol")), ":"), interval));
             }
             return (this.watchPublic(topics, messageHashes, parameters, true)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -796,7 +796,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
             Object limit = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
             return (this.watchTradesForSymbols((Object)(new ArrayList<Object>(Arrays.asList(symbol))), (Object)(since), (Object)(limit), (Object)(parameters))).join();
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -816,7 +816,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             return (this.unWatchTradesForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), parameters)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -867,7 +867,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
             }
             List<Object> result = this.filterBySinceLimit(trades, since, limit, "timestamp", true);
             return this.sortBy(result, "timestamp");  // needed bcz of https://github.com/ccxt/ccxt/actions/runs/20755599389/job/59597208008?pr=27624#step:10:537
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -906,7 +906,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
                 ((List<Object>)messageHashes).add(Helpers.add("unsubscribe:trades:", symbol));
             }
             return (this.watchPublic(topics, messageHashes, parameters, true)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1035,7 +1035,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
             Object limit = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             return (this.watchOrderBookForSymbols((Object)(new ArrayList<Object>(Arrays.asList(symbol))), (Object)(limit), (Object)(parameters))).join();
-        }).thenApply(OrderBook::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OrderBook::new);
 
     }
 
@@ -1075,7 +1075,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
             }
             Object orderbook = (this.watchPublic(topics, messageHashes, parameters)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});  // todo check if limit is needed
-        }).thenApply(OrderBook::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OrderBook::new);
 
     }
 
@@ -1094,7 +1094,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             return (this.unWatchOrderBookForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), parameters)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1130,7 +1130,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
                 ((List<Object>)topics).add(topic);
             }
             return (this.watchPublic(topics, messageHashes, parameters, true)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1287,7 +1287,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
                 limit = Helpers.callDynamically(orders, "getLimit", new Object[]{symbol, limit});
             }
             return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -1325,7 +1325,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
                 messageHash = Helpers.add("unsubscribe:orders:", symbol);
             }
             return (this.watchPrivate(new ArrayList<Object>(Arrays.asList(topic)), new ArrayList<Object>(Arrays.asList(messageHash)), parameters, true)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1525,7 +1525,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
                 return positions;
             }
             return this.filterBySymbolsSinceLimit(this.positions, symbols, since, limit, true);
-        }).thenApply(res -> Helpers.toTypedList(res, Position::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Position::new));
 
     }
 
@@ -1566,7 +1566,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
                 ((List<Object>)topics).add("account.positionUpdate");
             }
             return (this.watchPrivate(topics, messageHashes, parameters, true)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 

@@ -446,7 +446,7 @@ public class Bitso extends BitsoApi
             Object payload = this.safeValue(response, "payload", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> currency = (Map<String, Object>) this.safeCurrency(code);
             return this.parseLedger(payload, currency, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, LedgerEntry::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, LedgerEntry::new));
 
     }
 
@@ -727,7 +727,7 @@ public class Bitso extends BitsoApi
                 }}, fee)));
             }
             return result;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -772,7 +772,7 @@ public class Bitso extends BitsoApi
             Object currencies = this.safeDict(payload, "currencies");
             Object metadata = this.safeList(currencies, "metadata", new ArrayList<Object>(Arrays.asList()));
             return this.parseCurrencies(metadata);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -881,7 +881,7 @@ public class Bitso extends BitsoApi
             //     }
             //
             return this.parseBalance(response);
-        }).thenApply(Balances::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Balances::new);
 
     }
 
@@ -914,7 +914,7 @@ public class Bitso extends BitsoApi
             Object orderbook = this.safeValue(response, "payload");
             Long timestamp = this.parse8601(this.safeString(orderbook, "updated_at"));
             return this.parseOrderBook(orderbook, Helpers.GetValue(market, "symbol"), timestamp, "bids", "asks", "price", "amount");
-        }).thenApply(OrderBook::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OrderBook::new);
 
     }
 
@@ -1008,7 +1008,7 @@ public class Bitso extends BitsoApi
             //     }
             //
             return this.parseTicker(ticker, market);
-        }).thenApply(Ticker::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Ticker::new);
 
     }
 
@@ -1077,7 +1077,7 @@ public class Bitso extends BitsoApi
             //
             Object payload = this.safeList(response, "payload", new ArrayList<Object>(Arrays.asList()));
             return this.parseOHLCVs(payload, market, timeframe, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
 
     }
 
@@ -1254,7 +1254,7 @@ public class Bitso extends BitsoApi
             Map<String, Object> response = (this.publicGetTrades(this.extend(request, parameters))).join();
             Object payload = this.safeList(response, "payload", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(payload, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -1338,7 +1338,7 @@ public class Bitso extends BitsoApi
     }});
             }
             return result;
-        }).thenApply(TradingFees::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(TradingFees::new);
 
     }
 
@@ -1392,7 +1392,7 @@ public class Bitso extends BitsoApi
             Map<String, Object> response = (this.privateGetUserTrades(this.extend(request, parameters))).join();
             Object payload = this.safeList(response, "payload", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(payload, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -1439,7 +1439,7 @@ public class Bitso extends BitsoApi
                 put( "info", response );
                 put( "id", id );
             }}, market);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -1480,7 +1480,7 @@ public class Bitso extends BitsoApi
                 put( "info", response );
                 put( "id", orderId );
             }});
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -1529,7 +1529,7 @@ public class Bitso extends BitsoApi
                 ((List<Object>)orders).add(this.parseOrder(id, market));
             }
             return orders;
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -1568,7 +1568,7 @@ public class Bitso extends BitsoApi
                 ((List<Object>)canceledOrders).add(order);
             }
             return canceledOrders;
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -1686,7 +1686,7 @@ public class Bitso extends BitsoApi
             Object payload = this.safeList(response, "payload", new ArrayList<Object>(Arrays.asList()));
             List<Object> orders = this.parseOrders(payload, market, since, limit);
             return orders;
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -1724,7 +1724,7 @@ public class Bitso extends BitsoApi
                 }
             }
             throw new OrderNotFound(Helpers.add(Helpers.add(Helpers.add(this.id, ": The order "), id), " not found.")) ;
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -1760,7 +1760,7 @@ public class Bitso extends BitsoApi
             Map<String, Object> response = (this.privateGetOrderTradesOid(this.extend(request, parameters))).join();
             Object payload = this.safeList(response, "payload", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(payload, market);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -1815,7 +1815,7 @@ public class Bitso extends BitsoApi
             Object transactions = this.safeValue(response, "payload", new ArrayList<Object>(Arrays.asList()));
             Object first = this.safeDict(transactions, 0, new HashMap<String, Object>() {{}});
             return this.parseTransaction(first);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1874,7 +1874,7 @@ public class Bitso extends BitsoApi
             //
             Object transactions = this.safeList(response, "payload", new ArrayList<Object>(Arrays.asList()));
             return this.parseTransactions(transactions, currency, since, limit, parameters);
-        }).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
 
     }
 
@@ -1920,7 +1920,7 @@ public class Bitso extends BitsoApi
                 put( "address", finalAddress );
                 put( "tag", finalTag );
             }};
-        }).thenApply(DepositAddress::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(DepositAddress::new);
 
     }
 
@@ -2038,7 +2038,7 @@ public class Bitso extends BitsoApi
                 }
             }
             return result;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -2108,7 +2108,7 @@ public class Bitso extends BitsoApi
             //
             Object payload = this.safeList(response, "payload", new ArrayList<Object>(Arrays.asList()));
             return this.parseDepositWithdrawFees(payload, codes);
-        }).thenApply(DepositWithdrawFees::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(DepositWithdrawFees::new);
 
     }
 
@@ -2272,7 +2272,7 @@ public class Bitso extends BitsoApi
             Object payload = this.safeValue(response, "payload", new ArrayList<Object>(Arrays.asList()));
             Object first = this.safeDict(payload, 0);
             return this.parseTransaction(first, currency);
-        }).thenApply(Transaction::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Transaction::new);
 
     }
 

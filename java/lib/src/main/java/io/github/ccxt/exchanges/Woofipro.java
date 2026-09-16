@@ -862,7 +862,7 @@ public class Woofipro extends WoofiproApi
                 put( "url", null );
                 put( "info", response );
             }};
-        }).thenApply(Status::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Status::new);
 
     }
 
@@ -892,7 +892,7 @@ public class Woofipro extends WoofiproApi
             //     }
             //
             return this.safeInteger(response, "timestamp");
-        }).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
 
     }
 
@@ -1045,7 +1045,7 @@ public class Woofipro extends WoofiproApi
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Object rows = this.safeList(data, "rows", new ArrayList<Object>(Arrays.asList()));
             return this.parseMarkets(rows);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1111,7 +1111,7 @@ public class Woofipro extends WoofiproApi
                 Helpers.addElementToObject(result, Helpers.GetValue(parsed, "code"), parsed);
             }
             return result;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1321,7 +1321,7 @@ public class Woofipro extends WoofiproApi
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Object rows = this.safeList(data, "rows", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(rows, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -1398,7 +1398,7 @@ public class Woofipro extends WoofiproApi
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             return (this.fetchFundingRate(symbol, (Object)(parameters))).join();
-        }).thenApply(FundingRate::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(FundingRate::new);
 
     }
 
@@ -1443,7 +1443,7 @@ public class Woofipro extends WoofiproApi
             //
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseFundingRate(data, market);
-        }).thenApply(FundingRate::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(FundingRate::new);
 
     }
 
@@ -1489,7 +1489,7 @@ public class Woofipro extends WoofiproApi
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Object rows = this.safeList(data, "rows", new ArrayList<Object>(Arrays.asList()));
             return this.parseFundingRates(rows, symbols);
-        }).thenApply(FundingRates::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(FundingRates::new);
 
     }
 
@@ -1593,7 +1593,7 @@ public class Woofipro extends WoofiproApi
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Helpers.addElementToObject(data, "timestamp", this.safeInteger(response, "timestamp"));
             return this.parseTicker(data, market);
-        }).thenApply(Ticker::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Ticker::new);
 
     }
 
@@ -1661,7 +1661,7 @@ public class Woofipro extends WoofiproApi
                 ((List<Object>)result).add(this.parseTicker(ticker));
             }
             return this.filterByArrayTickers(result, "symbol", symbols);
-        }).thenApply(Tickers::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Tickers::new);
 
     }
 
@@ -1738,7 +1738,7 @@ public class Woofipro extends WoofiproApi
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Helpers.addElementToObject(data, "timestamp", this.safeInteger(response, "timestamp"));
             return this.parseOpenInterest(data, market);
-        }).thenApply(OpenInterest::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OpenInterest::new);
 
     }
 
@@ -1798,7 +1798,7 @@ public class Woofipro extends WoofiproApi
                 ((List<Object>)result).add(this.parseOpenInterest(interest));
             }
             return this.filterByArray(result, "symbol", symbols);
-        }).thenApply(OpenInterests::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OpenInterests::new);
 
     }
 
@@ -1888,7 +1888,7 @@ public class Woofipro extends WoofiproApi
             }
             List<Object> sorted = this.sortBy(rates, "timestamp");
             return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, FundingRateHistory::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, FundingRateHistory::new));
 
     }
 
@@ -2009,7 +2009,7 @@ public class Woofipro extends WoofiproApi
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Object rows = this.safeList(data, "rows", new ArrayList<Object>(Arrays.asList()));
             return this.parseIncomes(rows, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, FundingHistory::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, FundingHistory::new));
 
     }
 
@@ -2077,7 +2077,7 @@ public class Woofipro extends WoofiproApi
     }});
             }
             return result;
-        }).thenApply(TradingFees::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(TradingFees::new);
 
     }
 
@@ -2132,7 +2132,7 @@ public class Woofipro extends WoofiproApi
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Long timestamp = this.safeInteger(data, "timestamp");
             return this.parseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "quantity");
-        }).thenApply(OrderBook::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OrderBook::new);
 
     }
 
@@ -2200,7 +2200,7 @@ public class Woofipro extends WoofiproApi
             //
             Object rows = this.safeList(data, "rows", new ArrayList<Object>(Arrays.asList()));
             return this.parseOHLCVs(rows, market, timeframe, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
 
     }
 
@@ -2550,7 +2550,7 @@ public class Woofipro extends WoofiproApi
             Object order = this.parseOrder(data, market);
             Helpers.addElementToObject(order, "type", type);
             return order;
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -2618,7 +2618,7 @@ public class Woofipro extends WoofiproApi
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Object rows = this.safeList(data, "rows", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(rows);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -2724,7 +2724,7 @@ public class Woofipro extends WoofiproApi
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Helpers.addElementToObject(data, "timestamp", this.safeInteger(response, "timestamp"));
             return this.parseOrder(data, market);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -2831,7 +2831,7 @@ public class Woofipro extends WoofiproApi
             }
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.extend(this.parseOrder(data), extendParams);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -2884,7 +2884,7 @@ public class Woofipro extends WoofiproApi
             return new ArrayList<Object>(Arrays.asList(this.safeOrder(new HashMap<String, Object>() {{
         put( "info", finalResponse );
     }})));
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -2945,7 +2945,7 @@ public class Woofipro extends WoofiproApi
             return new ArrayList<Object>(Arrays.asList(this.safeOrder(new HashMap<String, Object>() {{
         put( "info", finalResponse );
     }})));
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -3038,7 +3038,7 @@ public class Woofipro extends WoofiproApi
             Object orders = this.safeDict(response, "data", response);
             Object parsedOrders = ((Helpers.isTrue((Helpers.isEqual(orders, null))))) ? new HashMap<String, Object>() {{}} : orders;
             return this.parseOrder(parsedOrders, market);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -3153,7 +3153,7 @@ public class Woofipro extends WoofiproApi
             Object data = this.safeValue(response, "data", response);
             Object orders = this.safeList(data, "rows");
             return this.parseOrders(orders, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -3191,7 +3191,7 @@ public class Woofipro extends WoofiproApi
                 put( "status", "INCOMPLETE" );
             }});
             return (this.fetchOrders((Object)(symbol), (Object)(since), (Object)(limit), (Object)(extendedParams))).join();
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -3229,7 +3229,7 @@ public class Woofipro extends WoofiproApi
                 put( "status", "COMPLETED" );
             }});
             return (this.fetchOrders((Object)(symbol), (Object)(since), (Object)(limit), (Object)(extendedParams))).join();
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -3291,7 +3291,7 @@ public class Woofipro extends WoofiproApi
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Object trades = this.safeList(data, "rows", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(trades, market, since, limit, parameters);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -3380,7 +3380,7 @@ public class Woofipro extends WoofiproApi
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Object trades = this.safeList(data, "rows", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(trades, market, since, limit, parameters);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -3441,7 +3441,7 @@ public class Woofipro extends WoofiproApi
             //
             Object data = this.safeDict(response, "data");
             return this.parseBalance(data);
-        }).thenApply(Balances::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Balances::new);
 
     }
 
@@ -3507,7 +3507,7 @@ public class Woofipro extends WoofiproApi
             //
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return new ArrayList<Object>(Arrays.asList(currency, this.safeList(data, "rows", new ArrayList<Object>(Arrays.asList()))));
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -3574,7 +3574,7 @@ public class Woofipro extends WoofiproApi
             Object currency = this.safeValue(currencyRows, 0);
             Object rows = this.safeList(currencyRows, 1);
             return this.parseLedger(rows, currency, since, limit, parameters);
-        }).thenApply(res -> Helpers.toTypedList(res, LedgerEntry::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, LedgerEntry::new));
 
     }
 
@@ -3653,7 +3653,7 @@ public class Woofipro extends WoofiproApi
                 put( "side", "DEPOSIT" );
             }};
             return (this.fetchDepositsWithdrawals((Object)(code), (Object)(since), (Object)(limit), (Object)(this.extend(request, parameters)))).join();
-        }).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
 
     }
 
@@ -3681,7 +3681,7 @@ public class Woofipro extends WoofiproApi
                 put( "side", "WITHDRAW" );
             }};
             return (this.fetchDepositsWithdrawals((Object)(code), (Object)(since), (Object)(limit), (Object)(this.extend(request, parameters)))).join();
-        }).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
 
     }
 
@@ -3726,7 +3726,7 @@ public class Woofipro extends WoofiproApi
                 rowsList = rows;
             }
             return this.parseTransactions(rowsList, currency, since, limit, parameters);
-        }).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
 
     }
 
@@ -3748,7 +3748,7 @@ public class Woofipro extends WoofiproApi
             //
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.safeNumber(data, "withdraw_nonce");
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -3876,7 +3876,7 @@ public class Woofipro extends WoofiproApi
             //
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseTransaction(data, currency);
-        }).thenApply(Transaction::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Transaction::new);
 
     }
 
@@ -3936,7 +3936,7 @@ public class Woofipro extends WoofiproApi
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Object rows = this.safeList(data, "rows", new ArrayList<Object>(Arrays.asList()));
             return this.parseMarginModes(rows, symbols, "symbol");
-        }).thenApply(MarginModes::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(MarginModes::new);
 
     }
 
@@ -3967,7 +3967,7 @@ public class Woofipro extends WoofiproApi
                 throw new BadSymbol(Helpers.add(Helpers.add(this.id, " fetchMarginMode() did not return a margin mode for "), Helpers.GetValue(market, "symbol"))) ;
             }
             return marginMode;
-        }).thenApply(MarginMode::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(MarginMode::new);
 
     }
 
@@ -4014,7 +4014,7 @@ public class Woofipro extends WoofiproApi
             // }
             //
             return (this.v1PrivatePostClientMarginMode(this.extend(request, parameters))).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -4084,7 +4084,7 @@ public class Woofipro extends WoofiproApi
             Helpers.addElementToObject(modification, "type", ((Helpers.isTrue((Helpers.isEqual(type, "ADD"))))) ? "add" : "reduce");
             Helpers.addElementToObject(modification, "amount", this.parseNumber(this.numberToString(amount)));
             return modification;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -4105,7 +4105,7 @@ public class Woofipro extends WoofiproApi
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             return (this.modifyMarginHelper(symbol, amount, "ADD", parameters)).join();
-        }).thenApply(MarginModification::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(MarginModification::new);
 
     }
 
@@ -4126,7 +4126,7 @@ public class Woofipro extends WoofiproApi
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             return (this.modifyMarginHelper(symbol, amount, "REDUCE", parameters)).join();
-        }).thenApply(MarginModification::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(MarginModification::new);
 
     }
 
@@ -4193,7 +4193,7 @@ public class Woofipro extends WoofiproApi
             //
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseLeverage(data, market);
-        }).thenApply(Leverage::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Leverage::new);
 
     }
 
@@ -4227,7 +4227,7 @@ public class Woofipro extends WoofiproApi
                 put( "leverage", finalLeverage );
             }};
             return (this.v1PrivatePostClientLeverage(this.extend(request, parameters))).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -4361,7 +4361,7 @@ public class Woofipro extends WoofiproApi
             //
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parsePosition(data, market);
-        }).thenApply(Position::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Position::new);
 
     }
 
@@ -4427,7 +4427,7 @@ public class Woofipro extends WoofiproApi
             Object result = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Object positions = this.safeList(result, "rows", new ArrayList<Object>(Arrays.asList()));
             return this.parsePositions(positions, symbols);
-        }).thenApply(res -> Helpers.toTypedList(res, Position::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Position::new));
 
     }
 

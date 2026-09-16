@@ -25,7 +25,7 @@ public class TestProxies extends BaseTest {
         // 'httpsProxy', 'socksProxy'
         (testProxyForExceptions(exchange, skippedProperties)).join();
         return true;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
     public CompletableFuture<Object> testProxyUrl(BaseExchange exchange, Object skippedProperties)
@@ -49,7 +49,7 @@ public class TestProxies extends BaseTest {
         // reset the instance property
         TestSharedMethods.setProxyOptions(exchange, skippedProperties, proxyUrl, httpProxy, httpsProxy, socksProxy);
         return true;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
     public CompletableFuture<Object> testHttpProxy(BaseExchange exchange, Object skippedProperties)
@@ -71,7 +71,7 @@ public class TestProxies extends BaseTest {
         // reset the instance property
         TestSharedMethods.setProxyOptions(exchange, skippedProperties, proxyUrl, httpProxy, httpsProxy, socksProxy);
         return true;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
     // with the below method we test out all variations of possible proxy options, so at least 2 of them should be set together, and such cases must throw new RuntimeException(e)xception
@@ -115,7 +115,7 @@ public class TestProxies extends BaseTest {
         // reset the instance property
         TestSharedMethods.setProxyOptions(exchange, skippedProperties, proxyUrl, httpProxy, httpsProxy, socksProxy);
         return true;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 

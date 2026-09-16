@@ -901,7 +901,7 @@ public class Bitfinex extends BitfinexApi
                 put( "url", null );
                 put( "info", response );
             }};
-        }).thenApply(Status::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Status::new);
 
     }
 
@@ -1039,7 +1039,7 @@ public class Bitfinex extends BitfinexApi
                 }});
             }
             return result;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1172,7 +1172,7 @@ public class Bitfinex extends BitfinexApi
             }
             Object ids = this.safeList(response, 0, new ArrayList<Object>(Arrays.asList()));
             return this.parseCurrenciesCustom(ids, indexed, indexedNetworks);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1341,7 +1341,7 @@ public class Bitfinex extends BitfinexApi
                 }
             }
             return this.safeBalance(result);
-        }).thenApply(Balances::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Balances::new);
 
     }
 
@@ -1429,7 +1429,7 @@ public class Bitfinex extends BitfinexApi
             return this.parseTransfer(new HashMap<String, Object>() {{
                 put( "result", response );
             }}, currency);
-        }).thenApply(TransferEntry::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(TransferEntry::new);
 
     }
 
@@ -1575,7 +1575,7 @@ public class Bitfinex extends BitfinexApi
             Helpers.addElementToObject(result, "bids", this.sortBy(Helpers.GetValue(result, "bids"), 0, true));
             Helpers.addElementToObject(result, "asks", this.sortBy(Helpers.GetValue(result, "asks"), 0));
             return result;
-        }).thenApply(OrderBook::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OrderBook::new);
 
     }
 
@@ -1780,7 +1780,7 @@ public class Bitfinex extends BitfinexApi
             //     ]
             //
             return this.parseTickers(tickers, symbols);
-        }).thenApply(Tickers::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Tickers::new);
 
     }
 
@@ -1809,7 +1809,7 @@ public class Bitfinex extends BitfinexApi
             }};
             List<Object> ticker = (this.publicGetTickerSymbol(this.extend(request, parameters))).join();
             return this.parseTicker(ticker, market);
-        }).thenApply(Ticker::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Ticker::new);
 
     }
 
@@ -1983,7 +1983,7 @@ public class Bitfinex extends BitfinexApi
                 }}); // convert to array of dicts to match parseOrder signature
             }
             return this.parseTrades(tradesList, market, null, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -2053,7 +2053,7 @@ public class Bitfinex extends BitfinexApi
             //     ]
             //
             return this.parseOHLCVs(this.toArray(response), market, timeframe, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
 
     }
 
@@ -2413,7 +2413,7 @@ public class Bitfinex extends BitfinexApi
                 put( "result", order );
             }};
             return this.parseOrder(newOrder, market);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -2489,7 +2489,7 @@ public class Bitfinex extends BitfinexApi
                 }});
             }
             return this.parseOrders(results);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -2527,7 +2527,7 @@ public class Bitfinex extends BitfinexApi
                 }});
             }
             return this.parseOrders(ordersList);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -2585,7 +2585,7 @@ public class Bitfinex extends BitfinexApi
                 put( "result", order );
             }};
             return this.parseOrder(newOrder, market);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -2685,7 +2685,7 @@ public class Bitfinex extends BitfinexApi
                 }});
             }
             return this.parseOrders(ordersList, market);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -2717,7 +2717,7 @@ public class Bitfinex extends BitfinexApi
                 throw new OrderNotFound(Helpers.add(Helpers.add(Helpers.add(this.id, " order "), id), " not found")) ;
             }
             return order;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -2749,7 +2749,7 @@ public class Bitfinex extends BitfinexApi
                 throw new OrderNotFound(Helpers.add(Helpers.add(Helpers.add(this.id, " order "), id), " not found")) ;
             }
             return order;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -2838,7 +2838,7 @@ public class Bitfinex extends BitfinexApi
                 }});
             }
             return this.parseOrders(ordersList, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -2949,7 +2949,7 @@ public class Bitfinex extends BitfinexApi
                 }});
             }
             return this.parseOrders(ordersList, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -3000,7 +3000,7 @@ public class Bitfinex extends BitfinexApi
                 }}); // convert to array of dicts to match parseOrder signature
             }
             return this.parseTrades(tradesList, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -3061,7 +3061,7 @@ public class Bitfinex extends BitfinexApi
                 }}); // convert to array of dicts to match parseOrder signature
             }
             return this.parseTrades(tradesList, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -3088,7 +3088,7 @@ public class Bitfinex extends BitfinexApi
                 put( "op_renew", 1 );
             }};
             return (this.fetchDepositAddress(code, (Object)(this.extend(request, parameters)))).join();
-        }).thenApply(DepositAddress::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(DepositAddress::new);
 
     }
 
@@ -3161,7 +3161,7 @@ public class Bitfinex extends BitfinexApi
                 put( "network", null );
                 put( "info", response );
             }};
-        }).thenApply(DepositAddress::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(DepositAddress::new);
 
     }
 
@@ -3471,7 +3471,7 @@ public class Bitfinex extends BitfinexApi
                 Helpers.addElementToObject(result, symbol, fee);
             }
             return result;
-        }).thenApply(TradingFees::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(TradingFees::new);
 
     }
 
@@ -3551,7 +3551,7 @@ public class Bitfinex extends BitfinexApi
             //     ]
             //
             return this.parseTransactions(response, currency, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
 
     }
 
@@ -3656,7 +3656,7 @@ public class Bitfinex extends BitfinexApi
                 this.throwBroadlyMatchedException(Helpers.GetValue(this.exceptions, "broad"), text, text);
             }
             return this.parseTransaction(response, currency);
-        }).thenApply(Transaction::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Transaction::new);
 
     }
 
@@ -3726,7 +3726,7 @@ public class Bitfinex extends BitfinexApi
                 }});
             }
             return this.parsePositions(positionsList, symbols);
-        }).thenApply(res -> Helpers.toTypedList(res, Position::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Position::new));
 
     }
 
@@ -4056,7 +4056,7 @@ public class Bitfinex extends BitfinexApi
                 }});
             }
             return this.parseLedger(ledgerObjects, currency, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, LedgerEntry::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, LedgerEntry::new));
 
     }
 
@@ -4120,7 +4120,7 @@ public class Bitfinex extends BitfinexApi
             //   ]
             //
             return this.parseFundingRates(response, symbols);
-        }).thenApply(FundingRates::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(FundingRates::new);
 
     }
 
@@ -4222,7 +4222,7 @@ public class Bitfinex extends BitfinexApi
                 ((List<Object>)reversedArray).add(valueAtIndex);
             }
             return reversedArray;
-        }).thenApply(res -> Helpers.toTypedList(res, FundingRateHistory::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, FundingRateHistory::new));
 
     }
 
@@ -4397,7 +4397,7 @@ public class Bitfinex extends BitfinexApi
             //     ]
             //
             return this.parseOpenInterests(response, symbols);
-        }).thenApply(OpenInterests::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OpenInterests::new);
 
     }
 
@@ -4457,7 +4457,7 @@ public class Bitfinex extends BitfinexApi
             //
             Object oi = this.safeList(response, 0);
             return this.parseOpenInterest(oi, market);
-        }).thenApply(OpenInterest::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OpenInterest::new);
 
     }
 
@@ -4542,7 +4542,7 @@ public class Bitfinex extends BitfinexApi
             //     ]
             //
             return this.parseOpenInterestsHistory(response, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, OpenInterest::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, OpenInterest::new));
 
     }
 
@@ -4689,7 +4689,7 @@ public class Bitfinex extends BitfinexApi
             //     ]
             //
             return this.parseLiquidations(this.toArray(response), market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Liquidation::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Liquidation::new));
 
     }
 
@@ -4776,7 +4776,7 @@ public class Bitfinex extends BitfinexApi
             //
             Object data = this.safeValue(response, 0);
             return this.parseMarginModification(data, market);
-        }).thenApply(MarginModification::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(MarginModification::new);
 
     }
 
@@ -4887,7 +4887,7 @@ public class Bitfinex extends BitfinexApi
                 put( "result", order );
             }};
             return this.parseOrder(newOrder, market);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -5041,7 +5041,7 @@ public class Bitfinex extends BitfinexApi
                 put( "result", order );
             }};
             return this.parseOrder(newOrder, market);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 }

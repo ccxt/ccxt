@@ -78,7 +78,7 @@ public class TestCreateOrder extends BaseTest {
         tcoDebug(exchange, symbol, "### SCENARIO 2 PASSED ###");
         // **************** [Scenario 3 - START] **************** //
         return true;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
     // ----------------------------------------------------------------------------
@@ -140,7 +140,7 @@ public class TestCreateOrder extends BaseTest {
             throw new RuntimeException((String)Helpers.add(Helpers.add(logPrefix, " failed for Scenario 1: "), String.valueOf(e))) ;
         }
         return true;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
     public CompletableFuture<Object> tcoCreateFillableOrder(BaseExchange exchange, Object market, Object logPrefix, Object skippedProperties, Object bestBid2, Object bestAsk2, Object limitPriceSafetyMultiplierFromMedian, Object buyOrSellString2, Object... optionalArgs)
@@ -190,7 +190,7 @@ public class TestCreateOrder extends BaseTest {
             throw new RuntimeException(Helpers.add("failed for Scenario 2: ", String.valueOf(e))) ;
         }
         return true;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
     public Object tcoAssertFilledOrder(BaseExchange exchange, Object market, Object logPrefix, Object skippedProperties, Object createdOrder, Object fetchedOrder, Object requestedSide, Object requestedAmount)
@@ -241,7 +241,7 @@ public class TestCreateOrder extends BaseTest {
         // TestSharedMethods.AssertOrderState (exchange, skippedProperties, 'cancelOrder', cancelResult, 'canceled', false);
         // TestSharedMethods.AssertOrderState (exchange, skippedProperties, 'cancelOrder', cancelResult, 'closed', true);
         return true;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
     // ----------------------------------------------------------------------------
@@ -269,7 +269,7 @@ public class TestCreateOrder extends BaseTest {
             throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
         }
         return order;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
     public Object tcoMininumAmount(BaseExchange exchange, Object market)
@@ -354,7 +354,7 @@ public class TestCreateOrder extends BaseTest {
             tcoDebug(exchange, symbol, "order is already closed/filled, no need to cancel it");
         }
         return true;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 

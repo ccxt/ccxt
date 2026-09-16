@@ -439,7 +439,7 @@ public class Revolutx extends RevolutxApi
                 ((List<Object>)result).add(this.parseMarket(marketData));
             }
             return result;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -538,7 +538,7 @@ public class Revolutx extends RevolutxApi
                 Helpers.addElementToObject(result, code, parsed);
             }
             return result;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -682,7 +682,7 @@ public class Revolutx extends RevolutxApi
                 return filtered;
             }
             return result;
-        }).thenApply(Tickers::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Tickers::new);
 
     }
 
@@ -713,7 +713,7 @@ public class Revolutx extends RevolutxApi
                 throw new ExchangeError(Helpers.add(Helpers.add(this.id, " fetchTicker() could not find ticker for symbol "), symbol)) ;
             }
             return ticker;
-        }).thenApply(Ticker::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Ticker::new);
 
     }
 
@@ -766,7 +766,7 @@ public class Revolutx extends RevolutxApi
             Object metadata = this.safeDict(response, "metadata", new HashMap<String, Object>() {{}});
             Long timestamp = this.safeInteger(metadata, "timestamp");
             return this.parseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "quantity");
-        }).thenApply(OrderBook::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OrderBook::new);
 
     }
 
@@ -852,7 +852,7 @@ public class Revolutx extends RevolutxApi
             //
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseOHLCVs(data, market, timeframe, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
 
     }
 
@@ -975,7 +975,7 @@ public class Revolutx extends RevolutxApi
                 ((List<Object>)result).add(this.parseTrade(trade, market));
             }
             return this.filterBySymbolSinceLimit(this.sortBy(result, "timestamp"), symbol, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -1031,7 +1031,7 @@ public class Revolutx extends RevolutxApi
                 Helpers.addElementToObject(result, code, account);
             }
             return this.safeBalance(result);
-        }).thenApply(Balances::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Balances::new);
 
     }
 
@@ -1248,7 +1248,7 @@ public class Revolutx extends RevolutxApi
                 put( "type", finalType );
             }}), market);
             return order;
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -1282,7 +1282,7 @@ public class Revolutx extends RevolutxApi
                 put( "id", id );
                 put( "status", "canceled" );
             }});
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -1308,7 +1308,7 @@ public class Revolutx extends RevolutxApi
             }
             (this.privateDelete10Orders(parameters)).join();
             return new ArrayList<Object>(Arrays.asList());
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -1357,7 +1357,7 @@ public class Revolutx extends RevolutxApi
                 market = this.market(symbol);
             }
             return this.parseOrder(data, market);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -1434,7 +1434,7 @@ public class Revolutx extends RevolutxApi
                 ((List<Object>)result).add(this.parseOrder(order));
             }
             return this.filterBySymbolSinceLimit(result, symbol, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -1518,7 +1518,7 @@ public class Revolutx extends RevolutxApi
                 ((List<Object>)result).add(this.parseOrder(order));
             }
             return this.filterBySymbolSinceLimit(result, symbol, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -1547,7 +1547,7 @@ public class Revolutx extends RevolutxApi
                 put( "order_states", orderStates );
             }});
             return (this.fetchOrders((Object)(symbol), (Object)(since), (Object)(limit), (Object)(requestParams))).join();
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -1678,7 +1678,7 @@ public class Revolutx extends RevolutxApi
                 ((List<Object>)result).add(this.parseMyTrade(trade, market));
             }
             return result;
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -1761,7 +1761,7 @@ public class Revolutx extends RevolutxApi
                 put( "type", type );
             }}), market);
             return order;
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 

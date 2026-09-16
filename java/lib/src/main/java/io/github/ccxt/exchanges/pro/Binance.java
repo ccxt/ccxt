@@ -396,7 +396,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 put( "id", requestId );
             }};
             return (this.watchMultiple(url, messageHashes, this.extend(request, query), messageHashes, subscribe)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -421,7 +421,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             Object limit = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
             return (this.watchLiquidationsForSymbols((Object)(new ArrayList<Object>(Arrays.asList(symbol))), (Object)(since), (Object)(limit), (Object)(parameters))).join();
-        }).thenApply(res -> Helpers.toTypedList(res, Liquidation::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Liquidation::new));
 
     }
 
@@ -504,7 +504,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 return newLiquidations;
             }
             return this.filterBySymbolsSinceLimit(this.liquidations, symbols, since, limit, true);
-        }).thenApply(res -> Helpers.toTypedList(res, Liquidation::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Liquidation::new));
 
     }
 
@@ -681,7 +681,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             Object limit = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
             return (this.watchMyLiquidationsForSymbols((Object)(new ArrayList<Object>(Arrays.asList(symbol))), (Object)(since), (Object)(limit), (Object)(parameters))).join();
-        }).thenApply(res -> Helpers.toTypedList(res, Liquidation::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Liquidation::new));
 
     }
 
@@ -745,7 +745,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 return newLiquidations;
             }
             return this.filterBySymbolsSinceLimit(this.liquidations, symbols, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Liquidation::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Liquidation::new));
 
     }
 
@@ -845,7 +845,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             Object limit = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             return (this.watchOrderBookForSymbols((Object)(new ArrayList<Object>(Arrays.asList(symbol))), (Object)(limit), (Object)(parameters))).join();
-        }).thenApply(OrderBook::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OrderBook::new);
 
     }
 
@@ -949,7 +949,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             }};
             Object orderbook = (this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes, subscription)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
-        }).thenApply(OrderBook::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OrderBook::new);
 
     }
 
@@ -1026,7 +1026,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 put( "topic", "orderbook" );
             }};
             return (this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes, subscription)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1051,7 +1051,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             return (this.unWatchOrderBookForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), parameters)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1111,7 +1111,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             Object orderbook = (this.watch(url, messageHash, message, messageHash, subscription)).join();
             Helpers.addElementToObject(orderbook, "symbol", Helpers.GetValue(market, "symbol"));
             return orderbook;
-        }).thenApply(OrderBook::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OrderBook::new);
 
     }
 
@@ -1222,7 +1222,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 client.reject(e, messageHash);
             }
             return null;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1558,7 +1558,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{tradeSymbol, limit});
             }
             return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -1665,7 +1665,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 put( "topic", "trades" );
             }};
             return (this.watchMultiple(url, messageHashes, this.extend(request, query), messageHashes, subscription)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1689,7 +1689,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             return (this.unWatchTradesForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), parameters)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1718,7 +1718,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
             Helpers.addElementToObject(parameters, "callerMethodName", "watchTrades");
             return (this.watchTradesForSymbols((Object)(new ArrayList<Object>(Arrays.asList(symbol))), (Object)(since), (Object)(limit), (Object)(parameters))).join();
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -1973,7 +1973,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             Helpers.addElementToObject(parameters, "callerMethodName", "watchOHLCV");
             Object result = (this.watchOHLCVForSymbols(new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(symbol, timeframe)))), since, limit, parameters)).join();
             return Helpers.GetValue(Helpers.GetValue(result, symbol), timeframe);
-        }).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
 
     }
 
@@ -2112,7 +2112,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             }
             List<Object> filtered = this.filterBySinceLimit(candles, since, limit, 0, true);
             return this.createOHLCVObject(symbol, timeframe, filtered);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -2207,7 +2207,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             }};
             parameters = this.omit(parameters, "callerMethodName");
             return (this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes, subscribe)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -2239,7 +2239,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             symbol = Helpers.GetValue(market, "symbol");
             Helpers.addElementToObject(parameters, "callerMethodName", "watchOHLCV");
             return (this.unWatchOHLCVForSymbols(new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(symbol, timeframe)))), parameters)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -2364,7 +2364,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             }};
             Object ticker = (this.watch(url, messageHash, message, messageHash, subscription)).join();
             return ticker;
-        }).thenApply(Ticker::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Ticker::new);
 
     }
 
@@ -2440,7 +2440,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 put( "method", "handleFetchOHLCV");
             }};
             return (this.watch(url, messageHash, message, messageHash, subscription)).join();
-        }).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
 
     }
 
@@ -2517,7 +2517,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 put( "callerMethodName", "watchTicker" );
             }})))).join();
             return Helpers.GetValue(tickers, symbol);
-        }).thenApply(Ticker::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Ticker::new);
 
     }
 
@@ -2547,7 +2547,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 put( "callerMethodName", "watchMarkPrice" );
             }})))).join();
             return Helpers.GetValue(tickers, symbol);
-        }).thenApply(Ticker::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Ticker::new);
 
     }
 
@@ -2581,7 +2581,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 return newTickers;
             }
             return this.filterByArray(this.tickers, "symbol", symbols);
-        }).thenApply(Tickers::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Tickers::new);
 
     }
 
@@ -2640,7 +2640,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 return newTickers;
             }
             return this.filterByArray(this.tickers, "symbol", symbols);
-        }).thenApply(Tickers::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Tickers::new);
 
     }
 
@@ -2674,7 +2674,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 throw new BadRequest(Helpers.add(this.id, " deprecation notice - to subscribe for bids-asks, use watch_bids_asks() method instead")) ;
             }
             return (this.watchMultiTickerHelper("unWatchTickers", channelName, symbols, parameters, true)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -2703,7 +2703,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 (this.loadMarkets()).join();
             }
             return (this.watchMultiTickerHelper("unWatchMarkPrices", channelName, symbols, parameters, true)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -2723,7 +2723,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             return (this.unWatchMarkPrices(new ArrayList<Object>(Arrays.asList(symbol)), parameters)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -2745,7 +2745,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             return (this.watchMultiTickerHelper("unWatchBidsAsks", "bookTicker", symbols, parameters, true)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -2770,7 +2770,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             return (this.unWatchTickers(new ArrayList<Object>(Arrays.asList(symbol)), parameters)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -2831,7 +2831,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 return result;
             }
             return this.filterByArray(this.bidsasks, "symbol", symbols);
-        }).thenApply(Tickers::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Tickers::new);
 
     }
 
@@ -3058,7 +3058,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 Helpers.addElementToObject(newDict, Helpers.GetValue(result, "symbol"), result);
                 return newDict;
             }
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -3475,7 +3475,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
             }
             return null;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -3625,7 +3625,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 }
             }
             return null;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -3655,7 +3655,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             }
             (this.ensureUserDataStreamWsSubscribeListenToken(type, renewParams)).join();
             return null;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -3790,7 +3790,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 ((io.github.ccxt.ws.Future)future).getFuture().join();
             }
             return null;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -3941,7 +3941,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 }
             }
             return null;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -3995,7 +3995,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 client.resolve(Helpers.GetValue(this.balance, type), Helpers.add(type, ":balance"));
             }
             return null;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -4054,7 +4054,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 put( "method", ((Helpers.isTrue((Helpers.isEqual(finalMethod, "account.status"))))) ? "handleAccountStatusWs" : "handleBalanceWs");
             }};
             return (this.watch(url, messageHash, message, messageHash, subscription)).join();
-        }).thenApply(Balances::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Balances::new);
 
     }
 
@@ -4148,7 +4148,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             return (this.fetchPositionsWs((Object)(new ArrayList<Object>(Arrays.asList(symbol))), (Object)(parameters))).join();
-        }).thenApply(res -> Helpers.toTypedList(res, Position::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Position::new));
 
     }
 
@@ -4222,7 +4222,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             }};
             Object result = (this.watch(url, messageHash, message, messageHash, subscription)).join();
             return this.filterByArrayPositions(result, "symbol", symbols, false);
-        }).thenApply(res -> Helpers.toTypedList(res, Position::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Position::new));
 
     }
 
@@ -4346,7 +4346,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             Object messageHash = Helpers.add(type, ":balance");
             Object message = null;
             return (this.watch(url, messageHash, message, type, null)).join();
-        }).thenApply(Balances::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Balances::new);
 
     }
 
@@ -4637,7 +4637,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 put( "method", "handleOrderWs");
             }};
             return (this.watch(url, messageHash, message, messageHash, subscription)).join();
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -4803,7 +4803,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 put( "method", "handleEditOrderWs");
             }};
             return (this.watch(url, messageHash, message, messageHash, subscription)).join();
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -5003,7 +5003,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 put( "method", "handleOrderWs");
             }};
             return (this.watch(url, messageHash, message, messageHash, subscription)).join();
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -5060,7 +5060,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 put( "method", "handleOrdersWs");
             }};
             return (this.watch(url, messageHash, message, messageHash, subscription)).join();
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -5128,7 +5128,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 put( "method", "handleOrderWs");
             }};
             return (this.watch(url, messageHash, message, messageHash, subscription)).join();
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -5194,7 +5194,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             }};
             Object orders = (this.watch(url, messageHash, message, messageHash, subscription)).join();
             return this.filterBySymbolSinceLimit(orders, symbol, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -5229,7 +5229,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 }
             }
             return closedOrders;
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -5289,7 +5289,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             }};
             Object orders = (this.watch(url, messageHash, message, messageHash, subscription)).join();
             return this.filterBySymbolSinceLimit(orders, symbol, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -5432,7 +5432,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 limit = Helpers.callDynamically(orders, "getLimit", new Object[]{symbol, limit});
             }
             return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -6112,7 +6112,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 return newPositions;
             }
             return this.filterBySymbolsSinceLimit(cache, symbols, since, limit, true);
-        }).thenApply(res -> Helpers.toTypedList(res, Position::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Position::new));
 
     }
 
@@ -6184,7 +6184,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 client.resolve(cache, Helpers.add(type, ":position"));
             }
             return null;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -6450,7 +6450,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             }};
             Object trades = (this.watch(url, messageHash, message, messageHash, subscription)).join();
             return this.filterBySymbolSinceLimit(trades, symbol, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -6513,7 +6513,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             }};
             Object trades = (this.watch(url, messageHash, message, messageHash, subscription)).join();
             return this.filterBySinceLimit(trades, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -6664,7 +6664,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
             }
             return this.filterBySymbolSinceLimit(trades, symbol, since, limit, true);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 

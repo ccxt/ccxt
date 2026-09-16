@@ -601,7 +601,7 @@ public class Deepcoin extends DeepcoinApi
                 result = this.arrayConcat(result, Helpers.GetValue(promises, i));
             }
             return result;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -646,7 +646,7 @@ public class Deepcoin extends DeepcoinApi
             //
             Object dataResponse = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseMarkets(dataResponse);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -857,7 +857,7 @@ public class Deepcoin extends DeepcoinApi
             //
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseOrderBook(data, symbol, null, "bids", "asks", 0, 1);
-        }).thenApply(OrderBook::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OrderBook::new);
 
     }
 
@@ -979,7 +979,7 @@ public class Deepcoin extends DeepcoinApi
             //
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseOHLCVs(data, market, timeframe, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
 
     }
 
@@ -1016,7 +1016,7 @@ public class Deepcoin extends DeepcoinApi
             Map<String, Object> response = (this.publicGetDeepcoinMarketTickers(this.extend(request, parameters))).join();
             Object tickers = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTickers(tickers, symbols);
-        }).thenApply(Tickers::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Tickers::new);
 
     }
 
@@ -1123,7 +1123,7 @@ public class Deepcoin extends DeepcoinApi
             Map<String, Object> response = (this.publicGetDeepcoinMarketTrades(this.extend(request, parameters))).join();
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(data, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -1251,7 +1251,7 @@ public class Deepcoin extends DeepcoinApi
             }};
             Map<String, Object> response = (this.privateGetDeepcoinAccountBalances(this.extend(request, parameters))).join();
             return this.parseBalance(response);
-        }).thenApply(Balances::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Balances::new);
 
     }
 
@@ -1353,7 +1353,7 @@ public class Deepcoin extends DeepcoinApi
                 put( "type", "deposit" );
             }};
             return this.parseTransactions(items, currency, since, limit, transactionParams);
-        }).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
 
     }
 
@@ -1419,7 +1419,7 @@ public class Deepcoin extends DeepcoinApi
                 put( "type", "withdrawal" );
             }};
             return this.parseTransactions(items, currency, since, limit, transactionParams);
-        }).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
 
     }
 
@@ -1549,7 +1549,7 @@ public class Deepcoin extends DeepcoinApi
                 put( "currency", code );
             }};
             return this.parseDepositAddresses(list, codes, false, additionalParams);
-        }).thenApply(res -> Helpers.toTypedList(res, DepositAddress::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, DepositAddress::new));
 
     }
 
@@ -1596,7 +1596,7 @@ public class Deepcoin extends DeepcoinApi
                 }
             }
             return address;
-        }).thenApply(DepositAddress::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(DepositAddress::new);
 
     }
 
@@ -1717,7 +1717,7 @@ public class Deepcoin extends DeepcoinApi
             //
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseLedger(data, currency, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, LedgerEntry::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, LedgerEntry::new));
 
     }
 
@@ -1841,7 +1841,7 @@ public class Deepcoin extends DeepcoinApi
                 Helpers.addElementToObject(transfer, "amount", amount);
             }
             return transfer;
-        }).thenApply(TransferEntry::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(TransferEntry::new);
 
     }
 
@@ -1942,7 +1942,7 @@ public class Deepcoin extends DeepcoinApi
             }
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseOrder(data, market);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -2258,7 +2258,7 @@ public class Deepcoin extends DeepcoinApi
                 put( "cost", cost );
             }});
             return (this.createOrder((Object)(symbol), (Object)("market"), (Object)(side), (Object)(0), (Object)(null), (Object)(parameters))).join();
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -2281,7 +2281,7 @@ public class Deepcoin extends DeepcoinApi
                 put( "cost", cost );
             }});
             return (this.createOrder((Object)(symbol), (Object)("market"), (Object)("buy"), (Object)(0), (Object)(null), (Object)(parameters))).join();
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -2304,7 +2304,7 @@ public class Deepcoin extends DeepcoinApi
                 put( "cost", cost );
             }});
             return (this.createOrder((Object)(symbol), (Object)("market"), (Object)("sell"), (Object)(0), (Object)(null), (Object)(parameters))).join();
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -2388,7 +2388,7 @@ public class Deepcoin extends DeepcoinApi
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Object entry = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
             return this.parseOrder(entry, market);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -2431,7 +2431,7 @@ public class Deepcoin extends DeepcoinApi
             }
             Object entry = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
             return this.parseOrder(entry, market);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -2587,7 +2587,7 @@ public class Deepcoin extends DeepcoinApi
             // todo handle with since, until and pagination
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(data, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -2620,7 +2620,7 @@ public class Deepcoin extends DeepcoinApi
                 put( "state", "canceled" );
             }});
             return (this.fetchCanceledAndClosedOrders((Object)(symbol), (Object)(since), (Object)(limit), (Object)(parameters))).join();
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -2653,7 +2653,7 @@ public class Deepcoin extends DeepcoinApi
                 put( "state", "filled" );
             }});
             return (this.fetchCanceledAndClosedOrders((Object)(symbol), (Object)(since), (Object)(limit), (Object)(parameters))).join();
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -2791,7 +2791,7 @@ public class Deepcoin extends DeepcoinApi
             return this.parseOrders(data, market, since, limit, new HashMap<String, Object>() {{
                 put( "status", "open" );
             }});
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -2838,7 +2838,7 @@ public class Deepcoin extends DeepcoinApi
             }
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseOrder(data, market);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -2899,7 +2899,7 @@ public class Deepcoin extends DeepcoinApi
             Map<String, Object> response = (this.privatePostDeepcoinTradeSwapCancelAll(this.extend(request, parameters))).join();
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(data, market);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -2991,7 +2991,7 @@ public class Deepcoin extends DeepcoinApi
             }
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseOrder(data);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -3030,7 +3030,7 @@ public class Deepcoin extends DeepcoinApi
             Map<String, Object> response = (this.privatePostDeepcoinTradeBatchCancelOrder(this.extend(request, parameters))).join();
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(data, market);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -3226,7 +3226,7 @@ public class Deepcoin extends DeepcoinApi
             Map<String, Object> response = (this.privateGetDeepcoinAccountPositions(this.extend(request, parameters))).join();
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parsePositions(data, new ArrayList<Object>(Arrays.asList(Helpers.GetValue(market, "symbol"))));
-        }).thenApply(res -> Helpers.toTypedList(res, Position::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Position::new));
 
     }
 
@@ -3292,7 +3292,7 @@ public class Deepcoin extends DeepcoinApi
             //
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parsePositions(data, symbols);
-        }).thenApply(res -> Helpers.toTypedList(res, Position::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Position::new));
 
     }
 
@@ -3428,7 +3428,7 @@ public class Deepcoin extends DeepcoinApi
             //     }
             //
             return response;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -3498,7 +3498,7 @@ public class Deepcoin extends DeepcoinApi
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Object rates = this.safeList(data, "current_fund_rates", new ArrayList<Object>(Arrays.asList()));
             return this.parseFundingRates(rates, symbols);
-        }).thenApply(FundingRates::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(FundingRates::new);
 
     }
 
@@ -3549,7 +3549,7 @@ public class Deepcoin extends DeepcoinApi
             Object rates = this.safeList(data, "current_fund_rates", new ArrayList<Object>(Arrays.asList()));
             Object entry = this.safeDict(rates, 0, new HashMap<String, Object>() {{}});
             return this.parseFundingRate(entry, market);
-        }).thenApply(FundingRate::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(FundingRate::new);
 
     }
 
@@ -3649,7 +3649,7 @@ public class Deepcoin extends DeepcoinApi
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Object rows = this.safeList(data, "rows", new ArrayList<Object>(Arrays.asList()));
             return this.parseFundingRateHistories(rows, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, FundingRateHistory::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, FundingRateHistory::new));
 
     }
 
@@ -3771,7 +3771,7 @@ public class Deepcoin extends DeepcoinApi
             //
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(data, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -3810,7 +3810,7 @@ public class Deepcoin extends DeepcoinApi
                 put( "ordId", id );
             }}, parameters);
             return (this.fetchMyTrades((Object)(symbol), (Object)(since), (Object)(limit), (Object)(parameters))).join();
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -3861,7 +3861,7 @@ public class Deepcoin extends DeepcoinApi
             }
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrder(data, market);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 

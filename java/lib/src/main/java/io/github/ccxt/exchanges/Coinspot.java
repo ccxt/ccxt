@@ -692,7 +692,7 @@ public class Coinspot extends CoinspotApi
             //     }
             //
             return this.parseBalance(response);
-        }).thenApply(Balances::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Balances::new);
 
     }
 
@@ -723,7 +723,7 @@ public class Coinspot extends CoinspotApi
             }};
             Map<String, Object> orderbook = (this.privatePostOrders(this.extend(request, parameters))).join();
             return this.parseOrderBook(orderbook, Helpers.GetValue(market, "symbol"), null, "buyorders", "sellorders", "rate", "amount");
-        }).thenApply(OrderBook::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OrderBook::new);
 
     }
 
@@ -803,7 +803,7 @@ public class Coinspot extends CoinspotApi
             //
             Object ticker = this.safeDict(prices, id, new HashMap<String, Object>() {{}});
             return this.parseTicker(ticker, market);
-        }).thenApply(Ticker::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Ticker::new);
 
     }
 
@@ -860,7 +860,7 @@ public class Coinspot extends CoinspotApi
                 }
             }
             return this.filterByArrayTickers(result, "symbol", symbols);
-        }).thenApply(Tickers::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Tickers::new);
 
     }
 
@@ -902,7 +902,7 @@ public class Coinspot extends CoinspotApi
             //
             Object trades = this.safeList(response, "orders", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(trades, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -979,7 +979,7 @@ public class Coinspot extends CoinspotApi
             }
             List<Object> trades = (List<Object>) this.arrayConcat(buyTrades, sellTrades);
             return this.parseTrades(trades, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -1119,7 +1119,7 @@ public class Coinspot extends CoinspotApi
             return this.safeOrder(new HashMap<String, Object>() {{
                 put( "info", finalResponse );
             }});
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -1165,7 +1165,7 @@ public class Coinspot extends CoinspotApi
             return this.safeOrder(new HashMap<String, Object>() {{
                 put( "info", finalResponse );
             }});
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 

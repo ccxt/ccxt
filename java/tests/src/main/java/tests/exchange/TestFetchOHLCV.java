@@ -38,7 +38,7 @@ public class TestFetchOHLCV extends BaseTest {
         }
         // todo: sorted timestamps check
         return true;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 

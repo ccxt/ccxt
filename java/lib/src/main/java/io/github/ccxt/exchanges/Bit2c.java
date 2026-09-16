@@ -448,7 +448,7 @@ public class Bit2c extends Bit2cApi
             //     }
             //
             return this.parseBalance(response);
-        }).thenApply(Balances::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Balances::new);
 
     }
 
@@ -512,7 +512,7 @@ public class Bit2c extends Bit2cApi
                 put( "asks", asks );
             }};
             return this.parseOrderBook(filtered, symbol);
-        }).thenApply(OrderBook::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OrderBook::new);
 
     }
 
@@ -572,7 +572,7 @@ public class Bit2c extends Bit2cApi
             }};
             Map<String, Object> response = (this.publicGetExchangesPairTicker(this.extend(request, parameters))).join();
             return this.parseTicker(response, market);
-        }).thenApply(Ticker::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Ticker::new);
 
     }
 
@@ -640,7 +640,7 @@ public class Bit2c extends Bit2cApi
                 responseList = this.toArray(response);
             }
             return this.parseTrades(responseList, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -701,7 +701,7 @@ public class Bit2c extends Bit2cApi
     }});
             }
             return result;
-        }).thenApply(TradingFees::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(TradingFees::new);
 
     }
 
@@ -756,7 +756,7 @@ public class Bit2c extends Bit2cApi
                 response = (this.privatePostOrderAddOrder(this.extend(request, parameters))).join();
             }
             return this.parseOrder(response, market);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -782,7 +782,7 @@ public class Bit2c extends Bit2cApi
             }};
             Map<String, Object> response = (this.privatePostOrderCancelOrder(this.extend(request, parameters))).join();
             return this.parseOrder(response);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -823,7 +823,7 @@ public class Bit2c extends Bit2cApi
             Object asks = this.safeValue(orders, "ask", new ArrayList<Object>(Arrays.asList()));
             Object bids = this.safeList(orders, "bid", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(this.arrayConcat(asks, bids), market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -868,7 +868,7 @@ public class Bit2c extends Bit2cApi
             //         }
             //
             return this.parseOrder(response, market);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -1093,7 +1093,7 @@ public class Bit2c extends Bit2cApi
                 responseList = this.toArray(response);
             }
             return this.parseTrades(responseList, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -1268,7 +1268,7 @@ public class Bit2c extends Bit2cApi
             //     }
             //
             return this.parseDepositAddress(response, currency);
-        }).thenApply(DepositAddress::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(DepositAddress::new);
 
     }
 

@@ -483,7 +483,7 @@ public class Coinone extends CoinoneApi
             //
             Object currencies = this.safeList(response, "currencies", new ArrayList<Object>(Arrays.asList()));
             return this.parseCurrencies(currencies);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -634,7 +634,7 @@ public class Coinone extends CoinoneApi
                 }});
             }
             return result;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -681,7 +681,7 @@ public class Coinone extends CoinoneApi
             }
             Map<String, Object> response = (this.v2PrivatePostAccountBalance(parameters)).join();
             return this.parseBalance(response);
-        }).thenApply(Balances::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Balances::new);
 
     }
 
@@ -741,7 +741,7 @@ public class Coinone extends CoinoneApi
             //
             Long timestamp = this.safeInteger(response, "timestamp");
             return this.parseOrderBook(response, Helpers.GetValue(market, "symbol"), timestamp, "bids", "asks", "price", "qty");
-        }).thenApply(OrderBook::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OrderBook::new);
 
     }
 
@@ -818,7 +818,7 @@ public class Coinone extends CoinoneApi
             //
             Object data = this.safeList(response, "tickers", new ArrayList<Object>(Arrays.asList()));
             return this.parseTickers(data, symbols);
-        }).thenApply(Tickers::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Tickers::new);
 
     }
 
@@ -883,7 +883,7 @@ public class Coinone extends CoinoneApi
             Object data = this.safeList(response, "tickers", new ArrayList<Object>(Arrays.asList()));
             Object ticker = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
             return this.parseTicker(ticker, market);
-        }).thenApply(Ticker::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Ticker::new);
 
     }
 
@@ -1075,7 +1075,7 @@ public class Coinone extends CoinoneApi
             //
             Object data = this.safeList(response, "transactions", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(data, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -1136,7 +1136,7 @@ public class Coinone extends CoinoneApi
             //     }
             //
             return this.parseOrder(response, market);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -1192,7 +1192,7 @@ public class Coinone extends CoinoneApi
             //     }
             //
             return this.parseOrder(response, market);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -1404,7 +1404,7 @@ public class Coinone extends CoinoneApi
             //
             Object openOrders = this.safeList2(response, "open_orders", "limitOrders", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(openOrders, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -1462,7 +1462,7 @@ public class Coinone extends CoinoneApi
             //
             Object completeOrders = this.safeList(response, "completeOrders", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(completeOrders, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -1516,7 +1516,7 @@ public class Coinone extends CoinoneApi
             //     }
             //
             return this.safeOrder(response);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -1597,7 +1597,7 @@ public class Coinone extends CoinoneApi
                 }
             }
             return result;
-        }).thenApply(res -> Helpers.toTypedList(res, DepositAddress::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, DepositAddress::new));
 
     }
 

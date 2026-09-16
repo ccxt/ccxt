@@ -71,7 +71,7 @@ public class TestFetchCurrencies extends BaseTest {
             detectCurrencyConflicts(exchange, currencies);
         }
         return true;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
     public Object detectCurrencyConflicts(BaseExchange exchange, Object currencyValues)

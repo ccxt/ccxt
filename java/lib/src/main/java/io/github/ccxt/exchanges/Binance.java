@@ -4718,7 +4718,7 @@ public class Binance extends BinanceApi
                 response = (this.publicGetTime(query)).join();
             }
             return this.safeInteger(response, "serverTime");
-        }).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
 
     }
 
@@ -4776,7 +4776,7 @@ public class Binance extends BinanceApi
                 marginablesById = this.indexBy(responseMarginables, "assetName");
             }
             return this.parseCurrenciesCustom(responseCurrencies, marginablesById);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -5368,7 +5368,7 @@ public class Binance extends BinanceApi
                 ((List<Object>)result).add(this.parseMarket(Helpers.GetValue(markets, i)));
             }
             return result;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -6093,7 +6093,7 @@ public class Binance extends BinanceApi
             //     ]
             //
             return this.parseBalanceCustom(response, type, marginMode, isPortfolioMargin);
-        }).thenApply(Balances::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Balances::new);
 
     }
 
@@ -6195,7 +6195,7 @@ public class Binance extends BinanceApi
             Object orderbook = this.parseOrderBook(response, symbol, timestamp);
             Helpers.addElementToObject(orderbook, "nonce", this.safeInteger2(response, "lastUpdateId", "u"));
             return orderbook;
-        }).thenApply(OrderBook::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OrderBook::new);
 
     }
 
@@ -6437,7 +6437,7 @@ public class Binance extends BinanceApi
                 put( "url", null );
                 put( "info", response );
             }};
-        }).thenApply(Status::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Status::new);
 
     }
 
@@ -6509,7 +6509,7 @@ public class Binance extends BinanceApi
                 throw new NullResponse(Helpers.add(this.id, " fetchTicker() returned empty response")) ;
             }
             return this.parseTicker(response, market);
-        }).thenApply(Ticker::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Ticker::new);
 
     }
 
@@ -6600,7 +6600,7 @@ public class Binance extends BinanceApi
                 response = new ArrayList<Object>(Arrays.asList(response));
             }
             return this.parseTickers(response, symbols);
-        }).thenApply(Tickers::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Tickers::new);
 
     }
 
@@ -6652,7 +6652,7 @@ public class Binance extends BinanceApi
                 throw new NotSupported(Helpers.add(Helpers.add(Helpers.add(this.id, " fetchLastPrices() does not support "), type), " markets yet")) ;
             }
             return this.parseLastPrices(response, symbols);
-        }).thenApply(LastPrices::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(LastPrices::new);
 
     }
 
@@ -6775,7 +6775,7 @@ public class Binance extends BinanceApi
                 throw new NotSupported(Helpers.add(Helpers.add(Helpers.add(this.id, " fetchTickers() does not support "), type), " markets yet")) ;
             }
             return this.parseTickers(response, symbols);
-        }).thenApply(Tickers::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Tickers::new);
 
     }
 
@@ -6850,7 +6850,7 @@ public class Binance extends BinanceApi
                 throw new NullResponse(Helpers.add(this.id, " fetchMarkPrice() returned empty response")) ;
             }
             return this.parseTicker(response, market);
-        }).thenApply(Ticker::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Ticker::new);
 
     }
 
@@ -6902,7 +6902,7 @@ public class Binance extends BinanceApi
                 throw new NotSupported(Helpers.add(Helpers.add(Helpers.add(this.id, " fetchMarkPrices() does not support "), type), " markets yet")) ;
             }
             return this.parseTickers(response, symbols);
-        }).thenApply(Tickers::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Tickers::new);
 
     }
 
@@ -7134,7 +7134,7 @@ public class Binance extends BinanceApi
             //
             List<Object> candles = this.parseOHLCVs(this.toArray(response), market, timeframe, since, limit);
             return candles;
-        }).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
 
     }
 
@@ -7645,7 +7645,7 @@ public class Binance extends BinanceApi
                 responseList = this.toArray(response);
             }
             return this.parseTrades(responseList, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -7724,7 +7724,7 @@ public class Binance extends BinanceApi
             //
             Object data = this.safeDict(response, "newOrderResponse", new HashMap<String, Object>() {{}});
             return this.parseOrder(data, market);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -8033,7 +8033,7 @@ public class Binance extends BinanceApi
                 throw new NullResponse(Helpers.add(this.id, " parseOrder() returned empty response")) ;
             }
             return this.parseOrder(response, market);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -8077,7 +8077,7 @@ public class Binance extends BinanceApi
             {
                 return (this.editContractOrder(id, symbol, type, side, amount, price, parameters)).join();
             }
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -8178,7 +8178,7 @@ public class Binance extends BinanceApi
             //   ]
             //
             return this.parseOrders(response);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -9018,7 +9018,7 @@ public class Binance extends BinanceApi
             //   ]
             //
             return this.parseOrders(response);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -9182,7 +9182,7 @@ public class Binance extends BinanceApi
                 throw new NullResponse(Helpers.add(this.id, " parseOrder() returned empty response")) ;
             }
             return this.parseOrder(response, market);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -9707,7 +9707,7 @@ public class Binance extends BinanceApi
                 put( "cost", cost );
             }};
             return (this.createOrder((Object)(symbol), (Object)("market"), (Object)(side), (Object)(cost), (Object)(null), (Object)(this.extend(req, parameters)))).join();
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -9740,7 +9740,7 @@ public class Binance extends BinanceApi
                 put( "cost", cost );
             }};
             return (this.createOrder((Object)(symbol), (Object)("market"), (Object)("buy"), (Object)(cost), (Object)(null), (Object)(this.extend(req, parameters)))).join();
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -9771,7 +9771,7 @@ public class Binance extends BinanceApi
             }
             Helpers.addElementToObject(parameters, "quoteOrderQty", cost);
             return (this.createOrder((Object)(symbol), (Object)("market"), (Object)("sell"), (Object)(cost), (Object)(null), (Object)(parameters))).join();
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -9921,7 +9921,7 @@ public class Binance extends BinanceApi
                 throw new NullResponse(Helpers.add(this.id, " parseOrder() returned empty response")) ;
             }
             return this.parseOrder(response, market);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -10314,7 +10314,7 @@ public class Binance extends BinanceApi
                 return this.parseOrders(result, market, since, limit);
             }
             return this.parseOrders(response, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -10477,7 +10477,7 @@ public class Binance extends BinanceApi
                 response = (this.privateGetOpenOrders(this.extend(request, parameters))).join();
             }
             return this.parseOrders(response, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -10720,7 +10720,7 @@ public class Binance extends BinanceApi
                 throw new NullResponse(Helpers.add(this.id, " parseOrder() returned empty response")) ;
             }
             return this.parseOrder(response, market);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -10778,7 +10778,7 @@ public class Binance extends BinanceApi
             Object orders = (this.fetchOrders((Object)(symbol), (Object)(since), (Object)(null), (Object)(parameters))).join();
             List<Object> filteredOrders = this.filterBy(orders, "status", "closed");
             return this.filterBySinceLimit(filteredOrders, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -10836,7 +10836,7 @@ public class Binance extends BinanceApi
             Object orders = (this.fetchOrders((Object)(symbol), (Object)(since), (Object)(null), (Object)(parameters))).join();
             List<Object> filteredOrders = this.filterBy(orders, "status", "canceled");
             return this.filterBySinceLimit(filteredOrders, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -10897,7 +10897,7 @@ public class Binance extends BinanceApi
             List<Object> filteredOrders = (List<Object>) this.arrayConcat(canceledOrders, closedOrders);
             List<Object> sortedOrders = this.sortBy(filteredOrders, "timestamp");
             return this.filterBySinceLimit(sortedOrders, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -11079,7 +11079,7 @@ public class Binance extends BinanceApi
                 throw new NullResponse(Helpers.add(this.id, " parseOrder() returned empty response")) ;
             }
             return this.parseOrder(response, market);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -11228,7 +11228,7 @@ public class Binance extends BinanceApi
                 }});
                 return new ArrayList<Object>(Arrays.asList(order));
             }
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -11324,7 +11324,7 @@ public class Binance extends BinanceApi
             //    ]
             //
             return this.parseOrders(response, market);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -11371,7 +11371,7 @@ public class Binance extends BinanceApi
                 put( "orderId", id );
             }};
             return (this.fetchMyTrades((Object)(symbol), (Object)(since), (Object)(limit), (Object)(this.extend(request, parameters)))).join();
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -11705,7 +11705,7 @@ public class Binance extends BinanceApi
                 }
             }
             return this.parseTrades(responseList, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -11796,7 +11796,7 @@ public class Binance extends BinanceApi
             }
             List<Object> trades = this.parseTrades(data, null, since, limit);
             return this.filterBySinceLimit(trades, since, limit);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -11981,7 +11981,7 @@ public class Binance extends BinanceApi
                 Helpers.addElementToObject(Helpers.GetValue(responseList, i), "type", "deposit");
             }
             return this.parseTransactions(responseList, currency, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
 
     }
 
@@ -12083,7 +12083,7 @@ public class Binance extends BinanceApi
                 Helpers.addElementToObject(Helpers.GetValue(responseList, i), "type", "withdrawal");
             }
             return this.parseTransactions(responseList, currency, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
 
     }
 
@@ -12554,7 +12554,7 @@ public class Binance extends BinanceApi
             //     }
             //
             return this.parseTransfer(response, currency);
-        }).thenApply(TransferEntry::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(TransferEntry::new);
 
     }
 
@@ -12653,7 +12653,7 @@ public class Binance extends BinanceApi
             }
             Object rows = this.safeList2(response, "rows", "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTransfers(rows, currency, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, TransferEntry::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, TransferEntry::new));
 
     }
 
@@ -12705,7 +12705,7 @@ public class Binance extends BinanceApi
             //     }
             //
             return this.parseDepositAddress(response, currency);
-        }).thenApply(DepositAddress::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(DepositAddress::new);
 
     }
 
@@ -12876,7 +12876,7 @@ public class Binance extends BinanceApi
                 put( "deposit", new HashMap<String, Object>() {{}} );
                 put( "info", response );
             }};
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -12944,7 +12944,7 @@ public class Binance extends BinanceApi
             //    ]
             //
             return this.parseDepositWithdrawFees(response, codes, "coin");
-        }).thenApply(DepositWithdrawFees::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(DepositWithdrawFees::new);
 
     }
 
@@ -13073,7 +13073,7 @@ public class Binance extends BinanceApi
             Map<String, Object> response = (this.sapiPostCapitalWithdrawApply(this.extend(request, parameters))).join();
             //     { id: '9a67628b16ba4988ae20d329333f16bc' }
             return this.parseTransaction(response, currency);
-        }).thenApply(Transaction::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Transaction::new);
 
     }
 
@@ -13201,7 +13201,7 @@ public class Binance extends BinanceApi
                 throw new NullResponse(Helpers.add(this.id, " parseTradingFee() returned empty response")) ;
             }
             return this.parseTradingFee(data, market);
-        }).thenApply(TradingFeeInterface::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(TradingFeeInterface::new);
 
     }
 
@@ -13423,7 +13423,7 @@ public class Binance extends BinanceApi
                 return result;
             }
             throw new NotSupported(Helpers.add(Helpers.add(Helpers.add(this.id, " fetchTradingFees() is not supported for "), type), " markets")) ;
-        }).thenApply(TradingFees::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(TradingFees::new);
 
     }
 
@@ -13468,7 +13468,7 @@ public class Binance extends BinanceApi
             //   }
             //
             return this.parseTransfer(response, currency);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -13528,7 +13528,7 @@ public class Binance extends BinanceApi
             //     }
             //
             return this.parseFundingRate(response, market);
-        }).thenApply(FundingRate::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(FundingRate::new);
 
     }
 
@@ -13617,7 +13617,7 @@ public class Binance extends BinanceApi
             //     }
             //
             return this.parseFundingRateHistories(response, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, FundingRateHistory::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, FundingRateHistory::new));
 
     }
 
@@ -13683,7 +13683,7 @@ public class Binance extends BinanceApi
                 throw new NotSupported(Helpers.add(this.id, " fetchFundingRates() supports linear and inverse contracts only")) ;
             }
             return this.parseFundingRates(response, symbols);
-        }).thenApply(FundingRates::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(FundingRates::new);
 
     }
 
@@ -14429,7 +14429,7 @@ public class Binance extends BinanceApi
                 }
             }
             return Helpers.GetValue(this.options, "leverageBrackets");
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -14532,7 +14532,7 @@ public class Binance extends BinanceApi
             //     ]
             //
             return this.parseLeverageTiers(response, symbols, "symbol");
-        }).thenApply(LeverageTiers::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(LeverageTiers::new);
 
     }
 
@@ -14635,7 +14635,7 @@ final Object finalMarket = market;
             //     ]
             //
             return this.parseOptionPosition(this.safeDict(response, 0, new HashMap<String, Object>() {{}}), market);
-        }).thenApply(Position::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Position::new);
 
     }
 
@@ -14711,7 +14711,7 @@ final Object finalMarket = market;
                 ((List<Object>)result).add(this.parseOptionPosition(Helpers.GetValue(positions, i), market));
             }
             return this.filterByArrayPositions(result, "symbol", symbols, false);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -14832,7 +14832,7 @@ final Object finalMarket = market;
             {
                 throw new NotSupported(Helpers.add(Helpers.add(Helpers.add(this.id, ".options[\"fetchPositions\"][\"method\"] or params[\"method\"] = \""), defaultMethod), "\" is invalid, please choose between \"account\", \"positionRisk\" and \"option\"")) ;
             }
-        }).thenApply(res -> Helpers.toTypedList(res, Position::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Position::new));
 
     }
 
@@ -14924,7 +14924,7 @@ final Object finalMarket = market;
             Object result = this.parseAccountPositions(response, filterClosed);
             symbols = this.marketSymbols(symbols);
             return this.filterByArrayPositions(result, "symbol", symbols, false);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -15109,7 +15109,7 @@ final Object finalMarket = market;
             }
             symbols = this.marketSymbols(symbols);
             return this.filterByArrayPositions(result, "symbol", symbols, false);
-        }).thenApply(res -> Helpers.toTypedList(res, Position::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Position::new));
 
     }
 
@@ -15202,7 +15202,7 @@ final Object finalMarket = market;
                 throw new NotSupported(Helpers.add(this.id, " fetchFundingHistory() supports linear and inverse contracts only")) ;
             }
             return this.parseIncomes(response, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, FundingHistory::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, FundingHistory::new));
 
     }
 
@@ -15279,7 +15279,7 @@ final Object finalMarket = market;
                 throw new NullResponse(Helpers.add(this.id, " setLeverage() returned empty response")) ;
             }
             return response;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -15374,7 +15374,7 @@ final Object finalMarket = market;
                 throw new NullResponse(Helpers.add(this.id, " setMarginMode() returned empty response")) ;
             }
             return response;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -15463,7 +15463,7 @@ final Object finalMarket = market;
                 throw new NullResponse(Helpers.add(this.id, " setPositionMode() returned empty response")) ;
             }
             return response;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -15534,7 +15534,7 @@ final Object finalMarket = market;
                 leverages = response;
             }
             return this.parseLeverages(leverages, symbols, "symbol");
-        }).thenApply(Leverages::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Leverages::new);
 
     }
 
@@ -15642,7 +15642,7 @@ final Object finalMarket = market;
             Object settlements = this.parseSettlements(response, market);
             List<Object> sorted = this.sortBy(settlements, "timestamp");
             return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -15717,7 +15717,7 @@ final Object finalMarket = market;
             Object settlements = this.parseSettlements(response, market);
             List<Object> sorted = this.sortBy(settlements, "timestamp");
             return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -15857,7 +15857,7 @@ final Object finalMarket = market;
             //
             Object first = this.safeDict(response, 0, response);
             return this.parseLedgerEntry(first, currency);
-        }).thenApply(LedgerEntry::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(LedgerEntry::new);
 
     }
 
@@ -15994,7 +15994,7 @@ final Object finalMarket = market;
             //     ]
             //
             return this.parseLedger(response, currency, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, LedgerEntry::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, LedgerEntry::new));
 
     }
 
@@ -16509,7 +16509,7 @@ final Object finalMarket = market;
                 Helpers.addElementToObject(this.options, "hasAlreadyAuthenticatedSuccessfully", true);
             }
             return response;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -16569,7 +16569,7 @@ final Object finalMarket = market;
             return this.extend(this.parseMarginModification(response, market), new HashMap<String, Object>() {{
                 put( "code", finalCode );
             }});
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -16641,7 +16641,7 @@ final Object finalMarket = market;
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             return (this.modifyMarginHelper(symbol, amount, 2, parameters)).join();
-        }).thenApply(MarginModification::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(MarginModification::new);
 
     }
 
@@ -16663,7 +16663,7 @@ final Object finalMarket = market;
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             return (this.modifyMarginHelper(symbol, amount, 1, parameters)).join();
-        }).thenApply(MarginModification::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(MarginModification::new);
 
     }
 
@@ -16703,7 +16703,7 @@ final Object finalMarket = market;
             //
             Object rate = this.safeDict(response, 0);
             return this.parseBorrowRate(rate);
-        }).thenApply(CrossBorrowRate::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(CrossBorrowRate::new);
 
     }
 
@@ -16730,7 +16730,7 @@ final Object finalMarket = market;
             }};
             Object borrowRates = (this.fetchIsolatedBorrowRates((Object)(this.extend(request, parameters)))).join();
             return this.safeDict(borrowRates, symbol);
-        }).thenApply(IsolatedBorrowRate::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(IsolatedBorrowRate::new);
 
     }
 
@@ -16787,7 +16787,7 @@ final Object finalMarket = market;
             //    ]
             //
             return this.parseIsolatedBorrowRates(response);
-        }).thenApply(IsolatedBorrowRates::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(IsolatedBorrowRates::new);
 
     }
 
@@ -16846,7 +16846,7 @@ final Object finalMarket = market;
             //     ]
             //
             return this.parseBorrowRateHistory(response, code, since, limit);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -16959,7 +16959,7 @@ final Object finalMarket = market;
                 put( "currency", code );
                 put( "amount", amount );
             }};
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -16994,7 +16994,7 @@ final Object finalMarket = market;
             //     }
             //
             return response;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -17026,7 +17026,7 @@ final Object finalMarket = market;
             //     }
             //
             return response;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -17132,7 +17132,7 @@ final Object finalMarket = market;
             Object rows = this.safeList(response, "rows");
             Object interest = this.parseBorrowInterests(rows, market);
             return this.filterByCurrencySinceLimit(interest, code, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, BorrowInterest::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, BorrowInterest::new));
 
     }
 
@@ -17211,7 +17211,7 @@ final Object finalMarket = market;
                 response = (this.sapiPostMarginBorrowRepay(this.extend(request, parameters))).join();
             }
             return this.parseMarginLoan(response, currency);
-        }).thenApply(MarginLoan::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(MarginLoan::new);
 
     }
 
@@ -17253,7 +17253,7 @@ final Object finalMarket = market;
             //     }
             //
             return this.parseMarginLoan(response, currency);
-        }).thenApply(MarginLoan::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(MarginLoan::new);
 
     }
 
@@ -17305,7 +17305,7 @@ final Object finalMarket = market;
             //     }
             //
             return this.parseMarginLoan(response, currency);
-        }).thenApply(MarginLoan::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(MarginLoan::new);
 
     }
 
@@ -17347,7 +17347,7 @@ final Object finalMarket = market;
             //     }
             //
             return this.parseMarginLoan(response, currency);
-        }).thenApply(MarginLoan::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(MarginLoan::new);
 
     }
 
@@ -17477,7 +17477,7 @@ final Object finalMarket = market;
             //  ]
             //
             return this.parseOpenInterestsHistory(response, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, OpenInterest::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, OpenInterest::new));
 
     }
 
@@ -17574,7 +17574,7 @@ final Object finalMarket = market;
             {
                 return this.parseOpenInterest(response, market);
             }
-        }).thenApply(OpenInterest::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OpenInterest::new);
 
     }
 
@@ -17809,7 +17809,7 @@ final Object finalMarket = market;
                 liquidationsList = response;
             }
             return this.parseLiquidations(liquidationsList, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Liquidation::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Liquidation::new));
 
     }
 
@@ -17942,7 +17942,7 @@ final Object finalMarket = market;
             //     ]
             //
             return this.parseGreeks(this.safeDict(response, 0, new HashMap<String, Object>() {{}}), market);
-        }).thenApply(Greeks::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Greeks::new);
 
     }
 
@@ -17997,7 +17997,7 @@ final Object finalMarket = market;
             //     ]
             //
             return this.parseAllGreeks(response, symbols);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -18071,7 +18071,7 @@ final Object finalMarket = market;
                 }
             }
             return tradingLimits;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -18123,7 +18123,7 @@ final Object finalMarket = market;
                 put( "info", finalResponse );
                 put( "hedged", dualSidePosition );
             }};
-        }).thenApply(PositionModeInfo::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(PositionModeInfo::new);
 
     }
 
@@ -18177,7 +18177,7 @@ final Object finalMarket = market;
                 assets = response;
             }
             return this.parseMarginModes(assets, symbols, "symbol", "swap");
-        }).thenApply(MarginModes::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(MarginModes::new);
 
     }
 
@@ -18227,7 +18227,7 @@ final Object finalMarket = market;
                 throw new NullResponse(Helpers.add(this.id, " fetchMarginMode() returned empty response")) ;
             }
             return this.parseMarginMode(Helpers.GetValue(response, 0), market);
-        }).thenApply(MarginMode::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(MarginMode::new);
 
     }
 
@@ -18306,7 +18306,7 @@ final Object finalMarket = market;
             //
             Object chain = this.safeDict(response, 0, new HashMap<String, Object>() {{}});
             return this.parseOption(chain, null, market);
-        }).thenApply(Option::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Option::new);
 
     }
 
@@ -18446,7 +18446,7 @@ final Object finalMarket = market;
             }
             Object modifications = this.parseMarginModifications(this.toArray(response));
             return this.filterBySymbolSinceLimit(modifications, symbol, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, MarginModification::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, MarginModification::new));
 
     }
 
@@ -18518,7 +18518,7 @@ final Object finalMarket = market;
                 }
             }
             return result;
-        }).thenApply(Currencies::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Currencies::new);
 
     }
 
@@ -18573,7 +18573,7 @@ final Object finalMarket = market;
                 throw new NullResponse(Helpers.add(this.id, " parseConversion() returned empty response")) ;
             }
             return this.parseConversion(response, fromCurrency, toCurrency);
-        }).thenApply(Conversion::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Conversion::new);
 
     }
 
@@ -18627,7 +18627,7 @@ final Object finalMarket = market;
                 throw new NullResponse(Helpers.add(this.id, " parseConversion() returned empty response")) ;
             }
             return this.parseConversion(response, fromCurrency, toCurrency);
-        }).thenApply(Conversion::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Conversion::new);
 
     }
 
@@ -18695,7 +18695,7 @@ final Object finalMarket = market;
                 throw new NullResponse(Helpers.add(this.id, " parseConversion() returned empty response")) ;
             }
             return this.parseConversion(data, fromCurrency, toCurrency);
-        }).thenApply(Conversion::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Conversion::new);
 
     }
 
@@ -18776,7 +18776,7 @@ final Object finalMarket = market;
             }
             Object rows = this.safeList(response, responseQuery, new ArrayList<Object>(Arrays.asList()));
             return this.parseConversions(rows, code, fromCurrencyKey, toCurrencyKey, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Conversion::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Conversion::new));
 
     }
 
@@ -18929,7 +18929,7 @@ final Object finalMarket = market;
             //     ]
             //
             return this.parseFundingRates(response, symbols);
-        }).thenApply(FundingRates::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(FundingRates::new);
 
     }
 
@@ -18999,7 +18999,7 @@ final Object finalMarket = market;
                 throw new BadRequest(Helpers.add(this.id, " fetchLongShortRatioHistory() supports linear and inverse subTypes only")) ;
             }
             return this.parseLongShortRatioHistory(response, market);
-        }).thenApply(res -> Helpers.toTypedList(res, LongShortRatio::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, LongShortRatio::new));
 
     }
 
@@ -19079,7 +19079,7 @@ final Object finalMarket = market;
                 throw new NullResponse(Helpers.add(this.id, " parseADLRank() returned empty response")) ;
             }
             return this.parseADLRank(response, market);
-        }).thenApply(ADL::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(ADL::new);
 
     }
 
@@ -19158,7 +19158,7 @@ final Object finalMarket = market;
                 responseList = this.toArray(response);
             }
             return this.parseADLRanks(responseList, symbols);
-        }).thenApply(res -> Helpers.toTypedList(res, ADL::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, ADL::new));
 
     }
 

@@ -26,7 +26,7 @@ public class TestFetchFundingRateHistory extends BaseTest {
         }
         TestSharedMethods.AssertTimestampOrder(exchange, method, symbol, fundingRatesHistory);
         return true;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 

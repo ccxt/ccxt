@@ -44,7 +44,7 @@ public class TestFetchLastPrices extends BaseTest {
         }
         Assert(atLeastOnePassed, Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), " "), checkedSymbol), " at least one symbol should pass the test"));
         return true;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 

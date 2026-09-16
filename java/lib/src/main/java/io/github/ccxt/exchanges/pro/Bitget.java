@@ -193,7 +193,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             Helpers.addElementToObject(args, topicOrChannel, "ticker");
             Helpers.addElementToObject(args, symbolOrInstId, Helpers.GetValue(market, "id"));
             return (this.watchPublic(uta, messageHash, args, parameters)).join();
-        }).thenApply(Ticker::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Ticker::new);
 
     }
 
@@ -214,7 +214,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             return (this.unWatchChannel(symbol, "ticker", "ticker", "watchTicker", parameters)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -280,7 +280,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
                 return result;
             }
             return this.filterByArray(this.tickers, "symbol", symbols);
-        }).thenApply(Tickers::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Tickers::new);
 
     }
 
@@ -548,7 +548,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
                 return result;
             }
             return this.filterByArray(this.bidsasks, "symbol", symbols);
-        }).thenApply(Tickers::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Tickers::new);
 
     }
 
@@ -656,7 +656,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
                 limit = Helpers.callDynamically(ohlcv, "getLimit", new Object[]{symbol, limit});
             }
             return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
-        }).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
 
     }
 
@@ -718,7 +718,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
                 messageHash = Helpers.add("candles:", interval);
             }
             return (this.unWatchChannel(symbol, channel, messageHash, "watchOHLCV", parameters)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -885,7 +885,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             Object limit = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             return (this.watchOrderBookForSymbols((Object)(new ArrayList<Object>(Arrays.asList(symbol))), (Object)(limit), (Object)(parameters))).join();
-        }).thenApply(OrderBook::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OrderBook::new);
 
     }
 
@@ -920,7 +920,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
                 channel = Helpers.add(channel, String.valueOf(limit));
             }
             return (this.unWatchChannel(symbol, channel, "orderbook", "watchOrderBook", parameters)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -963,7 +963,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
                 Helpers.addElementToObject(args, "instId", Helpers.GetValue(market, "id"));
             }
             return (this.unWatchPublic(uta, messageHash, args, parameters)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1036,7 +1036,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             {
                 return orderbook;
             }
-        }).thenApply(OrderBook::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OrderBook::new);
 
     }
 
@@ -1186,7 +1186,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             var error = new ChecksumError(Helpers.add(Helpers.add(this.id, " "), this.orderbookChecksumMessage(symbol)));
             client.reject(error, messageHash);
             return null;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1230,7 +1230,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             Object limit = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
             return (this.watchTradesForSymbols((Object)(new ArrayList<Object>(Arrays.asList(symbol))), (Object)(since), (Object)(limit), (Object)(parameters))).join();
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -1312,7 +1312,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
                 return filtered;
             }
             return result;
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -1338,7 +1338,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             Object uta = Helpers.GetValue(values, 0);
             Object channelTopic = ((Helpers.isTrue(uta))) ? "publicTrade" : "trade";
             return (this.unWatchChannel(symbol, channelTopic, "trade", "watchTrades", parameters)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1620,7 +1620,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
                 return newPositions;
             }
             return this.filterBySymbolsSinceLimit(newPositions, symbols, since, limit, true);
-        }).thenApply(res -> Helpers.toTypedList(res, Position::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Position::new));
 
     }
 
@@ -1986,7 +1986,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
                 limit = Helpers.callDynamically(orders, "getLimit", new Object[]{symbol, limit});
             }
             return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -2535,7 +2535,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
             }
             return this.filterBySymbolSinceLimit(trades, symbol, since, limit, true);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -2769,7 +2769,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             Object instTypeLower = ((Helpers.isTrue((Helpers.isEqual(instType, null))))) ? "" : ((String)instType).toLowerCase();
             String messageHash = Helpers.add("balance:", instTypeLower);
             return (this.watchPrivate(uta, messageHash, messageHash, args, parameters)).join();
-        }).thenApply(Balances::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Balances::new);
 
     }
 
@@ -2957,7 +2957,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             }};
             Map<String, Object> message = this.extend(request, parameters);
             return (this.watch(url, messageHash, message, messageHash, null)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -2989,7 +2989,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             }};
             Map<String, Object> message = this.extend(request, parameters);
             return (this.watch(url, messageHash, message, messageHash, null)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -3016,7 +3016,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             }};
             Map<String, Object> message = this.extend(request, parameters);
             return (this.watchMultiple(url, messageHashes, message, messageHashes, null)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -3052,7 +3052,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
                 this.watch(url, messageHash, message, messageHash, null);
             }
             return ((io.github.ccxt.ws.Future)future).getFuture().join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -3088,7 +3088,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             }};
             Map<String, Object> message = this.extend(request, parameters);
             return (this.watch(url, messageHash, message, subscriptionHash, null)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 

@@ -2435,7 +2435,7 @@ public class Bybit extends BybitApi
                 Helpers.addElementToObject(this.options, "unifiedMarginStatus", this.safeInteger(accountResult, "unifiedMarginStatus", 6)); // default to uta 2.0 pro if not found
             }
             return new ArrayList<Object>(Arrays.asList(Helpers.GetValue(this.options, "enableUnifiedMargin"), Helpers.GetValue(this.options, "enableUnifiedAccount")));
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -2454,7 +2454,7 @@ public class Bybit extends BybitApi
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             return (this.privatePostV5AccountUpgradeToUta(parameters)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -2713,7 +2713,7 @@ public class Bybit extends BybitApi
                 put( "url", finalUrl );
                 put( "info", response );
             }};
-        }).thenApply(Status::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Status::new);
 
     }
 
@@ -2745,7 +2745,7 @@ public class Bybit extends BybitApi
             //     }
             //
             return this.safeInteger(response, "time");
-        }).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
 
     }
 
@@ -2805,7 +2805,7 @@ public class Bybit extends BybitApi
             Object data = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             Object rows = this.safeList(data, "rows", new ArrayList<Object>(Arrays.asList()));
             return this.parseCurrencies(rows);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -2955,7 +2955,7 @@ public class Bybit extends BybitApi
             // const derivativeMarkets = this.arrayConcat (futureMarkets, optionMarkets);
             // return this.arrayConcat (spotMarkets, derivativeMarkets);
             return result;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -3083,7 +3083,7 @@ public class Bybit extends BybitApi
                 }}));
             }
             return result;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -3308,7 +3308,7 @@ public class Bybit extends BybitApi
                 ((List<Object>)result).add(parsedMarket);
             }
             return result;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -3481,7 +3481,7 @@ public class Bybit extends BybitApi
                 }
             }
             return result;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -3683,7 +3683,7 @@ public class Bybit extends BybitApi
             Object tickers = this.safeList(result, "list", new ArrayList<Object>(Arrays.asList()));
             Object rawTicker = this.safeDict(tickers, 0, new HashMap<String, Object>() {{}});
             return this.parseTicker(rawTicker, market);
-        }).thenApply(Ticker::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Ticker::new);
 
     }
 
@@ -3811,7 +3811,7 @@ public class Bybit extends BybitApi
             Object result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             Object tickerList = this.safeList(result, "list", new ArrayList<Object>(Arrays.asList()));
             return this.parseTickers(tickerList, parsedSymbols);
-        }).thenApply(Tickers::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Tickers::new);
 
     }
 
@@ -3834,7 +3834,7 @@ public class Bybit extends BybitApi
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             return (this.fetchTickers((Object)(symbols), (Object)(parameters))).join();
-        }).thenApply(Tickers::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Tickers::new);
 
     }
 
@@ -4004,7 +4004,7 @@ public class Bybit extends BybitApi
             Object result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             Object ohlcvs = this.safeList(result, "list", new ArrayList<Object>(Arrays.asList()));
             return this.parseOHLCVs(ohlcvs, market, timeframe, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
 
     }
 
@@ -4168,7 +4168,7 @@ public class Bybit extends BybitApi
                 Helpers.addElementToObject(Helpers.GetValue(tickerList, i), "timestamp", timestamp); // will be removed inside the parser
             }
             return this.parseFundingRates(tickerList, symbols);
-        }).thenApply(FundingRates::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(FundingRates::new);
 
     }
 
@@ -4290,7 +4290,7 @@ public class Bybit extends BybitApi
             }
             List<Object> sorted = this.sortBy(rates, "timestamp");
             return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, FundingRateHistory::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, FundingRateHistory::new));
 
     }
 
@@ -4629,7 +4629,7 @@ public class Bybit extends BybitApi
             Object result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             Object trades = this.safeList(result, "list", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(trades, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -4714,7 +4714,7 @@ public class Bybit extends BybitApi
             Object result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             Long timestamp = this.safeInteger(result, "ts");
             return this.parseOrderBook(result, symbol, timestamp, "b", "a");
-        }).thenApply(OrderBook::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OrderBook::new);
 
     }
 
@@ -5095,7 +5095,7 @@ public class Bybit extends BybitApi
             //     }
             //
             return this.parseBalance(response);
-        }).thenApply(Balances::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Balances::new);
 
     }
 
@@ -5416,7 +5416,7 @@ public class Bybit extends BybitApi
                 put( "cost", cost );
             }};
             return (this.createOrder((Object)(symbol), (Object)("market"), (Object)("buy"), (Object)(Helpers.opNeg(1)), (Object)(null), (Object)(this.extend(req, parameters)))).join();
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -5455,7 +5455,7 @@ public class Bybit extends BybitApi
                 put( "cost", cost );
             }};
             return (this.createOrder((Object)(symbol), (Object)("market"), (Object)("sell"), (Object)(Helpers.opNeg(1)), (Object)(null), (Object)(this.extend(req, parameters)))).join();
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -5548,7 +5548,7 @@ public class Bybit extends BybitApi
             //
             Object order = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             return this.parseOrder(order, market);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -6010,7 +6010,7 @@ public class Bybit extends BybitApi
             // }
             //
             return this.parseOrders(data);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -6159,7 +6159,7 @@ public class Bybit extends BybitApi
                 put( "id", Bybit.this.safeString(result, "orderId") );
                 put( "clientOrderId", Bybit.this.safeString(result, "orderLinkId") );
             }}, market);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -6266,7 +6266,7 @@ public class Bybit extends BybitApi
             // }
             //
             return this.parseOrders(data);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -6342,7 +6342,7 @@ public class Bybit extends BybitApi
             //
             Object result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             return this.parseOrder(result, market);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -6450,7 +6450,7 @@ public class Bybit extends BybitApi
             Object result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             Object row = this.safeList(result, "list", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(row, market);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -6501,7 +6501,7 @@ public class Bybit extends BybitApi
             // }
             //
             return response;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -6607,7 +6607,7 @@ public class Bybit extends BybitApi
             Object result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             Object row = this.safeList(result, "list", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(row);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -6710,7 +6710,7 @@ public class Bybit extends BybitApi
     }})));
             }
             return this.parseOrders(orders, market);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -6760,7 +6760,7 @@ public class Bybit extends BybitApi
                 throw new InvalidOrder(Helpers.add(this.id, " returned more than one order")) ;
             }
             return this.safeValue(result, 0);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -6883,7 +6883,7 @@ public class Bybit extends BybitApi
             }
             Object order = this.safeDict(innerList, 0, new HashMap<String, Object>() {{}});
             return this.parseOrder(order, market);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -7016,7 +7016,7 @@ public class Bybit extends BybitApi
             //
             Object data = this.addPaginationCursorToResult(response);
             return this.parseOrders(data, market, since, limit);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -7062,7 +7062,7 @@ public class Bybit extends BybitApi
                 throw new InvalidOrder(Helpers.add(this.id, " returned more than one order")) ;
             }
             return this.safeValue(result, 0);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -7110,7 +7110,7 @@ public class Bybit extends BybitApi
                 throw new InvalidOrder(Helpers.add(this.id, " returned more than one order")) ;
             }
             return this.safeValue(result, 0);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -7253,7 +7253,7 @@ public class Bybit extends BybitApi
             //
             Object data = this.addPaginationCursorToResult(response);
             return this.parseOrders(data, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -7292,7 +7292,7 @@ public class Bybit extends BybitApi
                 put( "orderStatus", "Filled" );
             }};
             return (this.fetchCanceledAndClosedOrders((Object)(symbol), (Object)(since), (Object)(limit), (Object)(this.extend(request, parameters)))).join();
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -7331,7 +7331,7 @@ public class Bybit extends BybitApi
                 put( "orderStatus", "Cancelled" );
             }};
             return (this.fetchCanceledAndClosedOrders((Object)(symbol), (Object)(since), (Object)(limit), (Object)(this.extend(request, parameters)))).join();
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -7474,7 +7474,7 @@ public class Bybit extends BybitApi
             //
             Object data = this.addPaginationCursorToResult(response);
             return this.parseOrders(data, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -7510,7 +7510,7 @@ public class Bybit extends BybitApi
             }
             parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "orderLinkId")));
             return (this.fetchMyTrades((Object)(symbol), (Object)(since), (Object)(limit), (Object)(this.extend(request, parameters)))).join();
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -7617,7 +7617,7 @@ public class Bybit extends BybitApi
             //
             Object trades = this.addPaginationCursorToResult(response);
             return this.parseTrades(trades, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -7704,7 +7704,7 @@ public class Bybit extends BybitApi
                 put( "currency", Helpers.GetValue(currencyFromResponse, "code") );
             }});
             return this.indexBy(parsed, "network");
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -7734,7 +7734,7 @@ public class Bybit extends BybitApi
             Object indexedAddresses = (this.fetchDepositAddressesByNetwork(code, paramsOmited)).join();
             Object selectedNetworkCode = this.selectNetworkCodeFromUnifiedNetworks(Helpers.GetValue(currency, "code"), networkCode, indexedAddresses);
             return this.safeValue(indexedAddresses, selectedNetworkCode);
-        }).thenApply(DepositAddress::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(DepositAddress::new);
 
     }
 
@@ -7822,7 +7822,7 @@ public class Bybit extends BybitApi
             //
             Object data = this.addPaginationCursorToResult(response);
             return this.parseTransactions(data, currency, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
 
     }
 
@@ -7922,7 +7922,7 @@ public class Bybit extends BybitApi
             //
             Object data = this.addPaginationCursorToResult(response);
             return this.parseTransactions(data, currency, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
 
     }
 
@@ -8216,7 +8216,7 @@ public class Bybit extends BybitApi
             //
             Object data = this.addPaginationCursorToResult(response);
             return this.parseLedger(data, currency, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, LedgerEntry::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, LedgerEntry::new));
 
     }
 
@@ -8406,7 +8406,7 @@ public class Bybit extends BybitApi
             //
             Object result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             return this.parseTransaction(result, currency);
-        }).thenApply(Transaction::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Transaction::new);
 
     }
 
@@ -8492,7 +8492,7 @@ public class Bybit extends BybitApi
             Helpers.addElementToObject(position, "timestamp", timestamp);
             Helpers.addElementToObject(position, "datetime", this.iso8601(timestamp));
             return position;
-        }).thenApply(Position::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Position::new);
 
     }
 
@@ -8633,7 +8633,7 @@ public class Bybit extends BybitApi
                 ((List<Object>)results).add(this.parsePosition(rawPosition));
             }
             return this.filterByArrayPositions(results, "symbol", symbols, false);
-        }).thenApply(res -> Helpers.toTypedList(res, Position::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Position::new));
 
     }
 
@@ -8934,7 +8934,7 @@ public class Bybit extends BybitApi
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Object position = (this.fetchPosition((Object)(symbol), (Object)(parameters))).join();
             return this.parseLeverage(position, market);
-        }).thenApply(Leverage::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Leverage::new);
 
     }
 
@@ -9085,7 +9085,7 @@ public class Bybit extends BybitApi
                 }
             }
             return response;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -9141,7 +9141,7 @@ public class Bybit extends BybitApi
             }
             Map<String, Object> response = (this.privatePostV5PositionSetLeverage(this.extend(request, parameters))).join();
             return response;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -9214,7 +9214,7 @@ public class Bybit extends BybitApi
             //         "time": 1675249072814
             //     }
             return response;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -9295,7 +9295,7 @@ public class Bybit extends BybitApi
             String id = this.safeString(result, "symbol");
             Map<String, Object> safeMarketObj = (Map<String, Object>) this.safeMarket(id, market, null, "contract");
             return this.parseOpenInterestsHistory(data, safeMarketObj, since, limit);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -9369,7 +9369,7 @@ public class Bybit extends BybitApi
             Map<String, Object> safeMarketObj = (Map<String, Object>) this.safeMarket(id, market, null, "contract");
             Object data = this.addPaginationCursorToResult(response);
             return this.parseOpenInterest(Helpers.GetValue(data, 0), safeMarketObj);
-        }).thenApply(OpenInterest::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OpenInterest::new);
 
     }
 
@@ -9424,7 +9424,7 @@ public class Bybit extends BybitApi
                 Helpers.addElementToObject(request, "limit", limit);
             }
             return (this.fetchDerivativesOpenInterestHistory(symbol, timeframe, since, limit, parameters)).join();
-        }).thenApply(res -> Helpers.toTypedList(res, OpenInterest::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, OpenInterest::new));
 
     }
 
@@ -9514,7 +9514,7 @@ public class Bybit extends BybitApi
             Object coin = this.safeDict(coins, 0, new HashMap<String, Object>() {{}});
             Helpers.addElementToObject(coin, "timestamp", timestamp);
             return this.parseBorrowRate(coin, currency);
-        }).thenApply(CrossBorrowRate::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(CrossBorrowRate::new);
 
     }
 
@@ -9614,7 +9614,7 @@ public class Bybit extends BybitApi
             Object rows = this.safeList(data, "loanAccountList", new ArrayList<Object>(Arrays.asList()));
             Object interest = this.parseBorrowInterests(rows);
             return this.filterByCurrencySinceLimit(interest, code, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, BorrowInterest::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, BorrowInterest::new));
 
     }
 
@@ -9680,7 +9680,7 @@ public class Bybit extends BybitApi
             Object data = this.safeDict(response, "result");
             Object rows = this.safeList(data, "list", new ArrayList<Object>(Arrays.asList()));
             return this.parseBorrowRateHistory(rows, code, since, limit);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -9770,7 +9770,7 @@ public class Bybit extends BybitApi
                 put( "toAccount", toAccount );
                 put( "status", status );
             }});
-        }).thenApply(TransferEntry::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(TransferEntry::new);
 
     }
 
@@ -9851,7 +9851,7 @@ public class Bybit extends BybitApi
             //
             Object data = this.addPaginationCursorToResult(response);
             return this.parseTransfers(data, currency, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, TransferEntry::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, TransferEntry::new));
 
     }
 
@@ -9895,7 +9895,7 @@ public class Bybit extends BybitApi
             //
             Object result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             return this.parseMarginLoan(result, currency);
-        }).thenApply(MarginLoan::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(MarginLoan::new);
 
     }
 
@@ -9941,7 +9941,7 @@ public class Bybit extends BybitApi
             return this.extend(transaction, new HashMap<String, Object>() {{
                 put( "amount", amount );
             }});
-        }).thenApply(MarginLoan::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(MarginLoan::new);
 
     }
 
@@ -10074,7 +10074,7 @@ public class Bybit extends BybitApi
             Object result = this.safeDict(response, "result");
             Object tiers = this.safeList(result, "list");
             return this.parseMarketLeverageTiers(tiers, market);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -10106,7 +10106,7 @@ public class Bybit extends BybitApi
             }
             Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
             return (this.fetchDerivativesMarketLeverageTiers(symbol, parameters)).join();
-        }).thenApply(res -> Helpers.toTypedList(res, LeverageTier::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, LeverageTier::new));
 
     }
 
@@ -10183,7 +10183,7 @@ public class Bybit extends BybitApi
             Object fees = this.safeList(result, "list", new ArrayList<Object>(Arrays.asList()));
             Object first = this.safeDict(fees, 0, new HashMap<String, Object>() {{}});
             return this.parseTradingFee(first, market);
-        }).thenApply(TradingFeeInterface::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(TradingFeeInterface::new);
 
     }
 
@@ -10245,7 +10245,7 @@ public class Bybit extends BybitApi
                 }
             }
             return result;
-        }).thenApply(TradingFees::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(TradingFees::new);
 
     }
 
@@ -10372,7 +10372,7 @@ public class Bybit extends BybitApi
             Object data = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             Object rows = this.safeList(data, "rows", new ArrayList<Object>(Arrays.asList()));
             return this.parseDepositWithdrawFees(rows, codes, "coin");
-        }).thenApply(DepositWithdrawFees::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(DepositWithdrawFees::new);
 
     }
 
@@ -10447,7 +10447,7 @@ public class Bybit extends BybitApi
             Object settlements = this.parseSettlements(data, market);
             List<Object> sorted = this.sortBy(settlements, "timestamp");
             return this.filterBySymbolSinceLimit(sorted, this.safeString(market, "symbol"), since, limit);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -10527,7 +10527,7 @@ public class Bybit extends BybitApi
             Object settlements = this.parseSettlements(data, market);
             List<Object> sorted = this.sortBy(settlements, "timestamp");
             return this.filterBySymbolSinceLimit(sorted, this.safeString(market, "symbol"), since, limit);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -10644,7 +10644,7 @@ public class Bybit extends BybitApi
             //
             Object volatility = this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
             return this.parseVolatilityHistory(volatility);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -10745,7 +10745,7 @@ public class Bybit extends BybitApi
                 put( "timestamp", timestamp );
                 put( "datetime", Bybit.this.iso8601(timestamp) );
             }});
-        }).thenApply(Greeks::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Greeks::new);
 
     }
 
@@ -10830,7 +10830,7 @@ public class Bybit extends BybitApi
             Object result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             Object data = this.safeList(result, "list", new ArrayList<Object>(Arrays.asList()));
             return this.parseAllGreeks(data, symbols);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -10994,7 +10994,7 @@ public class Bybit extends BybitApi
             //
             Object liquidations = this.addPaginationCursorToResult(response);
             return this.parseLiquidations(liquidations, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Liquidation::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Liquidation::new));
 
     }
 
@@ -11093,7 +11093,7 @@ public class Bybit extends BybitApi
     }});
             Helpers.addElementToObject(result, lastIndex, last);
             return result;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -11136,7 +11136,7 @@ public class Bybit extends BybitApi
             }}, parameters))).join();
             symbols = this.marketSymbols(symbols);
             return this.parseLeverageTiers(data, symbols, "symbol");
-        }).thenApply(LeverageTiers::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(LeverageTiers::new);
 
     }
 
@@ -11290,7 +11290,7 @@ final Object finalMarket = market;
             Map<String, Object> response = (this.privateGetV5ExecutionList(this.extend(request, parameters))).join();
             Object fundings = this.addPaginationCursorToResult(response);
             return this.parseIncomes(fundings, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, FundingHistory::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, FundingHistory::new));
 
     }
 
@@ -11422,7 +11422,7 @@ final Object finalMarket = market;
             Object resultList = this.safeList(result, "list", new ArrayList<Object>(Arrays.asList()));
             Object chain = this.safeDict(resultList, 0, new HashMap<String, Object>() {{}});
             return this.parseOption(chain, null, market);
-        }).thenApply(Option::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Option::new);
 
     }
 
@@ -11494,7 +11494,7 @@ final Object finalMarket = market;
             Object result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             Object resultList = this.safeList(result, "list", new ArrayList<Object>(Arrays.asList()));
             return this.parseOptionChain(resultList, null, "symbol");
-        }).thenApply(OptionChain::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OptionChain::new);
 
     }
 
@@ -11660,7 +11660,7 @@ final Object finalMarket = market;
             }
             Object positions = this.parsePositions(rawPositionsList, symbols, parameters);
             return this.filterBySinceLimit(positions, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Position::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Position::new));
 
     }
 
@@ -11775,7 +11775,7 @@ final Object finalMarket = market;
                 }
             }
             return result;
-        }).thenApply(Currencies::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Currencies::new);
 
     }
 
@@ -11846,7 +11846,7 @@ final Object finalMarket = market;
             String toCurrencyId = this.safeString(data, "toCoin", toCode);
             Map<String, Object> toCurrency = (Map<String, Object>) this.currency(toCurrencyId);
             return this.parseConversion(data, fromCurrency, toCurrency);
-        }).thenApply(Conversion::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Conversion::new);
 
     }
 
@@ -11891,7 +11891,7 @@ final Object finalMarket = market;
             //
             Object data = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             return this.parseConversion(data);
-        }).thenApply(Conversion::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Conversion::new);
 
     }
 
@@ -11972,7 +11972,7 @@ final Object finalMarket = market;
                 toCurrency = this.currency(toCurrencyId);
             }
             return this.parseConversion(result, fromCurrency, toCurrency);
-        }).thenApply(Conversion::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Conversion::new);
 
     }
 
@@ -12037,7 +12037,7 @@ final Object finalMarket = market;
             Object data = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             Object dataList = this.safeList(data, "list", new ArrayList<Object>(Arrays.asList()));
             return this.parseConversions(dataList, code, "fromCoin", "toCoin", since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Conversion::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Conversion::new));
 
     }
 
@@ -12177,7 +12177,7 @@ final Object finalMarket = market;
             Object result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             Object data = this.safeList(result, "list", new ArrayList<Object>(Arrays.asList()));
             return this.parseLongShortRatioHistory(data, market);
-        }).thenApply(res -> Helpers.toTypedList(res, LongShortRatio::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, LongShortRatio::new));
 
     }
 
@@ -12297,7 +12297,7 @@ final Object finalMarket = market;
             Object result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             Object ranks = this.safeList(result, "list", new ArrayList<Object>(Arrays.asList()));
             return this.parseADLRanks(ranks, symbols);
-        }).thenApply(res -> Helpers.toTypedList(res, ADL::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, ADL::new));
 
     }
 
@@ -12397,7 +12397,7 @@ final Object finalMarket = market;
             //
             Object result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             return this.parseMarginMode(result, market);
-        }).thenApply(MarginMode::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(MarginMode::new);
 
     }
 

@@ -164,7 +164,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
                 return (this.watchMultiple(url, messageHashes, this.extend(subscribe, parameters), messageHashes, null)).join();
             }
             return (this.watch(url, messageHash, this.extend(subscribe, parameters), messageHash, null)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -226,7 +226,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
                 put( "signature", signature );
             }};
             return (this.watchMultiple(url, messageHashes, this.extend(subscribe, parameters), messageHashes, null)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -246,7 +246,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             return (this.subscribe("RISK", new ArrayList<Object>(Arrays.asList(symbol)), parameters)).join();
-        }).thenApply(FundingRate::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(FundingRate::new);
 
     }
 
@@ -283,7 +283,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
                 return result;
             }
             return this.filterByArray(this.fundingRates, "symbol", symbols);
-        }).thenApply(FundingRates::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(FundingRates::new);
 
     }
 
@@ -312,7 +312,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
             channel = ((List<Object>) channelparametersVariable).get(0);
             parameters = ((List<Object>) channelparametersVariable).get(1);
             return (this.subscribe(((String)channel), new ArrayList<Object>(Arrays.asList(symbol)), parameters)).join();
-        }).thenApply(Ticker::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Ticker::new);
 
     }
 
@@ -365,7 +365,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
                 return result;
             }
             return this.filterByArray(this.tickers, "symbol", symbols);
-        }).thenApply(Tickers::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Tickers::new);
 
     }
 
@@ -593,7 +593,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
                 limit = Helpers.callDynamically(ohlcv, "getLimit", new Object[]{symbol, limit});
             }
             return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
-        }).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
 
     }
 
@@ -659,7 +659,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
             Object limit = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
             return (this.watchTradesForSymbols((Object)(new ArrayList<Object>(Arrays.asList(symbol))), (Object)(since), (Object)(limit), (Object)(parameters))).join();
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -694,7 +694,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{tradeSymbol, limit});
             }
             return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -782,7 +782,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
             Object limit = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             return (this.watchOrderBookForSymbols((Object)(new ArrayList<Object>(Arrays.asList(symbol))), (Object)(limit), (Object)(parameters))).join();
-        }).thenApply(OrderBook::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OrderBook::new);
 
     }
 
@@ -804,7 +804,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
             Object limit = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             return (this.subscribeMultiple("LEVEL2", symbols, parameters)).join();
-        }).thenApply(OrderBook::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OrderBook::new);
 
     }
 

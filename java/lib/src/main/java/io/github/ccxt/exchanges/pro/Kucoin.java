@@ -139,7 +139,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             Helpers.addElementToObject(this.options, "urls", urls);
             future = Helpers.GetValue(urls, connectId);
             return ((io.github.ccxt.ws.Future)future).getFuture().join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -187,7 +187,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
                 ((Map<String,Object>)Helpers.GetValue(this.options, "urls")).remove((String)connectId);
             }
             return null;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -223,7 +223,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
                 Helpers.addElementToObject(client.subscriptions, requestId, subscriptionHash);
             }
             return (this.watch(url, messageHash, message, subscriptionHash, subscription)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -260,7 +260,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
                 Helpers.addElementToObject(client.subscriptions, requestId, messageHash);
             }
             return (this.watch(((String)url), messageHash, message, messageHash, subscription)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -299,7 +299,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
                 Helpers.addElementToObject(client.subscriptions, requestId, subscribeHash);
             }
             return (this.watchMultiple(url, messageHashes, message, new ArrayList<Object>(Arrays.asList(subscribeHash)), subscription)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -310,7 +310,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
 
             Object utaToken = (this.authenticateUta()).join();
             return Helpers.add(Helpers.add(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "private"), "?token="), utaToken);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -357,7 +357,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
                 }
             }
             return this.safeString(this.options, "utaToken");
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -369,7 +369,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Object subscription = Helpers.getArg(optionalArgs, 1, null);
             return (this.unSubscribeMultiple(url, new ArrayList<Object>(Arrays.asList(messageHash)), topic, new ArrayList<Object>(Arrays.asList(subscriptionHash)), parameters, subscription)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -398,7 +398,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
                 }
             }
             return (this.watchMultiple(url, messageHashes, message, subscriptionHashes, subscription)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -431,7 +431,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
                 }
             }
             return (this.watchMultiple(url, messageHashes, message, subscriptionHashes, subscription)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -484,7 +484,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             }
             Object topic = Helpers.add(Helpers.add(method, ":"), Helpers.GetValue(market, "id"));
             return (this.subscribe(url, messageHash, topic, parameters)).join();
-        }).thenApply(Ticker::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Ticker::new);
 
     }
 
@@ -553,7 +553,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
                 Helpers.addElementToObject(subscription, "subMessageHashes", new ArrayList<Object>(Arrays.asList(subMessageHash, topic)));
                 return (this.unSubscribe(url, messageHash, topic, subMessageHash, parameters, subscription)).join();
             }
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -643,7 +643,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
                 }
             }
             return this.filterByArray(this.tickers, "symbol", symbols);
-        }).thenApply(Tickers::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Tickers::new);
 
     }
 
@@ -683,7 +683,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
                 Helpers.addElementToObject(client.subscriptions, requestId, messageHashWithSymbols);
             }
             return (this.watchMultiple(((String)url), messageHashes, message, messageHashes, subscription)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -714,7 +714,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
                 return tickers;
             }
             return this.filterByArray(this.tickers, "symbol", symbols);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -977,7 +977,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
                 return tickers;
             }
             return this.filterByArray(this.bidsasks, "symbol", symbols);
-        }).thenApply(Tickers::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Tickers::new);
 
     }
 
@@ -1018,7 +1018,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             }};
             Map<String, Object> message = this.extend(request, parameters);
             return (this.watchMultiple(url, messageHashes, message, messageHashes, null)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1167,7 +1167,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
                 limit = Helpers.callDynamically(ohlcv, "getLimit", new Object[]{symbol, limit});
             }
             return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
-        }).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
 
     }
 
@@ -1239,7 +1239,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
                 Helpers.addElementToObject(subscription, "subMessageHashes", new ArrayList<Object>(Arrays.asList(subMessageHash, topic)));
                 return (this.unSubscribe(url, messageHash, topic, messageHash, parameters, subscription)).join();
             }
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1395,7 +1395,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
                 return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
             }
             return (this.watchTradesForSymbols((Object)(new ArrayList<Object>(Arrays.asList(symbol))), (Object)(since), (Object)(limit), (Object)(parameters))).join();
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -1456,7 +1456,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{tradeSymbol, limit});
             }
             return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -1513,7 +1513,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
                 put( "symbols", finalSymbols );
             }};
             return (this.unSubscribeMultiple(url, messageHashes, topic, messageHashes, parameters, subscription)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1558,7 +1558,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
                 return (this.subscribePublicUta(messageHash, channel, symbol, parameters, subscription)).join();
             }
             return (this.unWatchTradesForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), parameters)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1758,7 +1758,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
                 return Helpers.callDynamically(orderbook, "limit", new Object[]{});
             }
             return (this.watchOrderBookForSymbols((Object)(new ArrayList<Object>(Arrays.asList(symbol))), (Object)(limit), (Object)(parameters))).join();
-        }).thenApply(OrderBook::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OrderBook::new);
 
     }
 
@@ -1816,7 +1816,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
                 return (this.subscribePublicUta(messageHash, channel, symbol, parameters, subscription)).join();
             }
             return (this.unWatchOrderBookForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), parameters)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1903,7 +1903,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             }
             Object orderbook = (this.subscribeMultiple(url, messageHashes, topic, subscriptionHashes, parameters, subscription)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
-        }).thenApply(OrderBook::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OrderBook::new);
 
     }
 
@@ -1978,7 +1978,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
                 put( "subMessageHashes", subscriptionHashes );
             }};
             return (this.unSubscribeMultiple(url, messageHashes, topic, messageHashes, parameters, subscription)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -2155,6 +2155,10 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         Object firstDelta = this.safeValue(cache, 0);
         Object nonce = this.safeInteger(orderbook, "nonce");
         Object firstDeltaStart = this.safeIntegerN(firstDelta, new ArrayList<Object>(Arrays.asList("sequenceStart", "sequence", "O")));
+        if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(nonce, null))) || Helpers.isTrue((Helpers.isEqual(firstDeltaStart, null)))))
+        {
+            return Helpers.opNeg(1);
+        }
         if (Helpers.isTrue(Helpers.isLessThan(nonce, Helpers.subtract(firstDeltaStart, 1))))
         {
             return Helpers.opNeg(1);
@@ -2164,6 +2168,10 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             Object delta = Helpers.GetValue(cache, i);
             Object deltaStart = this.safeIntegerN(delta, new ArrayList<Object>(Arrays.asList("sequenceStart", "sequence", "O")));
             Object deltaEnd = this.safeIntegerN(delta, new ArrayList<Object>(Arrays.asList("sequenceEnd", "sequence", "C"))); // todo check
+            if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(deltaStart, null))) || Helpers.isTrue((Helpers.isEqual(deltaEnd, null)))))
+            {
+                continue;
+            }
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isGreaterThanOrEqual(nonce, Helpers.subtract(deltaStart, 1)))) && Helpers.isTrue((Helpers.isLessThan(nonce, deltaEnd)))))
             {
                 return i;
@@ -2416,7 +2424,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
                 limit = Helpers.callDynamically(orders, "getLimit", new Object[]{symbol, limit});
             }
             return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -2881,7 +2889,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
             }
             return this.filterBySymbolSinceLimit(trades, symbol, since, limit, true);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -3148,7 +3156,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
                 }
                 return (this.watch(((String)url), messageHash, message, uniformType, null)).join();
             }
-        }).thenApply(Balances::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Balances::new);
 
     }
 
@@ -3197,7 +3205,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
                 client.resolve(Helpers.GetValue(this.balance, type), Helpers.add(type, ":balance"));
             }
             return null;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -3398,7 +3406,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
                 return snapshot;
             }
             return (this.subscribe(url, messageHash, topic, this.extend(request, parameters))).join();
-        }).thenApply(Position::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Position::new);
 
     }
 
@@ -3467,7 +3475,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
                 return newPositions;
             }
             return this.filterBySymbolsSinceLimit(cache, symbols, since, limit, true);
-        }).thenApply(res -> Helpers.toTypedList(res, Position::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Position::new));
 
     }
 
@@ -3531,7 +3539,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
                 client.resolve(cache, "positions");
             }
             return null;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -3566,7 +3574,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
                 client.resolve(position, Helpers.add("position:", symbol));
             }
             return null;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -3827,7 +3835,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             Object channel = "funding-fee";
             String messageHash = Helpers.add("fundingRate:", symbol);
             return (this.subscribePublicUta(messageHash, channel, symbol, parameters)).join();
-        }).thenApply(FundingRate::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(FundingRate::new);
 
     }
 
@@ -3863,7 +3871,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
                 put( "messageHashes", new ArrayList<Object>(Arrays.asList(unSubMessageHash)) );
             }};
             return (this.subscribePublicUta(unSubMessageHash, channel, symbol, parameters, subscription)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -3958,7 +3966,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             Object channel = "mark-price";
             String messageHash = Helpers.add("uta:ticker:", symbol);
             return (this.subscribePublicUta(messageHash, channel, symbol, parameters)).join();
-        }).thenApply(Ticker::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Ticker::new);
 
     }
 
@@ -3994,7 +4002,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
                 put( "messageHashes", new ArrayList<Object>(Arrays.asList(unSubMessageHash)) );
             }};
             return (this.subscribePublicUta(unSubMessageHash, channel, symbol, parameters, subscription)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 

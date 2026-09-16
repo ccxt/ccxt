@@ -492,7 +492,7 @@ public class Kalshi extends KalshiApi
                 return this.arraySlice(flatMarkets, 0, maxMarkets);
             }
             return flatMarkets;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -601,7 +601,7 @@ public class Kalshi extends KalshiApi
             // through fetchEvents({query}) and re-checks the cache, throwing a guidance-rich BadSymbol
             // on a genuine miss
             return (super.fetchOutcome(outcomeSymbol)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -683,7 +683,7 @@ public class Kalshi extends KalshiApi
                 }
             }
             return this.outcomes;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1039,7 +1039,7 @@ final Object finalOi = oi;
             //
             Object raw = this.safeValue(response, "market", response);
             return this.parsePredictionTicker(raw, ((Object)outcomeObj));
-        }).thenApply(PredictionTicker::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(PredictionTicker::new);
 
     }
 
@@ -1070,7 +1070,7 @@ final Object finalOi = oi;
                 put( "url", null );
                 put( "info", response );
             }};
-        }).thenApply(Status::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Status::new);
 
     }
 
@@ -1098,7 +1098,7 @@ final Object finalOi = oi;
             Map<String, Object> response = (this.kalshiPublicGetMarketsTicker(this.extend(request, parameters))).join();
             Object raw = this.safeDict(response, "market", response);
             return this.parsePredictionOpenInterest(raw, ((Object)outcomeObj));
-        }).thenApply(PredictionOpenInterest::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(PredictionOpenInterest::new);
 
     }
 
@@ -1362,7 +1362,7 @@ final Object finalOi = oi;
                 startIndex = this.sum(startIndex, chunkSize);
             }
             return result;
-        }).thenApply(PredictionTickers::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(PredictionTickers::new);
 
     }
 
@@ -1441,7 +1441,7 @@ final Object finalOi = oi;
                 }
             }
             return this.safePredictionOrderBook(this.sortedOrders(this.safeString(outcomeObj, "outcome", outcome), timestamp, bids, asks), outcomeObj);
-        }).thenApply(PredictionOrderBook::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(PredictionOrderBook::new);
 
     }
 
@@ -1587,7 +1587,7 @@ final Object finalOi = oi;
             // parseOHLCV can stamp each candle at its OPEN (the CCXT convention)
             Helpers.addElementToObject(this.options, "ohlcvCandleDurationSeconds", tf);
             return this.parseOHLCVs(usableCandles, ((Object)outcomeObj), timeframe, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
 
     }
 
@@ -1689,7 +1689,7 @@ final Object finalOi = oi;
                 }
             }
             return this.parsePredictionTrades(filteredTrades, outcomeObj, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, PredictionTrade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, PredictionTrade::new));
 
     }
 
@@ -1830,7 +1830,7 @@ final Object finalOi = oi;
                 }
             }
             return this.filterBySinceLimit(result, since, limit, "timestamp");
-        }).thenApply(res -> Helpers.toTypedList(res, PredictionTrade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, PredictionTrade::new));
 
     }
 
@@ -1945,7 +1945,7 @@ final Object finalOi = oi;
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Map<String, Object> response = (this.kalshiPrivateGetPortfolioBalance(parameters)).join();
             return this.parseBalance(response);
-        }).thenApply(Balances::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Balances::new);
 
     }
 
@@ -2041,7 +2041,7 @@ final Object finalOi = oi;
                 }
             }
             return result;
-        }).thenApply(res -> Helpers.toTypedList(res, PredictionPosition::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, PredictionPosition::new));
 
     }
 
@@ -2097,7 +2097,7 @@ final Object finalOi = oi;
                 }
             }
             return this.filterBySinceLimit(result, since, limit, "timestamp");
-        }).thenApply(res -> Helpers.toTypedList(res, PredictionSettlement::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, PredictionSettlement::new));
 
     }
 
@@ -2275,7 +2275,7 @@ final Object finalOi = oi;
             Map<String, Object> response = (this.kalshiPrivateGetPortfolioOrders(this.extend(request, parameters))).join();
             Object orders = (List<Object>)(this.safeList(response, "orders", new ArrayList<Object>(Arrays.asList())));
             return this.parsePredictionOrders(orders, outcomeObj, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, PredictionOrder::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, PredictionOrder::new));
 
     }
 
@@ -2318,7 +2318,7 @@ final Object finalOi = oi;
             Map<String, Object> response = (this.kalshiPrivateGetPortfolioOrders(this.extend(request, parameters))).join();
             Object orders = (List<Object>)(this.safeList(response, "orders", new ArrayList<Object>(Arrays.asList())));
             return this.parsePredictionOrders(orders, outcomeObj, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, PredictionOrder::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, PredictionOrder::new));
 
     }
 
@@ -2356,7 +2356,7 @@ final Object finalOi = oi;
                 }
             }
             return this.filterBySinceLimit(result, since, limit, "timestamp");
-        }).thenApply(res -> Helpers.toTypedList(res, PredictionOrder::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, PredictionOrder::new));
 
     }
 
@@ -2387,7 +2387,7 @@ final Object finalOi = oi;
                 put( "order_id", id );
             }}, parameters))).join();
             return this.parsePredictionOrder(this.safeValue(response, "order", response));
-        }).thenApply(PredictionOrder::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(PredictionOrder::new);
 
     }
 
@@ -2623,7 +2623,7 @@ final Object finalOi = oi;
                 Helpers.addElementToObject(order, "status", resolvedStatus);
             }
             return order;
-        }).thenApply(PredictionOrder::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(PredictionOrder::new);
 
     }
 
@@ -2664,7 +2664,7 @@ final Object finalOi = oi;
             (this.loadOutcome(outcome)).join();
             (this.cancelOrder((Object)(id), (Object)(outcome))).join();
             return (this.createOrder((Object)(outcome), (Object)(type), (Object)(side), (Object)(amount), (Object)(price), (Object)(parameters))).join();
-        }).thenApply(PredictionOrder::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(PredictionOrder::new);
 
     }
 
@@ -2707,7 +2707,7 @@ final Object finalOi = oi;
                 Helpers.addElementToObject(order, "status", "canceled");
             }
             return order;
-        }).thenApply(PredictionOrder::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(PredictionOrder::new);
 
     }
 
@@ -2763,7 +2763,7 @@ final Object finalOi = oi;
                 }
             }
             return canceledOrders;
-        }).thenApply(res -> Helpers.toTypedList(res, PredictionOrder::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, PredictionOrder::new));
 
     }
 
@@ -2868,7 +2868,7 @@ final Object finalOi = oi;
             // and its query filter would drop a "bitcoin"-searched event whose title only says "BTC"
             Object postParams = this.omit(parameters, new ArrayList<Object>(Arrays.asList("tags", "category", "series_ticker")));
             return this.applyEventFetchParams(result, postParams, new ArrayList<Object>(Arrays.asList()));
-        }).thenApply(res -> Helpers.toTypedList(res, PredictionEvent::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, PredictionEvent::new));
 
     }
 
@@ -2939,7 +2939,7 @@ final Object finalOi = oi;
                 }
             }
             return rawEvents;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -2970,7 +2970,7 @@ final Object finalOi = oi;
                 Helpers.addElementToObject(fullEvent, "markets", this.safeList(response, "markets", new ArrayList<Object>(Arrays.asList())));
             }
             return fullEvent;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -3053,7 +3053,7 @@ final Object finalOi = oi;
                 }
             }
             return ordered;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -3133,7 +3133,7 @@ final Object finalOi = oi;
                 }
             }
             return rawEvents;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -3156,7 +3156,7 @@ final Object finalOi = oi;
             Object eventVar = this.parseEvent(fullEvent);
             this.indexEventOutcomes(eventVar);
             return eventVar;
-        }).thenApply(PredictionEvent::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(PredictionEvent::new);
 
     }
 

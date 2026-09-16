@@ -909,7 +909,7 @@ public class Weex extends WeexApi
                 put( "url", null );
                 put( "info", response );
             }};
-        }).thenApply(Status::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Status::new);
 
     }
 
@@ -947,7 +947,7 @@ public class Weex extends WeexApi
             //     }
             //
             return this.safeInteger(response, "serverTime");
-        }).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
 
     }
 
@@ -1077,7 +1077,7 @@ public class Weex extends WeexApi
             //     ]
             //
             return this.parseCurrencies(response);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1179,7 +1179,7 @@ public class Weex extends WeexApi
             Object contractArray = this.safeList(contractResponse, "symbols", new ArrayList<Object>(Arrays.asList()));
             List<Object> result = (List<Object>) this.arrayConcat(spotArray, contractArray);
             return this.parseMarkets(result);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1445,7 +1445,7 @@ public class Weex extends WeexApi
                 response = new ArrayList<Object>(Arrays.asList(response));
             }
             return this.parseTickers(response, symbols);
-        }).thenApply(Tickers::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Tickers::new);
 
     }
 
@@ -1499,7 +1499,7 @@ public class Weex extends WeexApi
                 ((List<Object>)results).add(this.parseTicker(rawTicker, tickerMarket));
             }
             return this.filterByArrayTickers(results, "symbol", symbols);
-        }).thenApply(Tickers::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Tickers::new);
 
     }
 
@@ -1644,7 +1644,7 @@ public class Weex extends WeexApi
             //     ]
             //
             return this.parseLastPrices(response, symbols);
-        }).thenApply(LastPrices::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(LastPrices::new);
 
     }
 
@@ -1722,7 +1722,7 @@ public class Weex extends WeexApi
                 Helpers.addElementToObject(ticker, "markPrice", this.safeString(ticker, "price"));
             }
             return this.parseTicker(ticker, market);
-        }).thenApply(Ticker::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Ticker::new);
 
     }
 
@@ -1764,7 +1764,7 @@ public class Weex extends WeexApi
             //     ]
             //
             return this.parseTickers(response, symbols);
-        }).thenApply(Tickers::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Tickers::new);
 
     }
 
@@ -1826,7 +1826,7 @@ public class Weex extends WeexApi
             Object orderbook = this.parseOrderBook(response, symbol);
             Helpers.addElementToObject(orderbook, "nonce", this.safeInteger(response, "lastUpdateId"));
             return orderbook;
-        }).thenApply(OrderBook::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OrderBook::new);
 
     }
 
@@ -1868,7 +1868,7 @@ public class Weex extends WeexApi
             {
                 return (this.fetchContractOHLCV((Object)(symbol), (Object)(timeframe), (Object)(since), (Object)(limit), (Object)(parameters))).join();
             }
-        }).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
 
     }
 
@@ -1905,7 +1905,7 @@ public class Weex extends WeexApi
             }};
             List<Object> response = (this.publicGetApiV3MarketKlines(this.extend(request, parameters))).join();
             return this.parseOHLCVs(this.toArray(response), market, timeframe, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
 
     }
 
@@ -2023,7 +2023,7 @@ public class Weex extends WeexApi
                 }
             }
             return this.parseOHLCVs(this.toArray(response), market, timeframe, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
 
     }
 
@@ -2092,7 +2092,7 @@ public class Weex extends WeexApi
                 responseList = this.toArray(response);
             }
             return this.parseTrades(responseList, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -2243,7 +2243,7 @@ public class Weex extends WeexApi
             }};
             Map<String, Object> response = (this.contractGetCapiV3MarketOpenInterest(this.extend(request, parameters))).join();
             return this.parseOpenInterest(response, market);
-        }).thenApply(OpenInterest::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OpenInterest::new);
 
     }
 
@@ -2320,7 +2320,7 @@ public class Weex extends WeexApi
             //     ]
             //
             return this.parseFundingRates(response, symbols);
-        }).thenApply(FundingRates::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(FundingRates::new);
 
     }
 
@@ -2407,7 +2407,7 @@ public class Weex extends WeexApi
             parameters = ((List<Object>) requestparametersVariable).get(1);
             List<Object> response = (this.contractGetCapiV3MarketFundingRate(this.extend(request, parameters))).join();
             return this.parseFundingRateHistories(response, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, FundingRateHistory::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, FundingRateHistory::new));
 
     }
 
@@ -2517,7 +2517,7 @@ public class Weex extends WeexApi
                 }
             }
             return this.parseBalance(response);
-        }).thenApply(Balances::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Balances::new);
 
     }
 
@@ -2616,7 +2616,7 @@ public class Weex extends WeexApi
             //     ]
             //
             return this.parseTransfers(response, currency, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, TransferEntry::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, TransferEntry::new));
 
     }
 
@@ -2690,7 +2690,7 @@ public class Weex extends WeexApi
                 }
                 return (this.createSpotOrder(symbol, type, side, amount, price, parameters)).join();
             }
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -2736,7 +2736,7 @@ public class Weex extends WeexApi
                 throw new NullResponse(Helpers.add(this.id, " parseOrder() returned empty response")) ;
             }
             return this.parseOrder(response, market);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -2847,7 +2847,7 @@ public class Weex extends WeexApi
                 throw new NullResponse(Helpers.add(this.id, " createOrder() returned empty response")) ;
             }
             return this.parseOrder(response, market);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -3148,7 +3148,7 @@ public class Weex extends WeexApi
             Object order = this.parseOrder(response, market);
             Helpers.addElementToObject(order, "status", "canceled");
             return order;
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -3208,7 +3208,7 @@ public class Weex extends WeexApi
                 put( "status", "canceled" );
             }};
             return this.parseOrders(response, market, null, null, extendedParams);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -3284,7 +3284,7 @@ public class Weex extends WeexApi
                 put( "status", "canceled" );
             }};
             return this.parseOrders(ordersResponse, market, null, null, extendedParams);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -3370,7 +3370,7 @@ public class Weex extends WeexApi
                 throw new NullResponse(Helpers.add(this.id, " parseOrder() returned empty response")) ;
             }
             return this.parseOrder(response, market);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -3536,7 +3536,7 @@ public class Weex extends WeexApi
                 put( "status", "open" );
             }};
             return this.parseOrders(response, market, since, limit, extendedParams);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -3590,7 +3590,7 @@ public class Weex extends WeexApi
                 orders = (this.fetchCanceledAndClosedOrders((Object)(symbol), (Object)(since), (Object)(limit), (Object)(parameters))).join();
             }
             return this.filterBy(orders, "status", "closed");
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -3644,7 +3644,7 @@ public class Weex extends WeexApi
                 orders = (this.fetchCanceledAndClosedOrders((Object)(symbol), (Object)(since), (Object)(limit), (Object)(parameters))).join();
             }
             return this.filterBy(orders, "status", "canceled");
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -3728,7 +3728,7 @@ public class Weex extends WeexApi
             //     ]
             //
             return this.parseOrders(response, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -3832,7 +3832,7 @@ public class Weex extends WeexApi
             //     ]
             //
             return this.parseOrders(response, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -4095,7 +4095,7 @@ public class Weex extends WeexApi
                 put( "orderId", id );
             }};
             return (this.fetchMyTrades((Object)(symbol), (Object)(since), (Object)(limit), (Object)(this.extend(request, parameters)))).join();
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -4214,7 +4214,7 @@ public class Weex extends WeexApi
                 responseList = this.toArray(response);
             }
             return this.parseTrades(responseList, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -4320,7 +4320,7 @@ public class Weex extends WeexApi
                 items = this.toArray(billsResponse);
             }
             return this.parseLedger(items, currency, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, LedgerEntry::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, LedgerEntry::new));
 
     }
 
@@ -4527,7 +4527,7 @@ public class Weex extends WeexApi
             //
             Object items = this.safeList(response, "items", new ArrayList<Object>(Arrays.asList()));
             return this.parseIncomes(items, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, FundingHistory::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, FundingHistory::new));
 
     }
 
@@ -4593,7 +4593,7 @@ public class Weex extends WeexApi
                 response = (this.contractPrivateGetCapiV3AccountPositionAllPosition(parameters)).join();
             }
             return this.parsePositions(response, symbols);
-        }).thenApply(res -> Helpers.toTypedList(res, Position::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Position::new));
 
     }
 
@@ -4614,7 +4614,7 @@ public class Weex extends WeexApi
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Object positions = (this.fetchPositionsForSymbol((Object)(symbol), (Object)(parameters))).join();
             return this.safeDict(positions, 0);
-        }).thenApply(Position::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Position::new);
 
     }
 
@@ -4650,7 +4650,7 @@ public class Weex extends WeexApi
             }};
             List<Object> response = (this.contractPrivateGetCapiV3AccountPositionSinglePosition(this.extend(request, parameters))).join();
             return this.parsePositions(response, new ArrayList<Object>(Arrays.asList(Helpers.GetValue(market, "symbol"))));
-        }).thenApply(res -> Helpers.toTypedList(res, Position::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Position::new));
 
     }
 
@@ -4812,7 +4812,7 @@ public class Weex extends WeexApi
             //     ]
             //
             return this.parsePositions(response);
-        }).thenApply(res -> Helpers.toTypedList(res, Position::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Position::new));
 
     }
 
@@ -4844,7 +4844,7 @@ public class Weex extends WeexApi
             List<Object> response = (this.contractPrivatePostCapiV3ClosePositions(this.extend(request, parameters))).join();
             List<Object> orders = this.parseOrders(response, market);
             return this.safeDict(orders, 0);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -4884,7 +4884,7 @@ public class Weex extends WeexApi
             //     }
             //
             return this.parseTradingFee(response, market);
-        }).thenApply(TradingFeeInterface::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(TradingFeeInterface::new);
 
     }
 
@@ -4948,7 +4948,7 @@ public class Weex extends WeexApi
             //
             Object marginMode = this.safeDict(response, 0, new HashMap<String, Object>() {{}});
             return this.parseMarginMode(marginMode, market);
-        }).thenApply(MarginMode::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(MarginMode::new);
 
     }
 
@@ -4975,7 +4975,7 @@ public class Weex extends WeexApi
             symbols = this.marketSymbols(symbols);
             List<Object> response = (this.contractPrivateGetCapiV3AccountSymbolConfig(parameters)).join();
             return this.parseMarginModes(this.toArray(response), symbols, "symbol", "swap");
-        }).thenApply(MarginModes::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(MarginModes::new);
 
     }
 
@@ -5031,7 +5031,7 @@ public class Weex extends WeexApi
                 put( "marginType", Weex.this.encodeMarginMode(marginMode) );
             }};
             return (this.contractPrivatePostCapiV3AccountMarginType(this.extend(request, parameters))).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -5075,7 +5075,7 @@ public class Weex extends WeexApi
             List<Object> response = (this.contractPrivateGetCapiV3AccountSymbolConfig(this.extend(request, parameters))).join();
             Object marginMode = this.safeDict(response, 0, new HashMap<String, Object>() {{}});
             return this.parseLeverage(marginMode, market);
-        }).thenApply(Leverage::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Leverage::new);
 
     }
 
@@ -5102,7 +5102,7 @@ public class Weex extends WeexApi
             symbols = this.marketSymbols(symbols);
             List<Object> response = (this.contractPrivateGetCapiV3AccountSymbolConfig(parameters)).join();
             return this.parseLeverages(this.toArray(response), symbols, "symbol", "swap");
-        }).thenApply(Leverages::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Leverages::new);
 
     }
 
@@ -5193,7 +5193,7 @@ public class Weex extends WeexApi
                 }
             }
             return (this.contractPrivatePostCapiV3AccountLeverage(this.extend(request, parameters))).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -5229,7 +5229,7 @@ public class Weex extends WeexApi
                 put( "info", response );
                 put( "hedged", (Helpers.isEqual(finalSeparatedType, "SEPARATED")) );
             }};
-        }).thenApply(PositionModeInfo::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(PositionModeInfo::new);
 
     }
 
@@ -5276,7 +5276,7 @@ public class Weex extends WeexApi
                 put( "separatedType", separatedType );
             }};
             return (this.contractPrivatePostCapiV3AccountMarginType(this.extend(request, parameters))).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -5310,7 +5310,7 @@ public class Weex extends WeexApi
                 put( "amount", Weex.this.parseNumber(amount) );
                 put( "type", parsedType );
             }});
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -5359,7 +5359,7 @@ public class Weex extends WeexApi
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             return (this.modifyMarginHelper(symbol, amount, 2, parameters)).join();
-        }).thenApply(MarginModification::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(MarginModification::new);
 
     }
 
@@ -5381,7 +5381,7 @@ public class Weex extends WeexApi
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             return (this.modifyMarginHelper(symbol, amount, 1, parameters)).join();
-        }).thenApply(MarginModification::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(MarginModification::new);
 
     }
 

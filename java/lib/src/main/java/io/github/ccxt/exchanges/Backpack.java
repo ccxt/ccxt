@@ -719,7 +719,7 @@ public class Backpack extends BackpackApi
             //     ]
             //
             return this.parseCurrencies(response);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -817,7 +817,7 @@ public class Backpack extends BackpackApi
             }
             List<Object> response = (this.publicGetApiV1Markets(parameters)).join();
             return this.parseMarkets(response);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1042,7 +1042,7 @@ public class Backpack extends BackpackApi
             List<Object> response = (this.publicGetApiV1Tickers(this.extend(request, parameters))).join();
             Object tickers = this.parseTickers(response);
             return this.filterByArrayTickers(tickers, "symbol", symbols);
-        }).thenApply(Tickers::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Tickers::new);
 
     }
 
@@ -1071,7 +1071,7 @@ public class Backpack extends BackpackApi
             }};
             Map<String, Object> response = (this.publicGetApiV1Ticker(this.extend(request, parameters))).join();
             return this.parseTicker(response, market);
-        }).thenApply(Ticker::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Ticker::new);
 
     }
 
@@ -1188,7 +1188,7 @@ public class Backpack extends BackpackApi
             Object orderbook = this.parseOrderBook(response, symbol, timestamp);
             Helpers.addElementToObject(orderbook, "nonce", this.safeInteger(response, "lastUpdateId"));
             return orderbook;
-        }).thenApply(OrderBook::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OrderBook::new);
 
     }
 
@@ -1255,7 +1255,7 @@ public class Backpack extends BackpackApi
             List<Object> response = (this.publicGetApiV1Klines(this.extend(request, parameters))).join();
             List<Object> ohlcvs = this.toArray(response);
             return this.parseOHLCVs(ohlcvs, market, timeframe, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
 
     }
 
@@ -1311,7 +1311,7 @@ public class Backpack extends BackpackApi
             List<Object> response = (this.publicGetApiV1MarkPrices(this.extend(request, parameters))).join();
             Object data = this.safeDict(response, 0, new HashMap<String, Object>() {{}});
             return this.parseFundingRate(data, market);
-        }).thenApply(FundingRate::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(FundingRate::new);
 
     }
 
@@ -1383,7 +1383,7 @@ public class Backpack extends BackpackApi
             List<Object> response = (this.publicGetApiV1OpenInterest(this.extend(request, parameters))).join();
             Object interest = this.safeDict(response, 0, new HashMap<String, Object>() {{}});
             return this.parseOpenInterest(interest, market);
-        }).thenApply(OpenInterest::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OpenInterest::new);
 
     }
 
@@ -1474,7 +1474,7 @@ public class Backpack extends BackpackApi
             }
             List<Object> sorted = this.sortBy(rates, "timestamp");
             return this.filterBySymbolSinceLimit(sorted, Helpers.GetValue(market, "symbol"), since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, FundingRateHistory::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, FundingRateHistory::new));
 
     }
 
@@ -1522,7 +1522,7 @@ public class Backpack extends BackpackApi
             }
             List<Object> responseList = this.toArray(response);
             return this.parseTrades(responseList, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -1581,7 +1581,7 @@ public class Backpack extends BackpackApi
             List<Object> response = (this.privateGetWapiV1HistoryFills(this.extend(request, parameters))).join();
             List<Object> responseList = this.toArray(response);
             return this.parseTrades(responseList, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -1708,7 +1708,7 @@ public class Backpack extends BackpackApi
                 put( "url", null );
                 put( "info", response );
             }};
-        }).thenApply(Status::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Status::new);
 
     }
 
@@ -1731,7 +1731,7 @@ public class Backpack extends BackpackApi
             //     1753131712992
             //
             return this.safeInteger(response, 0, this.milliseconds());
-        }).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
 
     }
 
@@ -1755,7 +1755,7 @@ public class Backpack extends BackpackApi
             }
             Map<String, Object> response = (this.privateGetApiV1Capital(parameters)).join();
             return this.parseBalance(response);
-        }).thenApply(Balances::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Balances::new);
 
     }
 
@@ -1840,7 +1840,7 @@ public class Backpack extends BackpackApi
             }
             List<Object> response = (this.privateGetWapiV1CapitalDeposits(this.extend(request, parameters))).join();
             return this.parseTransactions(response, currency, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
 
     }
 
@@ -1893,7 +1893,7 @@ public class Backpack extends BackpackApi
             }
             List<Object> response = (this.privateGetWapiV1CapitalWithdrawals(this.extend(request, parameters))).join();
             return this.parseTransactions(response, currency, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
 
     }
 
@@ -1942,7 +1942,7 @@ public class Backpack extends BackpackApi
             Helpers.addElementToObject(request, "blockchain", networkId);
             Map<String, Object> response = (this.privatePostWapiV1CapitalWithdrawals(this.extend(request, query))).join();
             return this.parseTransaction(response, currency);
-        }).thenApply(Transaction::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Transaction::new);
 
     }
 
@@ -2119,7 +2119,7 @@ public class Backpack extends BackpackApi
             }};
             Map<String, Object> response = (this.privateGetWapiV1CapitalDepositAddress(this.extend(request, parameters))).join();
             return this.parseDepositAddress(response, currency);
-        }).thenApply(DepositAddress::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(DepositAddress::new);
 
     }
 
@@ -2189,7 +2189,7 @@ public class Backpack extends BackpackApi
             Object orderRequest = this.createOrderRequest(symbol, type, side, amount, price, parameters);
             Map<String, Object> response = (this.privatePostApiV1Order(orderRequest)).join();
             return this.parseOrder(response, market);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -2228,7 +2228,7 @@ public class Backpack extends BackpackApi
             }
             List<Object> response = (this.privatePostApiV1Orders(ordersRequests)).join();
             return this.parseOrders(response);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -2384,7 +2384,7 @@ public class Backpack extends BackpackApi
             }
             List<Object> response = (this.privateGetApiV1Orders(this.extend(request, parameters))).join();
             return this.parseOrders(response, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -2420,7 +2420,7 @@ public class Backpack extends BackpackApi
             }};
             Map<String, Object> response = (this.privateGetApiV1Order(this.extend(request, parameters))).join();
             return this.parseOrder(response);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -2456,7 +2456,7 @@ public class Backpack extends BackpackApi
             }};
             Map<String, Object> response = (this.privateDeleteApiV1Order(this.extend(request, parameters))).join();
             return this.parseOrder(response);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -2490,7 +2490,7 @@ public class Backpack extends BackpackApi
             }};
             List<Object> response = (this.privateDeleteApiV1Orders(this.extend(request, parameters))).join();
             return this.parseOrders(response, market);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -2531,7 +2531,7 @@ public class Backpack extends BackpackApi
             }
             List<Object> response = (this.privateGetWapiV1HistoryOrders(this.extend(request, parameters))).join();
             return this.parseOrders(response, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -2732,7 +2732,7 @@ public class Backpack extends BackpackApi
             }
             symbols = this.marketSymbols(symbols);
             return this.filterByArrayPositions(positions, "symbol", symbols, false);
-        }).thenApply(res -> Helpers.toTypedList(res, Position::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Position::new));
 
     }
 
@@ -2867,7 +2867,7 @@ public class Backpack extends BackpackApi
             }
             List<Object> response = (this.privateGetWapiV1HistoryFunding(this.extend(request, parameters))).join();
             return this.parseIncomes(response, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, FundingHistory::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, FundingHistory::new));
 
     }
 

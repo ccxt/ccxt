@@ -96,7 +96,7 @@ public class Blockchaincom extends io.github.ccxt.exchanges.Blockchaincom
             }};
             Map<String, Object> request = this.deepExtend(subscribe, parameters);
             return (this.watch(url, messageHash, request, messageHash, request)).join();
-        }).thenApply(Balances::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Balances::new);
 
     }
 
@@ -201,7 +201,7 @@ public class Blockchaincom extends io.github.ccxt.exchanges.Blockchaincom
                 limit = Helpers.callDynamically(ohlcv, "getLimit", new Object[]{symbol, limit});
             }
             return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
-        }).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
 
     }
 
@@ -286,7 +286,7 @@ public class Blockchaincom extends io.github.ccxt.exchanges.Blockchaincom
             }};
             request = this.deepExtend(request, parameters);
             return (this.watch(url, messageHash, request, messageHash, null)).join();
-        }).thenApply(Ticker::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Ticker::new);
 
     }
 
@@ -416,7 +416,7 @@ public class Blockchaincom extends io.github.ccxt.exchanges.Blockchaincom
             request = this.deepExtend(request, parameters);
             Object trades = (this.watch(url, messageHash, request, messageHash, request)).join();
             return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -543,7 +543,7 @@ public class Blockchaincom extends io.github.ccxt.exchanges.Blockchaincom
                 limit = Helpers.callDynamically(orders, "getLimit", new Object[]{symbol, limit});
             }
             return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -781,7 +781,7 @@ final Object finalTradeId = tradeId;
             Map<String, Object> request = this.deepExtend(subscribe, parameters);
             Object orderbook = (this.watch(url, messageHash, request, messageHash, null)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
-        }).thenApply(OrderBook::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OrderBook::new);
 
     }
 
@@ -936,7 +936,7 @@ final Object finalTradeId = tradeId;
                 return this.watch(url, messageHash, this.extend(request, parameters), messageHash, null);
             }
             return ((io.github.ccxt.ws.Future)future).getFuture().join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 }

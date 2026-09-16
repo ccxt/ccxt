@@ -22,7 +22,7 @@ public class TestUnWatchPositions extends BaseTest {
         (exchange.sleep(3000)).join();
         ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "createOrder", new Object[]{"BTC/USDT:USDT", "market", "buy", 0.001})).join();
             return null;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
     public CompletableFuture<Object> testUnWatchPositions(Exchange exchange, Object skippedProperties, Object symbol)
@@ -96,7 +96,7 @@ public class TestUnWatchPositions extends BaseTest {
         // Verify resubscription works
         Assert(Helpers.isArray(resubscribeResponse), Helpers.add(Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), " must allow resubscription after unwatch, returned "), exchange.json(resubscribeResponse)));
         return true;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 

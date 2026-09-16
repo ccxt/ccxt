@@ -106,7 +106,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
                 }
             }
             return result;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -142,7 +142,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
                 put( "symbols", new ArrayList<Object>(Arrays.asList(symbol)) );
             }};
             return (this.watch(url, messageHash, this.deepExtend(request, parameters), messageHash, subscription)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -158,7 +158,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
             (this.authenticate()).join();
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "private");
             return (this.watch(url, messageHash, null, 1, null)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -206,7 +206,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
                 limit = Helpers.callDynamically(ohlcv, "getLimit", new Object[]{symbol, limit});
             }
             return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
-        }).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
 
     }
 
@@ -255,7 +255,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
                 put( "symbols", new ArrayList<Object>(Arrays.asList(finalSymbol)) );
             }};
             return (this.watch(url, messageHash, this.deepExtend(request, parameters), messageHash, subscription)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -371,7 +371,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
             }
             return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -390,7 +390,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             return (this.unSubscribe("trades", "trades", symbol, parameters)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -429,7 +429,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
             }
             return this.filterBySymbolSinceLimit(trades, symbol, since, limit, true);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -448,7 +448,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             return (this.subscribe("ticker", symbol, parameters)).join();
-        }).thenApply(Ticker::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Ticker::new);
 
     }
 
@@ -467,7 +467,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             return (this.unSubscribe("ticker", "ticker", symbol, parameters)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -816,7 +816,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
             }
             Object orderbook = (this.subscribe("book", symbol, this.deepExtend(request, parameters))).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
-        }).thenApply(OrderBook::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OrderBook::new);
 
     }
 
@@ -1009,7 +1009,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
             parameters = this.omit(parameters, "wallet");
             String messageHash = Helpers.add("balance:", balanceType);
             return (this.subscribePrivate(messageHash)).join();
-        }).thenApply(Balances::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Balances::new);
 
     }
 
@@ -1253,7 +1253,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
                 this.watch(url, messageHash, message, messageHash, null);
             }
             return ((io.github.ccxt.ws.Future)future).getFuture().join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1313,7 +1313,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
                 limit = Helpers.callDynamically(orders, "getLimit", new Object[]{symbol, limit});
             }
             return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 

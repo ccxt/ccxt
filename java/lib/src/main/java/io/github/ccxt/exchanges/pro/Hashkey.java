@@ -87,7 +87,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
             }};
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "public");
             return (this.watch(url, messageHash, this.deepExtend(request, parameters), messageHash, null)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -99,7 +99,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
             Object listenKey = (this.authenticate()).join();
             Object url = this.getPrivateUrl(listenKey);
             return (this.watch(url, messageHash, null, messageHash, null)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -145,7 +145,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
                 limit = Helpers.callDynamically(ohlcv, "getLimit", new Object[]{symbol, limit});
             }
             return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
-        }).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
 
     }
 
@@ -247,7 +247,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
             Object topic = "realtimes";
             String messageHash = Helpers.add("ticker:", symbol);
             return (this.wathPublic(market, topic, messageHash, parameters)).join();
-        }).thenApply(Ticker::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Ticker::new);
 
     }
 
@@ -323,7 +323,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
             }
             return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -404,7 +404,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
             String messageHash = Helpers.add("orderbook:", symbol);
             Object orderbook = (this.wathPublic(market, topic, messageHash, parameters)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
-        }).thenApply(OrderBook::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OrderBook::new);
 
     }
 
@@ -493,7 +493,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
                 limit = Helpers.callDynamically(orders, "getLimit", new Object[]{symbol, limit});
             }
             return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -646,7 +646,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
             }
             return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -799,7 +799,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
                 return positions;
             }
             return this.filterBySymbolsSinceLimit(this.positions, symbols, since, limit, true);
-        }).thenApply(res -> Helpers.toTypedList(res, Position::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Position::new));
 
     }
 
@@ -919,7 +919,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
                 client.future((String)Helpers.add(type, ":fetchBalanceSnapshot")).getFuture().join();
             }
             return (this.watch(url, messageHash, null, messageHash, null)).join();
-        }).thenApply(Balances::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Balances::new);
 
     }
 
@@ -960,7 +960,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
                 client.resolve(Helpers.GetValue(this.balance, type), Helpers.add("balance:", type));
             }
             return null;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1069,7 +1069,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
             // keeps an alone-leader rejection from crashing the process
             ((io.github.ccxt.ws.Future)future).getFuture().join();
             return listenKey;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1101,7 +1101,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
                 ((Map<String,Object>)this.clients).remove((String)url);
             }
             return null;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 

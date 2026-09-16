@@ -147,7 +147,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
                 put( "params", channels );
             }};
             return (this.watchMultiple(url, messageHashes, this.deepExtend(message, parameters), messageHashes, this.extend(subscriptionParams, subscription))).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -182,7 +182,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
                 Helpers.addElementToObject(subscription, "id", id);
             }
             return (this.watchMultiple(url, messageHashes, parameters, new ArrayList<Object>(Arrays.asList("private")), subscription)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -210,7 +210,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
             String messageHash = Helpers.add("ticker::", symbol);
             Object channel = Helpers.add(marketId, "@ticker");
             return (this.watchPublic(new ArrayList<Object>(Arrays.asList(messageHash)), new ArrayList<Object>(Arrays.asList(channel)), parameters)).join();
-        }).thenApply(Ticker::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Ticker::new);
 
     }
 
@@ -230,7 +230,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             return (this.unWatchTickers(new ArrayList<Object>(Arrays.asList(symbol)), parameters)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -276,7 +276,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
             }
             (this.watchPublic(messageHashes, channels, parameters)).join();
             return this.filterByArray(this.tickers, "symbol", symbols);
-        }).thenApply(Tickers::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Tickers::new);
 
     }
 
@@ -343,7 +343,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
                 put( "unsubscribe", true );
             }});
             return (this.watchPublic(messageHashes, channels, parameters, subscription)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -410,7 +410,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
             Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             Object result = (this.watchOHLCVForSymbols(new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(symbol, timeframe)))), since, limit, parameters)).join();
             return Helpers.GetValue(Helpers.GetValue(result, symbol), timeframe);
-        }).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
 
     }
 
@@ -432,7 +432,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
             Object timeframe = Helpers.getArg(optionalArgs, 0, "1m");
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             return (this.unWatchOHLCVForSymbols(new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(symbol, timeframe)))), parameters)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -484,7 +484,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
             }
             List<Object> filtered = this.filterBySinceLimit(candles, since, limit, 0, true);
             return this.createOHLCVObject(symbol, timeframe, filtered);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -529,7 +529,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
                 put( "symbolsAndTimeframes", symbolsAndTimeframes );
             }};
             return (this.watchPublic(messageHashes, channels, parameters, subscription)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -590,7 +590,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
             Object limit = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             return (this.watchOrderBookForSymbols((Object)(new ArrayList<Object>(Arrays.asList(symbol))), (Object)(limit), (Object)(parameters))).join();
-        }).thenApply(OrderBook::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OrderBook::new);
 
     }
 
@@ -610,7 +610,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             return (this.unWatchOrderBookForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), parameters)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -660,7 +660,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
             }
             Object orderbook = (this.watchPublic(messageHashes, channels, parameters)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
-        }).thenApply(OrderBook::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OrderBook::new);
 
     }
 
@@ -716,7 +716,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
                 put( "unsubscribe", true );
             }});
             return (this.watchPublic(messageHashes, channels, parameters, subscription)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -772,7 +772,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
                 symbols = new ArrayList<Object>(Arrays.asList(symbol));
             }
             return (this.watchOrdersForSymbols((Object)((List<String>)(symbols)), (Object)(since), (Object)(limit), (Object)(parameters))).join();
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -820,7 +820,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
                 limit = Helpers.callDynamically(orders, "getLimit", new Object[]{tradeSymbol, limit});
             }
             return this.filterBySinceLimit(orders, since, limit, "timestamp", true);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -990,7 +990,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
                 return positions;
             }
             return this.filterBySymbolsSinceLimit(this.positions, symbols, since, limit, true);
-        }).thenApply(res -> Helpers.toTypedList(res, Position::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Position::new));
 
     }
 
@@ -1156,7 +1156,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
             }
             String messageHash = "balance";
             return (this.watchPrivate(new ArrayList<Object>(Arrays.asList(messageHash)), parameters)).join();
-        }).thenApply(Balances::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Balances::new);
 
     }
 
@@ -1190,7 +1190,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
             future.resolve();
             client.resolve(this.balance, "balance");
             return null;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 

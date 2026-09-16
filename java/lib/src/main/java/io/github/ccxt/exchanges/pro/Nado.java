@@ -131,7 +131,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{Helpers.GetValue(market, "symbol"), limit});
             }
             return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -152,7 +152,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             (this.loadMarkets()).join();
             return (this.unWatchTradesForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), parameters)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -198,7 +198,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{tradeSymbol, limit});
             }
             return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -233,7 +233,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
                 ((List<Object>)messageHashes).add(Helpers.add("trade:", Helpers.GetValue(market, "symbol")));
             }
             return (this.unWatchPublicMultiple("trade", markets, messageHashes, parameters)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -264,7 +264,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             }
             Object orderbook = (this.watchPublic("book_depth", market, messageHash, parameters)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
-        }).thenApply(OrderBook::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OrderBook::new);
 
     }
 
@@ -285,7 +285,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             (this.loadMarkets()).join();
             return (this.unWatchOrderBookForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), parameters)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -330,7 +330,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             }
             Object orderbook = (this.watchPublicMultiple("book_depth", markets, messageHashes, parameters)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
-        }).thenApply(OrderBook::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OrderBook::new);
 
     }
 
@@ -365,7 +365,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
                 ((List<Object>)messageHashes).add(Helpers.add("orderbook:", Helpers.GetValue(market, "symbol")));
             }
             return (this.unWatchPublicMultiple("book_depth", markets, messageHashes, parameters)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -403,7 +403,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
                 limit = Helpers.callDynamically(stored, "getLimit", new Object[]{Helpers.GetValue(market, "symbol"), limit});
             }
             return this.filterBySinceLimit(stored, since, limit, 0, true);
-        }).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
 
     }
 
@@ -457,7 +457,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             }
             List<Object> filtered = this.filterBySinceLimit(stored, since, limit, 0, true);
             return this.createOHLCVObject(resultSymbol, resultTimeframe, filtered);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -480,7 +480,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             (this.loadMarkets()).join();
             return (this.unWatchOHLCVForSymbols(new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(symbol, timeframe)))), parameters)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -521,7 +521,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
                 }}, parameters));
             }
             return (this.unWatchPublicMultiple("latest_candlestick", markets, messageHashes, parameters, subscriptionParams)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -544,7 +544,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             symbol = this.symbol(symbol);
             Object tickers = (this.watchTickers((Object)(new ArrayList<Object>(Arrays.asList(symbol))), (Object)(parameters))).join();
             return Helpers.GetValue(tickers, symbol);
-        }).thenApply(Ticker::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Ticker::new);
 
     }
 
@@ -565,7 +565,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             (this.loadMarkets()).join();
             return (this.unWatchTickers(new ArrayList<Object>(Arrays.asList(symbol)), parameters)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -612,7 +612,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
                 return tickers;
             }
             return this.filterByArray(this.tickers, "symbol", symbols);
-        }).thenApply(Tickers::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Tickers::new);
 
     }
 
@@ -648,7 +648,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
                 }
             }
             return (this.unWatchPublic(streamType, market, messageHash, parameters)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -695,7 +695,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
                 return tickers;
             }
             return this.filterByArray(this.bidsasks, "symbol", symbols);
-        }).thenApply(Tickers::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Tickers::new);
 
     }
 
@@ -731,7 +731,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
                 }
             }
             return (this.unWatchPublic(streamType, market, messageHash, parameters)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -787,7 +787,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
                 limit = Helpers.callDynamically(orders, "getLimit", new Object[]{symbol, limit});
             }
             return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -833,7 +833,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
                 put( "product_id", finalProductId );
             }};
             return (this.unWatchPrivate(stream, messageHash, parameters)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -889,7 +889,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
             }
             return this.filterBySymbolSinceLimit(trades, symbol, since, limit, true);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -935,7 +935,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
                 put( "product_id", finalProductId );
             }};
             return (this.unWatchPrivate(stream, messageHash, parameters)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -994,7 +994,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
                 return positions;
             }
             return this.filterBySymbolsSinceLimit(this.positions, symbols, since, limit, true);
-        }).thenApply(res -> Helpers.toTypedList(res, Position::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Position::new));
 
     }
 
@@ -1043,7 +1043,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
                 put( "product_id", finalProductId );
             }};
             return (this.unWatchPrivate(stream, messageHash, parameters)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1108,7 +1108,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             return this.parseOrder(this.extend(new HashMap<String, Object>() {{
                 put( "place_order", placeOrder );
             }}, response), market);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -1175,7 +1175,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             return this.parseOrder(this.extend(new HashMap<String, Object>() {{
                 put( "place_order", placeOrder );
             }}, response), market);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -1202,7 +1202,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             Object orders = (this.cancelOrdersWs((Object)(new ArrayList<Object>(Arrays.asList(id))), (Object)(symbol), (Object)(parameters))).join();
             return this.safeDict(orders, 0);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -1270,7 +1270,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
                 }}, Helpers.GetValue(cancelledOrders, i)), market));
             }
             return result;
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -1325,7 +1325,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
                 }}, Helpers.GetValue(cancelledOrders, i)), market));
             }
             return result;
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -1344,7 +1344,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "gateway");
             String messageHash = Helpers.add("execute:", requestIdString);
             return (this.watch(url, messageHash, request, messageHash, null)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1384,7 +1384,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
                 this.watchMultiple(url, new ArrayList<Object>(Arrays.asList(subscribeHash)), request, new ArrayList<Object>(Arrays.asList(subscribeHash)), subscription);
             }
             return (this.watch(url, messageHash, null, null, null)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1416,7 +1416,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
     }});
             this.watchMultiple(url, new ArrayList<Object>(Arrays.asList(subscribeHash)), request, new ArrayList<Object>(Arrays.asList(messageHash)), subscription);
             return (this.watch(url, messageHash, null, null, null)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1444,7 +1444,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         put( "unsubscribeHash", unsubscribeHash );
     }});
             return (this.watch(url, unsubscribeHash, request, unsubscribeHash, subscription)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1499,7 +1499,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             }};
             Helpers.addElementToObject(client.subscriptions, Helpers.add("authentication:", this.numberToString(id)), messageHash);
             return (this.watch(url, messageHash, this.extend(request, parameters), messageHash, null)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1579,7 +1579,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
                 }
             }
             return (this.watchMultiple(url, messageHashes, null, messageHashes, null)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1603,7 +1603,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         put( "unsubscribeHash", unsubscribeHash );
     }});
             return (this.watch(url, unsubscribeHash, request, unsubscribeHash, subscription)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1635,7 +1635,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
                 ((List<Object>)results).add((this.watchMultiple(url, new ArrayList<Object>(Arrays.asList(unsubscribeHash)), request, new ArrayList<Object>(Arrays.asList(unsubscribeHash)), subscription)).join());
             }
             return results;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 

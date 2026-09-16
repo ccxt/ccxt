@@ -63,7 +63,7 @@ public class TestWatchLiquidationsForSymbols extends BaseTest {
             }
         }
         return response;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 

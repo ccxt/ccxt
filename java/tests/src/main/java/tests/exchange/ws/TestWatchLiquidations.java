@@ -64,7 +64,7 @@ public class TestWatchLiquidations extends BaseTest {
             }
         }
         return response;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 

@@ -816,7 +816,7 @@ public class Whitebit extends WhitebitApi
             //    ]
             //
             return this.parseMarkets(markets);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1003,7 +1003,7 @@ public class Whitebit extends WhitebitApi
             //
             Object enhancedArray = this.addKeyInArrayItems(response, "_coin_id");
             return this.parseCurrencies(enhancedArray);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1152,7 +1152,7 @@ public class Whitebit extends WhitebitApi
                 put( "deposit", depositFees );
                 put( "info", response );
             }};
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1220,7 +1220,7 @@ public class Whitebit extends WhitebitApi
             //    }
             //
             return this.parseDepositWithdrawFees(response, codes);
-        }).thenApply(DepositWithdrawFees::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(DepositWithdrawFees::new);
 
     }
 
@@ -1391,7 +1391,7 @@ public class Whitebit extends WhitebitApi
     }});
             }
             return result;
-        }).thenApply(TradingFees::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(TradingFees::new);
 
     }
 
@@ -1529,7 +1529,7 @@ public class Whitebit extends WhitebitApi
                 }
             }
             return result;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1703,7 +1703,7 @@ public class Whitebit extends WhitebitApi
     }});
             }
             return result;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1750,7 +1750,7 @@ public class Whitebit extends WhitebitApi
             //
             Object ticker = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             return this.parseTicker(ticker, market);
-        }).thenApply(Ticker::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Ticker::new);
 
     }
 
@@ -1969,7 +1969,7 @@ public class Whitebit extends WhitebitApi
                 }
             }
             throw new OrderNotFound(Helpers.add(Helpers.add(this.id, " fetchOrder() order not found: "), id)) ;
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -2109,7 +2109,7 @@ public class Whitebit extends WhitebitApi
                 Helpers.addElementToObject(result, ((String)symbol), ticker);
             }
             return this.filterByArrayTickers(result, "symbol", symbols);
-        }).thenApply(Tickers::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Tickers::new);
 
     }
 
@@ -2164,7 +2164,7 @@ public class Whitebit extends WhitebitApi
             //
             Object timestamp = this.safeTimestamp(response, "timestamp");
             return this.parseOrderBook(response, symbol, timestamp);
-        }).thenApply(OrderBook::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OrderBook::new);
 
     }
 
@@ -2209,7 +2209,7 @@ public class Whitebit extends WhitebitApi
             //      ],
             //
             return this.parseTrades(response, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -2300,7 +2300,7 @@ public class Whitebit extends WhitebitApi
                 results = this.sortBy2(results, "timestamp", "id");
                 return this.filterBySinceLimit(results, since, limit, "timestamp");
             }
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -2453,7 +2453,7 @@ public class Whitebit extends WhitebitApi
             //
             Object result = this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
             return this.parseOHLCVs(result, market, timeframe, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
 
     }
 
@@ -2503,7 +2503,7 @@ public class Whitebit extends WhitebitApi
                 put( "url", null );
                 put( "info", response );
             }};
-        }).thenApply(Status::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Status::new);
 
     }
 
@@ -2528,7 +2528,7 @@ public class Whitebit extends WhitebitApi
             //     }
             //
             return this.safeIntegerProduct(response, "time", 1000);
-        }).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
 
     }
 
@@ -2553,7 +2553,7 @@ public class Whitebit extends WhitebitApi
             }};
             // only buy side is supported
             return (this.createOrder((Object)(symbol), (Object)("market"), (Object)(side), (Object)(0), (Object)(null), (Object)(this.extend(req, parameters)))).join();
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -2573,7 +2573,7 @@ public class Whitebit extends WhitebitApi
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             return (this.createMarketOrderWithCost(symbol, (Object)("buy"), (Object)(cost), (Object)(parameters))).join();
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -2736,7 +2736,7 @@ public class Whitebit extends WhitebitApi
                 }
             }
             return this.parseOrder(response);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -2824,7 +2824,7 @@ public class Whitebit extends WhitebitApi
             parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "triggerPrice", "stopPrice", "activationPrice", "total")));
             Map<String, Object> response = (this.v4PrivatePostOrderModify(this.extend(request, parameters))).join();
             return this.parseOrder(response);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -2879,7 +2879,7 @@ public class Whitebit extends WhitebitApi
             //    }
             //
             return this.parseOrder(response);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -2943,7 +2943,7 @@ public class Whitebit extends WhitebitApi
             // []
             //
             return this.parseOrders(response, market);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -2985,7 +2985,7 @@ public class Whitebit extends WhitebitApi
                 return Helpers.slice(sortedOrders, 0, limit);
             }
             return sortedOrders;
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -3042,7 +3042,7 @@ public class Whitebit extends WhitebitApi
             //     }
             //
             return response;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -3142,7 +3142,7 @@ public class Whitebit extends WhitebitApi
             //     }
             //
             return this.parseBalance(response);
-        }).thenApply(Balances::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Balances::new);
 
     }
 
@@ -3205,7 +3205,7 @@ public class Whitebit extends WhitebitApi
             return this.parseOrders(response, market, since, limit, new HashMap<String, Object>() {{
                 put( "status", "open" );
             }});
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -3281,7 +3281,7 @@ public class Whitebit extends WhitebitApi
             results = this.sortBy(results, "timestamp");
             results = this.filterBySymbolSinceLimit(results, symbol, since, limit);
             return results;
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -3494,7 +3494,7 @@ public class Whitebit extends WhitebitApi
             //
             Object data = this.safeList(response, "records", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(data, market);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -3564,7 +3564,7 @@ public class Whitebit extends WhitebitApi
             //     ]
             //
             return this.parseTransactions(this.safeList(response, "records", new ArrayList<Object>(Arrays.asList())), currency, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
 
     }
 
@@ -3643,7 +3643,7 @@ public class Whitebit extends WhitebitApi
             //
             Object records = this.safeList(response, "records", new ArrayList<Object>(Arrays.asList()));
             return this.parseTransactions(records, currency, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
 
     }
 
@@ -3735,7 +3735,7 @@ public class Whitebit extends WhitebitApi
                 put( "address", address );
                 put( "tag", tag );
             }};
-        }).thenApply(DepositAddress::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(DepositAddress::new);
 
     }
 
@@ -3785,7 +3785,7 @@ public class Whitebit extends WhitebitApi
             //
             Object data = this.safeDict(response, "account", new HashMap<String, Object>() {{}});
             return this.parseDepositAddress(data, currency);
-        }).thenApply(DepositAddress::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(DepositAddress::new);
 
     }
 
@@ -3860,7 +3860,7 @@ public class Whitebit extends WhitebitApi
                 }});
             }
             return accounts;
-        }).thenApply(res -> Helpers.toTypedList(res, Account::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Account::new));
 
     }
 
@@ -3898,7 +3898,7 @@ public class Whitebit extends WhitebitApi
                 put( "leverage", finalLeverage );
             }};
             return (this.v4PrivatePostCollateralAccountLeverage(this.extend(request, parameters))).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -3940,7 +3940,7 @@ public class Whitebit extends WhitebitApi
             //    []
             //
             return this.parseTransfer(response, currency);
-        }).thenApply(TransferEntry::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(TransferEntry::new);
 
     }
 
@@ -4022,7 +4022,7 @@ public class Whitebit extends WhitebitApi
             return this.extend(this.parseTransaction(response, currency), new HashMap<String, Object>() {{
                 put( "id", finalUniqueId );
             }});
-        }).thenApply(Transaction::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Transaction::new);
 
     }
 
@@ -4192,7 +4192,7 @@ public class Whitebit extends WhitebitApi
             Object records = this.safeValue(response, "records", new ArrayList<Object>(Arrays.asList()));
             Object first = this.safeDict(records, 0, new HashMap<String, Object>() {{}});
             return this.parseTransaction(first, currency);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -4280,7 +4280,7 @@ public class Whitebit extends WhitebitApi
                 recordsList = records;
             }
             return this.parseTransactions(recordsList, currency, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
 
     }
 
@@ -4341,7 +4341,7 @@ public class Whitebit extends WhitebitApi
             //
             Object interest = this.parseBorrowInterests(response, market);
             return this.filterByCurrencySinceLimit(interest, code, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, BorrowInterest::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, BorrowInterest::new));
 
     }
 
@@ -4405,7 +4405,7 @@ public class Whitebit extends WhitebitApi
             symbol = this.symbol(symbol);
             Object response = (this.fetchFundingRates((Object)(new ArrayList<Object>(Arrays.asList(symbol))), (Object)(parameters))).join();
             return this.safeValue(response, symbol);
-        }).thenApply(FundingRate::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(FundingRate::new);
 
     }
 
@@ -4477,7 +4477,7 @@ public class Whitebit extends WhitebitApi
             //
             Object data = this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
             return this.parseFundingRates(data, symbols);
-        }).thenApply(FundingRates::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(FundingRates::new);
 
     }
 
@@ -4608,7 +4608,7 @@ public class Whitebit extends WhitebitApi
             //
             Object data = this.safeList(response, "records", new ArrayList<Object>(Arrays.asList()));
             return this.parseFundingHistories(data, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, FundingHistory::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, FundingHistory::new));
 
     }
 
@@ -4743,7 +4743,7 @@ public class Whitebit extends WhitebitApi
                 recordsList = records;
             }
             return this.parseTransactions(recordsList, currency, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
 
     }
 
@@ -4790,7 +4790,7 @@ public class Whitebit extends WhitebitApi
             //     }
             //
             return this.parseConversion(response, fromCurrency, toCurrency);
-        }).thenApply(Conversion::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Conversion::new);
 
     }
 
@@ -4830,7 +4830,7 @@ public class Whitebit extends WhitebitApi
             //     }
             //
             return this.parseConversion(response, fromCurrency, toCurrency);
-        }).thenApply(Conversion::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Conversion::new);
 
     }
 
@@ -4905,7 +4905,7 @@ public class Whitebit extends WhitebitApi
             //
             Object rows = this.safeList(response, "records", new ArrayList<Object>(Arrays.asList()));
             return this.parseConversions(rows, code, "fromCurrency", "toCurrency", since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Conversion::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Conversion::new));
 
     }
 
@@ -5038,7 +5038,7 @@ public class Whitebit extends WhitebitApi
             //
             Object positions = this.parsePositions(response);
             return this.filterBySymbolSinceLimit(positions, symbol, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Position::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Position::new));
 
     }
 
@@ -5086,7 +5086,7 @@ public class Whitebit extends WhitebitApi
             //     ]
             //
             return this.parsePositions(response, symbols);
-        }).thenApply(res -> Helpers.toTypedList(res, Position::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Position::new));
 
     }
 
@@ -5137,7 +5137,7 @@ public class Whitebit extends WhitebitApi
             //
             Object data = this.safeDict(response, 0, new HashMap<String, Object>() {{}});
             return this.parsePosition(data, market);
-        }).thenApply(Position::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Position::new);
 
     }
 
@@ -5295,7 +5295,7 @@ public class Whitebit extends WhitebitApi
             //     ]
             //
             return this.parseFundingRateHistories(response, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, FundingRateHistory::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, FundingRateHistory::new));
 
     }
 

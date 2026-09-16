@@ -504,7 +504,7 @@ public class Hollaex extends HollaexApi
                 }});
             }
             return result;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -592,7 +592,7 @@ public class Hollaex extends HollaexApi
             Object coins = this.safeDict(response, "coins", new HashMap<String, Object>() {{}});
             Object values = Helpers.objectValues(coins);
             return this.parseCurrencies(values);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -692,7 +692,7 @@ public class Hollaex extends HollaexApi
                 Helpers.addElementToObject(result, symbol, this.parseOrderBook(orderbook, symbol, timestamp));
             }
             return result;
-        }).thenApply(OrderBooks::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OrderBooks::new);
 
     }
 
@@ -744,7 +744,7 @@ public class Hollaex extends HollaexApi
             Object orderbook = this.safeValue(response, Helpers.GetValue(market, "id"));
             Long timestamp = this.parse8601(this.safeString(orderbook, "timestamp"));
             return this.parseOrderBook(orderbook, Helpers.GetValue(market, "symbol"), timestamp);
-        }).thenApply(OrderBook::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OrderBook::new);
 
     }
 
@@ -784,7 +784,7 @@ public class Hollaex extends HollaexApi
             //     }
             //
             return this.parseTicker(response, market);
-        }).thenApply(Ticker::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Ticker::new);
 
     }
 
@@ -826,7 +826,7 @@ public class Hollaex extends HollaexApi
             //     }
             //
             return this.parseTickers(response, symbols);
-        }).thenApply(Tickers::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Tickers::new);
 
     }
 
@@ -949,7 +949,7 @@ public class Hollaex extends HollaexApi
             //
             Object trades = this.safeList(response, Helpers.GetValue(market, "id"), new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(trades, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -1084,7 +1084,7 @@ public class Hollaex extends HollaexApi
     }});
             }
             return result;
-        }).thenApply(TradingFees::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(TradingFees::new);
 
     }
 
@@ -1158,7 +1158,7 @@ public class Hollaex extends HollaexApi
             //     ]
             //
             return this.parseOHLCVs(this.toArray(response), market, timeframe, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
 
     }
 
@@ -1240,7 +1240,7 @@ public class Hollaex extends HollaexApi
             //     }
             //
             return this.parseBalance(response);
-        }).thenApply(Balances::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Balances::new);
 
     }
 
@@ -1294,7 +1294,7 @@ public class Hollaex extends HollaexApi
             //     }
             //
             return this.parseOrder(response);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1322,7 +1322,7 @@ public class Hollaex extends HollaexApi
                 put( "open", true );
             }};
             return (this.fetchOrders((Object)(symbol), (Object)(since), (Object)(limit), (Object)(this.extend(request, parameters)))).join();
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -1350,7 +1350,7 @@ public class Hollaex extends HollaexApi
                 put( "open", false );
             }};
             return (this.fetchOrders((Object)(symbol), (Object)(since), (Object)(limit), (Object)(this.extend(request, parameters)))).join();
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -1407,7 +1407,7 @@ public class Hollaex extends HollaexApi
                 throw new OrderNotFound(Helpers.add(Helpers.add(this.id, " fetchOrder() could not find order id "), id)) ;
             }
             return this.parseOrder(order);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -1482,7 +1482,7 @@ public class Hollaex extends HollaexApi
             //
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(data, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -1644,7 +1644,7 @@ public class Hollaex extends HollaexApi
             //     }
             //
             return this.parseOrder(response, market);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -1687,7 +1687,7 @@ public class Hollaex extends HollaexApi
             //     }
             //
             return this.parseOrder(response);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -1736,7 +1736,7 @@ public class Hollaex extends HollaexApi
             //     ]
             //
             return this.parseOrders(response, market);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -1797,7 +1797,7 @@ public class Hollaex extends HollaexApi
             //
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(data, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -1909,7 +1909,7 @@ public class Hollaex extends HollaexApi
             Object wallet = this.safeValue(response, "wallet", new ArrayList<Object>(Arrays.asList()));
             Object addresses = ((Helpers.isTrue((Helpers.isEqual(network, null))))) ? wallet : this.filterBy(wallet, "network", network);
             return this.parseDepositAddresses(addresses, codes, false);
-        }).thenApply(res -> Helpers.toTypedList(res, DepositAddress::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, DepositAddress::new));
 
     }
 
@@ -1978,7 +1978,7 @@ public class Hollaex extends HollaexApi
             //
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTransactions(data, currency, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
 
     }
 
@@ -2039,7 +2039,7 @@ public class Hollaex extends HollaexApi
             Object data = this.safeValue(response, "data", new ArrayList<Object>(Arrays.asList()));
             Object transaction = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
             return this.parseTransaction(transaction, currency);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -2108,7 +2108,7 @@ public class Hollaex extends HollaexApi
             //
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTransactions(data, currency, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
 
     }
 
@@ -2285,7 +2285,7 @@ public class Hollaex extends HollaexApi
             //     }
             //
             return this.parseTransaction(response, currency);
-        }).thenApply(Transaction::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Transaction::new);
 
     }
 
@@ -2423,7 +2423,7 @@ public class Hollaex extends HollaexApi
             //
             Object coins = this.safeDict(response, "coins", new HashMap<String, Object>() {{}});
             return this.parseDepositWithdrawFees(coins, codes, "symbol");
-        }).thenApply(DepositWithdrawFees::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(DepositWithdrawFees::new);
 
     }
 

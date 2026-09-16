@@ -390,7 +390,7 @@ public class Bitbank extends BitbankApi
             Object data = this.safeValue(response, "data");
             Object pairs = this.safeValue(data, "pairs", new ArrayList<Object>(Arrays.asList()));
             return this.parseMarkets(pairs);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -511,7 +511,7 @@ public class Bitbank extends BitbankApi
             Map<String, Object> response = (this.publicGetPairTicker(this.extend(request, parameters))).join();
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseTicker(data, market);
-        }).thenApply(Ticker::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Ticker::new);
 
     }
 
@@ -544,7 +544,7 @@ public class Bitbank extends BitbankApi
             Object orderbook = this.safeValue(response, "data", new HashMap<String, Object>() {{}});
             Long timestamp = this.safeInteger(orderbook, "timestamp");
             return this.parseOrderBook(orderbook, Helpers.GetValue(market, "symbol"), timestamp);
-        }).thenApply(OrderBook::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OrderBook::new);
 
     }
 
@@ -632,7 +632,7 @@ public class Bitbank extends BitbankApi
             Object data = this.safeValue(response, "data", new HashMap<String, Object>() {{}});
             Object trades = this.safeList(data, "transactions", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(trades, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -702,7 +702,7 @@ public class Bitbank extends BitbankApi
     }});
             }
             return result;
-        }).thenApply(TradingFees::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(TradingFees::new);
 
     }
 
@@ -787,7 +787,7 @@ public class Bitbank extends BitbankApi
             Object first = this.safeValue(candlestick, 0, new HashMap<String, Object>() {{}});
             Object ohlcv = this.safeList(first, "ohlcv", new ArrayList<Object>(Arrays.asList()));
             return this.parseOHLCVs(ohlcv, market, timeframe, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
 
     }
 
@@ -870,7 +870,7 @@ public class Bitbank extends BitbankApi
             //     }
             //
             return this.parseBalance(response);
-        }).thenApply(Balances::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Balances::new);
 
     }
 
@@ -966,7 +966,7 @@ public class Bitbank extends BitbankApi
             Map<String, Object> response = (this.privatePostUserSpotOrder(this.extend(request, parameters))).join();
             Object data = this.safeDict(response, "data");
             return this.parseOrder(data, market);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -1022,7 +1022,7 @@ public class Bitbank extends BitbankApi
             //
             Object data = this.safeValue(response, "data");
             return this.parseOrder(data);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -1077,7 +1077,7 @@ public class Bitbank extends BitbankApi
             //
             Object data = this.safeDict(response, "data");
             return this.parseOrder(data, market);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -1121,7 +1121,7 @@ public class Bitbank extends BitbankApi
             Object data = this.safeValue(response, "data", new HashMap<String, Object>() {{}});
             Object orders = this.safeList(data, "orders", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(orders, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -1168,7 +1168,7 @@ public class Bitbank extends BitbankApi
             Object data = this.safeValue(response, "data", new HashMap<String, Object>() {{}});
             Object trades = this.safeList(data, "trades", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(trades, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -1208,7 +1208,7 @@ public class Bitbank extends BitbankApi
                 put( "address", address );
                 put( "tag", null );
             }};
-        }).thenApply(DepositAddress::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(DepositAddress::new);
 
     }
 
@@ -1267,7 +1267,7 @@ public class Bitbank extends BitbankApi
             //
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseTransaction(data, currency);
-        }).thenApply(Transaction::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Transaction::new);
 
     }
 

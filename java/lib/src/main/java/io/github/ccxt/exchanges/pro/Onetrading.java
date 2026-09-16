@@ -125,7 +125,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
             }};
             Map<String, Object> request = this.deepExtend(subscribe, parameters);
             return (this.watch(url, messageHash, request, subscribeHash, request)).join();
-        }).thenApply(Balances::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Balances::new);
 
     }
 
@@ -195,7 +195,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
     }})) );
             }};
             return (this.watchMany(messageHash, request, subscriptionHash, new ArrayList<Object>(Arrays.asList(symbol)), parameters)).join();
-        }).thenApply(Ticker::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Ticker::new);
 
     }
 
@@ -235,7 +235,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
             }};
             Object tickers = (this.watchMany(messageHash, request, subscriptionHash, symbols, parameters)).join();
             return this.filterByArray(tickers, "symbol", symbols);
-        }).thenApply(Tickers::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Tickers::new);
 
     }
 
@@ -367,7 +367,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
                 return (this.watchMyTrades((Object)(symbol), (Object)(since), (Object)(limit), (Object)(parameters))).join();
             }
             return trades;
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -411,7 +411,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
             }};
             Object orderbook = (this.watchMany(messageHash, request, subscriptionHash, new ArrayList<Object>(Arrays.asList(symbol)), parameters)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
-        }).thenApply(OrderBook::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OrderBook::new);
 
     }
 
@@ -566,7 +566,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
                 return (this.watchOrders((Object)(symbol), (Object)(since), (Object)(limit), (Object)(parameters))).join();
             }
             return orders;
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -1272,7 +1272,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
                 limit = Helpers.callDynamically(ohlcv, "getLimit", new Object[]{symbol, limit});
             }
             return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
-        }).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
 
     }
 
@@ -1527,7 +1527,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
             Helpers.addElementToObject(request, "type", type);
             Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue(request, "channels"), 0), "instrument_codes", Helpers.objectKeys(subscription));
             return (this.watch(url, messageHash, this.deepExtend(request, parameters), subscriptionHash, subscription)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1552,7 +1552,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
                 this.watch(url, messageHash, this.extend(request, parameters), messageHash, null);
             }
             return ((io.github.ccxt.ws.Future)future).getFuture().join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 }

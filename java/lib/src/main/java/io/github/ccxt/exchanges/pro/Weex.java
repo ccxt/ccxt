@@ -140,7 +140,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             String type = ((Helpers.isTrue(isContract))) ? "contract" : "spot";
             Object url = Helpers.add(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), type), "/public");
             return (this.watchMultiple(url, messageHashes, this.deepExtend(message, parameters), messageHashes, subscription)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -172,7 +172,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
                 put( "id", id );
             }});
             return (this.watch(url, messageHash, this.deepExtend(message, parameters), subscribeHash, subscription)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -241,7 +241,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             symbol = this.symbol(symbol);
             Object tickers = (this.watchTickers((Object)(new ArrayList<Object>(Arrays.asList(symbol))), (Object)(parameters))).join();
             return Helpers.GetValue(tickers, symbol);
-        }).thenApply(Ticker::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Ticker::new);
 
     }
 
@@ -289,7 +289,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
                 return result;
             }
             return this.filterByArray(this.tickers, "symbol", symbols);
-        }).thenApply(Tickers::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Tickers::new);
 
     }
 
@@ -310,7 +310,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             return (this.unWatchTickers(new ArrayList<Object>(Arrays.asList(symbol)), parameters)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -363,7 +363,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
                 put( "topic", finalTopic );
             }};
             return (this.subscribePublic(unSubHashes, channels, isContract, parameters, subscription)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -479,7 +479,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             Object limit = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
             return (this.watchTradesForSymbols((Object)(new ArrayList<Object>(Arrays.asList(symbol))), (Object)(since), (Object)(limit), (Object)(parameters))).join();
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -530,7 +530,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{tradeSymbol, limit});
             }
             return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -551,7 +551,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             return (this.unWatchTradesForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), parameters)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -602,7 +602,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
                 put( "topic", "trades" );
             }};
             return (this.subscribePublic(unSubHashes, channels, isContract, parameters, subscription)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -725,7 +725,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             }});
             Object result = (this.watchOHLCVForSymbols(new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(symbol, timeframe)))), since, limit, extendedParams)).join();
             return Helpers.GetValue(Helpers.GetValue(result, symbol), timeframe);
-        }).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
 
     }
 
@@ -795,7 +795,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             }
             List<Object> filtered = this.filterBySinceLimit(stored, since, limit, 0, true);
             return this.createOHLCVObject(symbol, timeframe, filtered);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -819,7 +819,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             Helpers.addElementToObject(parameters, "callerMethodName", "unWatchOHLCV");
             return (this.unWatchOHLCVForSymbols(new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(symbol, timeframe)))), parameters)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -886,7 +886,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
                 put( "topic", "ohlcv" );
             }};
             return (this.subscribePublic(unSubHashes, channels, isContract, parameters, subscription)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -997,7 +997,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
                 put( "callerMethodName", "watchOrderBook" );
             }});
             return (this.watchOrderBookForSymbols((Object)(new ArrayList<Object>(Arrays.asList(symbol))), (Object)(limit), (Object)(parameters))).join();
-        }).thenApply(OrderBook::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OrderBook::new);
 
     }
 
@@ -1048,7 +1048,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             }};
             Object orderbook = (this.subscribePublic(messageHashes, channels, isContract, parameters, subscription)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
-        }).thenApply(OrderBook::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OrderBook::new);
 
     }
 
@@ -1072,7 +1072,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
                 put( "callerMethodName", "unWatchOrderBook" );
             }});
             return (this.unWatchOrderBookForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), parameters)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1128,7 +1128,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
                 put( "topic", "orderbook" );
             }};
             return (this.subscribePublic(unSubHashes, channels, isContract, parameters, subscription)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1239,7 +1239,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
                 return result;
             }
             return this.filterByArray(this.bidsasks, "symbol", symbols);
-        }).thenApply(Tickers::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Tickers::new);
 
     }
 
@@ -1292,7 +1292,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
                 put( "topic", "bidsasks" );
             }};
             return (this.subscribePublic(unSubHashes, channels, false, parameters, subscription)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1392,7 +1392,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
             }
             return this.filterBySymbolSinceLimit(trades, symbol, since, limit, true);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -1434,7 +1434,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
                 put( "subHashIsPrefix", true );
             }};
             return (this.subscribePrivate(unSubHash, unSubHash, channel, isContract, parameters, subscription)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1644,7 +1644,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
                 limit = Helpers.callDynamically(orders, "getLimit", new Object[]{symbol, limit});
             }
             return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -1685,7 +1685,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
                 put( "subHashIsPrefix", true );
             }};
             return (this.subscribePrivate(unSubHash, unSubHash, channel, isContract, parameters, subscription)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1980,7 +1980,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             }
             Object messageHash = Helpers.add(Helpers.add(type, ":"), "balance");
             return (this.subscribePrivate(messageHash, type, "account", isContract, parameters)).join();
-        }).thenApply(Balances::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Balances::new);
 
     }
 
@@ -2027,7 +2027,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
                 client.resolve(Helpers.GetValue(this.balance, type), Helpers.add(type, ":balance"));
             }
             return null;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -2174,7 +2174,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
                 return newPositions;
             }
             return this.filterBySymbolsSinceLimit(this.positions, symbols, since, limit, true);
-        }).thenApply(res -> Helpers.toTypedList(res, Position::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Position::new));
 
     }
 
@@ -2214,7 +2214,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             ((io.github.ccxt.ws.Future)future).resolve(cache);
             client.resolve(cache, "positions");
             return null;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -2249,7 +2249,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
                 put( "subHashIsPrefix", true );
             }};
             return (this.subscribePrivate(unSubHash, unSubHash, channel, true, parameters, subscription)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -2359,7 +2359,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             }};
             (client.send(response)).join();
             return null;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 

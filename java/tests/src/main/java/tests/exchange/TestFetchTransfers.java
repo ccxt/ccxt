@@ -26,7 +26,7 @@ public class TestFetchTransfers extends BaseTest {
         }
         TestSharedMethods.AssertTimestampOrder(exchange, method, code, transfers);
         return true;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 

@@ -23,7 +23,7 @@ public class TestSignIn extends BaseTest {
             ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "signIn", new Object[]{})).join();
         }
         return true;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 

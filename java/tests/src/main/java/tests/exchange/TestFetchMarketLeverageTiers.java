@@ -25,7 +25,7 @@ public class TestFetchMarketLeverageTiers extends BaseTest {
             TestLeverageTier.testLeverageTier(exchange, skippedProperties, method, Helpers.GetValue(tiers, j));
         }
         return true;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 

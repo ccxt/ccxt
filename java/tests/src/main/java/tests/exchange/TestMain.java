@@ -76,7 +76,7 @@ public class TestMain extends BaseTest
                 throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
             }
             return true;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -141,7 +141,7 @@ public class TestMain extends BaseTest
             (this.startTest(exchange, symbolArgv)).join();
             exitScript(0); // needed to be explicitly finished for WS tests
             return true;  // required for c#
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -186,7 +186,7 @@ public class TestMain extends BaseTest
                 this.testFiles = (getTestFiles(properties, this.wsTests)).join();
             }
             return true;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -374,7 +374,7 @@ public class TestMain extends BaseTest
                 Helpers.addElementToObject(this.checkedPublicTests, methodName, true);
             }
             return true;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -555,7 +555,7 @@ public class TestMain extends BaseTest
                 }
             }
             return true;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -630,7 +630,7 @@ public class TestMain extends BaseTest
             this.publicTests = tests;
             (this.runTests(exchange, tests, true)).join();
             return true;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -672,7 +672,7 @@ public class TestMain extends BaseTest
                 dump(this.addPadding(Helpers.add(Helpers.add(Helpers.add("[INFO] END ", testPrefixString), " "), exchange.id), 25));
             }
             return true;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -689,7 +689,7 @@ public class TestMain extends BaseTest
             Object exchangeSymbolsLength = Helpers.getArrayLength(exchange.symbols);
             dump("[INFO:MAIN] Exchange loaded", exchangeSymbolsLength, "symbols");
             return true;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -928,7 +928,7 @@ public class TestMain extends BaseTest
                 ((List<Object>)result).add(exchange.safeString(Helpers.GetValue(ranked, 1), "symbol"));
             }
             return result;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1044,7 +1044,7 @@ public class TestMain extends BaseTest
                 }
             }
             return true;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1290,7 +1290,7 @@ public class TestMain extends BaseTest
                 }
             }
             return true;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1425,7 +1425,7 @@ public class TestMain extends BaseTest
                 return false;
             }
             return true;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1453,7 +1453,7 @@ public class TestMain extends BaseTest
                 dump("[WARN] prediction order cancel failed", exchange.id, orderId, exceptionMessage(e));
             }
             return true;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1545,7 +1545,7 @@ public class TestMain extends BaseTest
             // const combinedTests = exchange.deepExtend (this.publicTests, privateTests);
             (this.runTests(exchange, tests, false)).join();
             return true;  // required in c#
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1585,7 +1585,7 @@ public class TestMain extends BaseTest
                 dump(Helpers.add("[TEST_WARNING]", errorMessage));
             }
             return true;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1623,7 +1623,7 @@ public class TestMain extends BaseTest
             Assert(Helpers.isGreaterThan(Helpers.getArrayLength(headerValues), 0), "Response headers values should not be empty");
             exchange.returnResponseHeaders = false;
             return true;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1673,7 +1673,7 @@ public class TestMain extends BaseTest
                 throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
             }
             return true;  // required in c#
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -2298,7 +2298,7 @@ public class TestMain extends BaseTest
                 dump(Helpers.add("[TEST_FAILURE]", errorMessage));
             }
             return true;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -2332,7 +2332,7 @@ public class TestMain extends BaseTest
             }
             setFetchResponse(exchange, null); // reset state
             return true;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -2388,7 +2388,7 @@ public class TestMain extends BaseTest
             // instead of hanging the test run forever
             rejectPendingWsFutures(exchange, url);
             return true;  // c# methods used with promiseAll need to return something
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -2418,7 +2418,7 @@ public class TestMain extends BaseTest
             }
             markWsTestCompleted(exchange, url);
             return true;  // c# methods used with promiseAll need to return something
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -2498,7 +2498,7 @@ public class TestMain extends BaseTest
             }
             setFetchResponse(exchange, null); // reset state
             return true;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -2569,7 +2569,7 @@ public class TestMain extends BaseTest
                 }
             }
             return true;  // in c# methods that will be used with promiseAll need to return something
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -2810,7 +2810,7 @@ public class TestMain extends BaseTest
                 (close(exchange)).join();
             }
             return true;  // in c# methods that will be used with promiseAll need to return something
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -2909,7 +2909,7 @@ public class TestMain extends BaseTest
                 (close(exchange)).join();
             }
             return true;  // in c# methods that will be used with promiseAll need to return something
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -2992,7 +2992,7 @@ public class TestMain extends BaseTest
             Object testName = Helpers.getArg(optionalArgs, 1, null);
             (this.runStaticTests("request", targetExchange, testName)).join();
             return true;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -3077,7 +3077,7 @@ public class TestMain extends BaseTest
                 dump(Helpers.add("[INFO]", successMessage));
             }
             return true;  // required in c#
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -3093,7 +3093,7 @@ public class TestMain extends BaseTest
             Object test = Helpers.getArg(optionalArgs, 1, null);
             (this.runStaticTests("response", exchangeName, test)).join();
             return true;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -3115,7 +3115,7 @@ public class TestMain extends BaseTest
             }
             (this.runStaticTests("ws", exchangeName, test)).join();
             return true;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -3133,7 +3133,7 @@ public class TestMain extends BaseTest
             dump(Helpers.add("[INFO]", successMessage));
             exitScript(0);
             return true;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -3229,7 +3229,7 @@ public class TestMain extends BaseTest
                 (close(exchange)).join();
             }
             return true;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -3270,7 +3270,7 @@ public class TestMain extends BaseTest
                 (close(exchange)).join();
             }
             return true;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -3297,7 +3297,7 @@ public class TestMain extends BaseTest
                 (close(exchange)).join();
             }
             return true;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -3324,7 +3324,7 @@ public class TestMain extends BaseTest
                 (close(exchange)).join();
             }
             return true;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -3388,7 +3388,7 @@ public class TestMain extends BaseTest
                 (close(exchange)).join();
             }
             return true;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -3427,7 +3427,7 @@ public class TestMain extends BaseTest
                 (close(exchange)).join();
             }
             return true;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -3453,7 +3453,7 @@ public class TestMain extends BaseTest
                 (close(exchange)).join();
             }
             return true;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -3480,7 +3480,7 @@ public class TestMain extends BaseTest
                 (close(exchange)).join();
             }
             return true;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -3529,7 +3529,7 @@ public class TestMain extends BaseTest
                 (close(exchange)).join();
             }
             return true;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -3570,7 +3570,7 @@ public class TestMain extends BaseTest
                 (close(exchange)).join();
             }
             return true;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -3598,7 +3598,7 @@ public class TestMain extends BaseTest
                 (close(exchange)).join();
             }
             return true;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -3625,7 +3625,7 @@ public class TestMain extends BaseTest
                 (close(exchange)).join();
             }
             return true;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -3652,7 +3652,7 @@ public class TestMain extends BaseTest
                 (close(exchange)).join();
             }
             return true;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -3679,7 +3679,7 @@ public class TestMain extends BaseTest
                 (close(exchange)).join();
             }
             return true;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -3723,7 +3723,7 @@ public class TestMain extends BaseTest
                 (close(exchange)).join();
             }
             return true;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -3750,7 +3750,7 @@ public class TestMain extends BaseTest
                 (close(exchange)).join();
             }
             return true;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -3782,7 +3782,7 @@ public class TestMain extends BaseTest
                 (close(exchange)).join();
             }
             return true;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -3818,7 +3818,7 @@ public class TestMain extends BaseTest
                 (close(exchange)).join();
             }
             return true;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -3876,7 +3876,7 @@ public class TestMain extends BaseTest
                 (close(exchange)).join();
             }
             return true;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -3902,7 +3902,7 @@ public class TestMain extends BaseTest
                 (close(exchange)).join();
             }
             return true;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -3927,7 +3927,7 @@ public class TestMain extends BaseTest
                 (close(exchange)).join();
             }
             return true;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -3964,7 +3964,7 @@ public class TestMain extends BaseTest
                 (close(exchange)).join();
             }
             return true;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -3996,7 +3996,7 @@ public class TestMain extends BaseTest
                 (close(exchange)).join();
             }
             return true;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -4024,7 +4024,7 @@ public class TestMain extends BaseTest
                 (close(exchange)).join();
             }
             return true;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -4050,7 +4050,7 @@ public class TestMain extends BaseTest
                 (close(exchange)).join();
             }
             return true;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -4082,7 +4082,7 @@ public class TestMain extends BaseTest
             clientOrderId = Helpers.GetValue(request, "newClientOrderId");
             Assert(Helpers.isEqual(((String)clientOrderId).startsWith(id), true), Helpers.add(Helpers.add(Helpers.add("weex - newClientOrderId: ", clientOrderId), " for swap order does not start with id: "), id));
             return null;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -4110,7 +4110,7 @@ public class TestMain extends BaseTest
                 (close(exchange)).join();
             }
             return true;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 }

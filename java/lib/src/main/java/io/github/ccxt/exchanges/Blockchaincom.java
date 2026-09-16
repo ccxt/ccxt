@@ -469,7 +469,7 @@ public class Blockchaincom extends BlockchaincomApi
                 }});
             }
             return result;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -491,7 +491,7 @@ public class Blockchaincom extends BlockchaincomApi
             Object limit = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             return (this.fetchL3OrderBook((Object)(symbol), (Object)(limit), (Object)(parameters))).join();
-        }).thenApply(OrderBook::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OrderBook::new);
 
     }
 
@@ -526,7 +526,7 @@ public class Blockchaincom extends BlockchaincomApi
             }
             Map<String, Object> response = (this.publicGetL3Symbol(this.extend(request, parameters))).join();
             return this.parseOrderBook(response, Helpers.GetValue(market, "symbol"), null, "bids", "asks", "px", "qty");
-        }).thenApply(OrderBook::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OrderBook::new);
 
     }
 
@@ -551,7 +551,7 @@ public class Blockchaincom extends BlockchaincomApi
             }
             Map<String, Object> response = (this.publicGetL2Symbol(this.extend(request, parameters))).join();
             return this.parseOrderBook(response, Helpers.GetValue(market, "symbol"), null, "bids", "asks", "px", "qty");
-        }).thenApply(OrderBook::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OrderBook::new);
 
     }
 
@@ -620,7 +620,7 @@ public class Blockchaincom extends BlockchaincomApi
             }};
             Map<String, Object> response = (this.publicGetTickersSymbol(this.extend(request, parameters))).join();
             return this.parseTicker(response, market);
-        }).thenApply(Ticker::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Ticker::new);
 
     }
 
@@ -646,7 +646,7 @@ public class Blockchaincom extends BlockchaincomApi
             }
             List<Object> tickers = (this.publicGetTickers(parameters)).join();
             return this.parseTickers(tickers, symbols);
-        }).thenApply(Tickers::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Tickers::new);
 
     }
 
@@ -804,7 +804,7 @@ public class Blockchaincom extends BlockchaincomApi
             }
             Map<String, Object> response = (this.privatePostOrders(this.extend(request, parameters))).join();
             return this.parseOrder(response, market);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -833,7 +833,7 @@ public class Blockchaincom extends BlockchaincomApi
                 put( "id", id );
                 put( "info", response );
             }});
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -872,7 +872,7 @@ public class Blockchaincom extends BlockchaincomApi
             return new ArrayList<Object>(Arrays.asList(this.safeOrder(new HashMap<String, Object>() {{
         put( "info", response );
     }})));
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -917,7 +917,7 @@ public class Blockchaincom extends BlockchaincomApi
     }});
             }
             return result;
-        }).thenApply(TradingFees::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(TradingFees::new);
 
     }
 
@@ -943,7 +943,7 @@ public class Blockchaincom extends BlockchaincomApi
             Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             String state = "CANCELED";
             return (this.fetchOrdersByState(state, symbol, since, limit, parameters)).join();
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -969,7 +969,7 @@ public class Blockchaincom extends BlockchaincomApi
             Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             String state = "FILLED";
             return (this.fetchOrdersByState(state, symbol, since, limit, parameters)).join();
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -995,7 +995,7 @@ public class Blockchaincom extends BlockchaincomApi
             Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             String state = "OPEN";
             return (this.fetchOrdersByState(state, symbol, since, limit, parameters)).join();
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -1024,7 +1024,7 @@ public class Blockchaincom extends BlockchaincomApi
             }
             List<Object> response = (this.privateGetOrders(this.extend(request, parameters))).join();
             return this.parseOrders(response, market, since, limit);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1120,7 +1120,7 @@ public class Blockchaincom extends BlockchaincomApi
             }
             List<Object> trades = (this.privateGetFills(this.extend(request, parameters))).join();
             return this.parseTrades(trades, market, since, limit, parameters);  // need to define
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -1167,7 +1167,7 @@ public class Blockchaincom extends BlockchaincomApi
                 put( "address", finalAddress );
                 put( "tag", finalTag );
             }};
-        }).thenApply(DepositAddress::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(DepositAddress::new);
 
     }
 
@@ -1309,7 +1309,7 @@ public class Blockchaincom extends BlockchaincomApi
             //     },
             //
             return this.parseTransaction(response, currency);
-        }).thenApply(Transaction::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Transaction::new);
 
     }
 
@@ -1349,7 +1349,7 @@ public class Blockchaincom extends BlockchaincomApi
             }
             List<Object> response = (this.privateGetWithdrawals(this.extend(request, parameters))).join();
             return this.parseTransactions(response, currency, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
 
     }
 
@@ -1379,7 +1379,7 @@ public class Blockchaincom extends BlockchaincomApi
             }};
             Map<String, Object> response = (this.privateGetWithdrawalsWithdrawalId(this.extend(request, parameters))).join();
             return this.parseTransaction(response);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1419,7 +1419,7 @@ public class Blockchaincom extends BlockchaincomApi
             }
             List<Object> response = (this.privateGetDeposits(this.extend(request, parameters))).join();
             return this.parseTransactions(response, currency, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
 
     }
 
@@ -1450,7 +1450,7 @@ public class Blockchaincom extends BlockchaincomApi
             }};
             Map<String, Object> deposit = (this.privateGetDepositsDepositId(this.extend(request, parameters))).join();
             return this.parseTransaction(deposit);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1512,7 +1512,7 @@ public class Blockchaincom extends BlockchaincomApi
                 Helpers.addElementToObject(result, ((String)code), account);
             }
             return this.safeBalance(result);
-        }).thenApply(Balances::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Balances::new);
 
     }
 
@@ -1562,7 +1562,7 @@ public class Blockchaincom extends BlockchaincomApi
             //     }
             //
             return this.parseOrder(response);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 

@@ -617,7 +617,7 @@ public class Dydx extends DydxApi
             // }
             //
             return this.safeInteger(response, "epoch");
-        }).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
 
     }
 
@@ -778,7 +778,7 @@ public class Dydx extends DydxApi
             Object data = this.safeDict(response, "markets", new HashMap<String, Object>() {{}});
             Object markets = Helpers.objectValues(data);
             return this.parseMarkets(markets);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -868,7 +868,7 @@ public class Dydx extends DydxApi
             //
             Object rows = this.safeList(response, "trades", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(rows, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -964,7 +964,7 @@ public class Dydx extends DydxApi
             //
             Object rows = this.safeList(response, "candles", new ArrayList<Object>(Arrays.asList()));
             return this.parseOHLCVs(rows, market, timeframe, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
 
     }
 
@@ -1041,7 +1041,7 @@ public class Dydx extends DydxApi
             }
             List<Object> sorted = this.sortBy(rates, "timestamp");
             return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, FundingRateHistory::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, FundingRateHistory::new));
 
     }
 
@@ -1183,7 +1183,7 @@ public class Dydx extends DydxApi
             }};
             Map<String, Object> order = (this.indexerGetOrdersOrderId(this.extend(request, parameters))).join();
             return this.parseOrder(order);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -1266,7 +1266,7 @@ public class Dydx extends DydxApi
             // ]
             //
             return this.parseOrders(response, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -1296,7 +1296,7 @@ public class Dydx extends DydxApi
                 put( "status", "OPEN" );
             }};
             return (this.fetchOrders((Object)(symbol), (Object)(since), (Object)(limit), (Object)(this.extend(request, parameters)))).join();
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -1326,7 +1326,7 @@ public class Dydx extends DydxApi
                 put( "status", "FILLED" );
             }};
             return (this.fetchOrders((Object)(symbol), (Object)(since), (Object)(limit), (Object)(this.extend(request, parameters)))).join();
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -1411,7 +1411,7 @@ public class Dydx extends DydxApi
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Object positions = (this.fetchPositions((Object)(new ArrayList<Object>(Arrays.asList(symbol))), (Object)(parameters))).join();
             return this.safeDict(positions, 0, new HashMap<String, Object>() {{}});
-        }).thenApply(Position::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Position::new);
 
     }
 
@@ -1479,7 +1479,7 @@ public class Dydx extends DydxApi
             //
             Object rows = this.safeList(response, "positions", new ArrayList<Object>(Arrays.asList()));
             return this.parsePositions(rows, symbols);
-        }).thenApply(res -> Helpers.toTypedList(res, Position::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Position::new));
 
     }
 
@@ -1603,7 +1603,7 @@ public class Dydx extends DydxApi
     }});
             Helpers.addElementToObject(this.options, "dydxAccount", account);
             return account;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1833,7 +1833,7 @@ public class Dydx extends DydxApi
                 throw new ExchangeError(Helpers.add(this.id, " fetchLatestBlockHeight() could not parse last_block_height")) ;
             }
             return height;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1906,7 +1906,7 @@ public class Dydx extends DydxApi
                 put( "id", orderId );
                 put( "clientOrderId", Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(orderRequest, "value"), "order"), "orderId"), "clientId") );
             }});
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -2038,7 +2038,7 @@ public class Dydx extends DydxApi
             return this.safeOrder(new HashMap<String, Object>() {{
                 put( "info", result );
             }});
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -2126,7 +2126,7 @@ public class Dydx extends DydxApi
             return new ArrayList<Object>(Arrays.asList(this.safeOrder(new HashMap<String, Object>() {{
         put( "info", result );
     }})));
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -2173,7 +2173,7 @@ public class Dydx extends DydxApi
             // }
             //
             return this.parseOrderBook(response, Helpers.GetValue(market, "symbol"), null, "bids", "asks", "price", "size");
-        }).thenApply(OrderBook::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OrderBook::new);
 
     }
 
@@ -2285,7 +2285,7 @@ public class Dydx extends DydxApi
                 put( "methodName", "fetchLedger" );
             }}))).join();
             return this.parseLedger(response, currency, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, LedgerEntry::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, LedgerEntry::new));
 
     }
 
@@ -2351,7 +2351,7 @@ public class Dydx extends DydxApi
                 put( "amount", new ArrayList<Object>(Arrays.asList(feeObj)) );
                 put( "gasLimit", gasLimit );
             }};
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -2472,7 +2472,7 @@ public class Dydx extends DydxApi
             // }
             //
             return this.parseTransfer(response);
-        }).thenApply(TransferEntry::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(TransferEntry::new);
 
     }
 
@@ -2558,7 +2558,7 @@ public class Dydx extends DydxApi
             List<Object> transferOut = this.filterBy(response, "type", "TRANSFER_OUT");
             List<Object> rows = (List<Object>) this.arrayConcat(transferIn, transferOut);
             return this.parseTransfers(rows, currency, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, TransferEntry::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, TransferEntry::new));
 
     }
 
@@ -2692,7 +2692,7 @@ public class Dydx extends DydxApi
             //
             Object data = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             return this.parseTransaction(data, currency);
-        }).thenApply(Transaction::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Transaction::new);
 
     }
 
@@ -2732,7 +2732,7 @@ public class Dydx extends DydxApi
             }}))).join();
             Object rows = this.filterBy(response, "type", "WITHDRAWAL");
             return this.parseTransactions(rows, currency, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
 
     }
 
@@ -2772,7 +2772,7 @@ public class Dydx extends DydxApi
             }}))).join();
             Object rows = this.filterBy(response, "type", "DEPOSIT");
             return this.parseTransactions(rows, currency, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
 
     }
 
@@ -2814,7 +2814,7 @@ public class Dydx extends DydxApi
             List<Object> deposits = this.filterBy(response, "type", "DEPOSIT");
             List<Object> rows = (List<Object>) this.arrayConcat(withdrawals, deposits);
             return this.parseTransactions(rows, currency, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
 
     }
 
@@ -2868,7 +2868,7 @@ public class Dydx extends DydxApi
             // }
             //
             return this.safeList(response, "transfers", new ArrayList<Object>(Arrays.asList()));
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -2955,7 +2955,7 @@ public class Dydx extends DydxApi
                 }});
             }
             return result;
-        }).thenApply(res -> Helpers.toTypedList(res, Account::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Account::new));
 
     }
 
@@ -3054,7 +3054,7 @@ public class Dydx extends DydxApi
             //
             Object data = this.safeDict(response, "subaccount");
             return this.parseBalance(data);
-        }).thenApply(Balances::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Balances::new);
 
     }
 

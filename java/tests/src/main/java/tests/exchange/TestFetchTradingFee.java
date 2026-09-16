@@ -22,7 +22,7 @@ public class TestFetchTradingFee extends BaseTest {
         TestSharedMethods.AssertDictionaryResponse(exchange, method, fee, symbol);
         TestTradingFee.testTradingFee(exchange, skippedProperties, method, symbol, fee);
         return true;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 

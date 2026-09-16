@@ -390,7 +390,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             Object messageHash = ":balance";
             messageHash = ((Helpers.isTrue(usePerpetualApi))) ? Helpers.add("perpetual", messageHash) : Helpers.add(type, messageHash);
             return (this.subscribePrivate(type, messageHash, parameters)).join();
-        }).thenApply(Balances::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Balances::new);
 
     }
 
@@ -628,7 +628,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             }};
             Map<String, Object> request = this.deepExtend(subscribe, parameters);
             return (this.watch(url, messageHash, request, subscriptionHash, null)).join();
-        }).thenApply(Ticker::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Ticker::new);
 
     }
 
@@ -687,7 +687,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
                 return result;
             }
             return this.filterByArray(this.tickers, "symbol", symbols);
-        }).thenApply(Tickers::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Tickers::new);
 
     }
 
@@ -738,7 +738,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
             }
             return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -784,7 +784,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             Map<String, Object> request = this.deepExtend(subscribe, parameters);
             Object orderbook = (this.watch(url, messageHash, request, messageHash, null)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
-        }).thenApply(OrderBook::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OrderBook::new);
 
     }
 
@@ -837,7 +837,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
                 limit = Helpers.callDynamically(ohlcv, "getLimit", new Object[]{symbol, limit});
             }
             return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
-        }).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
 
     }
 
@@ -989,7 +989,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
             }
             return this.filterBySymbolSinceLimit(trades, symbol, since, limit, true);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -1182,7 +1182,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
                 limit = Helpers.callDynamically(orders, "getLimit", new Object[]{symbol, limit});
             }
             return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -1802,7 +1802,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             }};
             request = this.extend(request, parameters);
             return (this.watch(url, messageHash, request, channel, null)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1840,7 +1840,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
                 Helpers.addElementToObject(client.subscriptions, messageHash, future);
             }
             return future;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 }

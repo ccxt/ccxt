@@ -557,7 +557,7 @@ public class Lighter extends LighterApi
                 return res;
             }
             return signer;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -639,7 +639,7 @@ public class Lighter extends LighterApi
             signer = (this.loadAccount(Helpers.GetValue(this.options, "chainId"), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex)).join();
             (this.handleBuilderFeeApproval(accountIndex, apiKeyIndex)).join();
             return (!Helpers.isEqual(signer, null));
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -724,7 +724,7 @@ public class Lighter extends LighterApi
                 }
             }
             return new ArrayList<Object>(Arrays.asList(this.parseToInt(accountIndex), parameters));
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -761,7 +761,7 @@ public class Lighter extends LighterApi
                 put( "tx_info", txInfo );
             }};
             return (this.publicPostSendTx(request)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -886,7 +886,7 @@ public class Lighter extends LighterApi
                 Helpers.addElementToObject(this.options, "builderFee", false);
             }
             return true;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -923,7 +923,7 @@ public class Lighter extends LighterApi
             }};
             Map<String, Object> response = (this.publicPostSendTx(request)).join();
             return response;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -974,7 +974,7 @@ public class Lighter extends LighterApi
             Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.options, "auths"), strAccountIndex), strApiKeyIndex), "signer", signer); // reassign signer in go
             (this.handleBuilderFeeApproval(accountIndex, apiKeyIndex)).join();
             return signer;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1226,7 +1226,7 @@ public class Lighter extends LighterApi
                 put( "api_key_index", finalApiKeyIndex );
             }})).join();
             return this.safeInteger(response, "nonce");
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1299,7 +1299,7 @@ public class Lighter extends LighterApi
                 txInfo = ((List<Object>) txTypetxInfoVariable).get(1);
             }
             return new ArrayList<Object>(Arrays.asList(txType, txInfo, order, market));
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1349,7 +1349,7 @@ public class Lighter extends LighterApi
             // }
             //
             return this.parseOrder(this.deepExtend(response, order), market);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -1438,7 +1438,7 @@ public class Lighter extends LighterApi
             }};
             Map<String, Object> response = (this.publicPostSendTx(request)).join();
             return this.parseOrder(response, market);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -1473,7 +1473,7 @@ public class Lighter extends LighterApi
                 put( "url", null );
                 put( "info", response );
             }};
-        }).thenApply(Status::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Status::new);
 
     }
 
@@ -1500,7 +1500,7 @@ public class Lighter extends LighterApi
             //     }
             //
             return this.safeTimestamp(response, "timestamp");
-        }).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
 
     }
 
@@ -1687,7 +1687,7 @@ public class Lighter extends LighterApi
                 }});
             }
             return result;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1730,7 +1730,7 @@ public class Lighter extends LighterApi
             //
             Object data = this.safeList(response, "asset_details", new ArrayList<Object>(Arrays.asList()));
             return this.parseCurrencies(data);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1841,7 +1841,7 @@ public class Lighter extends LighterApi
             //
             Object result = this.parseOrderBook(response, Helpers.GetValue(market, "symbol"), null, "bids", "asks", "price", "remaining_base_amount");
             return result;
-        }).thenApply(OrderBook::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OrderBook::new);
 
     }
 
@@ -2022,7 +2022,7 @@ public class Lighter extends LighterApi
             List<Object> tickers = (List<Object>) this.arrayConcat(spotTickers, swapTickers);
             Object first = this.safeDict(tickers, 0, new HashMap<String, Object>() {{}});
             return this.parseTicker(first, market);
-        }).thenApply(Ticker::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Ticker::new);
 
     }
 
@@ -2052,7 +2052,7 @@ public class Lighter extends LighterApi
             Object swapTickers = this.safeList(response, "order_book_details", new ArrayList<Object>(Arrays.asList()));
             List<Object> tickers = (List<Object>) this.arrayConcat(spotTickers, swapTickers);
             return this.parseTickers(tickers, symbols);
-        }).thenApply(Tickers::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Tickers::new);
 
     }
 
@@ -2174,7 +2174,7 @@ public class Lighter extends LighterApi
             //
             Object ohlcvs = this.safeList(response, "c", new ArrayList<Object>(Arrays.asList()));
             return this.parseOHLCVs(ohlcvs, market, timeframe, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
 
     }
 
@@ -2257,7 +2257,7 @@ public class Lighter extends LighterApi
                 }
             }
             return this.parseFundingRates(result, symbols);
-        }).thenApply(FundingRates::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(FundingRates::new);
 
     }
 
@@ -2375,7 +2375,7 @@ public class Lighter extends LighterApi
                 }
             }
             return this.safeBalance(result);
-        }).thenApply(Balances::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Balances::new);
 
     }
 
@@ -2398,7 +2398,7 @@ public class Lighter extends LighterApi
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Object positions = (this.fetchPositions((Object)(new ArrayList<Object>(Arrays.asList(symbol))), (Object)(parameters))).join();
             return this.safeDict(positions, 0, new HashMap<String, Object>() {{}});
-        }).thenApply(Position::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Position::new);
 
     }
 
@@ -2496,7 +2496,7 @@ public class Lighter extends LighterApi
                 }
             }
             return this.parsePositions(allPositions, symbols);
-        }).thenApply(res -> Helpers.toTypedList(res, Position::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Position::new));
 
     }
 
@@ -2641,7 +2641,7 @@ public class Lighter extends LighterApi
             //
             Object accounts = this.safeList(response, "accounts", new ArrayList<Object>(Arrays.asList()));
             return this.parseAccounts(accounts, parameters);
-        }).thenApply(res -> Helpers.toTypedList(res, Account::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Account::new));
 
     }
 
@@ -2773,7 +2773,7 @@ public class Lighter extends LighterApi
             //
             Object data = this.safeList(response, "orders", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(data, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -2873,7 +2873,7 @@ public class Lighter extends LighterApi
             //
             Object data = this.safeList(response, "orders", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(data, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -3175,7 +3175,7 @@ public class Lighter extends LighterApi
             }};
             Map<String, Object> response = (this.publicPostSendTx(request)).join();
             return this.parseTransfer(response);
-        }).thenApply(TransferEntry::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(TransferEntry::new);
 
     }
 
@@ -3265,7 +3265,7 @@ public class Lighter extends LighterApi
                 Helpers.addElementToObject(Helpers.GetValue(rows, 0), "cursor", cursor);
             }
             return this.parseTransfers(rows, currency, since, limit, parameters);
-        }).thenApply(res -> Helpers.toTypedList(res, TransferEntry::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, TransferEntry::new));
 
     }
 
@@ -3398,7 +3398,7 @@ public class Lighter extends LighterApi
                 Helpers.addElementToObject(Helpers.GetValue(data, 0), "cursor", cursor);
             }
             return this.parseTransactions(data, currency, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
 
     }
 
@@ -3483,7 +3483,7 @@ public class Lighter extends LighterApi
                 Helpers.addElementToObject(Helpers.GetValue(data, 0), "cursor", cursor);
             }
             return this.parseTransactions(data, currency, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
 
     }
 
@@ -3627,7 +3627,7 @@ public class Lighter extends LighterApi
             }};
             Map<String, Object> response = (this.publicPostSendTx(request)).join();
             return this.parseTransaction(response);
-        }).thenApply(Transaction::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Transaction::new);
 
     }
 
@@ -3745,7 +3745,7 @@ public class Lighter extends LighterApi
                 Helpers.addElementToObject(Helpers.GetValue(data, 0), "next_cursor", nextCursor);
             }
             return this.parseTrades(data, market, since, limit, parameters);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -3858,7 +3858,7 @@ public class Lighter extends LighterApi
                 throw new ArgumentsRequired(Helpers.add(this.id, " setLeverage() requires an marginMode parameter")) ;
             }
             return (this.modifyLeverageAndMarginMode(leverage, marginMode, symbol, parameters)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -3894,7 +3894,7 @@ public class Lighter extends LighterApi
                 throw new ArgumentsRequired(Helpers.add(this.id, " setMarginMode() requires an leverage parameter")) ;
             }
             return (this.modifyLeverageAndMarginMode(leverage, marginMode, symbol, parameters)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -3949,7 +3949,7 @@ public class Lighter extends LighterApi
                 put( "tx_info", txInfo );
             }};
             return (this.publicPostSendTx(request)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -4005,7 +4005,7 @@ public class Lighter extends LighterApi
             var txType = ((List<Object>) txTypetxInfoVariable).get(0);
             var txInfo = ((List<Object>) txTypetxInfoVariable).get(1);
             return new ArrayList<Object>(Arrays.asList(txType, txInfo, market));
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -4037,7 +4037,7 @@ public class Lighter extends LighterApi
             }};
             Map<String, Object> response = (this.publicPostSendTx(request)).join();
             return this.parseOrder(response, market);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -4077,7 +4077,7 @@ public class Lighter extends LighterApi
             var txType = ((List<Object>) txTypetxInfoVariable).get(0);
             var txInfo = ((List<Object>) txTypetxInfoVariable).get(1);
             return new ArrayList<Object>(Arrays.asList(txType, txInfo));
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -4107,7 +4107,7 @@ public class Lighter extends LighterApi
             }};
             Map<String, Object> response = (this.publicPostSendTx(request)).join();
             return this.parseOrders(new ArrayList<Object>(Arrays.asList(response)));
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -4163,7 +4163,7 @@ public class Lighter extends LighterApi
             }};
             Map<String, Object> response = (this.publicPostSendTx(request)).join();
             return response;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -4186,7 +4186,7 @@ public class Lighter extends LighterApi
                 put( "direction", 1 );
             }};
             return (this.setMargin(symbol, (Object)(amount), (Object)(this.extend(request, parameters)))).join();
-        }).thenApply(MarginModification::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(MarginModification::new);
 
     }
 
@@ -4209,7 +4209,7 @@ public class Lighter extends LighterApi
                 put( "direction", 0 );
             }};
             return (this.setMargin(symbol, (Object)(amount), (Object)(this.extend(request, parameters)))).join();
-        }).thenApply(MarginModification::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(MarginModification::new);
 
     }
 
@@ -4280,7 +4280,7 @@ public class Lighter extends LighterApi
             }};
             Map<String, Object> response = (this.publicPostSendTx(request)).join();
             return this.parseMarginModification(response, market);
-        }).thenApply(MarginModification::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(MarginModification::new);
 
     }
 

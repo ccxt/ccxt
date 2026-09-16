@@ -1278,7 +1278,7 @@ public class Bingx extends BingxApi
             //
             Object data = this.safeDict(response, "data");
             return this.safeInteger(data, "serverTime");
-        }).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
 
     }
 
@@ -1355,7 +1355,7 @@ public class Bingx extends BingxApi
             //
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseCurrencies(data);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1450,7 +1450,7 @@ public class Bingx extends BingxApi
             Object data = this.safeDict(response, "data");
             Object markets = this.safeList(data, "symbols", new ArrayList<Object>(Arrays.asList()));
             return this.parseMarkets(markets);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1493,7 +1493,7 @@ public class Bingx extends BingxApi
             //
             Object markets = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseMarkets(markets);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1523,7 +1523,7 @@ public class Bingx extends BingxApi
             //
             Object markets = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseMarkets(markets);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1688,7 +1688,7 @@ public class Bingx extends BingxApi
             Object spotMarkets = this.safeList(promises, 2, new ArrayList<Object>(Arrays.asList()));
             List<Object> swapMarkets = (List<Object>) this.arrayConcat(linearSwapMarkets, inverseSwapMarkets);
             return this.arrayConcat(spotMarkets, swapMarkets);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1828,7 +1828,7 @@ public class Bingx extends BingxApi
                 ohlcvs = new ArrayList<Object>(Arrays.asList(ohlcvs));
             }
             return this.parseOHLCVs(ohlcvs, market, timeframe, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
 
     }
 
@@ -1959,7 +1959,7 @@ public class Bingx extends BingxApi
             //
             Object trades = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(trades, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -2282,7 +2282,7 @@ public class Bingx extends BingxApi
             Object result = this.parseOrderBook(orderbook, Helpers.GetValue(market, "symbol"), timestamp, "bids", "asks", 0, 1);
             Helpers.addElementToObject(result, "nonce", nonce);
             return result;
-        }).thenApply(OrderBook::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OrderBook::new);
 
     }
 
@@ -2344,7 +2344,7 @@ public class Bingx extends BingxApi
                 data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             }
             return this.parseFundingRate(data, market);
-        }).thenApply(FundingRate::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(FundingRate::new);
 
     }
 
@@ -2386,7 +2386,7 @@ public class Bingx extends BingxApi
             }
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseFundingRates(data, symbols);
-        }).thenApply(FundingRates::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(FundingRates::new);
 
     }
 
@@ -2500,7 +2500,7 @@ public class Bingx extends BingxApi
             //
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseFundingRateHistories(data, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, FundingRateHistory::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, FundingRateHistory::new));
 
     }
 
@@ -2612,7 +2612,7 @@ public class Bingx extends BingxApi
             //         }
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseIncomes(data, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, FundingHistory::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, FundingHistory::new));
 
     }
 
@@ -2714,7 +2714,7 @@ public class Bingx extends BingxApi
                 result = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             }
             return this.parseOpenInterest(result, market);
-        }).thenApply(OpenInterest::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OpenInterest::new);
 
     }
 
@@ -2833,7 +2833,7 @@ public class Bingx extends BingxApi
             }
             Object dataDict = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseTicker(dataDict, market);
-        }).thenApply(Ticker::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Ticker::new);
 
     }
 
@@ -2922,7 +2922,7 @@ public class Bingx extends BingxApi
             //
             Object tickers = this.safeList(response, "data");
             return this.parseTickers(tickers, symbols);
-        }).thenApply(Tickers::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Tickers::new);
 
     }
 
@@ -2967,7 +2967,7 @@ public class Bingx extends BingxApi
                 return this.parseTicker(this.safeDict(Helpers.GetValue(response, "data"), 0, new HashMap<String, Object>() {{}}), market);
             }
             return this.parseTicker(Helpers.GetValue(response, "data"), market);
-        }).thenApply(Ticker::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Ticker::new);
 
     }
 
@@ -3045,7 +3045,7 @@ public class Bingx extends BingxApi
             //
             Object tickers = this.safeList(response, "data");
             return this.parseTickers(tickers, symbols);
-        }).thenApply(Tickers::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Tickers::new);
 
     }
 
@@ -3213,7 +3213,7 @@ public class Bingx extends BingxApi
                 }
             }
             return this.parseBalance(response);
-        }).thenApply(Balances::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Balances::new);
 
     }
 
@@ -3423,7 +3423,7 @@ public class Bingx extends BingxApi
             Object records = this.safeList(data, "positionHistory", new ArrayList<Object>(Arrays.asList()));
             Object positions = this.parsePositions(records);
             return this.filterBySymbolSinceLimit(positions, symbol, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Position::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Position::new));
 
     }
 
@@ -3485,7 +3485,7 @@ public class Bingx extends BingxApi
             }
             Object positions = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parsePositions(positions, symbols);
-        }).thenApply(res -> Helpers.toTypedList(res, Position::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Position::new));
 
     }
 
@@ -3528,7 +3528,7 @@ public class Bingx extends BingxApi
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Object first = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
             return this.parsePosition(first, market);
-        }).thenApply(Position::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Position::new);
 
     }
 
@@ -3678,7 +3678,7 @@ public class Bingx extends BingxApi
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Helpers.addElementToObject(parameters, "quoteOrderQty", cost);
             return (this.createOrder((Object)(symbol), (Object)("market"), (Object)(side), (Object)(cost), (Object)(null), (Object)(parameters))).join();
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -3699,7 +3699,7 @@ public class Bingx extends BingxApi
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Helpers.addElementToObject(parameters, "quoteOrderQty", cost);
             return (this.createOrder((Object)(symbol), (Object)("market"), (Object)("buy"), (Object)(cost), (Object)(null), (Object)(parameters))).join();
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -3720,7 +3720,7 @@ public class Bingx extends BingxApi
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Helpers.addElementToObject(parameters, "quoteOrderQty", cost);
             return (this.createOrder((Object)(symbol), (Object)("market"), (Object)("sell"), (Object)(cost), (Object)(null), (Object)(parameters))).join();
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -4210,7 +4210,7 @@ public class Bingx extends BingxApi
                 Helpers.addElementToObject(result, "takeProfit", this.parseJson(takeProfit));
             }
             return this.parseOrder(result, market);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -4334,7 +4334,7 @@ public class Bingx extends BingxApi
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Object result = this.safeList(data, "orders", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(result, market);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -4962,7 +4962,7 @@ public class Bingx extends BingxApi
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Object order = this.safeDict(data, "order", data);
             return this.parseOrder(order, market);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -5025,7 +5025,7 @@ public class Bingx extends BingxApi
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Object orders = this.safeList2(data, "success", "orders", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(orders);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -5099,7 +5099,7 @@ public class Bingx extends BingxApi
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Object success = this.safeList2(data, "success", "orders", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(success);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -5165,7 +5165,7 @@ public class Bingx extends BingxApi
             //     }
             //
             return response;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -5241,7 +5241,7 @@ public class Bingx extends BingxApi
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Object order = this.safeDict(data, "order", data);
             return this.parseOrder(order, market);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -5354,7 +5354,7 @@ public class Bingx extends BingxApi
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Object orders = this.safeList(data, "orders", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(orders, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -5562,7 +5562,7 @@ public class Bingx extends BingxApi
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Object orders = this.safeList2(data, "orders", "list", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(orders, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -5597,7 +5597,7 @@ public class Bingx extends BingxApi
             }
             Object orders = (this.fetchCanceledAndClosedOrders((Object)(symbol), (Object)(since), (Object)(limit), (Object)(parameters))).join();
             return this.filterBy(orders, "status", "closed");
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -5632,7 +5632,7 @@ public class Bingx extends BingxApi
             }
             Object orders = (this.fetchCanceledAndClosedOrders((Object)(symbol), (Object)(since), (Object)(limit), (Object)(parameters))).join();
             return this.filterBy(orders, "status", "canceled");
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -5721,7 +5721,7 @@ public class Bingx extends BingxApi
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Object orders = this.safeList2(data, "orders", "list", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(orders, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -5807,7 +5807,7 @@ public class Bingx extends BingxApi
                 put( "toAccount", toAccount );
                 put( "status", null );
             }};
-        }).thenApply(TransferEntry::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(TransferEntry::new);
 
     }
 
@@ -5904,7 +5904,7 @@ public class Bingx extends BingxApi
             //
             Object rows = this.safeList(response, "rows", new ArrayList<Object>(Arrays.asList()));
             return this.parseTransfers(rows, currency, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, TransferEntry::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, TransferEntry::new));
 
     }
 
@@ -5992,7 +5992,7 @@ public class Bingx extends BingxApi
             Object data = this.safeList(this.safeDict(response, "data"), "data");
             Object parsed = this.parseDepositAddresses(data, new ArrayList<Object>(Arrays.asList(Helpers.GetValue(currency, "code"))), false);
             return this.indexBy(parsed, "network");
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -6032,7 +6032,7 @@ public class Bingx extends BingxApi
                     return this.safeDict(addressStructures, key);
                 }
             }
-        }).thenApply(DepositAddress::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(DepositAddress::new);
 
     }
 
@@ -6139,7 +6139,7 @@ public class Bingx extends BingxApi
             //    ]
             //
             return this.parseTransactions(response, currency, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
 
     }
 
@@ -6207,7 +6207,7 @@ public class Bingx extends BingxApi
             //    ]
             //
             return this.parseTransactions(response, currency, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
 
     }
 
@@ -6394,7 +6394,7 @@ public class Bingx extends BingxApi
             {
                 return (this.swapV2PrivatePostTradeMarginType(this.extend(request, parameters))).join();
             }
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -6408,7 +6408,7 @@ public class Bingx extends BingxApi
                 put( "type", 1 );
             }};
             return (this.setMargin(symbol, (Object)(amount), (Object)(this.extend(request, parameters)))).join();
-        }).thenApply(MarginModification::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(MarginModification::new);
 
     }
 
@@ -6422,7 +6422,7 @@ public class Bingx extends BingxApi
                 put( "type", 2 );
             }};
             return (this.setMargin(symbol, (Object)(amount), (Object)(this.extend(request, parameters)))).join();
-        }).thenApply(MarginModification::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(MarginModification::new);
 
     }
 
@@ -6472,7 +6472,7 @@ public class Bingx extends BingxApi
             //    }
             //
             return this.parseMarginModification(response, market);
-        }).thenApply(MarginModification::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(MarginModification::new);
 
     }
 
@@ -6537,7 +6537,7 @@ public class Bingx extends BingxApi
             }
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseLeverage(data, market);
-        }).thenApply(Leverage::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Leverage::new);
 
     }
 
@@ -6625,7 +6625,7 @@ public class Bingx extends BingxApi
             {
                 return (this.swapV2PrivatePostTradeLeverage(this.extend(request, parameters))).join();
             }
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -6721,7 +6721,7 @@ public class Bingx extends BingxApi
                 }
             }
             return this.parseTrades(fills, market, since, limit, parameters);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -6805,7 +6805,7 @@ public class Bingx extends BingxApi
                 }
             }
             return depositWithdrawFees;
-        }).thenApply(DepositWithdrawFees::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(DepositWithdrawFees::new);
 
     }
 
@@ -6878,7 +6878,7 @@ public class Bingx extends BingxApi
             //        }
             //    }
             return this.parseTransaction(data);
-        }).thenApply(Transaction::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Transaction::new);
 
     }
 
@@ -7030,7 +7030,7 @@ public class Bingx extends BingxApi
                 liquidations = this.safeList(data, "orders", new ArrayList<Object>(Arrays.asList()));
             }
             return this.parseLiquidations(liquidations, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Liquidation::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Liquidation::new));
 
     }
 
@@ -7126,7 +7126,7 @@ public class Bingx extends BingxApi
             }
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseOrder(data, market);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -7187,7 +7187,7 @@ public class Bingx extends BingxApi
                 ((List<Object>)positions).add(position);
             }
             return positions;
-        }).thenApply(res -> Helpers.toTypedList(res, Position::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Position::new));
 
     }
 
@@ -7239,7 +7239,7 @@ public class Bingx extends BingxApi
                 put( "info", response );
                 put( "hedged", (Helpers.isEqual(finalDualSidePosition, "true")) );
             }};
-        }).thenApply(PositionModeInfo::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(PositionModeInfo::new);
 
     }
 
@@ -7295,7 +7295,7 @@ public class Bingx extends BingxApi
             //     }
             //
             return (this.swapV1PrivatePostPositionSideDual(this.extend(request, parameters))).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -7360,7 +7360,7 @@ public class Bingx extends BingxApi
             }
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseOrder(data, market);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -7402,7 +7402,7 @@ public class Bingx extends BingxApi
             }
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseMarginMode(data, market);
-        }).thenApply(MarginMode::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(MarginMode::new);
 
     }
 
@@ -7499,7 +7499,7 @@ public class Bingx extends BingxApi
                 }
             }
             return this.parseTradingFee(commission, market);
-        }).thenApply(TradingFeeInterface::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(TradingFeeInterface::new);
 
     }
 
@@ -7626,7 +7626,7 @@ public class Bingx extends BingxApi
             //
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseMarketLeverageTiers(data, market);
-        }).thenApply(res -> Helpers.toTypedList(res, LeverageTier::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, LeverageTier::new));
 
     }
 

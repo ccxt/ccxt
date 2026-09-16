@@ -335,7 +335,7 @@ public class Myriad extends MyriadApi
             }
             this.events = eventsDict;
             return flatMarkets;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -387,7 +387,7 @@ public class Myriad extends MyriadApi
                 }
             }
             return rawMarkets;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -452,7 +452,7 @@ public class Myriad extends MyriadApi
                 }
             }
             return allRawMarkets;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -483,7 +483,7 @@ public class Myriad extends MyriadApi
             Object eventVar = this.parseMarketToEvent(response, market);
             this.indexEventOutcomes(eventVar);
             return eventVar;
-        }).thenApply(PredictionEvent::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(PredictionEvent::new);
 
     }
 
@@ -515,7 +515,7 @@ public class Myriad extends MyriadApi
                 Helpers.addElementToObject(request, "id", id);
             }
             return (this.myriadPublicGetMarketsId(this.extend(request, parameters))).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -570,7 +570,7 @@ public class Myriad extends MyriadApi
                 throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
             }
             return result;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -615,7 +615,7 @@ public class Myriad extends MyriadApi
                 }
             }
             return rawQuestions;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -687,7 +687,7 @@ public class Myriad extends MyriadApi
                 }
             }
             return allRawQuestions;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -770,7 +770,7 @@ public class Myriad extends MyriadApi
                 ((List<Object>)result).add(this.parsePredictionPosition(Helpers.GetValue(data, i)));
             }
             return this.filterByArray(result, "outcome", outcomes, false);
-        }).thenApply(res -> Helpers.toTypedList(res, PredictionPosition::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, PredictionPosition::new));
 
     }
 
@@ -884,7 +884,7 @@ public class Myriad extends MyriadApi
             return this.parseTradeQuote(this.extend(response, new HashMap<String, Object>() {{
                 put( "action", finalSideStr );
             }}), ((Object)outcomeObj));
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -998,7 +998,7 @@ public class Myriad extends MyriadApi
             // the result is either a hex string (nonce/gasPrice/txhash) or an object (receipt) —
             // safeString would coerce a receipt object to "[object Object]"
             return this.safeValue(response, "result");
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1025,7 +1025,7 @@ public class Myriad extends MyriadApi
             Object approveHash = (this.sendEvmTransaction(rpcUrl, this.parseToInt(networkId), owner, token, "0x0", approveData, "0x186a0")).join();
             (this.waitForTransactionReceipt(rpcUrl, approveHash)).join();
             return null;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1069,7 +1069,7 @@ public class Myriad extends MyriadApi
                 throw new NotSupported(Helpers.add(this.id, " createOrder() only supports the gasless order book; this market uses the on-chain AMM (needs native gas and is unverified) — pass params.enableAmm=true to opt in")) ;
             }
             return (this.createAmmOrder(outcome, type, side, amount, price, this.omit(rest, new ArrayList<Object>(Arrays.asList("enableAmm", "enableAmmOrders"))))).join();
-        }).thenApply(PredictionOrder::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(PredictionOrder::new);
 
     }
 
@@ -1162,7 +1162,7 @@ public class Myriad extends MyriadApi
                 Helpers.addElementToObject(parsed, "status", "open");
             }
             return parsed;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1286,7 +1286,7 @@ public class Myriad extends MyriadApi
                 ((List<Object>)result).add(placed);
             }
             return result;
-        }).thenApply(res -> Helpers.toTypedList(res, PredictionOrder::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, PredictionOrder::new));
 
     }
 
@@ -1319,7 +1319,7 @@ public class Myriad extends MyriadApi
             (this.loadOutcome(outcome)).join();
             (this.cancelOrder((Object)(id), (Object)(outcome), (Object)(parameters))).join();
             return (this.createOrderbookOrder(outcome, type, side, amount, price, parameters)).join();
-        }).thenApply(PredictionOrder::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(PredictionOrder::new);
 
     }
 
@@ -1406,7 +1406,7 @@ public class Myriad extends MyriadApi
                 (this.waitForTransactionReceipt(rpcUrl, txHash)).join();
             }
             return this.parseTradeTx(txHash, quote, ((Object)outcomeObj), sideStr);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1433,7 +1433,7 @@ public class Myriad extends MyriadApi
                 put( "costDenominated", true );
             }});
             return (this.createOrder((Object)(outcome), (Object)("market"), (Object)("buy"), (Object)(cost), (Object)(null), (Object)(request))).join();
-        }).thenApply(PredictionOrder::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(PredictionOrder::new);
 
     }
 
@@ -1926,7 +1926,7 @@ public class Myriad extends MyriadApi
             }
             List<Object> sorted = this.sortBy(result, "timestamp", true);
             return this.filterByOutcomeSinceLimit(sorted, outcomeSymbol, since, limit);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -2011,7 +2011,7 @@ public class Myriad extends MyriadApi
                 market = (this.loadOutcome(outcome)).join();
             }
             return this.parsePredictionOrder(wrapper, ((Object)market));
-        }).thenApply(PredictionOrder::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(PredictionOrder::new);
 
     }
 
@@ -2075,7 +2075,7 @@ public class Myriad extends MyriadApi
         put( "info", response );
         put( "status", "canceled" );
     }})));
-        }).thenApply(res -> Helpers.toTypedList(res, PredictionOrder::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, PredictionOrder::new));
 
     }
 
@@ -2168,7 +2168,7 @@ public class Myriad extends MyriadApi
             //     }
             //
             return this.parsePredictionOrders(wrappers);
-        }).thenApply(res -> Helpers.toTypedList(res, PredictionOrder::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, PredictionOrder::new));
 
     }
 
@@ -2224,7 +2224,7 @@ public class Myriad extends MyriadApi
                 market = (this.loadOutcome(outcome)).join();
             }
             return this.parsePredictionOrder(response, ((Object)market));
-        }).thenApply(PredictionOrder::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(PredictionOrder::new);
 
     }
 
@@ -2322,7 +2322,7 @@ public class Myriad extends MyriadApi
             // outcome ids — and filter by the requested outcome client-side
             Object orders = this.parsePredictionOrders(data);
             return this.filterByOutcomeSinceLimit(orders, outcomeSymbol, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, PredictionOrder::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, PredictionOrder::new));
 
     }
 
@@ -2350,7 +2350,7 @@ public class Myriad extends MyriadApi
                 put( "status", "open" );
             }};
             return (this.fetchOrders((Object)(outcome), (Object)(since), (Object)(limit), (Object)(this.extend(request, parameters)))).join();
-        }).thenApply(res -> Helpers.toTypedList(res, PredictionOrder::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, PredictionOrder::new));
 
     }
 
@@ -2378,7 +2378,7 @@ public class Myriad extends MyriadApi
                 put( "status", "filled" );
             }};
             return (this.fetchOrders((Object)(outcome), (Object)(since), (Object)(limit), (Object)(this.extend(request, parameters)))).join();
-        }).thenApply(res -> Helpers.toTypedList(res, PredictionOrder::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, PredictionOrder::new));
 
     }
 
@@ -2406,7 +2406,7 @@ public class Myriad extends MyriadApi
                 put( "status", "cancelled" );
             }};
             return (this.fetchOrders((Object)(outcome), (Object)(since), (Object)(limit), (Object)(this.extend(request, parameters)))).join();
-        }).thenApply(res -> Helpers.toTypedList(res, PredictionOrder::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, PredictionOrder::new));
 
     }
 
@@ -2444,7 +2444,7 @@ public class Myriad extends MyriadApi
                 ((List<Object>)trades).add(this.orderToTrade(order));
             }
             return this.filterByValueSinceLimit(trades, "outcome", outcome, since, limit, "timestamp", true);
-        }).thenApply(res -> Helpers.toTypedList(res, PredictionTrade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, PredictionTrade::new));
 
     }
 
@@ -2532,7 +2532,7 @@ public class Myriad extends MyriadApi
             Helpers.addElementToObject(account, "total", balanceString);
             Helpers.addElementToObject(result, currency, account);
             return this.safeBalance(result);
-        }).thenApply(Balances::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Balances::new);
 
     }
 
@@ -2916,7 +2916,7 @@ final Object finalNetworkId = networkId;
             //     }
             //
             return this.parsePredictionTicker(response, outcomeObj);
-        }).thenApply(PredictionTicker::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(PredictionTicker::new);
 
     }
 
@@ -2962,7 +2962,7 @@ final Object finalNetworkId = networkId;
                 put( "percentage", true );
                 put( "tierBased", false );
             }};
-        }).thenApply(PredictionTradingFee::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(PredictionTradingFee::new);
 
     }
 
@@ -3277,7 +3277,7 @@ final Object finalNetworkId = networkId;
                 put( "nonce", null );
             }};
             return this.safePredictionOrderBook(orderbook, outcomeObj);
-        }).thenApply(PredictionOrderBook::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(PredictionOrderBook::new);
 
     }
 
@@ -3448,7 +3448,7 @@ final Object finalNetworkId = networkId;
                 }
             }
             return this.parseOHLCVs(usablePoints, outcomeObj, timeframe, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
 
     }
 
@@ -3555,7 +3555,7 @@ final Object finalNetworkId = networkId;
                 }
             }
             return result;
-        }).thenApply(PredictionTickers::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(PredictionTickers::new);
 
     }
 
@@ -3634,7 +3634,7 @@ final Object finalNetworkId = networkId;
                 ((List<Object>)trades).add(row);
             }
             return this.parsePredictionTrades(trades, outcomeObj, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, PredictionTrade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, PredictionTrade::new));
 
     }
 
@@ -3826,7 +3826,7 @@ final Object finalNetworkId = networkId;
             // the client-side pass — raw markets don't carry a matching event-level tags field
             Object postParams = this.omit(parameters, new ArrayList<Object>(Arrays.asList("tags")));
             return this.applyEventFetchParams(result, postParams, queries);
-        }).thenApply(res -> Helpers.toTypedList(res, PredictionEvent::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, PredictionEvent::new));
 
     }
 
@@ -3945,7 +3945,7 @@ final Object finalNetworkId = networkId;
             }
             // connect is in flight (sent by a concurrent subscribe) — wait on the shared reply future
             return client.future("centrifugoConnected").getFuture().join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -3958,7 +3958,7 @@ final Object finalNetworkId = networkId;
             Object message = Helpers.getArg(optionalArgs, 0, null);
             (client.send("{}")).join();
             return null;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -3979,7 +3979,7 @@ final Object finalNetworkId = networkId;
                 put( "id", requestId );
             }};
             return (this.watch(url, messageHash, subscribeMsg, channel, null)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -4104,7 +4104,7 @@ final Object finalNetworkId = networkId;
             }
             Object orderbook = ((io.github.ccxt.ws.Future)future).getFuture().join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
-        }).thenApply(PredictionOrderBook::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(PredictionOrderBook::new);
 
     }
 
@@ -4120,7 +4120,7 @@ final Object finalNetworkId = networkId;
             Helpers.callDynamically(orderbook, "reset", new Object[]{snapshot});
             Helpers.addElementToObject(this.orderbooks, ((String)sym), orderbook);
             return null;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -4192,7 +4192,7 @@ final Object finalNetworkId = networkId;
             String messageHash = Helpers.add("trades::", sym);
             Object trades = (this.subscribeMyriadChannel(messageHash, channel, parameters)).join();
             return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
-        }).thenApply(res -> Helpers.toTypedList(res, PredictionTrade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, PredictionTrade::new));
 
     }
 
@@ -4230,7 +4230,7 @@ final Object finalNetworkId = networkId;
             String messageHash = "myTrades";
             Object trades = (this.subscribeMyriadChannel(messageHash, channel, parameters)).join();
             return this.filterByValueSinceLimit(trades, "outcome", sym, since, limit, "timestamp", true);
-        }).thenApply(res -> Helpers.toTypedList(res, PredictionTrade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, PredictionTrade::new));
 
     }
 
@@ -4387,7 +4387,7 @@ final Object finalNetworkId = networkId;
             Object channel = Helpers.add(Helpers.add(Helpers.add("prices:", networkId), ":"), marketId);
             String messageHash = Helpers.add("ticker::", sym);
             return (this.subscribeMyriadChannel(messageHash, channel, parameters)).join();
-        }).thenApply(PredictionTicker::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(PredictionTicker::new);
 
     }
 
@@ -4441,7 +4441,7 @@ final Object finalNetworkId = networkId;
             }
             Object tickers = client.future("tickers").getFuture().join();
             return this.filterByArray(tickers, "outcome", resolvedSymbols, true);
-        }).thenApply(PredictionTickers::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(PredictionTickers::new);
 
     }
 
@@ -4477,7 +4477,7 @@ final Object finalNetworkId = networkId;
                 ((List<Object>)result).add(new ArrayList<Object>(Arrays.asList(Helpers.GetValue(candle, 0), Helpers.GetValue(candle, 1), Helpers.GetValue(candle, 2), Helpers.GetValue(candle, 3), Helpers.GetValue(candle, 4), Helpers.GetValue(candle, 5))));
             }
             return this.filterBySinceLimit(result, since, limit, 0, true);
-        }).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
 
     }
 
@@ -4569,7 +4569,7 @@ final Object finalNetworkId = networkId;
             String messageHash = "orders";
             Object orders = (this.subscribeMyriadChannel(messageHash, channel, parameters)).join();
             return this.filterByValueSinceLimit(orders, "outcome", outcome, since, limit, "timestamp", true);
-        }).thenApply(res -> Helpers.toTypedList(res, PredictionOrder::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, PredictionOrder::new));
 
     }
 
@@ -4677,7 +4677,7 @@ final Object finalNetworkId = networkId;
                 return positions;
             }
             return this.filterByOutcomesSinceLimit(positions, outcomes, since, limit, true);
-        }).thenApply(res -> Helpers.toTypedList(res, PredictionPosition::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, PredictionPosition::new));
 
     }
 
@@ -4702,7 +4702,7 @@ final Object finalNetworkId = networkId;
             }
             Helpers.addElementToObject(this.options, "positionBalances", balances);
             return null;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 

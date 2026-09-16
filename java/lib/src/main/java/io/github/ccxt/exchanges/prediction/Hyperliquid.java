@@ -521,7 +521,7 @@ public class Hyperliquid extends HyperliquidApi
                 }
             }
             return markets;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -751,7 +751,7 @@ public class Hyperliquid extends HyperliquidApi
                 put( "book", response );
             }}, "book", new HashMap<String, Object>() {{}});
             return this.parsePredictionTicker(tickerData, outcomeObj);
-        }).thenApply(PredictionTicker::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(PredictionTicker::new);
 
     }
 
@@ -829,7 +829,7 @@ public class Hyperliquid extends HyperliquidApi
                 Helpers.addElementToObject(tickers, outcomeHandle, ticker);
             }
             return tickers;
-        }).thenApply(PredictionTickers::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(PredictionTickers::new);
 
     }
 
@@ -966,7 +966,7 @@ public class Hyperliquid extends HyperliquidApi
                 put( "asks", asks );
             }}, this.safeString(outcomeObj, "outcome", outcome), timestamp);
             return this.safePredictionOrderBook(orderbook, outcomeObj);
-        }).thenApply(PredictionOrderBook::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(PredictionOrderBook::new);
 
     }
 
@@ -1048,7 +1048,7 @@ public class Hyperliquid extends HyperliquidApi
                 candles = response;
             }
             return this.parseOHLCVs(candles, market, timeframe, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
 
     }
 
@@ -1134,7 +1134,7 @@ public class Hyperliquid extends HyperliquidApi
                 }
             }
             return this.safeBalance(result);
-        }).thenApply(Balances::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Balances::new);
 
     }
 
@@ -1230,7 +1230,7 @@ public class Hyperliquid extends HyperliquidApi
                 ((List<Object>)positions).add(this.parsePredictionPosition(enriched, outcomeObj));
             }
             return positions;
-        }).thenApply(res -> Helpers.toTypedList(res, PredictionPosition::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, PredictionPosition::new));
 
     }
 
@@ -1598,7 +1598,7 @@ public class Hyperliquid extends HyperliquidApi
                 put( "fee", null );
                 put( "trades", new ArrayList<Object>(Arrays.asList()) );
             }}, market);
-        }).thenApply(PredictionOrder::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(PredictionOrder::new);
 
     }
 
@@ -1623,7 +1623,7 @@ public class Hyperliquid extends HyperliquidApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             Object orders = (this.cancelOrders((Object)(new ArrayList<Object>(Arrays.asList(id))), (Object)(outcome), (Object)(parameters))).join();
             return this.safeDict(orders, 0);
-        }).thenApply(PredictionOrder::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(PredictionOrder::new);
 
     }
 
@@ -1750,7 +1750,7 @@ public class Hyperliquid extends HyperliquidApi
                 ((List<Object>)orders).add(this.safePredictionOrder(order));
             }
             return orders;
-        }).thenApply(res -> Helpers.toTypedList(res, PredictionOrder::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, PredictionOrder::new));
 
     }
 
@@ -1813,7 +1813,7 @@ public class Hyperliquid extends HyperliquidApi
                 outcomeHandle = this.safeString(outcomeObj, "outcome");
             }
             return this.filterByOutcomeSinceLimit(parsed, outcomeHandle, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, PredictionOrder::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, PredictionOrder::new));
 
     }
 
@@ -1890,7 +1890,7 @@ public class Hyperliquid extends HyperliquidApi
                 outcomeHandle = this.safeString(outcomeObj, "outcome");
             }
             return this.filterByOutcomeSinceLimit(parsed, outcomeHandle, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, PredictionOrder::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, PredictionOrder::new));
 
     }
 
@@ -1951,7 +1951,7 @@ public class Hyperliquid extends HyperliquidApi
                 }
             }
             return parsed;
-        }).thenApply(PredictionOrder::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(PredictionOrder::new);
 
     }
 
@@ -2124,7 +2124,7 @@ public class Hyperliquid extends HyperliquidApi
                 trades = this.toArray(response);
             }
             return this.parsePredictionTrades(trades, outcomeObj, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, PredictionTrade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, PredictionTrade::new));
 
     }
 
@@ -2196,7 +2196,7 @@ public class Hyperliquid extends HyperliquidApi
             // requested-outcome fallback would mislabel fills whose market is no longer listed
             Object parsedTrades = this.parsePredictionTrades(fills);
             return this.filterByOutcomeSinceLimit(parsedTrades, outcomeHandle, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, PredictionTrade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, PredictionTrade::new));
 
     }
 
@@ -2400,7 +2400,7 @@ public class Hyperliquid extends HyperliquidApi
             // applyEventFetchParams caches via setEvents (keyed by id/slug/handle) before filtering,
             // so getEvent() resolves these events by any of the three keys
             return this.applyEventFetchParams(events, parameters, queries);
-        }).thenApply(res -> Helpers.toTypedList(res, PredictionEvent::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, PredictionEvent::new));
 
     }
 
@@ -2670,7 +2670,7 @@ public class Hyperliquid extends HyperliquidApi
                 put( "vaultAddress", null );
             }};
             return (this.privatePostExchange(request)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -2705,7 +2705,7 @@ public class Hyperliquid extends HyperliquidApi
                 Helpers.addElementToObject(this.options, "builderFee", false); // disable builder fee if an error occurs
             }
             return null;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 

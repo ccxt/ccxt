@@ -31,7 +31,7 @@ public class TestFetchOpenOrders extends BaseTest {
         }
         TestSharedMethods.AssertTimestampOrder(exchange, method, symbol, orders);
         return true;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 

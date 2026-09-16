@@ -21,7 +21,7 @@ public class TestFetchMarginMode extends BaseTest {
         Object marginMode = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchMarginMode", new Object[]{symbol})).join();
         TestMarginMode.testMarginMode(exchange, skippedProperties, method, marginMode);
         return true;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 

@@ -645,7 +645,7 @@ public class Polymarket extends PolymarketApi
             }
             this.events = eventsDict;
             return flatMarkets;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -777,7 +777,7 @@ public class Polymarket extends PolymarketApi
                 }
             }
             return rawEvents;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -954,7 +954,7 @@ public class Polymarket extends PolymarketApi
                 return this.arraySlice(allRawEvents, 0, limit);
             }
             return allRawEvents;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1291,7 +1291,7 @@ final Object finalClobTokenId = clobTokenId;
                 }
             }
             return (super.fetchOutcome(outcomeSymbol)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1375,7 +1375,7 @@ final Object finalClobTokenId = clobTokenId;
                 }
             }
             return this.outcomes;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1448,7 +1448,7 @@ final Object finalClobTokenId = clobTokenId;
             //     }
             //
             return this.parsePredictionTicker(response, outcomeObj);
-        }).thenApply(PredictionTicker::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(PredictionTicker::new);
 
     }
 
@@ -1558,7 +1558,7 @@ final Object finalClobTokenId = clobTokenId;
                 startIndex = this.sum(startIndex, chunkSize);
             }
             return result;
-        }).thenApply(PredictionTickers::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(PredictionTickers::new);
 
     }
 
@@ -1710,7 +1710,7 @@ final Object finalClobTokenId = clobTokenId;
             Long timestamp = this.safeInteger(response, "timestamp");
             Object orderbook = this.parseOrderBook(response, this.safeOutcomeSymbol(outcome, outcomeObj), timestamp, "bids", "asks", "price", "size");
             return this.safePredictionOrderBook(orderbook, outcomeObj);
-        }).thenApply(PredictionOrderBook::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(PredictionOrderBook::new);
 
     }
 
@@ -1846,7 +1846,7 @@ final Object finalClobTokenId = clobTokenId;
                 return this.arraySlice(candles, Helpers.opNeg(limit));
             }
             return candles;
-        }).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
 
     }
 
@@ -1883,7 +1883,7 @@ final Object finalClobTokenId = clobTokenId;
             //     1781273248
             //
             return Helpers.multiply(this.parseToInt(response), 1000);
-        }).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
 
     }
 
@@ -1914,7 +1914,7 @@ final Object finalClobTokenId = clobTokenId;
                 put( "url", null );
                 put( "info", finalResponse );
             }};
-        }).thenApply(Status::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Status::new);
 
     }
 
@@ -1950,7 +1950,7 @@ final Object finalClobTokenId = clobTokenId;
             //
             Object first = this.safeDict(response, 0, new HashMap<String, Object>() {{}});
             return this.parsePredictionOpenInterest(first, ((Object)outcomeObj));
-        }).thenApply(PredictionOpenInterest::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(PredictionOpenInterest::new);
 
     }
 
@@ -2014,7 +2014,7 @@ final Object finalClobTokenId = clobTokenId;
                 put( "percentage", true );
                 put( "tierBased", false );
             }};
-        }).thenApply(PredictionTradingFee::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(PredictionTradingFee::new);
 
     }
 
@@ -2070,7 +2070,7 @@ final Object finalClobTokenId = clobTokenId;
             // the trades are already narrowed to this outcome by asset id above;
             // parsePredictionTrade resolves the outcome from each trade's asset id
             return this.parsePredictionTrades(filteredTrades, null, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, PredictionTrade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, PredictionTrade::new));
 
     }
 
@@ -2105,7 +2105,7 @@ final Object finalClobTokenId = clobTokenId;
             Map<String, Object> response = (this.clobPrivateGetDataTrades(this.extend(request, parameters))).join();
             Object rawTrades = ((Helpers.isTrue(Helpers.isArray(response)))) ? response : this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parsePredictionTrades(rawTrades, outcomeObj, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, PredictionTrade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, PredictionTrade::new));
 
     }
 
@@ -2153,7 +2153,7 @@ final Object finalClobTokenId = clobTokenId;
                 }
             }
             return this.filterBySinceLimit(result, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, PredictionTrade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, PredictionTrade::new));
 
     }
 
@@ -2243,7 +2243,7 @@ final Object finalClobTokenId = clobTokenId;
             }};
             Map<String, Object> response = (this.clobPrivateGetBalanceAllowance(this.extend(request, rest))).join();
             return this.parseBalance(response);
-        }).thenApply(Balances::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Balances::new);
 
     }
 
@@ -2338,7 +2338,7 @@ final Object finalClobTokenId = clobTokenId;
                 }
             }
             return result;
-        }).thenApply(res -> Helpers.toTypedList(res, PredictionPosition::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, PredictionPosition::new));
 
     }
 
@@ -2359,7 +2359,7 @@ final Object finalClobTokenId = clobTokenId;
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Object positions = (this.fetchPositions((Object)(new ArrayList<Object>(Arrays.asList(outcome))), (Object)(parameters))).join();
             return this.safeDict(positions, 0);
-        }).thenApply(PredictionPosition::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(PredictionPosition::new);
 
     }
 
@@ -2452,7 +2452,7 @@ final Object finalClobTokenId = clobTokenId;
             Map<String, Object> response = (this.clobPrivateGetDataOrders(this.extend(request, parameters))).join();
             Object orders = (List<Object>)(this.safeList(response, "data", new ArrayList<Object>(Arrays.asList())));
             return this.parsePredictionOrders(orders, outcomeObj, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, PredictionOrder::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, PredictionOrder::new));
 
     }
 
@@ -2481,7 +2481,7 @@ final Object finalClobTokenId = clobTokenId;
             }};
             Map<String, Object> response = (this.clobPrivateGetDataOrderId(this.extend(request, parameters))).join();
             return this.parsePredictionOrder(response);
-        }).thenApply(PredictionOrder::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(PredictionOrder::new);
 
     }
 
@@ -2611,7 +2611,7 @@ final Object finalClobTokenId = clobTokenId;
             Object order = this.parsePredictionOrder(enriched, ((Object)this.safeDict(built, "outcome")));
             Helpers.addElementToObject(order, "info", response); // keep info the raw exchange response, not the request echo
             return order;
-        }).thenApply(PredictionOrder::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(PredictionOrder::new);
 
     }
 
@@ -2682,7 +2682,7 @@ final Object finalClobTokenId = clobTokenId;
                 ((List<Object>)result).add(this.parsePredictionOrder(response));
             }
             return result;
-        }).thenApply(res -> Helpers.toTypedList(res, PredictionOrder::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, PredictionOrder::new));
 
     }
 
@@ -2889,7 +2889,7 @@ final Object finalClobTokenId = clobTokenId;
                 put( "cost", cost );
             }});
             return (this.createOrder((Object)(outcome), (Object)("market"), (Object)("buy"), (Object)(cost), (Object)(null), (Object)(request))).join();
-        }).thenApply(PredictionOrder::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(PredictionOrder::new);
 
     }
 
@@ -3111,7 +3111,7 @@ final Object finalClobTokenId = clobTokenId;
                 put( "status", status );
                 put( "info", response );
             }});
-        }).thenApply(PredictionOrder::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(PredictionOrder::new);
 
     }
 
@@ -3147,7 +3147,7 @@ final Object finalClobTokenId = clobTokenId;
                 }}));
             }
             return orders;
-        }).thenApply(res -> Helpers.toTypedList(res, PredictionOrder::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, PredictionOrder::new));
 
     }
 
@@ -3196,7 +3196,7 @@ final Object finalClobTokenId = clobTokenId;
                 }}));
             }
             return orders;
-        }).thenApply(res -> Helpers.toTypedList(res, PredictionOrder::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, PredictionOrder::new));
 
     }
 
@@ -3327,7 +3327,7 @@ final Object finalClobTokenId = clobTokenId;
                 Helpers.addElementToObject(effectiveParams, "searchIn", this.safeString(parameters, "searchIn", "title"));
             }
             return this.applyEventFetchParams(result, effectiveParams, queries);
-        }).thenApply(res -> Helpers.toTypedList(res, PredictionEvent::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, PredictionEvent::new));
 
     }
 
@@ -3367,7 +3367,7 @@ final Object finalClobTokenId = clobTokenId;
             Object eventVar = this.parseEvent(eventForParsing);
             this.indexEventOutcomes(eventVar);
             return eventVar;
-        }).thenApply(PredictionEvent::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(PredictionEvent::new);
 
     }
 
@@ -3779,7 +3779,7 @@ final Object finalClobTokenId = clobTokenId;
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Map<String, Object> response = (this.clobPrivateGetAuthDeriveApiKey(parameters)).join();
             return this.setApiCredentials(response);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -3800,7 +3800,7 @@ final Object finalClobTokenId = clobTokenId;
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Map<String, Object> response = (this.clobPrivatePostAuthApiKey(parameters)).join();
             return this.setApiCredentials(response);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -3831,7 +3831,7 @@ final Object finalClobTokenId = clobTokenId;
                 throw new ExchangeError(Helpers.add(this.id, " createOrDeriveApiKey() returned no credentials")) ;
             }
             return creds;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -3885,7 +3885,7 @@ final Object finalClobTokenId = clobTokenId;
                 return null;
             }
             throw new AuthenticationError(Helpers.add(this.id, " requires L2 api credentials (apiKey, secret, password) or a privateKey to derive them")) ;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -4088,7 +4088,7 @@ final Object finalOutcome = outcome;
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             Object orderbook = (this.watch(url, messageHash, subscribeMsg, subscribeHash, null)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
-        }).thenApply(PredictionOrderBook::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(PredictionOrderBook::new);
 
     }
 
@@ -4122,7 +4122,7 @@ final Object finalOutcome = outcome;
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             Object trades = (this.watch(url, messageHash, subscribeMsg, subscribeHash, null)).join();
             return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
-        }).thenApply(res -> Helpers.toTypedList(res, PredictionTrade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, PredictionTrade::new));
 
     }
 
@@ -4233,7 +4233,7 @@ final Object finalOutcome = outcome;
                 put( "quoteVolume", null );
                 put( "info", orderbook );
             }}, market);
-        }).thenApply(PredictionTicker::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(PredictionTicker::new);
 
     }
 
@@ -4271,7 +4271,7 @@ final Object finalOutcome = outcome;
                 limit = Helpers.callDynamically(orders, "getLimit", new Object[]{outcome, limit});
             }
             return this.filterByOutcomeSinceLimit(orders, outcome, since, limit, true);
-        }).thenApply(res -> Helpers.toTypedList(res, PredictionOrder::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, PredictionOrder::new));
 
     }
 
@@ -4309,7 +4309,7 @@ final Object finalOutcome = outcome;
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{outcome, limit});
             }
             return this.filterByOutcomeSinceLimit(trades, outcome, since, limit, true);
-        }).thenApply(res -> Helpers.toTypedList(res, PredictionTrade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, PredictionTrade::new));
 
     }
 
@@ -4337,7 +4337,7 @@ final Object finalOutcome = outcome;
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "wsUser");
             String subscribeHash = "user";
             return (this.watch(url, messageHash, this.extend(subscribeMsg, parameters), subscribeHash, null)).join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 

@@ -376,7 +376,7 @@ public class Btcturk extends BtcturkApi
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Object markets = this.safeList(data, "symbols", new ArrayList<Object>(Arrays.asList()));
             return this.parseMarkets(markets);
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -526,7 +526,7 @@ public class Btcturk extends BtcturkApi
             //     }
             //
             return this.parseBalance(response);
-        }).thenApply(Balances::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Balances::new);
 
     }
 
@@ -570,7 +570,7 @@ public class Btcturk extends BtcturkApi
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Long timestamp = this.safeInteger(data, "timestamp");
             return this.parseOrderBook(data, Helpers.GetValue(market, "symbol"), timestamp, "bids", "asks", 0, 1);
-        }).thenApply(OrderBook::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OrderBook::new);
 
     }
 
@@ -649,7 +649,7 @@ public class Btcturk extends BtcturkApi
             Map<String, Object> response = (this.publicGetTicker(parameters)).join();
             Object tickers = this.safeList(response, "data");
             return this.parseTickers(tickers, symbols);
-        }).thenApply(Tickers::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Tickers::new);
 
     }
 
@@ -674,7 +674,7 @@ public class Btcturk extends BtcturkApi
             }
             Object tickers = (this.fetchTickers((Object)(new ArrayList<Object>(Arrays.asList(symbol))), (Object)(parameters))).join();
             return this.safeValue(tickers, symbol);
-        }).thenApply(Ticker::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Ticker::new);
 
     }
 
@@ -803,7 +803,7 @@ public class Btcturk extends BtcturkApi
                 dataList = data;
             }
             return this.parseTrades(dataList, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -919,7 +919,7 @@ public class Btcturk extends BtcturkApi
             //    }
             //
             return this.parseOHLCVs(response, market, timeframe, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
 
     }
 
@@ -1000,7 +1000,7 @@ public class Btcturk extends BtcturkApi
             Map<String, Object> response = (this.privatePostOrder(this.extend(request, parameters))).join();
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseOrder(data, market);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -1035,7 +1035,7 @@ public class Btcturk extends BtcturkApi
             return this.safeOrder(new HashMap<String, Object>() {{
                 put( "info", response );
             }});
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -1075,7 +1075,7 @@ public class Btcturk extends BtcturkApi
             Object bids = this.safeList(data, "bids", new ArrayList<Object>(Arrays.asList()));
             Object asks = this.safeList(data, "asks", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(this.arrayConcat(bids, asks), market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -1139,7 +1139,7 @@ public class Btcturk extends BtcturkApi
             // }
             Object data = this.safeList(response, "data");
             return this.parseOrders(data, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -1281,7 +1281,7 @@ public class Btcturk extends BtcturkApi
                 dataList = data;
             }
             return this.parseTrades(dataList, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 

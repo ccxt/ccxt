@@ -392,7 +392,7 @@ public class Indodax extends IndodaxApi
             //     }
             //
             return this.safeInteger(response, "server_time");
-        }).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
 
     }
 
@@ -504,7 +504,7 @@ public class Indodax extends IndodaxApi
                 }});
             }
             return result;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -585,7 +585,7 @@ public class Indodax extends IndodaxApi
             //     }
             //
             return this.parseBalance(response);
-        }).thenApply(Balances::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Balances::new);
 
     }
 
@@ -616,7 +616,7 @@ public class Indodax extends IndodaxApi
             }};
             Map<String, Object> orderbook = (this.publicGetApiDepthPair(this.extend(request, parameters))).join();
             return this.parseOrderBook(orderbook, Helpers.GetValue(market, "symbol"), null, "buy", "sell");
-        }).thenApply(OrderBook::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OrderBook::new);
 
     }
 
@@ -704,7 +704,7 @@ public class Indodax extends IndodaxApi
             //
             Object ticker = this.safeDict(response, "ticker", new HashMap<String, Object>() {{}});
             return this.parseTicker(ticker, market);
-        }).thenApply(Ticker::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Ticker::new);
 
     }
 
@@ -758,7 +758,7 @@ public class Indodax extends IndodaxApi
                 Helpers.addElementToObject(parsedTickers, marketId, parsed);
             }
             return this.filterByArray(parsedTickers, "symbol", symbols);
-        }).thenApply(Tickers::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Tickers::new);
 
     }
 
@@ -812,7 +812,7 @@ public class Indodax extends IndodaxApi
             }};
             List<Object> response = (this.publicGetApiTradesPair(this.extend(request, parameters))).join();
             return this.parseTrades(response, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -893,7 +893,7 @@ public class Indodax extends IndodaxApi
             //     ]
             //
             return this.parseOHLCVs(this.toArray(response), market, timeframe, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
 
     }
 
@@ -1056,7 +1056,7 @@ public class Indodax extends IndodaxApi
             }}, Helpers.GetValue(orders, "order")), market);
             Helpers.addElementToObject(order, "info", response);
             return order;
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -1116,7 +1116,7 @@ public class Indodax extends IndodaxApi
                 exchangeOrders = this.arrayConcat(exchangeOrders, parsedOrders);
             }
             return exchangeOrders;
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -1157,7 +1157,7 @@ public class Indodax extends IndodaxApi
             Object orders = this.parseOrders(Helpers.GetValue(historyResult, "orders"), market);
             orders = this.filterBy(orders, "status", "closed");
             return this.filterBySymbolSinceLimit(orders, symbol, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -1251,7 +1251,7 @@ public class Indodax extends IndodaxApi
                 put( "info", result );
                 put( "id", id );
             }}, market);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -1314,7 +1314,7 @@ public class Indodax extends IndodaxApi
             //
             Object data = this.safeDict(response, "return");
             return this.parseOrder(data);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -1359,7 +1359,7 @@ public class Indodax extends IndodaxApi
                 put( "rate", Indodax.this.safeNumber(data, "withdraw_fee") );
                 put( "currency", Indodax.this.safeCurrencyCode(currencyId, currency) );
             }};
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1401,7 +1401,7 @@ public class Indodax extends IndodaxApi
             Helpers.addElementToObject(Helpers.GetValue(result, "deposit"), "fee", 0);
             Helpers.addElementToObject(Helpers.GetValue(result, "deposit"), "percentage", false);
             return this.assignDefaultDepositWithdrawFees(result, currency);
-        }).thenApply(DepositWithdrawFee::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(DepositWithdrawFee::new);
 
     }
 
@@ -1521,7 +1521,7 @@ public class Indodax extends IndodaxApi
                 transactions = this.arrayConcat(withdraws, deposits);
             }
             return this.parseTransactions(transactions, currency, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
 
     }
 
@@ -1587,7 +1587,7 @@ public class Indodax extends IndodaxApi
             //     }
             //
             return this.parseTransaction(response, currency);
-        }).thenApply(Transaction::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Transaction::new);
 
     }
 
@@ -1803,7 +1803,7 @@ public class Indodax extends IndodaxApi
                 }
             }
             return result;
-        }).thenApply(res -> Helpers.toTypedList(res, DepositAddress::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, DepositAddress::new));
 
     }
 

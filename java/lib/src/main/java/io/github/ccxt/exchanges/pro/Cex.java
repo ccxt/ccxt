@@ -105,7 +105,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
             }};
             Map<String, Object> request = this.deepExtend(subscribe, parameters);
             return (this.watch(url, messageHash, request, messageHash, request)).join();
-        }).thenApply(Balances::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Balances::new);
 
     }
 
@@ -214,7 +214,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
             Map<String, Object> request = this.deepExtend(message, parameters);
             Object trades = (this.watch(url, messageHash, request, subscriptionHash, null)).join();
             return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -354,7 +354,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
             }
             Map<String, Object> request = this.deepExtend(message, parameters);
             return (this.watch(url, messageHash, request, subscriptionHash, null)).join();
-        }).thenApply(Ticker::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Ticker::new);
 
     }
 
@@ -399,7 +399,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
                 return result;
             }
             return this.filterByArray(this.tickers, "symbol", symbols);
-        }).thenApply(Tickers::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Tickers::new);
 
     }
 
@@ -431,7 +431,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
                 put( "data", new ArrayList<Object>(Arrays.asList(Helpers.GetValue(market, "base"), Helpers.GetValue(market, "quote"))) );
             }}, parameters);
             return (this.watch(url, messageHash, request, messageHash, null)).join();
-        }).thenApply(Ticker::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Ticker::new);
 
     }
 
@@ -563,7 +563,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
                 put( "oid", messageHash );
             }}, parameters);
             return (this.watch(url, messageHash, request, messageHash, null)).join();
-        }).thenApply(Balances::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Balances::new);
 
     }
 
@@ -615,7 +615,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
                 limit = Helpers.callDynamically(orders, "getLimit", new Object[]{symbol, limit});
             }
             return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -662,7 +662,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
             Map<String, Object> request = this.deepExtend(message, parameters);
             Object orders = (this.watch(url, messageHash, request, subscriptionHash, request)).join();
             return this.filterBySymbolSinceLimit(orders, Helpers.GetValue(market, "symbol"), since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -1165,7 +1165,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
             Map<String, Object> request = this.deepExtend(subscribe, parameters);
             Object orderbook = (this.watch(url, messageHash, request, messageHash, null)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
-        }).thenApply(OrderBook::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OrderBook::new);
 
     }
 
@@ -1314,7 +1314,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
                 limit = Helpers.callDynamically(ohlcv, "getLimit", new Object[]{symbol, limit});
             }
             return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
-        }).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
 
     }
 
@@ -1473,7 +1473,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
             }};
             Object response = (this.watch(url, messageHash, request, messageHash, null)).join();
             return this.parseOrder(response, market);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -1519,7 +1519,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
             }};
             Object response = (this.watch(url, messageHash, request, messageHash, null)).join();
             return this.parseOrders(response, market, since, limit, parameters);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -1570,7 +1570,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
             }};
             Object rawOrder = (this.watch(url, messageHash, request, messageHash, null)).join();
             return this.parseOrder(rawOrder, market);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -1628,7 +1628,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
             }};
             Object response = (this.watch(url, messageHash, request, messageHash, messageHash)).join();
             return this.parseOrder(response, market);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -1671,7 +1671,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
             }};
             Object response = (this.watch(url, messageHash, request, messageHash, messageHash)).join();
             return this.parseOrder(response, market);
-        }).thenApply(Order::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -1724,7 +1724,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
             //
             Object canceledOrders = this.safeValue(response, "cancel-orders");
             return this.parseOrders(canceledOrders, null, null, null, parameters);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -1875,7 +1875,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
                 this.watch(url, messageHash, this.extend(request, parameters), messageHash, null);
             }
             return ((io.github.ccxt.ws.Future)future).getFuture().join();
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 }

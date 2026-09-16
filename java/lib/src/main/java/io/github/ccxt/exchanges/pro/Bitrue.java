@@ -121,7 +121,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
             }};
             Map<String, Object> request = this.deepExtend(message, parameters);
             return (this.watch(url, messageHash, request, messageHash, null)).join();
-        }).thenApply(Balances::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Balances::new);
 
     }
 
@@ -272,7 +272,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
                 limit = Helpers.callDynamically(orders, "getLimit", new Object[]{symbol, limit});
             }
             return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -418,7 +418,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
             }};
             Map<String, Object> request = this.deepExtend(message, parameters);
             return (this.watch(((String)url), messageHash, request, messageHash, null)).join();
-        }).thenApply(OrderBook::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OrderBook::new);
 
     }
 
@@ -598,7 +598,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
             }
             return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -739,7 +739,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
                 limit = Helpers.callDynamically(ohlcv, "getLimit", new Object[]{symbol, limit});
             }
             return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
-        }).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
 
     }
 
@@ -851,7 +851,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
             }};
             Map<String, Object> request = this.deepExtend(message, parameters);
             return (this.watch(url, messageHash, request, messageHash, null)).join();
-        }).thenApply(Ticker::new);
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Ticker::new);
 
     }
 
@@ -973,7 +973,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
             }};
             (client.send(pong)).join();
             return null;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1084,7 +1084,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
                 this.scheduleCallback(refreshTimeout, "keepAliveListenKey");
             }
             return Helpers.GetValue(this.options, "listenKeyUrl");
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 
@@ -1110,7 +1110,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
             Long refreshTimeout = this.safeInteger(this.options, "listenKeyRefreshRate", 1800000);
             this.scheduleCallback(refreshTimeout, "keepAliveListenKey");
             return null;
-        });
+        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
 
     }
 }
