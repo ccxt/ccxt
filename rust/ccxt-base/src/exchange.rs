@@ -1258,6 +1258,7 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
 
     fn ws_drain_spawns(&mut self) -> impl ::std::future::Future<Output = ()> + Send { async move {
         loop {
+            // Remove each batch before dispatch: a reentrant drain must not run the same tasks twice.
             let batch = crate::exchange_stubs::drain_spawn_queue();
             if batch.is_empty() { break; }
             for (method, args) in batch {
