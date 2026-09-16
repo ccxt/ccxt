@@ -29,6 +29,8 @@ dependencies {
 
 tasks.test {
     useJUnitPlatform()
+    // Match :tests:run so common-pool regressions also run on low-core workers.
+    jvmArgs("-Djava.util.concurrent.ForkJoinPool.common.parallelism=64")
 }
 
 application {
