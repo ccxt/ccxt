@@ -4671,7 +4671,8 @@ export class BaseExchange {
          */
         const cachedAccounts = this.omit (cachedBalance, [ 'info', 'timestamp', 'datetime', 'free', 'used', 'total', 'debt' ]);
         const cachedCodes = Object.keys (cachedAccounts);
-        if (cachedCodes.length === 0) {
+        const cachedCodesLength = cachedCodes.length;
+        if (cachedCodesLength === 0) {
             return true;
         }
         const balanceAccounts = this.omit (balance, [ 'info', 'timestamp', 'datetime', 'free', 'used', 'total', 'debt' ]);
