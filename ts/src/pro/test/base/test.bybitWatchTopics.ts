@@ -20,7 +20,9 @@ function createHarness () {
     const noop = () => {};
     const client = new Client (url, noop, noop, noop, noop, {});
     client.connect = () => {
-        if (!client.isConnected) {
+        // `isConnected` is declared `any` on the base Client, and eslint's
+        // strict-boolean-expressions rejects an implicit truthiness test on it
+        if (client.isConnected !== true) {
             client.isConnected = true;
             (client.connected as any).resolve (url);
         }
@@ -31,7 +33,10 @@ function createHarness () {
         return message;
     };
     exchange.clients = {};
-    exchange.clients[url] = client;
+    // `Exchange.clients` is typed `Dictionary<WsClient>`; this harness deliberately
+    // installs the transport-less base `Client` (its `connect`/`send` are stubbed
+    // above), so the structural mismatch is cast away rather than type-checked.
+    exchange.clients[url] = client as any;
     return { 'exchange': exchange, 'client': client, 'sent': sent, 'url': url };
 }
 
