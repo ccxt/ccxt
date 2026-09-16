@@ -5,6 +5,7 @@ package io.github.ccxt.exchanges.pro;
 import io.github.ccxt.base.Precise;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
+import io.github.ccxt.BaseExchange;
 import io.github.ccxt.ws.*;
 import io.github.ccxt.Client;
 import io.github.ccxt.types.Balances;
@@ -108,7 +109,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
     public CompletableFuture<Object> authenticate(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             this.checkRequiredCredentials();
@@ -177,7 +178,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
     {
         final Object name3 = name2;
         final Object messageHash3 = messageHash2;
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
             Object name = name3;
             Object messageHash = messageHash3;
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
@@ -224,7 +225,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
     public CompletableFuture<Object> tradeRequest(Object name, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "private");
@@ -264,7 +265,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
     public CompletableFuture<Order> createOrderWs(String symbol, Object type, Object side2, Object amount, Object... optionalArgs)
     {
         final Object side3 = side2;
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
             Object side = side3;
             Object price = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -349,7 +350,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
     public CompletableFuture<Order> cancelOrderWs(String id, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -380,7 +381,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
     public CompletableFuture<List<Order>> cancelOrdersWs(Object ids, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -409,7 +410,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
     public CompletableFuture<List<Order>> cancelAllOrdersWs(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -463,7 +464,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
     public CompletableFuture<List<OHLCV>> watchOHLCV(String symbol, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object timeframe = Helpers.getArg(optionalArgs, 0, "1m");
             Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -501,7 +502,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
     public CompletableFuture<Ticker> watchTicker(String symbol2, Object... optionalArgs)
     {
         final Object symbol3 = symbol2;
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
@@ -527,7 +528,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
     public CompletableFuture<Tickers> watchTickers(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -561,7 +562,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
     public CompletableFuture<List<Trade>> watchTrades(String symbol, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, null);
@@ -585,7 +586,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
     public CompletableFuture<List<Trade>> watchTradesForSymbols(Object symbols2, Object... optionalArgs)
     {
         final Object symbols3 = symbols2;
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
             Object symbols = symbols3;
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, null);
@@ -638,7 +639,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
     public CompletableFuture<OrderBook> watchOrderBook(String symbol, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object limit = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -671,7 +672,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
     public CompletableFuture<List<Order>> watchOrders(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -712,7 +713,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
     public CompletableFuture<List<Trade>> watchMyTrades(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -751,7 +752,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
     public CompletableFuture<Balances> watchBalance(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))

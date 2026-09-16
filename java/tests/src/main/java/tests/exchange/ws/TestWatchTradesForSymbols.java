@@ -2,6 +2,7 @@ package tests.exchange.ws;
 import tests.BaseTest;
 import io.github.ccxt.Helpers;
 import io.github.ccxt.Exchange;
+import io.github.ccxt.BaseExchange;
 import io.github.ccxt.errors.*;
 import tests.exchange.*;
 import java.util.ArrayList;
@@ -18,7 +19,7 @@ public class TestWatchTradesForSymbols extends BaseTest {
     public CompletableFuture<Object> testWatchTradesForSymbols(Exchange exchange, Object skippedProperties, Object symbols)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
         String method = "watchTradesForSymbols";
         Object logText = Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), " [symbols: "), exchange.json(symbols)), "] ");
