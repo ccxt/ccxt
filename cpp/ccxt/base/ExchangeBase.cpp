@@ -109,7 +109,7 @@ ccxt::any jsonToAny (const nlohmann::ordered_json& j) {
         dict out;
         out.store->reserve (j.size ());   // skip rehash churn on big payloads
         for (auto it = j.begin (); it != j.end (); ++it) {
-            out.set (it.key (), jsonToAny (it.value ()));
+            out.store->setNew (InternedKey (it.key ()), jsonToAny (it.value ()));
         }
         return ccxt::any (out);
     }
@@ -160,23 +160,24 @@ ccxt::any simdToAny (simdjson::ondemand::value v) {
         dict out;
         for (auto field : v.get_object ()) {
             // fast path: the RAW key token spans [raw(), closing quote) with no
-            // allocation; when it carries no escape, intern it directly and
-            // skip both the unescape allocation and the intermediate string
+            // allocation; when it carries no escape, intern it directly. JSON
+            // object keys are unique, so the build uses the unchecked setNew
+            // (no linear scan; the probe index is rebuilt lazily on first use).
             const auto rawTok = field.key ().value ();
             const char* k = rawTok.raw ();
             const char* q = static_cast<const char*> (std::memchr (k, '"', 256));
             if (q != nullptr) {
                 const std::string_view rawKey (k, static_cast<std::size_t> (q - k));
                 if (rawKey.find ('\\') == std::string_view::npos) {
-                    out.set (InternedKey (rawKey), simdToAny (field.value ()));
+                    out.store->setNew (InternedKey (rawKey), simdToAny (field.value ()));
                 } else {
-                    out.set (
-                        std::string (std::string_view (field.unescaped_key ().value ())),
+                    out.store->setNew (
+                        InternedKey (std::string_view (field.unescaped_key ().value ())),
                         simdToAny (field.value ()));
                 }
             } else {
-                out.set (
-                    std::string (std::string_view (field.unescaped_key ().value ())),
+                out.store->setNew (
+                    InternedKey (std::string_view (field.unescaped_key ().value ())),
                     simdToAny (field.value ()));
             }
         }
