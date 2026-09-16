@@ -3,7 +3,7 @@
 import { sha256, sha512 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/krakenfutures.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ContractUnavailable, DDoSProtection, DuplicateOrderId, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidNonce, InvalidOrder, OrderImmediatelyFillable, OrderNotFillable, OrderNotFound, RateLimitExceeded } from './base/errors.js';
+import { ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ContractUnavailable, DDoSProtection, DuplicateOrderId, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidNonce, InvalidOrder, NotSupported, OrderImmediatelyFillable, OrderNotFillable, OrderNotFound, RateLimitExceeded } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import type { Balances, Bool, Currency, Dict, FundingRate, FundingRateHistory, FundingRates, int, Int, LedgerEntry, Leverage, Leverages, LeverageTier, LeverageTiers, List, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, TransferEntry, NullableDict, FeeString, Endpoint } from './base/types.js';
 
@@ -917,6 +917,8 @@ export default class krakenfutures extends Exchange {
         let priceType = this.safeString (params, 'price', 'trade');
         if (priceType === 'index') {
             priceType = 'spot'; // the venue's name for index-price candles
+        } else if ((priceType !== 'trade') && (priceType !== 'mark') && (priceType !== 'spot')) {
+            throw new NotSupported (this.id + ' fetchOHLCV() supports price values "mark" and "index" only');
         }
         const request: Dict = {
             'symbol': market['id'],
