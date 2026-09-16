@@ -2238,20 +2238,20 @@ ${constStatements.join('\n')}
         const syncMethods = allVirtual.filter(elem => !baseMethods[elem]);
         const asyncMethods = allVirtual.filter(elem => baseMethods[elem]);
 
-        const syncRegex = new RegExp(`<-this\\.callInternal\\("(${syncMethods.join('|')})", (.+)\\)`, 'gm');
+        const syncRegex = new RegExp(`<-this\\.callInternal\\("(${syncMethods.join('|')})"(?:, (.+))?\\)`, 'gm');
         // console.log(syncRegex)
         // baseClass = baseClass.replace(syncRegex, 'this.DerivedExchange.$1($2)');
         baseClass = baseClass.replace(syncRegex, (_match: any, p1: string, p2: string) => {
             const capitalizedMethod = capitalize(p1);
-            return `this.DerivedExchange.${capitalizedMethod}(${p2})`;
+            return `this.DerivedExchange.${capitalizedMethod}(${p2 ?? ''})`;
         });
 
-        const asyncRegex = new RegExp(`<-this\\.callInternal\\("(${asyncMethods.join('|')})", (.+)\\)`, 'gm');
+        const asyncRegex = new RegExp(`<-this\\.callInternal\\("(${asyncMethods.join('|')})"(?:, (.+))?\\)`, 'gm');
         // console.log(asyncRegex)
         // baseClass = baseClass.replace(asyncRegex, '<-this.DerivedExchange.$1($2)');
         baseClass = baseClass.replace(asyncRegex, (_match: any, p1: string, p2: string) => {
             const capitalizedMethod = capitalize(p1);
-            return `<-this.DerivedExchange.${capitalizedMethod}${GO_ASYNC_SUFFIX}(${p2})`;
+            return `<-this.DerivedExchange.${capitalizedMethod}${GO_ASYNC_SUFFIX}(${p2 ?? ''})`;
         });
         // create wrappers with specific types
         this.createGoWrappers('Exchange', GLOBAL_WRAPPER_FILE, baseFile.methodsTypes || [], isWs);
@@ -2386,10 +2386,10 @@ ${constStatements.join('\n')}
         let baseClass = baseFile.content as any;
         const syncMethods = allVirtual.filter (elem => !VIRTUAL_BASE_METHODS[elem]);
         const asyncMethods = allVirtual.filter (elem => VIRTUAL_BASE_METHODS[elem]);
-        const syncRegex = new RegExp(`<-this\\.callInternal\\("(${syncMethods.join('|')})", (.+)\\)`, 'gm');
-        baseClass = baseClass.replace(syncRegex, (_match: any, p1: string, p2: string) => `this.DerivedExchange.${capitalize(p1)}(${p2})`);
-        const asyncRegex = new RegExp(`<-this\\.callInternal\\("(${asyncMethods.join('|')})", (.+)\\)`, 'gm');
-        baseClass = baseClass.replace(asyncRegex, (_match: any, p1: string, p2: string) => `<-this.DerivedExchange.${capitalize(p1)}${GO_ASYNC_SUFFIX}(${p2})`);
+        const syncRegex = new RegExp(`<-this\\.callInternal\\("(${syncMethods.join('|')})"(?:, (.+))?\\)`, 'gm');
+        baseClass = baseClass.replace(syncRegex, (_match: any, p1: string, p2: string) => `this.DerivedExchange.${capitalize(p1)}(${p2 ?? ''})`);
+        const asyncRegex = new RegExp(`<-this\\.callInternal\\("(${asyncMethods.join('|')})"(?:, (.+))?\\)`, 'gm');
+        baseClass = baseClass.replace(asyncRegex, (_match: any, p1: string, p2: string) => `<-this.DerivedExchange.${capitalize(p1)}${GO_ASYNC_SUFFIX}(${p2 ?? ''})`);
         baseClass = this.regexAll (baseClass, [
             [/\=\snew\s/gm, "= "],
             [/callDynamically\(/gm, 'this.CallDynamically('],

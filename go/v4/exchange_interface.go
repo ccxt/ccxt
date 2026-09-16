@@ -373,6 +373,8 @@ type ICoreExchange interface {
 }
 
 type IDerivedExchange interface {
+	Nonce() any
+	SignInAsync(optionalArgs ...any) <-chan any
 	HandleDelta(bookside any, delta any)
 	GetCacheIndex(orderbook any, deltas any) any
 	Ping(client any) any
