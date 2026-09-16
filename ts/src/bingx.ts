@@ -1838,6 +1838,7 @@ export default class bingx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest funding rate to fetch
      * @param {boolean} [params.paginate] default false, when true will automatically paginate backwards from params.until (or the latest record) using funding timestamps, independently of the settlement interval
+     * @param {int} [params.paginationCalls] maximum number of requests when paginating (default 10); without since, pagination can use the full budget even when limit is small
      * @param {string} [params.paginationDirection] ignored, funding rate history always paginates backwards
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
@@ -1856,8 +1857,8 @@ export default class bingx extends Exchange {
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'paginate');
         if (paginate) {
             // The endpoint returns the latest records in a range; settlement intervals can change over time.
-            const until = this.safeIntegerN (params, [ 'endTime', 'until', 'till' ]);
-            params = this.omit (params, [ 'endTime', 'until', 'till' ]);
+            const until = this.safeIntegerN (params, [ 'endTime', 'until', 'untill', 'till' ]);
+            params = this.omit (params, [ 'endTime', 'until', 'untill', 'till' ]);
             params = this.extend (params, { 'paginationDirection': 'backward' });
             if (until !== undefined) {
                 params = this.extend (params, { 'until': until });

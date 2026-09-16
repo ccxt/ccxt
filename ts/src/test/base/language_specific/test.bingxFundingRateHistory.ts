@@ -21,7 +21,7 @@ async function testBingxFundingRateHistory () {
         const calls = [];
         exchange.swapV2PublicGetQuoteFundingRate = async (request) => {
             calls.push ({ ...request });
-            for (const key of [ 'paginate', 'paginationCalls', 'paginationDirection', 'maxEntriesPerRequest', 'until', 'till' ]) {
+            for (const key of [ 'paginate', 'paginationCalls', 'paginationDirection', 'maxEntriesPerRequest', 'until', 'untill', 'till' ]) {
                 assert (!(key in request), 'pagination parameter leaked: ' + key);
             }
             const data = rows.filter ((row) => (request.startTime === undefined || row.fundingTime >= request.startTime) && (request.endTime === undefined || row.fundingTime <= request.endTime));
@@ -42,7 +42,7 @@ async function testBingxFundingRateHistory () {
             assert.strictEqual (calls[i].endTime, rows[rows.length - i * 2].fundingTime - 1);
         }
     }
-    for (const boundaryKey of [ 'until', 'till', 'endTime' ]) {
+    for (const boundaryKey of [ 'until', 'untill', 'till', 'endTime' ]) {
         const { exchange, calls } = createExchange (hourly);
         const result = await exchange.fetchFundingRateHistory (symbol, start + 5 * hour, undefined, {
             'paginate': true, 'paginationCalls': 12, 'maxEntriesPerRequest': 2,
@@ -58,8 +58,10 @@ async function testBingxFundingRateHistory () {
     assert.strictEqual (probe.calls.length, 2);
     const limited = await probe.exchange.fetchFundingRateHistory (symbol, start, 3, { 'paginate': true, 'paginationCalls': 12, 'maxEntriesPerRequest': 2 });
     assert.deepStrictEqual (limited.map ((row) => row.timestamp), hourly.slice (0, 3).map ((i) => start + i * hour));
+    const callsBeforeLatest = probe.calls.length;
     const latest = await probe.exchange.fetchFundingRateHistory (symbol, undefined, 3, { 'paginate': true, 'paginationCalls': 12, 'maxEntriesPerRequest': 2 });
     assert.deepStrictEqual (latest.map ((row) => row.timestamp), hourly.slice (-3).map ((i) => start + i * hour));
+    assert.strictEqual (probe.calls.length - callsBeforeLatest, 12, 'without since, limit does not shorten the call budget');
     await probe.exchange.fetchFundingRateHistory (symbol, start, 2000, { 'until': start + 10 * hour });
     assert.deepStrictEqual (probe.calls[probe.calls.length - 1], { 'symbol': 'MTL-USDT', 'startTime': start, 'limit': 1000, 'endTime': start + 10 * hour });
     const empty = createExchange ([]);
