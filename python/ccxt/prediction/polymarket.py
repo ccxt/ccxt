@@ -970,7 +970,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
         :returns dict: a dictionary of [prediction ticker structures](https://docs.ccxt.com/#/?id=prediction-ticker-structure) indexed by outcome
         """
         if outcomes is None:
-            raise ArgumentsRequired(self.id + ' fetchTickers() requires an outcomes argument — the venue has no all-tickers endpoint; pass the outcome handles or token ids to fetch(discover them via fetchEvents())')
+            raise ArgumentsRequired(self.id + ' fetchTickers() requires an outcomes argument — the venue has no all-tickers endpoint; pass the outcome handles or token ids to fetch (discover them via fetchEvents ())')
         # batch-resolve the uncached outcomes (one gamma request per 50 token ids)
         await self.load_outcomes(outcomes)
         targets = []
@@ -2712,7 +2712,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
         hasL2 = (apiKey is not None) and (secret is not None) and (passphrase is not None)
         if hasL2:
             return
-        raise AuthenticationError(self.id + ' requires L2 api credentials(apiKey, secret, password) or a privateKey to derive them')
+        raise AuthenticationError(self.id + ' requires L2 api credentials (apiKey, secret, password) or a privateKey to derive them')
 
     def ping(self, client: object):
         # Polymarket keeps the ws alive with a plain-text "PING" (the server replies "PONG"); the

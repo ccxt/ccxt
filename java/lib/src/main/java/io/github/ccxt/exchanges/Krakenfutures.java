@@ -1599,7 +1599,15 @@ public class Krakenfutures extends KrakenfuturesApi
             Helpers.addElementToObject(request, "reduceOnly", true);
         }
         Helpers.addElementToObject(request, "orderType", type);
-        if (Helpers.isTrue(!Helpers.isEqual(price, null)))
+        price = this.parseNumber(price); // some callers pass null instead of undefined, normalize it
+        Boolean isLimitOrder = Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(type, "lmt"))) || Helpers.isTrue((Helpers.isEqual(type, "post")))) || Helpers.isTrue((Helpers.isEqual(type, "ioc")));
+        String limitPriceParam = this.safeString(parameters, "limitPrice"); // the venue's own field name, forwarded as-is by this.extend below
+        if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(isLimitOrder) && Helpers.isTrue((Helpers.isEqual(price, null)))) && Helpers.isTrue((Helpers.isEqual(limitPriceParam, null)))))
+        {
+            throw new ArgumentsRequired(Helpers.add(Helpers.add(Helpers.add(this.id, " createOrder () requires a price argument for "), type), " orders")) ;
+        }
+        Boolean isMarketOrder = (Helpers.isEqual(type, "mkt"));
+        if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(price, null))) && !Helpers.isTrue(isMarketOrder)))
         {
             Helpers.addElementToObject(request, "limitPrice", this.priceToPrecision(symbol, price));
         }

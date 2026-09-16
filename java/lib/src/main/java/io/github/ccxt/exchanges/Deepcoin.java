@@ -1043,7 +1043,7 @@ public class Deepcoin extends DeepcoinApi
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Long timestamp = this.safeInteger(ticker, "ts");
+        Object timestamp = this.safeIntegerOmitZero(ticker, "ts");
         String marketId = this.safeString(ticker, "instId");
         market = this.safeMarket(marketId, market, "-");
         Object symbol = Helpers.GetValue(market, "symbol");

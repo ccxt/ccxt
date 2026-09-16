@@ -1362,7 +1362,7 @@ class latoken(Exchange, ImplicitAPI):
 
  EXCHANGE SPECIFIC PARAMETERS
         :param str [params.condition]: "GTC", "IOC", or  "FOK"
-        :param str [params.clientOrderId]: [0 .. 50] characters, client's custom order id(free field for your convenience)
+        :param str [params.clientOrderId]: [0 .. 50] characters, client's custom order id (free field for your convenience)
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         if self.markets is None:

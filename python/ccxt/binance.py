@@ -4616,7 +4616,7 @@ class binance(Exchange, ImplicitAPI):
             symbolMarket = self.market(symbols[i])
             stock = self.safe_bool(symbolMarket, 'stock', False)
             if stock is True:
-                raise NotSupported(self.id + ' ' + methodName + '() does not support tokenized stock symbols(' + symbols[i] + '), the equity quote endpoint accepts a single symbol per request, use fetchTicker() instead')
+                raise NotSupported(self.id + ' ' + methodName + '() does not support tokenized stock symbols (' + symbols[i] + '), the equity quote endpoint accepts a single symbol per request, use fetchTicker() instead')
 
     def fetch_bids_asks(self, symbols: Strings = None, params={}):
         """
@@ -7636,7 +7636,7 @@ class binance(Exchange, ImplicitAPI):
             warnWithoutSymbol = self.safe_bool(self.options['fetchOpenOrders'], 'warnWithoutSymbol')
             optValue = self.safe_bool(self.options, 'warnOnFetchOpenOrdersWithoutSymbol')  # for backward compatibility
             if (optValue is True) or (optValue is None and (warnWithoutSymbol is True)):
-                raise ExchangeError(self.id + ' fetchOpenOrders() WARNING: fetching open orders without specifying a symbol has stricter rate limits(10 times more for spot, 40 times more for other markets) compared to requesting with symbol argument. To acknowledge self warning, set ' + self.id + '.options["fetchOpenOrders"]["warnWithoutSymbol"] = False to suppress self warning message.')
+                raise ExchangeError(self.id + ' fetchOpenOrders() WARNING: fetching open orders without specifying a symbol has stricter rate limits (10 times more for spot, 40 times more for other markets) compared to requesting with symbol argument. To acknowledge self warning, set ' + self.id + '.options["fetchOpenOrders"]["warnWithoutSymbol"] = False to suppress self warning message.')
         type, params = self.handle_market_type_and_params('fetchOpenOrders', market, params, 'spot')
         subType = None
         subType, params = self.handle_sub_type_and_params('fetchOpenOrders', market, params)
@@ -9387,10 +9387,10 @@ class binance(Exchange, ImplicitAPI):
                 isolatedSymbol = market['id']
             if fromId == 'ISOLATED':
                 if symbol is None:
-                    raise ArgumentsRequired(self.id + ' transfer() requires params["symbol"] when fromAccount is ' + fromAccount)
+                    raise ArgumentsRequired(self.id + ' transfer () requires params["symbol"] when fromAccount is ' + fromAccount)
             if toId == 'ISOLATED':
                 if symbol is None:
-                    raise ArgumentsRequired(self.id + ' transfer() requires params["symbol"] when toAccount is ' + toAccount)
+                    raise ArgumentsRequired(self.id + ' transfer () requires params["symbol"] when toAccount is ' + toAccount)
             accountsById = self.safe_dict(self.options, 'accountsById', {})
             fromIsolated = not (fromId in accountsById)
             toIsolated = not (toId in accountsById)
@@ -9407,7 +9407,7 @@ class binance(Exchange, ImplicitAPI):
                 option = fromId == 'OPTION' or toId == 'OPTION'
                 prohibitedWithIsolated = fromFuture or toFuture or funding or option
                 if (fromIsolated or toIsolated) and prohibitedWithIsolated:
-                    raise BadRequest(self.id + ' transfer() does not allow transfers between ' + fromAccount + ' and ' + toAccount)
+                    raise BadRequest(self.id + ' transfer () does not allow transfers between ' + fromAccount + ' and ' + toAccount)
                 elif toSpot and fromIsolated:
                     fromId = 'ISOLATED_MARGIN'
                     request['fromSymbol'] = isolatedSymbol
@@ -12423,7 +12423,7 @@ class binance(Exchange, ImplicitAPI):
             if body.find('LOT_SIZE') >= 0:
                 raise InvalidOrder(self.id + ' order amount should be evenly divisible by lot size ' + body)
             if body.find('PRICE_FILTER') >= 0:
-                raise InvalidOrder(self.id + ' order price is invalid, i.e. exceeds allowed price precision, exceeds min price or max price limits or is invalid value in general, use self.price_to_precision(symbol, amount) ' + body)
+                raise InvalidOrder(self.id + ' order price is invalid, i.e. exceeds allowed price precision, exceeds min price or max price limits or is invalid value in general, use self.price_to_precision (symbol, amount) ' + body)
         if response is None:
             return None  # fallback to default error handler
         # response in format {'msg': 'The coin does not exist.', 'success': true/false}
@@ -13828,7 +13828,7 @@ class binance(Exchange, ImplicitAPI):
             #    }
             #
         else:
-            raise BadRequest(self.id + ' fetchMarginModes() supports linear and inverse subTypes only')
+            raise BadRequest(self.id + ' fetchMarginModes () supports linear and inverse subTypes only')
         assets = self.safe_list(response, 'positions', [])
         if isinstance(response, list):
             assets = response
@@ -13872,7 +13872,7 @@ class binance(Exchange, ImplicitAPI):
             fetchMarginModesResponse = self.fetch_margin_modes([symbol], params)
             return fetchMarginModesResponse[symbol]
         else:
-            raise BadRequest(self.id + ' fetchMarginMode() supports linear and inverse subTypes only')
+            raise BadRequest(self.id + ' fetchMarginMode () supports linear and inverse subTypes only')
         if response is None:
             raise NullResponse(self.id + ' fetchMarginMode() returned empty response')
         return self.parse_margin_mode(response[0], market)
@@ -14000,7 +14000,7 @@ class binance(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchMarginAdjustmentHistory() requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchMarginAdjustmentHistory () requires a symbol argument')
         market = self.market(symbol)
         until = self.safe_integer(params, 'until')
         params = self.omit(params, 'until')
@@ -14021,7 +14021,7 @@ class binance(Exchange, ImplicitAPI):
         elif market['inverse'] is True:
             response = self.dapiPrivateGetPositionMarginHistory(self.extend(request, params))
         else:
-            raise BadRequest(self.id + ' fetchMarginAdjustmentHistory() is not supported for markets of type ' + market['type'])
+            raise BadRequest(self.id + ' fetchMarginAdjustmentHistory () is not supported for markets of type ' + market['type'])
         #
         #    [
         #        {
@@ -14321,7 +14321,7 @@ class binance(Exchange, ImplicitAPI):
             #
         else:
             if (request['endTime'] - request['startTime']) > msInThirtyDays:
-                raise BadRequest(self.id + ' fetchConvertTradeHistory() the max interval between startTime and endTime is 30 days.')
+                raise BadRequest(self.id + ' fetchConvertTradeHistory () the max interval between startTime and endTime is 30 days.')
             if limit is not None:
                 request['limit'] = limit
             fromCurrencyKey = 'fromAsset'

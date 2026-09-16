@@ -1938,7 +1938,14 @@ impl KrakenfuturesCore {
             add_element_to_object(&mut request, &Value::Str("reduceOnly".to_string()), Value::Bool(true));
         }
         add_element_to_object(&mut request, &Value::Str("orderType".to_string()), type_var.clone());
-        if !is_equal(&price, &Value::Null) {
+        price = self.parse_number(price.clone(), &[]); // some callers pass null instead of undefined, normalize it
+        let mut isLimitOrder: bool = is_true(&(is_equal(&type_var, &Value::Str("lmt".to_string())))) || is_true(&(is_equal(&type_var, &Value::Str("post".to_string())))) || is_true(&(is_equal(&type_var, &Value::Str("ioc".to_string()))));
+        let mut limitPriceParam: Value = self.safe_string_k(params.clone(), "limitPrice", &[]); // the venue's own field name, forwarded as-is by this.extend below
+        if is_true(&isLimitOrder) && is_true(&(is_equal(&price, &Value::Null))) && is_true(&(is_equal(&limitPriceParam, &Value::Null))) {
+            panic!("{}", crate::exchange_errors::arguments_required(add(&add(&add(&self.id, &Value::Str(" createOrder () requires a price argument for ".to_string())), &type_var), &Value::Str(" orders".to_string()))));
+        }
+        let mut isMarketOrder: bool = is_equal(&type_var, &Value::Str("mkt".to_string()));
+        if is_true(&(!is_equal(&price, &Value::Null))) && !is_true(&isMarketOrder) {
             add_element_to_object(&mut request, &Value::Str("limitPrice".to_string()), self.price_to_precision(symbol.clone(), price.clone()));
         }
         params = self.omit(params.clone(), Value::List(vec![Value::Str("clientOrderId".to_string()), Value::Str("timeInForce".to_string()), Value::Str("triggerPrice".to_string()), Value::Str("stopLossPrice".to_string()), Value::Str("takeProfitPrice".to_string())]), &[]);
