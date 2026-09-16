@@ -45,7 +45,7 @@ public class PredictionExchange extends BaseExchange implements PredictionTypedS
     public CompletableFuture<Object> redeem(Object... optionalArgs) {
         return CompletableFuture.supplyAsync(() -> {
             throw new NotSupported(Helpers.add(this.id, " redeem() is not supported yet"));
-        });
+        }, VIRTUAL_EXECUTOR);
     }
 
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM TYPESCRIPT
@@ -417,7 +417,7 @@ public Object describe()
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchEvents() is not supported yet")) ;
-        }).thenApply(res -> Helpers.toTypedList(res, PredictionEvent::new));
+        }, VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, PredictionEvent::new));
 
     }
 
@@ -428,7 +428,7 @@ public Object describe()
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchEvent() is not supported yet")) ;
-        }).thenApply(PredictionEvent::new);
+        }, VIRTUAL_EXECUTOR).thenApply(PredictionEvent::new);
 
     }
 
@@ -507,7 +507,7 @@ public Object describe()
             }
             Object events = (this.fetchEvents((Object)(parameters))).join();
             return this.setEvents(events);
-        });
+        }, VIRTUAL_EXECUTOR);
 
     }
 
@@ -522,7 +522,7 @@ public Object describe()
             Object reload = Helpers.getArg(optionalArgs, 0, false);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             return (this.loadEventsHelper(reload, parameters)).join();
-        });
+        }, VIRTUAL_EXECUTOR);
 
     }
 
@@ -944,7 +944,7 @@ public Object describe()
             (this.loadMarkets(reload, parameters)).join();
             this.populateOutcomes();
             return this.outcomes;
-        });
+        }, VIRTUAL_EXECUTOR);
 
     }
 
@@ -966,7 +966,7 @@ public Object describe()
                 (this.fetchOutcome(Helpers.GetValue(outcomeSymbols, i))).join();
             }
             return this.outcomes;
-        });
+        }, VIRTUAL_EXECUTOR);
 
     }
 
@@ -1020,7 +1020,7 @@ public Object describe()
                 }
             }
             return (this.fetchOutcome(outcomeSymbol)).join();
-        });
+        }, VIRTUAL_EXECUTOR);
 
     }
 
@@ -1120,7 +1120,7 @@ public Object describe()
                 }
             }
             throw new BadSymbol(Helpers.add(Helpers.add(Helpers.add(this.id, " could not resolve outcome "), outcomeSymbol), " — call fetchEvents ({ 'query': ... }) first, or pass a known outcomeId")) ;
-        });
+        }, VIRTUAL_EXECUTOR);
 
     }
 
@@ -1139,7 +1139,7 @@ public Object describe()
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchTicker() is not supported yet")) ;
-        }).thenApply(PredictionTicker::new);
+        }, VIRTUAL_EXECUTOR).thenApply(PredictionTicker::new);
 
     }
 
@@ -1159,7 +1159,7 @@ public Object describe()
             Object outcomes = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchTickers() is not supported yet")) ;
-        }).thenApply(PredictionTickers::new);
+        }, VIRTUAL_EXECUTOR).thenApply(PredictionTickers::new);
 
     }
 
@@ -1180,7 +1180,7 @@ public Object describe()
             Object limit = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchOrderBook() is not supported yet")) ;
-        }).thenApply(PredictionOrderBook::new);
+        }, VIRTUAL_EXECUTOR).thenApply(PredictionOrderBook::new);
 
     }
 
@@ -1205,7 +1205,7 @@ public Object describe()
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             return (super.fetchOHLCV((Object)(outcome), (Object)(timeframe), (Object)(since), (Object)(limit), (Object)(parameters))).join();
-        }).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
+        }, VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
 
     }
 
@@ -1228,7 +1228,7 @@ public Object describe()
             Object limit = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchTrades() is not supported yet")) ;
-        }).thenApply(res -> Helpers.toTypedList(res, PredictionTrade::new));
+        }, VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, PredictionTrade::new));
 
     }
 
@@ -1252,7 +1252,7 @@ public Object describe()
             Object price = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " createOrder() is not supported yet")) ;
-        }).thenApply(PredictionOrder::new);
+        }, VIRTUAL_EXECUTOR).thenApply(PredictionOrder::new);
 
     }
 
@@ -1273,7 +1273,7 @@ public Object describe()
             Object outcome = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " cancelOrder() is not supported yet")) ;
-        }).thenApply(PredictionOrder::new);
+        }, VIRTUAL_EXECUTOR).thenApply(PredictionOrder::new);
 
     }
 
@@ -1292,7 +1292,7 @@ public Object describe()
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " watchTicker() is not supported yet")) ;
-        }).thenApply(PredictionTicker::new);
+        }, VIRTUAL_EXECUTOR).thenApply(PredictionTicker::new);
 
     }
 
@@ -1313,7 +1313,7 @@ public Object describe()
             Object limit = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " watchOrderBook() is not supported yet")) ;
-        }).thenApply(PredictionOrderBook::new);
+        }, VIRTUAL_EXECUTOR).thenApply(PredictionOrderBook::new);
 
     }
 
@@ -1336,7 +1336,7 @@ public Object describe()
             Object limit = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " watchTrades() is not supported yet")) ;
-        }).thenApply(res -> Helpers.toTypedList(res, PredictionTrade::new));
+        }, VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, PredictionTrade::new));
 
     }
 
@@ -1360,7 +1360,7 @@ public Object describe()
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchOrders() is not supported yet")) ;
-        }).thenApply(res -> Helpers.toTypedList(res, PredictionOrder::new));
+        }, VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, PredictionOrder::new));
 
     }
 
@@ -1384,7 +1384,7 @@ public Object describe()
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchOpenOrders() is not supported yet")) ;
-        }).thenApply(res -> Helpers.toTypedList(res, PredictionOrder::new));
+        }, VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, PredictionOrder::new));
 
     }
 
@@ -1408,7 +1408,7 @@ public Object describe()
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchClosedOrders() is not supported yet")) ;
-        }).thenApply(res -> Helpers.toTypedList(res, PredictionOrder::new));
+        }, VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, PredictionOrder::new));
 
     }
 
@@ -1433,7 +1433,7 @@ public Object describe()
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchOrderTrades() is not supported yet")) ;
-        }).thenApply(res -> Helpers.toTypedList(res, PredictionTrade::new));
+        }, VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, PredictionTrade::new));
 
     }
 
@@ -1457,7 +1457,7 @@ public Object describe()
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchMyTrades() is not supported yet")) ;
-        }).thenApply(res -> Helpers.toTypedList(res, PredictionTrade::new));
+        }, VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, PredictionTrade::new));
 
     }
 
@@ -1476,7 +1476,7 @@ public Object describe()
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchPosition() is not supported yet")) ;
-        }).thenApply(PredictionPosition::new);
+        }, VIRTUAL_EXECUTOR).thenApply(PredictionPosition::new);
 
     }
 
@@ -1496,7 +1496,7 @@ public Object describe()
             Object outcomes = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchPositions() is not supported yet")) ;
-        }).thenApply(res -> Helpers.toTypedList(res, PredictionPosition::new));
+        }, VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, PredictionPosition::new));
 
     }
 
@@ -1515,7 +1515,7 @@ public Object describe()
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchTradingFee() is not supported yet")) ;
-        }).thenApply(PredictionTradingFee::new);
+        }, VIRTUAL_EXECUTOR).thenApply(PredictionTradingFee::new);
 
     }
 
@@ -1534,7 +1534,7 @@ public Object describe()
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchOpenInterest() is not supported yet")) ;
-        }).thenApply(PredictionOpenInterest::new);
+        }, VIRTUAL_EXECUTOR).thenApply(PredictionOpenInterest::new);
 
     }
 
@@ -1553,7 +1553,7 @@ public Object describe()
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " createOrders() is not supported yet")) ;
-        }).thenApply(res -> Helpers.toTypedList(res, PredictionOrder::new));
+        }, VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, PredictionOrder::new));
 
     }
 
@@ -1574,7 +1574,7 @@ public Object describe()
             Object outcome = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " cancelOrders() is not supported yet")) ;
-        }).thenApply(res -> Helpers.toTypedList(res, PredictionOrder::new));
+        }, VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, PredictionOrder::new));
 
     }
 
@@ -1600,7 +1600,7 @@ public Object describe()
                 return (this.createOrder((Object)(outcome), (Object)("market"), (Object)("buy"), (Object)(cost), (Object)(1), (Object)(parameters))).join();
             }
             throw new NotSupported(Helpers.add(this.id, " createMarketBuyOrderWithCost() is not supported yet")) ;
-        }).thenApply(PredictionOrder::new);
+        }, VIRTUAL_EXECUTOR).thenApply(PredictionOrder::new);
 
     }
 
@@ -1624,7 +1624,7 @@ public Object describe()
                 return (this.createOrder((Object)(outcome), (Object)("market"), (Object)("sell"), (Object)(cost), (Object)(1), (Object)(parameters))).join();
             }
             throw new NotSupported(Helpers.add(this.id, " createMarketSellOrderWithCost() is not supported yet")) ;
-        }).thenApply(PredictionOrder::new);
+        }, VIRTUAL_EXECUTOR).thenApply(PredictionOrder::new);
 
     }
 
@@ -1644,7 +1644,7 @@ public Object describe()
             Object outcomes = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " watchTickers() is not supported yet")) ;
-        }).thenApply(PredictionTickers::new);
+        }, VIRTUAL_EXECUTOR).thenApply(PredictionTickers::new);
 
     }
 
@@ -1668,7 +1668,7 @@ public Object describe()
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " watchOrders() is not supported yet")) ;
-        }).thenApply(res -> Helpers.toTypedList(res, PredictionOrder::new));
+        }, VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, PredictionOrder::new));
 
     }
 
@@ -1692,7 +1692,7 @@ public Object describe()
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " watchMyTrades() is not supported yet")) ;
-        }).thenApply(res -> Helpers.toTypedList(res, PredictionTrade::new));
+        }, VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, PredictionTrade::new));
 
     }
 
@@ -1716,7 +1716,7 @@ public Object describe()
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " watchPositions() is not supported yet")) ;
-        }).thenApply(res -> Helpers.toTypedList(res, PredictionPosition::new));
+        }, VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, PredictionPosition::new));
 
     }
 
@@ -1741,7 +1741,7 @@ public Object describe()
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchSettlements() is not supported yet")) ;
-        }).thenApply(res -> Helpers.toTypedList(res, PredictionSettlement::new));
+        }, VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, PredictionSettlement::new));
 
     }
 
@@ -2387,7 +2387,7 @@ public Object describe()
             // the result is either a hex string (nonce/gasPrice/txhash) or an object (receipt) —
             // safeString would coerce a receipt object to "[object Object]"
             return this.safeValue(response, "result");
-        });
+        }, VIRTUAL_EXECUTOR);
 
     }
 
@@ -2410,7 +2410,7 @@ public Object describe()
             }};
             Object signed = this.signEvmTransaction(tx, this.privateKey);
             return (this.ethRpc(rpcUrl, "eth_sendRawTransaction", new ArrayList<Object>(Arrays.asList(signed)))).join();
-        });
+        }, VIRTUAL_EXECUTOR);
 
     }
 
@@ -2431,7 +2431,7 @@ public Object describe()
                 (this.sleep(2000)).join();
             }
             throw new ExchangeError(Helpers.add(Helpers.add(Helpers.add(this.id, " transaction "), txHash), " not mined within timeout")) ;
-        });
+        }, VIRTUAL_EXECUTOR);
 
     }
 
@@ -2445,7 +2445,7 @@ public CompletableFuture<PredictionOrder> editOrder(String id, String symbol, Ob
             Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
             (this.cancelOrder((Object)(id), (Object)(symbol))).join();
             return (this.createOrder((Object)(symbol), (Object)(type), (Object)(side), (Object)(amount), (Object)(price), (Object)(parameters))).join();
-        }).thenApply(PredictionOrder::new);
+        }, VIRTUAL_EXECUTOR).thenApply(PredictionOrder::new);
 
     }
 
@@ -2466,7 +2466,7 @@ public CompletableFuture<PredictionOrder> editOrder(String id, String symbol, Ob
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchOrder() is not supported yet")) ;
-        }).thenApply(PredictionOrder::new);
+        }, VIRTUAL_EXECUTOR).thenApply(PredictionOrder::new);
 
     }
 
@@ -2506,7 +2506,7 @@ public CompletableFuture<PredictionOrder> editOrder(String id, String symbol, Ob
                 return (this.createOrder((Object)(symbol), (Object)("market"), (Object)(side), (Object)(cost), (Object)(1), (Object)(parameters))).join();
             }
             throw new NotSupported(Helpers.add(this.id, " createMarketOrderWithCost() is not supported yet")) ;
-        }).thenApply(PredictionOrder::new);
+        }, VIRTUAL_EXECUTOR).thenApply(PredictionOrder::new);
 
     }
 
@@ -2547,7 +2547,7 @@ public CompletableFuture<PredictionOrder> editOrder(String id, String symbol, Ob
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " cancelAllOrders() is not supported yet")) ;
-        }).thenApply(res -> Helpers.toTypedList(res, PredictionOrder::new));
+        }, VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, PredictionOrder::new));
 
     }
 
@@ -2567,7 +2567,7 @@ public CompletableFuture<PredictionOrder> editOrder(String id, String symbol, Ob
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchCanceledOrders() is not supported yet")) ;
-        }).thenApply(res -> Helpers.toTypedList(res, PredictionOrder::new));
+        }, VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, PredictionOrder::new));
 
     }
 }

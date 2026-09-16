@@ -143,6 +143,9 @@ const BASE_METHODS_FILE = './java/lib/src/main/java/io/github/ccxt/BaseExchange.
 // NOT into BaseExchange — so the prediction tier (extends BaseExchange) does not
 // inherit them and can declare its own standalone-typed versions.
 const EXCHANGE_METHODS_FILE = './java/lib/src/main/java/io/github/ccxt/Exchange.java';
+const JAVA_ASYNC_EXECUTOR = 'io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR';
+// closes a generated supplyAsync lambda: `});` or `}, <executor>)`
+const isAsyncLambdaClose = (line: string) => line.startsWith('})') || line.startsWith('}, ' + JAVA_ASYNC_EXECUTOR + ')');
 const EXCHANGES_FOLDER = './java/lib/src/main/java/io/github/ccxt/exchanges/';
 const EXCHANGES_WS_FOLDER = './java/lib/src/main/java/io/github/ccxt/exchanges/pro/';
 const EXCHANGES_PREDICTION_FOLDER = './java/lib/src/main/java/io/github/ccxt/exchanges/prediction/';
@@ -1460,6 +1463,12 @@ class NewTranspiler {
                     "ELEMENT_ACCESS_WRAPPER_CLOSE": ")",
                     // "VAR_TOKEN": "var",
                 }
+            },
+            "java": {
+                // executor the generated supplyAsync lambdas run on; the hand-written
+                // base tiers use the same VIRTUAL_EXECUTOR so no tier lands on the
+                // ForkJoinPool common pool
+                "asyncExecutor": JAVA_ASYNC_EXECUTOR,
             },
         }
     }
@@ -2788,7 +2797,7 @@ class NewTranspiler {
         const result: string[] = [];
         for (let i = 0; i < lines.length; i++) {
             // Check if this line is "return null;" and the next is "});" (lambda end)
-            if (lines[i].trim() === 'return null;' && i + 1 < lines.length && lines[i + 1].trim().startsWith('})')) {
+            if (lines[i].trim() === 'return null;' && i + 1 < lines.length && isAsyncLambdaClose(lines[i + 1].trim())) {
                 // Check if the preceding non-empty line is "}" closing an else/else-if block
                 // that contains a throw or return
                 let j = i - 1;
@@ -2834,7 +2843,7 @@ class NewTranspiler {
         const result: string[] = [];
         for (let i = 0; i < lines.length; i++) {
             if (lines[i].trim() === 'return null;'
-                && i + 1 < lines.length && lines[i + 1].trim().startsWith('})')) {
+                && i + 1 < lines.length && isAsyncLambdaClose(lines[i + 1].trim())) {
                 // Check: preceding } then scan backward for "} else" + "{" pair
                 let j = i - 1;
                 while (j >= 0 && lines[j].trim() === '') j--;
@@ -2888,7 +2897,7 @@ class NewTranspiler {
         const result: string[] = [];
         for (let i = 0; i < lines.length; i++) {
             if (lines[i].trim() === 'return null;'
-                && i + 1 < lines.length && lines[i + 1].trim().startsWith('})')) {
+                && i + 1 < lines.length && isAsyncLambdaClose(lines[i + 1].trim())) {
                 let j = i - 1;
                 while (j >= 0 && lines[j].trim() === '') j--;
                 if (j >= 0 && lines[j].trim() === '}') {
@@ -3741,7 +3750,7 @@ class NewTranspiler {
         }
 
         for (let i = 0; i < lines.length; i++) {
-            if (!lines[i].trim().startsWith('}, io.github.ccxt.Exchange.VIRTUAL_EXECUTOR)')) continue;
+            if (!lines[i].trim().startsWith('}, ' + JAVA_ASYNC_EXECUTOR + ')')) continue;
 
             let lastStmtIdx = i - 1;
             while (lastStmtIdx >= 0 && lines[lastStmtIdx].trim() === '') lastStmtIdx--;

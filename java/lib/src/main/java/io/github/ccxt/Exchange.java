@@ -108,7 +108,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
             Object side = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " closePosition() is not supported yet")) ;
-        }).thenApply(Order::new);
+        }, VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -119,7 +119,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " closeAllPositions() is not supported yet")) ;
-        }).thenApply(res -> Helpers.toTypedList(res, Position::new));
+        }, VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Position::new));
 
     }
 
@@ -130,7 +130,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " editOrders() is not supported yet")) ;
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -144,7 +144,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchCanceledAndClosedOrders() is not supported yet")) ;
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -174,7 +174,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
             {
                 throw new NotSupported(Helpers.add(this.id, " fetchPositionHistory () is not supported yet")) ;
             }
-        }).thenApply(res -> Helpers.toTypedList(res, Position::new));
+        }, VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Position::new));
 
     }
 
@@ -188,7 +188,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchPositionsHistory () is not supported yet")) ;
-        }).thenApply(res -> Helpers.toTypedList(res, Position::new));
+        }, VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Position::new));
 
     }
 
@@ -200,7 +200,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchPositionsRisk() is not supported yet")) ;
-        }).thenApply(res -> Helpers.toTypedList(res, Position::new));
+        }, VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Position::new));
 
     }
 
@@ -211,7 +211,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchPositionsForSymbol() is not supported yet")) ;
-        }).thenApply(res -> Helpers.toTypedList(res, Position::new));
+        }, VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Position::new));
 
     }
 
@@ -222,7 +222,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchPositionsForSymbol() is not supported yet")) ;
-        }).thenApply(res -> Helpers.toTypedList(res, Position::new));
+        }, VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Position::new));
 
     }
 
@@ -234,7 +234,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " watchPosition() is not supported yet")) ;
-        }).thenApply(Position::new);
+        }, VIRTUAL_EXECUTOR).thenApply(Position::new);
 
     }
 
@@ -247,7 +247,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
             Object limit = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " watchMyTradesForSymbols() is not supported yet")) ;
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -260,7 +260,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
             Object limit = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " watchTradesForSymbols() is not supported yet")) ;
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -272,7 +272,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchBidsAsks() is not supported yet")) ;
-        }).thenApply(Tickers::new);
+        }, VIRTUAL_EXECUTOR).thenApply(Tickers::new);
 
     }
 
@@ -300,7 +300,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
             {
                 throw new NotSupported(Helpers.add(this.id, " fetchMarkPrices() is not supported yet")) ;
             }
-        }).thenApply(Ticker::new);
+        }, VIRTUAL_EXECUTOR).thenApply(Ticker::new);
 
     }
 
@@ -312,7 +312,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchMarkPrices() is not supported yet")) ;
-        }).thenApply(Tickers::new);
+        }, VIRTUAL_EXECUTOR).thenApply(Tickers::new);
 
     }
 
@@ -324,7 +324,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " watchBidsAsks() is not supported yet")) ;
-        }).thenApply(Tickers::new);
+        }, VIRTUAL_EXECUTOR).thenApply(Tickers::new);
 
     }
 
@@ -335,7 +335,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " watchMarkPrice () is not supported yet")) ;
-        }).thenApply(Ticker::new);
+        }, VIRTUAL_EXECUTOR).thenApply(Ticker::new);
 
     }
 
@@ -347,7 +347,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " watchMarkPrices () is not supported yet")) ;
-        }).thenApply(Tickers::new);
+        }, VIRTUAL_EXECUTOR).thenApply(Tickers::new);
 
     }
 
@@ -359,7 +359,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
             Object limit = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             throw new BadRequest(Helpers.add(this.id, " fetchL3OrderBook() is not supported yet")) ;
-        }).thenApply(OrderBook::new);
+        }, VIRTUAL_EXECUTOR).thenApply(OrderBook::new);
 
     }
 
@@ -371,7 +371,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
             Object limit = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " watchOrderBookForSymbols() is not supported yet")) ;
-        }).thenApply(OrderBook::new);
+        }, VIRTUAL_EXECUTOR).thenApply(OrderBook::new);
 
     }
 
@@ -384,7 +384,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
             Object limit = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " watchOrdersForSymbols() is not supported yet")) ;
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -396,7 +396,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " cancelAllOrdersWs() is not supported yet")) ;
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -408,7 +408,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " cancelOrderWs() is not supported yet")) ;
-        }).thenApply(Order::new);
+        }, VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -420,7 +420,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " cancelOrdersWs() is not supported yet")) ;
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -431,7 +431,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             return (this.createOrderWs(symbol, (Object)("limit"), (Object)("buy"), (Object)(amount), (Object)(price), (Object)(parameters))).join();
-        }).thenApply(Order::new);
+        }, VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -442,7 +442,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             return (this.createOrderWs(symbol, (Object)("limit"), (Object)(side), (Object)(amount), (Object)(price), (Object)(parameters))).join();
-        }).thenApply(Order::new);
+        }, VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -453,7 +453,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             return (this.createOrderWs(symbol, (Object)("limit"), (Object)("sell"), (Object)(amount), (Object)(price), (Object)(parameters))).join();
-        }).thenApply(Order::new);
+        }, VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -464,7 +464,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             return (this.createOrderWs(symbol, (Object)("market"), (Object)("buy"), (Object)(amount), (Object)(null), (Object)(parameters))).join();
-        }).thenApply(Order::new);
+        }, VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -489,7 +489,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
                 return (this.createOrderWs(symbol, (Object)("market"), (Object)(side), (Object)(cost), (Object)(1), (Object)(parameters))).join();
             }
             throw new NotSupported(Helpers.add(this.id, " createMarketOrderWithCostWs() is not supported yet")) ;
-        }).thenApply(Order::new);
+        }, VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -501,7 +501,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
             Object price = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             return (this.createOrderWs(symbol, (Object)("market"), (Object)(side), (Object)(amount), (Object)(price), (Object)(parameters))).join();
-        }).thenApply(Order::new);
+        }, VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -512,7 +512,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             return (this.createOrderWs(symbol, (Object)("market"), (Object)("sell"), (Object)(amount), (Object)(null), (Object)(parameters))).join();
-        }).thenApply(Order::new);
+        }, VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -553,7 +553,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
                 return (this.createOrderWs(symbol, (Object)(type), (Object)(side), (Object)(amount), (Object)(price), (Object)(parameters))).join();
             }
             throw new NotSupported(Helpers.add(this.id, " createOrderWithTakeProfitAndStopLossWs() is not supported yet")) ;
-        }).thenApply(Order::new);
+        }, VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -565,7 +565,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
             Object price = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " createOrderWs() is not supported yet")) ;
-        }).thenApply(Order::new);
+        }, VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -576,7 +576,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " createOrdersWs () is not supported yet")) ;
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -595,7 +595,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
                 put( "postOnly", true );
             }});
             return (this.createOrderWs(symbol, (Object)(type), (Object)(side), (Object)(amount), (Object)(price), (Object)(query))).join();
-        }).thenApply(Order::new);
+        }, VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -614,7 +614,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
                 put( "reduceOnly", true );
             }});
             return (this.createOrderWs(symbol, (Object)(type), (Object)(side), (Object)(amount), (Object)(price), (Object)(query))).join();
-        }).thenApply(Order::new);
+        }, VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -632,7 +632,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
                 put( "stopPrice", triggerPrice );
             }});
             return (this.createOrderWs(symbol, (Object)("limit"), (Object)(side), (Object)(amount), (Object)(price), (Object)(query))).join();
-        }).thenApply(Order::new);
+        }, VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -670,7 +670,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
                 return (this.createOrderWs(symbol, (Object)(type), (Object)(side), (Object)(amount), (Object)(price), (Object)(parameters))).join();
             }
             throw new NotSupported(Helpers.add(this.id, " createStopLossOrderWs() is not supported yet")) ;
-        }).thenApply(Order::new);
+        }, VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -688,7 +688,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
                 put( "stopPrice", triggerPrice );
             }});
             return (this.createOrderWs(symbol, (Object)("market"), (Object)(side), (Object)(amount), (Object)(null), (Object)(query))).join();
-        }).thenApply(Order::new);
+        }, VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -713,7 +713,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
                 put( "stopPrice", finalTriggerPrice );
             }});
             return (this.createOrderWs(symbol, (Object)(type), (Object)(side), (Object)(amount), (Object)(price), (Object)(query))).join();
-        }).thenApply(Order::new);
+        }, VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -751,7 +751,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
                 return (this.createOrderWs(symbol, (Object)(type), (Object)(side), (Object)(amount), (Object)(price), (Object)(parameters))).join();
             }
             throw new NotSupported(Helpers.add(this.id, " createTakeProfitOrderWs() is not supported yet")) ;
-        }).thenApply(Order::new);
+        }, VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -792,7 +792,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
                 return (this.createOrderWs(symbol, (Object)(type), (Object)(side), (Object)(amount), (Object)(price), (Object)(parameters))).join();
             }
             throw new NotSupported(Helpers.add(this.id, " createTrailingAmountOrderWs() is not supported yet")) ;
-        }).thenApply(Order::new);
+        }, VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -833,7 +833,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
                 return (this.createOrderWs(symbol, (Object)(type), (Object)(side), (Object)(amount), (Object)(price), (Object)(parameters))).join();
             }
             throw new NotSupported(Helpers.add(this.id, " createTrailingPercentOrderWs() is not supported yet")) ;
-        }).thenApply(Order::new);
+        }, VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -871,7 +871,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
                 return (this.createOrderWs(symbol, (Object)(type), (Object)(side), (Object)(amount), (Object)(price), (Object)(parameters))).join();
             }
             throw new NotSupported(Helpers.add(this.id, " createTriggerOrderWs() is not supported yet")) ;
-        }).thenApply(Order::new);
+        }, VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -885,7 +885,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
             Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
             (this.cancelOrderWs(id, (Object)(symbol))).join();
             return (this.createOrderWs(symbol, (Object)(type), (Object)(side), (Object)(amount), (Object)(price), (Object)(parameters))).join();
-        }).thenApply(Order::new);
+        }, VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -904,7 +904,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
                 return this.filterBy(orders, "status", "closed");
             }
             throw new NotSupported(Helpers.add(this.id, " fetchClosedOrdersWs() is not supported yet")) ;
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -918,7 +918,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchMyTradesWs() is not supported yet")) ;
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -937,7 +937,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
                 return this.filterBy(orders, "status", "open");
             }
             throw new NotSupported(Helpers.add(this.id, " fetchOpenOrdersWs() is not supported yet")) ;
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -949,7 +949,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
             Object limit = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchOrderBookWs() is not supported yet")) ;
-        }).thenApply(OrderBook::new);
+        }, VIRTUAL_EXECUTOR).thenApply(OrderBook::new);
 
     }
 
@@ -961,7 +961,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchOrderWs() is not supported yet")) ;
-        }).thenApply(Order::new);
+        }, VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -975,7 +975,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchOrdersWs() is not supported yet")) ;
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -986,7 +986,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchPositionWs() is not supported yet")) ;
-        }).thenApply(res -> Helpers.toTypedList(res, Position::new));
+        }, VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Position::new));
 
     }
 
@@ -998,7 +998,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchPositions() is not supported yet")) ;
-        }).thenApply(res -> Helpers.toTypedList(res, Position::new));
+        }, VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Position::new));
 
     }
 
@@ -1026,7 +1026,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
             {
                 throw new NotSupported(Helpers.add(this.id, " fetchTickerWs() is not supported yet")) ;
             }
-        }).thenApply(Ticker::new);
+        }, VIRTUAL_EXECUTOR).thenApply(Ticker::new);
 
     }
 
@@ -1038,7 +1038,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchTickersWs() is not supported yet")) ;
-        }).thenApply(Tickers::new);
+        }, VIRTUAL_EXECUTOR).thenApply(Tickers::new);
 
     }
 
@@ -1051,7 +1051,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
             Object limit = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchTradesWs() is not supported yet")) ;
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -1065,7 +1065,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
             Object limit = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchTrades() is not supported yet")) ;
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -1078,7 +1078,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
             Object limit = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " watchTrades() is not supported yet")) ;
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -1090,7 +1090,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
             Object limit = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchOrderBook() is not supported yet")) ;
-        }).thenApply(OrderBook::new);
+        }, VIRTUAL_EXECUTOR).thenApply(OrderBook::new);
 
     }
 
@@ -1117,7 +1117,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
                 }
             }
             return null;
-        });
+        }, VIRTUAL_EXECUTOR);
 
     }
 
@@ -1129,7 +1129,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
             Object limit = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " watchOrderBook() is not supported yet")) ;
-        }).thenApply(OrderBook::new);
+        }, VIRTUAL_EXECUTOR).thenApply(OrderBook::new);
 
     }
 
@@ -1147,7 +1147,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
             {
                 throw new NotSupported(Helpers.add(this.id, " fetchOpenInterest() is not supported yet")) ;
             }
-        }).thenApply(OpenInterest::new);
+        }, VIRTUAL_EXECUTOR).thenApply(OpenInterest::new);
 
     }
 
@@ -1163,7 +1163,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
                 put( "asks", Exchange.this.sortBy(Exchange.this.aggregate(Helpers.GetValue(orderbook, "asks")), 0) );
                 put( "bids", Exchange.this.sortBy(Exchange.this.aggregate(Helpers.GetValue(orderbook, "bids")), 0, true) );
             }});
-        }).thenApply(OrderBook::new);
+        }, VIRTUAL_EXECUTOR).thenApply(OrderBook::new);
 
     }
 
@@ -1175,7 +1175,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
             Object price = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             return (this.editLimitOrder(id, symbol, (Object)("buy"), (Object)(amount), (Object)(price), (Object)(parameters))).join();
-        }).thenApply(Order::new);
+        }, VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -1187,7 +1187,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
             Object price = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             return (this.editLimitOrder(id, symbol, (Object)("sell"), (Object)(amount), (Object)(price), (Object)(parameters))).join();
-        }).thenApply(Order::new);
+        }, VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -1199,7 +1199,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
             Object price = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             return (this.editOrder(id, symbol, (Object)("limit"), (Object)(side), (Object)(amount), (Object)(price), (Object)(parameters))).join();
-        }).thenApply(Order::new);
+        }, VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -1213,7 +1213,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
             Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
             (this.cancelOrder((Object)(id), (Object)(symbol))).join();
             return (this.createOrder((Object)(symbol), (Object)(type), (Object)(side), (Object)(amount), (Object)(price), (Object)(parameters))).join();
-        }).thenApply(Order::new);
+        }, VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -1229,7 +1229,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
                 put( "clientOrderId", clientOrderId );
             }});
             return (this.editOrder("", symbol, (Object)(type), (Object)(side), (Object)(amount), (Object)(price), (Object)(extendedParams))).join();
-        }).thenApply(Order::new);
+        }, VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -1240,7 +1240,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchPosition() is not supported yet")) ;
-        }).thenApply(Position::new);
+        }, VIRTUAL_EXECUTOR).thenApply(Position::new);
 
     }
 
@@ -1254,7 +1254,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " watchPositions() is not supported yet")) ;
-        }).thenApply(res -> Helpers.toTypedList(res, Position::new));
+        }, VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Position::new));
 
     }
 
@@ -1268,7 +1268,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             return (this.watchPositions((Object)(symbols), (Object)(since), (Object)(limit), (Object)(parameters))).join();
-        }).thenApply(res -> Helpers.toTypedList(res, Position::new));
+        }, VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Position::new));
 
     }
 
@@ -1280,7 +1280,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchPositions() is not supported yet")) ;
-        }).thenApply(res -> Helpers.toTypedList(res, Position::new));
+        }, VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Position::new));
 
     }
 
@@ -1308,7 +1308,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
             {
                 throw new NotSupported(Helpers.add(this.id, " fetchTicker() is not supported yet")) ;
             }
-        }).thenApply(Ticker::new);
+        }, VIRTUAL_EXECUTOR).thenApply(Ticker::new);
 
     }
 
@@ -1319,7 +1319,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " watchTicker() is not supported yet")) ;
-        }).thenApply(Ticker::new);
+        }, VIRTUAL_EXECUTOR).thenApply(Ticker::new);
 
     }
 
@@ -1331,7 +1331,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchTickers() is not supported yet")) ;
-        }).thenApply(Tickers::new);
+        }, VIRTUAL_EXECUTOR).thenApply(Tickers::new);
 
     }
 
@@ -1343,7 +1343,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " watchTickers() is not supported yet")) ;
-        }).thenApply(Tickers::new);
+        }, VIRTUAL_EXECUTOR).thenApply(Tickers::new);
 
     }
 
@@ -1355,7 +1355,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchOrder() is not supported yet")) ;
-        }).thenApply(Order::new);
+        }, VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -1379,7 +1379,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
                 put( "clientOrderId", clientOrderId );
             }});
             return (this.fetchOrder((Object)(""), (Object)(symbol), (Object)(extendedParams))).join();
-        }).thenApply(Order::new);
+        }, VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -1394,7 +1394,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             Object order = (this.fetchOrder((Object)(id), (Object)(symbol), (Object)(parameters))).join();
             return Helpers.GetValue(order, "status");
-        }).thenApply(res -> (String) res);
+        }, VIRTUAL_EXECUTOR).thenApply(res -> (String) res);
 
     }
 
@@ -1405,7 +1405,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             return (this.fetchOrder((Object)(this.safeString(order, "id")), (Object)(this.safeString(order, "symbol")), (Object)(parameters))).join();
-        }).thenApply(Order::new);
+        }, VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -1417,7 +1417,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
             Object price = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " createOrder() is not supported yet")) ;
-        }).thenApply(Order::new);
+        }, VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -1458,7 +1458,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
                 return (this.createOrder((Object)(symbol), (Object)(type), (Object)(side), (Object)(amount), (Object)(price), (Object)(parameters))).join();
             }
             throw new NotSupported(Helpers.add(this.id, " createTrailingAmountOrder() is not supported yet")) ;
-        }).thenApply(Order::new);
+        }, VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -1499,7 +1499,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
                 return (this.createOrder((Object)(symbol), (Object)(type), (Object)(side), (Object)(amount), (Object)(price), (Object)(parameters))).join();
             }
             throw new NotSupported(Helpers.add(this.id, " createTrailingPercentOrder() is not supported yet")) ;
-        }).thenApply(Order::new);
+        }, VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -1524,7 +1524,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
                 return (this.createOrder((Object)(symbol), (Object)("market"), (Object)(side), (Object)(cost), (Object)(1), (Object)(parameters))).join();
             }
             throw new NotSupported(Helpers.add(this.id, " createMarketOrderWithCost() is not supported yet")) ;
-        }).thenApply(Order::new);
+        }, VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -1548,7 +1548,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
                 return (this.createOrder((Object)(symbol), (Object)("market"), (Object)("buy"), (Object)(cost), (Object)(1), (Object)(parameters))).join();
             }
             throw new NotSupported(Helpers.add(this.id, " createMarketBuyOrderWithCost() is not supported yet")) ;
-        }).thenApply(Order::new);
+        }, VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -1572,7 +1572,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
                 return (this.createOrder((Object)(symbol), (Object)("market"), (Object)("sell"), (Object)(cost), (Object)(1), (Object)(parameters))).join();
             }
             throw new NotSupported(Helpers.add(this.id, " createMarketSellOrderWithCost() is not supported yet")) ;
-        }).thenApply(Order::new);
+        }, VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -1610,7 +1610,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
                 return (this.createOrder((Object)(symbol), (Object)(type), (Object)(side), (Object)(amount), (Object)(price), (Object)(parameters))).join();
             }
             throw new NotSupported(Helpers.add(this.id, " createTriggerOrder() is not supported yet")) ;
-        }).thenApply(Order::new);
+        }, VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -1648,7 +1648,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
                 return (this.createOrder((Object)(symbol), (Object)(type), (Object)(side), (Object)(amount), (Object)(price), (Object)(parameters))).join();
             }
             throw new NotSupported(Helpers.add(this.id, " createStopLossOrder() is not supported yet")) ;
-        }).thenApply(Order::new);
+        }, VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -1686,7 +1686,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
                 return (this.createOrder((Object)(symbol), (Object)(type), (Object)(side), (Object)(amount), (Object)(price), (Object)(parameters))).join();
             }
             throw new NotSupported(Helpers.add(this.id, " createTakeProfitOrder() is not supported yet")) ;
-        }).thenApply(Order::new);
+        }, VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -1727,7 +1727,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
                 return (this.createOrder((Object)(symbol), (Object)(type), (Object)(side), (Object)(amount), (Object)(price), (Object)(parameters))).join();
             }
             throw new NotSupported(Helpers.add(this.id, " createOrderWithTakeProfitAndStopLoss() is not supported yet")) ;
-        }).thenApply(Order::new);
+        }, VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -1738,7 +1738,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " createOrders() is not supported yet")) ;
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -1750,7 +1750,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " cancelOrder() is not supported yet")) ;
-        }).thenApply(Order::new);
+        }, VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -1774,7 +1774,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
                 put( "clientOrderId", clientOrderId );
             }});
             return (this.cancelOrder((Object)(""), (Object)(symbol), (Object)(extendedParams))).join();
-        }).thenApply(Order::new);
+        }, VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -1786,7 +1786,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " cancelOrders() is not supported yet")) ;
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -1810,7 +1810,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
                 put( "clientOrderIds", clientOrderIds );
             }});
             return (this.cancelOrders((Object)(new ArrayList<Object>(Arrays.asList())), (Object)(symbol), (Object)(extendedParams))).join();
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -1822,7 +1822,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " cancelAllOrders() is not supported yet")) ;
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -1833,7 +1833,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             return this.cancelOrder(this.safeString(order, "id"), this.safeString(order, "symbol"), parameters);
-        }).thenApply(Order::new);
+        }, VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -1851,7 +1851,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
                 throw new NotSupported(Helpers.add(this.id, " fetchOrders() is not supported yet, consider using fetchOpenOrders() and fetchClosedOrders() instead")) ;
             }
             throw new NotSupported(Helpers.add(this.id, " fetchOrders() is not supported yet")) ;
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -1865,7 +1865,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchOrderTrades() is not supported yet")) ;
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -1879,7 +1879,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " watchOrders() is not supported yet")) ;
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -1898,7 +1898,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
                 return this.filterBy(orders, "status", "open");
             }
             throw new NotSupported(Helpers.add(this.id, " fetchOpenOrders() is not supported yet")) ;
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -1917,7 +1917,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
                 return this.filterBy(orders, "status", "closed");
             }
             throw new NotSupported(Helpers.add(this.id, " fetchClosedOrders() is not supported yet")) ;
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -1931,7 +1931,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchCanceledOrders() is not supported yet")) ;
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }, VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -1945,7 +1945,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchMyTrades() is not supported yet")) ;
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -1959,7 +1959,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " watchMyTrades() is not supported yet")) ;
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }, VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -1970,7 +1970,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             return (this.createOrder((Object)(symbol), (Object)("limit"), (Object)(side), (Object)(amount), (Object)(price), (Object)(parameters))).join();
-        }).thenApply(Order::new);
+        }, VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -1982,7 +1982,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
             Object price = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             return (this.createOrder((Object)(symbol), (Object)("market"), (Object)(side), (Object)(amount), (Object)(price), (Object)(parameters))).join();
-        }).thenApply(Order::new);
+        }, VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -1993,7 +1993,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             return (this.createOrder((Object)(symbol), (Object)("limit"), (Object)("buy"), (Object)(amount), (Object)(price), (Object)(parameters))).join();
-        }).thenApply(Order::new);
+        }, VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -2004,7 +2004,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             return (this.createOrder((Object)(symbol), (Object)("limit"), (Object)("sell"), (Object)(amount), (Object)(price), (Object)(parameters))).join();
-        }).thenApply(Order::new);
+        }, VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -2015,7 +2015,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             return (this.createOrder((Object)(symbol), (Object)("market"), (Object)("buy"), (Object)(amount), (Object)(null), (Object)(parameters))).join();
-        }).thenApply(Order::new);
+        }, VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -2026,7 +2026,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             return (this.createOrder((Object)(symbol), (Object)("market"), (Object)("sell"), (Object)(amount), (Object)(null), (Object)(parameters))).join();
-        }).thenApply(Order::new);
+        }, VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -2045,7 +2045,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
                 put( "postOnly", true );
             }});
             return (this.createOrder((Object)(symbol), (Object)(type), (Object)(side), (Object)(amount), (Object)(price), (Object)(query))).join();
-        }).thenApply(Order::new);
+        }, VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -2064,7 +2064,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
                 put( "reduceOnly", true );
             }});
             return (this.createOrder((Object)(symbol), (Object)(type), (Object)(side), (Object)(amount), (Object)(price), (Object)(query))).join();
-        }).thenApply(Order::new);
+        }, VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -2089,7 +2089,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
                 put( "stopPrice", finalTriggerPrice );
             }});
             return (this.createOrder((Object)(symbol), (Object)(type), (Object)(side), (Object)(amount), (Object)(price), (Object)(query))).join();
-        }).thenApply(Order::new);
+        }, VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -2107,7 +2107,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
                 put( "stopPrice", triggerPrice );
             }});
             return (this.createOrder((Object)(symbol), (Object)("limit"), (Object)(side), (Object)(amount), (Object)(price), (Object)(query))).join();
-        }).thenApply(Order::new);
+        }, VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -2125,7 +2125,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
                 put( "stopPrice", triggerPrice );
             }});
             return (this.createOrder((Object)(symbol), (Object)("market"), (Object)(side), (Object)(amount), (Object)(null), (Object)(query))).join();
-        }).thenApply(Order::new);
+        }, VIRTUAL_EXECUTOR).thenApply(Order::new);
 
     }
 
@@ -2141,7 +2141,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
             }
             Object fees = (this.fetchTradingFees((Object)(parameters))).join();
             return this.safeDict(fees, symbol);
-        }).thenApply(TradingFeeInterface::new);
+        }, VIRTUAL_EXECUTOR).thenApply(TradingFeeInterface::new);
 
     }
 }
