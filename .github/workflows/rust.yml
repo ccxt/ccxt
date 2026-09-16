@@ -63,6 +63,13 @@ jobs:
           echo "CARGO_TARGET_DIR=$RUNNER_TEMP/ccxt-rust-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT" >> "$GITHUB_ENV"
       - name: Setup Node.js
         uses: actions/setup-node@v3
+        with:
+          node-version: '22'
+      - name: Select native Rust regression tests
+        id: native-tests
+        run: |
+          node --test build/tests/test.rust-native-tests.mjs
+          node build/utils/rust-native-tests.mjs >> "$GITHUB_OUTPUT"
       - name: Install npm dependencies
         run: npm ci --include=dev
       - name: Determine modified files
@@ -76,10 +83,10 @@ jobs:
       - name: Generate implicit API
         run: npm run emitAPI
       - name: Transpile To Rust
-        if: env.important_modified == 'true'
+        if: env.important_modified == 'true' || steps.native-tests.outputs.enabled == 'true'
         run: tsx build/rustTranspiler.ts && tsx build/rustTranspiler.ts --ws
       - name: Transpile to Rust (specific)
-        if: env.important_modified == 'false'
+        if: env.important_modified == 'false' && steps.native-tests.outputs.enabled != 'true'
         run: |
           read -r -a files <<<"$(printf '%s %s' "${{ env.rest_files }}" "${{ env.ws_files }}" | xargs)"
           if [ "${#files[@]}" -eq 0 ]; then
@@ -108,10 +115,13 @@ jobs:
         run: |
           cargo build --manifest-path rust/Cargo.toml -p ccxt_tests --bin ti-rust
           cp "$CARGO_TARGET_DIR/debug/ti-rust" rust/tests.bin
-      - name: Cargo test
+      - name: Native Rust regression tests
+        if: (github.ref == 'refs/heads/master' && env.important_modified == 'true') || (github.event_name == 'pull_request' && steps.native-tests.outputs.enabled == 'true')
+        timeout-minutes: 15
+        run: cargo test --jobs 2 --manifest-path rust/ccxt-base/Cargo.toml --features transpiled-base
+      - name: Cargo test gate
         if: github.ref == 'refs/heads/master' && env.important_modified == 'true'
         run: |
-          cargo test --jobs 2 --manifest-path rust/ccxt-base/Cargo.toml --features transpiled-base
           cargo test --jobs 2 --manifest-path rust/Cargo.toml -p ccxt_tests --bin ti-rust cargo_test_gate
       - name: Run Base Tests
         if: env.important_modified == 'true'
