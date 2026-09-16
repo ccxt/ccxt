@@ -83,10 +83,10 @@ jobs:
       - name: Generate implicit API
         run: npm run emitAPI
       - name: Transpile To Rust
-        if: env.important_modified == 'true' || steps.native-tests.outputs.enabled == 'true'
+        if: env.important_modified == 'true'
         run: tsx build/rustTranspiler.ts && tsx build/rustTranspiler.ts --ws
       - name: Transpile to Rust (specific)
-        if: env.important_modified == 'false' && steps.native-tests.outputs.enabled != 'true'
+        if: env.important_modified == 'false'
         run: |
           read -r -a files <<<"$(printf '%s %s' "${{ env.rest_files }}" "${{ env.ws_files }}" | xargs)"
           if [ "${#files[@]}" -eq 0 ]; then
@@ -116,7 +116,9 @@ jobs:
           cargo build --manifest-path rust/Cargo.toml -p ccxt_tests --bin ti-rust
           cp "$CARGO_TARGET_DIR/debug/ti-rust" rust/tests.bin
       - name: Native Rust regression tests
-        if: (github.ref == 'refs/heads/master' && env.important_modified == 'true') || (github.event_name == 'pull_request' && steps.native-tests.outputs.enabled == 'true')
+        # Scoped generation already refreshes the base and prediction cores.
+        # Selecting native tests must not independently force every venue to transpile.
+        if: (github.ref == 'refs/heads/master' && (env.important_modified == 'true' || steps.native-tests.outputs.enabled == 'true')) || (github.event_name == 'pull_request' && steps.native-tests.outputs.enabled == 'true')
         timeout-minutes: 15
         run: cargo test --jobs 2 --manifest-path rust/ccxt-base/Cargo.toml --features transpiled-base
       - name: Cargo test gate

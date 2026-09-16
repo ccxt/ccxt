@@ -13,10 +13,20 @@ test('runtime, generator, shared base and dependency changes select native tests
         'rust/ccxt-base/tests/regression.rs', 'rust/ccxt-base/Cargo.toml',
         'rust/Cargo.toml', 'rust/Cargo.lock', 'ts/src/base/ws/Cache.ts',
         'build/rustTranspiler.ts', 'build/generateRustWrappers.ts',
+        'build/rustFutureGenerator.ts', 'build/rust/helpers/new-pass.mjs',
         'build/granular-rust-build.ts', 'build/cache-remove-call.js',
         'package.json', 'package-lock.json', '.github/workflows/rust.yml',
         'build/utils/rust-native-tests.mjs', 'build/tests/test.rust-native-tests.mjs',
     ]) assert.equal(needsRustNativeTests([file]), true, file);
+});
+
+test('workflow keeps native selection independent of transpile scope and includes master', () => {
+    const workflow = fs.readFileSync(new URL('../../.github/workflows/rust.yml', import.meta.url), 'utf8');
+    assert.match(workflow, /- name: Transpile To Rust\n\s+if: env\.important_modified == 'true'\n/);
+    assert.match(workflow, /- name: Transpile to Rust \(specific\)\n\s+if: env\.important_modified == 'false'\n/);
+    const condition = workflow.split('- name: Native Rust regression tests')[1].match(/\n\s+if: (.+)/)[1];
+    assert.equal(condition, "(github.ref == 'refs/heads/master' && (env.important_modified == 'true' || steps.native-tests.outputs.enabled == 'true')) || (github.event_name == 'pull_request' && steps.native-tests.outputs.enabled == 'true')");
+    assert.match(workflow, /- name: Cargo test gate\n\s+if: github\.ref == 'refs\/heads\/master' && env\.important_modified == 'true'\n/);
 });
 
 test('ordinary exchange, generated venue and documentation changes stay scoped', () => {
