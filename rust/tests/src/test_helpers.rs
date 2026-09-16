@@ -516,6 +516,7 @@ pub trait ExchangeOps {
     fn deep_extend(&self, a: Value, optional_args: &[Value]) -> Value;
     fn deepExtend(&self, a: Value, optional_args: &[Value]) -> Value;
     fn index_by(&self, arr: Value, key: Value) -> Value;
+    fn group_by(&self, arr: Value, key: Value, optional_args: &[Value]) -> Value;
     fn filter_by(&self, arr: Value, key: Value, value: Value, optional_args: &[Value]) -> Value;
     fn number_to_string(&self, n: Value) -> Value;
     fn precision_from_string(&self, s: Value) -> Value;
@@ -565,6 +566,7 @@ impl ExchangeOps for Value {
     fn deep_extend(&self, a: Value, o: &[Value]) -> Value { with_base(|e| e.deep_extend(a, o)) }
     fn deepExtend(&self, a: Value, o: &[Value]) -> Value { with_base(|e| e.deep_extend(a, o)) }
     fn index_by(&self, arr: Value, key: Value) -> Value { with_base(|e| e.index_by(arr, key)) }
+    fn group_by(&self, arr: Value, key: Value, o: &[Value]) -> Value { with_base(|e| e.group_by(arr, key, o)) }
     fn filter_by(&self, arr: Value, key: Value, value: Value, o: &[Value]) -> Value { with_base(|e| e.filter_by(arr, key, value, o)) }
     fn number_to_string(&self, n: Value) -> Value { with_base(|e| e.number_to_string(n)) }
     fn precision_from_string(&self, s: Value) -> Value { with_base(|e| e.precision_from_string(s)) }
@@ -631,4 +633,25 @@ impl ExchangeOps for Value {
         with_base(|e| e.decimal_to_precision(n, rounding, precision, o))
     }
     async fn sleep(&self, _ms: Value) -> Value { Value::Null }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn group_by_forwards_trade_sides() {
+        let trade = |side: &str| Value::Map(HashMap::from([
+            ("side".to_string(), Value::Str(side.to_string())),
+        ]));
+        let buy = trade("buy");
+        let sell = trade("sell");
+        let grouped = Value::Null.group_by(
+            Value::Array(vec![buy.clone(), sell.clone(), buy.clone()]),
+            Value::Str("side".to_string()),
+            &[],
+        );
+        assert_eq!(ccxt::get_value(&grouped, &Value::Str("buy".to_string())), Value::Array(vec![buy.clone(), buy]));
+        assert_eq!(ccxt::get_value(&grouped, &Value::Str("sell".to_string())), Value::Array(vec![sell]));
+    }
 }
