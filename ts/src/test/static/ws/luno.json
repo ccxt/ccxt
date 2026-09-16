@@ -172,6 +172,7 @@
             },
             {
                 "description": "a sequence gap frame is not applied, the book stays frozen at the last consistent state",
+                "disabledRust": "the rust static runner re-arms the watch while injected frames remain queued, so that extra pending watch is torn down by the gap path - the harness cannot assert an expected rejection",
                 "input": [
                     "BTC/EUR"
                 ],
