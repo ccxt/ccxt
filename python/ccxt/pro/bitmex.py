@@ -1286,7 +1286,7 @@ class bitmex(ccxt.async_support.bitmex):
         elif limit == 10:
             table = 'orderBookL10'
         else:
-            raise ExchangeError(self.id + ' watchOrderBookForSymbols limit argument must be None(L2), 25(L2) or 10(L3)')
+            raise ExchangeError(self.id + ' watchOrderBookForSymbols limit argument must be None (L2), 25 (L2) or 10 (L3)')
         if self.markets is None:
             await self.load_markets()
         symbols = self.market_symbols(symbols)

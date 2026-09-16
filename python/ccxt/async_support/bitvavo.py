@@ -1248,7 +1248,7 @@ class bitvavo(Exchange, ImplicitAPI):
         params = self.omit(params, 'subaccountId')
         direction = None
         if (fromAccount == 'master') and (toAccount == 'master'):
-            raise ArgumentsRequired(self.id + ' transfer() requires fromAccount and toAccount to be different(one master and one subaccount id)')
+            raise ArgumentsRequired(self.id + ' transfer() requires fromAccount and toAccount to be different (one master and one subaccount id)')
         elif fromAccount == 'master':
             direction = 'masterToSub'
             if subaccountId is None:
@@ -1260,7 +1260,7 @@ class bitvavo(Exchange, ImplicitAPI):
         else:
             raise ArgumentsRequired(self.id + ' transfer() requires either fromAccount or toAccount to be master')
         if subaccountId is None:
-            raise ArgumentsRequired(self.id + ' transfer() requires a subaccount id(provide it as fromAccount/toAccount or params.subaccountId)')
+            raise ArgumentsRequired(self.id + ' transfer() requires a subaccount id (provide it as fromAccount/toAccount or params.subaccountId)')
         request = {
             'subaccountId': subaccountId,
             'direction': direction,

@@ -52,7 +52,7 @@ func testWatchTradesBody(ch chan any, exchange ccxt.ICoreExchange, skippedProper
 		if IsTrue(IsEqual(success, true)) {
 			AssertNonEmtpyArray(exchange, skippedProperties, method, response)
 			for i := 0; IsLessThan(i, GetArrayLength(response)); i++ {
-				TestTrade(exchange, skippedProperties, method, GetValue(response, i), symbol, now)
+				TestTrade(exchange, skippedProperties, method, GetValue(response, i), symbol, now, true)
 			}
 			if IsTrue(IsGreaterThan((Subtract(now, startTime)), maxIdleTime)) {
 				idle = true

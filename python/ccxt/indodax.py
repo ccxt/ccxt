@@ -971,7 +971,7 @@ class indodax(Exchange, ImplicitAPI):
                     quoteAmount = self.cost_to_precision(symbol, cost)
                 else:
                     if price is None:
-                        raise InvalidOrder(self.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend(amount * price).')
+                        raise InvalidOrder(self.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price).')
                     amountString = self.number_to_string(amount)
                     priceString = self.number_to_string(price)
                     costRequest = Precise.string_mul(amountString, priceString)

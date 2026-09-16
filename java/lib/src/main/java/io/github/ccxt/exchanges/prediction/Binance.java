@@ -6,6 +6,7 @@ import io.github.ccxt.api.prediction.BinanceApi;
 import io.github.ccxt.base.Precise;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
+import io.github.ccxt.BaseExchange;
 import io.github.ccxt.ws.*;
 import io.github.ccxt.Client;
 import io.github.ccxt.types.Balances;
@@ -209,7 +210,7 @@ public class Binance extends BinanceApi
     public CompletableFuture<Object> fetchMarkets(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Object queries = (List<Object>)(this.parseSearchQueries(parameters));
@@ -267,7 +268,7 @@ public class Binance extends BinanceApi
     public CompletableFuture<Object> fetchRawTopics(Object maxTopics2, Object... optionalArgs)
     {
         final Object maxTopics3 = maxTopics2;
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
             Object maxTopics = maxTopics3;
             Object rest = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(maxTopics, null)))
@@ -363,7 +364,7 @@ public class Binance extends BinanceApi
     public CompletableFuture<Object> fetchRawTopicDetail(Object topicId, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -385,7 +386,7 @@ public class Binance extends BinanceApi
     public CompletableFuture<Object> completeRawTopics(Object rawTopics)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             Object rawTopicsLength = Helpers.getArrayLength(rawTopics);
@@ -442,7 +443,7 @@ public class Binance extends BinanceApi
     public CompletableFuture<List<PredictionEvent>> fetchEvents(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Object allowUnscopedFetchEvents = this.safeBool(this.options, "allowUnscopedFetchEvents", false);
@@ -564,7 +565,7 @@ public class Binance extends BinanceApi
     public CompletableFuture<Object> fetchEventsByQuery(Object queries, Object limit2, Object... optionalArgs)
     {
         final Object limit3 = limit2;
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
             Object limit = limit3;
             Object rest = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Map<String, Object> seen = new HashMap<String, Object>() {{}};
@@ -636,7 +637,7 @@ public class Binance extends BinanceApi
     public CompletableFuture<PredictionEvent> fetchEvent(String id, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Object events = (this.fetchEvents((Object)(this.extend(new HashMap<String, Object>() {{
@@ -934,7 +935,7 @@ final Object finalMarketSymbol = marketSymbol;
     public CompletableFuture<PredictionTicker> fetchTicker(String outcome, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             (this.loadOutcome(outcome)).join();
@@ -1035,7 +1036,7 @@ final Object finalMarketSymbol = marketSymbol;
     public CompletableFuture<PredictionTickers> fetchTickers(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object outcomes = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -1088,7 +1089,7 @@ final Object finalMarketSymbol = marketSymbol;
     public CompletableFuture<PredictionOrderBook> fetchOrderBook(Object outcome, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object limit = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -1129,7 +1130,7 @@ final Object finalMarketSymbol = marketSymbol;
     public CompletableFuture<Balances> fetchBalance(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Object type = null;
@@ -1292,7 +1293,7 @@ final Object finalMarketSymbol = marketSymbol;
     public CompletableFuture<List<PredictionOrder>> fetchOpenOrders(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object outcome = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -1393,7 +1394,7 @@ final Object finalMarketSymbol = marketSymbol;
     public CompletableFuture<List<PredictionOrder>> fetchOrders(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object outcome = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -1497,7 +1498,7 @@ final Object finalMarketSymbol = marketSymbol;
     public CompletableFuture<List<PredictionPosition>> fetchPositions(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object outcomes = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -1601,7 +1602,7 @@ final Object finalMarketSymbol = marketSymbol;
     public CompletableFuture<PredictionPosition> fetchPosition(Object outcome2, Object... optionalArgs)
     {
         final Object outcome3 = outcome2;
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
             Object outcome = outcome3;
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Map<String, Object> request = new HashMap<String, Object>() {{}};
@@ -1704,7 +1705,7 @@ final Object finalMarketSymbol = marketSymbol;
     public CompletableFuture<List<PredictionTrade>> fetchMyTrades(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object outcome = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -1905,7 +1906,7 @@ final Object finalMarketSymbol = marketSymbol;
     public CompletableFuture<Object> fetchWallet(Object methodName, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Object cachedWallet = this.safeDict(this.options, "wallet");
@@ -1972,7 +1973,7 @@ final Object finalMarketSymbol = marketSymbol;
     public CompletableFuture<Object> fetchQuote(Object request, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Object response = (this.sapiPrivatePostTradeGetQuote(this.extend(request, parameters))).join();
@@ -2058,7 +2059,7 @@ final Object finalMarketSymbol = marketSymbol;
     public CompletableFuture<PredictionOrder> createOrder(Object outcome, Object type, Object side, Object amount, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object price = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -2182,7 +2183,7 @@ final Object finalMarketSymbol = marketSymbol;
     public CompletableFuture<PredictionOrder> createMarketOrderWithCost(String symbol, Object side, Object cost, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Map<String, Object> req = new HashMap<String, Object>() {{
@@ -2206,7 +2207,7 @@ final Object finalMarketSymbol = marketSymbol;
     public CompletableFuture<PredictionOrder> cancelOrder(Object id, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object outcome = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -2229,7 +2230,7 @@ final Object finalMarketSymbol = marketSymbol;
     public CompletableFuture<List<PredictionOrder>> cancelOrders(Object ids, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object outcome = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});

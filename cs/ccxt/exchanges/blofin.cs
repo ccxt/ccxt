@@ -130,7 +130,7 @@ public partial class blofin : Exchange
                 { "setPositionMode", true },
                 { "signIn", false },
                 { "transfer", true },
-                { "withdraw", false },
+                { "withdraw", true },
             } },
             { "timeframes", new Dictionary<string, object>() {
                 { "1m", "1m" },
@@ -632,6 +632,46 @@ public partial class blofin : Exchange
                     { "102065", typeof(BadRequest) },
                     { "102068", typeof(BadRequest) },
                     { "103013", typeof(ExchangeError) },
+                    { "102067", typeof(OrderNotFound) },
+                    { "102089", typeof(BadRequest) },
+                    { "102148", typeof(DuplicateOrderId) },
+                    { "103003", typeof(InsufficientFunds) },
+                    { "110006", typeof(InvalidOrder) },
+                    { "110019", typeof(InvalidOrder) },
+                    { "148082", typeof(BadRequest) },
+                    { "148083", typeof(BadRequest) },
+                    { "152011", typeof(PermissionDenied) },
+                    { "152012", typeof(BadRequest) },
+                    { "152013", typeof(PermissionDenied) },
+                    { "152014", typeof(BadRequest) },
+                    { "152015", typeof(BadRequest) },
+                    { "152020", typeof(InvalidAddress) },
+                    { "152022", typeof(BadRequest) },
+                    { "152023", typeof(PermissionDenied) },
+                    { "152024", typeof(PermissionDenied) },
+                    { "152025", typeof(PermissionDenied) },
+                    { "152026", typeof(BadRequest) },
+                    { "152027", typeof(BadRequest) },
+                    { "152028", typeof(InsufficientFunds) },
+                    { "152029", typeof(PermissionDenied) },
+                    { "152030", typeof(DuplicateOrderId) },
+                    { "152031", typeof(InvalidAddress) },
+                    { "152032", typeof(PermissionDenied) },
+                    { "152401", typeof(AuthenticationError) },
+                    { "152402", typeof(AuthenticationError) },
+                    { "152404", typeof(PermissionDenied) },
+                    { "152405", typeof(InvalidNonce) },
+                    { "152406", typeof(PermissionDenied) },
+                    { "152407", typeof(InvalidNonce) },
+                    { "152408", typeof(AuthenticationError) },
+                    { "152409", typeof(AuthenticationError) },
+                    { "152410", typeof(InvalidNonce) },
+                    { "152420", typeof(DuplicateOrderId) },
+                    { "152421", typeof(DuplicateOrderId) },
+                    { "152422", typeof(BadRequest) },
+                    { "152423", typeof(InvalidOrder) },
+                    { "152428", typeof(BadRequest) },
+                    { "152429", typeof(BadRequest) },
                     { "Order failed. Insufficient USDT margin in account", typeof(InsufficientFunds) },
                 } },
                 { "broad", new Dictionary<string, object>() {
@@ -667,9 +707,34 @@ public partial class blofin : Exchange
                 } },
                 { "networks", new Dictionary<string, object>() {
                     { "BTC", "Bitcoin" },
-                    { "BEP20", "BSC" },
-                    { "ERC20", "ERC20" },
-                    { "TRC20", "TRC20" },
+                    { "SOL", "Solana" },
+                    { "MATIC", "Polygon POS" },
+                    { "AVAXC", "AVAX C-Chain" },
+                    { "ARBITRUM", "Arbitrum One" },
+                    { "OP", "Optimism" },
+                    { "KAIA", "KAIA" },
+                } },
+                { "networkPrefixes", new Dictionary<string, object>() {
+                    { "TRC20", "Tron" },
+                    { "ERC20", "Ethereum" },
+                    { "BEP20", "BNB Smart Chain" },
+                    { "APT", "APT" },
+                    { "TON", "TON" },
+                } },
+                { "networkSuffixes", new Dictionary<string, object>() {
+                    { "TON", "Toncoin" },
+                } },
+                { "networkCodesBySuffix", new Dictionary<string, object>() {
+                    { "Toncoin", "TON" },
+                } },
+                { "networksById", new Dictionary<string, object>() {
+                    { "Bitcoin", "BTC" },
+                    { "Solana", "SOL" },
+                    { "Polygon POS", "MATIC" },
+                    { "AVAX C-Chain", "AVAXC" },
+                    { "Arbitrum One", "ARBITRUM" },
+                    { "Optimism", "OP" },
+                    { "BSC", "BEP20" },
                 } },
                 { "fetchOpenInterestHistory", new Dictionary<string, object>() {
                     { "timeframes", new Dictionary<string, object>() {
@@ -2268,6 +2333,150 @@ public partial class blofin : Exchange
         return ccxt.BaseExchange.ToTransactionList(this.parseTransactions(data, currency, since, limit, parameters));
     }
 
+    public virtual object networkCodeToChainId(object networkCode)
+    {
+        // the live venue identifies chains by display names; the suffix
+        // family is built here as prefix + space + parenthesized suffix
+        // because such literals are not transpiler-safe in source
+        IDictionary<string, object> networks = this.safeDict(this.options, "networks", new Dictionary<string, object>() {});
+        string? direct = this.safeString(networks, networkCode);
+        if (isTrue(!isEqual(direct, null)))
+        {
+            return direct;
+        }
+        IDictionary<string, object> prefixes = this.safeDict(this.options, "networkPrefixes", new Dictionary<string, object>() {});
+        object prefix = this.safeString(prefixes, networkCode);
+        if (isTrue(!isEqual(prefix, null)))
+        {
+            IDictionary<string, object> suffixes = this.safeDict(this.options, "networkSuffixes", new Dictionary<string, object>() {});
+            string? suffix = this.safeString(suffixes, networkCode, networkCode);
+            return add(add(add(add(prefix, " "), "("), suffix), ")");
+        }
+        return networkCode;
+    }
+
+    public virtual object chainIdToNetworkCode(object chainId)
+    {
+        // live history rows and the currencies registry carry display-name
+        // chain ids like Tron with a parenthesized TRC20 suffix (verified
+        // live 2026-09-15), while the doc examples still show short forms -
+        // parse the suffix when present, fall back to the id maps otherwise
+        if (isTrue(isEqual(chainId, null)))
+        {
+            return null;
+        }
+        if (isTrue(isGreaterThan(getIndexOf(chainId, "("), -1)))
+        {
+            // php-safe suffix extraction: split instead of index arithmetic,
+            // because a stored strpos result and a two-argument slice do not
+            // survive the php conversion (false-vs-int compare; length arg)
+            List<object> parts = ((string)chainId).Split(new [] {((string)"(")}, StringSplitOptions.None).ToList<object>();
+            string? tail = this.safeString(parts, 1, "");
+            List<object> tailParts = ((string)tail).Split(new [] {((string)")")}, StringSplitOptions.None).ToList<object>();
+            string? suffix = this.safeString(tailParts, 0);
+            IDictionary<string, object> bySuffix = this.safeDict(this.options, "networkCodesBySuffix", new Dictionary<string, object>() {});
+            return this.safeString(bySuffix, suffix, suffix);
+        }
+        // delegate the paren-free branch to the base resolver so the
+        // currency-scoped networks and the deprecated-network-code aliases
+        // keep applying alongside options['networksById']
+        return this.networkIdToCode(chainId);
+    }
+
+    /**
+     * @method
+     * @name blofin#withdraw
+     * @description make a withdrawal
+     * @see https://docs.blofin.com/index.html#withdrawal
+     * @param {string} code unified currency code
+     * @param {float} amount the amount to withdraw, the withdrawal fee is not included and must be reserved on top
+     * @param {string} address the address to withdraw to, or a UID / email / phone number for an internal transfer
+     * @param {string} tag additional identifier (memo / payment id) required by certain networks
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.network] the unified network code for on-chain withdrawals, mapped to the exchange's chain name
+     * @param {string} [params.dest] 'onchain' (default) or 'internal' for an internal transfer
+     * @param {string} [params.addrType] address type, 1: wallet address, 2: UID, 3: email, 4: mobile phone
+     * @param {string} [params.areaCode] area code for the phone number, required when address is a phone number
+     * @param {string} [params.clientId] a client-supplied id of up to 32 case-sensitive alphanumerics
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
+    public async override Task<ccxt.Transaction> Withdraw(string code, double amount, string address, string tag = null, object parameters = null)
+    {
+        object tagVar = tag;
+        // LIVE API vs DOCS quirks, verified against the venue 2026-09-14:
+        // - addrType is documented optional but the live venue rejects
+        //   on-chain withdrawals without it: 152001 "Parameter addrType
+        //   cannot be empty" - defaulted to 1 below
+        // - the chain identifiers accepted here are the DISPLAY NAMES from
+        //   GET /asset/currencies ("Tron (TRC20)", "Ethereum (ERC20)", ...);
+        //   the short forms shown in the doc examples ("TRC20") are rejected
+        //   with 152002 "Invalid parameter" - see options["networks"]
+        // - 152002 responses omit the offending field name even though the
+        //   error table documents the message as "Parameter {} error"
+        parameters ??= new Dictionary<string, object>();
+        IList<object> tagparametersVariable = (IList<object>)this.handleWithdrawTagAndParams(tagVar, parameters);
+        tagVar = ((IList<object>)tagparametersVariable)[0];
+        parameters = ((IList<object>)tagparametersVariable)[1];
+        await this.loadMarkets();
+        Dictionary<string, object> currency = this.currency(((string)code));
+        Dictionary<string, object> request = new Dictionary<string, object>() {
+            { "currency", getValue(currency, "id") },
+            { "address", address },
+            { "amount", this.numberToString(amount) },
+        };
+        string? dest = this.safeString(parameters, "dest", "onchain");
+        ((IDictionary<string,object>)request)["dest"] = dest;
+        parameters = this.omit(parameters, "dest");
+        if (isTrue(isEqual(dest, "onchain")))
+        {
+            this.checkAddress(address);
+            // the doc's Request Parameters table marks addrType "Required:
+            // No", but the live venue rejects on-chain withdrawals without
+            // it (152001 "Parameter addrType cannot be empty") - default to
+            // 1 = wallet address, callers can override for other kinds
+            ((IDictionary<string,object>)request)["addrType"] = this.safeString(parameters, "addrType", "1");
+            parameters = this.omit(parameters, "addrType");
+        }
+        if (isTrue(!isEqual(tagVar, null)))
+        {
+            ((IDictionary<string,object>)request)["tag"] = tagVar;
+        }
+        // consume the unified network key unconditionally so it never leaks
+        // onto the wire; an explicit raw params['chain'] takes precedence
+        object networkCode = null;
+        IList<object> networkCodeparametersVariable = (IList<object>)this.handleNetworkCodeAndParams(parameters);
+        networkCode = ((IList<object>)networkCodeparametersVariable)[0];
+        parameters = ((IList<object>)networkCodeparametersVariable)[1];
+        string? chain = this.safeString(parameters, "chain");
+        if (isTrue(isEqual(chain, null)))
+        {
+            if (isTrue(!isEqual(networkCode, null)))
+            {
+                ((IDictionary<string,object>)request)["chain"] = this.networkCodeToChainId(networkCode);
+            } else if (isTrue(isEqual(dest, "onchain")))
+            {
+                throw new ArgumentsRequired ((string)add(this.id, " withdraw() requires a params[\"network\"] or params[\"chain\"] for on-chain withdrawals")) ;
+            }
+        }
+        Dictionary<string, object> response = await this.privatePostAssetWithdrawalApply(this.extend(request, parameters));
+        //
+        //     {
+        //         "code": "0",
+        //         "msg": "success",
+        //         "data": {
+        //             "withdrawId": "a1b2c3d4e5",
+        //             "clientId": "broker-20260706-0001"
+        //         }
+        //     }
+        //
+        IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        // the response carries only withdrawId + clientId, and this class's
+        // parseTransaction reads every field from the payload - seed the
+        // parsed structure from the request so the unified transaction
+        // reflects what was actually submitted
+        return ccxt.BaseExchange.ToTransaction(this.parseTransaction(this.extend(request, data), currency));
+    }
+
     /**
      * @method
      * @name blofin#fetchLedger
@@ -2375,6 +2584,16 @@ public partial class blofin : Exchange
         string? currencyId = this.safeString(transaction, "currency");
         string? code = this.safeCurrencyCode(currencyId);
         double? amount = this.safeNumber(transaction, "amount");
+        // live history rows carry the DISPLAY-NAME chain identifiers
+        // ('Tron (TRC20)', verified live 2026-09-15) even though the doc
+        // examples show short forms ('TRC20') - chainIdToNetworkCode parses
+        // the parenthesized suffix for the display-name family, and the
+        // paren-free ids resolve through the base networkIdToCode with
+        // options['networksById']. note the history
+        // amount is NET of the fee: a 30 USDT withdrawal-apply lands as
+        // amount 29 + fee 1
+        string? networkId = this.safeString(transaction, "chain");
+        object networkCode = this.chainIdToNetworkCode(networkId);
         string? txid = this.safeString(transaction, "txId");
         Int64? timestamp = this.safeInteger(transaction, "ts");
         string? feeCurrencyId = this.safeString(transaction, "feeCurrency");
@@ -2385,7 +2604,7 @@ public partial class blofin : Exchange
             { "id", id },
             { "currency", code },
             { "amount", amount },
-            { "network", null },
+            { "network", networkCode },
             { "addressFrom", null },
             { "addressTo", addressTo },
             { "address", address },

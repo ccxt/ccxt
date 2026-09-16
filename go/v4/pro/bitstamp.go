@@ -23,6 +23,10 @@ func (this *Bitstamp) Describe() any {
 	return this.DeepExtend(this.base.Describe(), map[string]any{
 		"has": map[string]any{
 			"ws":                    true,
+			"watchBalance":          false,
+			"watchFundingRate":      true,
+			"watchFundingRates":     false,
+			"watchMyTrades":         true,
 			"watchOrderBook":        true,
 			"watchOrders":           true,
 			"watchTrades":           true,
@@ -30,6 +34,10 @@ func (this *Bitstamp) Describe() any {
 			"watchOHLCV":            false,
 			"watchTicker":           false,
 			"watchTickers":          false,
+			"unWatchMyTrades":       true,
+			"unWatchOrderBook":      true,
+			"unWatchOrders":         true,
+			"unWatchTrades":         true,
 		},
 		"urls": map[string]any{
 			"api": map[string]any{
@@ -78,8 +86,8 @@ func (this *Bitstamp) watchOrderBookBody(ch chan any, symbol any, optionalArgs .
 	_ = params
 	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 
-		retRes6012 := (<-this.LoadMarketsAsync())
-		ccxt.PanicOnError(retRes6012)
+		retRes6812 := (<-this.LoadMarketsAsync())
+		ccxt.PanicOnError(retRes6812)
 	}
 	var market any = this.Market(symbol)
 	symbol = ccxt.GetValue(market, "symbol")
@@ -98,6 +106,82 @@ func (this *Bitstamp) watchOrderBookBody(ch chan any, symbol any, optionalArgs .
 	ccxt.PanicOnError(orderbook)
 
 	ch <- orderbook.(ccxt.OrderBookInterface).Limit()
+	return nil
+}
+
+/**
+ * @method
+ * @name bitstamp#unWatchOrderBook
+ * @description unsubscribe from the order book channel
+ * @see https://www.bitstamp.net/websocket/v2/
+ * @param {string} symbol unified symbol of the market to unwatch the order book for
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {any} status of the unwatch request
+ */
+func (this *Bitstamp) UnWatchOrderBookAsync(symbol any, optionalArgs ...any) <-chan any {
+	ch := make(chan any, 1)
+	go this.unWatchOrderBookBody(ch, symbol, optionalArgs...)
+	return ch
+}
+func (this *Bitstamp) unWatchOrderBookBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+
+		retRes9712 := (<-this.LoadMarketsAsync())
+		ccxt.PanicOnError(retRes9712)
+	}
+	var market any = this.Market(symbol)
+	symbol = ccxt.GetValue(market, "symbol")
+	var channel any = ccxt.Add("diff_order_book_", ccxt.GetValue(market, "id"))
+	var subHash any = ccxt.Add("orderbook:", symbol)
+
+	retRes10315 := (<-this.UnWatchChannelAsync(channel, subHash, "orderbook", []any{symbol}, params))
+	ccxt.PanicOnError(retRes10315)
+	ch <- retRes10315
+	return nil
+}
+
+/**
+ * @ignore
+ * @method
+ * @description sends an unsubscribe request for a channel and cleans the related caches on confirmation
+ * @param {string} channel the raw channel name to unsubscribe from
+ * @param {string} subHash the subscription hash whose future and cache entry should be cleaned
+ * @param {string} topic the cache topic, one of 'trades', 'orderbook', 'orders' or 'myTrades'
+ * @param {string[]} symbols the symbols to clean from the cache
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {any} status of the unwatch request
+ */
+func (this *Bitstamp) UnWatchChannelAsync(channel any, subHash any, topic any, symbols any, optionalArgs ...any) <-chan any {
+	ch := make(chan any, 1)
+	go this.unWatchChannelBody(ch, channel, subHash, topic, symbols, optionalArgs...)
+	return ch
+}
+func (this *Bitstamp) unWatchChannelBody(ch chan any, channel any, subHash any, topic any, symbols any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
+	var unsubHash any = ccxt.Add("unsubscribe:", channel)
+	var request map[string]any = map[string]any{
+		"event": "bts:unsubscribe",
+		"data": map[string]any{
+			"channel": channel,
+		},
+	}
+	var subscription map[string]any = map[string]any{
+		"subHash": subHash,
+		"topic":   topic,
+		"symbols": symbols,
+	}
+
+	retRes13115 := (<-this.Watch(url, unsubHash, this.Extend(request, params), unsubHash, subscription))
+	ccxt.PanicOnError(retRes13115)
+	ch <- retRes13115
 	return nil
 }
 func (this *Bitstamp) HandleOrderBook(client any, message any) {
@@ -220,8 +304,8 @@ func (this *Bitstamp) watchTradesBody(ch chan any, symbol any, optionalArgs ...a
 	_ = params
 	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 
-		retRes18712 := (<-this.LoadMarketsAsync())
-		ccxt.PanicOnError(retRes18712)
+		retRes24312 := (<-this.LoadMarketsAsync())
+		ccxt.PanicOnError(retRes24312)
 	}
 	var market any = this.Market(symbol)
 	symbol = ccxt.GetValue(market, "symbol")
@@ -243,6 +327,41 @@ func (this *Bitstamp) watchTradesBody(ch chan any, symbol any, optionalArgs ...a
 	}
 
 	ch <- this.FilterBySinceLimit(trades, since, limit, "timestamp", true)
+	return nil
+}
+
+/**
+ * @method
+ * @name bitstamp#unWatchTrades
+ * @description unsubscribe from the trades channel
+ * @see https://www.bitstamp.net/websocket/v2/
+ * @param {string} symbol unified symbol of the market to unwatch the trades for
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {any} status of the unwatch request
+ */
+func (this *Bitstamp) UnWatchTradesAsync(symbol any, optionalArgs ...any) <-chan any {
+	ch := make(chan any, 1)
+	go this.unWatchTradesBody(ch, symbol, optionalArgs...)
+	return ch
+}
+func (this *Bitstamp) unWatchTradesBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+
+		retRes27512 := (<-this.LoadMarketsAsync())
+		ccxt.PanicOnError(retRes27512)
+	}
+	var market any = this.Market(symbol)
+	symbol = ccxt.GetValue(market, "symbol")
+	var channel any = ccxt.Add("live_trades_", ccxt.GetValue(market, "id"))
+	var subHash any = ccxt.Add("trades:", symbol)
+
+	retRes28115 := (<-this.UnWatchChannelAsync(channel, subHash, "trades", []any{symbol}, params))
+	ccxt.PanicOnError(retRes28115)
+	ch <- retRes28115
 	return nil
 }
 func (this *Bitstamp) ParseWsTrade(trade any, optionalArgs ...any) any {
@@ -333,6 +452,77 @@ func (this *Bitstamp) HandleTrade(client any, message any) {
 
 /**
  * @method
+ * @name bitstamp#watchFundingRate
+ * @description watch the current funding rate
+ * @see https://www.bitstamp.net/websocket/v2/
+ * @param {string} symbol unified market symbol of a swap market
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+ */
+func (this *Bitstamp) WatchFundingRateAsync(symbol any, optionalArgs ...any) <-chan any {
+	ch := make(chan any, 1)
+	go this.watchFundingRateBody(ch, symbol, optionalArgs...)
+	return ch
+}
+func (this *Bitstamp) watchFundingRateBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+
+		retRes38012 := (<-this.LoadMarketsAsync())
+		ccxt.PanicOnError(retRes38012)
+	}
+	var market any = this.Market(symbol)
+	symbol = ccxt.GetValue(market, "symbol")
+	var messageHash any = ccxt.Add("fundingRate:", symbol)
+	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
+	var channel any = ccxt.Add("funding_rate_", ccxt.GetValue(market, "id"))
+	var request map[string]any = map[string]any{
+		"event": "bts:subscribe",
+		"data": map[string]any{
+			"channel": channel,
+		},
+	}
+	var message map[string]any = this.Extend(request, params)
+
+	retRes39415 := (<-this.Watch(url, messageHash, message, messageHash))
+	ccxt.PanicOnError(retRes39415)
+	ch <- retRes39415
+	return nil
+}
+func (this *Bitstamp) HandleFundingRate(client any, message any) {
+	//
+	//     {
+	//         "data": {
+	//             "market": "btcusd-perp",
+	//             "mark_price": "77291.94844771",
+	//             "index_price": "77276.264",
+	//             "funding_rate": "0.00013",
+	//             "timestamp": "1789455924",
+	//             "next_funding_time": "1789459200"
+	//         },
+	//         "channel": "funding_rate_btcusd-perp",
+	//         "event": "funding_rate_saved"
+	//     }
+	//
+	var channel any = this.SafeString(message, "channel")
+	if ccxt.IsTrue(ccxt.IsEqual(channel, nil)) {
+		return
+	}
+	var parts []string = ccxt.Split(channel, "_")
+	var marketId any = this.SafeString(parts, 2)
+	var market any = this.SafeMarket(marketId)
+	var symbol any = ccxt.GetValue(market, "symbol")
+	var data any = this.SafeDict(message, "data", map[string]any{})
+	var fundingRate any = this.ParseFundingRate(data, market)
+	ccxt.AddElementToObject(this.FundingRates, symbol, fundingRate)
+	client.(ccxt.ClientInterface).Resolve(fundingRate, ccxt.Add("fundingRate:", symbol))
+}
+
+/**
+ * @method
  * @name bitstamp#watchOrders
  * @description watches information on multiple orders made by the user
  * @param {string} symbol unified market symbol of the market orders were made in
@@ -362,8 +552,8 @@ func (this *Bitstamp) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	}
 	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 
-		retRes30812 := (<-this.LoadMarketsAsync())
-		ccxt.PanicOnError(retRes30812)
+		retRes44112 := (<-this.LoadMarketsAsync())
+		ccxt.PanicOnError(retRes44112)
 	}
 	var market any = this.Market(symbol)
 	symbol = ccxt.GetValue(market, "symbol")
@@ -385,33 +575,273 @@ func (this *Bitstamp) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.FilterBySinceLimit(orders, since, limit, "timestamp", true)
 	return nil
 }
+
+/**
+ * @method
+ * @name bitstamp#unWatchOrders
+ * @description unsubscribe from the orders channel
+ * @see https://www.bitstamp.net/websocket/v2/
+ * @param {string} symbol unified market symbol of the market the orders were made in
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {any} status of the unwatch request
+ */
+func (this *Bitstamp) UnWatchOrdersAsync(optionalArgs ...any) <-chan any {
+	ch := make(chan any, 1)
+	go this.unWatchOrdersBody(ch, optionalArgs...)
+	return ch
+}
+func (this *Bitstamp) unWatchOrdersBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	symbol := ccxt.GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	if ccxt.IsTrue(ccxt.IsEqual(symbol, nil)) {
+		panic(ccxt.ArgumentsRequired(ccxt.Add(this.Id, " unWatchOrders() requires a symbol argument")))
+	}
+	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+
+		retRes47412 := (<-this.LoadMarketsAsync())
+		ccxt.PanicOnError(retRes47412)
+	}
+	var market any = this.Market(symbol)
+	symbol = ccxt.GetValue(market, "symbol")
+
+	retRes4788 := (<-this.AuthenticateAsync())
+	ccxt.PanicOnError(retRes4788)
+	var channel any = ccxt.Add(ccxt.Add(ccxt.Add("private-my_orders_", ccxt.GetValue(market, "id")), "-"), ccxt.GetValue(this.Options, "userId"))
+
+	retRes48015 := (<-this.UnWatchChannelAsync(channel, channel, "orders", []any{symbol}, params))
+	ccxt.PanicOnError(retRes48015)
+	ch <- retRes48015
+	return nil
+}
+
+/**
+ * @method
+ * @name bitstamp#watchMyTrades
+ * @description watches information on multiple trades made by the user
+ * @see https://www.bitstamp.net/websocket/v2/
+ * @param {string} symbol unified market symbol of the market trades were made in
+ * @param {int} [since] the earliest time in ms to fetch trades for
+ * @param {int} [limit] the maximum number of trade structures to retrieve
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+ */
+func (this *Bitstamp) WatchMyTradesAsync(optionalArgs ...any) <-chan any {
+	ch := make(chan any, 1)
+	go this.watchMyTradesBody(ch, optionalArgs...)
+	return ch
+}
+func (this *Bitstamp) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	symbol := ccxt.GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	since := ccxt.GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := ccxt.GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+	if ccxt.IsTrue(ccxt.IsEqual(symbol, nil)) {
+		panic(ccxt.ArgumentsRequired(ccxt.Add(this.Id, " watchMyTrades() requires a symbol argument")))
+	}
+	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+
+		retRes49912 := (<-this.LoadMarketsAsync())
+		ccxt.PanicOnError(retRes49912)
+	}
+	var market any = this.Market(symbol)
+	symbol = ccxt.GetValue(market, "symbol")
+	var channel string = "private-my_trades"
+	var messageHash any = ccxt.Add(ccxt.Add(channel, "_"), ccxt.GetValue(market, "id"))
+	var subscription map[string]any = map[string]any{
+		"symbol": symbol,
+		"limit":  limit,
+		"type":   channel,
+		"params": params,
+	}
+
+	trades := (<-this.SubscribePrivateAsync(subscription, messageHash, params))
+	ccxt.PanicOnError(trades)
+	if ccxt.IsTrue(this.NewUpdates) {
+		limit = ccxt.ToGetsLimit(trades).GetLimit(symbol, limit)
+	}
+
+	ch <- this.FilterBySymbolSinceLimit(trades, symbol, since, limit, true)
+	return nil
+}
+
+/**
+ * @method
+ * @name bitstamp#unWatchMyTrades
+ * @description unsubscribe from the myTrades channel
+ * @see https://www.bitstamp.net/websocket/v2/
+ * @param {string} symbol unified market symbol of the market the trades were made in
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {any} status of the unwatch request
+ */
+func (this *Bitstamp) UnWatchMyTradesAsync(optionalArgs ...any) <-chan any {
+	ch := make(chan any, 1)
+	go this.unWatchMyTradesBody(ch, optionalArgs...)
+	return ch
+}
+func (this *Bitstamp) unWatchMyTradesBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	symbol := ccxt.GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	if ccxt.IsTrue(ccxt.IsEqual(symbol, nil)) {
+		panic(ccxt.ArgumentsRequired(ccxt.Add(this.Id, " unWatchMyTrades() requires a symbol argument")))
+	}
+	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+
+		retRes53212 := (<-this.LoadMarketsAsync())
+		ccxt.PanicOnError(retRes53212)
+	}
+	var market any = this.Market(symbol)
+	symbol = ccxt.GetValue(market, "symbol")
+
+	retRes5368 := (<-this.AuthenticateAsync())
+	ccxt.PanicOnError(retRes5368)
+	var channel any = ccxt.Add(ccxt.Add(ccxt.Add("private-my_trades_", ccxt.GetValue(market, "id")), "-"), ccxt.GetValue(this.Options, "userId"))
+
+	retRes53815 := (<-this.UnWatchChannelAsync(channel, channel, "myTrades", []any{symbol}, params))
+	ccxt.PanicOnError(retRes53815)
+	ch <- retRes53815
+	return nil
+}
+func (this *Bitstamp) HandleMyTrades(client any, message any) {
+	//
+	//     {
+	//         "data": {
+	//             "id": 635698396,
+	//             "amount": "0.005000",
+	//             "price": "2468.04",
+	//             "microtimestamp": "1789459694223000",
+	//             "fee": "0.04936",
+	//             "order_id": "2050558851342339",
+	//             "trade_account_id": 0,
+	//             "side": "buy"
+	//         },
+	//         "channel": "private-my_trades_ethusdt-4416057",
+	//         "event": "trade",
+	//         "trade_account_id": 0
+	//     }
+	//
+	var channel any = this.SafeString(message, "channel")
+	var data any = this.SafeDict(message, "data", map[string]any{})
+	var subscription any = ccxt.Ternary(ccxt.IsTrue((ccxt.IsEqual(channel, nil))), nil, this.SafeDict(client.(ccxt.ClientInterface).GetSubscriptions(), channel))
+	var symbol any = this.SafeString(subscription, "symbol")
+	if ccxt.IsTrue(ccxt.IsEqual(symbol, nil)) {
+		// cleanUnsubscription deletes the subscription, so a trade frame
+		// arriving after an unsubscribe has no subscription to resolve
+		// the symbol from - drop the message instead of throwing
+		return
+	}
+	var market any = this.Market(symbol)
+	if ccxt.IsTrue(ccxt.IsEqual(this.MyTrades, nil)) {
+		var limit any = this.SafeInteger(this.Options, "tradesLimit", 1000)
+		this.MyTrades = ccxt.NewArrayCacheBySymbolById(limit)
+	}
+	var stored any = this.MyTrades
+	var trade any = this.ParseWsMyTrade(data, market)
+	stored.(ccxt.Appender).Append(trade)
+	client.(ccxt.ClientInterface).Resolve(stored, channel)
+}
+func (this *Bitstamp) ParseWsMyTrade(trade any, optionalArgs ...any) any {
+	//
+	//     {
+	//         "id": 635698396,
+	//         "amount": "0.005000",
+	//         "price": "2468.04",
+	//         "microtimestamp": "1789459694223000",
+	//         "fee": "0.04936",
+	//         "order_id": "2050558851342339",
+	//         "trade_account_id": 0,
+	//         "side": "buy"
+	//     }
+	//
+	// the api docs also document id_str, trade_uti, client_order_id,
+	// position_id, is_liquidation and trade_type, which the live feed
+	// omits for plain spot orderbook fills
+	//
+	market := ccxt.GetArg(optionalArgs, 0, nil)
+	_ = market
+	var microtimestamp any = this.SafeInteger(trade, "microtimestamp", 0)
+	var timestamp any = this.ParseToInt(ccxt.Divide(microtimestamp, 1000))
+	market = this.SafeMarket(nil, market)
+	var symbol any = ccxt.GetValue(market, "symbol")
+	var feeCost any = this.SafeString(trade, "fee")
+	var fee any = nil
+	if ccxt.IsTrue(!ccxt.IsEqual(feeCost, nil)) {
+		fee = map[string]any{
+			"cost":     feeCost,
+			"currency": ccxt.GetValue(market, "quote"),
+		}
+	}
+	return this.SafeTrade(map[string]any{
+		"info":         trade,
+		"id":           this.SafeString2(trade, "id_str", "id"),
+		"order":        this.SafeString(trade, "order_id"),
+		"timestamp":    timestamp,
+		"datetime":     this.Iso8601(timestamp),
+		"symbol":       symbol,
+		"type":         nil,
+		"side":         this.SafeString(trade, "side"),
+		"takerOrMaker": nil,
+		"price":        this.SafeString(trade, "price"),
+		"amount":       this.SafeString(trade, "amount"),
+		"cost":         nil,
+		"fee":          fee,
+	}, market)
+}
 func (this *Bitstamp) HandleOrders(client any, message any) {
 	//
-	// {
-	//     "data":{
-	//        "id":"1463471322288128",
-	//        "id_str":"1463471322288128",
-	//        "order_type":1,
-	//        "datetime":"1646127778",
-	//        "microtimestamp":"1646127777950000",
-	//        "amount":0.05,
-	//        "amount_str":"0.05000000",
-	//        "price":1000,
-	//        "price_str":"1000.00"
-	//     },
-	//     "channel":"private-my_orders_ltcusd-4848701",
-	//     "event": "order_deleted" // field only present for cancelOrder
-	// }
+	//     {
+	//         "data": {
+	//             "id": "2050558851342339",
+	//             "id_str": "2050558851342339",
+	//             "order_type": 0,
+	//             "order_subtype": 2,
+	//             "datetime": "1789459694",
+	//             "microtimestamp": "1789459694223000",
+	//             "amount": 0.005,
+	//             "amount_str": "0.005000",
+	//             "amount_traded": "0",
+	//             "amount_at_create": "0.005000",
+	//             "price": 999999999,
+	//             "price_str": "999999999.00",
+	//             "is_liquidation": false,
+	//             "trade_account_id": 0
+	//         },
+	//         "channel": "private-my_orders_ethusdt-4416057",
+	//         "event": "order_created", // order_created | order_changed | order_deleted | order_replaced | stop_active | stop_inactive
+	//         "trade_account_id": 0,
+	//         "event_id": "00065b81-0d69-fe98-0000-006902000020",
+	//         "pre_event_id": "00065b81-0d68-6088-0000-006901000020",
+	//         "order_source": "orderbook"
+	//     }
 	//
 	var channel any = this.SafeString(message, "channel")
 	var order any = this.SafeDict(message, "data", map[string]any{})
+	var subscription any = ccxt.Ternary(ccxt.IsTrue((ccxt.IsEqual(channel, nil))), nil, this.SafeDict(client.(ccxt.ClientInterface).GetSubscriptions(), channel))
+	var symbol any = this.SafeString(subscription, "symbol")
+	if ccxt.IsTrue(ccxt.IsEqual(symbol, nil)) {
+		// cleanUnsubscription deletes the subscription, so an order frame
+		// arriving after an unsubscribe has no subscription to resolve
+		// the symbol from - drop the message instead of throwing
+		return
+	}
 	var limit any = this.SafeInteger(this.Options, "ordersLimit", 1000)
 	if ccxt.IsTrue(ccxt.IsEqual(this.Orders, nil)) {
 		this.Orders = ccxt.NewArrayCacheBySymbolById(limit)
 	}
 	var stored any = this.Orders
-	var subscription any = ccxt.Ternary(ccxt.IsTrue((ccxt.IsEqual(channel, nil))), nil, this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), channel))
-	var symbol any = this.SafeString(subscription, "symbol")
 	var market any = this.Market(symbol)
 	ccxt.AddElementToObject(order, "event", this.SafeString(message, "event"))
 	var parsed any = this.ParseWsOrder(order, market)
@@ -420,19 +850,22 @@ func (this *Bitstamp) HandleOrders(client any, message any) {
 }
 func (this *Bitstamp) ParseWsOrder(order any, optionalArgs ...any) any {
 	//
+	// order_deleted after a full fill - amount_str carries the amount
+	// left to be executed, amount_at_create the original order amount
+	//
 	//    {
-	//        "id": "1894876776091648",
-	//        "id_str": "1894876776091648",
+	//        "id": "2050558851342339",
+	//        "id_str": "2050558851342339",
 	//        "order_type": 0,
-	//        "order_subtype": 0,
-	//        "datetime": "1751451375",
-	//        "microtimestamp": "1751451375070000",
-	//        "amount": 1.1,
-	//        "amount_str": "1.10000000",
-	//        "amount_traded": "0",
-	//        "amount_at_create": "1.10000000",
-	//        "price": 10.23,
-	//        "price_str": "10.23",
+	//        "order_subtype": 2,
+	//        "datetime": "1789459694",
+	//        "microtimestamp": "1789459694223000",
+	//        "amount": 0,
+	//        "amount_str": "0",
+	//        "amount_traded": "0.005000",
+	//        "amount_at_create": "0.005000",
+	//        "price": 2468.04,
+	//        "price_str": "2468.04",
 	//        "is_liquidation": false,
 	//        "trade_account_id": 0
 	//    }
@@ -460,7 +893,17 @@ func (this *Bitstamp) ParseWsOrder(order any, optionalArgs ...any) any {
 		timeInForce = "GTD"
 	}
 	var price any = this.SafeString(order, "price_str")
-	var amount any = this.SafeString(order, "amount_str")
+	var amountLeft any = this.SafeString(order, "amount_str")
+	var amountAtCreate any = this.SafeString(order, "amount_at_create")
+	// amount_str carries the amount left to be executed, while
+	// amount_at_create is the original order amount - older messages
+	// do not carry amount_at_create, so fall back to the old behaviour
+	var amount any = amountLeft
+	var remaining any = nil
+	if ccxt.IsTrue(!ccxt.IsEqual(amountAtCreate, nil)) {
+		amount = amountAtCreate
+		remaining = amountLeft
+	}
 	var filled any = this.SafeString(order, "amount_traded")
 	var event any = this.SafeString(order, "event")
 	var status any = nil
@@ -469,6 +912,7 @@ func (this *Bitstamp) ParseWsOrder(order any, optionalArgs ...any) any {
 	} else if ccxt.IsTrue(ccxt.IsEqual(event, "order_deleted")) {
 		status = "canceled"
 	}
+	var triggerPrice any = this.SafeString(order, "stop_price")
 	var timestamp any = this.SafeTimestamp(order, "datetime")
 	market = this.SafeMarket(nil, market)
 	var symbol any = ccxt.GetValue(market, "symbol")
@@ -476,7 +920,7 @@ func (this *Bitstamp) ParseWsOrder(order any, optionalArgs ...any) any {
 		"info":               order,
 		"symbol":             symbol,
 		"id":                 id,
-		"clientOrderId":      nil,
+		"clientOrderId":      this.SafeString(order, "client_order_id"),
 		"timestamp":          timestamp,
 		"datetime":           this.Iso8601(timestamp),
 		"lastTradeTimestamp": nil,
@@ -485,13 +929,13 @@ func (this *Bitstamp) ParseWsOrder(order any, optionalArgs ...any) any {
 		"postOnly":           nil,
 		"side":               side,
 		"price":              price,
-		"stopPrice":          nil,
-		"triggerPrice":       nil,
+		"stopPrice":          triggerPrice,
+		"triggerPrice":       triggerPrice,
 		"amount":             amount,
 		"cost":               nil,
 		"average":            nil,
 		"filled":             filled,
-		"remaining":          nil,
+		"remaining":          remaining,
 		"status":             status,
 		"fee":                nil,
 		"trades":             nil,
@@ -527,6 +971,64 @@ func (this *Bitstamp) HandleSubscriptionStatus(client any, message any) {
 	if ccxt.IsTrue(ccxt.IsGreaterThan(ccxt.GetIndexOf(channel, "order_book"), ccxt.OpNeg(1))) {
 		this.HandleOrderBookSubscription(client, message)
 	}
+}
+func (this *Bitstamp) HandleUnsubscriptionStatus(client any, message any) {
+	//
+	//     {
+	//         "event": "bts:unsubscription_succeeded",
+	//         "channel": "live_trades_btcusd",
+	//         "data": {}
+	//     }
+	//
+	var channel any = this.SafeString(message, "channel")
+	if ccxt.IsTrue(ccxt.IsEqual(channel, nil)) {
+		return
+	}
+	var unsubHash any = ccxt.Add("unsubscribe:", channel)
+	var subscription any = this.SafeDict(client.(ccxt.ClientInterface).GetSubscriptions(), unsubHash)
+	if ccxt.IsTrue(ccxt.IsEqual(subscription, nil)) {
+		return
+	}
+	var subHash any = this.SafeString(subscription, "subHash")
+	var topic any = this.SafeString(subscription, "topic")
+	var symbols any = this.SafeList(subscription, "symbols", []any{})
+	// the base cleanCache only prunes trades/orderbooks per symbol and
+	// would wipe the whole orders/myTrades cache - rebuild those without
+	// the unsubscribed symbols instead, so the markets that are still
+	// subscribed keep their cached history
+	if ccxt.IsTrue(ccxt.IsTrue((ccxt.IsEqual(topic, "orders"))) && ccxt.IsTrue((!ccxt.IsEqual(this.Orders, nil)))) {
+		var limit any = this.SafeInteger(this.Options, "ordersLimit", 1000)
+		freshOrdersCache := ccxt.NewArrayCacheBySymbolById(limit)
+		this.Orders = this.PruneCachedBySymbols(freshOrdersCache, this.Orders, symbols)
+	} else if ccxt.IsTrue(ccxt.IsTrue((ccxt.IsEqual(topic, "myTrades"))) && ccxt.IsTrue((!ccxt.IsEqual(this.MyTrades, nil)))) {
+		var limit any = this.SafeInteger(this.Options, "tradesLimit", 1000)
+		freshTradesCache := ccxt.NewArrayCacheBySymbolById(limit)
+		this.MyTrades = this.PruneCachedBySymbols(freshTradesCache, this.MyTrades, symbols)
+	} else {
+		this.CleanCache(subscription)
+	}
+	this.CleanUnsubscription(ccxt.AsClient(client), subHash, unsubHash)
+}
+
+/**
+ * @ignore
+ * @method
+ * @description refills a fresh ccxt.ArrayCacheBySymbolById with the entries of the old cache except the given symbols, so unsubscribing one market keeps the cached entries of the others
+ * @param {object} newCache an empty ccxt.ArrayCacheBySymbolById to fill
+ * @param {object} cache the old ccxt.ArrayCacheBySymbolById to prune
+ * @param {string[]} symbols the symbols to remove from the cache
+ * @returns {object} the new cache holding the remaining entries
+ */
+func (this *Bitstamp) PruneCachedBySymbols(newCache any, cache any, symbols any) any {
+	var entries []any = this.ToArray(cache)
+	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(entries)); i++ {
+		var entry any = ccxt.GetValue(entries, i)
+		var entrySymbol any = this.SafeString(entry, "symbol")
+		if !ccxt.IsTrue(this.InArray(entrySymbol, symbols)) {
+			newCache.(ccxt.Appender).Append(entry)
+		}
+	}
+	return newCache
 }
 func (this *Bitstamp) HandleSubject(client any, message any) {
 	//
@@ -573,7 +1075,9 @@ func (this *Bitstamp) HandleSubject(client any, message any) {
 	var methods map[string]any = map[string]any{
 		"live_trades":       this.HandleTrade,
 		"diff_order_book":   this.HandleOrderBook,
+		"funding_rate":      this.HandleFundingRate,
 		"private-my_orders": this.HandleOrders,
+		"private-my_trades": this.HandleMyTrades,
 	}
 	var keys []string = ccxt.ObjectKeys(methods)
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(keys)); i++ {
@@ -638,6 +1142,8 @@ func (this *Bitstamp) HandleMessage(client any, message any) {
 	var event any = this.SafeString(message, "event")
 	if ccxt.IsTrue(ccxt.IsEqual(event, "bts:subscription_succeeded")) {
 		this.HandleSubscriptionStatus(client, message)
+	} else if ccxt.IsTrue(ccxt.IsEqual(event, "bts:unsubscription_succeeded")) {
+		this.HandleUnsubscriptionStatus(client, message)
 	} else {
 		this.HandleSubject(client, message)
 	}
@@ -672,8 +1178,8 @@ func (this *Bitstamp) authenticateBody(ch chan any, optionalArgs ...any) any {
 			// a flight is already in progress - wake when the leader
 			// settles it: the token is then in this.options
 
-			retRes60916 := (<-client.(ccxt.ClientInterface).Future(messageHash))
-			ccxt.PanicOnError(retRes60916)
+			retRes100016 := (<-client.(ccxt.ClientInterface).Future(messageHash))
+			ccxt.PanicOnError(retRes100016)
 
 			return nil
 		}
@@ -725,8 +1231,8 @@ func (this *Bitstamp) authenticateBody(ch chan any, optionalArgs ...any) any {
 		// rethrows to the leader and marks the promise handled, so an
 		// alone leader's rejection is never unhandled
 
-		retRes64512 := <-future.(*ccxt.Future).Await()
-		ccxt.PanicOnError(retRes64512)
+		retRes103612 := <-future.(*ccxt.Future).Await()
+		ccxt.PanicOnError(retRes103612)
 	}
 	return nil
 }
@@ -742,8 +1248,8 @@ func (this *Bitstamp) subscribePrivateBody(ch chan any, subscription any, messag
 	_ = params
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
 
-	retRes6518 := (<-this.AuthenticateAsync())
-	ccxt.PanicOnError(retRes6518)
+	retRes10428 := (<-this.AuthenticateAsync())
+	ccxt.PanicOnError(retRes10428)
 	messageHash = ccxt.Add(messageHash, ccxt.Add("-", ccxt.GetValue(this.Options, "userId")))
 	var request map[string]any = map[string]any{
 		"event": "bts:subscribe",
@@ -754,9 +1260,9 @@ func (this *Bitstamp) subscribePrivateBody(ch chan any, subscription any, messag
 	}
 	ccxt.AddElementToObject(subscription, "messageHash", messageHash)
 
-	retRes66115 := (<-this.Watch(url, messageHash, this.Extend(request, params), messageHash, subscription))
-	ccxt.PanicOnError(retRes66115)
-	ch <- retRes66115
+	retRes105215 := (<-this.Watch(url, messageHash, this.Extend(request, params), messageHash, subscription))
+	ccxt.PanicOnError(retRes105215)
+	ch <- retRes105215
 	return nil
 }
 
@@ -798,6 +1304,29 @@ func (this *Bitstamp) WatchOrderBook(symbol string, options ...ccxt.WatchOrderBo
 
 /**
  * @method
+ * @name bitstamp#unWatchOrderBook
+ * @description unsubscribe from the order book channel
+ * @see https://www.bitstamp.net/websocket/v2/
+ * @param {string} symbol unified symbol of the market to unwatch the order book for
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {any} status of the unwatch request
+ */
+func (this *Bitstamp) UnWatchOrderBook(symbol string, options ...ccxt.UnWatchOrderBookOptions) (any, error) {
+
+	opts := ccxt.UnWatchOrderBookOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+	res := <-this.UnWatchOrderBookAsync(symbol, opts.Params)
+	if ccxt.IsError(res) {
+		return nil, ccxt.CreateReturnError(res)
+	}
+	return res, nil
+}
+
+/**
+ * @method
  * @name bitstamp#watchTrades
  * @description get the list of most recent trades for a particular symbol
  * @param {string} symbol unified symbol of the market to fetch trades for
@@ -822,6 +1351,52 @@ func (this *Bitstamp) WatchTrades(symbol string, options ...ccxt.WatchTradesOpti
 
 /**
  * @method
+ * @name bitstamp#unWatchTrades
+ * @description unsubscribe from the trades channel
+ * @see https://www.bitstamp.net/websocket/v2/
+ * @param {string} symbol unified symbol of the market to unwatch the trades for
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {any} status of the unwatch request
+ */
+func (this *Bitstamp) UnWatchTrades(symbol string, options ...ccxt.UnWatchTradesOptions) (any, error) {
+
+	opts := ccxt.UnWatchTradesOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+	res := <-this.UnWatchTradesAsync(symbol, opts.Params)
+	if ccxt.IsError(res) {
+		return nil, ccxt.CreateReturnError(res)
+	}
+	return res, nil
+}
+
+/**
+ * @method
+ * @name bitstamp#watchFundingRate
+ * @description watch the current funding rate
+ * @see https://www.bitstamp.net/websocket/v2/
+ * @param {string} symbol unified market symbol of a swap market
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+ */
+func (this *Bitstamp) WatchFundingRate(symbol string, options ...ccxt.WatchFundingRateOptions) (ccxt.FundingRate, error) {
+
+	opts := ccxt.WatchFundingRateOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+	res := <-this.WatchFundingRateAsync(symbol, opts.Params)
+	if ccxt.IsError(res) {
+		return ccxt.FundingRate{}, ccxt.CreateReturnError(res)
+	}
+	return ccxt.NewFundingRate(res), nil
+}
+
+/**
+ * @method
  * @name bitstamp#watchOrders
  * @description watches information on multiple orders made by the user
  * @param {string} symbol unified market symbol of the market orders were made in
@@ -842,4 +1417,75 @@ func (this *Bitstamp) WatchOrders(options ...ccxt.WatchOrdersOptions) ([]ccxt.Or
 		return nil, ccxt.CreateReturnError(res)
 	}
 	return ccxt.NewOrderArray(res), nil
+}
+
+/**
+ * @method
+ * @name bitstamp#unWatchOrders
+ * @description unsubscribe from the orders channel
+ * @see https://www.bitstamp.net/websocket/v2/
+ * @param {string} symbol unified market symbol of the market the orders were made in
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {any} status of the unwatch request
+ */
+func (this *Bitstamp) UnWatchOrders(options ...ccxt.UnWatchOrdersOptions) (any, error) {
+
+	opts := ccxt.UnWatchOrdersOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+	res := <-this.UnWatchOrdersAsync(opts.Symbol, opts.Params)
+	if ccxt.IsError(res) {
+		return nil, ccxt.CreateReturnError(res)
+	}
+	return res, nil
+}
+
+/**
+ * @method
+ * @name bitstamp#watchMyTrades
+ * @description watches information on multiple trades made by the user
+ * @see https://www.bitstamp.net/websocket/v2/
+ * @param {string} symbol unified market symbol of the market trades were made in
+ * @param {int} [since] the earliest time in ms to fetch trades for
+ * @param {int} [limit] the maximum number of trade structures to retrieve
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+ */
+func (this *Bitstamp) WatchMyTrades(options ...ccxt.WatchMyTradesOptions) ([]ccxt.Trade, error) {
+
+	opts := ccxt.WatchMyTradesOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+	res := <-this.WatchMyTradesAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
+	if ccxt.IsError(res) {
+		return nil, ccxt.CreateReturnError(res)
+	}
+	return ccxt.NewTradeArray(res), nil
+}
+
+/**
+ * @method
+ * @name bitstamp#unWatchMyTrades
+ * @description unsubscribe from the myTrades channel
+ * @see https://www.bitstamp.net/websocket/v2/
+ * @param {string} symbol unified market symbol of the market the trades were made in
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {any} status of the unwatch request
+ */
+func (this *Bitstamp) UnWatchMyTrades(options ...ccxt.UnWatchMyTradesOptions) (any, error) {
+
+	opts := ccxt.UnWatchMyTradesOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+	res := <-this.UnWatchMyTradesAsync(opts.Symbol, opts.Params)
+	if ccxt.IsError(res) {
+		return nil, ccxt.CreateReturnError(res)
+	}
+	return res, nil
 }

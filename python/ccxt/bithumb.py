@@ -1650,7 +1650,7 @@ class bithumb(Exchange, ImplicitAPI):
                 createMarketBuyOrderRequiresPrice, params = self.handle_option_and_params(params, 'createOrder', 'createMarketBuyOrderRequiresPrice', True)
                 if createMarketBuyOrderRequiresPrice:
                     if (price is None) and (cost is None):
-                        raise InvalidOrder(self.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend(amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to False and pass the cost to spend in the amount argument')
+                        raise InvalidOrder(self.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to False and pass the cost to spend in the amount argument')
                     else:
                         amountString = self.number_to_string(amount)
                         priceString = self.number_to_string(price)
@@ -2431,7 +2431,7 @@ class bithumb(Exchange, ImplicitAPI):
                 raise ArgumentsRequired(self.id + ' cancelOrder() requires a market with defined base and quote')
             side_in_params = ('side' in params)
             if not side_in_params:
-                raise ArgumentsRequired(self.id + ' cancelOrder() requires a `side` parameter(sell or buy)')
+                raise ArgumentsRequired(self.id + ' cancelOrder() requires a `side` parameter (sell or buy)')
             side = None
             if params['side'] == 'buy':
                 side = 'bid'

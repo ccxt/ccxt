@@ -401,7 +401,7 @@ class onetrading(ccxt.async_support.onetrading):
             asks = orderbook['asks']
             asks.storeArray(bidAsk)
         else:
-            raise NotSupported(self.id + ' watchOrderBook() received unknown change type ' + self.json(delta))
+            raise NotSupported(self.id + ' watchOrderBook () received unknown change type ' + self.json(delta))
 
     def handle_deltas(self, orderbook: object, deltas: object):
         #

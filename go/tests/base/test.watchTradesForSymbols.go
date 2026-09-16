@@ -14,8 +14,9 @@ func testWatchTradesForSymbolsBody(ch chan any, exchange ccxt.ICoreExchange, ski
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var method string = "watchTradesForSymbols"
+	var logText any = Add(Add(Add(Add(Add(exchange.GetId(), " "), method), " [symbols: "), exchange.Json(symbols)), "] ")
 	var now any = exchange.Milliseconds()
-	var ends any = Add(now, 15000)
+	var ends any = Add(now, 30000)
 	var maxIdleTime int = 5000
 	var idle bool = false
 	var returnedSymbols any = []any{}
@@ -50,26 +51,25 @@ func testWatchTradesForSymbolsBody(ch chan any, exchange ccxt.ICoreExchange, ski
 
 		}
 		now = exchange.Milliseconds()
+		var elapsedMs any = Subtract(now, startTime)
 		if IsTrue(IsTrue((IsEqual(success, true))) && IsTrue((!IsEqual(response, nil)))) {
-			Assert(IsArray(response), Add(Add(Add(Add(Add(Add(exchange.GetId(), " "), method), " "), exchange.Json(symbols)), " must return an array. "), exchange.Json(response)))
-			var symbol any = nil
+			Assert(IsArray(response), Add(Add(logText, "must return an array. "), exchange.Json(response)))
 			for i := 0; IsLessThan(i, GetArrayLength(response)); i++ {
 				var trade any = GetValue(response, i)
-				symbol = GetValue(trade, "symbol")
-				if IsTrue(IsEqual(symbol, nil)) {
-					continue
-				}
-				TestTrade(exchange, skippedProperties, method, trade, symbol, now)
+				var symbol any = GetValue(trade, "symbol")
+				Assert(!IsEqual(symbol, nil), Add(Add(logText, "returned a trade without a symbol "), exchange.Json(trade)))
+				TestTrade(exchange, skippedProperties, method, trade, symbol, now, true)
 				AssertInArray(exchange, skippedProperties, method, trade, "symbol", symbols)
 				if !IsTrue(exchange.InArray(symbol, returnedSymbols)) {
 					AppendToArray(&returnedSymbols, symbol)
 				}
 			}
-			if IsTrue(IsGreaterThan((Subtract(now, startTime)), maxIdleTime)) {
+			if IsTrue(IsGreaterThan(elapsedMs, maxIdleTime)) {
 				idle = true
 			}
 		}
 	}
+	Assert(IsEqual(GetArrayLength(returnedSymbols), GetArrayLength(symbols)), Add(Add(logText, "only received part of symbols: "), exchange.Json(returnedSymbols)))
 
 	ch <- true
 	return nil
