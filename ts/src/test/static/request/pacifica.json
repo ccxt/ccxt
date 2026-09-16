@@ -8,6 +8,15 @@
     },
     "isSandboxModeEnabled": true,
     "methods": {
+        "fetchOpenInterests": [
+            {
+                "description": "open interest for all markets",
+                "method": "fetchOpenInterests",
+                "url": "https://api.pacifica.fi/api/v1/info/prices",
+                "input": [],
+                "output": null
+            }
+        ],
         "fetchOpenInterest": [
             {
                 "description": "open interest for a single market",
