@@ -12,7 +12,7 @@ public class TestInit extends BaseTest
         public java.util.concurrent.CompletableFuture<Object> baseTestsInit()
         {
         
-            return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+            return io.github.ccxt.BaseExchange.supplyAsync(() -> {
         
             (new TestLanguageSpecific()).testLanguageSpecific();
             (new TestAfterConstructor()).testAfterConstructor();
@@ -40,7 +40,7 @@ public class TestInit extends BaseTest
             (new TestArraysConcat()).testArraysConcat();
             ((new TestSleep()).testSleep()).join();
             return true;
-            }, io.github.ccxt.Exchange.VIRTUAL_EXECUTOR);
+            });
         
         }
 }

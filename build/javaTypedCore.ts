@@ -121,12 +121,12 @@ export function coreConverter(m: MethodInfo): string {
     return `io.github.ccxt.types.${m.javaReturnType}::new`;
 }
 
-/** Executor every generated supplyAsync lambda runs on (ast-transpiler java `asyncExecutor`). */
-export const JAVA_ASYNC_EXECUTOR = 'io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR';
+/** Static helper every generated async lambda is passed to (ast-transpiler java `asyncSupplier`); it defaults to VIRTUAL_EXECUTOR. */
+export const JAVA_ASYNC_SUPPLIER = 'io.github.ccxt.BaseExchange.supplyAsync';
 
-/** True for a trimmed line closing a generated supplyAsync lambda: `});` or `}, <executor>);`. */
+/** True for a trimmed line closing a generated supplyAsync lambda: `});`. */
 export function isAsyncLambdaClose(line: string): boolean {
-    return line.startsWith('})') || line.startsWith('}, ' + JAVA_ASYNC_EXECUTOR + ')');
+    return line.startsWith('})');
 }
 
 const DECL_RE = /^(\s*)public (?:java\.util\.concurrent\.)?CompletableFuture<Object> (\w+)\((.*)$/;

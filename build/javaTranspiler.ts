@@ -21,7 +21,7 @@ import { filterDirtyExchangeFiles, skipUpToDateStage, testStageInputs } from "./
 import { unCamelCase } from "../js/src/base/functions.js";
 import { installJavaLocalTypes, installJavaNumericLocalTypes, patchJavaLiteralLocalTypes, elementAccessHasStringElements, JAVA_STRING_RETURN_METHODS, JAVA_STRING_PARAM_POSITIONS, patchJavaConsumerStringCasts, patchJavaMapChannelStringCasts, patchJavaStringReceiverCasts } from './java-local-types.js';
 import { ZERO_REQUIRED_TYPED_WHITELIST } from "./generateJavaWrappers.js";
-import { typeCoreReturns, typedReturnTable, JAVA_ASYNC_EXECUTOR, isAsyncLambdaClose } from "./javaTypedCore.js";
+import { typeCoreReturns, typedReturnTable, JAVA_ASYNC_SUPPLIER, isAsyncLambdaClose } from "./javaTypedCore.js";
 import { applyJavaImports, shortenJavaReferences, ensureJavaImports } from "./javaUtilImports.js";
 
 ansi.nice
@@ -1462,10 +1462,9 @@ class NewTranspiler {
                 }
             },
             "java": {
-                // executor the generated supplyAsync lambdas run on; the hand-written
-                // base tiers use the same VIRTUAL_EXECUTOR so no tier lands on the
-                // ForkJoinPool common pool
-                "asyncExecutor": JAVA_ASYNC_EXECUTOR,
+                // generated async lambdas go through BaseExchange.supplyAsync, which
+                // defaults to VIRTUAL_EXECUTOR so no tier lands on the ForkJoinPool common pool
+                "asyncSupplier": JAVA_ASYNC_SUPPLIER,
             },
         }
     }
@@ -3739,15 +3738,22 @@ class NewTranspiler {
 
         let inSupplyAsync = 0;
         for (let i = 0; i < lines.length; i++) {
-            if (lines[i].includes('CompletableFuture.supplyAsync')) inSupplyAsync++;
-            if (lines[i].includes('VIRTUAL_EXECUTOR)')) inSupplyAsync = Math.max(0, inSupplyAsync - 1);
+            if (lines[i].includes(JAVA_ASYNC_SUPPLIER + '(')) inSupplyAsync++;
+            if (inSupplyAsync > 0 && lines[i].trim() === '});') inSupplyAsync--;
             if (inSupplyAsync > 0 && lines[i].trim() === 'return;') {
                 lines[i] = lines[i].replace('return;', 'return null;');
             }
         }
 
+        // Only the `});` closing an async lambda body qualifies; nested lambdas are tracked by depth.
+        let depth = 0;
         for (let i = 0; i < lines.length; i++) {
-            if (!lines[i].trim().startsWith('}, ' + JAVA_ASYNC_EXECUTOR + ')')) continue;
+            const t = lines[i].trim();
+            if (t.includes(JAVA_ASYNC_SUPPLIER + '(')) { depth = 1; continue; }
+            if (depth === 0) continue;
+            if (t.endsWith('{') && !t.startsWith('}')) { depth++; continue; }
+            if (t === '}' || t === '});' || t.startsWith('} ')) { depth--; }
+            if (depth !== 0 || t !== '});') continue;
 
             let lastStmtIdx = i - 1;
             while (lastStmtIdx >= 0 && lines[lastStmtIdx].trim() === '') lastStmtIdx--;

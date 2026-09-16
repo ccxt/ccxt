@@ -43,9 +43,9 @@ public class PredictionExchange extends BaseExchange implements PredictionTypedS
     // PredictionExchange.ts; the tier-wide typed surface still needs an
     // untyped core to dispatch to, so unsupported venues throw here.
     public CompletableFuture<Object> redeem(Object... optionalArgs) {
-        return CompletableFuture.supplyAsync(() -> {
+        return supplyAsync(() -> {
             throw new NotSupported(Helpers.add(this.id, " redeem() is not supported yet"));
-        }, VIRTUAL_EXECUTOR);
+        });
     }
 
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM TYPESCRIPT
@@ -413,22 +413,22 @@ public Object describe()
     public CompletableFuture<List<PredictionEvent>> fetchEvents(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchEvents() is not supported yet")) ;
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, PredictionEvent::new));
+        }).thenApply(res -> Helpers.toTypedList(res, PredictionEvent::new));
 
     }
 
     public CompletableFuture<PredictionEvent> fetchEvent(String id, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchEvent() is not supported yet")) ;
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(PredictionEvent::new);
+        }).thenApply(PredictionEvent::new);
 
     }
 
@@ -494,7 +494,7 @@ public Object describe()
     public CompletableFuture<Object> loadEventsHelper(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             // note: the cache-hit shortcut ignores params, so events fetched under one scope are
             // returned for a later differently-scoped call. events are scoped (unlike global
@@ -507,14 +507,14 @@ public Object describe()
             }
             Object events = (this.fetchEvents((Object)(parameters))).join();
             return this.setEvents(events);
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
+        });
 
     }
 
     public CompletableFuture<Object> loadEvents(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             // cached entry point mirroring loadMarkets. unlike loadMarkets there is no cross-call
             // promise coalescing: the promise-sharing idiom is not expressible in the transpiled
@@ -522,7 +522,7 @@ public Object describe()
             Object reload = Helpers.getArg(optionalArgs, 0, false);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             return (this.loadEventsHelper(reload, parameters)).join();
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
+        });
 
     }
 
@@ -888,7 +888,7 @@ public Object describe()
     public CompletableFuture<Object> loadOutcomes(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             // outcome-addressed methods call this first, mirroring loadMarkets(). two modes:
             // - an `outcomes` list (scoped): sync-filter the cache and resolve ONLY the misses through
@@ -944,7 +944,7 @@ public Object describe()
             (this.loadMarkets(reload, parameters)).join();
             this.populateOutcomes();
             return this.outcomes;
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
+        });
 
     }
 
@@ -959,21 +959,21 @@ public Object describe()
     public CompletableFuture<Object> fetchOutcomes(Object outcomeSymbols)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(outcomeSymbols)); i++)
             {
                 (this.fetchOutcome(Helpers.GetValue(outcomeSymbols, i))).join();
             }
             return this.outcomes;
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
+        });
 
     }
 
     public CompletableFuture<Object> loadOutcome(Object outcomeSymbol2, Object... optionalArgs)
     {
         final Object outcomeSymbol3 = outcomeSymbol2;
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
             Object outcomeSymbol = outcomeSymbol3;
             // resolve a single outcome — the per-outcome analogue of loadMarkets()+market(). a cache hit
             // returns at once (pass reload=true to skip the cache and refetch the outcome's metadata).
@@ -1020,7 +1020,7 @@ public Object describe()
                 }
             }
             return (this.fetchOutcome(outcomeSymbol)).join();
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
+        });
 
     }
 
@@ -1088,7 +1088,7 @@ public Object describe()
     public CompletableFuture<Object> fetchOutcome(Object outcomeSymbol)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             // fetch just one outcome on demand — never through a bulk listing download. the base has
             // no generic by-id endpoint, so it derives a search query from the handle and resolves it
@@ -1120,7 +1120,7 @@ public Object describe()
                 }
             }
             throw new BadSymbol(Helpers.add(Helpers.add(Helpers.add(this.id, " could not resolve outcome "), outcomeSymbol), " — call fetchEvents ({ 'query': ... }) first, or pass a known outcomeId")) ;
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
+        });
 
     }
 
@@ -1135,11 +1135,11 @@ public Object describe()
     public CompletableFuture<PredictionTicker> fetchTicker(String outcome, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchTicker() is not supported yet")) ;
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(PredictionTicker::new);
+        }).thenApply(PredictionTicker::new);
 
     }
 
@@ -1154,12 +1154,12 @@ public Object describe()
     public CompletableFuture<PredictionTickers> fetchTickers(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Object outcomes = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchTickers() is not supported yet")) ;
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(PredictionTickers::new);
+        }).thenApply(PredictionTickers::new);
 
     }
 
@@ -1175,12 +1175,12 @@ public Object describe()
     public CompletableFuture<PredictionOrderBook> fetchOrderBook(Object outcome, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Object limit = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchOrderBook() is not supported yet")) ;
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(PredictionOrderBook::new);
+        }).thenApply(PredictionOrderBook::new);
 
     }
 
@@ -1198,14 +1198,14 @@ public Object describe()
     public CompletableFuture<List<OHLCV>> fetchOHLCV(Object outcome, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Object timeframe = Helpers.getArg(optionalArgs, 0, "1m");
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             return (super.fetchOHLCV((Object)(outcome), (Object)(timeframe), (Object)(since), (Object)(limit), (Object)(parameters))).join();
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
+        }).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
 
     }
 
@@ -1222,13 +1222,13 @@ public Object describe()
     public CompletableFuture<List<PredictionTrade>> fetchTrades(String outcome, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchTrades() is not supported yet")) ;
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, PredictionTrade::new));
+        }).thenApply(res -> Helpers.toTypedList(res, PredictionTrade::new));
 
     }
 
@@ -1247,12 +1247,12 @@ public Object describe()
     public CompletableFuture<PredictionOrder> createOrder(Object outcome, Object type, Object side, Object amount, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Object price = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " createOrder() is not supported yet")) ;
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(PredictionOrder::new);
+        }).thenApply(PredictionOrder::new);
 
     }
 
@@ -1268,12 +1268,12 @@ public Object describe()
     public CompletableFuture<PredictionOrder> cancelOrder(Object id, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Object outcome = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " cancelOrder() is not supported yet")) ;
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(PredictionOrder::new);
+        }).thenApply(PredictionOrder::new);
 
     }
 
@@ -1288,11 +1288,11 @@ public Object describe()
     public CompletableFuture<PredictionTicker> watchTicker(String outcome, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " watchTicker() is not supported yet")) ;
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(PredictionTicker::new);
+        }).thenApply(PredictionTicker::new);
 
     }
 
@@ -1308,12 +1308,12 @@ public Object describe()
     public CompletableFuture<PredictionOrderBook> watchOrderBook(String outcome, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Object limit = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " watchOrderBook() is not supported yet")) ;
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(PredictionOrderBook::new);
+        }).thenApply(PredictionOrderBook::new);
 
     }
 
@@ -1330,13 +1330,13 @@ public Object describe()
     public CompletableFuture<List<PredictionTrade>> watchTrades(String outcome, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " watchTrades() is not supported yet")) ;
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, PredictionTrade::new));
+        }).thenApply(res -> Helpers.toTypedList(res, PredictionTrade::new));
 
     }
 
@@ -1353,14 +1353,14 @@ public Object describe()
     public CompletableFuture<List<PredictionOrder>> fetchOrders(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Object outcome = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchOrders() is not supported yet")) ;
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, PredictionOrder::new));
+        }).thenApply(res -> Helpers.toTypedList(res, PredictionOrder::new));
 
     }
 
@@ -1377,14 +1377,14 @@ public Object describe()
     public CompletableFuture<List<PredictionOrder>> fetchOpenOrders(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Object outcome = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchOpenOrders() is not supported yet")) ;
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, PredictionOrder::new));
+        }).thenApply(res -> Helpers.toTypedList(res, PredictionOrder::new));
 
     }
 
@@ -1401,14 +1401,14 @@ public Object describe()
     public CompletableFuture<List<PredictionOrder>> fetchClosedOrders(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Object outcome = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchClosedOrders() is not supported yet")) ;
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, PredictionOrder::new));
+        }).thenApply(res -> Helpers.toTypedList(res, PredictionOrder::new));
 
     }
 
@@ -1426,14 +1426,14 @@ public Object describe()
     public CompletableFuture<List<PredictionTrade>> fetchOrderTrades(String id, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Object outcome = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchOrderTrades() is not supported yet")) ;
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, PredictionTrade::new));
+        }).thenApply(res -> Helpers.toTypedList(res, PredictionTrade::new));
 
     }
 
@@ -1450,14 +1450,14 @@ public Object describe()
     public CompletableFuture<List<PredictionTrade>> fetchMyTrades(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Object outcome = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchMyTrades() is not supported yet")) ;
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, PredictionTrade::new));
+        }).thenApply(res -> Helpers.toTypedList(res, PredictionTrade::new));
 
     }
 
@@ -1472,11 +1472,11 @@ public Object describe()
     public CompletableFuture<PredictionPosition> fetchPosition(Object outcome, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchPosition() is not supported yet")) ;
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(PredictionPosition::new);
+        }).thenApply(PredictionPosition::new);
 
     }
 
@@ -1491,12 +1491,12 @@ public Object describe()
     public CompletableFuture<List<PredictionPosition>> fetchPositions(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Object outcomes = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchPositions() is not supported yet")) ;
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, PredictionPosition::new));
+        }).thenApply(res -> Helpers.toTypedList(res, PredictionPosition::new));
 
     }
 
@@ -1511,11 +1511,11 @@ public Object describe()
     public CompletableFuture<PredictionTradingFee> fetchTradingFee(String outcome, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchTradingFee() is not supported yet")) ;
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(PredictionTradingFee::new);
+        }).thenApply(PredictionTradingFee::new);
 
     }
 
@@ -1530,11 +1530,11 @@ public Object describe()
     public CompletableFuture<PredictionOpenInterest> fetchOpenInterest(String outcome, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchOpenInterest() is not supported yet")) ;
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(PredictionOpenInterest::new);
+        }).thenApply(PredictionOpenInterest::new);
 
     }
 
@@ -1549,11 +1549,11 @@ public Object describe()
     public CompletableFuture<List<PredictionOrder>> createOrders(Object orders, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " createOrders() is not supported yet")) ;
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, PredictionOrder::new));
+        }).thenApply(res -> Helpers.toTypedList(res, PredictionOrder::new));
 
     }
 
@@ -1569,12 +1569,12 @@ public Object describe()
     public CompletableFuture<List<PredictionOrder>> cancelOrders(Object ids, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Object outcome = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " cancelOrders() is not supported yet")) ;
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, PredictionOrder::new));
+        }).thenApply(res -> Helpers.toTypedList(res, PredictionOrder::new));
 
     }
 
@@ -1590,7 +1590,7 @@ public Object describe()
     public CompletableFuture<PredictionOrder> createMarketBuyOrderWithCost(String outcome, Object cost, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             // safeBool, not this.options['...'] — a raw missing-key access throws KeyError in Python/PHP
             // when the option is undeclared (it is for every prediction exchange)
@@ -1600,7 +1600,7 @@ public Object describe()
                 return (this.createOrder((Object)(outcome), (Object)("market"), (Object)("buy"), (Object)(cost), (Object)(1), (Object)(parameters))).join();
             }
             throw new NotSupported(Helpers.add(this.id, " createMarketBuyOrderWithCost() is not supported yet")) ;
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(PredictionOrder::new);
+        }).thenApply(PredictionOrder::new);
 
     }
 
@@ -1616,7 +1616,7 @@ public Object describe()
     public CompletableFuture<PredictionOrder> createMarketSellOrderWithCost(String outcome, Object cost, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isTrue(this.safeBool(this.options, "createMarketSellOrderRequiresPrice", false)) || Helpers.isTrue(this.safeBool(this.has, "createMarketSellOrderWithCost", false))))
@@ -1624,7 +1624,7 @@ public Object describe()
                 return (this.createOrder((Object)(outcome), (Object)("market"), (Object)("sell"), (Object)(cost), (Object)(1), (Object)(parameters))).join();
             }
             throw new NotSupported(Helpers.add(this.id, " createMarketSellOrderWithCost() is not supported yet")) ;
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(PredictionOrder::new);
+        }).thenApply(PredictionOrder::new);
 
     }
 
@@ -1639,12 +1639,12 @@ public Object describe()
     public CompletableFuture<PredictionTickers> watchTickers(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Object outcomes = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " watchTickers() is not supported yet")) ;
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(PredictionTickers::new);
+        }).thenApply(PredictionTickers::new);
 
     }
 
@@ -1661,14 +1661,14 @@ public Object describe()
     public CompletableFuture<List<PredictionOrder>> watchOrders(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Object outcome = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " watchOrders() is not supported yet")) ;
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, PredictionOrder::new));
+        }).thenApply(res -> Helpers.toTypedList(res, PredictionOrder::new));
 
     }
 
@@ -1685,14 +1685,14 @@ public Object describe()
     public CompletableFuture<List<PredictionTrade>> watchMyTrades(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Object outcome = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " watchMyTrades() is not supported yet")) ;
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, PredictionTrade::new));
+        }).thenApply(res -> Helpers.toTypedList(res, PredictionTrade::new));
 
     }
 
@@ -1709,14 +1709,14 @@ public Object describe()
     public CompletableFuture<List<PredictionPosition>> watchPositions(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Object outcomes = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " watchPositions() is not supported yet")) ;
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, PredictionPosition::new));
+        }).thenApply(res -> Helpers.toTypedList(res, PredictionPosition::new));
 
     }
 
@@ -1734,14 +1734,14 @@ public Object describe()
     public CompletableFuture<List<PredictionSettlement>> fetchSettlements(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Object outcome = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchSettlements() is not supported yet")) ;
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, PredictionSettlement::new));
+        }).thenApply(res -> Helpers.toTypedList(res, PredictionSettlement::new));
 
     }
 
@@ -2367,7 +2367,7 @@ public Object describe()
     public CompletableFuture<Object> ethRpc(Object rpcUrl, Object method, Object rpcParams)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Map<String, Object> payload = new HashMap<String, Object>() {{
                 put( "jsonrpc", "2.0" );
@@ -2387,14 +2387,14 @@ public Object describe()
             // the result is either a hex string (nonce/gasPrice/txhash) or an object (receipt) —
             // safeString would coerce a receipt object to "[object Object]"
             return this.safeValue(response, "result");
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
+        });
 
     }
 
     public CompletableFuture<Object> sendEvmTransaction(Object rpcUrl, Object chainId, Object fromAddress, Object to, Object value, Object data, Object gasLimit)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Object nonce = (this.ethRpc(rpcUrl, "eth_getTransactionCount", new ArrayList<Object>(Arrays.asList(fromAddress, "pending")))).join();
             Object gasPrice = (this.ethRpc(rpcUrl, "eth_gasPrice", new ArrayList<Object>(Arrays.asList()))).join();
@@ -2410,14 +2410,14 @@ public Object describe()
             }};
             Object signed = this.signEvmTransaction(tx, this.privateKey);
             return (this.ethRpc(rpcUrl, "eth_sendRawTransaction", new ArrayList<Object>(Arrays.asList(signed)))).join();
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
+        });
 
     }
 
     public CompletableFuture<Object> waitForTransactionReceipt(Object rpcUrl, Object txHash, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Object timeout = Helpers.getArg(optionalArgs, 0, 60000);
             Long start = this.milliseconds();
@@ -2431,21 +2431,21 @@ public Object describe()
                 (this.sleep(2000)).join();
             }
             throw new ExchangeError(Helpers.add(Helpers.add(Helpers.add(this.id, " transaction "), txHash), " not mined within timeout")) ;
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
+        });
 
     }
 
 public CompletableFuture<PredictionOrder> editOrder(String id, String symbol, Object type, Object side, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Object amount = Helpers.getArg(optionalArgs, 0, null);
             Object price = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
             (this.cancelOrder((Object)(id), (Object)(symbol))).join();
             return (this.createOrder((Object)(symbol), (Object)(type), (Object)(side), (Object)(amount), (Object)(price), (Object)(parameters))).join();
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(PredictionOrder::new);
+        }).thenApply(PredictionOrder::new);
 
     }
 
@@ -2461,12 +2461,12 @@ public CompletableFuture<PredictionOrder> editOrder(String id, String symbol, Ob
     public CompletableFuture<PredictionOrder> fetchOrder(Object id, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchOrder() is not supported yet")) ;
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(PredictionOrder::new);
+        }).thenApply(PredictionOrder::new);
 
     }
 
@@ -2488,7 +2488,7 @@ public CompletableFuture<PredictionOrder> editOrder(String id, String symbol, Ob
     public CompletableFuture<PredictionOrder> createMarketOrderWithCost(String symbol, Object side, Object cost, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             /**
             * @method
@@ -2506,7 +2506,7 @@ public CompletableFuture<PredictionOrder> editOrder(String id, String symbol, Ob
                 return (this.createOrder((Object)(symbol), (Object)("market"), (Object)(side), (Object)(cost), (Object)(1), (Object)(parameters))).join();
             }
             throw new NotSupported(Helpers.add(this.id, " createMarketOrderWithCost() is not supported yet")) ;
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(PredictionOrder::new);
+        }).thenApply(PredictionOrder::new);
 
     }
 
@@ -2542,12 +2542,12 @@ public CompletableFuture<PredictionOrder> editOrder(String id, String symbol, Ob
     public CompletableFuture<List<PredictionOrder>> cancelAllOrders(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " cancelAllOrders() is not supported yet")) ;
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, PredictionOrder::new));
+        }).thenApply(res -> Helpers.toTypedList(res, PredictionOrder::new));
 
     }
 
@@ -2560,14 +2560,14 @@ public CompletableFuture<PredictionOrder> editOrder(String id, String symbol, Ob
     public CompletableFuture<List<PredictionOrder>> fetchCanceledOrders(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             throw new NotSupported(Helpers.add(this.id, " fetchCanceledOrders() is not supported yet")) ;
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, PredictionOrder::new));
+        }).thenApply(res -> Helpers.toTypedList(res, PredictionOrder::new));
 
     }
 }
