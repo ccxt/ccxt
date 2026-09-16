@@ -1623,7 +1623,14 @@ class hyperliquid extends hyperliquid$1["default"] {
     }
     amountToPrecision(symbol, amount) {
         const market = this.market(symbol);
-        return this.decimalToPrecision(amount, number.ROUND, market['precision']['amount'], this.precisionMode, this.paddingMode);
+        const result = this.decimalToPrecision(amount, number.ROUND, market['precision']['amount'], this.precisionMode, this.paddingMode);
+        // a size of zero is meaningful to hyperliquid, a whole position tp/sl order is sent
+        // with grouping positionTpsl and size 0, so only reject a positive amount that
+        // became zero after rounding, never an explicitly requested zero
+        if (Precise["default"].stringEq(result, '0') && Precise["default"].stringGt(this.numberToString(amount), '0')) {
+            throw new errors.InvalidOrder(this.id + ' amount of ' + market['symbol'] + ' must be greater than minimum amount precision of ' + this.numberToString(market['precision']['amount']));
+        }
+        return result;
     }
     priceToPrecision(symbol, price) {
         const market = this.market(symbol);

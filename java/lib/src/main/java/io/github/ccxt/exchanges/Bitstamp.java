@@ -3429,6 +3429,8 @@ public class Bitstamp extends BitstampApi
         //         "next_funding_time": "1644406050"
         //     }
         //
+        // the websocket funding_rate channel additionally carries mark_price and index_price
+        //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Long currentTime = this.safeIntegerProduct(fundingRate, "timestamp", 1000);
         Long nextFundingRateTimestamp = this.safeIntegerProduct(fundingRate, "next_funding_time", 1000);
@@ -3436,8 +3438,8 @@ public class Bitstamp extends BitstampApi
         return new HashMap<String, Object>() {{
             put( "info", fundingRate );
             put( "symbol", Bitstamp.this.safeSymbol(marketId, market) );
-            put( "markPrice", null );
-            put( "indexPrice", null );
+            put( "markPrice", Bitstamp.this.safeNumber(fundingRate, "mark_price") );
+            put( "indexPrice", Bitstamp.this.safeNumber(fundingRate, "index_price") );
             put( "interestRate", null );
             put( "estimatedSettlePrice", null );
             put( "timestamp", currentTime );

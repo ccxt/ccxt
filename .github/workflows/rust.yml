@@ -54,6 +54,13 @@ jobs:
             rust
             examples/rust
           cache-all-crates: true
+          # Keep downloaded dependencies, but never restore a shared build directory.
+          prefix-key: v1-rust-registry-only
+          cache-targets: false
+      - name: Isolate Cargo build output
+        run: |
+          # Self-hosted runners can share storage. Each attempt must own its binaries.
+          echo "CARGO_TARGET_DIR=$RUNNER_TEMP/ccxt-rust-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT" >> "$GITHUB_ENV"
       - name: Setup Node.js
         uses: actions/setup-node@v3
       - name: Install npm dependencies
@@ -96,13 +103,11 @@ jobs:
           cargo clippy --manifest-path rust/ccxt-base/Cargo.toml --features transpiled-base -- -D warnings
       - name: Build Rust examples
         if: github.ref == 'refs/heads/master' && env.important_modified == 'true'
-        env:
-          CARGO_TARGET_DIR: ${{ github.workspace }}/rust/target
         run: cargo build --manifest-path examples/rust/Cargo.toml --bins
       - name: Build tests
         run: |
           cargo build --manifest-path rust/Cargo.toml -p ccxt_tests --bin ti-rust
-          cp rust/target/debug/ti-rust rust/tests.bin
+          cp "$CARGO_TARGET_DIR/debug/ti-rust" rust/tests.bin
       - name: Cargo test
         if: github.ref == 'refs/heads/master' && env.important_modified == 'true'
         run: |

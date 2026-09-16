@@ -784,7 +784,7 @@ class deepcoin extends Exchange {
         //         "ts": "1760367816000"
         //     }
         //
-        $timestamp = $this->safe_integer($ticker, 'ts');
+        $timestamp = $this->safe_integer_omit_zero($ticker, 'ts');
         $marketId = $this->safe_string($ticker, 'instId');
         $market = $this->safe_market($marketId, $market, '-');
         $symbol = $market['symbol'];

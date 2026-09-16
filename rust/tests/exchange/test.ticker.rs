@@ -162,6 +162,46 @@ pub fn testTicker(mut exchange: Value, mut skippedProperties: Value, mut method:
             assert!(ccxt::runtime::is_true(&(ccxt::precise::Precise::stringLe(&quoteVolume, &baseHigh))));
         }
     }
+    //
+    // change & percentage
+    //
+    // the Manual defines both against open: change is `last - open`, and
+    // percentage is `(change/open) * 100`
+    let mut changeString: Value = exchange.safe_string(entry.clone(), Value::Str("change".to_string()), &[]);
+    let mut percentageString: Value = exchange.safe_string(entry.clone(), Value::Str("percentage".to_string()), &[]);
+    if is_true(&(!is_equal(&changeString, &Value::Null))) && is_true(&(!is_equal(&open, &Value::Null))) && is_true(&(!is_equal(&close, &Value::Null))) && !is_true(&(Value::Bool(in_op(&skippedProperties, &Value::Str("compareChange".to_string()))))) {
+        // the window is the larger of two roundings: float residue on a change
+        // safeTicker derived, which needs a part per million of the price, and an
+        // exchange's own rounding, which its reported decimals reveal
+        let mut pricePart: Value = ccxt::precise::Precise::stringDiv(&ccxt::precise::Precise::stringAbs(&close), &Value::Str("1000000".to_string()));
+        let mut changeDecimals: Value = exchange.precision_from_string(changeString.clone());
+        // exponent notation ("1e4") makes `precisionFromString` return a negative
+        // count, which `parsePrecision` would turn into a step of 10000 - a string
+        // like that reveals no rounding at all, so fall back to the price part
+        // instead of letting it widen the window
+        let mut changeWindow: Value = pricePart.clone();
+        if is_greater_than_or_equal(&changeDecimals, &Value::Int(0)) {
+            let mut changeQuantum: Value = exchange.parse_precision(&[exchange.number_to_string(changeDecimals.clone())]);
+            // a change of "0" prints no decimals, so its apparent step is a whole unit
+            // and accepts anything on a micro-priced asset. a per cent of the price
+            // caps it, and covers whole units on a price in the tens of thousands
+            let mut quantumCap: Value = ccxt::precise::Precise::stringDiv(&ccxt::precise::Precise::stringAbs(&close), &Value::Str("100".to_string()));
+            changeQuantum = ccxt::precise::Precise::stringMin(&changeQuantum, &quantumCap);
+            changeWindow = ccxt::precise::Precise::stringMax(&pricePart, &changeQuantum);
+        }
+        let mut difference: Value = ccxt::precise::Precise::stringAbs(&ccxt::precise::Precise::stringSub(&changeString, &ccxt::precise::Precise::stringSub(&close, &open)));
+        assert!(ccxt::runtime::is_true(&(ccxt::precise::Precise::stringLe(&difference, &changeWindow))));
+    }
+    if is_true(&(!is_equal(&changeString, &Value::Null))) && is_true(&(!is_equal(&percentageString, &Value::Null))) && is_true(&(!is_equal(&open, &Value::Null))) && !is_true(&(Value::Bool(in_op(&skippedProperties, &Value::Str("comparePercentage".to_string()))))) {
+        let mut derived: Value = ccxt::precise::Precise::stringMul(&ccxt::precise::Precise::stringDiv(&changeString, &open), &Value::Str("100".to_string()));
+        // exchanges round the percentage, so allow one part in fifty of the derived
+        // value plus a floor for moves near zero. a ratio where a percentage
+        // belongs is out by a hundred and clears that by three orders of magnitude
+        let mut relative: Value = ccxt::precise::Precise::stringDiv(&ccxt::precise::Precise::stringAbs(&derived), &Value::Str("50".to_string()));
+        let mut allowed: Value = ccxt::precise::Precise::stringMax(&relative, &Value::Str("0.01".to_string()));
+        let mut gap: Value = ccxt::precise::Precise::stringAbs(&ccxt::precise::Precise::stringSub(&percentageString, &derived));
+        assert!(ccxt::runtime::is_true(&(ccxt::precise::Precise::stringLe(&gap, &allowed))));
+    }
     // open and close should be between High & Low
     if !is_equal(&high, &Value::Null) && !is_equal(&low, &Value::Null) && !is_true(&(Value::Bool(in_op(&skippedProperties, &Value::Str("compareOHLC".to_string()))))) {
         if !is_equal(&open, &Value::Null) {

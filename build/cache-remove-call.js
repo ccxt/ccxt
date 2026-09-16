@@ -2,7 +2,7 @@ import ts from 'typescript6';
 
 // Dispatch only calls resolved to the actual side-cache API, not textual names.
 export function installCacheRemoveCall (transpiler, language) {
-    const printer = language === 'go' ? transpiler.goTranspiler : (language === 'rust' ? transpiler.rustTranspiler : transpiler.csharpTranspiler);
+    const printer = language === 'go' ? transpiler.goTranspiler : (language === 'rust' ? transpiler.rustTranspiler : (language === 'java' ? transpiler.javaTranspiler : transpiler.csharpTranspiler));
     if (printer.__cacheRemoveCallInstalled) {
         return;
     }
@@ -16,7 +16,7 @@ export function installCacheRemoveCall (transpiler, language) {
                 const receiver = this.printNode(node.expression.expression, 0);
                 const argument = this.printNode(node.arguments[0], 0);
                 if (language === 'go') {
-                    return `any(${receiver}).(interface{ Remove(string) }).Remove(ccxt.ToString(${argument}))`;
+                    return `any(${receiver}).(*ccxt.ArrayCacheBySymbolBySide).Remove(ccxt.ToString(${argument}))`;
                 }
                 if (language === 'csharp') {
                     return `((ccxt.pro.ArrayCacheBySymbolBySide)${receiver}).remove((string)${argument})`;
@@ -24,8 +24,8 @@ export function installCacheRemoveCall (transpiler, language) {
                 if (language === 'rust') {
                     return `${receiver}.remove_cache_symbol(${argument})`;
                 }
-                // Java is emitted through the C# printer before its conversion pass.
-                return `callDynamically(${receiver}, "remove", new object[] {${argument}})`;
+                // Java uses its native printer and the nested cache class.
+                return `((ArrayCache.ArrayCacheBySymbolBySide)${receiver}).remove((String)${argument})`;
             }
         }
         return original.call(this, node, indentation);

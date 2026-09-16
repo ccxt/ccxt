@@ -61,6 +61,17 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 put( "watchPositions", true );
                 put( "watchFundingRate", true );
                 put( "watchFundingRates", true );
+                put( "unWatchTicker", true );
+                put( "unWatchTickers", true );
+                put( "unWatchOHLCV", true );
+                put( "unWatchOHLCVForSymbols", true );
+                put( "unWatchOrderBook", true );
+                put( "unWatchOrderBookForSymbols", true );
+                put( "unWatchTrades", true );
+                put( "unWatchTradesForSymbols", true );
+                put( "unWatchMyTrades", false );
+                put( "unWatchOrders", false );
+                put( "unWatchPositions", false );
                 put( "createOrderWs", true );
                 put( "editOrderWs", true );
                 put( "cancelOrderWs", true );

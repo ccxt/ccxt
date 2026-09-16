@@ -19,6 +19,10 @@ class bitstamp extends \ccxt\async\bitstamp {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
+                'watchBalance' => false,
+                'watchFundingRate' => true,
+                'watchFundingRates' => false,
+                'watchMyTrades' => true,
                 'watchOrderBook' => true,
                 'watchOrders' => true,
                 'watchTrades' => true,
@@ -26,6 +30,10 @@ class bitstamp extends \ccxt\async\bitstamp {
                 'watchOHLCV' => false,
                 'watchTicker' => false,
                 'watchTickers' => false,
+                'unWatchMyTrades' => true,
+                'unWatchOrderBook' => true,
+                'unWatchOrders' => true,
+                'unWatchTrades' => true,
             ),
             'urls' => array(
                 'api' => array(
@@ -80,6 +88,61 @@ class bitstamp extends \ccxt\async\bitstamp {
         $message = $this->extend($request, $params);
         $orderbook = Async\await($this->watch($url, $messageHash, $message, $messageHash));
         return $orderbook->limit();
+    }
+
+    public function un_watch_order_book(string $symbol, $params = array()): PromiseInterface {
+        return Async\async(self::do_un_watch_order_book(...))($symbol, $params);
+    }
+
+    private function do_un_watch_order_book(string $symbol, $params = array()) {
+        /**
+         * unsubscribe from the order book $channel
+         *
+         * @see https://www.bitstamp.net/websocket/v2/
+         *
+         * @param {string} $symbol unified $symbol of the $market to unwatch the order book for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {any} status of the unwatch request
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $symbol = $market['symbol'];
+        $channel = 'diff_order_book_' . $market['id'];
+        $subHash = 'orderbook:' . $symbol;
+        return Async\await($this->un_watch_channel($channel, $subHash, 'orderbook', array( $symbol ), $params));
+    }
+
+    public function un_watch_channel(string $channel, string $subHash, string $topic, array $symbols, $params = array()): PromiseInterface {
+        return Async\async(self::do_un_watch_channel(...))($channel, $subHash, $topic, $symbols, $params);
+    }
+
+    private function do_un_watch_channel(string $channel, string $subHash, string $topic, array $symbols, $params = array()) {
+        /**
+         * @ignore
+         * sends an unsubscribe $request for a $channel and cleans the related caches on confirmation
+         * @param {string} $channel the raw $channel name to unsubscribe from
+         * @param {string} $subHash the $subscription hash whose future and cache entry should be cleaned
+         * @param {string} $topic the cache $topic, one of 'trades', 'orderbook', 'orders' or 'myTrades'
+         * @param {string[]} $symbols the $symbols to clean from the cache
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {any} status of the unwatch $request
+         */
+        $url = $this->urls['api']['ws'];
+        $unsubHash = 'unsubscribe:' . $channel;
+        $request = array(
+            'event' => 'bts:unsubscribe',
+            'data' => array(
+                'channel' => $channel,
+            ),
+        );
+        $subscription = array(
+            'subHash' => $subHash,
+            'topic' => $topic,
+            'symbols' => $symbols,
+        );
+        return Async\await($this->watch($url, $unsubHash, $this->extend($request, $params), $unsubHash, $subscription));
     }
 
     public function handle_order_book(Client $client, mixed $message) {
@@ -214,6 +277,30 @@ class bitstamp extends \ccxt\async\bitstamp {
         return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
     }
 
+    public function un_watch_trades(string $symbol, $params = array()): PromiseInterface {
+        return Async\async(self::do_un_watch_trades(...))($symbol, $params);
+    }
+
+    private function do_un_watch_trades(string $symbol, $params = array()) {
+        /**
+         * unsubscribe from the trades $channel
+         *
+         * @see https://www.bitstamp.net/websocket/v2/
+         *
+         * @param {string} $symbol unified $symbol of the $market to unwatch the trades for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {any} status of the unwatch request
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $symbol = $market['symbol'];
+        $channel = 'live_trades_' . $market['id'];
+        $subHash = 'trades:' . $symbol;
+        return Async\await($this->un_watch_channel($channel, $subHash, 'trades', array( $symbol ), $params));
+    }
+
     public function parse_ws_trade(mixed $trade, ?array $market = null): array {
         //
         //     {
@@ -299,6 +386,67 @@ class bitstamp extends \ccxt\async\bitstamp {
         $client->resolve($tradesArray, $messageHash);
     }
 
+    public function watch_funding_rate(string $symbol, $params = array()): PromiseInterface {
+        return Async\async(self::do_watch_funding_rate(...))($symbol, $params);
+    }
+
+    private function do_watch_funding_rate(string $symbol, $params = array()) {
+        /**
+         * watch the current funding rate
+         *
+         * @see https://www.bitstamp.net/websocket/v2/
+         *
+         * @param {string} $symbol unified $market $symbol of a swap $market
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=funding-rate-structure funding rate structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $symbol = $market['symbol'];
+        $messageHash = 'fundingRate:' . $symbol;
+        $url = $this->urls['api']['ws'];
+        $channel = 'funding_rate_' . $market['id'];
+        $request = array(
+            'event' => 'bts:subscribe',
+            'data' => array(
+                'channel' => $channel,
+            ),
+        );
+        $message = $this->extend($request, $params);
+        return Async\await($this->watch($url, $messageHash, $message, $messageHash));
+    }
+
+    public function handle_funding_rate(Client $client, mixed $message) {
+        //
+        //     {
+        //         "data": {
+        //             "market": "btcusd-perp",
+        //             "mark_price": "77291.94844771",
+        //             "index_price": "77276.264",
+        //             "funding_rate": "0.00013",
+        //             "timestamp": "1789455924",
+        //             "next_funding_time": "1789459200"
+        //         },
+        //         "channel": "funding_rate_btcusd-perp",
+        //         "event": "funding_rate_saved"
+        //     }
+        //
+        $channel = $this->safe_string($message, 'channel');
+        if ($channel === null) {
+            return;
+        }
+        $parts = explode('_', $channel);
+        $marketId = $this->safe_string($parts, 2);
+        $market = $this->safe_market($marketId);
+        $symbol = $market['symbol'];
+        $data = $this->safe_dict($message, 'data', array());
+        $fundingRate = $this->parse_funding_rate($data, $market);
+        $this->fundingRates[$symbol] = $fundingRate;
+        $client->resolve($fundingRate, 'fundingRate:' . $symbol);
+    }
+
     public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_watch_orders(...))($symbol, $since, $limit, $params);
     }
@@ -335,33 +483,226 @@ class bitstamp extends \ccxt\async\bitstamp {
         return $this->filter_by_since_limit($orders, $since, $limit, 'timestamp', true);
     }
 
+    public function un_watch_orders(?string $symbol = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_un_watch_orders(...))($symbol, $params);
+    }
+
+    private function do_un_watch_orders(?string $symbol = null, $params = array()) {
+        /**
+         * unsubscribe from the orders $channel
+         *
+         * @see https://www.bitstamp.net/websocket/v2/
+         *
+         * @param {string} $symbol unified $market $symbol of the $market the orders were made in
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {any} status of the unwatch request
+         */
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' unWatchOrders() requires a $symbol argument');
+        }
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $symbol = $market['symbol'];
+        Async\await($this->authenticate());
+        $channel = 'private-my_orders_' . $market['id'] . '-' . $this->options['userId'];
+        return Async\await($this->un_watch_channel($channel, $channel, 'orders', array( $symbol ), $params));
+    }
+
+    public function watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_watch_my_trades(...))($symbol, $since, $limit, $params);
+    }
+
+    private function do_watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * watches information on multiple $trades made by the user
+         *
+         * @see https://www.bitstamp.net/websocket/v2/
+         *
+         * @param {string} $symbol unified $market $symbol of the $market $trades were made in
+         * @param {int} [$since] the earliest time in ms to fetch $trades for
+         * @param {int} [$limit] the maximum number of trade structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
+         */
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' watchMyTrades() requires a $symbol argument');
+        }
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $symbol = $market['symbol'];
+        $channel = 'private-my_trades';
+        $messageHash = $channel . '_' . $market['id'];
+        $subscription = array(
+            'symbol' => $symbol,
+            'limit' => $limit,
+            'type' => $channel,
+            'params' => $params,
+        );
+        $trades = Async\await($this->subscribe_private($subscription, $messageHash, $params));
+        if ($this->newUpdates) {
+            $limit = $trades->getLimit($symbol, $limit);
+        }
+        return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit, true);
+    }
+
+    public function un_watch_my_trades(?string $symbol = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_un_watch_my_trades(...))($symbol, $params);
+    }
+
+    private function do_un_watch_my_trades(?string $symbol = null, $params = array()) {
+        /**
+         * unsubscribe from the myTrades $channel
+         *
+         * @see https://www.bitstamp.net/websocket/v2/
+         *
+         * @param {string} $symbol unified $market $symbol of the $market the trades were made in
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {any} status of the unwatch request
+         */
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' unWatchMyTrades() requires a $symbol argument');
+        }
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $symbol = $market['symbol'];
+        Async\await($this->authenticate());
+        $channel = 'private-my_trades_' . $market['id'] . '-' . $this->options['userId'];
+        return Async\await($this->un_watch_channel($channel, $channel, 'myTrades', array( $symbol ), $params));
+    }
+
+    public function handle_my_trades(Client $client, mixed $message) {
+        //
+        //     {
+        //         "data": {
+        //             "id": 635698396,
+        //             "amount": "0.005000",
+        //             "price": "2468.04",
+        //             "microtimestamp": "1789459694223000",
+        //             "fee": "0.04936",
+        //             "order_id": "2050558851342339",
+        //             "trade_account_id": 0,
+        //             "side": "buy"
+        //         },
+        //         "channel": "private-my_trades_ethusdt-4416057",
+        //         "event": "trade",
+        //         "trade_account_id": 0
+        //     }
+        //
+        $channel = $this->safe_string($message, 'channel');
+        $data = $this->safe_dict($message, 'data', array());
+        $subscription = ($channel === null) ? null : $this->safe_dict($client->subscriptions, $channel);
+        $symbol = $this->safe_string($subscription, 'symbol');
+        if ($symbol === null) {
+            // cleanUnsubscription deletes the subscription, so a trade frame
+            // arriving after an unsubscribe has no subscription to resolve
+            // the symbol from - drop the message instead of throwing
+            return;
+        }
+        $market = $this->market($symbol);
+        if ($this->myTrades === null) {
+            $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
+            $this->myTrades = new ArrayCacheBySymbolById($limit);
+        }
+        $stored = $this->myTrades;
+        $trade = $this->parse_ws_my_trade($data, $market);
+        $stored->append($trade);
+        $client->resolve($stored, $channel);
+    }
+
+    public function parse_ws_my_trade(mixed $trade, ?array $market = null): array {
+        //
+        //     {
+        //         "id": 635698396,
+        //         "amount": "0.005000",
+        //         "price": "2468.04",
+        //         "microtimestamp": "1789459694223000",
+        //         "fee": "0.04936",
+        //         "order_id": "2050558851342339",
+        //         "trade_account_id": 0,
+        //         "side": "buy"
+        //     }
+        //
+        // the api docs also document id_str, trade_uti, client_order_id,
+        // position_id, is_liquidation and trade_type, which the live feed
+        // omits for plain spot orderbook fills
+        //
+        $microtimestamp = $this->safe_integer($trade, 'microtimestamp', 0);
+        $timestamp = $this->parse_to_int($microtimestamp / 1000);
+        $market = $this->safe_market(null, $market);
+        $symbol = $market['symbol'];
+        $feeCost = $this->safe_string($trade, 'fee');
+        $fee = null;
+        if ($feeCost !== null) {
+            $fee = array(
+                'cost' => $feeCost,
+                'currency' => $market['quote'],
+            );
+        }
+        return $this->safe_trade(array(
+            'info' => $trade,
+            'id' => $this->safe_string_2($trade, 'id_str', 'id'),
+            'order' => $this->safe_string($trade, 'order_id'),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'symbol' => $symbol,
+            'type' => null,
+            'side' => $this->safe_string($trade, 'side'),
+            'takerOrMaker' => null,
+            'price' => $this->safe_string($trade, 'price'),
+            'amount' => $this->safe_string($trade, 'amount'),
+            'cost' => null,
+            'fee' => $fee,
+        ), $market);
+    }
+
     public function handle_orders(Client $client, mixed $message) {
         //
-        // {
-        //     "data":{
-        //        "id":"1463471322288128",
-        //        "id_str":"1463471322288128",
-        //        "order_type":1,
-        //        "datetime":"1646127778",
-        //        "microtimestamp":"1646127777950000",
-        //        "amount":0.05,
-        //        "amount_str":"0.05000000",
-        //        "price":1000,
-        //        "price_str":"1000.00"
-        //     },
-        //     "channel":"private-my_orders_ltcusd-4848701",
-        //     "event": "order_deleted" // field only present for cancelOrder
-        // }
+        //     {
+        //         "data": {
+        //             "id": "2050558851342339",
+        //             "id_str": "2050558851342339",
+        //             "order_type": 0,
+        //             "order_subtype": 2,
+        //             "datetime": "1789459694",
+        //             "microtimestamp": "1789459694223000",
+        //             "amount": 0.005,
+        //             "amount_str": "0.005000",
+        //             "amount_traded": "0",
+        //             "amount_at_create": "0.005000",
+        //             "price": 999999999,
+        //             "price_str": "999999999.00",
+        //             "is_liquidation": false,
+        //             "trade_account_id": 0
+        //         },
+        //         "channel": "private-my_orders_ethusdt-4416057",
+        //         "event": "order_created", // order_created | order_changed | order_deleted | order_replaced | stop_active | stop_inactive
+        //         "trade_account_id": 0,
+        //         "event_id": "00065b81-0d69-fe98-0000-006902000020",
+        //         "pre_event_id": "00065b81-0d68-6088-0000-006901000020",
+        //         "order_source": "orderbook"
+        //     }
         //
         $channel = $this->safe_string($message, 'channel');
         $order = $this->safe_dict($message, 'data', array());
+        $subscription = ($channel === null) ? null : $this->safe_dict($client->subscriptions, $channel);
+        $symbol = $this->safe_string($subscription, 'symbol');
+        if ($symbol === null) {
+            // cleanUnsubscription deletes the subscription, so an order frame
+            // arriving after an unsubscribe has no subscription to resolve
+            // the symbol from - drop the message instead of throwing
+            return;
+        }
         $limit = $this->safe_integer($this->options, 'ordersLimit', 1000);
         if ($this->orders === null) {
             $this->orders = new ArrayCacheBySymbolById($limit);
         }
         $stored = $this->orders;
-        $subscription = ($channel === null) ? null : $this->safe_value($client->subscriptions, $channel);
-        $symbol = $this->safe_string($subscription, 'symbol');
         $market = $this->market($symbol);
         $order['event'] = $this->safe_string($message, 'event');
         $parsed = $this->parse_ws_order($order, $market);
@@ -371,19 +712,22 @@ class bitstamp extends \ccxt\async\bitstamp {
 
     public function parse_ws_order(mixed $order, ?array $market = null) {
         //
+        // order_deleted after a full fill - amount_str carries the amount
+        // left to be executed, amount_at_create the original order amount
+        //
         //    {
-        //        "id": "1894876776091648",
-        //        "id_str": "1894876776091648",
+        //        "id": "2050558851342339",
+        //        "id_str": "2050558851342339",
         //        "order_type": 0,
-        //        "order_subtype": 0,
-        //        "datetime": "1751451375",
-        //        "microtimestamp": "1751451375070000",
-        //        "amount": 1.1,
-        //        "amount_str": "1.10000000",
-        //        "amount_traded": "0",
-        //        "amount_at_create": "1.10000000",
-        //        "price": 10.23,
-        //        "price_str": "10.23",
+        //        "order_subtype": 2,
+        //        "datetime": "1789459694",
+        //        "microtimestamp": "1789459694223000",
+        //        "amount": 0,
+        //        "amount_str": "0",
+        //        "amount_traded": "0.005000",
+        //        "amount_at_create": "0.005000",
+        //        "price": 2468.04,
+        //        "price_str": "2468.04",
         //        "is_liquidation": false,
         //        "trade_account_id": 0
         //    }
@@ -409,7 +753,17 @@ class bitstamp extends \ccxt\async\bitstamp {
             $timeInForce = 'GTD';
         }
         $price = $this->safe_string($order, 'price_str');
-        $amount = $this->safe_string($order, 'amount_str');
+        $amountLeft = $this->safe_string($order, 'amount_str');
+        $amountAtCreate = $this->safe_string($order, 'amount_at_create');
+        // amount_str carries the amount left to be executed, while
+        // amount_at_create is the original order amount - older messages
+        // do not carry amount_at_create, so fall back to the old behaviour
+        $amount = $amountLeft;
+        $remaining = null;
+        if ($amountAtCreate !== null) {
+            $amount = $amountAtCreate;
+            $remaining = $amountLeft;
+        }
         $filled = $this->safe_string($order, 'amount_traded');
         $event = $this->safe_string($order, 'event');
         $status = null;
@@ -418,6 +772,7 @@ class bitstamp extends \ccxt\async\bitstamp {
         } elseif ($event === 'order_deleted') {
             $status = 'canceled';
         }
+        $triggerPrice = $this->safe_string($order, 'stop_price');
         $timestamp = $this->safe_timestamp($order, 'datetime');
         $market = $this->safe_market(null, $market);
         $symbol = $market['symbol'];
@@ -425,7 +780,7 @@ class bitstamp extends \ccxt\async\bitstamp {
             'info' => $order,
             'symbol' => $symbol,
             'id' => $id,
-            'clientOrderId' => null,
+            'clientOrderId' => $this->safe_string($order, 'client_order_id'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => null,
@@ -434,13 +789,13 @@ class bitstamp extends \ccxt\async\bitstamp {
             'postOnly' => null,
             'side' => $side,
             'price' => $price,
-            'stopPrice' => null,
-            'triggerPrice' => null,
+            'stopPrice' => $triggerPrice,
+            'triggerPrice' => $triggerPrice,
             'amount' => $amount,
             'cost' => null,
             'average' => null,
             'filled' => $filled,
-            'remaining' => null,
+            'remaining' => $remaining,
             'status' => $status,
             'fee' => null,
             'trades' => null,
@@ -478,6 +833,64 @@ class bitstamp extends \ccxt\async\bitstamp {
         if (mb_strpos($channel, 'order_book') > -1) {
             $this->handle_order_book_subscription($client, $message);
         }
+    }
+
+    public function handle_unsubscription_status(Client $client, mixed $message) {
+        //
+        //     {
+        //         "event": "bts:unsubscription_succeeded",
+        //         "channel": "live_trades_btcusd",
+        //         "data": {}
+        //     }
+        //
+        $channel = $this->safe_string($message, 'channel');
+        if ($channel === null) {
+            return;
+        }
+        $unsubHash = 'unsubscribe:' . $channel;
+        $subscription = $this->safe_dict($client->subscriptions, $unsubHash);
+        if ($subscription === null) {
+            return;
+        }
+        $subHash = $this->safe_string($subscription, 'subHash');
+        $topic = $this->safe_string($subscription, 'topic');
+        $symbols = $this->safe_list($subscription, 'symbols', array());
+        // the base cleanCache only prunes trades/orderbooks per symbol and
+        // would wipe the whole orders/myTrades cache - rebuild those without
+        // the unsubscribed symbols instead, so the markets that are still
+        // subscribed keep their cached history
+        if (($topic === 'orders') && ($this->orders !== null)) {
+            $limit = $this->safe_integer($this->options, 'ordersLimit', 1000);
+            $freshOrdersCache = new ArrayCacheBySymbolById($limit);
+            $this->orders = $this->prune_cached_by_symbols($freshOrdersCache, $this->orders, $symbols);
+        } elseif (($topic === 'myTrades') && ($this->myTrades !== null)) {
+            $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
+            $freshTradesCache = new ArrayCacheBySymbolById($limit);
+            $this->myTrades = $this->prune_cached_by_symbols($freshTradesCache, $this->myTrades, $symbols);
+        } else {
+            $this->clean_cache($subscription);
+        }
+        $this->clean_unsubscription($client, $subHash, $unsubHash);
+    }
+
+    public function prune_cached_by_symbols(mixed $newCache, mixed $cache, array $symbols) {
+        /**
+         * @ignore
+         * refills a fresh ArrayCacheBySymbolById with the $entries of the old $cache except the given $symbols, so unsubscribing one market keeps the cached $entries of the others
+         * @param {array} $newCache an empty ArrayCacheBySymbolById to fill
+         * @param {array} $cache the old ArrayCacheBySymbolById to prune
+         * @param {string[]} $symbols the $symbols to remove from the $cache
+         * @return {array} the new $cache holding the remaining $entries
+         */
+        $entries = $this->to_array($cache);
+        for ($i = 0; $i < count($entries); $i++) {
+            $entry = $entries[$i];
+            $entrySymbol = $this->safe_string($entry, 'symbol');
+            if (!$this->in_array($entrySymbol, $symbols)) {
+                $newCache->append($entry);
+            }
+        }
+        return $newCache;
     }
 
     public function handle_subject(Client $client, mixed $message) {
@@ -525,7 +938,9 @@ class bitstamp extends \ccxt\async\bitstamp {
         $methods = array(
             'live_trades' => array($this, 'handle_trade'),
             'diff_order_book' => array($this, 'handle_order_book'),
+            'funding_rate' => array($this, 'handle_funding_rate'),
             'private-my_orders' => array($this, 'handle_orders'),
+            'private-my_trades' => array($this, 'handle_my_trades'),
         );
         $keys = is_array($methods) ? array_keys($methods) : array();
         for ($i = 0; $i < count($keys); $i++) {
@@ -592,6 +1007,8 @@ class bitstamp extends \ccxt\async\bitstamp {
         $event = $this->safe_string($message, 'event');
         if ($event === 'bts:subscription_succeeded') {
             $this->handle_subscription_status($client, $message);
+        } elseif ($event === 'bts:unsubscription_succeeded') {
+            $this->handle_unsubscription_status($client, $message);
         } else {
             $this->handle_subject($client, $message);
         }
