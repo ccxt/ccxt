@@ -21,7 +21,7 @@ import { filterDirtyExchangeFiles, skipUpToDateStage, testStageInputs } from "./
 import { unCamelCase } from "../js/src/base/functions.js";
 import { installJavaLocalTypes, installJavaNumericLocalTypes, patchJavaLiteralLocalTypes, elementAccessHasStringElements, JAVA_STRING_RETURN_METHODS, JAVA_STRING_PARAM_POSITIONS, patchJavaConsumerStringCasts, patchJavaMapChannelStringCasts, patchJavaStringReceiverCasts } from './java-local-types.js';
 import { ZERO_REQUIRED_TYPED_WHITELIST } from "./generateJavaWrappers.js";
-import { typeCoreReturns, typedReturnTable } from "./javaTypedCore.js";
+import { typeCoreReturns, typedReturnTable, JAVA_ASYNC_EXECUTOR, isAsyncLambdaClose } from "./javaTypedCore.js";
 import { applyJavaImports, shortenJavaReferences, ensureJavaImports } from "./javaUtilImports.js";
 
 ansi.nice
@@ -143,9 +143,6 @@ const BASE_METHODS_FILE = './java/lib/src/main/java/io/github/ccxt/BaseExchange.
 // NOT into BaseExchange — so the prediction tier (extends BaseExchange) does not
 // inherit them and can declare its own standalone-typed versions.
 const EXCHANGE_METHODS_FILE = './java/lib/src/main/java/io/github/ccxt/Exchange.java';
-const JAVA_ASYNC_EXECUTOR = 'io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR';
-// closes a generated supplyAsync lambda: `});` or `}, <executor>)`
-const isAsyncLambdaClose = (line: string) => line.startsWith('})') || line.startsWith('}, ' + JAVA_ASYNC_EXECUTOR + ')');
 const EXCHANGES_FOLDER = './java/lib/src/main/java/io/github/ccxt/exchanges/';
 const EXCHANGES_WS_FOLDER = './java/lib/src/main/java/io/github/ccxt/exchanges/pro/';
 const EXCHANGES_PREDICTION_FOLDER = './java/lib/src/main/java/io/github/ccxt/exchanges/prediction/';

@@ -121,6 +121,14 @@ export function coreConverter(m: MethodInfo): string {
     return `io.github.ccxt.types.${m.javaReturnType}::new`;
 }
 
+/** Executor every generated supplyAsync lambda runs on (ast-transpiler java `asyncExecutor`). */
+export const JAVA_ASYNC_EXECUTOR = 'io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR';
+
+/** True for a trimmed line closing a generated supplyAsync lambda: `});` or `}, <executor>);`. */
+export function isAsyncLambdaClose(line: string): boolean {
+    return line.startsWith('})') || line.startsWith('}, ' + JAVA_ASYNC_EXECUTOR + ')');
+}
+
 const DECL_RE = /^(\s*)public (?:java\.util\.concurrent\.)?CompletableFuture<Object> (\w+)\((.*)$/;
 
 /**
@@ -140,12 +148,15 @@ export function typeCoreReturns(source: string, table: Map<string, MethodInfo>):
         // keeps the 4-space indent: anchor on the body brace, not the declaration
         const bodyIndent = lines[i + 1] !== undefined && /^\s*\{$/.test(lines[i + 1]) ? lines[i + 1].slice(0, lines[i + 1].indexOf('{')) : indent;
         const close = bodyIndent + '}';
-        const supplyClose = bodyIndent + '    });';
+        const supplyIndent = bodyIndent + '    ';
         let converted = false;
         for (let j = i + 1; j < lines.length; j++) {
             if (lines[j] === close) break;
-            if (lines[j] === supplyClose) {
-                lines[j] = `${bodyIndent}    }).thenApply(${coreConverter(m)});`;
+            const trimmed = lines[j].trim();
+            if (lines[j].startsWith(supplyIndent) && lines[j].length === supplyIndent.length + trimmed.length
+                && isAsyncLambdaClose(trimmed) && trimmed.endsWith(');')) {
+                // `});` -> `}).thenApply(f);`  /  `}, EXECUTOR);` -> `}, EXECUTOR).thenApply(f);`
+                lines[j] = `${supplyIndent}${trimmed.slice(0, -1)}.thenApply(${coreConverter(m)});`;
                 converted = true;
                 break;
             }
