@@ -2490,13 +2490,55 @@ class bybit extends \ccxt\async\bybit {
     }
 
     private function do_watch_topics(mixed $url, mixed $messageHashes, mixed $topics, $params = array()) {
-        $request = array(
-            'op' => 'subscribe',
-            'req_id' => $this->request_id(),
-            'args' => $topics,
-        );
-        $message = $this->extend($request, $params);
-        return Async\await($this->watch_multiple($url, $messageHashes, $message, $messageHashes));
+        $client = $this->client($url);
+        $newTopics = array();
+        $topicsLength = count($topics);
+        $messageHashesLength = count($messageHashes);
+        if ($topicsLength === $messageHashesLength) {
+            for ($i = 0; $i < $topicsLength; $i++) {
+                $messageHash = $messageHashes[$i];
+                if (!(is_array($client->subscriptions) && array_key_exists($messageHash ?? '', $client->subscriptions))) {
+                    $newTopics[] = $topics[$i];
+                }
+            }
+        } else {
+            // watchOrders spot: two topics, one hash. Collect topics already
+            // recorded on any subscription so a later call with a new hash
+            // does not resend already-subscribed topics.
+            $subscribedTopics = array();
+            $subscriptionHashes = is_array($client->subscriptions) ? array_keys($client->subscriptions) : array();
+            for ($i = 0; $i < count($subscriptionHashes); $i++) {
+                $existing = $this->safe_dict($client->subscriptions, $subscriptionHashes[$i], array());
+                $recordedTopics = $this->safe_list($existing, 'topics', array());
+                $recordedLength = count($recordedTopics);
+                for ($j = 0; $j < $recordedLength; $j++) {
+                    $subscribedTopics[$recordedTopics[$j]] = true;
+                }
+            }
+            for ($i = 0; $i < $topicsLength; $i++) {
+                $topic = $topics[$i];
+                if (!(is_array($subscribedTopics) && array_key_exists($topic ?? '', $subscribedTopics))) {
+                    $newTopics[] = $topic;
+                }
+            }
+        }
+        $message = null;
+        $subscription = null;
+        $newTopicsLength = count($newTopics);
+        if ($newTopicsLength > 0) {
+            $reqId = $this->request_id();
+            $request = array(
+                'op' => 'subscribe',
+                'req_id' => $reqId,
+                'args' => $newTopics,
+            );
+            $message = $this->extend($request, $params);
+            $subscription = array(
+                'id' => $reqId,
+                'topics' => $newTopics,
+            );
+        }
+        return Async\await($this->watch_multiple($url, $messageHashes, $message, $messageHashes, $subscription));
     }
 
     public function un_watch_topics(string $url, string $topic, ?array $symbols, array $messageHashes, array $subMessageHashes, mixed $topics, $params = array(), $subExtension = array()) {
@@ -2615,28 +2657,47 @@ class bybit extends \ccxt\async\bybit {
             }
             return false;
         } catch (Exception $error) {
-            $messageHash = $this->safe_string_2($message, 'req_id', 'reqId');
-            if ($messageHash !== null) {
-                $client->reject($error, $messageHash);
-            } elseif ($error instanceof AuthenticationError) {
-                $authenticatedHash = 'authenticated';
-                $client->reject($error, $authenticatedHash);
-                if (is_array($client->subscriptions) && array_key_exists($authenticatedHash ?? '', $client->subscriptions)) {
-                    unset($client->subscriptions[$authenticatedHash]);
+            $reqId = $this->safe_string_2($message, 'req_id', 'reqId');
+            $foundSubscription = false;
+            if ($reqId !== null) {
+                $keys = is_array($client->subscriptions) ? array_keys($client->subscriptions) : array();
+                for ($i = 0; $i < count($keys); $i++) {
+                    $messageHash = $keys[$i];
+                    if (!(is_array($client->subscriptions) && array_key_exists($messageHash ?? '', $client->subscriptions))) {
+                        continue;
+                    }
+                    $subscription = $this->safe_dict($client->subscriptions, $messageHash);
+                    $subId = $this->safe_string($subscription, 'id');
+                    if ($reqId === $subId) {
+                        $foundSubscription = true;
+                        unset($client->subscriptions[$messageHash]);
+                        $client->reject($error, $messageHash);
+                    }
                 }
-                $op = $this->safe_string($message, 'op');
-                if (($op !== null) && ($op !== 'auth')) {
-                    // an operation response that carries no reqId, e.g. bybit
-                    // omits it on some permission rejections of trade ops,
-                    // would leave the awaiting future pending forever, and
-                    // since nothing on this client can proceed without
-                    // authentication, reject everything pending, mirroring the
-                    // behavior of unattributable non auth errors, see
-                    // https://github.com/ccxt/ccxt/issues/29361
-                    $client->reject($error);
+            }
+            if (!$foundSubscription) {
+                if ($reqId !== null) {
+                    $client->reject($error, $reqId);
+                } elseif ($error instanceof AuthenticationError) {
+                    $authenticatedHash = 'authenticated';
+                    $client->reject($error, $authenticatedHash);
+                    if (is_array($client->subscriptions) && array_key_exists($authenticatedHash ?? '', $client->subscriptions)) {
+                        unset($client->subscriptions[$authenticatedHash]);
+                    }
+                    $op = $this->safe_string($message, 'op');
+                    if (($op !== null) && ($op !== 'auth')) {
+                        // an operation response that carries no reqId, e.g. bybit
+                        // omits it on some permission rejections of trade ops,
+                        // would leave the awaiting future pending forever, and
+                        // since nothing on this client can proceed without
+                        // authentication, reject everything pending, mirroring the
+                        // behavior of unattributable non auth errors, see
+                        // https://github.com/ccxt/ccxt/issues/29361
+                        $client->reject($error);
+                    }
+                } else {
+                    $client->reject($error, $reqId);
                 }
-            } else {
-                $client->reject($error, $messageHash);
             }
             return true;
         }
