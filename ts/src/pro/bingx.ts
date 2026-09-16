@@ -302,6 +302,8 @@ export default class bingx extends bingxRest {
         const marketId = this.safeString (message, 's');
         market = this.safeMarket (marketId, market);
         const close = this.safeString (message, 'c');
+        // Coin-M m is coin volume; v is contracts and q is already USD turnover.
+        const baseVolumeKey = (market['inverse'] === true) ? 'm' : 'v';
         return this.safeTicker ({
             'symbol': market['symbol'],
             'timestamp': timestamp,
@@ -320,7 +322,7 @@ export default class bingx extends bingxRest {
             'change': this.safeString (message, 'p'),
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': this.safeString (message, 'v'),
+            'baseVolume': this.safeString (message, baseVolumeKey),
             'quoteVolume': this.safeString (message, 'q'),
             'info': message,
         }, market);
