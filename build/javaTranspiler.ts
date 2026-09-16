@@ -21,7 +21,7 @@ import { filterDirtyExchangeFiles, skipUpToDateStage, testStageInputs } from "./
 import { unCamelCase } from "../js/src/base/functions.js";
 import { installJavaLocalTypes, installJavaNumericLocalTypes, patchJavaLiteralLocalTypes, elementAccessHasStringElements, JAVA_STRING_RETURN_METHODS, JAVA_STRING_PARAM_POSITIONS, patchJavaConsumerStringCasts, patchJavaMapChannelStringCasts, patchJavaStringReceiverCasts } from './java-local-types.js';
 import { ZERO_REQUIRED_TYPED_WHITELIST } from "./generateJavaWrappers.js";
-import { typeCoreReturns, typedReturnTable } from "./javaTypedCore.js";
+import { typeCoreReturns, typedReturnTable, JAVA_ASYNC_SUPPLIER, JAVA_ASYNC_SUPPLIER_IMPORT, isAsyncLambdaClose } from "./javaTypedCore.js";
 import { applyJavaImports, shortenJavaReferences, ensureJavaImports } from "./javaUtilImports.js";
 
 ansi.nice
@@ -1461,6 +1461,11 @@ class NewTranspiler {
                     // "VAR_TOKEN": "var",
                 }
             },
+            "java": {
+                // generated async lambdas go through BaseExchange.supplyAsync, which
+                // defaults to VIRTUAL_EXECUTOR so no tier lands on the ForkJoinPool common pool
+                "asyncSupplier": JAVA_ASYNC_SUPPLIER,
+            },
         }
     }
 
@@ -1658,6 +1663,7 @@ class NewTranspiler {
                 'import io.github.ccxt.base.Precise;',
                 'import io.github.ccxt.errors.*;',
                 'import io.github.ccxt.Helpers;',
+                JAVA_ASYNC_SUPPLIER_IMPORT,
                 'import io.github.ccxt.ws.*;',
                 'import io.github.ccxt.Client;',
             ];
@@ -1673,6 +1679,7 @@ class NewTranspiler {
                 'import io.github.ccxt.base.Precise;',
                 'import io.github.ccxt.errors.*;',
                 'import io.github.ccxt.Helpers;',
+                JAVA_ASYNC_SUPPLIER_IMPORT,
                 'import io.github.ccxt.ws.*;',
                 'import io.github.ccxt.Client;',
             ];
@@ -1683,7 +1690,8 @@ class NewTranspiler {
             `import io.github.ccxt.api.${this.capitalize(file)}Api;`,
             'import io.github.ccxt.base.Precise;',
             'import io.github.ccxt.errors.*;',
-            'import io.github.ccxt.Helpers;'
+            'import io.github.ccxt.Helpers;',
+            JAVA_ASYNC_SUPPLIER_IMPORT,
             // 'import io.github.ccxt.Exchange;',
             // 'import io.github.ccxt.Errors;'
         ]
@@ -2788,7 +2796,7 @@ class NewTranspiler {
         const result: string[] = [];
         for (let i = 0; i < lines.length; i++) {
             // Check if this line is "return null;" and the next is "});" (lambda end)
-            if (lines[i].trim() === 'return null;' && i + 1 < lines.length && lines[i + 1].trim().startsWith('})')) {
+            if (lines[i].trim() === 'return null;' && i + 1 < lines.length && isAsyncLambdaClose(lines[i + 1].trim())) {
                 // Check if the preceding non-empty line is "}" closing an else/else-if block
                 // that contains a throw or return
                 let j = i - 1;
@@ -2834,7 +2842,7 @@ class NewTranspiler {
         const result: string[] = [];
         for (let i = 0; i < lines.length; i++) {
             if (lines[i].trim() === 'return null;'
-                && i + 1 < lines.length && lines[i + 1].trim().startsWith('})')) {
+                && i + 1 < lines.length && isAsyncLambdaClose(lines[i + 1].trim())) {
                 // Check: preceding } then scan backward for "} else" + "{" pair
                 let j = i - 1;
                 while (j >= 0 && lines[j].trim() === '') j--;
@@ -2888,7 +2896,7 @@ class NewTranspiler {
         const result: string[] = [];
         for (let i = 0; i < lines.length; i++) {
             if (lines[i].trim() === 'return null;'
-                && i + 1 < lines.length && lines[i + 1].trim().startsWith('})')) {
+                && i + 1 < lines.length && isAsyncLambdaClose(lines[i + 1].trim())) {
                 let j = i - 1;
                 while (j >= 0 && lines[j].trim() === '') j--;
                 if (j >= 0 && lines[j].trim() === '}') {
@@ -3733,15 +3741,22 @@ class NewTranspiler {
 
         let inSupplyAsync = 0;
         for (let i = 0; i < lines.length; i++) {
-            if (lines[i].includes('CompletableFuture.supplyAsync')) inSupplyAsync++;
-            if (lines[i].includes('VIRTUAL_EXECUTOR)')) inSupplyAsync = Math.max(0, inSupplyAsync - 1);
+            if (lines[i].includes(JAVA_ASYNC_SUPPLIER + '(')) inSupplyAsync++;
+            if (inSupplyAsync > 0 && lines[i].trim() === '});') inSupplyAsync--;
             if (inSupplyAsync > 0 && lines[i].trim() === 'return;') {
                 lines[i] = lines[i].replace('return;', 'return null;');
             }
         }
 
+        // Only the `});` closing an async lambda body qualifies; nested lambdas are tracked by depth.
+        let depth = 0;
         for (let i = 0; i < lines.length; i++) {
-            if (!lines[i].trim().startsWith('}, io.github.ccxt.Exchange.VIRTUAL_EXECUTOR)')) continue;
+            const t = lines[i].trim();
+            if (t.includes(JAVA_ASYNC_SUPPLIER + '(')) { depth = 1; continue; }
+            if (depth === 0) continue;
+            if (t.endsWith('{') && !t.startsWith('}')) { depth++; continue; }
+            if (t === '}' || t === '});' || t.startsWith('} ')) { depth--; }
+            if (depth !== 0 || t !== '});') continue;
 
             let lastStmtIdx = i - 1;
             while (lastStmtIdx >= 0 && lines[lastStmtIdx].trim() === '') lastStmtIdx--;
@@ -4270,6 +4285,7 @@ class NewTranspiler {
             'package tests.exchange;',
             'import io.github.ccxt.Helpers;',
             'import io.github.ccxt.Exchange;',
+            JAVA_ASYNC_SUPPLIER_IMPORT,
             '',
             this.createGeneratedHeader().join('\n'),
             `public class ${className} {`,
@@ -4372,6 +4388,7 @@ class NewTranspiler {
                 'package tests.base;',
                 'import tests.BaseTest;',
                 'import io.github.ccxt.Helpers;',
+                JAVA_ASYNC_SUPPLIER_IMPORT,
                 exchangeImport,
                 preciseImport,
                 this.createGeneratedHeader().join('\n'),
@@ -4495,6 +4512,7 @@ class NewTranspiler {
             'package tests.exchange;',
             'import io.github.ccxt.Helpers;',
             'import io.github.ccxt.Exchange;',
+            JAVA_ASYNC_SUPPLIER_IMPORT,
             'import io.github.ccxt.BaseExchange;',
             'import tests.BaseTest;',
             'import io.github.ccxt.errors.*;',
@@ -4739,7 +4757,7 @@ class NewTranspiler {
                 'import tests.BaseTest;',
                 'import io.github.ccxt.Helpers;',
                 'import io.github.ccxt.Exchange;',
-                ...(isWs ? [] : ['import io.github.ccxt.BaseExchange;']),
+                JAVA_ASYNC_SUPPLIER_IMPORT,
                 'import io.github.ccxt.errors.*;',
                 ...(isWs ? ['import tests.exchange.*;'] : []),
                 preciseImport,

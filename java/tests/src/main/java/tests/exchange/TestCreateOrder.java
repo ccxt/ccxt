@@ -35,7 +35,7 @@ public class TestCreateOrder extends BaseTest {
     public CompletableFuture<Object> testCreateOrder(BaseExchange exchange, Object skippedProperties, Object symbol)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
         Object logPrefix = TestSharedMethods.logTemplate(exchange, "createOrder", new ArrayList<Object>(Arrays.asList(symbol)));
         Boolean hasCancelOrder = Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(exchange.has, "cancelOrder"), null))) && Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(exchange.has, "cancelOrder"), false)));
@@ -88,7 +88,7 @@ public class TestCreateOrder extends BaseTest {
         final Object bestBid3 = bestBid2;
         final Object bestAsk3 = bestAsk2;
         final Object buyOrSell3 = buyOrSell2;
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
             Object logPrefix = logPrefix3;
             Object bestBid = bestBid3;
             Object bestAsk = bestAsk3;
@@ -148,7 +148,7 @@ public class TestCreateOrder extends BaseTest {
         final Object bestBid3 = bestBid2;
         final Object bestAsk3 = bestAsk2;
         final Object buyOrSellString3 = buyOrSellString2;
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
             Object bestBid = bestBid3;
             Object bestAsk = bestAsk3;
             Object buyOrSellString = buyOrSellString3;
@@ -218,7 +218,7 @@ public class TestCreateOrder extends BaseTest {
     public CompletableFuture<Object> tcoCancelOrder(BaseExchange exchange, Object symbol, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
         Object orderId = Helpers.getArg(optionalArgs, 0, null);
         Object logPrefix = TestSharedMethods.logTemplate(exchange, "createOrder", new ArrayList<Object>(Arrays.asList(symbol)));
@@ -249,7 +249,7 @@ public class TestCreateOrder extends BaseTest {
     public CompletableFuture<Object> tcoCreateOrderSafe(BaseExchange exchange, Object symbol, Object orderType2, Object side, Object amount, Object... optionalArgs)
     {
         final Object orderType3 = orderType2;
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
             Object orderType = orderType3;
         Object price = Helpers.getArg(optionalArgs, 0, null);
         Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -329,7 +329,7 @@ public class TestCreateOrder extends BaseTest {
     public CompletableFuture<Object> tcoTryCancelOrder(BaseExchange exchange, Object symbol, Object order, Object skippedProperties)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
         Object orderFetched = (TestSharedMethods.fetchOrder(exchange, symbol, Helpers.GetValue(order, "id"), skippedProperties)).join();
         if (Helpers.isTrue(Helpers.isEqual(orderFetched, null)))
