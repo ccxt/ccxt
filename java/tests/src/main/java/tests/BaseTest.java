@@ -462,6 +462,35 @@ public class BaseTest {
         // handler - the same entry point the real transport invokes
         var exchange = (BaseExchange) exchange2;
         var client = exchange.client(url);
+        // Binance watchMultiple registers its future before the subscription.
+        // Its result:null subscription ack must wait for the matching mock send.
+        // Other venues may use id/result in unsolicited events; leave those alone.
+        if (exchange instanceof io.github.ccxt.exchanges.pro.Binance &&
+            message instanceof java.util.Map<?, ?> response && response.get("id") != null &&
+            response.containsKey("result") && response.get("result") == null) {
+            String responseId = response.get("id").toString();
+            boolean sent = false;
+            for (int waited = 0; waited <= 5000; waited += 50) {
+                synchronized (client.mockSentMessages) {
+                    for (Object item : client.mockSentMessages) {
+                        if (item instanceof java.util.Map<?, ?> request && request.get("id") != null &&
+                            responseId.equals(request.get("id").toString())) {
+                            sent = true;
+                            break;
+                        }
+                    }
+                }
+                if (sent || waited == 5000) {
+                    break;
+                }
+                exchange.sleep(50).join();
+            }
+            if (!sent) {
+                var error = new io.github.ccxt.errors.ExchangeError("static ws test: no sent request for response id " + responseId);
+                client.reject(error);
+                throw error;
+            }
+        }
         client.handleMessageCallback.accept(client, message);
     }
 
@@ -482,6 +511,9 @@ public class BaseTest {
             // Binance registers these single-flight coordination futures before
             // signing/sending the actual subscription request. Its numeric
             // request future, not the coordination future, can consume the ack.
+            // Keep these prefixes aligned with ts/src/pro/binance.ts:
+            // ensureUserDataStreamWsSubscribeSignature and
+            // ensureUserDataStreamWsSubscribeListenToken define the hashes.
             if (hash.startsWith("authenticate:signature:") ||
                 (hash.startsWith("authenticate:") && hash.endsWith(":listenToken"))) {
                 continue;
