@@ -1752,10 +1752,14 @@ func GetArg(v []any, index int, def any) any {
 		}
 	}
 
+	// Generated wrappers bind `symbols` as a typed `[]string`, and a nil `[]string` boxed
+	// into `any` is not `== nil`, so the check at the top of this function cannot see it.
+	// Unwrap it to an untyped nil so that a caller passing nil means "argument absent",
+	// matching `undefined` in the TypeScript source these bodies are ported from.
+	// Only nil is collapsed, never a non-nil empty slice: the empty-vs-absent decision
+	// belongs to MarketSymbols/allowEmpty, which must still panic with ArgumentsRequired
+	// for `allowEmpty: false` callers rather than silently substituting the default.
 	if res, ok := val.([]string); ok {
-		// if len(res) == 0 {
-		// 	return def
-		// }
 		if res == nil {
 			return def
 		}
