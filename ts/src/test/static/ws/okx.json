@@ -2114,6 +2114,148 @@
                     }
                 ],
                 "disabledGO": "go truncateBidAskRows strips the order-count column that other runtimes keep in counted books - investigate separately"
+            },
+            {
+                "description": "nonce gap stops the replay: one reject, no resolve of the rejected hash",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "url": "wss://ws.okx.com:8443/ws/v5/public",
+                "messages": [
+                    {
+                        "event": "subscribe",
+                        "arg": {
+                            "channel": "books",
+                            "instId": "BTC-USDT-SWAP"
+                        },
+                        "connId": "c7a4b1de"
+                    },
+                    {
+                        "arg": {
+                            "channel": "books",
+                            "instId": "BTC-USDT-SWAP"
+                        },
+                        "action": "snapshot",
+                        "data": [
+                            {
+                                "asks": [
+                                    [
+                                        "64001",
+                                        "1.5",
+                                        "0",
+                                        "2"
+                                    ],
+                                    [
+                                        "64002",
+                                        "2",
+                                        "0",
+                                        "1"
+                                    ]
+                                ],
+                                "bids": [
+                                    [
+                                        "64000",
+                                        "2",
+                                        "0",
+                                        "3"
+                                    ],
+                                    [
+                                        "63999",
+                                        "1",
+                                        "0",
+                                        "1"
+                                    ]
+                                ],
+                                "instId": "BTC-USDT-SWAP",
+                                "ts": "1786541300000",
+                                "checksum": 1300677031,
+                                "prevSeqId": -1,
+                                "seqId": 100
+                            }
+                        ]
+                    },
+                    {
+                        "arg": {
+                            "channel": "books",
+                            "instId": "BTC-USDT-SWAP"
+                        },
+                        "action": "update",
+                        "data": [
+                            {
+                                "asks": [
+                                    [
+                                        "64002",
+                                        "0",
+                                        "0",
+                                        "0"
+                                    ]
+                                ],
+                                "bids": [],
+                                "instId": "BTC-USDT-SWAP",
+                                "ts": "1786541300200",
+                                "checksum": 111,
+                                "prevSeqId": 900,
+                                "seqId": 901
+                            },
+                            {
+                                "asks": [
+                                    [
+                                        "64500",
+                                        "7",
+                                        "0",
+                                        "1"
+                                    ]
+                                ],
+                                "bids": [
+                                    [
+                                        "63000",
+                                        "5",
+                                        "0",
+                                        "1"
+                                    ]
+                                ],
+                                "instId": "BTC-USDT-SWAP",
+                                "ts": "1786541300300",
+                                "checksum": 222,
+                                "prevSeqId": 901,
+                                "seqId": 902
+                            }
+                        ]
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "op": "subscribe",
+                        "args": [
+                            {
+                                "channel": "books",
+                                "instId": "BTC-USDT-SWAP"
+                            }
+                        ]
+                    }
+                ],
+                "parsedResponse": {
+                    "bids": [
+                        [
+                            64000,
+                            2
+                        ],
+                        [
+                            63999,
+                            1
+                        ]
+                    ],
+                    "asks": [
+                        [
+                            64001,
+                            1.5
+                        ]
+                    ],
+                    "timestamp": 1786541300000,
+                    "datetime": "2026-08-12T13:28:20.000Z",
+                    "nonce": 100,
+                    "symbol": "BTC/USDT:USDT"
+                }
             }
         ]
     }
