@@ -266,7 +266,7 @@ export default class bingx extends bingxRest {
         const isSwap = client.url.indexOf ('swap') >= 0;
         const marketType = isSwap ? 'swap' : 'spot';
         const market = this.safeMarket (marketId, undefined, undefined, marketType);
-        if ((market['inverse'] === undefined) && (client.url === this.urls['api']['ws']['inverse'])) {
+        if ((market['inverse'] === undefined) && (client.url === this.safeString (this.urls['api']['ws'], 'inverse'))) {
             // An unresolved id still uses the volume units of its Coin-M connection.
             market['inverse'] = true;
         }
