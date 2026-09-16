@@ -2,6 +2,7 @@ package tests.exchange.ws;
 import tests.BaseTest;
 import io.github.ccxt.Helpers;
 import io.github.ccxt.Exchange;
+import io.github.ccxt.BaseExchange;
 import io.github.ccxt.errors.*;
 import tests.exchange.*;
 import java.util.ArrayList;
@@ -17,7 +18,7 @@ public class TestUnWatchPositions extends BaseTest {
     public CompletableFuture<Void> createOrderAfterDelay(Exchange exchange)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
         (exchange.sleep(3000)).join();
         ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "createOrder", new Object[]{"BTC/USDT:USDT", "market", "buy", 0.001})).join();
@@ -28,7 +29,7 @@ public class TestUnWatchPositions extends BaseTest {
     public CompletableFuture<Object> testUnWatchPositions(Exchange exchange, Object skippedProperties, Object symbol)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
         String method = "unWatchPositions";
         exchange.setSandboxMode(true);

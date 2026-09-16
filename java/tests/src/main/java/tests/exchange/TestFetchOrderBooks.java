@@ -17,7 +17,7 @@ public class TestFetchOrderBooks extends BaseTest {
     public CompletableFuture<Object> testFetchOrderBooks(BaseExchange exchange, Object skippedProperties)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
         String method = "fetchOrderBooks";
         Object symbols = exchange.symbols;
