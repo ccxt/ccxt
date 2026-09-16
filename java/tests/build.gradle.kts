@@ -29,6 +29,7 @@ dependencies {
 
 tasks.test {
     useJUnitPlatform()
+    jvmArgs("-Djava.util.concurrent.ForkJoinPool.common.parallelism=64")
 }
 
 application {
