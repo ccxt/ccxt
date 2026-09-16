@@ -15,7 +15,7 @@ public class TestFetchLiquidations extends BaseTest {
     public CompletableFuture<Object> testFetchLiquidations(BaseExchange exchange, Object skippedProperties, Object code)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
         String method = "fetchLiquidations";
         if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(exchange.has, "fetchLiquidations"), null)) || Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(exchange.has, "fetchLiquidations"), false))))
