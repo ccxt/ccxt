@@ -169,6 +169,84 @@
                     "datetime": "2024-10-04T00:00:02.000Z",
                     "nonce": 501
                 }
+            },
+            {
+                "description": "a sequence gap frame is not applied, the book stays frozen at the last consistent state",
+                "input": [
+                    "BTC/EUR"
+                ],
+                "url": "wss://ws.luno.com/api/1/stream/XBTEUR",
+                "messages": [
+                    {
+                        "sequence": "600",
+                        "asks": [
+                            {
+                                "id": "BXA1",
+                                "price": "100.00",
+                                "volume": "3.00"
+                            }
+                        ],
+                        "bids": [
+                            {
+                                "id": "BXB1",
+                                "price": "90.00",
+                                "volume": "2.00"
+                            }
+                        ],
+                        "status": "ACTIVE",
+                        "timestamp": 1728000000000
+                    },
+                    {
+                        "sequence": "601",
+                        "trade_updates": [
+                            {
+                                "base": "1.00",
+                                "counter": "100.00",
+                                "maker_order_id": "BXA1",
+                                "taker_order_id": "BXT1"
+                            }
+                        ],
+                        "create_update": null,
+                        "delete_update": null,
+                        "status_update": null,
+                        "timestamp": 1728000001000
+                    },
+                    {
+                        "sequence": "605",
+                        "trade_updates": [
+                            {
+                                "base": "1.00",
+                                "counter": "100.00",
+                                "maker_order_id": "BXA1",
+                                "taker_order_id": "BXT2"
+                            }
+                        ],
+                        "create_update": null,
+                        "delete_update": null,
+                        "status_update": null,
+                        "timestamp": 1728000002000
+                    }
+                ],
+                "parsedResponse": {
+                    "symbol": "BTC/EUR",
+                    "bids": [
+                        [
+                            90,
+                            2,
+                            "BXB1"
+                        ]
+                    ],
+                    "asks": [
+                        [
+                            100,
+                            2,
+                            "BXA1"
+                        ]
+                    ],
+                    "timestamp": 1728000001000,
+                    "datetime": "2024-10-04T00:00:01.000Z",
+                    "nonce": 601
+                }
             }
         ]
     }

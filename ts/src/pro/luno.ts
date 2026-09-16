@@ -236,13 +236,20 @@ export default class luno extends lunoRest {
                     // a gap in the sequence means a lost message and the book is
                     // unrecoverable on a live connection, because luno only sends
                     // a snapshot as the first frame after a fresh handshake:
-                    // reject every pending future on this connection and drop
-                    // both the client and the cached book, so that the next
-                    // watch call dials a new connection and rebuilds from a
-                    // fresh snapshot
+                    // reset the client, which stops its keepalive and rejects
+                    // every pending future on this connection, clear the
+                    // subscription so that frames still arriving on the orphaned
+                    // connection are ignored by handleMessage, and drop both the
+                    // client and the cached book, so that the next watch call
+                    // dials a new connection and rebuilds from a fresh snapshot
                     const error = new InvalidNonce (this.id + ' watchOrderBook() received an out-of-sequence update for ' + symbol + ', expected ' + expectedSequence.toString () + ' but got ' + messageSequence.toString ());
                     delete this.orderbooks[symbol];
-                    client.reject (error);
+                    const market = this.market (symbol);
+                    const subscriptionHash = '/stream/' + market['id'];
+                    if (subscriptionHash in client.subscriptions) {
+                        delete client.subscriptions[subscriptionHash];
+                    }
+                    client.reset (error);
                     delete this.clients[client.url];
                     return;
                 }
