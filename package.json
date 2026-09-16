@@ -48,6 +48,7 @@
     "buildCS": "dotnet build cs/ccxt.sln",
     "buildCSFast": "dotnet build cs/ccxt/ccxt.csproj -p:TargetFrameworks=netstandard2.1 -p:GeneratePackageOnBuild=false",
     "buildJava": "cd java/ && ./gradlew build && cd ../",
+    "check-java-pinning": "tsx build/javaPinningGuard.ts",
     "publishJava": "cd java && ./gradlew :lib:publishToMavenCentral --no-configuration-cache",
     "buildGO": "go build -C go ./v4 && go build -C go ./v4/pro && go build -C go ./v4/prediction",
     "build-go-cli": "go build -C go/cli",
