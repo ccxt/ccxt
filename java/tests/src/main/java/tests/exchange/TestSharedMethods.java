@@ -497,7 +497,7 @@ public class TestSharedMethods extends BaseTest {
     public static CompletableFuture<Object> fetchBestBidAsk(BaseExchange exchange, Object method, Object symbol)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
         Object logText = logTemplate(exchange, method, new HashMap<String, Object>() {{}});
         // find out best bid/ask price
@@ -544,7 +544,7 @@ public class TestSharedMethods extends BaseTest {
     public static CompletableFuture<Object> fetchOrder(BaseExchange exchange, Object symbol, Object orderId, Object skippedProperties)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
         Object fetchedOrder = null;
         Object originalId = orderId;
