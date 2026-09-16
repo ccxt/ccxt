@@ -5,7 +5,9 @@ import Client from '../../../base/ws/Client.js';
 
 // native ts test, intentionally not transpiled: exercises bybit.watchTopics
 // filtering of already-subscribed topics and handleErrorMessage rollback
-// (https://github.com/ccxt/ccxt/pull/30439)
+// (https://github.com/ccxt/ccxt/pull/30439). Exchange-specific, so it is a
+// standalone `test.<name>.<exchangeid>.ts` file and is not wired into
+// tests.init.ts, matching test.singleFlightWiring.kraken.ts and friends.
 
 function sleep (ms: number) {
     return new Promise ((resolve) => setTimeout (resolve, ms));
@@ -45,7 +47,7 @@ function lastArgs (sent: any[]) {
     return sent[sent.length - 1]['args'];
 }
 
-async function testWsBybitWatchTopics () {
+async function testBybitWatchTopics () {
     // grow-list filter: 1:1 topics/hashes, a later call must send only the
     // newly added topic rather than repeating already-subscribed ones
     let harness = createHarness ();
@@ -132,12 +134,12 @@ async function testWsBybitWatchTopics () {
     client.reject (new Error ('cleanup'));
 }
 
-export default testWsBybitWatchTopics;
+export default testBybitWatchTopics;
 
-const invokedDirectly = process.argv[1] !== undefined && process.argv[1].indexOf ('test.bybitWatchTopics') !== -1;
+const invokedDirectly = process.argv[1] !== undefined && process.argv[1].indexOf ('test.watchTopics.bybit') !== -1;
 if (invokedDirectly) {
-    testWsBybitWatchTopics ().then (() => {
-        console.log ('test.bybitWatchTopics passed');
+    testBybitWatchTopics ().then (() => {
+        console.log ('test.watchTopics.bybit passed');
     }).catch ((e) => {
         console.error (e);
         process.exit (1);
