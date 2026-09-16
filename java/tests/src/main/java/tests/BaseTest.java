@@ -477,7 +477,18 @@ public class BaseTest {
         // injector polls this instead of relying on a fixed head-start sleep
         var exchange = (BaseExchange) exchange2;
         var client = exchange.client(url);
-        return !((java.util.Map<?, ?>) client.futures).isEmpty();
+        for (Object key : ((java.util.Map<?, ?>) client.futures).keySet()) {
+            String hash = key.toString();
+            // Binance registers these single-flight coordination futures before
+            // signing/sending the actual subscription request. Its numeric
+            // request future, not the coordination future, can consume the ack.
+            if (hash.startsWith("authenticate:signature:") ||
+                (hash.startsWith("authenticate:") && hash.endsWith(":listenToken"))) {
+                continue;
+            }
+            return true;
+        }
+        return false;
     }
 
     private static final java.util.Set<Object> wsCompletedClients =

@@ -18,6 +18,54 @@ import static org.junit.jupiter.api.Assertions.*;
 class WsInjectorTest {
     private boolean previousSyncSleep;
 
+    @Test
+    void authenticationCoordinationDoesNotMakeTheSubscriptionReady() {
+        Exchange exchange = new Exchange();
+        String url = "wss://static-test.invalid";
+        BaseTest.setupWsMockTransport(exchange, url);
+        var client = exchange.client(url);
+        for (String hash : List.of("authenticate:signature:spot", "authenticate:margin:listenToken")) {
+            client.future(hash);
+            assertFalse(BaseTest.wsClientHasPendingFutures(exchange, url),
+                "Signing has not registered a request that can consume the acknowledgement");
+            client.future("1");
+            assertTrue(BaseTest.wsClientHasPendingFutures(exchange, url));
+            client.resolve("ack", "1");
+            assertFalse(BaseTest.wsClientHasPendingFutures(exchange, url),
+                "A retained coordination future must not trigger the next frame");
+            client.resolve(true, hash);
+        }
+        client.future("authenticate");
+        assertTrue(BaseTest.wsClientHasPendingFutures(exchange, url),
+            "An ordinary authentication response future must still accept frames");
+        client.resolve(true, "authenticate");
+    }
+
+    @Test
+    void delayedSubscriptionRegistrationReceivesItsAcknowledgement() throws Exception {
+        Exchange exchange = new Exchange();
+        String url = "wss://static-test.invalid";
+        BaseTest.setupWsMockTransport(exchange, url);
+        var client = exchange.client(url);
+        client.future("authenticate:signature:spot");
+        assertFalse(BaseTest.wsClientHasPendingFutures(exchange, url));
+        client.handleMessageCallback = (ignored, message) -> {
+            client.resolve(message, "1");
+            client.resolve(true, "authenticate:signature:spot");
+        };
+        // Start the injector while signing has not yet registered its request.
+        var injector = new TestMain().injectWsMessages(exchange, url, List.of("ack"));
+        var request = client.future("1").getFuture();
+        try {
+            assertEquals("ack", request.get(10, TimeUnit.SECONDS));
+            injector.get(10, TimeUnit.SECONDS);
+            assertFalse(BaseTest.wsClientHasPendingFutures(exchange, url));
+        } finally {
+            client.reject(new RuntimeException("test cleanup"));
+            injector.cancel(true);
+        }
+    }
+
     @BeforeEach
     void saveSleepMode() {
         previousSyncSleep = BaseExchange.syncSleep;
