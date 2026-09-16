@@ -43,6 +43,8 @@ jobs:
         uses: actions/setup-node@v5
       - name: Install npm dependencies
         run: npm ci --include=dev
+      - name: Test Go generator compatibility
+        run: node --test build/tests/test.go-generator-compat.mjs
       - name: Determine modified files
         run: ./build/utils/init_actions.sh
       - name: Check tsc version
