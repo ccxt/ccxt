@@ -2069,7 +2069,7 @@ To get a list of all available methods with an exchange instance, including impl
 ```text
 console.log (new ccxt.kraken ())   // JavaScript
 print(dir(ccxt.kraken()))           # Python
-var_dump (new \ccxt\kraken ()); // PHP
+print_r (get_class_methods (new \ccxt\kraken ())); // PHP
 ```
 or view an abstract file, eg. view [coinbase](https://github.com/ccxt/ccxt/blob/master/python/ccxt/abstract/coinbase.py).
 
@@ -2112,7 +2112,7 @@ To get a list of all available methods with an exchange instance, you can simply
 ```text
 console.log (new ccxt.kraken ())   // JavaScript
 print(dir(ccxt.kraken()))           # Python
-var_dump (new \ccxt\kraken ()); // PHP
+print_r (get_class_methods (new \ccxt\kraken ())); // PHP
 ```
 
 **contract only and margin only**
