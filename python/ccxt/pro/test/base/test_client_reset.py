@@ -26,8 +26,11 @@ from ccxt.async_support.base.ws.client import Client  # noqa: F402
 # ----------------------------------------------------------------------------
 
 
+def noop(*args):
+    return None
+
+
 def make_client():
-    noop = (lambda *args: None)
     return Client('ws://example.invalid', noop, noop, noop, noop, {})
 
 
