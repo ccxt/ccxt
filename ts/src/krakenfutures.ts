@@ -59,7 +59,7 @@ export default class krakenfutures extends Exchange {
                 'fetchFundingRate': 'emulated',
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': true,
-                'fetchIndexOHLCV': false,
+                'fetchIndexOHLCV': true,
                 'fetchIsolatedBorrowRate': false,
                 'fetchIsolatedBorrowRates': false,
                 'fetchIsolatedPositions': false,
@@ -901,6 +901,7 @@ export default class krakenfutures extends Exchange {
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @param {string} [params.price] "mark" for mark-price candles or "index" for index-price candles, defaults to trade-price candles
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     override async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
@@ -913,9 +914,13 @@ export default class krakenfutures extends Exchange {
         if (paginate) {
             return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, 2000) as OHLCV[];
         }
+        let priceType = this.safeString (params, 'price', 'trade');
+        if (priceType === 'index') {
+            priceType = 'spot'; // the venue's name for index-price candles
+        }
         const request: Dict = {
             'symbol': market['id'],
-            'price_type': this.safeString (params, 'price', 'trade'),
+            'price_type': priceType,
             'interval': this.safeString (this.timeframes, timeframe, timeframe),
         };
         params = this.omit (params, 'price');
