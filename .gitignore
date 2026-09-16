@@ -53,6 +53,8 @@ debug/
 *.rlib
 *.rmeta
 target/
+# The runner provides rust/target as a symlink; `target/` only matches directories.
+/rust/target
 go/main
 go/tests/main
 go/cli/cli
