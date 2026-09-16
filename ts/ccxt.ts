@@ -230,6 +230,7 @@ import woofiproPro from  './src/pro/woofipro.js'
 import xtPro from  './src/pro/xt.js'
 
 import binancePrediction from  './src/prediction/binance.js'
+import bybitPrediction from  './src/prediction/bybit.js'
 import hyperliquidPrediction from  './src/prediction/hyperliquid.js'
 import kalshiPrediction from  './src/prediction/kalshi.js'
 import limitlessPrediction from  './src/prediction/limitless.js'
@@ -429,6 +430,7 @@ const pro = {
 
 const prediction = {
     'binance':                binancePrediction,
+    'bybit':                  bybitPrediction,
     'hyperliquid':            hyperliquidPrediction,
     'kalshi':                 kalshiPrediction,
     'limitless':              limitlessPrediction,
