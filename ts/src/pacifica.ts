@@ -2993,8 +2993,9 @@ export default class pacifica extends Exchange {
             await this.loadMarkets ();
         }
         symbols = this.marketSymbols (symbols);
-        const swapMarkets = await this.fetchSwapMarkets ();
-        return this.parseOpenInterests (swapMarkets, symbols) as OpenInterests;
+        const response = await this.publicGetInfoPrices (params);
+        const data = this.safeList (response, 'data', []);
+        return this.parseOpenInterests (data, symbols) as OpenInterests;
     }
 
     /**
@@ -3007,10 +3008,10 @@ export default class pacifica extends Exchange {
      * @returns {object} an [open interest structure]{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
     override async fetchOpenInterest (symbol: string, params = {}) {
-        symbol = this.symbol (symbol);
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
+        symbol = this.symbol (symbol);
         const ois = await this.fetchOpenInterests ([ symbol ], params);
         return ois[symbol];
     }
