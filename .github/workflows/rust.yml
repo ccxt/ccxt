@@ -57,10 +57,20 @@ jobs:
           # Keep downloaded dependencies, but never restore a shared build directory.
           prefix-key: v1-rust-registry-only
           cache-targets: false
-      - name: Isolate Cargo build output
+      - name: Resolve Cargo target directory
         run: |
-          # Self-hosted runners can share storage. Each attempt must own its binaries.
-          echo "CARGO_TARGET_DIR=$RUNNER_TEMP/ccxt-rust-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT" >> "$GITHUB_ENV"
+          # The self-hosted runner provides rust/target as an untracked symlink into a
+          # per-instance cache, so concurrent jobs never share a build directory. Resolve it
+          # to an absolute path; fall back to a run-private directory anywhere else.
+          if [ -L rust/target ]; then
+            rust_target=$(readlink -f rust/target)
+            mkdir -p "$rust_target"
+          else
+            rust_target="$RUNNER_TEMP/ccxt-rust-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
+            mkdir -p "$rust_target"
+          fi
+          printf 'CARGO_TARGET_DIR=%s\n' "$rust_target" >> "$GITHUB_ENV"
+          printf 'Cargo target: %s\n' "$rust_target"
       - name: Setup Node.js
         uses: actions/setup-node@v3
       - name: Install npm dependencies
@@ -106,6 +116,7 @@ jobs:
         run: cargo build --manifest-path examples/rust/Cargo.toml --bins
       - name: Build tests
         run: |
+          : "${CARGO_TARGET_DIR:?Resolve Cargo target directory must run first}"
           cargo build --manifest-path rust/Cargo.toml -p ccxt_tests --bin ti-rust
           cp "$CARGO_TARGET_DIR/debug/ti-rust" rust/tests.bin
       - name: Cargo test
@@ -197,7 +208,11 @@ jobs:
 
           rm -f ./rust/tests.bin
 
+          # A runner-provided rust/target symlink must never enter the tree: a committed
+          # absolute path overrides the per-instance cache and makes concurrent jobs share
+          # one build directory.
           git add rust/
+          git reset -q -- rust/target
 
           if git diff --cached --quiet; then
             echo "No changes to commit."
