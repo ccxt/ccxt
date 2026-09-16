@@ -2105,11 +2105,10 @@ export default class alpaca extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const promises = [
-            this.traderPrivateGetV2Account (params),
-            this.traderPrivateGetV2Positions (),
-        ];
-        const [ account, positions ] = await Promise.all (promises);
+        // the two calls stay sequential deliberately — the static request harness records one request per case,
+        // and concurrent calls make the recorded url nondeterministic per language
+        const account = await this.traderPrivateGetV2Account (params);
+        const positions = await this.traderPrivateGetV2Positions ();
         //
         //     {
         //         "id": "43a01bde-4eb1-64fssc26adb5",
