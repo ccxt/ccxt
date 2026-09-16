@@ -2,7 +2,18 @@ import ts from 'typescript6';
 
 // Dispatch only calls resolved to the actual side-cache API, not textual names.
 export function installCacheRemoveCall (transpiler, language) {
-    const printer = language === 'go' ? transpiler.goTranspiler : (language === 'rust' ? transpiler.rustTranspiler : (language === 'java' ? transpiler.javaTranspiler : transpiler.csharpTranspiler));
+    let printer;
+    if (language === 'go') {
+        printer = transpiler.goTranspiler;
+    } else if (language === 'rust') {
+        printer = transpiler.rustTranspiler;
+    } else if (language === 'java') {
+        printer = transpiler.javaTranspiler;
+    } else if (language === 'csharp') {
+        printer = transpiler.csharpTranspiler;
+    } else {
+        throw new Error(`Unsupported cache remove language: ${language}`);
+    }
     if (printer.__cacheRemoveCallInstalled) {
         return;
     }
@@ -24,8 +35,11 @@ export function installCacheRemoveCall (transpiler, language) {
                 if (language === 'rust') {
                     return `${receiver}.remove_cache_symbol(${argument})`;
                 }
-                // Java uses its native printer and the nested cache class.
-                return `((ArrayCache.ArrayCacheBySymbolBySide)${receiver}).remove((String)${argument})`;
+                if (language === 'java') {
+                    // Java uses its native printer and the nested cache class.
+                    return `((ArrayCache.ArrayCacheBySymbolBySide)${receiver}).remove((String)${argument})`;
+                }
+                throw new Error(`Unsupported cache remove language: ${language}`);
             }
         }
         return original.call(this, node, indentation);
