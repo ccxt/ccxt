@@ -1320,7 +1320,14 @@ export default class krakenfutures extends Exchange {
             request['reduceOnly'] = true;
         }
         request['orderType'] = type;
-        if (price !== undefined) {
+        price = this.parseNumber (price); // some callers pass null instead of undefined, normalize it
+        const isLimitOrder = (type === 'lmt') || (type === 'post') || (type === 'ioc');
+        const limitPriceParam = this.safeString (params, 'limitPrice'); // the venue's own field name, forwarded as-is by this.extend below
+        if (isLimitOrder && (price === undefined) && (limitPriceParam === undefined)) {
+            throw new ArgumentsRequired (this.id + ' createOrder () requires a price argument for ' + type + ' orders');
+        }
+        const isMarketOrder = (type === 'mkt');
+        if ((price !== undefined) && !isMarketOrder) {
             request['limitPrice'] = this.priceToPrecision (symbol, price);
         }
         params = this.omit (params, [ 'clientOrderId', 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ]);

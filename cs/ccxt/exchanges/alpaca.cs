@@ -534,8 +534,8 @@ public partial class alpaca : Exchange
                         } },
                         { "timeInForce", new Dictionary<string, object>() {
                             { "IOC", true },
-                            { "FOK", true },
-                            { "PO", true },
+                            { "FOK", false },
+                            { "PO", false },
                             { "GTD", false },
                         } },
                         { "hedged", false },
@@ -605,6 +605,7 @@ public partial class alpaca : Exchange
                     { "40410000", typeof(InvalidOrder) },
                     { "40010001", typeof(BadRequest) },
                     { "40110000", typeof(PermissionDenied) },
+                    { "42210000", typeof(BadRequest) },
                     { "42910000", typeof(RateLimitExceeded) },
                 } },
                 { "broad", new Dictionary<string, object>() {
@@ -1374,6 +1375,7 @@ public partial class alpaca : Exchange
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
+     * @param {string} [params.timeInForce] 'GTC' or 'IOC', the venue supports only these two for crypto orders, defaults to 'GTC'
      * @param {float} [params.cost] *market orders only* the cost of the order in units of the quote currency
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -1422,6 +1424,11 @@ public partial class alpaca : Exchange
         IList<object> defaultTIFparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "createOrder", "timeInForce");
         defaultTIF = ((IList<object>)defaultTIFparametersVariable)[0];
         parameters = ((IList<object>)defaultTIFparametersVariable)[1];
+        if (isTrue(!isEqual(defaultTIF, null)))
+        {
+            // the venue only accepts lowercase values, normalize the unified uppercase spellings
+            defaultTIF = ((string)defaultTIF).ToLower();
+        }
         ((IDictionary<string,object>)request)["time_in_force"] = defaultTIF;
         parameters = this.omit(parameters, new List<object>() {"timeInForce", "triggerPrice"});
         ((IDictionary<string,object>)request)["client_order_id"] = this.generateClientOrderId(parameters);
@@ -1694,7 +1701,7 @@ public partial class alpaca : Exchange
      * @param {float} [price] the price for the order, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.triggerPrice] the price to trigger a stop order
-     * @param {string} [params.timeInForce] for crypto trading either 'gtc' or 'ioc' can be used
+     * @param {string} [params.timeInForce] 'GTC' or 'IOC', the venue supports only these two for crypto orders, defaults to 'GTC'
      * @param {string} [params.clientOrderId] a unique identifier for the order, automatically generated if not sent
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -1733,7 +1740,8 @@ public partial class alpaca : Exchange
         parameters = ((IList<object>)timeInForceparametersVariable)[1];
         if (isTrue(!isEqual(timeInForce, null)))
         {
-            ((IDictionary<string,object>)request)["time_in_force"] = timeInForce;
+            // the venue only accepts lowercase values, normalize the unified uppercase spellings
+            ((IDictionary<string,object>)request)["time_in_force"] = ((string)timeInForce).ToLower();
         }
         ((IDictionary<string,object>)request)["client_order_id"] = this.generateClientOrderId(parameters);
         parameters = this.omit(parameters, new List<object>() {"clientOrderId"});
@@ -1811,7 +1819,7 @@ public partial class alpaca : Exchange
             { "clientOrderId", this.safeString(order, "client_order_id") },
             { "timestamp", timestamp },
             { "datetime", datetime },
-            { "lastTradeTimeStamp", null },
+            { "lastTradeTimestamp", this.parse8601(this.safeString(order, "filled_at")) },
             { "status", status },
             { "symbol", symbol },
             { "type", orderType },
@@ -1836,10 +1844,22 @@ public partial class alpaca : Exchange
         Dictionary<string, object> statuses = new Dictionary<string, object>() {
             { "pending_new", "open" },
             { "accepted", "open" },
+            { "accepted_for_bidding", "open" },
             { "new", "open" },
             { "partially_filled", "open" },
             { "activated", "open" },
+            { "done_for_day", "open" },
+            { "stopped", "open" },
+            { "suspended", "open" },
+            { "held", "open" },
+            { "pending_replace", "open" },
+            { "pending_cancel", "canceling" },
             { "filled", "closed" },
+            { "calculated", "closed" },
+            { "canceled", "canceled" },
+            { "replaced", "canceled" },
+            { "expired", "expired" },
+            { "rejected", "rejected" },
         };
         return this.safeString(statuses, status, status);
     }
@@ -1848,6 +1868,9 @@ public partial class alpaca : Exchange
     {
         Dictionary<string, object> timeInForces = new Dictionary<string, object>() {
             { "day", "Day" },
+            { "gtc", "GTC" },
+            { "ioc", "IOC" },
+            { "fok", "FOK" },
         };
         return this.safeString(timeInForces, timeInForce, timeInForce);
     }

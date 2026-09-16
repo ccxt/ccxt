@@ -51,7 +51,7 @@ func testWatchMyTradesBody(ch chan any, exchange ccxt.ICoreExchange, skippedProp
 			AssertNonEmtpyArray(exchange, skippedProperties, method, response, symbol)
 			now = exchange.Milliseconds()
 			for i := 0; IsLessThan(i, GetArrayLength(response)); i++ {
-				TestTrade(exchange, skippedProperties, method, GetValue(response, i), symbol, now)
+				TestTrade(exchange, skippedProperties, method, GetValue(response, i), symbol, now, false)
 			}
 			AssertTimestampOrder(exchange, method, symbol, response)
 		}

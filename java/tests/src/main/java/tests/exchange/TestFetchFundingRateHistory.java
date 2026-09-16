@@ -15,7 +15,7 @@ public class TestFetchFundingRateHistory extends BaseTest {
     public CompletableFuture<Object> testFetchFundingRateHistory(BaseExchange exchange, Object skippedProperties, Object symbol)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
         String method = "fetchFundingRateHistory";
         Object fundingRatesHistory = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchFundingRateHistory", new Object[]{symbol})).join();

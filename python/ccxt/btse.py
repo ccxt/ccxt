@@ -1823,7 +1823,7 @@ class btse(Exchange, ImplicitAPI):
         :param float [params.stopPrice]: *NB - It is NOT stopLossPrice or triggerPricenot !! OCO orders only* Mandatory when creating an OCO order. Indicates the stop price
         :param bool [params.hedged]: *contract markets only* True for hedged mode, False for one way mode, default is False
         :param str [params.marginMode]: *contract markets only* 'cross' or 'isolated'(default is 'cross') - the exchange does not have cross/isolated margin modes but instead has 'ONE_WAY', 'HEDGE' and 'ISOLATED' position modes, so self param will be converted to the appropriate position mode
-        :param str [params.positionMode]: *contract markets only* 'ONE_WAY(default) or 'HEDGE or 'ISOLATED'(if not provided, it will be derived from marginMode and hedged params)
+        :param str [params.positionMode]: *contract markets only* 'ONE_WAY (default) or 'HEDGE or 'ISOLATED'(if not provided, it will be derived from marginMode and hedged params)
         :param dict [params.takeProfit]: *contract markets only* *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered(perpetual swap markets only)
         :param float [params.takeProfit.triggerPrice]: *contract markets only* take profit trigger price
         :param str [params.takeProfit.priceType]: *contract markets only* 'markPrice' or 'lastPrice', default is 'markPrice'

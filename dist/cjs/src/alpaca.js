@@ -376,8 +376,8 @@ class alpaca extends alpaca$1["default"] {
                         },
                         'timeInForce': {
                             'IOC': true,
-                            'FOK': true,
-                            'PO': true,
+                            'FOK': false, // {"code":42210000,"message":"invalid crypto time_in_force"} — verified live 2026-09-13
+                            'PO': false, // {"code":40010001,"message":"invalid time_in_force for crypto order"} — verified live 2026-09-13
                             'GTD': false,
                         },
                         'hedged': false,
@@ -447,6 +447,7 @@ class alpaca extends alpaca$1["default"] {
                     '40410000': errors.InvalidOrder, // { "code": 40410000, "message": "order is not found."}
                     '40010001': errors.BadRequest, // {"code":40010001,"message":"invalid order type for crypto order"}
                     '40110000': errors.PermissionDenied, // { "code": 40110000, "message": "request is not authorized"}
+                    '42210000': errors.BadRequest, // {"code":42210000,"message":"invalid crypto time_in_force"}
                     '42910000': errors.RateLimitExceeded, // {"code":42910000,"message":"rate limit exceeded"}
                 },
                 'broad': {
@@ -1149,6 +1150,7 @@ class alpaca extends alpaca$1["default"] {
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
+     * @param {string} [params.timeInForce] 'GTC' or 'IOC', the venue supports only these two for crypto orders, defaults to 'GTC'
      * @param {float} [params.cost] *market orders only* the cost of the order in units of the quote currency
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -1188,6 +1190,10 @@ class alpaca extends alpaca$1["default"] {
         }
         let defaultTIF = undefined;
         [defaultTIF, params] = this.handleOptionAndParams(params, 'createOrder', 'timeInForce');
+        if (defaultTIF !== undefined) {
+            // the venue only accepts lowercase values, normalize the unified uppercase spellings
+            defaultTIF = defaultTIF.toLowerCase();
+        }
         request['time_in_force'] = defaultTIF;
         params = this.omit(params, ['timeInForce', 'triggerPrice']);
         request['client_order_id'] = this.generateClientOrderId(params);
@@ -1436,7 +1442,7 @@ class alpaca extends alpaca$1["default"] {
      * @param {float} [price] the price for the order, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.triggerPrice] the price to trigger a stop order
-     * @param {string} [params.timeInForce] for crypto trading either 'gtc' or 'ioc' can be used
+     * @param {string} [params.timeInForce] 'GTC' or 'IOC', the venue supports only these two for crypto orders, defaults to 'GTC'
      * @param {string} [params.clientOrderId] a unique identifier for the order, automatically generated if not sent
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -1465,7 +1471,8 @@ class alpaca extends alpaca$1["default"] {
         let timeInForce = undefined;
         [timeInForce, params] = this.handleOptionAndParams(params, 'editOrder', 'timeInForce', 'gtc');
         if (timeInForce !== undefined) {
-            request['time_in_force'] = timeInForce;
+            // the venue only accepts lowercase values, normalize the unified uppercase spellings
+            request['time_in_force'] = timeInForce.toLowerCase();
         }
         request['client_order_id'] = this.generateClientOrderId(params);
         params = this.omit(params, ['clientOrderId']);
@@ -1521,7 +1528,7 @@ class alpaca extends alpaca$1["default"] {
         if (feeValue !== undefined) {
             fee = {
                 'cost': feeValue,
-                'currency': 'USD',
+                'currency': 'USD', // commission is denominated per the account currency; crypto fills omit the field entirely — their fee is taken from the received asset, verified live 2026-09-15
             };
         }
         let orderType = this.safeString(order, 'order_type');
@@ -1538,7 +1545,7 @@ class alpaca extends alpaca$1["default"] {
             'clientOrderId': this.safeString(order, 'client_order_id'),
             'timestamp': timestamp,
             'datetime': datetime,
-            'lastTradeTimeStamp': undefined,
+            'lastTradeTimestamp': this.parse8601(this.safeString(order, 'filled_at')), // set on complete fills only — per-fill timestamps for partials come from the account activities used by fetchMyTrades, and updated_at also moves on non-fill transitions so it is no substitute
             'status': status,
             'symbol': symbol,
             'type': orderType,
@@ -1561,16 +1568,31 @@ class alpaca extends alpaca$1["default"] {
         const statuses = {
             'pending_new': 'open',
             'accepted': 'open',
+            'accepted_for_bidding': 'open',
             'new': 'open',
             'partially_filled': 'open',
             'activated': 'open',
+            'done_for_day': 'open', // no more executions on that day, the order itself stays live
+            'stopped': 'open', // a fill is guaranteed at a stated price but has not occurred yet
+            'suspended': 'open',
+            'held': 'open',
+            'pending_replace': 'open',
+            'pending_cancel': 'canceling',
             'filled': 'closed',
+            'calculated': 'closed', // completed for the day, settlement calculations are pending
+            'canceled': 'canceled',
+            'replaced': 'canceled', // the venue closes the replaced id and opens a new order id for the replacement
+            'expired': 'expired',
+            'rejected': 'rejected',
         };
         return this.safeString(statuses, status, status);
     }
     parseTimeInForce(timeInForce) {
         const timeInForces = {
-            'day': 'Day',
+            'day': 'Day', // equities-only value kept as-is deliberately: crypto orders reject it with 42210000, verified live 2026-09-13, and the unified set has no day spelling either way
+            'gtc': 'GTC',
+            'ioc': 'IOC',
+            'fok': 'FOK',
         };
         return this.safeString(timeInForces, timeInForce, timeInForce);
     }
