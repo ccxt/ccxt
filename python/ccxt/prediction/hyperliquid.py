@@ -882,7 +882,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
 
     async def fetch_positions(self, outcomes: Strings = None, params={}) -> list[PredictionPosition]:
         """
-        fetches the user's outcome positions; outcome positions are spot token balances under the "+<encoding>" coin form(size and entry notional), the value/entry/mark price/pnl are computed from the current mid prices
+        fetches the user's outcome positions; outcome positions are spot token balances under the "+<encoding>" coin form (size and entry notional), the value/entry/mark price/pnl are computed from the current mid prices
 
         https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/spot#retrieve-a-users-token-balances
 
@@ -1069,7 +1069,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
             found = self.find_outcome_in_market(market, sideHintOrDefault)
             if len(found) > 0:
                 return found
-        raise ArgumentsRequired(self.id + ' cannot resolve outcome from input: ' + outcomeInput + '. Provide an outcome symbol(e.g. MARKET:YES), outcome id(#<encoding>), or market id with side.')
+        raise ArgumentsRequired(self.id + ' cannot resolve outcome from input: ' + outcomeInput + '. Provide an outcome symbol (e.g. MARKET:YES), outcome id (#<encoding>), or market id with side.')
 
     async def create_order(self, outcome: str, type: str, side: str, amount: float, price: Num = None, params={}) -> PredictionOrder:
         """

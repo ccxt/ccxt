@@ -5,6 +5,7 @@ package io.github.ccxt.exchanges.pro;
 import io.github.ccxt.base.Precise;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
+import io.github.ccxt.BaseExchange;
 import io.github.ccxt.ws.*;
 import io.github.ccxt.Client;
 import io.github.ccxt.types.Balances;
@@ -196,7 +197,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
     public CompletableFuture<Order> createOrderWs(String symbol2, Object type, Object side, Object amount, Object... optionalArgs)
     {
         final Object symbol3 = symbol2;
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object price = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -231,7 +232,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
     public CompletableFuture<List<Order>> createOrdersWs(Object orders, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
@@ -270,7 +271,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
     public CompletableFuture<List<Order>> cancelAllOrdersWs(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -319,7 +320,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
     public CompletableFuture<Order> cancelOrderWs(String id, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -365,7 +366,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
     public CompletableFuture<Order> editOrderWs(String id, String symbol, Object type, Object side, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object amount = Helpers.getArg(optionalArgs, 0, null);
             Object price = Helpers.getArg(optionalArgs, 1, null);
@@ -404,7 +405,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
     public CompletableFuture<Order> fetchOrderWs(String id, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -440,7 +441,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
     public CompletableFuture<List<Order>> fetchOpenOrdersWs(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -465,7 +466,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
     public CompletableFuture<List<Order>> fetchClosedOrdersWs(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -493,7 +494,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
     public CompletableFuture<List<Order>> fetchOrdersByStatusWs(Object status, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -546,7 +547,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
     public CompletableFuture<OrderBook> watchOrderBook(String symbol2, Object... optionalArgs)
     {
         final Object symbol3 = symbol2;
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object limit = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -619,7 +620,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
     public CompletableFuture<Object> unWatchOrderBook(Object symbol2, Object... optionalArgs)
     {
         final Object symbol3 = symbol2;
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
@@ -925,7 +926,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
     public CompletableFuture<Ticker> watchTicker(String symbol2, Object... optionalArgs)
     {
         final Object symbol3 = symbol2;
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
@@ -955,7 +956,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
     public CompletableFuture<Tickers> watchTickers(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -1003,7 +1004,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
     public CompletableFuture<Tickers> watchBidsAsks(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -1039,7 +1040,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
     public CompletableFuture<Object> subscribeWatchTickersAndBidsAsks(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object callerMethodName = Helpers.getArg(optionalArgs, 1, null);
@@ -1145,7 +1146,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
     public CompletableFuture<List<Trade>> watchTrades(String symbol, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, null);
@@ -1172,7 +1173,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
     public CompletableFuture<List<Trade>> watchTradesForSymbols(Object symbols2, Object... optionalArgs)
     {
         final Object symbols3 = symbols2;
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
             Object symbols = symbols3;
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, null);
@@ -1216,7 +1217,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
     public CompletableFuture<Object> unWatchTradesForSymbols(Object symbols2, Object... optionalArgs)
     {
         final Object symbols3 = symbols2;
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
             Object symbols = symbols3;
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
@@ -1253,7 +1254,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
     public CompletableFuture<Object> unWatchTrades(String symbol, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             return (this.unWatchTradesForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), parameters)).join();
@@ -1322,7 +1323,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
     public CompletableFuture<List<OHLCV>> watchOHLCV(String symbol2, Object... optionalArgs)
     {
         final Object symbol3 = symbol2;
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object timeframe = Helpers.getArg(optionalArgs, 0, "1m");
             Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -1434,7 +1435,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
     public CompletableFuture<List<Trade>> watchMyTrades(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -1558,7 +1559,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
     public CompletableFuture<Balances> watchBalance(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
@@ -1705,7 +1706,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
     public CompletableFuture<List<Position>> watchPositions(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -1801,7 +1802,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
     {
         final Object messageHash3 = messageHash2;
         final Object type3 = type2;
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
             Object messageHash = messageHash3;
             Object type = type3;
             final Object finalType = type;
@@ -1940,7 +1941,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
     public CompletableFuture<List<Order>> watchOrders(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -2122,7 +2123,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
     public CompletableFuture<List<Liquidation>> watchMyLiquidations(String symbol, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, null);
@@ -2148,7 +2149,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
     public CompletableFuture<List<Liquidation>> watchMyLiquidationsForSymbols(Object symbols2, Object... optionalArgs)
     {
         final Object symbols3 = symbols2;
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
             Object symbols = symbols3;
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, null);
@@ -2741,7 +2742,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
     public CompletableFuture<Object> subscribePublic(Object url, Object messageHash2, Object payload, Object channel, Object... optionalArgs)
     {
         final Object messageHash3 = messageHash2;
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
             Object messageHash = messageHash3;
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Object subscription = Helpers.getArg(optionalArgs, 1, null);
@@ -2772,7 +2773,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
     public CompletableFuture<Object> subscribePublicMultiple(Object url, Object messageHashes, Object payload, Object channel, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Object requestId = this.requestId();
@@ -2793,7 +2794,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
     public CompletableFuture<Object> unSubscribePublicMultiple(Object url, Object topic, Object symbols, Object messageHashes, Object subMessageHashes, Object payload, Object channel, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Object requestId = this.requestId();
@@ -2822,7 +2823,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
     public CompletableFuture<Object> authenticate(Object url, Object messageType2)
     {
         final Object messageType3 = messageType2;
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
             Object messageType = messageType3;
             Object channel = Helpers.add(messageType, ".login");
             Client client = this.client(url);
@@ -2848,7 +2849,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
     public CompletableFuture<Object> requestPrivate(Object url, Object reqParams, Object channel2, Object... optionalArgs)
     {
         final Object channel3 = channel2;
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
             Object channel = channel3;
             Object requestId = Helpers.getArg(optionalArgs, 0, null);
             this.checkRequiredCredentials();
@@ -2895,7 +2896,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
     {
         final Object messageHash3 = messageHash2;
         final Object payload3 = payload2;
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
             Object messageHash = messageHash3;
             Object payload = payload3;
             Object requiresUid = Helpers.getArg(optionalArgs, 0, false);

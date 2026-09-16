@@ -17,7 +17,7 @@ public class TestFetchMarginModes extends BaseTest {
     public CompletableFuture<Object> testFetchMarginModes(BaseExchange exchange, Object skippedProperties, Object symbol)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
         String method = "fetchMarginModes";
         Object marginModes = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchMarginModes", new Object[]{new ArrayList<Object>(Arrays.asList(symbol))})).join();

@@ -2285,6 +2285,9 @@ func (this *Kucoin) GetCacheIndex(orderbook any, cache any) any {
 	var firstDelta any = this.SafeValue(cache, 0)
 	var nonce any = this.SafeInteger(orderbook, "nonce")
 	var firstDeltaStart any = this.SafeIntegerN(firstDelta, []any{"sequenceStart", "sequence", "O"})
+	if ccxt.IsTrue(ccxt.IsTrue((ccxt.IsEqual(nonce, nil))) || ccxt.IsTrue((ccxt.IsEqual(firstDeltaStart, nil)))) {
+		return ccxt.OpNeg(1)
+	}
 	if ccxt.IsTrue(ccxt.IsLessThan(nonce, ccxt.Subtract(firstDeltaStart, 1))) {
 		return ccxt.OpNeg(1)
 	}
@@ -2292,6 +2295,9 @@ func (this *Kucoin) GetCacheIndex(orderbook any, cache any) any {
 		var delta any = ccxt.GetValue(cache, i)
 		var deltaStart any = this.SafeIntegerN(delta, []any{"sequenceStart", "sequence", "O"})
 		var deltaEnd any = this.SafeIntegerN(delta, []any{"sequenceEnd", "sequence", "C"}) // todo check
+		if ccxt.IsTrue(ccxt.IsTrue((ccxt.IsEqual(deltaStart, nil))) || ccxt.IsTrue((ccxt.IsEqual(deltaEnd, nil)))) {
+			continue
+		}
 		if ccxt.IsTrue(ccxt.IsTrue((ccxt.IsGreaterThanOrEqual(nonce, ccxt.Subtract(deltaStart, 1)))) && ccxt.IsTrue((ccxt.IsLessThan(nonce, deltaEnd)))) {
 			return i
 		}
@@ -2464,8 +2470,8 @@ func (this *Kucoin) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 
-		retRes193412 := (<-this.LoadMarketsAsync())
-		ccxt.PanicOnError(retRes193412)
+		retRes194012 := (<-this.LoadMarketsAsync())
+		ccxt.PanicOnError(retRes194012)
 	}
 
 	uta := (<-this.IsUTAEnabledAsync())
@@ -2916,8 +2922,8 @@ func (this *Kucoin) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 
-		retRes235712 := (<-this.LoadMarketsAsync())
-		ccxt.PanicOnError(retRes235712)
+		retRes236312 := (<-this.LoadMarketsAsync())
+		ccxt.PanicOnError(retRes236312)
 	}
 	var messageHash any = "myTrades"
 	var market any = nil
@@ -3166,8 +3172,8 @@ func (this *Kucoin) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 
-		retRes258212 := (<-this.LoadMarketsAsync())
-		ccxt.PanicOnError(retRes258212)
+		retRes258812 := (<-this.LoadMarketsAsync())
+		ccxt.PanicOnError(retRes258812)
 	}
 
 	uta := (<-this.IsUTAEnabledAsync())
@@ -3204,8 +3210,8 @@ func (this *Kucoin) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	var awaitBalanceSnapshot any = this.SafeBool(options, "awaitBalanceSnapshot", true)
 	if ccxt.IsTrue(ccxt.IsTrue((ccxt.IsEqual(fetchBalanceSnapshot, true))) && ccxt.IsTrue((ccxt.IsEqual(awaitBalanceSnapshot, true)))) {
 
-		retRes261012 := (<-client.(ccxt.ClientInterface).Future(ccxt.Add(uniformType, ":fetchBalanceSnapshot")))
-		ccxt.PanicOnError(retRes261012)
+		retRes261612 := (<-client.(ccxt.ClientInterface).Future(ccxt.Add(uniformType, ":fetchBalanceSnapshot")))
+		ccxt.PanicOnError(retRes261612)
 	}
 	var messageHash any = ccxt.Add(uniformType, ":balance")
 	if ccxt.IsTrue(uta) {
@@ -3214,9 +3220,9 @@ func (this *Kucoin) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 		}
 		var channel string = "balance"
 
-		retRes261819 := (<-this.SubscribePrivateUtaAsync([]any{messageHash}, subscriptionHash, channel, nil, this.Extend(extendedParams, params)))
-		ccxt.PanicOnError(retRes261819)
-		ch <- retRes261819
+		retRes262419 := (<-this.SubscribePrivateUtaAsync([]any{messageHash}, subscriptionHash, channel, nil, this.Extend(extendedParams, params)))
+		ccxt.PanicOnError(retRes262419)
+		ch <- retRes262419
 		return nil
 	} else {
 		var requestId string = ccxt.ToString(this.RequestId())
@@ -3232,9 +3238,9 @@ func (this *Kucoin) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 			ccxt.AddElementToObject(client.(ccxt.ClientInterface).GetSubscriptions(), requestId, subscriptionHash)
 		}
 
-		retRes263219 := (<-this.Watch(url, messageHash, message, uniformType))
-		ccxt.PanicOnError(retRes263219)
-		ch <- retRes263219
+		retRes263819 := (<-this.Watch(url, messageHash, message, uniformType))
+		ccxt.PanicOnError(retRes263819)
+		ch <- retRes263819
 		return nil
 	}
 }
@@ -3450,8 +3456,8 @@ func (this *Kucoin) watchPositionBody(ch chan any, optionalArgs ...any) any {
 	}
 	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 
-		retRes282912 := (<-this.LoadMarketsAsync())
-		ccxt.PanicOnError(retRes282912)
+		retRes283512 := (<-this.LoadMarketsAsync())
+		ccxt.PanicOnError(retRes283512)
 	}
 
 	url := (<-this.NegotiateAsync(true))
@@ -3476,9 +3482,9 @@ func (this *Kucoin) watchPositionBody(ch chan any, optionalArgs ...any) any {
 		return nil
 	}
 
-	retRes284715 := (<-this.SubscribeAsync(url, messageHash, topic, this.Extend(request, params)))
-	ccxt.PanicOnError(retRes284715)
-	ch <- retRes284715
+	retRes285315 := (<-this.SubscribeAsync(url, messageHash, topic, this.Extend(request, params)))
+	ccxt.PanicOnError(retRes285315)
+	ch <- retRes285315
 	return nil
 }
 
@@ -3512,8 +3518,8 @@ func (this *Kucoin) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 
-		retRes286412 := (<-this.LoadMarketsAsync())
-		ccxt.PanicOnError(retRes286412)
+		retRes287012 := (<-this.LoadMarketsAsync())
+		ccxt.PanicOnError(retRes287012)
 	}
 
 	uta := (<-this.IsUTAEnabledAsync())
@@ -3896,16 +3902,16 @@ func (this *Kucoin) watchFundingRateBody(ch chan any, symbol any, optionalArgs .
 	_ = params
 	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 
-		retRes320512 := (<-this.LoadMarketsAsync())
-		ccxt.PanicOnError(retRes320512)
+		retRes321112 := (<-this.LoadMarketsAsync())
+		ccxt.PanicOnError(retRes321112)
 	}
 	symbol = this.SafeSymbol(symbol)
 	var channel string = "funding-fee"
 	var messageHash any = ccxt.Add("fundingRate:", symbol)
 
-	retRes321015 := (<-this.SubscribePublicUtaAsync(messageHash, channel, symbol, params))
-	ccxt.PanicOnError(retRes321015)
-	ch <- retRes321015
+	retRes321615 := (<-this.SubscribePublicUtaAsync(messageHash, channel, symbol, params))
+	ccxt.PanicOnError(retRes321615)
+	ch <- retRes321615
 	return nil
 }
 
@@ -3930,8 +3936,8 @@ func (this *Kucoin) unWatchFundingRateBody(ch chan any, symbol any, optionalArgs
 	_ = params
 	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 
-		retRes322412 := (<-this.LoadMarketsAsync())
-		ccxt.PanicOnError(retRes322412)
+		retRes323012 := (<-this.LoadMarketsAsync())
+		ccxt.PanicOnError(retRes323012)
 	}
 	symbol = this.SafeSymbol(symbol)
 	var channel string = "funding-fee"
@@ -3945,9 +3951,9 @@ func (this *Kucoin) unWatchFundingRateBody(ch chan any, symbol any, optionalArgs
 		"messageHashes":    []any{unSubMessageHash},
 	}
 
-	retRes323715 := (<-this.SubscribePublicUtaAsync(unSubMessageHash, channel, symbol, params, subscription))
-	ccxt.PanicOnError(retRes323715)
-	ch <- retRes323715
+	retRes324315 := (<-this.SubscribePublicUtaAsync(unSubMessageHash, channel, symbol, params, subscription))
+	ccxt.PanicOnError(retRes324315)
+	ch <- retRes324315
 	return nil
 }
 func (this *Kucoin) HandleUtaFundingRate(client any, message any) {
@@ -4036,16 +4042,16 @@ func (this *Kucoin) watchMarkPriceBody(ch chan any, symbol any, optionalArgs ...
 	_ = params
 	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 
-		retRes331512 := (<-this.LoadMarketsAsync())
-		ccxt.PanicOnError(retRes331512)
+		retRes332112 := (<-this.LoadMarketsAsync())
+		ccxt.PanicOnError(retRes332112)
 	}
 	symbol = this.SafeSymbol(symbol)
 	var channel string = "mark-price"
 	var messageHash any = ccxt.Add("uta:ticker:", symbol)
 
-	retRes332015 := (<-this.SubscribePublicUtaAsync(messageHash, channel, symbol, params))
-	ccxt.PanicOnError(retRes332015)
-	ch <- retRes332015
+	retRes332615 := (<-this.SubscribePublicUtaAsync(messageHash, channel, symbol, params))
+	ccxt.PanicOnError(retRes332615)
+	ch <- retRes332615
 	return nil
 }
 
@@ -4070,8 +4076,8 @@ func (this *Kucoin) unWatchMarkPriceBody(ch chan any, symbol any, optionalArgs .
 	_ = params
 	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 
-		retRes333412 := (<-this.LoadMarketsAsync())
-		ccxt.PanicOnError(retRes333412)
+		retRes334012 := (<-this.LoadMarketsAsync())
+		ccxt.PanicOnError(retRes334012)
 	}
 	symbol = this.SafeSymbol(symbol)
 	var channel string = "mark-price"
@@ -4085,9 +4091,9 @@ func (this *Kucoin) unWatchMarkPriceBody(ch chan any, symbol any, optionalArgs .
 		"messageHashes":    []any{unSubMessageHash},
 	}
 
-	retRes334715 := (<-this.SubscribePublicUtaAsync(unSubMessageHash, channel, symbol, params, subscription))
-	ccxt.PanicOnError(retRes334715)
-	ch <- retRes334715
+	retRes335315 := (<-this.SubscribePublicUtaAsync(unSubMessageHash, channel, symbol, params, subscription))
+	ccxt.PanicOnError(retRes335315)
+	ch <- retRes335315
 	return nil
 }
 func (this *Kucoin) HandleSubject(client any, message any) {

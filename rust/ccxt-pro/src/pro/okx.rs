@@ -346,6 +346,17 @@ impl OkxCore {
         m.insert("watchPositions".to_string(), Value::Bool(true));
         m.insert("watchFundingRate".to_string(), Value::Bool(true));
         m.insert("watchFundingRates".to_string(), Value::Bool(true));
+        m.insert("unWatchTicker".to_string(), Value::Bool(true));
+        m.insert("unWatchTickers".to_string(), Value::Bool(true));
+        m.insert("unWatchOHLCV".to_string(), Value::Bool(true));
+        m.insert("unWatchOHLCVForSymbols".to_string(), Value::Bool(true));
+        m.insert("unWatchOrderBook".to_string(), Value::Bool(true));
+        m.insert("unWatchOrderBookForSymbols".to_string(), Value::Bool(true));
+        m.insert("unWatchTrades".to_string(), Value::Bool(true));
+        m.insert("unWatchTradesForSymbols".to_string(), Value::Bool(true));
+        m.insert("unWatchMyTrades".to_string(), Value::Bool(false));
+        m.insert("unWatchOrders".to_string(), Value::Bool(false));
+        m.insert("unWatchPositions".to_string(), Value::Bool(false));
         m.insert("createOrderWs".to_string(), Value::Bool(true));
         m.insert("editOrderWs".to_string(), Value::Bool(true));
         m.insert("cancelOrderWs".to_string(), Value::Bool(true));
@@ -383,6 +394,11 @@ impl OkxCore {
         m.insert("watchTickers".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("channel".to_string(), Value::Str("tickers".to_string()));
+    m
+}));
+        m.insert("watchBidsAsks".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("channel".to_string(), Value::Str("bbo-tbt".to_string()));
     m
 }));
         m.insert("watchOrders".to_string(), Value::Map({
@@ -465,8 +481,8 @@ impl OkxCore {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_524: bool = true;
-            while { if !__for_first_524 { i = add(&i, &Value::Int(1)); } __for_first_524 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+            let mut __for_first_525: bool = true;
+            while { if !__for_first_525 { i = add(&i, &Value::Int(1)); } __for_first_525 = false; is_less_than(&i, &get_array_length(&symbols)) } {
             if is_equal(&symbols, &Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" subscribeMultiple() symbols is required".to_string()))));
             }
@@ -583,8 +599,8 @@ impl OkxCore {
         let mut messageHashes: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_525: bool = true;
-            while { if !__for_first_525 { i = add(&i, &Value::Int(1)); } __for_first_525 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+            let mut __for_first_526: bool = true;
+            while { if !__for_first_526 { i = add(&i, &Value::Int(1)); } __for_first_526 = false; is_less_than(&i, &get_array_length(&symbols)) } {
             let mut symbol: Value = get_value(&symbols, &i);
             let mut symbol: Value = get_value(&symbols, &i);
             append_to_array(&mut messageHashes, add(&add(&channel, &Value::Str(":".to_string())), &symbol));
@@ -649,8 +665,8 @@ impl OkxCore {
         let mut messageHashes: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_526: bool = true;
-            while { if !__for_first_526 { i = add(&i, &Value::Int(1)); } __for_first_526 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+            let mut __for_first_527: bool = true;
+            while { if !__for_first_527 { i = add(&i, &Value::Int(1)); } __for_first_527 = false; is_less_than(&i, &get_array_length(&symbols)) } {
             let mut symbol: Value = get_value(&symbols, &i);
             let mut symbol: Value = get_value(&symbols, &i);
             append_to_array(&mut messageHashes, add(&add(&add(&Value::Str("unsubscribe:".to_string()), &channel), &Value::Str(":".to_string())), &symbol));
@@ -747,8 +763,8 @@ impl OkxCore {
         let mut tradesLimit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_527: bool = true;
-            while { if !__for_first_527 { i = add(&i, &Value::Int(1)); } __for_first_527 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_528: bool = true;
+            while { if !__for_first_528 { i = add(&i, &Value::Int(1)); } __for_first_528 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut trade: Value = self.parse_trade(get_value(&data, &i), &[]);
             let mut messageHash: Value = add(&add(&channel, &Value::Str(":".to_string())), &symbol);
             let mut stored: Value = self.safe_value(self.trades.clone(), symbol.clone(), &[]);
@@ -810,8 +826,8 @@ impl OkxCore {
         let mut messageHashes: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_528: bool = true;
-            while { if !__for_first_528 { i = add(&i, &Value::Int(1)); } __for_first_528 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+            let mut __for_first_529: bool = true;
+            while { if !__for_first_529 { i = add(&i, &Value::Int(1)); } __for_first_529 = false; is_less_than(&i, &get_array_length(&symbols)) } {
             let mut symbol: Value = get_value(&symbols, &i);
             let mut symbol: Value = get_value(&symbols, &i);
             append_to_array(&mut messageHashes, add(&add(&channel, &Value::Str(":".to_string())), &symbol));
@@ -872,8 +888,8 @@ impl OkxCore {
         let mut data: Value = self.safe_list_k(message.clone(), "data", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_529: bool = true;
-            while { if !__for_first_529 { i = add(&i, &Value::Int(1)); } __for_first_529 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_530: bool = true;
+            while { if !__for_first_530 { i = add(&i, &Value::Int(1)); } __for_first_530 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut rawfr: Value = get_value(&data, &i);
             let mut rawfr: Value = get_value(&data, &i);
             let mut fundingRate: Value = self.parse_funding_rate(rawfr.clone(), &[]);
@@ -1046,8 +1062,8 @@ impl OkxCore {
         let mut messageHashes: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_530: bool = true;
-            while { if !__for_first_530 { i = add(&i, &Value::Int(1)); } __for_first_530 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+            let mut __for_first_531: bool = true;
+            while { if !__for_first_531 { i = add(&i, &Value::Int(1)); } __for_first_531 = false; is_less_than(&i, &get_array_length(&symbols)) } {
             let mut symbol: Value = get_value(&symbols, &i);
             let mut symbol: Value = get_value(&symbols, &i);
             append_to_array(&mut messageHashes, add(&Value::Str("unsubscribe:ticker:".to_string()), &symbol));
@@ -1115,8 +1131,8 @@ impl OkxCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_531: bool = true;
-            while { if !__for_first_531 { i = add(&i, &Value::Int(1)); } __for_first_531 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_532: bool = true;
+            while { if !__for_first_532 { i = add(&i, &Value::Int(1)); } __for_first_532 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut ticker: Value = self.parse_ticker(get_value(&data, &i), &[]);
             add_element_to_object(&mut self.tickers, &symbol, ticker.clone());
             add_element_to_object(&mut newTickers, &symbol, ticker.clone());
@@ -1129,10 +1145,12 @@ impl OkxCore {
 /*
  * @method
  * @name okx#watchBidsAsks
+ * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-order-book-channel
  * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-tickers-channel
  * @description watches best bid & ask for symbols
  * @param {string[]} symbols unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.channel] the channel to subscribe to, 'bbo-tbt' (default, 10ms L1) or 'tickers' (100ms)
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
     pub async fn watch_bids_asks(&mut self, optional_args: &[Value]) -> Value {
@@ -1146,14 +1164,14 @@ impl OkxCore {
         }
         symbols = self.market_symbols(&[symbols.clone(), Value::Null, Value::Bool(false)]);
         let mut channel: Value = Value::Null;
-        { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("watchBidsAsks".to_string()), Value::Str("channel".to_string()), &[Value::Str("tickers".to_string())]); channel = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
+        { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("watchBidsAsks".to_string()), Value::Str("channel".to_string()), &[Value::Str("bbo-tbt".to_string())]); channel = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut url: Value = self.get_url(channel.clone(), &[Value::Str("public".to_string())]);
         let mut messageHashes: Value = Value::List(vec![]);
         let mut args: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_532: bool = true;
-            while { if !__for_first_532 { i = add(&i, &Value::Int(1)); } __for_first_532 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+            let mut __for_first_533: bool = true;
+            while { if !__for_first_533 { i = add(&i, &Value::Int(1)); } __for_first_533 = false; is_less_than(&i, &get_array_length(&symbols)) } {
             let mut marketId: Value = self.market_id(get_value(&symbols, &i));
             let mut arg: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -1187,6 +1205,8 @@ impl OkxCore {
 
     pub fn handle_bid_ask(&mut self, mut client: Value, mut message: Value) {
         //
+        // tickers
+        //
         //     {
         //         "arg": { channel: "tickers", instId: "BTC-USDT" },
         //         "data": [
@@ -1211,12 +1231,31 @@ impl OkxCore {
         //         ]
         //     }
         //
+        // bbo-tbt
+        //
+        //     {
+        //         "arg": { "channel": "bbo-tbt", "instId": "BTC-USDT" },
+        //         "data": [
+        //             {
+        //                 "asks": [ [ "36232.2", "1.8826134", "0", "17" ] ],
+        //                 "bids": [ [ "36232.1", "0.00572212", "0", "2" ] ],
+        //                 "ts": "1651826598363"
+        //             }
+        //         ]
+        //     }
+        //
+        let mut arg: Value = self.safe_dict_k(message.clone(), "arg", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]);
+        let mut marketId: Value = self.safe_string_k(arg.clone(), "instId", &[]);
+        let mut market: Value = self.safe_market(&[marketId.clone()]);
         let mut data: Value = self.safe_list_k(message.clone(), "data", &[Value::List(vec![])]);
         let mut ticker: Value = self.safe_dict(data.clone(), Value::Int(0), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut parsedTicker: Value = self.parse_ws_bid_ask(ticker.clone(), &[]);
+        let mut parsedTicker: Value = self.parse_ws_bid_ask(ticker.clone(), &[market.clone()]);
         let mut symbol: Value = get_value(&parsedTicker, &Value::Str("symbol".to_string()));
         if !is_equal(&symbol, &Value::Null) {
             add_element_to_object(&mut self.bidsasks, &symbol, parsedTicker.clone());
@@ -1231,15 +1270,31 @@ impl OkxCore {
         market = self.safe_market(&[marketId.clone(), market.clone()]);
         let mut symbol: Value = self.safe_string_k(market.clone(), "symbol", &[]);
         let mut timestamp: Value = self.safe_integer_k(ticker.clone(), "ts", &[]);
+        let mut ask: Value = self.safe_string_k(ticker.clone(), "askPx", &[]);
+        let mut askVolume: Value = self.safe_string_k(ticker.clone(), "askSz", &[]);
+        let mut bid: Value = self.safe_string_k(ticker.clone(), "bidPx", &[]);
+        let mut bidVolume: Value = self.safe_string_k(ticker.clone(), "bidSz", &[]);
+        if is_equal(&ask, &Value::Null) {
+            let mut asks: Value = self.safe_list_k(ticker.clone(), "asks", &[Value::List(vec![])]);
+            let mut firstAsk: Value = self.safe_list(asks.clone(), Value::Int(0), &[Value::List(vec![])]);
+            ask = self.safe_string(firstAsk.clone(), Value::Int(0), &[]);
+            askVolume = self.safe_string(firstAsk.clone(), Value::Int(1), &[]);
+        }
+        if is_equal(&bid, &Value::Null) {
+            let mut bids: Value = self.safe_list_k(ticker.clone(), "bids", &[Value::List(vec![])]);
+            let mut firstBid: Value = self.safe_list(bids.clone(), Value::Int(0), &[Value::List(vec![])]);
+            bid = self.safe_string(firstBid.clone(), Value::Int(0), &[]);
+            bidVolume = self.safe_string(firstBid.clone(), Value::Int(1), &[]);
+        }
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol.clone());
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
-        m.insert("ask".to_string(), self.safe_string_k(ticker.clone(), "askPx", &[]));
-        m.insert("askVolume".to_string(), self.safe_string_k(ticker.clone(), "askSz", &[]));
-        m.insert("bid".to_string(), self.safe_string_k(ticker.clone(), "bidPx", &[]));
-        m.insert("bidVolume".to_string(), self.safe_string_k(ticker.clone(), "bidSz", &[]));
+        m.insert("ask".to_string(), ask.clone());
+        m.insert("askVolume".to_string(), askVolume.clone());
+        m.insert("bid".to_string(), bid.clone());
+        m.insert("bidVolume".to_string(), bidVolume.clone());
         m.insert("info".to_string(), ticker.clone());
     m
 }), &[market.clone()]);
@@ -1274,8 +1329,8 @@ impl OkxCore {
         if !is_equal(&symbols, &Value::Null) {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_533: bool = true;
-                while { if !__for_first_533 { i = add(&i, &Value::Int(1)); } __for_first_533 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+                let mut __for_first_534: bool = true;
+                while { if !__for_first_534 { i = add(&i, &Value::Int(1)); } __for_first_534 = false; is_less_than(&i, &get_array_length(&symbols)) } {
                 let mut symbol: Value = get_value(&symbols, &i);
                 let mut symbol: Value = get_value(&symbols, &i);
                 append_to_array(&mut messageHashes, add(&add(&messageHash, &Value::Str("::".to_string())), &symbol));
@@ -1349,8 +1404,8 @@ impl OkxCore {
         let mut rawLiquidations: Value = self.safe_list_k(message.clone(), "data", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_534: bool = true;
-            while { if !__for_first_534 { i = add(&i, &Value::Int(1)); } __for_first_534 = false; is_less_than(&i, &get_array_length(&rawLiquidations)) } {
+            let mut __for_first_535: bool = true;
+            while { if !__for_first_535 { i = add(&i, &Value::Int(1)); } __for_first_535 = false; is_less_than(&i, &get_array_length(&rawLiquidations)) } {
             let mut rawLiquidation: Value = get_value(&rawLiquidations, &i);
             let mut rawLiquidation: Value = get_value(&rawLiquidations, &i);
             let mut liquidation: Value = self.parse_ws_liquidation(rawLiquidation.clone(), &[]);
@@ -1402,8 +1457,8 @@ impl OkxCore {
         if !is_equal(&symbols, &Value::Null) {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_535: bool = true;
-                while { if !__for_first_535 { i = add(&i, &Value::Int(1)); } __for_first_535 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+                let mut __for_first_536: bool = true;
+                while { if !__for_first_536 { i = add(&i, &Value::Int(1)); } __for_first_536 = false; is_less_than(&i, &get_array_length(&symbols)) } {
                 let mut symbol: Value = get_value(&symbols, &i);
                 let mut symbol: Value = get_value(&symbols, &i);
                 append_to_array(&mut messageHashes, add(&add(&messageHash, &Value::Str("::".to_string())), &symbol));
@@ -1472,8 +1527,8 @@ impl OkxCore {
         let mut rawLiquidations: Value = self.safe_list_k(message.clone(), "data", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_536: bool = true;
-            while { if !__for_first_536 { i = add(&i, &Value::Int(1)); } __for_first_536 = false; is_less_than(&i, &get_array_length(&rawLiquidations)) } {
+            let mut __for_first_537: bool = true;
+            while { if !__for_first_537 { i = add(&i, &Value::Int(1)); } __for_first_537 = false; is_less_than(&i, &get_array_length(&rawLiquidations)) } {
             let mut rawLiquidation: Value = get_value(&rawLiquidations, &i);
             let mut rawLiquidation: Value = get_value(&rawLiquidations, &i);
             let mut eventType: Value = self.safe_string_k(rawLiquidation.clone(), "eventType", &[]);
@@ -1682,8 +1737,8 @@ impl OkxCore {
         let mut messageHashes: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_537: bool = true;
-            while { if !__for_first_537 { i = add(&i, &Value::Int(1)); } __for_first_537 = false; is_less_than(&i, &get_array_length(&symbolsAndTimeframes)) } {
+            let mut __for_first_538: bool = true;
+            while { if !__for_first_538 { i = add(&i, &Value::Int(1)); } __for_first_538 = false; is_less_than(&i, &get_array_length(&symbolsAndTimeframes)) } {
             let mut symbolAndTimeframe: Value = get_value(&symbolsAndTimeframes, &i);
             let mut symbolAndTimeframe: Value = get_value(&symbolsAndTimeframes, &i);
             let mut sym: Value = get_value(&symbolAndTimeframe, &Value::Int(0));
@@ -1746,8 +1801,8 @@ impl OkxCore {
         let mut messageHashes: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_538: bool = true;
-            while { if !__for_first_538 { i = add(&i, &Value::Int(1)); } __for_first_538 = false; is_less_than(&i, &get_array_length(&symbolsAndTimeframes)) } {
+            let mut __for_first_539: bool = true;
+            while { if !__for_first_539 { i = add(&i, &Value::Int(1)); } __for_first_539 = false; is_less_than(&i, &get_array_length(&symbolsAndTimeframes)) } {
             let mut symbolAndTimeframe: Value = get_value(&symbolsAndTimeframes, &i);
             let mut symbolAndTimeframe: Value = get_value(&symbolsAndTimeframes, &i);
             let mut sym: Value = get_value(&symbolAndTimeframe, &Value::Int(0));
@@ -1811,8 +1866,8 @@ impl OkxCore {
         let mut timeframe: Value = self.find_timeframe(interval.clone(), &[]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_539: bool = true;
-            while { if !__for_first_539 { i = add(&i, &Value::Int(1)); } __for_first_539 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_540: bool = true;
+            while { if !__for_first_540 { i = add(&i, &Value::Int(1)); } __for_first_540 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut parsed: Value = self.parse_ohlcv(get_value(&data, &i), &[market.clone()]);
             { let __be_tmp = self.safe_value(self.ohlcvs.clone(), symbol.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1908,8 +1963,8 @@ impl OkxCore {
         let mut messageHashes: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_540: bool = true;
-            while { if !__for_first_540 { i = add(&i, &Value::Int(1)); } __for_first_540 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+            let mut __for_first_541: bool = true;
+            while { if !__for_first_541 { i = add(&i, &Value::Int(1)); } __for_first_541 = false; is_less_than(&i, &get_array_length(&symbols)) } {
             let mut symbol: Value = get_value(&symbols, &i);
             let mut symbol: Value = get_value(&symbols, &i);
             append_to_array(&mut messageHashes, add(&add(&depth, &Value::Str(":".to_string())), &symbol));
@@ -1975,8 +2030,8 @@ impl OkxCore {
         let mut messageHashes: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_541: bool = true;
-            while { if !__for_first_541 { i = add(&i, &Value::Int(1)); } __for_first_541 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+            let mut __for_first_542: bool = true;
+            while { if !__for_first_542 { i = add(&i, &Value::Int(1)); } __for_first_542 = false; is_less_than(&i, &get_array_length(&symbols)) } {
             let mut symbol: Value = get_value(&symbols, &i);
             let mut symbol: Value = get_value(&symbols, &i);
             append_to_array(&mut subMessageHashes, add(&add(&depth, &Value::Str(":".to_string())), &symbol));
@@ -2041,8 +2096,8 @@ impl OkxCore {
     pub fn handle_deltas(&self, mut bookside: Value, mut deltas: Value) {
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_542: bool = true;
-            while { if !__for_first_542 { i = add(&i, &Value::Int(1)); } __for_first_542 = false; is_less_than(&i, &get_array_length(&deltas)) } {
+            let mut __for_first_543: bool = true;
+            while { if !__for_first_543 { i = add(&i, &Value::Int(1)); } __for_first_543 = false; is_less_than(&i, &get_array_length(&deltas)) } {
             self.handle_delta(bookside.clone(), get_value(&deltas, &i));
         }
         }
@@ -2211,8 +2266,8 @@ impl OkxCore {
         if is_equal(&action, &Value::Str("snapshot".to_string())) {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_543: bool = true;
-                while { if !__for_first_543 { i = add(&i, &Value::Int(1)); } __for_first_543 = false; is_less_than(&i, &get_array_length(&data)) } {
+                let mut __for_first_544: bool = true;
+                while { if !__for_first_544 { i = add(&i, &Value::Int(1)); } __for_first_544 = false; is_less_than(&i, &get_array_length(&data)) } {
                 let mut update: Value = get_value(&data, &i);
                 let mut update: Value = get_value(&data, &i);
                 let mut orderbook: Value = self.order_book(&[Value::Map({
@@ -2230,8 +2285,8 @@ impl OkxCore {
                 let mut orderbook: Value = get_value(&self.orderbooks, &symbol);
                 {
                                         let mut i: Value = Value::Int(0);
-                    let mut __for_first_544: bool = true;
-                    while { if !__for_first_544 { i = add(&i, &Value::Int(1)); } __for_first_544 = false; is_less_than(&i, &get_array_length(&data)) } {
+                    let mut __for_first_545: bool = true;
+                    while { if !__for_first_545 { i = add(&i, &Value::Int(1)); } __for_first_545 = false; is_less_than(&i, &get_array_length(&data)) } {
                     let mut update: Value = get_value(&data, &i);
                     let mut update: Value = get_value(&data, &i);
                     self.handle_order_book_message(client.clone(), update.clone(), orderbook.clone(), messageHash.clone(), &[market.clone()]);
@@ -2240,25 +2295,33 @@ impl OkxCore {
                 }
             }
         }  else if is_true(&(is_equal(&channel, &Value::Str("books5".to_string())))) || is_true(&(is_equal(&channel, &Value::Str("bbo-tbt".to_string())))) {
-            if !is_true(&(Value::Bool(in_op(&self.orderbooks, &symbol)))) {
-                { let __be_tmp = self.order_book(&[Value::Map({
+            // watchBidsAsks reuses bbo-tbt with bidask:: hashes; only reset the
+            // shared order-book cache when watchOrderBook subscribed to this
+            // channel+symbol (e.g. 'bbo-tbt:BTC/USDT' in client.subscriptions)
+            if is_true(&Value::Bool(in_op(&get_value(&client, &Value::Str("subscriptions".to_string())), &messageHash))) {
+                if !is_true(&(Value::Bool(in_op(&self.orderbooks, &symbol)))) {
+                    { let __be_tmp = self.order_book(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }), limit.clone()]); add_element_to_object(&mut self.orderbooks, &symbol, __be_tmp); };
+                }
+                let mut orderbook: Value = get_value(&self.orderbooks, &symbol);
+                {
+                                        let mut i: Value = Value::Int(0);
+                    let mut __for_first_546: bool = true;
+                    while { if !__for_first_546 { i = add(&i, &Value::Int(1)); } __for_first_546 = false; is_less_than(&i, &get_array_length(&data)) } {
+                    let mut update: Value = get_value(&data, &i);
+                    let mut update: Value = get_value(&data, &i);
+                    let mut timestamp: Value = self.safe_integer_k(update.clone(), "ts", &[]);
+                    let mut snapshot: Value = self.parse_order_book(update.clone(), symbol.clone(), &[timestamp.clone(), Value::Str("bids".to_string()), Value::Str("asks".to_string()), Value::Int(0), Value::Int(1)]);
+                    orderbook.reset(snapshot.clone());
+                    client.resolve(&[orderbook.clone(), messageHash.clone()]);
+                }
+                }
             }
-            let mut orderbook: Value = get_value(&self.orderbooks, &symbol);
-            {
-                                let mut i: Value = Value::Int(0);
-                let mut __for_first_545: bool = true;
-                while { if !__for_first_545 { i = add(&i, &Value::Int(1)); } __for_first_545 = false; is_less_than(&i, &get_array_length(&data)) } {
-                let mut update: Value = get_value(&data, &i);
-                let mut update: Value = get_value(&data, &i);
-                let mut timestamp: Value = self.safe_integer_k(update.clone(), "ts", &[]);
-                let mut snapshot: Value = self.parse_order_book(update.clone(), symbol.clone(), &[timestamp.clone(), Value::Str("bids".to_string()), Value::Str("asks".to_string()), Value::Int(0), Value::Int(1)]);
-                orderbook.reset(snapshot.clone());
-                client.resolve(&[orderbook.clone(), messageHash.clone()]);
-            }
-            }
+        }
+        if is_equal(&channel, &Value::Str("bbo-tbt".to_string())) {
+            self.handle_bid_ask(client.clone(), message.clone());
         }
         return message;
 
@@ -2687,8 +2750,8 @@ impl OkxCore {
         let mut newPositions: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_546: bool = true;
-            while { if !__for_first_546 { i = add(&i, &Value::Int(1)); } __for_first_546 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_547: bool = true;
+            while { if !__for_first_547 { i = add(&i, &Value::Int(1)); } __for_first_547 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut rawPosition: Value = get_value(&data, &i);
             let mut rawPosition: Value = get_value(&data, &i);
             let mut position: Value = self.parse_position(rawPosition.clone(), &[]);
@@ -2856,8 +2919,8 @@ impl OkxCore {
             let mut parsed: Value = self.parse_orders(orders.clone(), &[]);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_547: bool = true;
-                while { if !__for_first_547 { i = add(&i, &Value::Int(1)); } __for_first_547 = false; is_less_than(&i, &get_array_length(&parsed)) } {
+                let mut __for_first_548: bool = true;
+                while { if !__for_first_548 { i = add(&i, &Value::Int(1)); } __for_first_548 = false; is_less_than(&i, &get_array_length(&parsed)) } {
                 let mut order: Value = get_value(&parsed, &i);
                 let mut order: Value = get_value(&parsed, &i);
                 stored.append(order.clone());
@@ -2869,8 +2932,8 @@ impl OkxCore {
             client.resolve(&[stored.clone(), channel.clone()]);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_548: bool = true;
-                while { if !__for_first_548 { i = add(&i, &Value::Int(1)); } __for_first_548 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
+                let mut __for_first_549: bool = true;
+                while { if !__for_first_549 { i = add(&i, &Value::Int(1)); } __for_first_549 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
                 let mut messageHash: Value = add(&add(&channel, &Value::Str(":".to_string())), &get_value(&marketIds, &i));
                 client.resolve(&[stored.clone(), messageHash.clone()]);
             }
@@ -2942,8 +3005,8 @@ impl OkxCore {
         let mut filteredOrders: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_549: bool = true;
-            while { if !__for_first_549 { i = add(&i, &Value::Int(1)); } __for_first_549 = false; is_less_than(&i, &get_array_length(&rawOrders)) } {
+            let mut __for_first_550: bool = true;
+            while { if !__for_first_550 { i = add(&i, &Value::Int(1)); } __for_first_550 = false; is_less_than(&i, &get_array_length(&rawOrders)) } {
             let mut rawOrder: Value = get_value(&rawOrders, &i);
             let mut rawOrder: Value = get_value(&rawOrders, &i);
             let mut tradeId: Value = self.safe_string_k(rawOrder.clone(), "tradeId", &[Value::Str("".to_string())]);
@@ -2968,8 +3031,8 @@ impl OkxCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_550: bool = true;
-            while { if !__for_first_550 { i = add(&i, &Value::Int(1)); } __for_first_550 = false; is_less_than(&i, &get_array_length(&filteredOrders)) } {
+            let mut __for_first_551: bool = true;
+            while { if !__for_first_551 { i = add(&i, &Value::Int(1)); } __for_first_551 = false; is_less_than(&i, &get_array_length(&filteredOrders)) } {
             let mut rawTrade: Value = get_value(&filteredOrders, &i);
             let mut rawTrade: Value = get_value(&filteredOrders, &i);
             let mut trade: Value = self.order_to_trade(rawTrade.clone(), &[]);
@@ -2985,8 +3048,8 @@ impl OkxCore {
         let mut tradeSymbols: Value = object_keys(&symbols);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_551: bool = true;
-            while { if !__for_first_551 { i = add(&i, &Value::Int(1)); } __for_first_551 = false; is_less_than(&i, &get_array_length(&tradeSymbols)) } {
+            let mut __for_first_552: bool = true;
+            while { if !__for_first_552 { i = add(&i, &Value::Int(1)); } __for_first_552 = false; is_less_than(&i, &get_array_length(&tradeSymbols)) } {
             let mut symbolMessageHash: Value = add(&add(&messageHash, &Value::Str("::".to_string())), &get_value(&tradeSymbols, &i));
             client.resolve(&[self.myTrades.clone(), symbolMessageHash.clone()]);
         }
@@ -3243,8 +3306,8 @@ impl OkxCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_552: bool = true;
-            while { if !__for_first_552 { i = add(&i, &Value::Int(1)); } __for_first_552 = false; is_less_than(&i, &idsLength) } {
+            let mut __for_first_553: bool = true;
+            while { if !__for_first_553 { i = add(&i, &Value::Int(1)); } __for_first_553 = false; is_less_than(&i, &idsLength) } {
             let mut arg: Value = self.extend(instParams.clone(), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("ordId".to_string(), get_value(&ids, &i));
@@ -3377,8 +3440,8 @@ impl OkxCore {
                     let mut data: Value = self.safe_list_k(message.clone(), "data", &[Value::List(vec![])]);
                     {
                                                 let mut i: Value = Value::Int(0);
-                        let mut __for_first_553: bool = true;
-                        while { if !__for_first_553 { i = add(&i, &Value::Int(1)); } __for_first_553 = false; is_less_than(&i, &get_array_length(&data)) } {
+                        let mut __for_first_554: bool = true;
+                        while { if !__for_first_554 { i = add(&i, &Value::Int(1)); } __for_first_554 = false; is_less_than(&i, &get_array_length(&data)) } {
                         let mut d: Value = get_value(&data, &i);
                         let mut d: Value = get_value(&data, &i);
                         errorCode = self.safe_string_k(d.clone(), "sCode", &[]);

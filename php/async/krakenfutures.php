@@ -1354,7 +1354,14 @@ class krakenfutures extends Exchange {
             $request['reduceOnly'] = true;
         }
         $request['orderType'] = $type;
-        if ($price !== null) {
+        $price = $this->parse_number($price); // some callers pass null instead of undefined, normalize it
+        $isLimitOrder = ($type === 'lmt') || ($type === 'post') || ($type === 'ioc');
+        $limitPriceParam = $this->safe_string($params, 'limitPrice'); // the venue's own field name, forwarded as-is by this.extend below
+        if ($isLimitOrder && ($price === null) && ($limitPriceParam === null)) {
+            throw new ArgumentsRequired($this->id . ' createOrder () requires a $price argument for ' . $type . ' orders');
+        }
+        $isMarketOrder = ($type === 'mkt');
+        if (($price !== null) && !$isMarketOrder) {
             $request['limitPrice'] = $this->price_to_precision($symbol, $price);
         }
         $params = $this->omit($params, array( 'clientOrderId', 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ));

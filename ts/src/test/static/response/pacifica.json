@@ -1068,54 +1068,101 @@
         ],
         "fetchBalance": [
             {
-                "description": "Fetch account balance",
+                "description": "spot plus perp collateral balance",
                 "method": "fetchBalance",
                 "input": [],
                 "httpResponse": {
                     "success": true,
                     "data": {
-                        "balance": "100.717133",
-                        "fee_level": "0",
+                        "balance": "4970.000323",
+                        "fee_level": 0,
                         "maker_fee": "0.00015",
                         "taker_fee": "0.0004",
-                        "account_equity": "100.717133",
-                        "available_to_spend": "100.717133",
-                        "available_to_withdraw": "100.717133",
+                        "account_equity": "5478.054466",
+                        "cross_account_equity": "5376.443638",
+                        "spot_market_value": "508.054143",
+                        "spot_collateral": "406.443315",
+                        "available_to_spend": "5376.443638",
+                        "available_to_withdraw": "5376.443638",
                         "pending_balance": "0",
                         "pending_interest": "0",
                         "total_margin_used": "0",
                         "cross_mmr": "0",
-                        "positions_count": "0",
-                        "orders_count": "0",
-                        "stop_orders_count": "0",
-                        "updated_at": "1769553883269"
+                        "positions_count": 0,
+                        "orders_count": 0,
+                        "stop_orders_count": 0,
+                        "spot_balances": [
+                            {
+                                "symbol": "SOL",
+                                "amount": "5",
+                                "available_to_withdraw": "5",
+                                "pending_balance": "0",
+                                "daily_withdraw_amount_usd": "0",
+                                "effective_daily_deposit_limit_usd": "50000",
+                                "effective_daily_withdraw_limit_usd": "250000"
+                            }
+                        ],
+                        "updated_at": 1789394748222
                     },
                     "error": null,
                     "code": null
                 },
                 "parsedResponse": {
                     "info": {
-                        "balance": "100.717133",
-                        "fee_level": "0",
+                        "balance": "4970.000323",
+                        "fee_level": 0,
                         "maker_fee": "0.00015",
                         "taker_fee": "0.0004",
-                        "account_equity": "100.717133",
-                        "available_to_spend": "100.717133",
-                        "available_to_withdraw": "100.717133",
+                        "account_equity": "5478.054466",
+                        "cross_account_equity": "5376.443638",
+                        "spot_market_value": "508.054143",
+                        "spot_collateral": "406.443315",
+                        "available_to_spend": "5376.443638",
+                        "available_to_withdraw": "5376.443638",
                         "pending_balance": "0",
                         "pending_interest": "0",
                         "total_margin_used": "0",
                         "cross_mmr": "0",
-                        "positions_count": "0",
-                        "orders_count": "0",
-                        "stop_orders_count": "0",
-                        "updated_at": "1769553883269"
+                        "positions_count": 0,
+                        "orders_count": 0,
+                        "stop_orders_count": 0,
+                        "spot_balances": [
+                            {
+                                "symbol": "SOL",
+                                "amount": "5",
+                                "available_to_withdraw": "5",
+                                "pending_balance": "0",
+                                "daily_withdraw_amount_usd": "0",
+                                "effective_daily_deposit_limit_usd": "50000",
+                                "effective_daily_withdraw_limit_usd": "250000"
+                            }
+                        ],
+                        "updated_at": 1789394748222
                     },
-                    "free": {},
-                    "used": {},
-                    "total": {},
-                    "timestamp": 1769553883269,
-                    "datetime": "2026-01-27T22:44:43.269Z"
+                    "USDC": {
+                        "free": 4970.000323,
+                        "used": 0,
+                        "total": 4970.000323
+                    },
+                    "SOL": {
+                        "free": 5,
+                        "used": 0,
+                        "total": 5
+                    },
+                    "timestamp": 1789394748222,
+                    "datetime": "2026-09-14T14:05:48.222Z",
+                    "free": {
+                        "USDC": 4970.000323,
+                        "SOL": 5
+                    },
+                    "used": {
+                        "USDC": 0,
+                        "SOL": 0
+                    },
+                    "total": {
+                        "USDC": 4970.000323,
+                        "SOL": 5
+                    }
                 }
             }
         ],

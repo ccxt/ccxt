@@ -982,21 +982,35 @@ public partial class pacifica : Exchange
         // {
         //   "success": true,
         //   "data": {
-        //     "balance": "2000.000000",
+        //     "balance": "4970.000323",           // USDC cash (perp collateral)
         //     "fee_level": 0,
         //     "maker_fee": "0.00015",
         //     "taker_fee": "0.0004",
-        //     "account_equity": "2150.250000",
-        //     "available_to_spend": "1800.750000",
-        //     "available_to_withdraw": "1500.850000",
-        //     "pending_balance": "0.000000",
-        //     "total_margin_used": "349.500000",
-        //     "cross_mmr": "420.690000",
-        //     "positions_count": 2,
-        //     "orders_count": 3,
-        //     "stop_orders_count": 1,
-        //     "updated_at": 1716200000000,
-        //     "use_ltp_for_stop_orders": false
+        //     "account_equity": "5478.140323",     // balance + spot_market_value
+        //     "cross_account_equity": "5376.512323",
+        //     "spot_market_value": "508.14",
+        //     "spot_collateral": "406.512",
+        //     "available_to_spend": "5376.512323",
+        //     "available_to_withdraw": "5376.512323",
+        //     "pending_balance": "0",
+        //     "pending_interest": "0",
+        //     "total_margin_used": "0",
+        //     "cross_mmr": "0",
+        //     "positions_count": 0,
+        //     "orders_count": 0,
+        //     "stop_orders_count": 0,
+        //     "spot_balances": [
+        //       {
+        //         "symbol": "SOL",
+        //         "amount": "5",
+        //         "available_to_withdraw": "5",
+        //         "pending_balance": "0",
+        //         "daily_withdraw_amount_usd": "0",
+        //         "effective_daily_deposit_limit_usd": "50000",
+        //         "effective_daily_withdraw_limit_usd": "250000"
+        //       }
+        //     ],
+        //     "updated_at": 1789394568220
         //   },
         //   "error": null,
         //   "code": null
@@ -1005,15 +1019,25 @@ public partial class pacifica : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", data },
         };
-        ((IDictionary<string,object>)result)["free"] = new Dictionary<string, object>() {};
-        ((IDictionary<string,object>)result)["used"] = new Dictionary<string, object>() {};
-        ((IDictionary<string,object>)result)["total"] = new Dictionary<string, object>() {};
-        double? totalBalance = this.safeNumber(data, "account_equity");
-        double? usedMargin = this.safeNumber(data, "total_margin_used");
-        double? freeBalance = this.safeNumber(data, "available_to_spend");
-        ((IDictionary<string,object>)getValue(result, "total"))["USDC"] = totalBalance;
-        ((IDictionary<string,object>)getValue(result, "used"))["USDC"] = usedMargin;
-        ((IDictionary<string,object>)getValue(result, "free"))["USDC"] = freeBalance;
+        Dictionary<string, object> usdcAccount = this.account();
+        ((IDictionary<string,object>)usdcAccount)["total"] = this.safeString(data, "balance");
+        ((IDictionary<string,object>)usdcAccount)["used"] = this.safeString(data, "total_margin_used");
+        ((IDictionary<string,object>)result)["USDC"] = usdcAccount;
+        List<object> spotBalances = this.safeList(data, "spot_balances", new List<object>() {});
+        for (int i = 0; isLessThan(i, getArrayLength(spotBalances)); postFixIncrement(ref i))
+        {
+            object balance = getValue(spotBalances, i);
+            string? currencyId = this.safeString(balance, "symbol");
+            string? code = this.safeCurrencyCode(currencyId);
+            Dictionary<string, object> account = this.account();
+            ((IDictionary<string,object>)account)["total"] = this.safeString(balance, "amount");
+            ((IDictionary<string,object>)account)["free"] = this.safeString(balance, "available_to_withdraw");
+            // skip a spot USDC entry so it can't clobber the perp-collateral account above
+            if (isTrue(isTrue((!isEqual(code, null))) && !isTrue((inOp(result, code)))))
+            {
+                ((IDictionary<string,object>)result)[(string)code] = account;
+            }
+        }
         Int64? timestamp = this.safeInteger(data, "updated_at");
         ((IDictionary<string,object>)result)["timestamp"] = timestamp;
         ((IDictionary<string,object>)result)["datetime"] = this.iso8601(timestamp);

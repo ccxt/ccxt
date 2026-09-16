@@ -1276,7 +1276,13 @@ class krakenfutures(Exchange, ImplicitAPI):
         if reduceOnly is True:
             request['reduceOnly'] = True
         request['orderType'] = type
-        if price is not None:
+        price = self.parse_number(price)  # some callers pass null instead of undefined, normalize it
+        isLimitOrder = (type == 'lmt') or (type == 'post') or (type == 'ioc')
+        limitPriceParam = self.safe_string(params, 'limitPrice')  # the venue's own field name, forwarded as-is by this.extend below
+        if isLimitOrder and (price is None) and (limitPriceParam is None):
+            raise ArgumentsRequired(self.id + ' createOrder () requires a price argument for ' + type + ' orders')
+        isMarketOrder = (type == 'mkt')
+        if (price is not None) and not isMarketOrder:
             request['limitPrice'] = self.price_to_precision(symbol, price)
         params = self.omit(params, ['clientOrderId', 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice'])
         return self.extend(request, params)
