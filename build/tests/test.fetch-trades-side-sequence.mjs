@@ -38,6 +38,18 @@ test('another exchange does not inherit the BingX swap exception', async () => {
     await assert.rejects(scenario('BTC/USDT:USDT', 'kraken').run, /Price is decreasing/);
 });
 
+test('without the opt-in flag the test does not resolve the market', async () => {
+    const { exchange, trades, run } = scenario('BTC/USDT:USDT', 'kraken');
+    trades.reverse(); // Valid increasing-price buy sequence.
+    let marketCalls = 0;
+    exchange.market = () => {
+        marketCalls++;
+        throw new Error('Unexpected market resolution without sideSequenceSwap');
+    };
+    await run();
+    assert.equal(marketCalls, 0);
+});
+
 test('removing the scoped flag restores the failing assertion', async () => {
     const { exchange } = scenario('BTC/USDT:USDT');
     await assert.rejects(() => testFetchTrades(exchange, {}, 'BTC/USDT:USDT'), /Price is decreasing/);

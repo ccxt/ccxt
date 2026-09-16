@@ -115,6 +115,8 @@ jobs:
           fi
         done
     - name: Test swap-only trade sequence skips
+      # Keep after both pre-transpile branches: each runs tsc and creates js/.
+      # Intentionally unconditional so both full and scoped builds run this regression.
       run: node --test build/tests/test.fetch-trades-side-sequence.mjs
     - name: Run Base Tests
       if: env.important_modified == 'true'
