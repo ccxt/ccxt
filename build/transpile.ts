@@ -1881,7 +1881,11 @@ class Transpiler {
                         .replace ('await asyncio.sleep', 'time.sleep')
                         .replace ('async ', '')
                         .replace ('await ', ''))
-                        .replace (/asyncio\.gather\(\*/g, '(') // needed for async -> sync: as a string pattern this matched the literal text asyncio.gather\(\* (never present), so the unwrap silently never ran and sync outputs kept a bare asyncio.gather over non-awaitables
+                        // needed for async -> sync. the previous string pattern also matched
+                        // (a plain literal drops the backslashes, so it was exactly
+                        // `asyncio.gather(*`), but String.replace with a string only rewrites the
+                        // first occurrence - the /g regex unwraps every gather on the line
+                        .replace (/asyncio\.gather\(\*/g, '(')
                         .replace ('asyncio.run', '') // needed for async -> sync
             })
 
