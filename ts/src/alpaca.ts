@@ -2197,7 +2197,7 @@ export default class alpaca extends Exchange {
             cashAccount['free'] = this.safeString (account, 'cash'); // cash already excludes the amounts held for open orders, verified live 2026-09-16
             const equity = this.safeString (account, 'equity');
             const positionsValue = this.safeString (account, 'position_market_value');
-            cashAccount['total'] = Precise.stringSub (equity, positionsValue); // equity minus the positions market value equals cash plus open-order holds
+            cashAccount['total'] = Precise.stringSub (equity, positionsValue); // equity minus the positions market value equals cash plus open-order holds; stringSub degrades to undefined when either field is absent and safeBalance then derives the total from free
             result[code] = cashAccount;
         }
         for (let i = 0; i < positions.length; i++) {
