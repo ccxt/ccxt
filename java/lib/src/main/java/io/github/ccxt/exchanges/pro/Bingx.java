@@ -5,6 +5,7 @@ package io.github.ccxt.exchanges.pro;
 import io.github.ccxt.base.Precise;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
+import io.github.ccxt.BaseExchange;
 import io.github.ccxt.ws.*;
 import io.github.ccxt.Client;
 import io.github.ccxt.types.Balances;
@@ -124,7 +125,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
     public CompletableFuture<Object> unWatch(Object messageHash, Object subMessageHash, Object subscribeHash, Object dataType, Object topic, Object market2, Object methodName, Object... optionalArgs)
     {
         final Object market3 = market2;
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
             Object market = market3;
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Object marketType = null;
@@ -187,7 +188,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
     public CompletableFuture<Ticker> watchTicker(String symbol, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
@@ -245,7 +246,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
     public CompletableFuture<Object> unWatchTicker(String symbol, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
@@ -443,7 +444,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
     public CompletableFuture<List<Trade>> watchTrades(String symbol2, Object... optionalArgs)
     {
         final Object symbol3 = symbol2;
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, null);
@@ -517,7 +518,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
     public CompletableFuture<Object> unWatchTrades(String symbol, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
@@ -663,7 +664,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
     public CompletableFuture<OrderBook> watchOrderBook(String symbol, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object limit = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -741,7 +742,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
     public CompletableFuture<Object> unWatchOrderBook(Object symbol, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
@@ -1047,7 +1048,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
     public CompletableFuture<List<OHLCV>> watchOHLCV(String symbol, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object timeframe = Helpers.getArg(optionalArgs, 0, "1m");
             Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -1125,7 +1126,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
     public CompletableFuture<Object> unWatchOHLCV(String symbol, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object timeframe = Helpers.getArg(optionalArgs, 0, "1m");
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -1164,7 +1165,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
     public CompletableFuture<List<Order>> watchOrders(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -1250,7 +1251,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
     public CompletableFuture<List<Trade>> watchMyTrades(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -1333,7 +1334,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
     public CompletableFuture<Balances> watchBalance(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
@@ -1428,7 +1429,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
     {
         final Object messageHash3 = messageHash2;
         final Object type3 = type2;
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
             Object messageHash = messageHash3;
             Object type = type3;
             final Object finalType = type;
@@ -1463,7 +1464,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
     public CompletableFuture<List<Position>> watchPositions(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -1557,7 +1558,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
     public CompletableFuture<Object> loadPositionsSnapshot(Client client, Object messageHash2, Object type)
     {
         final Object messageHash3 = messageHash2;
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
             Object messageHash = messageHash3;
             Object positions = (this.fetchPositions((Object)(null), (Object)((Object) new HashMap<String, Object>() {{
                 put( "type", type );
@@ -1746,7 +1747,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
     public CompletableFuture<Object> keepAliveListenKey(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             String listenKey = this.safeString(this.options, "listenKey");
@@ -1795,7 +1796,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
     public CompletableFuture<Object> authenticate(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Long time = this.milliseconds();
@@ -1854,7 +1855,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
     public CompletableFuture<Object> pong(Client client, Object message2)
     {
         final Object message3 = message2;
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
             Object message = message3;
             try
             {

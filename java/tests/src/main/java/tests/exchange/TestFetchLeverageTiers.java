@@ -17,7 +17,7 @@ public class TestFetchLeverageTiers extends BaseTest {
     public CompletableFuture<Object> testFetchLeverageTiers(BaseExchange exchange, Object skippedProperties, Object symbol)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
         String method = "fetchLeverageTiers";
         Object tiers = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchLeverageTiers", new Object[]{new ArrayList<Object>(Arrays.asList(symbol))})).join();

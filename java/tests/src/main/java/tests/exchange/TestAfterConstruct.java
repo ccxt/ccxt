@@ -18,7 +18,7 @@ public class TestAfterConstruct extends BaseTest {
     public CompletableFuture<Object> testAfterConstruct(BaseExchange exchange, Object skippedProperties)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
         if (!Helpers.isTrue((Helpers.inOp(skippedProperties, "networks"))))
         {

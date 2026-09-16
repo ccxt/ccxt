@@ -2,6 +2,7 @@ package tests.exchange.ws;
 import tests.BaseTest;
 import io.github.ccxt.Helpers;
 import io.github.ccxt.Exchange;
+import io.github.ccxt.BaseExchange;
 import io.github.ccxt.errors.*;
 import tests.exchange.*;
 import java.util.ArrayList;
@@ -18,7 +19,7 @@ public class TestWatchTickers extends BaseTest {
     public CompletableFuture<Void> testWatchTickers(Exchange exchange, Object skippedProperties, Object symbol)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
         Object withoutSymbol = testWatchTickersHelper(exchange, skippedProperties, null);
         Object withSymbol = testWatchTickersHelper(exchange, skippedProperties, new ArrayList<Object>(Arrays.asList(symbol)));
@@ -30,7 +31,7 @@ public class TestWatchTickers extends BaseTest {
     public CompletableFuture<Object> testWatchTickersHelper(Exchange exchange, Object skippedProperties, Object argSymbols2, Object... optionalArgs)
     {
         final Object argSymbols3 = argSymbols2;
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
             Object argSymbols = argSymbols3;
         Object argParams = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
         String method = "watchTickers";
