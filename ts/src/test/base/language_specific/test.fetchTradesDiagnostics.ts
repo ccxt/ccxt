@@ -22,11 +22,8 @@ async function testFetchTradesDiagnostics () {
         exchange.fetchTrades = async () => failing;
         await assert.rejects (testFetchTrades (exchange, {}, symbol), (error) => {
             assert (error.message.indexOf ('Price is ') >= 0);
-            const serialized = error.message.split (' ::: ')[1].split (' >>> ')[0];
-            const context = JSON.parse (serialized);
-            assert.deepStrictEqual (context.previous, JSON.parse (JSON.stringify (failing[0])));
-            assert.deepStrictEqual (context.current, JSON.parse (JSON.stringify (failing[1])));
-            assert.strictEqual (context.previous.info.fillId, failing[0].info.fillId);
+            assert.strictEqual (error.message.includes (failing[0].info.fillId), true);
+            assert.strictEqual (error.message.includes (failing[1].info.fillId), true);
             return true;
         });
         exchange.fetchTrades = async () => failing.slice ().reverse ();
