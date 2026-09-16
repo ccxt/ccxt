@@ -1861,7 +1861,15 @@ public class Hyperliquid extends HyperliquidApi
     public Object amountToPrecision(Object symbol, Object amount)
     {
         Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-        return this.decimalToPrecision(amount, ROUND, Helpers.GetValue(Helpers.GetValue(market, "precision"), "amount"), this.precisionMode, this.paddingMode);
+        Object result = this.decimalToPrecision(amount, ROUND, Helpers.GetValue(Helpers.GetValue(market, "precision"), "amount"), this.precisionMode, this.paddingMode);
+        // a size of zero is meaningful to hyperliquid, a whole position tp/sl order is sent
+        // with grouping positionTpsl and size 0, so only reject a positive amount that
+        // became zero after rounding, never an explicitly requested zero
+        if (Helpers.isTrue(Helpers.isTrue(Precise.stringEq(result, "0")) && Helpers.isTrue(Precise.stringGt(this.numberToString(amount), "0"))))
+        {
+            throw new InvalidOrder(Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " amount of "), Helpers.GetValue(market, "symbol")), " must be greater than minimum amount precision of "), this.numberToString(Helpers.GetValue(Helpers.GetValue(market, "precision"), "amount")))) ;
+        }
+        return result;
     }
 
     public Object priceToPrecision(Object symbol, Object price)

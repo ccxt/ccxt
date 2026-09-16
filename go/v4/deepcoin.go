@@ -1027,7 +1027,7 @@ func (this *Deepcoin) ParseTicker(ticker any, optionalArgs ...any) any {
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var timestamp any = this.SafeInteger(ticker, "ts")
+	var timestamp any = this.SafeIntegerOmitZero(ticker, "ts")
 	var marketId any = this.SafeString(ticker, "instId")
 	market = this.SafeMarket(marketId, market, "-")
 	var symbol any = GetValue(market, "symbol")

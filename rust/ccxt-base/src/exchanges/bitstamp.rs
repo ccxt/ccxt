@@ -4056,6 +4056,8 @@ impl BitstampCore {
         //         "next_funding_time": "1644406050"
         //     }
         //
+        // the websocket funding_rate channel additionally carries mark_price and index_price
+        //
         let mut currentTime: Value = self.safe_integer_product(fundingRate.clone(), Value::Str("timestamp".to_string()), Value::Int(1000), &[]);
         let mut nextFundingRateTimestamp: Value = self.safe_integer_product(fundingRate.clone(), Value::Str("next_funding_time".to_string()), Value::Int(1000), &[]);
         let mut marketId: Value = self.safe_string_k(fundingRate.clone(), "market", &[]);
@@ -4063,8 +4065,8 @@ impl BitstampCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), fundingRate.clone());
         m.insert("symbol".to_string(), self.safe_symbol(marketId.clone(), &[market.clone()]));
-        m.insert("markPrice".to_string(), Value::Null);
-        m.insert("indexPrice".to_string(), Value::Null);
+        m.insert("markPrice".to_string(), self.safe_number_k(fundingRate.clone(), "mark_price", &[]));
+        m.insert("indexPrice".to_string(), self.safe_number_k(fundingRate.clone(), "index_price", &[]));
         m.insert("interestRate".to_string(), Value::Null);
         m.insert("estimatedSettlePrice".to_string(), Value::Null);
         m.insert("timestamp".to_string(), currentTime.clone());

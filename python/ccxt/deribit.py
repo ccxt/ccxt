@@ -1377,7 +1377,7 @@ class deribit(Exchange, ImplicitAPI):
                     code = market['base']
                     type = market['type']
         if code is None:
-            raise ArgumentsRequired(self.id + ' fetchTickers requires a currency/code(eg: BTC/ETH/USDT) parameter to fetch tickers for')
+            raise ArgumentsRequired(self.id + ' fetchTickers requires a currency/code (eg: BTC/ETH/USDT) parameter to fetch tickers for')
         currency = self.currency(code)
         request = {
             'currency': currency['id'],
@@ -2049,7 +2049,7 @@ class deribit(Exchange, ImplicitAPI):
         isStopLossOrder = isStopLimit or isStopMarket or (stopLossPrice is not None)
         isTakeProfitOrder = isTakeLimit or isTakeMarket or (takeProfitPrice is not None)
         if isStopLossOrder and isTakeProfitOrder:
-            raise InvalidOrder(self.id + ' createOrder() only allows one of stopLossPrice or takeProfitPrice to be specified')
+            raise InvalidOrder(self.id + ' createOrder () only allows one of stopLossPrice or takeProfitPrice to be specified')
         isStopOrder = isStopLossOrder or isTakeProfitOrder
         isLimitOrder = (type == 'limit') or isStopLimit or isTakeLimit
         isMarketOrder = (type == 'market') or isStopMarket or isTakeMarket

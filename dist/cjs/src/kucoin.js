@@ -75,7 +75,7 @@ class kucoin extends kucoin$1["default"] {
                 'fetchFundingInterval': true,
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
-                'fetchFundingRates': false,
+                'fetchFundingRates': true,
                 'fetchIndexOHLCV': true, // uta only
                 'fetchIsolatedBorrowRate': false,
                 'fetchIsolatedBorrowRates': false,
@@ -141,6 +141,7 @@ class kucoin extends kucoin$1["default"] {
                     'broker': 'https://api-broker.kucoin.com',
                     'earn': 'https://api.kucoin.com',
                     'uta': 'https://api.kucoin.com',
+                    'utaV2': 'https://api.kucoin.com',
                     'utaPrivate': 'https://api.kucoin.com',
                 },
                 'www': 'https://www.kucoin.com',
@@ -564,6 +565,11 @@ class kucoin extends kucoin$1["default"] {
                         'market/borrowable-currency': { 'cost': 30 },
                         'user/my-ip': { 'cost': 20 },
                         'market/fiat-price': { 'cost': 6 },
+                    },
+                },
+                'utaV2': {
+                    'get': {
+                        'market/funding-rate': { 'cost': 6 }, // 3PW
                     },
                 },
                 'utaPrivate': {
@@ -2877,6 +2883,12 @@ class kucoin extends kucoin$1["default"] {
         market = this.safeMarket(marketId, market, '-');
         const last = this.safeString2(ticker, 'price', 'lastTradePrice');
         const timestamp = this.safeIntegerProduct(ticker, 'ts', 0.000001);
+        const change = this.safeString(ticker, 'priceChg');
+        let percentage = undefined;
+        if ((last === undefined) || (change === undefined)) {
+            percentage = Precise["default"].stringMul(this.safeString(ticker, 'priceChgPct'), '100');
+        }
+        // Otherwise safeTicker derives percentage from last and change, since priceChgPct can be inconsistent.
         return this.safeTicker({
             'symbol': market['symbol'],
             'timestamp': timestamp,
@@ -2892,10 +2904,8 @@ class kucoin extends kucoin$1["default"] {
             'close': last,
             'last': last,
             'previousClose': undefined,
-            'change': this.safeString(ticker, 'priceChg'),
-            // priceChgPct is a ratio: the sample above reports 0.0447 beside a priceChg
-            // of 2878.7 on a price near 64000, which is a move of 4.47 per cent
-            'percentage': Precise["default"].stringMul(this.safeString(ticker, 'priceChgPct'), '100'),
+            'change': change,
+            'percentage': percentage,
             'average': undefined,
             'baseVolume': this.safeString(ticker, 'volumeOf24h'),
             'quoteVolume': this.safeString(ticker, 'turnoverOf24h'),
@@ -10155,6 +10165,53 @@ class kucoin extends kucoin$1["default"] {
         const data = this.safeDict(response, 'data', {});
         return this.parseFundingRate(data, market);
     }
+    /**
+     * @method
+     * @name kucoin#fetchFundingRates
+     * @description fetch the current funding rates for multiple markets
+     * @see https://www.kucoin.com/docs-new/v2/rest/ua/get-current-funding
+     * @param {string[]} [symbols] unified market symbols, all markets are returned if not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.productType] filter by USDT-FUTURES, USDC-FUTURES or COIN-FUTURES
+     * @param {string} [params.symbol] exchange-specific contract id (e.g. XBTUSDTM), overrides productType when provided
+     * @returns {object} a dictionary of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}, indexed by market symbols
+     */
+    async fetchFundingRates(symbols = undefined, params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        symbols = this.marketSymbols(symbols);
+        const response = await this.utaV2GetMarketFundingRate(params);
+        //
+        //     {
+        //         "code": "200000",
+        //         "data": [
+        //             {
+        //                 "symbol": "XBTUSDTM",
+        //                 "nextFundingRate": "-0.000004",
+        //                 "fundingTime": 1789315200000,
+        //                 "fundingRateCap": "0.003",
+        //                 "fundingRateFloor": "-0.003",
+        //                 "currentGranularity": 28800000,
+        //                 "newGranularity": 28800000,
+        //                 "newGranularityStartTime": 1750147200000
+        //             }
+        //         ]
+        //     }
+        //
+        const data = this.safeList(response, 'data', []);
+        const rates = [];
+        for (let i = 0; i < data.length; i++) {
+            const entry = data[i];
+            const marketId = this.safeString(entry, 'symbol');
+            // kucoin returns funding index symbols (e.g. .ETHUSDTMFPI8H) alongside tradeable contracts
+            const isFundingIndex = (marketId !== undefined) && (marketId.startsWith('.'));
+            if (!isFundingIndex) {
+                rates.push(entry);
+            }
+        }
+        return this.parseFundingRates(rates, symbols);
+    }
     parseFundingRate(data, market = undefined) {
         // uta
         //     {
@@ -11697,6 +11754,9 @@ class kucoin extends kucoin$1["default"] {
         const version = this.safeString(params, 'version', defaultVersion);
         params = this.omit(params, 'version');
         let endpoint = '/api/' + version + '/' + this.implodeParams(path, params);
+        if (api === 'utaV2') {
+            endpoint = '/api/ua/v2/' + this.implodeParams(path, params);
+        }
         if (api === 'webExchange') {
             endpoint = '/' + this.implodeParams(path, params);
         }

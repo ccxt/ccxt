@@ -2355,14 +2355,16 @@ class bitstamp(Exchange, ImplicitAPI):
         #         "next_funding_time": "1644406050"
         #     }
         #
+        # the websocket funding_rate channel additionally carries mark_price and index_price
+        #
         currentTime = self.safe_integer_product(fundingRate, 'timestamp', 1000)
         nextFundingRateTimestamp = self.safe_integer_product(fundingRate, 'next_funding_time', 1000)
         marketId = self.safe_string(fundingRate, 'market')
         return {
             'info': fundingRate,
             'symbol': self.safe_symbol(marketId, market),
-            'markPrice': None,
-            'indexPrice': None,
+            'markPrice': self.safe_number(fundingRate, 'mark_price'),
+            'indexPrice': self.safe_number(fundingRate, 'index_price'),
             'interestRate': None,
             'estimatedSettlePrice': None,
             'timestamp': currentTime,

@@ -3488,7 +3488,7 @@ class bingx extends Exchange {
          * @param {float} [$params->takeProfit.triggerPrice] take profit trigger $price
          * @param {array} [$params->stopLoss] *$stopLoss object in $params* containing the triggerPrice at which the attached stop loss order will be triggered
          * @param {float} [$params->stopLoss.triggerPrice] stop loss trigger $price
-         * @param {boolean} [$params->test] *swap only* whether to use the $test endpoint or not, default is false
+         * @param {boolean} [$params->test] *linear swap only* whether to use the $test endpoint or not, default is false
          * @param {string} [$params->positionSide] *contracts only* "BOTH" for one way mode, "LONG" for buy $side of hedged mode, "SHORT" for sell $side of hedged mode
          * @param {boolean} [$params->hedged] *swap only* whether the order is in hedged mode or one way mode
          * @param {bool} [$params->closePosition] *swap only* true to close the entire position with a TP/SL order, in which case the quantity is not sent
@@ -3499,6 +3499,9 @@ class bingx extends Exchange {
         }
         $market = $this->market($symbol);
         $test = $this->safe_bool($params, 'test', false);
+        if ($test && (($market['swap'] !== true) || ($market['inverse'] === true))) {
+            throw new NotSupported($this->id . ' createOrder() only supports $test orders for linear swap markets');
+        }
         $params = $this->omit($params, 'test');
         $request = $this->create_order_request($symbol, $type, $side, $amount, $price, $params);
         if ($market['swap'] === true) {

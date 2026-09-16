@@ -584,8 +584,8 @@ impl MyriadCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1297: bool = true;
-            while { if !__for_first_1297 { i = add(&i, &Value::Int(1)); } __for_first_1297 = false; is_less_than(&i, &get_array_length(&rawMarkets)) } {
+            let mut __for_first_1298: bool = true;
+            while { if !__for_first_1298 { i = add(&i, &Value::Int(1)); } __for_first_1298 = false; is_less_than(&i, &get_array_length(&rawMarkets)) } {
             let mut raw: Value = get_value(&rawMarkets, &i);
             let mut raw: Value = get_value(&rawMarkets, &i);
             let mut m: Value = self.parse_myriad_market(raw.clone(), &[]);
@@ -630,8 +630,8 @@ impl MyriadCore {
         let mut rawMarkets: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1299: bool = true;
-            while { if !__for_first_1299 { i = add(&i, &Value::Int(1)); } __for_first_1299 = false; is_less_than(&i, &get_array_length(&queries)) } {
+            let mut __for_first_1300: bool = true;
+            while { if !__for_first_1300 { i = add(&i, &Value::Int(1)); } __for_first_1300 = false; is_less_than(&i, &get_array_length(&queries)) } {
             let mut q: Value = get_value(&queries, &i);
             let mut q: Value = get_value(&queries, &i);
             let __ws_arg_0 = self.extend(Value::Map({
@@ -647,8 +647,8 @@ impl MyriadCore {
             let mut found: Value = ternary(is_true(&(!is_equal(&foundList, &Value::Null))), foundList.clone(), Value::List(vec![]));
             {
                                 let mut j: Value = Value::Int(0);
-                let mut __for_first_1298: bool = true;
-                while { if !__for_first_1298 { j = add(&j, &Value::Int(1)); } __for_first_1298 = false; is_less_than(&j, &get_array_length(&found)) } {
+                let mut __for_first_1299: bool = true;
+                while { if !__for_first_1299 { j = add(&j, &Value::Int(1)); } __for_first_1299 = false; is_less_than(&j, &get_array_length(&found)) } {
                 let mut raw: Value = get_value(&found, &j);
                 let mut raw: Value = get_value(&found, &j);
                 let mut networkId: Value = self.safe_string_k(raw.clone(), "networkId", &[]);
@@ -714,8 +714,8 @@ impl MyriadCore {
             }
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_1300: bool = true;
-                while { if !__for_first_1300 { i = add(&i, &Value::Int(1)); } __for_first_1300 = false; is_less_than(&i, &rawMarketsLength) } {
+                let mut __for_first_1301: bool = true;
+                while { if !__for_first_1301 { i = add(&i, &Value::Int(1)); } __for_first_1301 = false; is_less_than(&i, &rawMarketsLength) } {
                 if is_less_than(&collected, &maxMarkets) {
                     append_to_array(&mut allRawMarkets, get_value(&rawMarkets, &i));
                     collected = self.sum(&[collected.clone(), Value::Int(1)]);
@@ -835,8 +835,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut idLower: Value = to_lower(&id);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_1301: bool = true;
-                while { if !__for_first_1301 { i = add(&i, &Value::Int(1)); } __for_first_1301 = false; is_less_than(&i, &questionsLength) } {
+                let mut __for_first_1302: bool = true;
+                while { if !__for_first_1302 { i = add(&i, &Value::Int(1)); } __for_first_1302 = false; is_less_than(&i, &questionsLength) } {
                 let mut q: Value = self.safe_dict(questions.clone(), i.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -880,8 +880,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut rawQuestions: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1303: bool = true;
-            while { if !__for_first_1303 { i = add(&i, &Value::Int(1)); } __for_first_1303 = false; is_less_than(&i, &get_array_length(&queries)) } {
+            let mut __for_first_1304: bool = true;
+            while { if !__for_first_1304 { i = add(&i, &Value::Int(1)); } __for_first_1304 = false; is_less_than(&i, &get_array_length(&queries)) } {
             let mut q: Value = get_value(&queries, &i);
             let mut q: Value = get_value(&queries, &i);
             let __ws_arg_5 = self.extend(Value::Map({
@@ -896,8 +896,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut found: Value = ternary(is_true(&(!is_equal(&foundList, &Value::Null))), foundList.clone(), Value::List(vec![]));
             {
                                 let mut j: Value = Value::Int(0);
-                let mut __for_first_1302: bool = true;
-                while { if !__for_first_1302 { j = add(&j, &Value::Int(1)); } __for_first_1302 = false; is_less_than(&j, &get_array_length(&found)) } {
+                let mut __for_first_1303: bool = true;
+                while { if !__for_first_1303 { j = add(&j, &Value::Int(1)); } __for_first_1303 = false; is_less_than(&j, &get_array_length(&found)) } {
                 let mut raw: Value = get_value(&found, &j);
                 let mut raw: Value = get_value(&found, &j);
                 let mut questionId: Value = self.safe_string_k(raw.clone(), "id", &[]);
@@ -960,8 +960,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_1304: bool = true;
-                while { if !__for_first_1304 { i = add(&i, &Value::Int(1)); } __for_first_1304 = false; is_less_than(&i, &rawQuestionsLength) } {
+                let mut __for_first_1305: bool = true;
+                while { if !__for_first_1305 { i = add(&i, &Value::Int(1)); } __for_first_1305 = false; is_less_than(&i, &rawQuestionsLength) } {
                 let mut rawQuestion: Value = get_value(&rawQuestions, &i);
                 let mut rawQuestion: Value = get_value(&rawQuestions, &i);
                 let mut questionId: Value = self.safe_string_k(rawQuestion.clone(), "id", &[]);
@@ -1063,8 +1063,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1305: bool = true;
-            while { if !__for_first_1305 { i = add(&i, &Value::Int(1)); } __for_first_1305 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_1306: bool = true;
+            while { if !__for_first_1306 { i = add(&i, &Value::Int(1)); } __for_first_1306 = false; is_less_than(&i, &get_array_length(&data)) } {
             append_to_array(&mut result, self.parse_prediction_position(get_value(&data, &i), &[]));
         }
         }
@@ -1236,8 +1236,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut signedFields: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1306: bool = true;
-            while { if !__for_first_1306 { i = add(&i, &Value::Int(1)); } __for_first_1306 = false; is_less_than(&i, &get_array_length(&fields)) } {
+            let mut __for_first_1307: bool = true;
+            while { if !__for_first_1307 { i = add(&i, &Value::Int(1)); } __for_first_1307 = false; is_less_than(&i, &get_array_length(&fields)) } {
             append_to_array(&mut signedFields, get_value(&fields, &i));
         }
         }
@@ -1530,8 +1530,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut orderOutcomes: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1307: bool = true;
-            while { if !__for_first_1307 { i = add(&i, &Value::Int(1)); } __for_first_1307 = false; is_less_than(&i, &ordersLength) } {
+            let mut __for_first_1308: bool = true;
+            while { if !__for_first_1308 { i = add(&i, &Value::Int(1)); } __for_first_1308 = false; is_less_than(&i, &ordersLength) } {
             let mut __oc: Value = self.safe_string_k(get_value(&orders, &i), "outcome", &[]);
             if !is_equal(&__oc, &Value::Null) {
                 append_to_array(&mut orderOutcomes, __oc.clone());
@@ -1542,8 +1542,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1308: bool = true;
-            while { if !__for_first_1308 { i = add(&i, &Value::Int(1)); } __for_first_1308 = false; is_less_than(&i, &ordersLength) } {
+            let mut __for_first_1309: bool = true;
+            while { if !__for_first_1309 { i = add(&i, &Value::Int(1)); } __for_first_1309 = false; is_less_than(&i, &ordersLength) } {
             let mut o: Value = get_value(&orders, &i);
             let mut o: Value = get_value(&orders, &i);
             let mut outcome: Value = self.safe_string_k(o.clone(), "outcome", &[]);
@@ -1922,8 +1922,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut responsesLength: Value = get_array_length(&orderResponses);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_1309: bool = true;
-                while { if !__for_first_1309 { i = add(&i, &Value::Int(1)); } __for_first_1309 = false; is_less_than(&i, &responsesLength) } {
+                let mut __for_first_1310: bool = true;
+                while { if !__for_first_1310 { i = add(&i, &Value::Int(1)); } __for_first_1310 = false; is_less_than(&i, &responsesLength) } {
                 let mut current: Value = self.safe_dict(orderResponses.clone(), i.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2220,8 +2220,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut rowsLength: Value = get_array_length(&rows);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1310: bool = true;
-            while { if !__for_first_1310 { i = add(&i, &Value::Int(1)); } __for_first_1310 = false; is_less_than(&i, &rowsLength) } {
+            let mut __for_first_1311: bool = true;
+            while { if !__for_first_1311 { i = add(&i, &Value::Int(1)); } __for_first_1311 = false; is_less_than(&i, &rowsLength) } {
             let mut row: Value = get_value(&rows, &i);
             let mut row: Value = get_value(&rows, &i);
             let mut action: Value = self.safe_string_lower(row.clone(), Value::Str("action".to_string()), &[]);
@@ -2424,8 +2424,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut networkId: Value = self.safe_string_k(self.options.clone(), "defaultNetworkId", &[Value::Str("56".to_string())]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1311: bool = true;
-            while { if !__for_first_1311 { i = add(&i, &Value::Int(1)); } __for_first_1311 = false; is_less_than(&i, &idsLength) } {
+            let mut __for_first_1312: bool = true;
+            while { if !__for_first_1312 { i = add(&i, &Value::Int(1)); } __for_first_1312 = false; is_less_than(&i, &idsLength) } {
             let mut id: Value = get_value(&ids, &i);
             let mut id: Value = get_value(&ids, &i);
             let mut fetched: Value = self.get_order_response_from_params(id.clone(), &[paramsForLookup.clone()]);
@@ -2768,8 +2768,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut ordersLength: Value = get_array_length(&orders);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1312: bool = true;
-            while { if !__for_first_1312 { i = add(&i, &Value::Int(1)); } __for_first_1312 = false; is_less_than(&i, &ordersLength) } {
+            let mut __for_first_1313: bool = true;
+            while { if !__for_first_1313 { i = add(&i, &Value::Int(1)); } __for_first_1313 = false; is_less_than(&i, &ordersLength) } {
             let mut order: Value = get_value(&orders, &i);
             let mut order: Value = get_value(&orders, &i);
             append_to_array(&mut trades, self.order_to_trade(order.clone()));
@@ -2892,8 +2892,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut result: Value = Value::Str("0".to_string());
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1313: bool = true;
-            while { if !__for_first_1313 { i = add(&i, &Value::Int(1)); } __for_first_1313 = false; is_less_than(&i, &n) } {
+            let mut __for_first_1314: bool = true;
+            while { if !__for_first_1314 { i = add(&i, &Value::Int(1)); } __for_first_1314 = false; is_less_than(&i, &n) } {
             let mut v: Value = get_index_of(&digits, &get_value(&chars, &i));
             if is_greater_than(&v, &negate(&Value::Int(1))) {
                 let mut mul: Value = crate::precise::Precise::stringMul(&result, &Value::Str("16".to_string()));
@@ -2918,8 +2918,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1314: bool = true;
-            while { if !__for_first_1314 { i = add(&i, &Value::Int(1)); } __for_first_1314 = false; is_less_than(&i, &decimals) } {
+            let mut __for_first_1315: bool = true;
+            while { if !__for_first_1315 { i = add(&i, &Value::Int(1)); } __for_first_1315 = false; is_less_than(&i, &decimals) } {
             scale = add(&scale, &Value::Str("0".to_string()));
         }
         }
@@ -3056,8 +3056,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut outcomes: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1315: bool = true;
-            while { if !__for_first_1315 { i = add(&i, &Value::Int(1)); } __for_first_1315 = false; is_less_than(&i, &get_array_length(&rawOutcomes)) } {
+            let mut __for_first_1316: bool = true;
+            while { if !__for_first_1316 { i = add(&i, &Value::Int(1)); } __for_first_1316 = false; is_less_than(&i, &get_array_length(&rawOutcomes)) } {
             let mut outcome: Value = self.safe_dict(rawOutcomes.clone(), i.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -3390,8 +3390,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut change: Value = Value::Null;
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1316: bool = true;
-            while { if !__for_first_1316 { i = add(&i, &Value::Int(1)); } __for_first_1316 = false; is_less_than(&i, &get_array_length(&outcomes)) } {
+            let mut __for_first_1317: bool = true;
+            while { if !__for_first_1317 { i = add(&i, &Value::Int(1)); } __for_first_1317 = false; is_less_than(&i, &get_array_length(&outcomes)) } {
             let mut o: Value = get_value(&outcomes, &i);
             let mut o: Value = get_value(&outcomes, &i);
             if is_equal(&self.safe_string_k(o.clone(), "outcomeId", &[self.safe_string(o.clone(), Value::Str("id".to_string()), &[])]), &outcomeId) {
@@ -3564,8 +3564,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut price: Value = Value::Null;
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1317: bool = true;
-            while { if !__for_first_1317 { i = add(&i, &Value::Int(1)); } __for_first_1317 = false; is_less_than(&i, &get_array_length(&outcomes)) } {
+            let mut __for_first_1318: bool = true;
+            while { if !__for_first_1318 { i = add(&i, &Value::Int(1)); } __for_first_1318 = false; is_less_than(&i, &get_array_length(&outcomes)) } {
             let mut o: Value = get_value(&outcomes, &i);
             let mut o: Value = get_value(&outcomes, &i);
             if is_equal(&self.safe_string_k(o.clone(), "outcomeId", &[self.safe_string(o.clone(), Value::Str("id".to_string()), &[])]), &outcomeId) {
@@ -3626,8 +3626,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut bids: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1318: bool = true;
-            while { if !__for_first_1318 { i = add(&i, &Value::Int(1)); } __for_first_1318 = false; is_less_than(&i, &get_array_length(&rawBids)) } {
+            let mut __for_first_1319: bool = true;
+            while { if !__for_first_1319 { i = add(&i, &Value::Int(1)); } __for_first_1319 = false; is_less_than(&i, &get_array_length(&rawBids)) } {
             let mut row: Value = get_value(&rawBids, &i);
             let mut row: Value = get_value(&rawBids, &i);
             let mut rowPrice: Value = crate::precise::Precise::stringDiv(&self.safe_string(row.clone(), Value::Int(0), &[]), &Value::Str("1000000000000000000".to_string()));
@@ -3638,8 +3638,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut asks: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1319: bool = true;
-            while { if !__for_first_1319 { i = add(&i, &Value::Int(1)); } __for_first_1319 = false; is_less_than(&i, &get_array_length(&rawAsks)) } {
+            let mut __for_first_1320: bool = true;
+            while { if !__for_first_1320 { i = add(&i, &Value::Int(1)); } __for_first_1320 = false; is_less_than(&i, &get_array_length(&rawAsks)) } {
             let mut row: Value = get_value(&rawAsks, &i);
             let mut row: Value = get_value(&rawAsks, &i);
             let mut rowPrice: Value = crate::precise::Precise::stringDiv(&self.safe_string(row.clone(), Value::Int(0), &[]), &Value::Str("1000000000000000000".to_string()));
@@ -3740,8 +3740,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut selectedOutcome: Value = Value::Null;
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1320: bool = true;
-            while { if !__for_first_1320 { i = add(&i, &Value::Int(1)); } __for_first_1320 = false; is_less_than(&i, &get_array_length(&outcomes)) } {
+            let mut __for_first_1321: bool = true;
+            while { if !__for_first_1321 { i = add(&i, &Value::Int(1)); } __for_first_1321 = false; is_less_than(&i, &get_array_length(&outcomes)) } {
             let mut oc: Value = get_value(&outcomes, &i);
             let mut oc: Value = get_value(&outcomes, &i);
             let mut currentId: Value = self.safe_string_k(oc.clone(), "id", &[self.safe_string(oc.clone(), Value::Str("outcomeId".to_string()), &[])]);
@@ -3761,8 +3761,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if !is_equal(&chartsList, &Value::Null) {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_1321: bool = true;
-                while { if !__for_first_1321 { i = add(&i, &Value::Int(1)); } __for_first_1321 = false; is_less_than(&i, &get_array_length(&chartsList)) } {
+                let mut __for_first_1322: bool = true;
+                while { if !__for_first_1322 { i = add(&i, &Value::Int(1)); } __for_first_1322 = false; is_less_than(&i, &get_array_length(&chartsList)) } {
                 let mut chartObj: Value = get_value(&chartsList, &i);
                 let mut chartObj: Value = get_value(&chartsList, &i);
                 if is_equal(&self.safe_string_k(chartObj.clone(), "timeframe", &[]), &bucketKey) {
@@ -3795,8 +3795,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut usablePoints: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1322: bool = true;
-            while { if !__for_first_1322 { i = add(&i, &Value::Int(1)); } __for_first_1322 = false; is_less_than(&i, &get_array_length(&points)) } {
+            let mut __for_first_1323: bool = true;
+            while { if !__for_first_1323 { i = add(&i, &Value::Int(1)); } __for_first_1323 = false; is_less_than(&i, &get_array_length(&points)) } {
             let mut point: Value = get_value(&points, &i);
             let mut point: Value = get_value(&points, &i);
             let mut pointOpen: Value = self.safe_number_k(point.clone(), "open", &[]);
@@ -3875,8 +3875,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut marketKeys: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1323: bool = true;
-            while { if !__for_first_1323 { i = add(&i, &Value::Int(1)); } __for_first_1323 = false; is_less_than(&i, &get_array_length(&outcomes)) } {
+            let mut __for_first_1324: bool = true;
+            while { if !__for_first_1324 { i = add(&i, &Value::Int(1)); } __for_first_1324 = false; is_less_than(&i, &get_array_length(&outcomes)) } {
             let mut outcomeObj: Value = self.outcome(get_value(&outcomes, &i));
             let mut info: Value = self.safe_dict_k(outcomeObj.clone(), "info", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3899,8 +3899,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut promises: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1324: bool = true;
-            while { if !__for_first_1324 { i = add(&i, &Value::Int(1)); } __for_first_1324 = false; is_less_than(&i, &get_array_length(&marketKeys)) } {
+            let mut __for_first_1325: bool = true;
+            while { if !__for_first_1325 { i = add(&i, &Value::Int(1)); } __for_first_1325 = false; is_less_than(&i, &get_array_length(&marketKeys)) } {
             let mut key: Value = get_value(&marketKeys, &i);
             let mut key: Value = get_value(&marketKeys, &i);
             let mut grouped: Value = get_value(&outcomesByMarket, &key);
@@ -3922,8 +3922,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut responses: Value = promise_all(&promises).await;
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1326: bool = true;
-            while { if !__for_first_1326 { i = add(&i, &Value::Int(1)); } __for_first_1326 = false; is_less_than(&i, &get_array_length(&marketKeys)) } {
+            let mut __for_first_1327: bool = true;
+            while { if !__for_first_1327 { i = add(&i, &Value::Int(1)); } __for_first_1327 = false; is_less_than(&i, &get_array_length(&marketKeys)) } {
             let mut key: Value = get_value(&marketKeys, &i);
             let mut key: Value = get_value(&marketKeys, &i);
             let mut response: Value = get_value(&responses, &i);
@@ -3932,8 +3932,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut grouped: Value = get_value(&outcomesByMarket, &key);
             {
                                 let mut j: Value = Value::Int(0);
-                let mut __for_first_1325: bool = true;
-                while { if !__for_first_1325 { j = add(&j, &Value::Int(1)); } __for_first_1325 = false; is_less_than(&j, &get_array_length(&grouped)) } {
+                let mut __for_first_1326: bool = true;
+                while { if !__for_first_1326 { j = add(&j, &Value::Int(1)); } __for_first_1326 = false; is_less_than(&j, &get_array_length(&grouped)) } {
                 let mut outcomeObj: Value = get_value(&grouped, &j);
                 let mut outcomeObj: Value = get_value(&grouped, &j);
                 let mut ticker: Value = self.parse_prediction_ticker(response.clone(), &[outcomeObj.clone()]);
@@ -4015,8 +4015,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut trades: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1327: bool = true;
-            while { if !__for_first_1327 { i = add(&i, &Value::Int(1)); } __for_first_1327 = false; is_less_than(&i, &get_array_length(&rows)) } {
+            let mut __for_first_1328: bool = true;
+            while { if !__for_first_1328 { i = add(&i, &Value::Int(1)); } __for_first_1328 = false; is_less_than(&i, &get_array_length(&rows)) } {
             let mut row: Value = get_value(&rows, &i);
             let mut row: Value = get_value(&rows, &i);
             let mut action: Value = self.safe_string_k(row.clone(), "action", &[]);
@@ -4137,8 +4137,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 let mut tagQueries: Value = Value::List(vec![]);
                 {
                                         let mut i: Value = Value::Int(0);
-                    let mut __for_first_1328: bool = true;
-                    while { if !__for_first_1328 { i = add(&i, &Value::Int(1)); } __for_first_1328 = false; is_less_than(&i, &requestedTagsLength) } {
+                    let mut __for_first_1329: bool = true;
+                    while { if !__for_first_1329 { i = add(&i, &Value::Int(1)); } __for_first_1329 = false; is_less_than(&i, &requestedTagsLength) } {
                     // tag slugs are hyphenated ('world-cup'); search with spaces so titles match
                     let mut tagSlug: Value = get_value(&requestedTags, &i);
                     let mut tagSlug: Value = get_value(&requestedTags, &i);
@@ -4163,8 +4163,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut rawQuestionsLength: Value = get_array_length(&rawQuestions);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1330: bool = true;
-            while { if !__for_first_1330 { i = add(&i, &Value::Int(1)); } __for_first_1330 = false; is_less_than(&i, &rawQuestionsLength) } {
+            let mut __for_first_1331: bool = true;
+            while { if !__for_first_1331 { i = add(&i, &Value::Int(1)); } __for_first_1331 = false; is_less_than(&i, &rawQuestionsLength) } {
             let mut rawQuestion: Value = get_value(&rawQuestions, &i);
             let mut rawQuestion: Value = get_value(&rawQuestions, &i);
             let mut ev: Value = self.parse_event(rawQuestion.clone());
@@ -4173,8 +4173,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut filteredMarkets: Value = Value::List(vec![]);
             {
                                 let mut j: Value = Value::Int(0);
-                let mut __for_first_1329: bool = true;
-                while { if !__for_first_1329 { j = add(&j, &Value::Int(1)); } __for_first_1329 = false; is_less_than(&j, &evMarketsLength) } {
+                let mut __for_first_1330: bool = true;
+                while { if !__for_first_1330 { j = add(&j, &Value::Int(1)); } __for_first_1330 = false; is_less_than(&j, &evMarketsLength) } {
                 let mut m: Value = self.safe_dict(evMarkets.clone(), j.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -4202,8 +4202,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut rawMarketsLength: Value = get_array_length(&rawMarkets);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1331: bool = true;
-            while { if !__for_first_1331 { i = add(&i, &Value::Int(1)); } __for_first_1331 = false; is_less_than(&i, &rawMarketsLength) } {
+            let mut __for_first_1332: bool = true;
+            while { if !__for_first_1332 { i = add(&i, &Value::Int(1)); } __for_first_1332 = false; is_less_than(&i, &rawMarketsLength) } {
             let mut raw: Value = get_value(&rawMarkets, &i);
             let mut raw: Value = get_value(&rawMarkets, &i);
             let mut m: Value = self.parse_myriad_market(raw.clone(), &[]);
@@ -4245,8 +4245,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut marketsList: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1332: bool = true;
-            while { if !__for_first_1332 { i = add(&i, &Value::Int(1)); } __for_first_1332 = false; is_less_than(&i, &get_array_length(&rawMarkets)) } {
+            let mut __for_first_1333: bool = true;
+            while { if !__for_first_1333 { i = add(&i, &Value::Int(1)); } __for_first_1333 = false; is_less_than(&i, &get_array_length(&rawMarkets)) } {
             let mut rawMarket: Value = get_value(&rawMarkets, &i);
             let mut rawMarket: Value = get_value(&rawMarkets, &i);
             append_to_array(&mut marketsList, self.parse_myriad_market(rawMarket.clone(), &[questionSlug.clone()]));
@@ -4407,8 +4407,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut linesLength: Value = get_array_length(&lines);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_1333: bool = true;
-                while { if !__for_first_1333 { i = add(&i, &Value::Int(1)); } __for_first_1333 = false; is_less_than(&i, &linesLength) } {
+                let mut __for_first_1334: bool = true;
+                while { if !__for_first_1334 { i = add(&i, &Value::Int(1)); } __for_first_1334 = false; is_less_than(&i, &linesLength) } {
                 let mut line: Value = get_value(&lines, &i);
                 let mut line: Value = get_value(&lines, &i);
                 if is_greater_than(&get_array_length(&line), &Value::Int(0)) {
@@ -4551,8 +4551,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1334: bool = true;
-            while { if !__for_first_1334 { i = add(&i, &Value::Int(1)); } __for_first_1334 = false; is_less_than(&i, &changesLength) } {
+            let mut __for_first_1335: bool = true;
+            while { if !__for_first_1335 { i = add(&i, &Value::Int(1)); } __for_first_1335 = false; is_less_than(&i, &changesLength) } {
             let mut change: Value = get_value(&changes, &i);
             let mut change: Value = get_value(&changes, &i);
             let mut outcomeId: Value = self.safe_string_k(change.clone(), "outcome", &[]);
@@ -4578,8 +4578,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut updatedLength: Value = get_array_length(&updatedSymbols);
         {
                         let mut k: Value = Value::Int(0);
-            let mut __for_first_1335: bool = true;
-            while { if !__for_first_1335 { k = add(&k, &Value::Int(1)); } __for_first_1335 = false; is_less_than(&k, &updatedLength) } {
+            let mut __for_first_1336: bool = true;
+            while { if !__for_first_1336 { k = add(&k, &Value::Int(1)); } __for_first_1336 = false; is_less_than(&k, &updatedLength) } {
             let mut sym: Value = get_value(&updatedSymbols, &k);
             let mut sym: Value = get_value(&updatedSymbols, &k);
             client.resolve(&[get_value(&self.orderbooks, &sym), add(&Value::Str("orderbook::".to_string()), &sym)]);
@@ -4742,8 +4742,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut makersLength: Value = get_array_length(&makers);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_1336: bool = true;
-                while { if !__for_first_1336 { i = add(&i, &Value::Int(1)); } __for_first_1336 = false; is_less_than(&i, &makersLength) } {
+                let mut __for_first_1337: bool = true;
+                while { if !__for_first_1337 { i = add(&i, &Value::Int(1)); } __for_first_1337 = false; is_less_than(&i, &makersLength) } {
                 let mut maker: Value = get_value(&makers, &i);
                 let mut maker: Value = get_value(&makers, &i);
                 let mut makerTrader: Value = self.safe_string_lower(maker.clone(), Value::Str("trader".to_string()), &[]);
@@ -4793,8 +4793,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 let mut myStored: Value = self.myTrades.clone();
                 {
                                         let mut k: Value = Value::Int(0);
-                    let mut __for_first_1337: bool = true;
-                    while { if !__for_first_1337 { k = add(&k, &Value::Int(1)); } __for_first_1337 = false; is_less_than(&k, &myLegsLength) } {
+                    let mut __for_first_1338: bool = true;
+                    while { if !__for_first_1338 { k = add(&k, &Value::Int(1)); } __for_first_1338 = false; is_less_than(&k, &myLegsLength) } {
                     myStored.append(get_value(&myLegs, &k));
                 }
                 }
@@ -4862,8 +4862,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut resolvedSymbols: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1338: bool = true;
-            while { if !__for_first_1338 { i = add(&i, &Value::Int(1)); } __for_first_1338 = false; is_less_than(&i, &symbolsLength) } {
+            let mut __for_first_1339: bool = true;
+            while { if !__for_first_1339 { i = add(&i, &Value::Int(1)); } __for_first_1339 = false; is_less_than(&i, &symbolsLength) } {
             let mut outcomeObj: Value = self.outcome(get_value(&outcomes, &i));
             let mut info: Value = self.safe_dict_k(outcomeObj.clone(), "info", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -4923,8 +4923,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut ohlcvcLength: Value = get_array_length(&ohlcvc);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1339: bool = true;
-            while { if !__for_first_1339 { i = add(&i, &Value::Int(1)); } __for_first_1339 = false; is_less_than(&i, &ohlcvcLength) } {
+            let mut __for_first_1340: bool = true;
+            while { if !__for_first_1340 { i = add(&i, &Value::Int(1)); } __for_first_1340 = false; is_less_than(&i, &ohlcvcLength) } {
             let mut candle: Value = get_value(&ohlcvc, &i);
             let mut candle: Value = get_value(&ohlcvc, &i);
             append_to_array(&mut result, Value::List(vec![get_value(&candle, &Value::Int(0)), get_value(&candle, &Value::Int(1)), get_value(&candle, &Value::Int(2)), get_value(&candle, &Value::Int(3)), get_value(&candle, &Value::Int(4)), get_value(&candle, &Value::Int(5))]));
@@ -4946,8 +4946,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1340: bool = true;
-            while { if !__for_first_1340 { i = add(&i, &Value::Int(1)); } __for_first_1340 = false; is_less_than(&i, &outcomesLength) } {
+            let mut __for_first_1341: bool = true;
+            while { if !__for_first_1341 { i = add(&i, &Value::Int(1)); } __for_first_1341 = false; is_less_than(&i, &outcomesLength) } {
             let mut oc: Value = get_value(&outcomes, &i);
             let mut oc: Value = get_value(&outcomes, &i);
             let mut outcomeId: Value = self.safe_string_k(oc.clone(), "outcome", &[]);
@@ -5148,8 +5148,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut positionsLength: Value = get_array_length(&positions);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1341: bool = true;
-            while { if !__for_first_1341 { i = add(&i, &Value::Int(1)); } __for_first_1341 = false; is_less_than(&i, &positionsLength) } {
+            let mut __for_first_1342: bool = true;
+            while { if !__for_first_1342 { i = add(&i, &Value::Int(1)); } __for_first_1342 = false; is_less_than(&i, &positionsLength) } {
             let mut p: Value = get_value(&positions, &i);
             let mut p: Value = get_value(&positions, &i);
             let mut id: Value = self.safe_string_k(p.clone(), "id", &[]);

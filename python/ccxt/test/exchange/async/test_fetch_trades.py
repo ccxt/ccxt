@@ -12,17 +12,76 @@ sys.path.append(root)
 # ----------------------------------------------------------------------------
 # -*- coding: utf-8 -*-
 
+from ccxt.base.precise import Precise  # noqa E402
 from ccxt.test.exchange.base import test_shared_methods  # noqa E402
 from ccxt.test.exchange.base import test_trade  # noqa E402
 
 async def test_fetch_trades(exchange, skipped_properties, symbol):
     method = 'fetchTrades'
-    trades = await exchange.fetch_trades(symbol)
+    trades = await exchange.fetch_trades(symbol, None, 12000)  # test with unrealistically high amount
     test_shared_methods.assert_non_emtpy_array(exchange, skipped_properties, method, trades)
+    #
+    # test structure
+    #
     now = exchange.milliseconds()
+    is_public_trade = True
     for i in range(0, len(trades)):
-        test_trade(exchange, skipped_properties, method, trades[i], symbol, now)
-        test_shared_methods.assert_in_array(exchange, skipped_properties, method, trades[i], 'takerOrMaker', ['taker', None])
+        test_trade(exchange, skipped_properties, method, trades[i], symbol, now, is_public_trade)
+    #
+    # test if both sides are being returned
+    #
+    min_trades_for_both_sides_check = 99
+    if not ('requireBothSides' in skipped_properties) and len(trades) > min_trades_for_both_sides_check:
+        #
+        #  Check whether both "buy" and "sell" are returned from trades, when there are enough trades
+        #  for a one-sided result to be an implausible coincidence (see minTradesForBothSidesCheck)
+        #
+        grouped = exchange.group_by(trades, 'side')
+        msg = 'Both sides of trades are not being returned, instead only one side is being returned. If this error happens consistently, then it might be an implementation issue' + test_shared_methods.log_template(exchange, method, trades)
+        assert ('buy' in grouped), msg
+        assert ('sell' in grouped), msg
     if not ('timestampSort' in skipped_properties):
         test_shared_methods.assert_timestamp_order(exchange, method, symbol, trades)
+    if not ('side' in skipped_properties) and not ('sideSequence' in skipped_properties):
+        await helper_test_fetch_trades_side_sequence(exchange, skipped_properties, symbol, method, trades)
+    return True
+
+
+async def helper_test_fetch_trades_side_sequence(exchange, skipped_properties, symbol, method, trades):
+    #
+    # Check whether returned trades are sorted correctly by side - multi-trade orders at the same
+    # timestamp would definitely have an increasing (in case of buy) price. For instance, if we
+    # have trades like:
+    #     [ 1600000000003 ] 1.4 ETH at 1750.41
+    #     [ 1600000000111 ] 0.2 ETH at 1750.40
+    #     [ 1600000000111 ] 0.3 ETH at 1750.41
+    #     [ 1600000000111 ] 0.9 ETH at 1750.42
+    #     [ 1600000000555 ] 2.4 ETH at 1750.40
+    # it's obviously `buy` order on same timestamp.
+    # In case any specific exchange does not return correctly sorted results, either implementation
+    # might need a fix, or the exchange needs `timestampSort` skip to be added.
+    #
+    last_ts = None
+    last_price = None
+    last_side = None
+    for i in range(0, len(trades)):
+        trade = trades[i]
+        ts = trade['timestamp']
+        price = exchange.safe_string(trade, 'price')
+        side = trade['side']
+        #
+        is_same_ts = ts == last_ts
+        is_same_price = Precise.string_eq(price, last_price)
+        is_same_side = side == last_side
+        # we are only interested in trades that have: same timestamp, same side, but different(!) price
+        if is_same_ts and is_same_side and not is_same_price:
+            price_increasing = Precise.string_gt(price, last_price)
+            price_decreasing = Precise.string_lt(price, last_price)
+            if price_increasing:
+                assert side == 'buy', 'Price is increasing, but side is not `buy`, either implementation needs fix or exchange returns unsorted trades, so add "sideSequence" skip' + test_shared_methods.log_template(exchange, method, trade)
+            elif price_decreasing:
+                assert side == 'sell', 'Price is decreasing, but side is not `sell`, either implementation needs fix or exchange returns unsorted trades, so add "sideSequence" skip' + test_shared_methods.log_template(exchange, method, trade)
+        last_price = price
+        last_ts = ts
+        last_side = side
     return True

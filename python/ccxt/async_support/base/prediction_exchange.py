@@ -339,18 +339,18 @@ class PredictionExchange(BaseExchange):
             return self.events[eventIdOrSlug]
         if (self.events_by_slug is not None) and (eventIdOrSlug in self.events_by_slug):
             return self.events_by_slug[eventIdOrSlug]
-        raise BadSymbol(self.id + ' has no cached event ' + eventIdOrSlug + " - call fetchEvents({'query': ...}) first")
+        raise BadSymbol(self.id + ' has no cached event ' + eventIdOrSlug + " - call fetchEvents ({'query': ...}) first")
 
     def outcome(self, outcomeSymbol: Str):
         if outcomeSymbol is None:
             raise ArgumentsRequired(self.id + ' outcome() requires an outcomeSymbol argument')
         if (self.outcomes is None) or self.is_empty(self.outcomes):
-            raise ExchangeError(self.id + ' outcomes not loaded - call loadOutcomes() or an outcome-addressed method first')
+            raise ExchangeError(self.id + ' outcomes not loaded - call loadOutcomes () or an outcome-addressed method first')
         if outcomeSymbol in self.outcomes:
             return self.outcomes[outcomeSymbol]
         if (self.outcomes_by_id is not None) and (outcomeSymbol in self.outcomes_by_id):
             return self.outcomes_by_id[outcomeSymbol]
-        raise BadSymbol(self.id + ' does not have outcome ' + outcomeSymbol + ' - pass a known outcome handle or outcomeId, or call fetchEvents()/loadOutcomes() first')
+        raise BadSymbol(self.id + ' does not have outcome ' + outcomeSymbol + ' - pass a known outcome handle or outcomeId, or call fetchEvents ()/loadOutcomes () first')
 
     def has_outcome(self, outcomeIdOrSymbol: Str):
         # sync cache-only membership probe — never throws and never fetches. this is the predicate
@@ -718,7 +718,7 @@ class PredictionExchange(BaseExchange):
                     raise e
             if self.has_outcome(outcomeSymbol):
                 return self.safe_outcome(outcomeSymbol)
-        raise BadSymbol(self.id + ' could not resolve outcome ' + outcomeSymbol + " — call fetchEvents({'query': ...}) first, or pass a known outcomeId")
+        raise BadSymbol(self.id + ' could not resolve outcome ' + outcomeSymbol + " — call fetchEvents ({'query': ...}) first, or pass a known outcomeId")
 
     async def fetch_ticker(self, outcome: str, params={}):
         """
@@ -1005,7 +1005,7 @@ class PredictionExchange(BaseExchange):
 
     async def fetch_settlements(self, outcome: Str = None, since: Int = None, limit: Int = None, params={}):
         """
-        fetches the user's settled(resolved) positions — the "close the loop" record after
+        fetches the user's settled (resolved) positions — the "close the loop" record after
  markets resolve, with the collateral paid out and the realized pnl
         :param str [outcome]: filter to a single unified outcome handle
         :param int [since]: timestamp in ms of the earliest settlement to fetch
