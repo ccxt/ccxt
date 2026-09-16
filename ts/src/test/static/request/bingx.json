@@ -2078,6 +2078,41 @@
         ],
         "fetchFundingRateHistory": [
             {
+                "description": "funding history paginates backward using the latest timestamp",
+                "method": "fetchFundingRateHistory",
+                "url": "https://open-api.bingx.com/openApi/swap/v2/quote/fundingRate?endTime=1721961000000&limit=2&symbol=BTC-USDT&timestamp=1709992987329",
+                "input": [
+                    "BTC/USDT:USDT",
+                    1721356200000,
+                    10,
+                    {
+                        "until": 1721961000000,
+                        "paginate": true,
+                        "paginationCalls": 1,
+                        "maxRetries": 0,
+                        "maxEntriesPerRequest": 2
+                    }
+                ]
+            },
+            {
+                "description": "funding history normalizes endTime and uses backward pagination even when forward is requested",
+                "method": "fetchFundingRateHistory",
+                "url": "https://open-api.bingx.com/openApi/swap/v2/quote/fundingRate?endTime=1721961000000&limit=2&symbol=BTC-USDT&timestamp=1709992987329",
+                "input": [
+                    "BTC/USDT:USDT",
+                    1721356200000,
+                    10,
+                    {
+                        "endTime": 1721961000000,
+                        "paginate": true,
+                        "paginationDirection": "forward",
+                        "paginationCalls": 1,
+                        "maxRetries": 0,
+                        "maxEntriesPerRequest": 2
+                    }
+                ]
+            },
+            {
                 "description": "fundingRateHistory",
                 "method": "fetchFundingRateHistory",
                 "url": "https://open-api.bingx.com/openApi/swap/v2/quote/fundingRate?symbol=BTC-USDT&timestamp=1709992987329",
