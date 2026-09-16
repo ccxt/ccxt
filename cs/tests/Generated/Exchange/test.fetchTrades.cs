@@ -10,17 +10,86 @@ public partial class testMainClass : BaseTest
     async static public Task<object> testFetchTrades(BaseExchange exchange, object skippedProperties, object symbol)
     {
         string method = "fetchTrades";
-        object trades = await invokeExchangeDynamically(exchange, "fetchTrades", symbol);
+        object trades = await invokeExchangeDynamically(exchange, "fetchTrades", symbol, null, 12000); // test with unrealistically high amount
         testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, trades);
+        //
+        // test structure
+        //
         Int64 now = exchange.milliseconds();
+        bool isPublicTrade = true;
         for (int i = 0; isLessThan(i, getArrayLength(trades)); postFixIncrement(ref i))
         {
-            testTrade(exchange, skippedProperties, method, getValue(trades, i), symbol, now);
-            testSharedMethods.assertInArray(exchange, skippedProperties, method, getValue(trades, i), "takerOrMaker", new List<object>() {"taker", null});
+            testTrade(exchange, skippedProperties, method, getValue(trades, i), symbol, now, isPublicTrade);
+        }
+        //
+        // test if both sides are being returned
+        //
+        int minTradesForBothSidesCheck = 99;
+        if (isTrue(!isTrue((inOp(skippedProperties, "requireBothSides"))) && isTrue(isGreaterThan(getArrayLength(trades), minTradesForBothSidesCheck))))
+        {
+            //
+            //  Check whether both "buy" and "sell" are returned from trades, when there are enough trades
+            //  for a one-sided result to be an implausible coincidence (see minTradesForBothSidesCheck)
+            //
+            Dictionary<string, object> grouped = exchange.groupBy(trades, "side");
+            string msg = add("Both sides of trades are not being returned, instead only one side is being returned. If this error happens consistently, then it might be an implementation issue", testSharedMethods.logTemplate(exchange, method, trades));
+            assert((inOp(grouped, "buy")), msg);
+            assert((inOp(grouped, "sell")), msg);
         }
         if (!isTrue((inOp(skippedProperties, "timestampSort"))))
         {
             testSharedMethods.assertTimestampOrder(exchange, method, symbol, trades);
+        }
+        if (isTrue(!isTrue((inOp(skippedProperties, "side"))) && !isTrue((inOp(skippedProperties, "sideSequence")))))
+        {
+            await helperTestFetchTradesSideSequence(exchange, skippedProperties, symbol, method, trades);
+        }
+        return true;
+    }
+    async static public Task<object> helperTestFetchTradesSideSequence(BaseExchange exchange, object skippedProperties, object symbol, object method, object trades)
+    {
+        //
+        // Check whether returned trades are sorted correctly by side - multi-trade orders at the same
+        // timestamp would definitely have an increasing (in case of buy) price. For instance, if we
+        // have trades like:
+        //     [ 1600000000003 ] 1.4 ETH at 1750.41
+        //     [ 1600000000111 ] 0.2 ETH at 1750.40
+        //     [ 1600000000111 ] 0.3 ETH at 1750.41
+        //     [ 1600000000111 ] 0.9 ETH at 1750.42
+        //     [ 1600000000555 ] 2.4 ETH at 1750.40
+        // it's obviously `buy` order on same timestamp.
+        // In case any specific exchange does not return correctly sorted results, either implementation
+        // might need a fix, or the exchange needs `timestampSort` skip to be added.
+        //
+        object lastTs = null;
+        string? lastPrice = null;
+        object lastSide = null;
+        for (int i = 0; isLessThan(i, getArrayLength(trades)); postFixIncrement(ref i))
+        {
+            object trade = getValue(trades, i);
+            object ts = getValue(trade, "timestamp");
+            string? price = exchange.safeString(trade, "price");
+            object side = getValue(trade, "side");
+            //
+            bool isSameTs = isEqual(ts, lastTs);
+            bool isSamePrice = Precise.stringEq(price, lastPrice);
+            bool isSameSide = isEqual(side, lastSide);
+            // we are only interested in trades that have: same timestamp, same side, but different(!) price
+            if (isTrue(isTrue(isTrue(isSameTs) && isTrue(isSameSide)) && !isTrue(isSamePrice)))
+            {
+                bool priceIncreasing = Precise.stringGt(price, lastPrice);
+                bool priceDecreasing = Precise.stringLt(price, lastPrice);
+                if (isTrue(priceIncreasing))
+                {
+                    assert(isEqual(side, "buy"), add("Price is increasing, but side is not `buy`, either implementation needs fix or exchange returns unsorted trades, so add \"sideSequence\" skip", testSharedMethods.logTemplate(exchange, method, trade)));
+                } else if (isTrue(priceDecreasing))
+                {
+                    assert(isEqual(side, "sell"), add("Price is decreasing, but side is not `sell`, either implementation needs fix or exchange returns unsorted trades, so add \"sideSequence\" skip", testSharedMethods.logTemplate(exchange, method, trade)));
+                }
+            }
+            lastPrice = price;
+            lastTs = ts;
+            lastSide = side;
         }
         return true;
     }

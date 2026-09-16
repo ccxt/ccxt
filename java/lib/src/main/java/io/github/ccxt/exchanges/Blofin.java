@@ -166,7 +166,7 @@ public class Blofin extends BlofinApi
                 put( "setPositionMode", true );
                 put( "signIn", false );
                 put( "transfer", true );
-                put( "withdraw", false );
+                put( "withdraw", true );
             }} );
             put( "timeframes", new HashMap<String, Object>() {{
                 put( "1m", "1m" );
@@ -668,6 +668,46 @@ public class Blofin extends BlofinApi
                     put( "102065", BadRequest.class );
                     put( "102068", BadRequest.class );
                     put( "103013", ExchangeError.class );
+                    put( "102067", OrderNotFound.class );
+                    put( "102089", BadRequest.class );
+                    put( "102148", DuplicateOrderId.class );
+                    put( "103003", InsufficientFunds.class );
+                    put( "110006", InvalidOrder.class );
+                    put( "110019", InvalidOrder.class );
+                    put( "148082", BadRequest.class );
+                    put( "148083", BadRequest.class );
+                    put( "152011", PermissionDenied.class );
+                    put( "152012", BadRequest.class );
+                    put( "152013", PermissionDenied.class );
+                    put( "152014", BadRequest.class );
+                    put( "152015", BadRequest.class );
+                    put( "152020", InvalidAddress.class );
+                    put( "152022", BadRequest.class );
+                    put( "152023", PermissionDenied.class );
+                    put( "152024", PermissionDenied.class );
+                    put( "152025", PermissionDenied.class );
+                    put( "152026", BadRequest.class );
+                    put( "152027", BadRequest.class );
+                    put( "152028", InsufficientFunds.class );
+                    put( "152029", PermissionDenied.class );
+                    put( "152030", DuplicateOrderId.class );
+                    put( "152031", InvalidAddress.class );
+                    put( "152032", PermissionDenied.class );
+                    put( "152401", AuthenticationError.class );
+                    put( "152402", AuthenticationError.class );
+                    put( "152404", PermissionDenied.class );
+                    put( "152405", InvalidNonce.class );
+                    put( "152406", PermissionDenied.class );
+                    put( "152407", InvalidNonce.class );
+                    put( "152408", AuthenticationError.class );
+                    put( "152409", AuthenticationError.class );
+                    put( "152410", InvalidNonce.class );
+                    put( "152420", DuplicateOrderId.class );
+                    put( "152421", DuplicateOrderId.class );
+                    put( "152422", BadRequest.class );
+                    put( "152423", InvalidOrder.class );
+                    put( "152428", BadRequest.class );
+                    put( "152429", BadRequest.class );
                     put( "Order failed. Insufficient USDT margin in account", InsufficientFunds.class );
                 }} );
                 put( "broad", new HashMap<String, Object>() {{
@@ -703,9 +743,34 @@ public class Blofin extends BlofinApi
                 }} );
                 put( "networks", new HashMap<String, Object>() {{
                     put( "BTC", "Bitcoin" );
-                    put( "BEP20", "BSC" );
-                    put( "ERC20", "ERC20" );
-                    put( "TRC20", "TRC20" );
+                    put( "SOL", "Solana" );
+                    put( "MATIC", "Polygon POS" );
+                    put( "AVAXC", "AVAX C-Chain" );
+                    put( "ARBITRUM", "Arbitrum One" );
+                    put( "OP", "Optimism" );
+                    put( "KAIA", "KAIA" );
+                }} );
+                put( "networkPrefixes", new HashMap<String, Object>() {{
+                    put( "TRC20", "Tron" );
+                    put( "ERC20", "Ethereum" );
+                    put( "BEP20", "BNB Smart Chain" );
+                    put( "APT", "APT" );
+                    put( "TON", "TON" );
+                }} );
+                put( "networkSuffixes", new HashMap<String, Object>() {{
+                    put( "TON", "Toncoin" );
+                }} );
+                put( "networkCodesBySuffix", new HashMap<String, Object>() {{
+                    put( "Toncoin", "TON" );
+                }} );
+                put( "networksById", new HashMap<String, Object>() {{
+                    put( "Bitcoin", "BTC" );
+                    put( "Solana", "SOL" );
+                    put( "Polygon POS", "MATIC" );
+                    put( "AVAX C-Chain", "AVAXC" );
+                    put( "Arbitrum One", "ARBITRUM" );
+                    put( "Optimism", "OP" );
+                    put( "BSC", "BEP20" );
                 }} );
                 put( "fetchOpenInterestHistory", new HashMap<String, Object>() {{
                     put( "timeframes", new HashMap<String, Object>() {{
@@ -2443,6 +2508,155 @@ public class Blofin extends BlofinApi
 
     }
 
+    public Object networkCodeToChainId(Object networkCode)
+    {
+        // the live venue identifies chains by display names; the suffix
+        // family is built here as prefix + space + parenthesized suffix
+        // because such literals are not transpiler-safe in source
+        Object networks = this.safeDict(this.options, "networks", new HashMap<String, Object>() {{}});
+        String direct = this.safeString(networks, networkCode);
+        if (Helpers.isTrue(!Helpers.isEqual(direct, null)))
+        {
+            return direct;
+        }
+        Object prefixes = this.safeDict(this.options, "networkPrefixes", new HashMap<String, Object>() {{}});
+        String prefix = this.safeString(prefixes, networkCode);
+        if (Helpers.isTrue(!Helpers.isEqual(prefix, null)))
+        {
+            Object suffixes = this.safeDict(this.options, "networkSuffixes", new HashMap<String, Object>() {{}});
+            String suffix = this.safeString(suffixes, networkCode, networkCode);
+            return Helpers.add(Helpers.add(Helpers.add(Helpers.add(prefix, " "), "("), suffix), ")");
+        }
+        return networkCode;
+    }
+
+    public Object chainIdToNetworkCode(Object chainId)
+    {
+        // live history rows and the currencies registry carry display-name
+        // chain ids like Tron with a parenthesized TRC20 suffix (verified
+        // live 2026-09-15), while the doc examples still show short forms -
+        // parse the suffix when present, fall back to the id maps otherwise
+        if (Helpers.isTrue(Helpers.isEqual(chainId, null)))
+        {
+            return null;
+        }
+        if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getIndexOf(chainId, "("), Helpers.opNeg(1))))
+        {
+            // php-safe suffix extraction: split instead of index arithmetic,
+            // because a stored strpos result and a two-argument slice do not
+            // survive the php conversion (false-vs-int compare; length arg)
+            Object parts = Helpers.split(chainId, "(");
+            String tail = this.safeString(parts, 1, "");
+            Object tailParts = Helpers.split(tail, ")");
+            String suffix = this.safeString(tailParts, 0);
+            Object bySuffix = this.safeDict(this.options, "networkCodesBySuffix", new HashMap<String, Object>() {{}});
+            return this.safeString(bySuffix, suffix, suffix);
+        }
+        // delegate the paren-free branch to the base resolver so the
+        // currency-scoped networks and the deprecated-network-code aliases
+        // keep applying alongside options['networksById']
+        return this.networkIdToCode(chainId);
+    }
+
+    /**
+     * @method
+     * @name blofin#withdraw
+     * @description make a withdrawal
+     * @see https://docs.blofin.com/index.html#withdrawal
+     * @param {string} code unified currency code
+     * @param {float} amount the amount to withdraw, the withdrawal fee is not included and must be reserved on top
+     * @param {string} address the address to withdraw to, or a UID / email / phone number for an internal transfer
+     * @param {string} tag additional identifier (memo / payment id) required by certain networks
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.network] the unified network code for on-chain withdrawals, mapped to the exchange's chain name
+     * @param {string} [params.dest] 'onchain' (default) or 'internal' for an internal transfer
+     * @param {string} [params.addrType] address type, 1: wallet address, 2: UID, 3: email, 4: mobile phone
+     * @param {string} [params.areaCode] area code for the phone number, required when address is a phone number
+     * @param {string} [params.clientId] a client-supplied id of up to 32 case-sensitive alphanumerics
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
+    public CompletableFuture<Transaction> withdraw(String code, Object amount, Object address, Object... optionalArgs)
+    {
+
+        return CompletableFuture.supplyAsync(() -> {
+
+            // LIVE API vs DOCS quirks, verified against the venue 2026-09-14:
+            // - addrType is documented optional but the live venue rejects
+            //   on-chain withdrawals without it: 152001 "Parameter addrType
+            //   cannot be empty" - defaulted to 1 below
+            // - the chain identifiers accepted here are the DISPLAY NAMES from
+            //   GET /asset/currencies ("Tron (TRC20)", "Ethereum (ERC20)", ...);
+            //   the short forms shown in the doc examples ("TRC20") are rejected
+            //   with 152002 "Invalid parameter" - see options["networks"]
+            // - 152002 responses omit the offending field name even though the
+            //   error table documents the message as "Parameter {} error"
+            Object tag = Helpers.getArg(optionalArgs, 0, null);
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
+            List<Object> tagparametersVariable = (List<Object>) this.handleWithdrawTagAndParams(tag, parameters);
+            tag = ((List<Object>) tagparametersVariable).get(0);
+            parameters = ((List<Object>) tagparametersVariable).get(1);
+            (this.loadMarkets()).join();
+            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
+            Map<String, Object> request = new HashMap<String, Object>() {{
+                put( "currency", Helpers.GetValue(currency, "id") );
+                put( "address", address );
+                put( "amount", Blofin.this.numberToString(amount) );
+            }};
+            String dest = this.safeString(parameters, "dest", "onchain");
+            Helpers.addElementToObject(request, "dest", dest);
+            parameters = this.omit(parameters, "dest");
+            if (Helpers.isTrue(Helpers.isEqual(dest, "onchain")))
+            {
+                this.checkAddress(address);
+                // the doc's Request Parameters table marks addrType "Required:
+                // No", but the live venue rejects on-chain withdrawals without
+                // it (152001 "Parameter addrType cannot be empty") - default to
+                // 1 = wallet address, callers can override for other kinds
+                Helpers.addElementToObject(request, "addrType", this.safeString(parameters, "addrType", "1"));
+                parameters = this.omit(parameters, "addrType");
+            }
+            if (Helpers.isTrue(!Helpers.isEqual(tag, null)))
+            {
+                Helpers.addElementToObject(request, "tag", tag);
+            }
+            // consume the unified network key unconditionally so it never leaks
+            // onto the wire; an explicit raw params['chain'] takes precedence
+            String networkCode = null;
+            List<Object> networkCodeparametersVariable = (List<Object>) this.handleNetworkCodeAndParams(parameters);
+            networkCode = (String) ((List<Object>) networkCodeparametersVariable).get(0);
+            parameters = ((List<Object>) networkCodeparametersVariable).get(1);
+            String chain = this.safeString(parameters, "chain");
+            if (Helpers.isTrue(Helpers.isEqual(chain, null)))
+            {
+                if (Helpers.isTrue(!Helpers.isEqual(networkCode, null)))
+                {
+                    Helpers.addElementToObject(request, "chain", this.networkCodeToChainId(networkCode));
+                } else if (Helpers.isTrue(Helpers.isEqual(dest, "onchain")))
+                {
+                    throw new ArgumentsRequired(Helpers.add(this.id, " withdraw() requires a params[\"network\"] or params[\"chain\"] for on-chain withdrawals")) ;
+                }
+            }
+            Map<String, Object> response = (this.privatePostAssetWithdrawalApply(this.extend(request, parameters))).join();
+            //
+            //     {
+            //         "code": "0",
+            //         "msg": "success",
+            //         "data": {
+            //             "withdrawId": "a1b2c3d4e5",
+            //             "clientId": "broker-20260706-0001"
+            //         }
+            //     }
+            //
+            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            // the response carries only withdrawId + clientId, and this class's
+            // parseTransaction reads every field from the payload - seed the
+            // parsed structure from the request so the unified transaction
+            // reflects what was actually submitted
+            return this.parseTransaction(this.extend(request, data), currency);
+        }).thenApply(Transaction::new);
+
+    }
+
     /**
      * @method
      * @name blofin#fetchLedger
@@ -2559,6 +2773,16 @@ public class Blofin extends BlofinApi
         String currencyId = this.safeString(transaction, "currency");
         String code = this.safeCurrencyCode(currencyId);
         Double amount = this.safeNumber(transaction, "amount");
+        // live history rows carry the DISPLAY-NAME chain identifiers
+        // ('Tron (TRC20)', verified live 2026-09-15) even though the doc
+        // examples show short forms ('TRC20') - chainIdToNetworkCode parses
+        // the parenthesized suffix for the display-name family, and the
+        // paren-free ids resolve through the base networkIdToCode with
+        // options['networksById']. note the history
+        // amount is NET of the fee: a 30 USDT withdrawal-apply lands as
+        // amount 29 + fee 1
+        String networkId = this.safeString(transaction, "chain");
+        Object networkCode = this.chainIdToNetworkCode(networkId);
         String txid = this.safeString(transaction, "txId");
         Long timestamp = this.safeInteger(transaction, "ts");
         String feeCurrencyId = this.safeString(transaction, "feeCurrency");
@@ -2572,7 +2796,7 @@ public class Blofin extends BlofinApi
             put( "id", finalId );
             put( "currency", code );
             put( "amount", amount );
-            put( "network", null );
+            put( "network", networkCode );
             put( "addressFrom", null );
             put( "addressTo", addressTo );
             put( "address", address );

@@ -77,7 +77,7 @@ public class TestOrder extends BaseTest {
             {
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(Helpers.GetValue(entry, "trades"))); i++)
                 {
-                    TestTrade.testTrade(exchange, skippedNew, method, Helpers.GetValue(Helpers.GetValue(entry, "trades"), i), symbol, now);
+                    TestTrade.testTrade(exchange, skippedNew, method, Helpers.GetValue(Helpers.GetValue(entry, "trades"), i), symbol, now, false);
                 }
             }
         }

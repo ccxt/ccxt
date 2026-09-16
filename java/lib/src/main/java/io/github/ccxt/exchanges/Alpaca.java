@@ -561,8 +561,8 @@ public class Alpaca extends AlpacaApi
                         }} );
                         put( "timeInForce", new HashMap<String, Object>() {{
                             put( "IOC", true );
-                            put( "FOK", true );
-                            put( "PO", true );
+                            put( "FOK", false );
+                            put( "PO", false );
                             put( "GTD", false );
                         }} );
                         put( "hedged", false );
@@ -632,6 +632,7 @@ public class Alpaca extends AlpacaApi
                     put( "40410000", InvalidOrder.class );
                     put( "40010001", BadRequest.class );
                     put( "40110000", PermissionDenied.class );
+                    put( "42210000", BadRequest.class );
                     put( "42910000", RateLimitExceeded.class );
                 }} );
                 put( "broad", new HashMap<String, Object>() {{
@@ -1460,6 +1461,7 @@ public class Alpaca extends AlpacaApi
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
+     * @param {string} [params.timeInForce] 'GTC' or 'IOC', the venue supports only these two for crypto orders, defaults to 'GTC'
      * @param {float} [params.cost] *market orders only* the cost of the order in units of the quote currency
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -1512,6 +1514,11 @@ public class Alpaca extends AlpacaApi
             List<Object> defaultTIFparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createOrder", "timeInForce");
             defaultTIF = ((List<Object>) defaultTIFparametersVariable).get(0);
             parameters = ((List<Object>) defaultTIFparametersVariable).get(1);
+            if (Helpers.isTrue(!Helpers.isEqual(defaultTIF, null)))
+            {
+                // the venue only accepts lowercase values, normalize the unified uppercase spellings
+                defaultTIF = ((String)defaultTIF).toLowerCase();
+            }
             Helpers.addElementToObject(request, "time_in_force", defaultTIF);
             parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("timeInForce", "triggerPrice")));
             Helpers.addElementToObject(request, "client_order_id", this.generateClientOrderId(parameters));
@@ -1830,7 +1837,7 @@ public class Alpaca extends AlpacaApi
      * @param {float} [price] the price for the order, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.triggerPrice] the price to trigger a stop order
-     * @param {string} [params.timeInForce] for crypto trading either 'gtc' or 'ioc' can be used
+     * @param {string} [params.timeInForce] 'GTC' or 'IOC', the venue supports only these two for crypto orders, defaults to 'GTC'
      * @param {string} [params.clientOrderId] a unique identifier for the order, automatically generated if not sent
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -1874,7 +1881,8 @@ public class Alpaca extends AlpacaApi
             parameters = ((List<Object>) timeInForceparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(timeInForce, null)))
             {
-                Helpers.addElementToObject(request, "time_in_force", timeInForce);
+                // the venue only accepts lowercase values, normalize the unified uppercase spellings
+                Helpers.addElementToObject(request, "time_in_force", ((String)timeInForce).toLowerCase());
             }
             Helpers.addElementToObject(request, "client_order_id", this.generateClientOrderId(parameters));
             parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId")));
@@ -1995,6 +2003,9 @@ public class Alpaca extends AlpacaApi
     {
         Map<String, Object> timeInForces = new HashMap<String, Object>() {{
             put( "day", "Day" );
+            put( "gtc", "GTC" );
+            put( "ioc", "IOC" );
+            put( "fok", "FOK" );
         }};
         return this.safeString(timeInForces, timeInForce, timeInForce);
     }

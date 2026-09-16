@@ -51,4 +51,16 @@ func TestPrecisionFromString() {
 	Assert(ccxt.IsEqual(exchange.PrecisionFromString("1.0"), 0))
 	// Test 20: Mixed precision
 	Assert(ccxt.IsEqual(exchange.PrecisionFromString("0.12345"), 5))
+	// Test 21: Negative mantissa with negative exponent
+	Assert(ccxt.IsEqual(exchange.PrecisionFromString("-8e-8"), 8))
+	// Test 22: Negative mantissa uppercase E with zero-padded exponent
+	Assert(ccxt.IsEqual(exchange.PrecisionFromString("-8E-08"), 8))
+	// Test 23: Negative decimal mantissa
+	Assert(ccxt.IsEqual(exchange.PrecisionFromString("-2.5e-6"), 6))
+	// Test 24: Negative mantissa with positive exponent
+	Assert(ccxt.IsEqual(exchange.PrecisionFromString("-1e4"), ccxt.OpNeg(4)))
+	// Test 25: Explicitly positive mantissa
+	Assert(ccxt.IsEqual(exchange.PrecisionFromString("+1e-4"), 4))
+	// Test 26: Negative mantissa with explicitly signed exponent
+	Assert(ccxt.IsEqual(exchange.PrecisionFromString("-1e+4"), ccxt.OpNeg(4)))
 }

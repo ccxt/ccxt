@@ -1739,6 +1739,9 @@ export default class kucoin extends kucoinRest {
         const firstDelta = this.safeValue(cache, 0);
         const nonce = this.safeInteger(orderbook, 'nonce');
         const firstDeltaStart = this.safeIntegerN(firstDelta, ['sequenceStart', 'sequence', 'O']);
+        if ((nonce === undefined) || (firstDeltaStart === undefined)) {
+            return -1;
+        }
         if (nonce < firstDeltaStart - 1) {
             return -1;
         }
@@ -1746,6 +1749,9 @@ export default class kucoin extends kucoinRest {
             const delta = cache[i];
             const deltaStart = this.safeIntegerN(delta, ['sequenceStart', 'sequence', 'O']);
             const deltaEnd = this.safeIntegerN(delta, ['sequenceEnd', 'sequence', 'C']); // todo check
+            if ((deltaStart === undefined) || (deltaEnd === undefined)) {
+                continue;
+            }
             if ((nonce >= deltaStart - 1) && (nonce < deltaEnd)) {
                 return i;
             }

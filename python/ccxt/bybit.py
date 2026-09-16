@@ -4264,7 +4264,7 @@ class bybit(Exchange, ImplicitAPI):
             createMarketBuyOrderRequiresPrice, params = self.handle_option_and_params(params, 'createOrder', 'createMarketBuyOrderRequiresPrice')
             if createMarketBuyOrderRequiresPrice:
                 if (price is None) and (cost is None):
-                    raise InvalidOrder(self.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend(amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to False and pass the cost to spend in the amount argument')
+                    raise InvalidOrder(self.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to False and pass the cost to spend in the amount argument')
                 else:
                     quoteAmount = Precise.string_mul(self.number_to_string(amount), priceString)
                     costRequest = cost if (cost is not None) else quoteAmount
@@ -4836,7 +4836,7 @@ class bybit(Exchange, ImplicitAPI):
             if currentCategory == 'inverse':
                 raise NotSupported(self.id + ' cancelOrdersForSymbols does not allow inverse orders')
             if (category is not None) and (category != currentCategory):
-                raise ExchangeError(self.id + ' cancelOrdersForSymbols requires all orders to be of the same category(linear, spot or option))')
+                raise ExchangeError(self.id + ' cancelOrdersForSymbols requires all orders to be of the same category (linear, spot or option))')
             category = currentCategory
             id = self.safe_string(order, 'id')
             clientOrderId = self.safe_string(order, 'clientOrderId')
@@ -5018,7 +5018,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         acknowledge = False
         acknowledge, params = self.handle_option_and_params(params, 'fetchOrder', 'acknowledged')
         if not acknowledge:
-            raise ArgumentsRequired(self.id + ' fetchOrder() can only access an order if it is in last 500 orders(of any status) for your account. Set params["acknowledged"] = True to hide self warning. Alternatively, we suggest to use fetchOpenOrder or fetchClosedOrder')
+            raise ArgumentsRequired(self.id + ' fetchOrder() can only access an order if it is in last 500 orders (of any status) for your account. Set params["acknowledged"] = True to hide self warning. Alternatively, we suggest to use fetchOpenOrder or fetchClosedOrder')
         market = self.market(symbol)
         marketType = None
         marketType, params = self.get_bybit_type('fetchOrder', market, params)
@@ -6254,7 +6254,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         :param str address: the address to withdraw to
         :param str tag:
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param str [params.accountType]: 'UTA', 'FUND', 'FUND,UTA', and 'SPOT(for classic accounts only)
+        :param str [params.accountType]: 'UTA', 'FUND', 'FUND,UTA', and 'SPOT (for classic accounts only)
         :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)

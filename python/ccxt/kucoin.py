@@ -8,7 +8,7 @@ from ccxt.abstract.kucoin import ImplicitAPI
 import hashlib
 import math
 import json
-from ccxt.base.types import Account, ADL, Balances, BorrowInterest, CrossBorrowRate, Currencies, Currency, CurrencyInterface, DepositAddress, DepositAddresses, Int, LedgerEntry, Leverage, LeverageTier, LeverageTiers, MarginMode, MarginModification, MarginLoan, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, PositionModeInfo, Status, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFeeInterface, DepositWithdrawFee, DepositWithdrawFees, Transaction, TransferEntry
+from ccxt.base.types import Account, ADL, Balances, BorrowInterest, CrossBorrowRate, Currencies, Currency, CurrencyInterface, DepositAddress, DepositAddresses, Int, LedgerEntry, Leverage, LeverageTier, LeverageTiers, MarginMode, MarginModification, MarginLoan, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, PositionModeInfo, Status, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, DepositWithdrawFee, DepositWithdrawFees, Transaction, TransferEntry
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -92,7 +92,7 @@ class kucoin(Exchange, ImplicitAPI):
                 'fetchFundingInterval': True,
                 'fetchFundingRate': True,
                 'fetchFundingRateHistory': True,
-                'fetchFundingRates': False,
+                'fetchFundingRates': True,
                 'fetchIndexOHLCV': True,  # uta only
                 'fetchIsolatedBorrowRate': False,
                 'fetchIsolatedBorrowRates': False,
@@ -158,6 +158,7 @@ class kucoin(Exchange, ImplicitAPI):
                     'broker': 'https://api-broker.kucoin.com',
                     'earn': 'https://api.kucoin.com',
                     'uta': 'https://api.kucoin.com',
+                    'utaV2': 'https://api.kucoin.com',
                     'utaPrivate': 'https://api.kucoin.com',
                 },
                 'www': 'https://www.kucoin.com',
@@ -581,6 +582,11 @@ class kucoin(Exchange, ImplicitAPI):
                         'market/borrowable-currency': {'cost': 30},
                         'user/my-ip': {'cost': 20},
                         'market/fiat-price': {'cost': 6},
+                    },
+                },
+                'utaV2': {
+                    'get': {
+                        'market/funding-rate': {'cost': 6},  # 3PW
                     },
                 },
                 'utaPrivate': {
@@ -2834,6 +2840,11 @@ class kucoin(Exchange, ImplicitAPI):
         market = self.safe_market(marketId, market, '-')
         last = self.safe_string_2(ticker, 'price', 'lastTradePrice')
         timestamp = self.safe_integer_product(ticker, 'ts', 0.000001)
+        change = self.safe_string(ticker, 'priceChg')
+        percentage = None
+        if (last is None) or (change is None):
+            percentage = Precise.string_mul(self.safe_string(ticker, 'priceChgPct'), '100')
+        # Otherwise safeTicker derives percentage from last and change, since priceChgPct can be inconsistent.
         return self.safe_ticker({
             'symbol': market['symbol'],
             'timestamp': timestamp,
@@ -2849,10 +2860,8 @@ class kucoin(Exchange, ImplicitAPI):
             'close': last,
             'last': last,
             'previousClose': None,
-            'change': self.safe_string(ticker, 'priceChg'),
-            # priceChgPct is a ratio: the sample above reports 0.0447 beside a priceChg
-            # of 2878.7 on a price near 64000, which is a move of 4.47 per cent
-            'percentage': Precise.string_mul(self.safe_string(ticker, 'priceChgPct'), '100'),
+            'change': change,
+            'percentage': percentage,
             'average': None,
             'baseVolume': self.safe_string(ticker, 'volumeOf24h'),
             'quoteVolume': self.safe_string(ticker, 'turnoverOf24h'),
@@ -9457,6 +9466,50 @@ class kucoin(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.parse_funding_rate(data, market)
 
+    def fetch_funding_rates(self, symbols: Strings = None, params={}) -> FundingRates:
+        """
+        fetch the current funding rates for multiple markets
+
+        https://www.kucoin.com/docs-new/v2/rest/ua/get-current-funding
+
+        :param str[] [symbols]: unified market symbols, all markets are returned if not assigned
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.productType]: filter by USDT-FUTURES, USDC-FUTURES or COIN-FUTURES
+        :param str [params.symbol]: exchange-specific contract id(e.g. XBTUSDTM), overrides productType when provided
+        :returns dict: a dictionary of `funding rate structures <https://docs.ccxt.com/?id=funding-rate-structure>`, indexed by market symbols
+        """
+        if self.markets is None:
+            self.load_markets()
+        symbols = self.market_symbols(symbols)
+        response = self.utaV2GetMarketFundingRate(params)
+        #
+        #     {
+        #         "code": "200000",
+        #         "data": [
+        #             {
+        #                 "symbol": "XBTUSDTM",
+        #                 "nextFundingRate": "-0.000004",
+        #                 "fundingTime": 1789315200000,
+        #                 "fundingRateCap": "0.003",
+        #                 "fundingRateFloor": "-0.003",
+        #                 "currentGranularity": 28800000,
+        #                 "newGranularity": 28800000,
+        #                 "newGranularityStartTime": 1750147200000
+        #             }
+        #         ]
+        #     }
+        #
+        data = self.safe_list(response, 'data', [])
+        rates = []
+        for i in range(0, len(data)):
+            entry = data[i]
+            marketId = self.safe_string(entry, 'symbol')
+            # kucoin returns funding index symbols (e.g. .ETHUSDTMFPI8H) alongside tradeable contracts
+            isFundingIndex = (marketId is not None) and (marketId.startswith('.'))
+            if not isFundingIndex:
+                rates.append(entry)
+        return self.parse_funding_rates(rates, symbols)
+
     def parse_funding_rate(self, data: object, market: Market = None) -> FundingRate:
         # uta
         #     {
@@ -10913,6 +10966,8 @@ class kucoin(Exchange, ImplicitAPI):
         version = self.safe_string(params, 'version', defaultVersion)
         params = self.omit(params, 'version')
         endpoint = '/api/' + version + '/' + self.implode_params(path, params)
+        if api == 'utaV2':
+            endpoint = '/api/ua/v2/' + self.implode_params(path, params)
         if api == 'webExchange':
             endpoint = '/' + self.implode_params(path, params)
         if api == 'earn':

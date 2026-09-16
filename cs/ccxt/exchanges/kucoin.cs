@@ -66,7 +66,7 @@ public partial class kucoin : Exchange
                 { "fetchFundingInterval", true },
                 { "fetchFundingRate", true },
                 { "fetchFundingRateHistory", true },
-                { "fetchFundingRates", false },
+                { "fetchFundingRates", true },
                 { "fetchIndexOHLCV", true },
                 { "fetchIsolatedBorrowRate", false },
                 { "fetchIsolatedBorrowRates", false },
@@ -132,6 +132,7 @@ public partial class kucoin : Exchange
                     { "broker", "https://api-broker.kucoin.com" },
                     { "earn", "https://api.kucoin.com" },
                     { "uta", "https://api.kucoin.com" },
+                    { "utaV2", "https://api.kucoin.com" },
                     { "utaPrivate", "https://api.kucoin.com" },
                 } },
                 { "www", "https://www.kucoin.com" },
@@ -1166,6 +1167,13 @@ public partial class kucoin : Exchange
                             { "cost", 20 },
                         } },
                         { "market/fiat-price", new Dictionary<string, object>() {
+                            { "cost", 6 },
+                        } },
+                    } },
+                } },
+                { "utaV2", new Dictionary<string, object>() {
+                    { "get", new Dictionary<string, object>() {
+                        { "market/funding-rate", new Dictionary<string, object>() {
                             { "cost", 6 },
                         } },
                     } },
@@ -3386,6 +3394,13 @@ public partial class kucoin : Exchange
         market = this.safeMarket(marketId, market, "-");
         string? last = this.safeString2(ticker, "price", "lastTradePrice");
         Int64? timestamp = this.safeIntegerProduct(ticker, "ts", 0.000001);
+        string? change = this.safeString(ticker, "priceChg");
+        string? percentage = null;
+        if (isTrue(isTrue((isEqual(last, null))) || isTrue((isEqual(change, null)))))
+        {
+            percentage = Precise.stringMul(this.safeString(ticker, "priceChgPct"), "100");
+        }
+        // Otherwise safeTicker derives percentage from last and change, since priceChgPct can be inconsistent.
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", getValue(market, "symbol") },
             { "timestamp", timestamp },
@@ -3401,8 +3416,8 @@ public partial class kucoin : Exchange
             { "close", last },
             { "last", last },
             { "previousClose", null },
-            { "change", this.safeString(ticker, "priceChg") },
-            { "percentage", Precise.stringMul(this.safeString(ticker, "priceChgPct"), "100") },
+            { "change", change },
+            { "percentage", percentage },
             { "average", null },
             { "baseVolume", this.safeString(ticker, "volumeOf24h") },
             { "quoteVolume", this.safeString(ticker, "turnoverOf24h") },
@@ -11470,6 +11485,59 @@ public partial class kucoin : Exchange
         return ccxt.BaseExchange.ToFundingRate(this.parseFundingRate(data, market));
     }
 
+    /**
+     * @method
+     * @name kucoin#fetchFundingRates
+     * @description fetch the current funding rates for multiple markets
+     * @see https://www.kucoin.com/docs-new/v2/rest/ua/get-current-funding
+     * @param {string[]} [symbols] unified market symbols, all markets are returned if not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.productType] filter by USDT-FUTURES, USDC-FUTURES or COIN-FUTURES
+     * @param {string} [params.symbol] exchange-specific contract id (e.g. XBTUSDTM), overrides productType when provided
+     * @returns {object} a dictionary of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}, indexed by market symbols
+     */
+    public async override Task<ccxt.FundingRates> FetchFundingRates(object symbols = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
+        symbols = this.marketSymbols(symbols);
+        Dictionary<string, object> response = await this.utaV2GetMarketFundingRate(parameters);
+        //
+        //     {
+        //         "code": "200000",
+        //         "data": [
+        //             {
+        //                 "symbol": "XBTUSDTM",
+        //                 "nextFundingRate": "-0.000004",
+        //                 "fundingTime": 1789315200000,
+        //                 "fundingRateCap": "0.003",
+        //                 "fundingRateFloor": "-0.003",
+        //                 "currentGranularity": 28800000,
+        //                 "newGranularity": 28800000,
+        //                 "newGranularityStartTime": 1750147200000
+        //             }
+        //         ]
+        //     }
+        //
+        List<object> data = this.safeList(response, "data", new List<object>() {});
+        List<object> rates = new List<object>() {};
+        for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+        {
+            object entry = getValue(data, i);
+            string? marketId = this.safeString(entry, "symbol");
+            // kucoin returns funding index symbols (e.g. .ETHUSDTMFPI8H) alongside tradeable contracts
+            bool isFundingIndex = isTrue((!isEqual(marketId, null))) && isTrue((((string)marketId).StartsWith(((string)"."))));
+            if (!isTrue(isFundingIndex))
+            {
+                ((IList<object>)rates).Add(entry);
+            }
+        }
+        return ccxt.BaseExchange.ToFundingRates(this.parseFundingRates(rates, symbols));
+    }
+
     public override object parseFundingRate(object data, object market = null)
     {
         // uta
@@ -13141,6 +13209,10 @@ public partial class kucoin : Exchange
         string? version = this.safeString(parameters, "version", defaultVersion);
         parameters = this.omit(parameters, "version");
         string endpoint = add(add(add("/api/", version), "/"), this.implodeParams(path, parameters));
+        if (isTrue(isEqual(api, "utaV2")))
+        {
+            endpoint = add("/api/ua/v2/", this.implodeParams(path, parameters));
+        }
         if (isTrue(isEqual(api, "webExchange")))
         {
             endpoint = add("/", this.implodeParams(path, parameters));
