@@ -196,7 +196,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
     public CompletableFuture<Order> createOrderWs(String symbol2, Object type, Object side, Object amount, Object... optionalArgs)
     {
         final Object symbol3 = symbol2;
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object price = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -215,7 +215,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             Object rawOrder = (this.requestPrivate(url, request, channel)).join();
             Object order = this.parseOrder(rawOrder, market);
             return order;
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
+        }).thenApply(Order::new);
 
     }
 
@@ -231,7 +231,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
     public CompletableFuture<List<Order>> createOrdersWs(Object orders, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
@@ -252,7 +252,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             (this.authenticate(url, messageType)).join();
             Object rawOrders = (this.requestPrivate(url, request, channel)).join();
             return this.parseOrders(rawOrders, market);
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -270,7 +270,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
     public CompletableFuture<List<Order>> cancelAllOrdersWs(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -300,7 +300,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             (this.authenticate(url, messageType)).join();
             Object rawOrders = (this.requestPrivate(url, this.extend(request, requestParams), channel)).join();
             return this.parseOrders(rawOrders, market);
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -319,7 +319,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
     public CompletableFuture<Order> cancelOrderWs(String id, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -343,7 +343,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             Helpers.addElementToObject(request, "order_id", String.valueOf(id));
             Object res = (this.requestPrivate(url, this.extend(request, requestParams), channel)).join();
             return this.parseOrder(res, market);
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
+        }).thenApply(Order::new);
 
     }
 
@@ -365,7 +365,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
     public CompletableFuture<Order> editOrderWs(String id, String symbol, Object type, Object side, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Object amount = Helpers.getArg(optionalArgs, 0, null);
             Object price = Helpers.getArg(optionalArgs, 1, null);
@@ -382,7 +382,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             (this.authenticate(url, messageType)).join();
             Object rawOrder = (this.requestPrivate(url, extendedRequest, channel)).join();
             return this.parseOrder(rawOrder, market);
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
+        }).thenApply(Order::new);
 
     }
 
@@ -404,7 +404,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
     public CompletableFuture<Order> fetchOrderWs(String id, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -422,7 +422,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             (this.authenticate(url, messageType)).join();
             Object rawOrder = (this.requestPrivate(url, this.extend(request, requestParams), channel)).join();
             return this.parseOrder(rawOrder, market);
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
+        }).thenApply(Order::new);
 
     }
 
@@ -440,14 +440,14 @@ public class Gate extends io.github.ccxt.exchanges.Gate
     public CompletableFuture<List<Order>> fetchOpenOrdersWs(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             return (this.fetchOrdersByStatusWs((Object)("open"), (Object)(symbol), (Object)(since), (Object)(limit), (Object)(parameters))).join();
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -465,14 +465,14 @@ public class Gate extends io.github.ccxt.exchanges.Gate
     public CompletableFuture<List<Order>> fetchClosedOrdersWs(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             return (this.fetchOrdersByStatusWs((Object)("finished"), (Object)(symbol), (Object)(since), (Object)(limit), (Object)(parameters))).join();
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -493,7 +493,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
     public CompletableFuture<List<Order>> fetchOrdersByStatusWs(Object status, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -524,7 +524,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             Object rawOrders = (this.requestPrivate(url, this.extend(newRequest, requestParams), channel)).join();
             List<Object> orders = this.parseOrders(rawOrders, market);
             return this.filterBySymbolSinceLimit(orders, symbol, since, limit);
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -546,7 +546,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
     public CompletableFuture<OrderBook> watchOrderBook(String symbol2, Object... optionalArgs)
     {
         final Object symbol3 = symbol2;
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object limit = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -604,7 +604,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             }};
             Object orderbook = (this.subscribePublic(url, messageHash, payload, channel, query, subscription)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OrderBook::new);
+        }).thenApply(OrderBook::new);
 
     }
 
@@ -619,7 +619,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
     public CompletableFuture<Object> unWatchOrderBook(Object symbol2, Object... optionalArgs)
     {
         final Object symbol3 = symbol2;
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
@@ -672,7 +672,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             Object subMessageHash = Helpers.add(Helpers.add("orderbook", ":"), symbol);
             String messageHash = Helpers.add(Helpers.add("unsubscribe:orderbook", ":"), symbol);
             return (this.unSubscribePublicMultiple(url, "orderbook", new ArrayList<Object>(Arrays.asList(symbol)), new ArrayList<Object>(Arrays.asList(messageHash)), new ArrayList<Object>(Arrays.asList(subMessageHash)), payload, channel, parameters)).join();
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
+        });
 
     }
 
@@ -925,7 +925,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
     public CompletableFuture<Ticker> watchTicker(String symbol2, Object... optionalArgs)
     {
         final Object symbol3 = symbol2;
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
@@ -937,7 +937,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             Helpers.addElementToObject(parameters, "callerMethodName", "watchTicker");
             Object result = (this.watchTickers((Object)(new ArrayList<Object>(Arrays.asList(symbol))), (Object)(parameters))).join();
             return this.safeValue(result, symbol);
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Ticker::new);
+        }).thenApply(Ticker::new);
 
     }
 
@@ -955,14 +955,14 @@ public class Gate extends io.github.ccxt.exchanges.Gate
     public CompletableFuture<Tickers> watchTickers(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             return (this.subscribeWatchTickersAndBidsAsks(symbols, "watchTickers", this.extend(new HashMap<String, Object>() {{
                 put( "method", "tickers" );
             }}, parameters))).join();
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Tickers::new);
+        }).thenApply(Tickers::new);
 
     }
 
@@ -1003,14 +1003,14 @@ public class Gate extends io.github.ccxt.exchanges.Gate
     public CompletableFuture<Tickers> watchBidsAsks(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             return (this.subscribeWatchTickersAndBidsAsks(symbols, "watchBidsAsks", this.extend(new HashMap<String, Object>() {{
                 put( "method", "book_ticker" );
             }}, parameters))).join();
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Tickers::new);
+        }).thenApply(Tickers::new);
 
     }
 
@@ -1039,7 +1039,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
     public CompletableFuture<Object> subscribeWatchTickersAndBidsAsks(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object callerMethodName = Helpers.getArg(optionalArgs, 1, null);
@@ -1082,7 +1082,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             }
             Object result = ((Helpers.isTrue(isWatchTickers))) ? this.tickers : this.bidsasks;
             return this.filterByArray(result, "symbol", symbols, true);
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
+        });
 
     }
 
@@ -1145,13 +1145,13 @@ public class Gate extends io.github.ccxt.exchanges.Gate
     public CompletableFuture<List<Trade>> watchTrades(String symbol, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
             return (this.watchTradesForSymbols((Object)(new ArrayList<Object>(Arrays.asList(symbol))), (Object)(since), (Object)(limit), (Object)(parameters))).join();
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -1172,7 +1172,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
     public CompletableFuture<List<Trade>> watchTradesForSymbols(Object symbols2, Object... optionalArgs)
     {
         final Object symbols3 = symbols2;
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
             Object symbols = symbols3;
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, null);
@@ -1201,7 +1201,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{tradeSymbol, limit});
             }
             return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -1216,7 +1216,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
     public CompletableFuture<Object> unWatchTradesForSymbols(Object symbols2, Object... optionalArgs)
     {
         final Object symbols3 = symbols2;
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
             Object symbols = symbols3;
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
@@ -1238,7 +1238,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             }
             Object url = this.getUrlByMarket(market);
             return (this.unSubscribePublicMultiple(url, "trades", symbols, messageHashes, subMessageHashes, marketIds, channel, parameters)).join();
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
+        });
 
     }
 
@@ -1253,11 +1253,11 @@ public class Gate extends io.github.ccxt.exchanges.Gate
     public CompletableFuture<Object> unWatchTrades(String symbol, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             return (this.unWatchTradesForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), parameters)).join();
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
+        });
 
     }
 
@@ -1322,7 +1322,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
     public CompletableFuture<List<OHLCV>> watchOHLCV(String symbol2, Object... optionalArgs)
     {
         final Object symbol3 = symbol2;
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object timeframe = Helpers.getArg(optionalArgs, 0, "1m");
             Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -1348,7 +1348,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
                 limit = Helpers.callDynamically(ohlcv, "getLimit", new Object[]{symbol, limit});
             }
             return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
+        }).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
 
     }
 
@@ -1434,7 +1434,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
     public CompletableFuture<List<Trade>> watchMyTrades(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -1483,7 +1483,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
             }
             return this.filterBySymbolSinceLimit(trades, symbol, since, limit, true);
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -1558,7 +1558,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
     public CompletableFuture<Balances> watchBalance(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
@@ -1587,7 +1587,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             Object channel = Helpers.add(channelType, ".balances");
             Object messageHash = Helpers.add(type, ".balance");
             return (this.subscribePrivate(url, messageHash, null, channel, parameters, requiresUid)).join();
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Balances::new);
+        }).thenApply(Balances::new);
 
     }
 
@@ -1705,7 +1705,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
     public CompletableFuture<List<Position>> watchPositions(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -1767,7 +1767,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
                 return positions;
             }
             return this.filterBySymbolsSinceLimit(this.safeValue(this.positions, type), symbols, since, limit, true);
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Position::new));
+        }).thenApply(res -> Helpers.toTypedList(res, Position::new));
 
     }
 
@@ -1801,7 +1801,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
     {
         final Object messageHash3 = messageHash2;
         final Object type3 = type2;
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
             Object messageHash = messageHash3;
             Object type = type3;
             final Object finalType = type;
@@ -1827,7 +1827,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
                 client.resolve(cache, Helpers.add(type, ":position"));
             }
             return null;
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
+        });
 
     }
 
@@ -1940,7 +1940,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
     public CompletableFuture<List<Order>> watchOrders(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -2010,7 +2010,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
                 limit = Helpers.callDynamically(orders, "getLimit", new Object[]{symbol, limit});
             }
             return this.filterBySinceLimit(orders, since, limit, "timestamp", true);
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -2122,13 +2122,13 @@ public class Gate extends io.github.ccxt.exchanges.Gate
     public CompletableFuture<List<Liquidation>> watchMyLiquidations(String symbol, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
             return (this.watchMyLiquidationsForSymbols((Object)(new ArrayList<Object>(Arrays.asList(symbol))), (Object)(since), (Object)(limit), (Object)(parameters))).join();
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Liquidation::new));
+        }).thenApply(res -> Helpers.toTypedList(res, Liquidation::new));
 
     }
 
@@ -2148,7 +2148,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
     public CompletableFuture<List<Liquidation>> watchMyLiquidationsForSymbols(Object symbols2, Object... optionalArgs)
     {
         final Object symbols3 = symbols2;
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
             Object symbols = symbols3;
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, null);
@@ -2202,7 +2202,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
                 return newLiquidations;
             }
             return this.filterBySymbolsSinceLimit(this.liquidations, symbols, since, limit, true);
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Liquidation::new));
+        }).thenApply(res -> Helpers.toTypedList(res, Liquidation::new));
 
     }
 
@@ -2741,7 +2741,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
     public CompletableFuture<Object> subscribePublic(Object url, Object messageHash2, Object payload, Object channel, Object... optionalArgs)
     {
         final Object messageHash3 = messageHash2;
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
             Object messageHash = messageHash3;
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Object subscription = Helpers.getArg(optionalArgs, 1, null);
@@ -2765,14 +2765,14 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             }
             Map<String, Object> message = this.extend(request, parameters);
             return (this.watch(url, messageHash, message, messageHash, subscription)).join();
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
+        });
 
     }
 
     public CompletableFuture<Object> subscribePublicMultiple(Object url, Object messageHashes, Object payload, Object channel, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Object requestId = this.requestId();
@@ -2786,14 +2786,14 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             }};
             Map<String, Object> message = this.extend(request, parameters);
             return (this.watchMultiple(url, messageHashes, message, messageHashes, null)).join();
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
+        });
 
     }
 
     public CompletableFuture<Object> unSubscribePublicMultiple(Object url, Object topic, Object symbols, Object messageHashes, Object subMessageHashes, Object payload, Object channel, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Object requestId = this.requestId();
@@ -2815,14 +2815,14 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             }};
             Map<String, Object> message = this.extend(request, parameters);
             return (this.watchMultiple(url, messageHashes, message, messageHashes, sub)).join();
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
+        });
 
     }
 
     public CompletableFuture<Object> authenticate(Object url, Object messageType2)
     {
         final Object messageType3 = messageType2;
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
             Object messageType = messageType3;
             Object channel = Helpers.add(messageType, ".login");
             Client client = this.client(url);
@@ -2834,7 +2834,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
                 return (this.requestPrivate(url, new HashMap<String, Object>() {{}}, channel, messageHash)).join();
             }
             return future;
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
+        });
 
     }
 
@@ -2848,7 +2848,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
     public CompletableFuture<Object> requestPrivate(Object url, Object reqParams, Object channel2, Object... optionalArgs)
     {
         final Object channel3 = channel2;
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
             Object channel = channel3;
             Object requestId = Helpers.getArg(optionalArgs, 0, null);
             this.checkRequiredCredentials();
@@ -2887,7 +2887,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
                 put( "payload", payload );
             }};
             return (this.watch(url, messageHash, request, messageHash, requestId)).join();
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
+        });
 
     }
 
@@ -2895,7 +2895,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
     {
         final Object messageHash3 = messageHash2;
         final Object payload3 = payload2;
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
             Object messageHash = messageHash3;
             Object payload = payload3;
             Object requiresUid = Helpers.getArg(optionalArgs, 0, false);
@@ -2946,7 +2946,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             }
             Map<String, Object> message = this.extend(request, parameters);
             return (this.watch(url, messageHash, message, messageHash, messageHash)).join();
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
+        });
 
     }
 }

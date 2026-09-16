@@ -367,7 +367,7 @@ public class Zebpay extends ZebpayApi
     public CompletableFuture<Status> fetchStatus(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Object type = null;
@@ -406,7 +406,7 @@ public class Zebpay extends ZebpayApi
                 put( "url", null );
                 put( "info", finalResponse );
             }};
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Status::new);
+        }).thenApply(Status::new);
 
     }
 
@@ -422,7 +422,7 @@ public class Zebpay extends ZebpayApi
     public CompletableFuture<Long> fetchTime(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Object type = null;
@@ -454,7 +454,7 @@ public class Zebpay extends ZebpayApi
             //
             Long time = this.safeInteger(data, "timestamp");
             return time;
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
+        }).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
 
     }
 
@@ -470,7 +470,7 @@ public class Zebpay extends ZebpayApi
     public CompletableFuture<Object> fetchMarkets(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             List<Object> promisesUnresolved = new ArrayList<Object>(Arrays.asList());
@@ -495,7 +495,7 @@ public class Zebpay extends ZebpayApi
             Object spotMarkets = this.safeList(promises, 0, new ArrayList<Object>(Arrays.asList()));
             Object futureMarkets = this.safeList(promises, 1, new ArrayList<Object>(Arrays.asList()));
             return this.arrayConcat(spotMarkets, futureMarkets);
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
+        });
 
     }
 
@@ -510,7 +510,7 @@ public class Zebpay extends ZebpayApi
     public CompletableFuture<Object> fetchCurrencies(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Map<String, Object> response = (this.publicSpotGetV2ExCurrencies(parameters)).join();
@@ -547,7 +547,7 @@ public class Zebpay extends ZebpayApi
             //
             Object rows = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseCurrencies(rows);
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
+        });
 
     }
 
@@ -664,7 +664,7 @@ public class Zebpay extends ZebpayApi
     public CompletableFuture<TradingFeeInterface> fetchTradingFee(String symbol, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
@@ -715,7 +715,7 @@ public class Zebpay extends ZebpayApi
                 data = this.safeDict(responseData, 0, new HashMap<String, Object>() {{}});
             }
             return this.parseTradingFee(data, market);
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(TradingFeeInterface::new);
+        }).thenApply(TradingFeeInterface::new);
 
     }
 
@@ -730,7 +730,7 @@ public class Zebpay extends ZebpayApi
     public CompletableFuture<TradingFees> fetchTradingFees(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Object type = null;
@@ -771,7 +771,7 @@ public class Zebpay extends ZebpayApi
                 }
             }
             return result;
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(TradingFees::new);
+        }).thenApply(TradingFees::new);
 
     }
 
@@ -789,7 +789,7 @@ public class Zebpay extends ZebpayApi
     public CompletableFuture<OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Object limit = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -829,7 +829,7 @@ public class Zebpay extends ZebpayApi
             Object orderbook = this.parseOrderBook(bookData, Helpers.GetValue(market, "symbol"), null, "bids", "asks", 0, 1);
             Helpers.addElementToObject(orderbook, "nonce", this.safeInteger(bookData, "nonce"));
             return orderbook;
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OrderBook::new);
+        }).thenApply(OrderBook::new);
 
     }
 
@@ -846,7 +846,7 @@ public class Zebpay extends ZebpayApi
     public CompletableFuture<Ticker> fetchTicker(String symbol, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
@@ -867,7 +867,7 @@ public class Zebpay extends ZebpayApi
             }
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseTicker(data, market);
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Ticker::new);
+        }).thenApply(Ticker::new);
 
     }
 
@@ -883,7 +883,7 @@ public class Zebpay extends ZebpayApi
     public CompletableFuture<Tickers> fetchTickers(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -921,7 +921,7 @@ public class Zebpay extends ZebpayApi
             //
             Object tickerList = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTickers(tickerList, symbols);
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Tickers::new);
+        }).thenApply(Tickers::new);
 
     }
 
@@ -942,7 +942,7 @@ public class Zebpay extends ZebpayApi
     public CompletableFuture<List<OHLCV>> fetchOHLCV(Object symbol, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Object timeframe = Helpers.getArg(optionalArgs, 0, "1m");
             Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -1032,7 +1032,7 @@ public class Zebpay extends ZebpayApi
             //
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseOHLCVs(data, market, timeframe, since, limit);
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
+        }).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
 
     }
 
@@ -1051,7 +1051,7 @@ public class Zebpay extends ZebpayApi
     public CompletableFuture<List<Trade>> fetchTrades(String symbol, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, null);
@@ -1090,7 +1090,7 @@ public class Zebpay extends ZebpayApi
             //
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(data, market, since, limit);
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -1108,7 +1108,7 @@ public class Zebpay extends ZebpayApi
     public CompletableFuture<List<Trade>> fetchMyTrades(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -1138,7 +1138,7 @@ public class Zebpay extends ZebpayApi
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Object items = this.safeList(data, "items", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(items, market, since, limit);
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -1157,7 +1157,7 @@ public class Zebpay extends ZebpayApi
     public CompletableFuture<List<Trade>> fetchOrderTrades(String id, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -1199,7 +1199,7 @@ public class Zebpay extends ZebpayApi
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             List<Object> trades = new ArrayList<Object>(Arrays.asList(data));
             return this.parseTrades(trades);
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -1276,7 +1276,7 @@ public class Zebpay extends ZebpayApi
     public CompletableFuture<Balances> fetchBalance(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
@@ -1315,7 +1315,7 @@ public class Zebpay extends ZebpayApi
             //     }
             //
             return this.parseBalance(response);
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Balances::new);
+        }).thenApply(Balances::new);
 
     }
 
@@ -1342,7 +1342,7 @@ public class Zebpay extends ZebpayApi
     {
         final Object type3 = type2;
         final Object side3 = side2;
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
             Object type = type3;
             Object side = side3;
             Object price = Helpers.getArg(optionalArgs, 0, null);
@@ -1415,7 +1415,7 @@ public class Zebpay extends ZebpayApi
             //
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseOrder(data, market);
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
+        }).thenApply(Order::new);
 
     }
 
@@ -1466,7 +1466,7 @@ public class Zebpay extends ZebpayApi
     public CompletableFuture<Order> cancelOrder(Object id, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -1501,7 +1501,7 @@ public class Zebpay extends ZebpayApi
             //    }
             //
             return this.parseOrder(this.safeDict(response, "data", new HashMap<String, Object>() {{}}));
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
+        }).thenApply(Order::new);
 
     }
 
@@ -1518,7 +1518,7 @@ public class Zebpay extends ZebpayApi
     public CompletableFuture<List<Order>> cancelAllOrders(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -1546,7 +1546,7 @@ public class Zebpay extends ZebpayApi
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Object parsedOrder = this.parseOrder(data);
             return new ArrayList<Object>(Arrays.asList(parsedOrder));
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -1565,7 +1565,7 @@ public class Zebpay extends ZebpayApi
     public CompletableFuture<List<Order>> fetchOpenOrders(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -1631,7 +1631,7 @@ public class Zebpay extends ZebpayApi
             //     }
             //
             return this.parseOrders(orders, market, null, limit);
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -1651,7 +1651,7 @@ public class Zebpay extends ZebpayApi
     public CompletableFuture<Order> fetchOrder(Object id, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -1698,7 +1698,7 @@ public class Zebpay extends ZebpayApi
             //
             Object responseData = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseOrder(responseData, market);
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
+        }).thenApply(Order::new);
 
     }
 
@@ -1777,7 +1777,7 @@ public class Zebpay extends ZebpayApi
     public CompletableFuture<Order> closePosition(Object symbol, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Object side = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -1792,7 +1792,7 @@ public class Zebpay extends ZebpayApi
             Map<String, Object> response = (this.privateSwapPostV1TradePositionClose(this.extend(request, parameters))).join();
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseOrder(data, market);
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Order::new);
+        }).thenApply(Order::new);
 
     }
 
@@ -1808,7 +1808,7 @@ public class Zebpay extends ZebpayApi
     public CompletableFuture<Leverages> fetchLeverages(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -1831,7 +1831,7 @@ public class Zebpay extends ZebpayApi
             //
             Object leveragePreferences = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseLeverages(leveragePreferences, symbols, "symbol");
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Leverages::new);
+        }).thenApply(Leverages::new);
 
     }
 
@@ -1847,7 +1847,7 @@ public class Zebpay extends ZebpayApi
     public CompletableFuture<Leverage> fetchLeverage(String symbol, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
@@ -1866,7 +1866,7 @@ public class Zebpay extends ZebpayApi
             //
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseLeverage(data, market);
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Leverage::new);
+        }).thenApply(Leverage::new);
 
     }
 
@@ -1883,7 +1883,7 @@ public class Zebpay extends ZebpayApi
     public CompletableFuture<Object> setLeverage(Object leverage, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -1905,7 +1905,7 @@ public class Zebpay extends ZebpayApi
             //
             Map<String, Object> response = (this.privateSwapPostV1TradeUpdateUserLeverage(this.extend(request, parameters))).join();
             return response;
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
+        });
 
     }
 
@@ -1921,7 +1921,7 @@ public class Zebpay extends ZebpayApi
     public CompletableFuture<List<Position>> fetchPositions(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -1951,7 +1951,7 @@ public class Zebpay extends ZebpayApi
             Object positions = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Object result = this.parsePositions(positions);
             return this.filterByArrayPositions(result, "symbol", symbols, false);
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Position::new));
+        }).thenApply(res -> Helpers.toTypedList(res, Position::new));
 
     }
 
@@ -1970,7 +1970,7 @@ public class Zebpay extends ZebpayApi
     public CompletableFuture<MarginModification> addMargin(String symbol, Object amount, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
@@ -2006,7 +2006,7 @@ public class Zebpay extends ZebpayApi
                 put( "amount", amount );
                 put( "direction", "in" );
             }});
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(MarginModification::new);
+        }).thenApply(MarginModification::new);
 
     }
 
@@ -2025,7 +2025,7 @@ public class Zebpay extends ZebpayApi
     public CompletableFuture<MarginModification> reduceMargin(String symbol, Object amount, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
@@ -2055,14 +2055,14 @@ public class Zebpay extends ZebpayApi
                 put( "amount", amount );
                 put( "direction", "out" );
             }});
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(MarginModification::new);
+        }).thenApply(MarginModification::new);
 
     }
 
     public CompletableFuture<Object> fetchSpotMarkets(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Map<String, Object> response = (this.publicSpotGetV2ExExchangeInfo(parameters)).join();
@@ -2138,14 +2138,14 @@ public class Zebpay extends ZebpayApi
                 }});
             }
             return result;
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
+        });
 
     }
 
     public CompletableFuture<Object> fetchSwapMarkets(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Map<String, Object> response = (this.publicSwapGetV1MarketMarkets(parameters)).join();
@@ -2222,7 +2222,7 @@ public class Zebpay extends ZebpayApi
                 }}));
             }
             return result;
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
+        });
 
     }
 

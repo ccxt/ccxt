@@ -163,7 +163,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
     public CompletableFuture<Object> watchPublic(Object market, Object messageHash, Object topicID, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Object suffix = Helpers.getArg(optionalArgs, 1, "");
@@ -175,14 +175,14 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
                 put( "id", requestId );
             }};
             return (this.watch(url, messageHash, this.deepExtend(request, parameters), messageHash, subscription)).join();
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
+        });
 
     }
 
     public CompletableFuture<Object> unWatchPublic(Object market, Object messageHash, Object topicID, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Object subscription = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -205,27 +205,27 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
                 put( "id", requestId );
             }});
             return (this.watch(url, unsubHash, this.deepExtend(request, parameters), unsubHash, subscription)).join();
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
+        });
 
     }
 
     public CompletableFuture<Object> watchPrivate(Object messageHash, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Object listenKey = (this.authenticate()).join();
             Object url = Helpers.add(Helpers.add(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "private"), "?listenKey="), listenKey);
             return (this.watch(url, messageHash, null, "private", parameters)).join();
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
+        });
 
     }
 
     public CompletableFuture<Object> authenticate(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             this.checkRequiredCredentials();
@@ -297,7 +297,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
             // keeps an alone-leader rejection from killing the process
             ((io.github.ccxt.ws.Future)future).getFuture().join();
             return listenKey;
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
+        });
 
     }
 
@@ -313,7 +313,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
     public CompletableFuture<Ticker> watchTicker(String symbol, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
@@ -323,7 +323,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
             Object market = this.market(symbol);
             String messageHash = Helpers.add(Helpers.add("ticker", "::"), Helpers.GetValue(market, "symbol"));
             return (this.watchPublic(market, messageHash, "7", parameters)).join();
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Ticker::new);
+        }).thenApply(Ticker::new);
 
     }
 
@@ -339,7 +339,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
     public CompletableFuture<Object> unWatchTicker(String symbol, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
@@ -352,7 +352,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
                 put( "topic", "ticker" );
             }};
             return (this.unWatchPublic(market, messageHash, "7", parameters, subscription)).join();
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
+        });
 
     }
 
@@ -480,7 +480,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
     public CompletableFuture<List<Trade>> watchTrades(String symbol, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, null);
@@ -497,7 +497,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
             }
             return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -513,7 +513,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
     public CompletableFuture<Object> unWatchTrades(String symbol, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
@@ -526,7 +526,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
                 put( "topic", "trades" );
             }};
             return (this.unWatchPublic(market, messageHash, "2", parameters, subscription)).join();
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
+        });
 
     }
 
@@ -673,7 +673,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
     public CompletableFuture<List<OHLCV>> watchOHLCV(String symbol2, Object... optionalArgs)
     {
         final Object symbol3 = symbol2;
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object timeframe = Helpers.getArg(optionalArgs, 0, "1m");
             Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -695,7 +695,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
                 limit = Helpers.callDynamically(ohlcv, "getLimit", new Object[]{symbol, limit});
             }
             return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
+        }).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
 
     }
 
@@ -712,7 +712,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
     public CompletableFuture<Object> unWatchOHLCV(String symbol2, Object... optionalArgs)
     {
         final Object symbol3 = symbol2;
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object timeframe = Helpers.getArg(optionalArgs, 0, "1m");
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -732,7 +732,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
                 put( "symbolsAndTimeframes", new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(finalSymbol, timeframe)))) );
             }};
             return (this.unWatchPublic(market, messageHash, "11", parameters, subscription, suffix)).join();
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
+        });
 
     }
 
@@ -821,7 +821,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
     public CompletableFuture<OrderBook> watchOrderBook(String symbol, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Object limit = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -837,7 +837,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
             parameters = ((List<Object>) suffixparametersVariable).get(1);
             Object orderbook = (this.watchPublic(market, messageHash, "25", parameters, suffix)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OrderBook::new);
+        }).thenApply(OrderBook::new);
 
     }
 
@@ -854,7 +854,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
     public CompletableFuture<Object> unWatchOrderBook(Object symbol, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
@@ -871,7 +871,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
                 put( "topic", "orderbook" );
             }};
             return (this.unWatchPublic(market, messageHash, "25", parameters, subscription, suffix)).join();
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
+        });
 
     }
 
@@ -1060,7 +1060,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
     public CompletableFuture<List<Trade>> watchMyTrades(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -1082,7 +1082,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
             }
             return this.filterBySymbolSinceLimit(trades, symbol, since, limit, true);
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -1155,7 +1155,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
     public CompletableFuture<List<Order>> watchOrders(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -1177,7 +1177,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
                 limit = Helpers.callDynamically(orders, "getLimit", new Object[]{symbol, limit});
             }
             return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -1316,7 +1316,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
     public CompletableFuture<List<Position>> watchPositions(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -1349,7 +1349,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
                 return positions;
             }
             return this.filterBySymbolsSinceLimit(this.positions, symbols, since, limit, true);
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Position::new));
+        }).thenApply(res -> Helpers.toTypedList(res, Position::new));
 
     }
 

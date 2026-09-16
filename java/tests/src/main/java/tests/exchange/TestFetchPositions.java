@@ -17,7 +17,7 @@ public class TestFetchPositions extends BaseTest {
     public CompletableFuture<Object> testFetchPositions(BaseExchange exchange, Object skippedProperties, Object symbol)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
         String method = "fetchPositions";
         Object now = exchange.milliseconds();
@@ -40,7 +40,7 @@ public class TestFetchPositions extends BaseTest {
         }
         // TestSharedMethods.AssertTimestampOrder (exchange, method, symbol, positionsForSymbol);
         return true;
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
+        });
 
     }
 

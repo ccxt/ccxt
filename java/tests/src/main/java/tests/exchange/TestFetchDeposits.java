@@ -15,7 +15,7 @@ public class TestFetchDeposits extends BaseTest {
     public CompletableFuture<Object> testFetchDeposits(BaseExchange exchange, Object skippedProperties, Object code)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
         String method = "fetchDeposits";
         Object transactions = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchDeposits", new Object[]{code})).join();
@@ -27,7 +27,7 @@ public class TestFetchDeposits extends BaseTest {
         }
         TestSharedMethods.AssertTimestampOrder(exchange, method, code, transactions);
         return true;
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
+        });
 
     }
 

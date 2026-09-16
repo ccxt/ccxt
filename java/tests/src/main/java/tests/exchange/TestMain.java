@@ -65,7 +65,7 @@ public class TestMain extends BaseTest
     public CompletableFuture<Object> init(Object exchangeId, Object symbolArgv, Object methodArgv)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             try
             {
@@ -76,14 +76,14 @@ public class TestMain extends BaseTest
                 throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
             }
             return true;
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
+        });
 
     }
 
     public CompletableFuture<Object> initInner(Object exchangeId, Object symbolArgv, Object methodArgv)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             this.parseCliArgsAndProps();
             if (Helpers.isTrue(Helpers.isTrue(this.requestTests) && Helpers.isTrue(this.responseTests)))
@@ -141,7 +141,7 @@ public class TestMain extends BaseTest
             (this.startTest(exchange, symbolArgv)).join();
             exitScript(0); // needed to be explicitly finished for WS tests
             return true;  // required for c#
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
+        });
 
     }
 
@@ -173,7 +173,7 @@ public class TestMain extends BaseTest
     public CompletableFuture<Object> importFiles(BaseExchange exchange)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Object properties = Helpers.objectKeys(exchange.has);
             ((List<Object>)properties).add("loadMarkets");
@@ -186,7 +186,7 @@ public class TestMain extends BaseTest
                 this.testFiles = (getTestFiles(properties, this.wsTests)).join();
             }
             return true;
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
+        });
 
     }
 
@@ -301,7 +301,7 @@ public class TestMain extends BaseTest
     public CompletableFuture<Object> testMethod(Object methodName2, BaseExchange exchange, Object args, Object isPublic)
     {
         final Object methodName3 = methodName2;
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
             Object methodName = methodName3;
             // todo: temporary skip for c#
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(methodName, "OrderBook"), 0)) && Helpers.isTrue(Helpers.isEqual(this.ext, "cs"))))
@@ -374,7 +374,7 @@ public class TestMain extends BaseTest
                 Helpers.addElementToObject(this.checkedPublicTests, methodName, true);
             }
             return true;
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
+        });
 
     }
 
@@ -445,7 +445,7 @@ public class TestMain extends BaseTest
     public CompletableFuture<Object> testSafe(Object methodName2, BaseExchange exchange, Object... optionalArgs)
     {
         final Object methodName3 = methodName2;
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
             Object methodName = methodName3;
             // `testSafe` method does not throw an exception, instead mutes it. The reason we
             // mute the thrown exceptions here is because we don't want to stop the whole
@@ -555,7 +555,7 @@ public class TestMain extends BaseTest
                 }
             }
             return true;
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
+        });
 
     }
 
@@ -578,7 +578,7 @@ public class TestMain extends BaseTest
     public CompletableFuture<Object> runPublicTests(BaseExchange exchange, Object symbols)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Object primarySymbol = Helpers.GetValue(symbols, 0);
             Map<String, Object> tests = new HashMap<String, Object>() {{
@@ -630,14 +630,14 @@ public class TestMain extends BaseTest
             this.publicTests = tests;
             (this.runTests(exchange, tests, true)).join();
             return true;
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
+        });
 
     }
 
     public CompletableFuture<Object> runTests(BaseExchange exchange, Object tests, Object isPublicTest)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Object testNames = Helpers.objectKeys(tests);
             List<Object> promises = new ArrayList<Object>(Arrays.asList());
@@ -672,14 +672,14 @@ public class TestMain extends BaseTest
                 dump(this.addPadding(Helpers.add(Helpers.add(Helpers.add("[INFO] END ", testPrefixString), " "), exchange.id), 25));
             }
             return true;
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
+        });
 
     }
 
     public CompletableFuture<Object> loadExchange(BaseExchange exchange)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Object result = (this.testSafe("loadMarkets", exchange, new ArrayList<Object>(Arrays.asList()), true)).join();
             if (!Helpers.isTrue(result))
@@ -689,7 +689,7 @@ public class TestMain extends BaseTest
             Object exchangeSymbolsLength = Helpers.getArrayLength(exchange.symbols);
             dump("[INFO:MAIN] Exchange loaded", exchangeSymbolsLength, "symbols");
             return true;
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
+        });
 
     }
 
@@ -841,7 +841,7 @@ public class TestMain extends BaseTest
     public CompletableFuture<Object> getMostActiveSymbols(BaseExchange exchange, Object defaultSymbols)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             // `watch*` methods only resolve when the exchange pushes an update, so a
             // thinly traded market makes the ws tests hang until the harness timeout
@@ -928,14 +928,14 @@ public class TestMain extends BaseTest
                 ((List<Object>)result).add(exchange.safeString(Helpers.GetValue(ranked, 1), "symbol"));
             }
             return result;
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
+        });
 
     }
 
     public CompletableFuture<Object> testExchange(BaseExchange exchange, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             // prediction-market exchanges have no spot/swap markets and address methods by an
             // outcome handle (not a market symbol), so they take a dedicated test flow
@@ -1044,14 +1044,14 @@ public class TestMain extends BaseTest
                 }
             }
             return true;
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
+        });
 
     }
 
     public CompletableFuture<Object> runPredictionTests(BaseExchange exchange)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             // loadMarkets (already called by loadExchange) populates the markets and their outcome
             // tokens; resolve a tradeable outcome handle from them (works in every language since
@@ -1290,7 +1290,7 @@ public class TestMain extends BaseTest
                 }
             }
             return true;
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
+        });
 
     }
 
@@ -1353,7 +1353,7 @@ public class TestMain extends BaseTest
     public CompletableFuture<Object> testPredictionCreateCancelOrder(BaseExchange exchange, Object outcome)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             // place a deliberately non-marketable limit BUY (low fixed price * tiny amount), Assert
             // it, then always cancel it. Safe by construction: 5 shares @ 0.02 = 0.10 USD notional,
@@ -1425,14 +1425,14 @@ public class TestMain extends BaseTest
                 return false;
             }
             return true;
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
+        });
 
     }
 
     public CompletableFuture<Object> cancelPredictionOrder(BaseExchange exchange, Object orderId2, Object outcome)
     {
         final Object orderId3 = orderId2;
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
             Object orderId = orderId3;
             if (Helpers.isTrue(Helpers.isEqual(orderId, null)))
             {
@@ -1453,14 +1453,14 @@ public class TestMain extends BaseTest
                 dump("[WARN] prediction order cancel failed", exchange.id, orderId, exceptionMessage(e));
             }
             return true;
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
+        });
 
     }
 
     public CompletableFuture<Object> runPrivateTests(BaseExchange exchange, Object symbols)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             // mirrors runPublicTests: the caller always passes the selected symbols as an array
             // (even a CLI-provided symbol arrives as a one-element array), and private tests run
@@ -1545,14 +1545,14 @@ public class TestMain extends BaseTest
             // const combinedTests = exchange.deepExtend (this.publicTests, privateTests);
             (this.runTests(exchange, tests, false)).join();
             return true;  // required in c#
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
+        });
 
     }
 
     public CompletableFuture<Object> testProxies(BaseExchange exchange)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             // these tests should be synchronously executed, because of conflicting nature of proxy settings
             Object proxyTestName = this.proxyTestFileName;
@@ -1585,7 +1585,7 @@ public class TestMain extends BaseTest
                 dump(Helpers.add("[TEST_WARNING]", errorMessage));
             }
             return true;
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
+        });
 
     }
 
@@ -1607,7 +1607,7 @@ public class TestMain extends BaseTest
     public CompletableFuture<Object> testReturnResponseHeaders(Exchange exchange)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             if (Helpers.isTrue(!Helpers.isEqual(exchange.id, "binance")))
             {
@@ -1623,14 +1623,14 @@ public class TestMain extends BaseTest
             Assert(Helpers.isGreaterThan(Helpers.getArrayLength(headerValues), 0), "Response headers values should not be empty");
             exchange.returnResponseHeaders = false;
             return true;
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
+        });
 
     }
 
     public CompletableFuture<Object> startTest(BaseExchange exchange, Object symbolArgv)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             // we do not need to test aliases
             if (Helpers.isTrue(Helpers.isEqual(exchange.alias, true)))
@@ -1673,7 +1673,7 @@ public class TestMain extends BaseTest
                 throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
             }
             return true;  // required in c#
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
+        });
 
     }
 
@@ -2244,7 +2244,7 @@ public class TestMain extends BaseTest
     public CompletableFuture<Object> testRequestStatically(BaseExchange exchange, Object method, Object data, Object type, Object skipKeys)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Object output = null;
             Object requestUrl = null;
@@ -2298,14 +2298,14 @@ public class TestMain extends BaseTest
                 dump(Helpers.add("[TEST_FAILURE]", errorMessage));
             }
             return true;
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
+        });
 
     }
 
     public CompletableFuture<Object> testResponseStatically(BaseExchange exchange, Object method, Object skipKeys, Object data)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Object expectedResult = exchange.safeValue(data, "parsedResponse");
             var mockedExchange = setFetchResponse(exchange, Helpers.GetValue(data, "httpResponse"));
@@ -2332,14 +2332,14 @@ public class TestMain extends BaseTest
             }
             setFetchResponse(exchange, null); // reset state
             return true;
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
+        });
 
     }
 
     public CompletableFuture<Object> injectWsMessages(BaseExchange exchange, Object url, Object messages, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             // before every frame, wait until the watch flow is actually awaiting
             // something — a fixed head-start sleep is not enough on slow ci
@@ -2388,14 +2388,14 @@ public class TestMain extends BaseTest
             // instead of hanging the test run forever
             rejectPendingWsFutures(exchange, url);
             return true;  // c# methods used with promiseAll need to return something
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
+        });
 
     }
 
     public CompletableFuture<Object> watchAndAssertSequence(BaseExchange exchange, Object url, Object method, Object input, Object skipKeys, Object expectedResults)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             try
             {
@@ -2418,7 +2418,7 @@ public class TestMain extends BaseTest
             }
             markWsTestCompleted(exchange, url);
             return true;  // c# methods used with promiseAll need to return something
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
+        });
 
     }
 
@@ -2448,7 +2448,7 @@ public class TestMain extends BaseTest
     public CompletableFuture<Object> testWsStatically(BaseExchange exchange, Object method, Object skipKeys, Object data)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             String url = exchange.safeString(data, "url");
             setupWsMockTransport(exchange, url);
@@ -2498,14 +2498,14 @@ public class TestMain extends BaseTest
             }
             setFetchResponse(exchange, null); // reset state
             return true;
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
+        });
 
     }
 
     public CompletableFuture<Object> testExchangeWsStatically(Object exchangeName, Object exchangeData, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Object testName = Helpers.getArg(optionalArgs, 0, null);
             Object globalOptions = ((Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(exchangeData, "options"), null)))) ? new HashMap<String, Object>() {{}} : Helpers.GetValue(exchangeData, "options");
@@ -2569,7 +2569,7 @@ public class TestMain extends BaseTest
                 }
             }
             return true;  // in c# methods that will be used with promiseAll need to return something
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
+        });
 
     }
 
@@ -2712,7 +2712,7 @@ public class TestMain extends BaseTest
     public CompletableFuture<Object> testExchangeRequestStatically(Object exchangeName, Object exchangeData, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             // instantiate the exchange and make sure that we sink the requests to avoid an actual request
             Object testName = Helpers.getArg(optionalArgs, 0, null);
@@ -2810,14 +2810,14 @@ public class TestMain extends BaseTest
                 (close(exchange)).join();
             }
             return true;  // in c# methods that will be used with promiseAll need to return something
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
+        });
 
     }
 
     public CompletableFuture<Object> testExchangeResponseStatically(Object exchangeName, Object exchangeData, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Object testName = Helpers.getArg(optionalArgs, 0, null);
             BaseExchange exchange = this.initOfflineExchange(exchangeName);
@@ -2909,7 +2909,7 @@ public class TestMain extends BaseTest
                 (close(exchange)).join();
             }
             return true;  // in c# methods that will be used with promiseAll need to return something
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
+        });
 
     }
 
@@ -2986,20 +2986,20 @@ public class TestMain extends BaseTest
     public CompletableFuture<Object> runStaticRequestTests(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Object targetExchange = Helpers.getArg(optionalArgs, 0, null);
             Object testName = Helpers.getArg(optionalArgs, 1, null);
             (this.runStaticTests("request", targetExchange, testName)).join();
             return true;
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
+        });
 
     }
 
     public CompletableFuture<Object> runStaticTests(Object type2, Object... optionalArgs)
     {
         final Object type3 = type2;
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
             Object type = type3;
             // prediction-market exchanges keep their fixtures under static/<type>/prediction/ and are
             // run separately via the --prediction flag (npm run request-ts-prediction / response-ts-prediction)
@@ -3077,14 +3077,14 @@ public class TestMain extends BaseTest
                 dump(Helpers.add("[INFO]", successMessage));
             }
             return true;  // required in c#
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
+        });
 
     }
 
     public CompletableFuture<Object> runStaticResponseTests(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             //  -----------------------------------------------------------------------------
             //  --- Init of mockResponses tests functions------------------------------------
@@ -3093,14 +3093,14 @@ public class TestMain extends BaseTest
             Object test = Helpers.getArg(optionalArgs, 1, null);
             (this.runStaticTests("response", exchangeName, test)).join();
             return true;
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
+        });
 
     }
 
     public CompletableFuture<Object> runStaticWsTests(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             //  -----------------------------------------------------------------------------
             //  --- static ws tests: replay canned frames into the ws message handlers ------
@@ -3115,14 +3115,14 @@ public class TestMain extends BaseTest
             }
             (this.runStaticTests("ws", exchangeName, test)).join();
             return true;
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
+        });
 
     }
 
     public CompletableFuture<Object> runBrokerIdTests()
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             //  -----------------------------------------------------------------------------
             //  --- Init of brokerId tests functions-----------------------------------------
@@ -3133,14 +3133,14 @@ public class TestMain extends BaseTest
             dump(Helpers.add("[INFO]", successMessage));
             exitScript(0);
             return true;
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
+        });
 
     }
 
     public CompletableFuture<Object> testBinance()
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Exchange exchange = ((Exchange)this.initOfflineExchange("binance"));
             String spotId = "x-TKT5PX2F";
@@ -3229,14 +3229,14 @@ public class TestMain extends BaseTest
                 (close(exchange)).join();
             }
             return true;
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
+        });
 
     }
 
     public CompletableFuture<Object> testOkx()
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Exchange exchange = ((Exchange)this.initOfflineExchange("okx"));
             String id = "6b9ad766b55dBCDE";
@@ -3270,14 +3270,14 @@ public class TestMain extends BaseTest
                 (close(exchange)).join();
             }
             return true;
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
+        });
 
     }
 
     public CompletableFuture<Object> testCryptocom()
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Exchange exchange = ((Exchange)this.initOfflineExchange("cryptocom"));
             String id = "CCXT";
@@ -3297,14 +3297,14 @@ public class TestMain extends BaseTest
                 (close(exchange)).join();
             }
             return true;
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
+        });
 
     }
 
     public CompletableFuture<Object> testBybit()
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Exchange exchange = ((Exchange)this.initOfflineExchange("bybit"));
             Object reqHeaders = new HashMap<String, Object>() {{}};
@@ -3324,14 +3324,14 @@ public class TestMain extends BaseTest
                 (close(exchange)).join();
             }
             return true;
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
+        });
 
     }
 
     public CompletableFuture<Object> testKucoin()
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Exchange exchange = ((Exchange)this.initOfflineExchange("kucoin"));
             Helpers.addElementToObject(exchange.options, "uta", false); // prevents fetching account mode inside createOrder
@@ -3388,14 +3388,14 @@ public class TestMain extends BaseTest
                 (close(exchange)).join();
             }
             return true;
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
+        });
 
     }
 
     public CompletableFuture<Object> testKucoinfutures()
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Exchange exchange = ((Exchange)this.initOfflineExchange("kucoinfutures"));
             Object reqHeaders = new HashMap<String, Object>() {{}};
@@ -3427,14 +3427,14 @@ public class TestMain extends BaseTest
                 (close(exchange)).join();
             }
             return true;
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
+        });
 
     }
 
     public CompletableFuture<Object> testBitget()
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Exchange exchange = ((Exchange)this.initOfflineExchange("bitget"));
             Object reqHeaders = new HashMap<String, Object>() {{}};
@@ -3453,14 +3453,14 @@ public class TestMain extends BaseTest
                 (close(exchange)).join();
             }
             return true;
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
+        });
 
     }
 
     public CompletableFuture<Object> testMexc()
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Exchange exchange = ((Exchange)this.initOfflineExchange("mexc"));
             Object reqHeaders = new HashMap<String, Object>() {{}};
@@ -3480,14 +3480,14 @@ public class TestMain extends BaseTest
                 (close(exchange)).join();
             }
             return true;
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
+        });
 
     }
 
     public CompletableFuture<Object> testHtx()
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Exchange exchange = ((Exchange)this.initOfflineExchange("htx"));
             // spot test
@@ -3529,14 +3529,14 @@ public class TestMain extends BaseTest
                 (close(exchange)).join();
             }
             return true;
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
+        });
 
     }
 
     public CompletableFuture<Object> testWoo()
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Exchange exchange = ((Exchange)this.initOfflineExchange("woo"));
             // spot test
@@ -3570,14 +3570,14 @@ public class TestMain extends BaseTest
                 (close(exchange)).join();
             }
             return true;
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
+        });
 
     }
 
     public CompletableFuture<Object> testCoinex()
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Exchange exchange = ((Exchange)this.initOfflineExchange("coinex"));
             String id = "x-167673045";
@@ -3598,14 +3598,14 @@ public class TestMain extends BaseTest
                 (close(exchange)).join();
             }
             return true;
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
+        });
 
     }
 
     public CompletableFuture<Object> testBingx()
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Exchange exchange = ((Exchange)this.initOfflineExchange("bingx"));
             Object reqHeaders = new HashMap<String, Object>() {{}};
@@ -3625,14 +3625,14 @@ public class TestMain extends BaseTest
                 (close(exchange)).join();
             }
             return true;
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
+        });
 
     }
 
     public CompletableFuture<Object> testPhemex()
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Exchange exchange = ((Exchange)this.initOfflineExchange("phemex"));
             String id = "CCXT123456";
@@ -3652,14 +3652,14 @@ public class TestMain extends BaseTest
                 (close(exchange)).join();
             }
             return true;
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
+        });
 
     }
 
     public CompletableFuture<Object> testBlofin()
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Exchange exchange = ((Exchange)this.initOfflineExchange("blofin"));
             String id = "ec6dd3a7dd982d0b";
@@ -3679,7 +3679,7 @@ public class TestMain extends BaseTest
                 (close(exchange)).join();
             }
             return true;
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
+        });
 
     }
 
@@ -3702,7 +3702,7 @@ public class TestMain extends BaseTest
     public CompletableFuture<Object> testCoinbaseinternational()
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Exchange exchange = ((Exchange)this.initOfflineExchange("coinbaseinternational"));
             Helpers.addElementToObject(exchange.options, "portfolio", "random");
@@ -3723,14 +3723,14 @@ public class TestMain extends BaseTest
                 (close(exchange)).join();
             }
             return true;
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
+        });
 
     }
 
     public CompletableFuture<Object> testCoinbaseAdvanced()
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Exchange exchange = ((Exchange)this.initOfflineExchange("coinbase"));
             String id = "ccxt";
@@ -3750,14 +3750,14 @@ public class TestMain extends BaseTest
                 (close(exchange)).join();
             }
             return true;
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
+        });
 
     }
 
     public CompletableFuture<Object> testWoofiPro()
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             if (Helpers.isTrue(Helpers.isEqual(this.lang, "java")))
             {
@@ -3782,14 +3782,14 @@ public class TestMain extends BaseTest
                 (close(exchange)).join();
             }
             return true;
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
+        });
 
     }
 
     public CompletableFuture<Object> testXT()
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Exchange exchange = ((Exchange)this.initOfflineExchange("xt"));
             String id = "CCXT";
@@ -3818,14 +3818,14 @@ public class TestMain extends BaseTest
                 (close(exchange)).join();
             }
             return true;
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
+        });
 
     }
 
     public CompletableFuture<Object> testParadex()
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             if (Helpers.isTrue(Helpers.isEqual(this.lang, "java")))
             {
@@ -3876,14 +3876,14 @@ public class TestMain extends BaseTest
                 (close(exchange)).join();
             }
             return true;
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
+        });
 
     }
 
     public CompletableFuture<Object> testHashkey()
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Exchange exchange = ((Exchange)this.initOfflineExchange("hashkey"));
             Object reqHeaders = new HashMap<String, Object>() {{}};
@@ -3902,14 +3902,14 @@ public class TestMain extends BaseTest
                 (close(exchange)).join();
             }
             return true;
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
+        });
 
     }
 
     public CompletableFuture<Object> testCryptomus()
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Exchange exchange = ((Exchange)this.initOfflineExchange("cryptomus"));
             Object request = new HashMap<String, Object>() {{}};
@@ -3927,14 +3927,14 @@ public class TestMain extends BaseTest
                 (close(exchange)).join();
             }
             return true;
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
+        });
 
     }
 
     public CompletableFuture<Object> testDerive()
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             if (Helpers.isTrue(Helpers.isEqual(this.lang, "java")))
             {
@@ -3964,14 +3964,14 @@ public class TestMain extends BaseTest
                 (close(exchange)).join();
             }
             return true;
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
+        });
 
     }
 
     public CompletableFuture<Object> testModeTrade()
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             if (Helpers.isTrue(Helpers.isEqual(this.lang, "java")))
             {
@@ -3996,14 +3996,14 @@ public class TestMain extends BaseTest
                 (close(exchange)).join();
             }
             return true;
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
+        });
 
     }
 
     public CompletableFuture<Object> testBackpack()
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Exchange exchange = ((Exchange)this.initOfflineExchange("backpack"));
             exchange.apiKey = "Jcj3vxDMAIrx0G5YYfydzS/le/owoQ+VSS164zC1RXo=";
@@ -4024,14 +4024,14 @@ public class TestMain extends BaseTest
                 (close(exchange)).join();
             }
             return true;
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
+        });
 
     }
 
     public CompletableFuture<Object> testToobit()
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Exchange exchange = ((Exchange)this.initOfflineExchange("toobit"));
             Object reqHeaders = new HashMap<String, Object>() {{}};
@@ -4050,14 +4050,14 @@ public class TestMain extends BaseTest
                 (close(exchange)).join();
             }
             return true;
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
+        });
 
     }
 
     public CompletableFuture<Object> testWeex()
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Exchange exchange = ((Exchange)this.initOfflineExchange("weex"));
             String id = "b-WEEX111125";
@@ -4082,14 +4082,14 @@ public class TestMain extends BaseTest
             clientOrderId = Helpers.GetValue(request, "newClientOrderId");
             Assert(Helpers.isEqual(((String)clientOrderId).startsWith(id), true), Helpers.add(Helpers.add(Helpers.add("weex - newClientOrderId: ", clientOrderId), " for swap order does not start with id: "), id));
             return null;
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
+        });
 
     }
 
     public CompletableFuture<Object> testFoxbit()
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Exchange exchange = ((Exchange)this.initOfflineExchange("foxbit"));
             Object reqHeaders = new HashMap<String, Object>() {{}};
@@ -4110,7 +4110,7 @@ public class TestMain extends BaseTest
                 (close(exchange)).join();
             }
             return true;
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
+        });
 
     }
 }

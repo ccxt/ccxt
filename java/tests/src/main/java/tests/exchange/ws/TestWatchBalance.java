@@ -16,7 +16,7 @@ public class TestWatchBalance extends BaseTest {
     public CompletableFuture<Void> testWatchBalance(Exchange exchange, Object skippedProperties, Object code)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
         String method = "watchBalance";
         Object now = exchange.milliseconds();
@@ -46,7 +46,7 @@ public class TestWatchBalance extends BaseTest {
             now = exchange.milliseconds();
         }
             return null;
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
+        });
 
     }
 

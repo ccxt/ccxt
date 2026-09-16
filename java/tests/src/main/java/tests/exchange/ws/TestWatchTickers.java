@@ -18,19 +18,19 @@ public class TestWatchTickers extends BaseTest {
     public CompletableFuture<Void> testWatchTickers(Exchange exchange, Object skippedProperties, Object symbol)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
         Object withoutSymbol = testWatchTickersHelper(exchange, skippedProperties, null);
         Object withSymbol = testWatchTickersHelper(exchange, skippedProperties, new ArrayList<Object>(Arrays.asList(symbol)));
         (Helpers.promiseAll(new ArrayList<Object>(Arrays.asList(withSymbol, withoutSymbol)))).join();
             return null;
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
+        });
 
     }
     public CompletableFuture<Object> testWatchTickersHelper(Exchange exchange, Object skippedProperties, Object argSymbols2, Object... optionalArgs)
     {
         final Object argSymbols3 = argSymbols2;
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
             Object argSymbols = argSymbols3;
         Object argParams = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
         String method = "watchTickers";
@@ -104,7 +104,7 @@ public class TestWatchTickers extends BaseTest {
             }
         }
         return true;
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
+        });
 
     }
 

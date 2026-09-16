@@ -15,13 +15,13 @@ public class TestFetchBalance extends BaseTest {
     public CompletableFuture<Object> testFetchBalance(BaseExchange exchange, Object skippedProperties)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
         String method = "fetchBalance";
         Object response = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchBalance", new Object[]{})).join();
         TestBalance.testBalance(exchange, skippedProperties, method, response);
         return true;
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
+        });
 
     }
 

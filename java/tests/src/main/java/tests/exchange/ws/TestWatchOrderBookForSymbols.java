@@ -15,7 +15,7 @@ public class TestWatchOrderBookForSymbols extends BaseTest {
     public CompletableFuture<Object> testWatchOrderBookForSymbols(Exchange exchange, Object skippedProperties, Object symbols)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
         String method = "watchOrderBookForSymbols";
         // as in `watchOrderBook`, a pending subscription can not be cancelled, so the
@@ -55,7 +55,7 @@ public class TestWatchOrderBookForSymbols extends BaseTest {
             }
         }
         return true;
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
+        });
 
     }
 

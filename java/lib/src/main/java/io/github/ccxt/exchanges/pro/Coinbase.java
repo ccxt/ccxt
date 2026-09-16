@@ -90,7 +90,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
     public CompletableFuture<Object> subscribe(Object name2, Object isPrivate, Object... optionalArgs)
     {
         final Object name3 = name2;
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
             Object name = name3;
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -132,7 +132,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
                 subscribe = this.extend(subscribe, this.createWSAuth(name, productIds));
             }
             return (this.watch(url, messageHash, subscribe, messageHash, null)).join();
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
+        });
 
     }
 
@@ -150,7 +150,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
     public CompletableFuture<Object> unSubscribe(Object topic, Object name2, Object isPrivate, Object... optionalArgs)
     {
         final Object name3 = name2;
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
             Object name = name3;
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
@@ -214,7 +214,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
             Helpers.addElementToObject(this.options, "unSubscriptionPending", false);
             Helpers.addElementToObject(this.options, "unSubscription", null);
             return res;
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
+        });
 
     }
 
@@ -232,7 +232,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
     public CompletableFuture<Object> subscribeMultiple(Object name2, Object isPrivate, Object... optionalArgs)
     {
         final Object name3 = name2;
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
             Object name = name3;
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -263,7 +263,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
                 subscribe = this.extend(subscribe, this.createWSAuth(name, productIds));
             }
             return (this.watchMultiple(url, messageHashes, subscribe, messageHashes, null)).join();
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
+        });
 
     }
 
@@ -282,7 +282,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
     public CompletableFuture<Object> unSubscribeMultiple(Object topic, Object name2, Object isPrivate, Object... optionalArgs)
     {
         final Object name3 = name2;
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
             Object name = name3;
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -332,7 +332,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
             Helpers.addElementToObject(this.options, "unSubscriptionPending", false);
             Helpers.addElementToObject(this.options, "unSubscription", null);
             return res;
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
+        });
 
     }
 
@@ -381,7 +381,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
     public CompletableFuture<Ticker> watchTicker(String symbol, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
@@ -390,7 +390,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
             }
             Object name = "ticker";
             return (this.subscribe(name, false, symbol, parameters)).join();
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Ticker::new);
+        }).thenApply(Ticker::new);
 
     }
 
@@ -406,7 +406,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
     public CompletableFuture<Object> unWatchTicker(String symbol, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
@@ -415,7 +415,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
             }
             Object name = "ticker";
             return (this.unSubscribe("ticker", name, false, symbol)).join();
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
+        });
 
     }
 
@@ -431,7 +431,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
     public CompletableFuture<Tickers> watchTickers(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -453,7 +453,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
                 return tickers;
             }
             return this.tickers;
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Tickers::new);
+        }).thenApply(Tickers::new);
 
     }
 
@@ -469,7 +469,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
     public CompletableFuture<Object> unWatchTickers(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -482,7 +482,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
                 symbols = this.symbols;
             }
             return (this.unSubscribeMultiple("ticker", "ticker_batch", false, symbols)).join();
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
+        });
 
     }
 
@@ -672,7 +672,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
     public CompletableFuture<List<Trade>> watchTrades(String symbol2, Object... optionalArgs)
     {
         final Object symbol3 = symbol2;
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, null);
@@ -689,7 +689,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
             }
             return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -705,7 +705,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
     public CompletableFuture<Object> unWatchTrades(String symbol, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
@@ -714,7 +714,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
             }
             Object name = "market_trades";
             return (this.unSubscribe("trades", name, false, symbol)).join();
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
+        });
 
     }
 
@@ -732,7 +732,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
     public CompletableFuture<List<Trade>> watchTradesForSymbols(Object symbols, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, null);
@@ -750,7 +750,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{tradeSymbol, limit});
             }
             return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -766,7 +766,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
     public CompletableFuture<Object> unWatchTradesForSymbols(Object symbols, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
@@ -775,7 +775,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
             }
             Object name = "market_trades";
             return (this.unSubscribeMultiple("trades", name, false, symbols, parameters)).join();
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
+        });
 
     }
 
@@ -793,7 +793,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
     public CompletableFuture<List<Order>> watchOrders(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -810,7 +810,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
                 limit = Helpers.callDynamically(orders, "getLimit", new Object[]{symbol, limit});
             }
             return this.filterBySinceLimit(orders, since, limit, "timestamp", true);
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -826,7 +826,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
     public CompletableFuture<Object> unWatchOrders(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -836,7 +836,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
             }
             Object name = "user";
             return (this.unSubscribe("orders", name, true, this.symbol(symbol))).join();
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
+        });
 
     }
 
@@ -853,7 +853,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
     public CompletableFuture<OrderBook> watchOrderBook(String symbol2, Object... optionalArgs)
     {
         final Object symbol3 = symbol2;
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object limit = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -866,7 +866,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
             symbol = Helpers.GetValue(market, "symbol");
             Object orderbook = (this.subscribe(name, false, symbol, parameters)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OrderBook::new);
+        }).thenApply(OrderBook::new);
 
     }
 
@@ -882,7 +882,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
     public CompletableFuture<Object> unWatchOrderBook(Object symbol2, Object... optionalArgs)
     {
         final Object symbol3 = symbol2;
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
@@ -892,7 +892,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
             symbol = this.symbol(symbol);
             Object name = "level2";
             return (this.unSubscribe("orderbook", name, false, symbol)).join();
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
+        });
 
     }
 
@@ -909,7 +909,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
     public CompletableFuture<OrderBook> watchOrderBookForSymbols(Object symbols, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Object limit = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -920,7 +920,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
             Object name = "level2";
             Object orderbook = (this.subscribeMultiple(name, false, symbols, parameters)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(OrderBook::new);
+        }).thenApply(OrderBook::new);
 
     }
 

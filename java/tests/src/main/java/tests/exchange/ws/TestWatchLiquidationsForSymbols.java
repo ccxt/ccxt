@@ -18,7 +18,7 @@ public class TestWatchLiquidationsForSymbols extends BaseTest {
     public CompletableFuture<Object> testWatchLiquidationsForSymbols(Exchange exchange, Object skippedProperties, Object symbol)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
         String method = "watchLiquidationsForSymbols";
         // we have to skip some exchanges here due to the frequency of trading
@@ -63,7 +63,7 @@ public class TestWatchLiquidationsForSymbols extends BaseTest {
             }
         }
         return response;
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
+        });
 
     }
 

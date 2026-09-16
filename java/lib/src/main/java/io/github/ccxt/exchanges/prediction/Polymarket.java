@@ -611,7 +611,7 @@ public class Polymarket extends PolymarketApi
     public CompletableFuture<Object> fetchMarkets(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Object queries = (List<Object>)(this.parseSearchQueries(parameters));
@@ -645,7 +645,7 @@ public class Polymarket extends PolymarketApi
             }
             this.events = eventsDict;
             return flatMarkets;
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
+        });
 
     }
 
@@ -663,7 +663,7 @@ public class Polymarket extends PolymarketApi
     public CompletableFuture<Object> fetchRawEventsBySearch(Object queries, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Long resultLimit = this.safeInteger(parameters, "limit");
@@ -777,7 +777,7 @@ public class Polymarket extends PolymarketApi
                 }
             }
             return rawEvents;
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
+        });
 
     }
 
@@ -834,7 +834,7 @@ public class Polymarket extends PolymarketApi
     public CompletableFuture<Object> fetchRawEventsList(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             // gamma hard-caps each response at 100 events regardless of the requested limit, so the
             // page size must be that cap or pagination never advances (the > check below stays false)
@@ -954,7 +954,7 @@ public class Polymarket extends PolymarketApi
                 return this.arraySlice(allRawEvents, 0, limit);
             }
             return allRawEvents;
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
+        });
 
     }
 
@@ -1248,7 +1248,7 @@ final Object finalClobTokenId = clobTokenId;
     public CompletableFuture<Object> fetchOutcome(Object outcomeSymbol)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             // a bare CLOB token id has no ':' (an outcome handle is always "MARKET:LABEL") and no
             // searchable words — outcomeSearchQuery returns undefined only for id-like inputs, so
@@ -1291,7 +1291,7 @@ final Object finalClobTokenId = clobTokenId;
                 }
             }
             return (super.fetchOutcome(outcomeSymbol)).join();
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
+        });
 
     }
 
@@ -1307,7 +1307,7 @@ final Object finalClobTokenId = clobTokenId;
     public CompletableFuture<Object> fetchOutcomes(Object outcomeSymbols)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             List<Object> tokenIds = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(outcomeSymbols)); i++)
@@ -1375,7 +1375,7 @@ final Object finalClobTokenId = clobTokenId;
                 }
             }
             return this.outcomes;
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
+        });
 
     }
 
@@ -1393,7 +1393,7 @@ final Object finalClobTokenId = clobTokenId;
     public CompletableFuture<PredictionTicker> fetchTicker(String outcome, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Object outcomeObj = (this.loadOutcome(outcome)).join();
@@ -1448,7 +1448,7 @@ final Object finalClobTokenId = clobTokenId;
             //     }
             //
             return this.parsePredictionTicker(response, outcomeObj);
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(PredictionTicker::new);
+        }).thenApply(PredictionTicker::new);
 
     }
 
@@ -1466,7 +1466,7 @@ final Object finalClobTokenId = clobTokenId;
     public CompletableFuture<PredictionTickers> fetchTickers(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Object outcomes = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -1558,7 +1558,7 @@ final Object finalClobTokenId = clobTokenId;
                 startIndex = this.sum(startIndex, chunkSize);
             }
             return result;
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(PredictionTickers::new);
+        }).thenApply(PredictionTickers::new);
 
     }
 
@@ -1677,7 +1677,7 @@ final Object finalClobTokenId = clobTokenId;
     public CompletableFuture<PredictionOrderBook> fetchOrderBook(Object outcome, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Object limit = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -1710,7 +1710,7 @@ final Object finalClobTokenId = clobTokenId;
             Long timestamp = this.safeInteger(response, "timestamp");
             Object orderbook = this.parseOrderBook(response, this.safeOutcomeSymbol(outcome, outcomeObj), timestamp, "bids", "asks", "price", "size");
             return this.safePredictionOrderBook(orderbook, outcomeObj);
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(PredictionOrderBook::new);
+        }).thenApply(PredictionOrderBook::new);
 
     }
 
@@ -1729,7 +1729,7 @@ final Object finalClobTokenId = clobTokenId;
     public CompletableFuture<List<OHLCV>> fetchOHLCV(Object outcome, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             // hoisted keys list: chaining join onto Object.keys breaks the python transpiler
             Object timeframe = Helpers.getArg(optionalArgs, 0, "1m");
@@ -1846,7 +1846,7 @@ final Object finalClobTokenId = clobTokenId;
                 return this.arraySlice(candles, Helpers.opNeg(limit));
             }
             return candles;
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
+        }).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
 
     }
 
@@ -1875,7 +1875,7 @@ final Object finalClobTokenId = clobTokenId;
     public CompletableFuture<Long> fetchTime(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             String response = (this.clobPublicGetTime(parameters)).join();
@@ -1883,7 +1883,7 @@ final Object finalClobTokenId = clobTokenId;
             //     1781273248
             //
             return Helpers.multiply(this.parseToInt(response), 1000);
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
+        }).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
 
     }
 
@@ -1898,7 +1898,7 @@ final Object finalClobTokenId = clobTokenId;
     public CompletableFuture<Status> fetchStatus(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             String response = (this.gammaPublicGetStatus(parameters)).join();
@@ -1914,7 +1914,7 @@ final Object finalClobTokenId = clobTokenId;
                 put( "url", null );
                 put( "info", finalResponse );
             }};
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Status::new);
+        }).thenApply(Status::new);
 
     }
 
@@ -1930,7 +1930,7 @@ final Object finalClobTokenId = clobTokenId;
     public CompletableFuture<PredictionOpenInterest> fetchOpenInterest(String outcome, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Object outcomeObj = (this.loadOutcome(outcome)).join();
@@ -1950,7 +1950,7 @@ final Object finalClobTokenId = clobTokenId;
             //
             Object first = this.safeDict(response, 0, new HashMap<String, Object>() {{}});
             return this.parsePredictionOpenInterest(first, ((Object)outcomeObj));
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(PredictionOpenInterest::new);
+        }).thenApply(PredictionOpenInterest::new);
 
     }
 
@@ -1990,7 +1990,7 @@ final Object finalClobTokenId = clobTokenId;
     public CompletableFuture<PredictionTradingFee> fetchTradingFee(String outcome, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Object outcomeObj = (this.loadOutcome(outcome)).join();
@@ -2014,7 +2014,7 @@ final Object finalClobTokenId = clobTokenId;
                 put( "percentage", true );
                 put( "tierBased", false );
             }};
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(PredictionTradingFee::new);
+        }).thenApply(PredictionTradingFee::new);
 
     }
 
@@ -2032,7 +2032,7 @@ final Object finalClobTokenId = clobTokenId;
     public CompletableFuture<List<PredictionTrade>> fetchTrades(String outcome, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, null);
@@ -2070,7 +2070,7 @@ final Object finalClobTokenId = clobTokenId;
             // the trades are already narrowed to this outcome by asset id above;
             // parsePredictionTrade resolves the outcome from each trade's asset id
             return this.parsePredictionTrades(filteredTrades, null, since, limit);
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, PredictionTrade::new));
+        }).thenApply(res -> Helpers.toTypedList(res, PredictionTrade::new));
 
     }
 
@@ -2088,7 +2088,7 @@ final Object finalClobTokenId = clobTokenId;
     public CompletableFuture<List<PredictionTrade>> fetchMyTrades(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Object outcome = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -2105,7 +2105,7 @@ final Object finalClobTokenId = clobTokenId;
             Map<String, Object> response = (this.clobPrivateGetDataTrades(this.extend(request, parameters))).join();
             Object rawTrades = ((Helpers.isTrue(Helpers.isArray(response)))) ? response : this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parsePredictionTrades(rawTrades, outcomeObj, since, limit);
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, PredictionTrade::new));
+        }).thenApply(res -> Helpers.toTypedList(res, PredictionTrade::new));
 
     }
 
@@ -2124,7 +2124,7 @@ final Object finalClobTokenId = clobTokenId;
     public CompletableFuture<List<PredictionTrade>> fetchOrderTrades(String id, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             // the /data/trades endpoint has no order filter, so fetch the user's trades and keep
             // the ones where this order was the taker or one of the matched makers
@@ -2153,7 +2153,7 @@ final Object finalClobTokenId = clobTokenId;
                 }
             }
             return this.filterBySinceLimit(result, since, limit);
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, PredictionTrade::new));
+        }).thenApply(res -> Helpers.toTypedList(res, PredictionTrade::new));
 
     }
 
@@ -2230,7 +2230,7 @@ final Object finalClobTokenId = clobTokenId;
     public CompletableFuture<Balances> fetchBalance(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             (this.loadApiCredentials()).join();
@@ -2243,7 +2243,7 @@ final Object finalClobTokenId = clobTokenId;
             }};
             Map<String, Object> response = (this.clobPrivateGetBalanceAllowance(this.extend(request, rest))).join();
             return this.parseBalance(response);
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(Balances::new);
+        }).thenApply(Balances::new);
 
     }
 
@@ -2288,7 +2288,7 @@ final Object finalClobTokenId = clobTokenId;
     public CompletableFuture<List<PredictionPosition>> fetchPositions(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Object outcomes = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -2338,7 +2338,7 @@ final Object finalClobTokenId = clobTokenId;
                 }
             }
             return result;
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, PredictionPosition::new));
+        }).thenApply(res -> Helpers.toTypedList(res, PredictionPosition::new));
 
     }
 
@@ -2354,12 +2354,12 @@ final Object finalClobTokenId = clobTokenId;
     public CompletableFuture<PredictionPosition> fetchPosition(Object outcome, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Object positions = (this.fetchPositions((Object)(new ArrayList<Object>(Arrays.asList(outcome))), (Object)(parameters))).join();
             return this.safeDict(positions, 0);
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(PredictionPosition::new);
+        }).thenApply(PredictionPosition::new);
 
     }
 
@@ -2435,7 +2435,7 @@ final Object finalClobTokenId = clobTokenId;
     public CompletableFuture<List<PredictionOrder>> fetchOpenOrders(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Object outcome = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -2452,7 +2452,7 @@ final Object finalClobTokenId = clobTokenId;
             Map<String, Object> response = (this.clobPrivateGetDataOrders(this.extend(request, parameters))).join();
             Object orders = (List<Object>)(this.safeList(response, "data", new ArrayList<Object>(Arrays.asList())));
             return this.parsePredictionOrders(orders, outcomeObj, since, limit);
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, PredictionOrder::new));
+        }).thenApply(res -> Helpers.toTypedList(res, PredictionOrder::new));
 
     }
 
@@ -2469,7 +2469,7 @@ final Object finalClobTokenId = clobTokenId;
     public CompletableFuture<PredictionOrder> fetchOrder(Object id, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             // the request only needs the order id; the outcome is a labelling hint, so resolve it from
             // cache (no network) — fetchOrder stays a single request even on a cold cache.
@@ -2481,7 +2481,7 @@ final Object finalClobTokenId = clobTokenId;
             }};
             Map<String, Object> response = (this.clobPrivateGetDataOrderId(this.extend(request, parameters))).join();
             return this.parsePredictionOrder(response);
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(PredictionOrder::new);
+        }).thenApply(PredictionOrder::new);
 
     }
 
@@ -2598,7 +2598,7 @@ final Object finalClobTokenId = clobTokenId;
     public CompletableFuture<PredictionOrder> createOrder(Object outcome, Object type, Object side, Object amount, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Object price = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -2611,7 +2611,7 @@ final Object finalClobTokenId = clobTokenId;
             Object order = this.parsePredictionOrder(enriched, ((Object)this.safeDict(built, "outcome")));
             Helpers.addElementToObject(order, "info", response); // keep info the raw exchange response, not the request echo
             return order;
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(PredictionOrder::new);
+        }).thenApply(PredictionOrder::new);
 
     }
 
@@ -2627,7 +2627,7 @@ final Object finalClobTokenId = clobTokenId;
     public CompletableFuture<List<PredictionOrder>> createOrders(Object orders, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             (this.loadApiCredentials()).join();
@@ -2682,7 +2682,7 @@ final Object finalClobTokenId = clobTokenId;
                 ((List<Object>)result).add(this.parsePredictionOrder(response));
             }
             return result;
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, PredictionOrder::new));
+        }).thenApply(res -> Helpers.toTypedList(res, PredictionOrder::new));
 
     }
 
@@ -2882,14 +2882,14 @@ final Object finalClobTokenId = clobTokenId;
     public CompletableFuture<PredictionOrder> createMarketBuyOrderWithCost(String outcome, Object cost, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Map<String, Object> request = this.extend(parameters, new HashMap<String, Object>() {{
                 put( "cost", cost );
             }});
             return (this.createOrder((Object)(outcome), (Object)("market"), (Object)("buy"), (Object)(cost), (Object)(null), (Object)(request))).join();
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(PredictionOrder::new);
+        }).thenApply(PredictionOrder::new);
 
     }
 
@@ -3091,7 +3091,7 @@ final Object finalClobTokenId = clobTokenId;
     public CompletableFuture<PredictionOrder> cancelOrder(Object id, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Object outcome = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -3111,7 +3111,7 @@ final Object finalClobTokenId = clobTokenId;
                 put( "status", status );
                 put( "info", response );
             }});
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(PredictionOrder::new);
+        }).thenApply(PredictionOrder::new);
 
     }
 
@@ -3128,7 +3128,7 @@ final Object finalClobTokenId = clobTokenId;
     public CompletableFuture<List<PredictionOrder>> cancelOrders(Object ids, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Object outcome = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -3147,7 +3147,7 @@ final Object finalClobTokenId = clobTokenId;
                 }}));
             }
             return orders;
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, PredictionOrder::new));
+        }).thenApply(res -> Helpers.toTypedList(res, PredictionOrder::new));
 
     }
 
@@ -3164,7 +3164,7 @@ final Object finalClobTokenId = clobTokenId;
     public CompletableFuture<List<PredictionOrder>> cancelAllOrders(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Object outcome = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -3196,7 +3196,7 @@ final Object finalClobTokenId = clobTokenId;
                 }}));
             }
             return orders;
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, PredictionOrder::new));
+        }).thenApply(res -> Helpers.toTypedList(res, PredictionOrder::new));
 
     }
 
@@ -3223,7 +3223,7 @@ final Object finalClobTokenId = clobTokenId;
     public CompletableFuture<List<PredictionEvent>> fetchEvents(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             this.requireEventQuery(parameters);
@@ -3327,7 +3327,7 @@ final Object finalClobTokenId = clobTokenId;
                 Helpers.addElementToObject(effectiveParams, "searchIn", this.safeString(parameters, "searchIn", "title"));
             }
             return this.applyEventFetchParams(result, effectiveParams, queries);
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, PredictionEvent::new));
+        }).thenApply(res -> Helpers.toTypedList(res, PredictionEvent::new));
 
     }
 
@@ -3344,7 +3344,7 @@ final Object finalClobTokenId = clobTokenId;
     public CompletableFuture<PredictionEvent> fetchEvent(String id, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Object response = null;
@@ -3367,7 +3367,7 @@ final Object finalClobTokenId = clobTokenId;
             Object eventVar = this.parseEvent(eventForParsing);
             this.indexEventOutcomes(eventVar);
             return eventVar;
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(PredictionEvent::new);
+        }).thenApply(PredictionEvent::new);
 
     }
 
@@ -3774,12 +3774,12 @@ final Object finalClobTokenId = clobTokenId;
     public CompletableFuture<Object> deriveApiKey(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Map<String, Object> response = (this.clobPrivateGetAuthDeriveApiKey(parameters)).join();
             return this.setApiCredentials(response);
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
+        });
 
     }
 
@@ -3795,12 +3795,12 @@ final Object finalClobTokenId = clobTokenId;
     public CompletableFuture<Object> createApiKey(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Map<String, Object> response = (this.clobPrivatePostAuthApiKey(parameters)).join();
             return this.setApiCredentials(response);
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
+        });
 
     }
 
@@ -3815,7 +3815,7 @@ final Object finalClobTokenId = clobTokenId;
     public CompletableFuture<Object> createOrDeriveApiKey(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Object creds = null;
@@ -3831,7 +3831,7 @@ final Object finalClobTokenId = clobTokenId;
                 throw new ExchangeError(Helpers.add(this.id, " createOrDeriveApiKey() returned no credentials")) ;
             }
             return creds;
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
+        });
 
     }
 
@@ -3862,7 +3862,7 @@ final Object finalClobTokenId = clobTokenId;
     public CompletableFuture<Object> loadApiCredentials()
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             // the order signer / L2 POLY_ADDRESS is always the EOA behind the privateKey, so the L2 api key MUST
             // belong to that same EOA — derive it from the privateKey rather than trusting externally supplied
@@ -3885,7 +3885,7 @@ final Object finalClobTokenId = clobTokenId;
                 return null;
             }
             throw new AuthenticationError(Helpers.add(this.id, " requires L2 api credentials (apiKey, secret, password) or a privateKey to derive them")) ;
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
+        });
 
     }
 
@@ -4072,7 +4072,7 @@ final Object finalOutcome = outcome;
     public CompletableFuture<PredictionOrderBook> watchOrderBook(String outcome2, Object... optionalArgs)
     {
         final Object outcome3 = outcome2;
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
             Object outcome = outcome3;
             Object limit = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -4088,7 +4088,7 @@ final Object finalOutcome = outcome;
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             Object orderbook = (this.watch(url, messageHash, subscribeMsg, subscribeHash, null)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(PredictionOrderBook::new);
+        }).thenApply(PredictionOrderBook::new);
 
     }
 
@@ -4105,7 +4105,7 @@ final Object finalOutcome = outcome;
     public CompletableFuture<List<PredictionTrade>> watchTrades(String outcome2, Object... optionalArgs)
     {
         final Object outcome3 = outcome2;
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
             Object outcome = outcome3;
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, null);
@@ -4122,7 +4122,7 @@ final Object finalOutcome = outcome;
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             Object trades = (this.watch(url, messageHash, subscribeMsg, subscribeHash, null)).join();
             return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, PredictionTrade::new));
+        }).thenApply(res -> Helpers.toTypedList(res, PredictionTrade::new));
 
     }
 
@@ -4137,7 +4137,7 @@ final Object finalOutcome = outcome;
     public CompletableFuture<PredictionTicker> watchTicker(String outcome2, Object... optionalArgs)
     {
         final Object outcome3 = outcome2;
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
             Object outcome = outcome3;
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Object outcomeObj = (this.loadOutcome(outcome)).join();
@@ -4233,7 +4233,7 @@ final Object finalOutcome = outcome;
                 put( "quoteVolume", null );
                 put( "info", orderbook );
             }}, market);
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(PredictionTicker::new);
+        }).thenApply(PredictionTicker::new);
 
     }
 
@@ -4251,7 +4251,7 @@ final Object finalOutcome = outcome;
     public CompletableFuture<List<PredictionOrder>> watchOrders(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Object outcome = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -4271,7 +4271,7 @@ final Object finalOutcome = outcome;
                 limit = Helpers.callDynamically(orders, "getLimit", new Object[]{outcome, limit});
             }
             return this.filterByOutcomeSinceLimit(orders, outcome, since, limit, true);
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, PredictionOrder::new));
+        }).thenApply(res -> Helpers.toTypedList(res, PredictionOrder::new));
 
     }
 
@@ -4289,7 +4289,7 @@ final Object finalOutcome = outcome;
     public CompletableFuture<List<PredictionTrade>> watchMyTrades(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             Object outcome = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -4309,14 +4309,14 @@ final Object finalOutcome = outcome;
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{outcome, limit});
             }
             return this.filterByOutcomeSinceLimit(trades, outcome, since, limit, true);
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR).thenApply(res -> Helpers.toTypedList(res, PredictionTrade::new));
+        }).thenApply(res -> Helpers.toTypedList(res, PredictionTrade::new));
 
     }
 
     public CompletableFuture<Object> subscribeUserChannel(Object messageHash, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
             // the user channel authenticates inside the subscribe frame, not via HMAC headers
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
@@ -4337,7 +4337,7 @@ final Object finalOutcome = outcome;
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "wsUser");
             String subscribeHash = "user";
             return (this.watch(url, messageHash, this.extend(subscribeMsg, parameters), subscribeHash, null)).join();
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
+        });
 
     }
 

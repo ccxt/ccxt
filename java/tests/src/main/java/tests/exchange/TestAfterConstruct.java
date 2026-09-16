@@ -18,14 +18,14 @@ public class TestAfterConstruct extends BaseTest {
     public CompletableFuture<Object> testAfterConstruct(BaseExchange exchange, Object skippedProperties)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
         if (!Helpers.isTrue((Helpers.inOp(skippedProperties, "networks"))))
         {
             testOptionsNetworks(exchange, skippedProperties);
         }
         return true;
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
+        });
 
     }
     public static void testOptionsNetworks(BaseExchange exchange, Object skippedProperties)

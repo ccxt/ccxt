@@ -15,7 +15,7 @@ public class TestWatchOHLCV extends BaseTest {
     public CompletableFuture<Object> testWatchOHLCV(Exchange exchange, Object skippedProperties, String symbol)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
         String method = "watchOHLCV";
         Object now = exchange.milliseconds();
@@ -68,7 +68,7 @@ public class TestWatchOHLCV extends BaseTest {
             }
         }
         return true;
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
+        });
 
     }
 

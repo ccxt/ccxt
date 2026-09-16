@@ -16,7 +16,7 @@ public class TestFetchTrades extends BaseTest {
     public CompletableFuture<Object> testFetchTrades(BaseExchange exchange, Object skippedProperties, Object symbol)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
         String method = "fetchTrades";
         Object trades = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchTrades", new Object[]{symbol, null, 12000})).join(); // test with unrealistically high amount
@@ -54,13 +54,13 @@ public class TestFetchTrades extends BaseTest {
             (helperTestFetchTradesSideSequence(exchange, skippedProperties, symbol, method, trades)).join();
         }
         return true;
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
+        });
 
     }
     public CompletableFuture<Object> helperTestFetchTradesSideSequence(BaseExchange exchange, Object skippedProperties, Object symbol, Object method, Object trades)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
         //
         // Check whether returned trades are sorted correctly by side - multi-trade orders at the same
@@ -106,7 +106,7 @@ public class TestFetchTrades extends BaseTest {
             lastSide = side;
         }
         return true;
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
+        });
 
     }
 

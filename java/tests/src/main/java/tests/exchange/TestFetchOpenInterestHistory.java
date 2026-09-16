@@ -15,7 +15,7 @@ public class TestFetchOpenInterestHistory extends BaseTest {
     public CompletableFuture<Object> testFetchOpenInterestHistory(BaseExchange exchange, Object skippedProperties, Object symbol)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
         String method = "fetchOpenInterestHistory";
         Object openInterestHistory = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchOpenInterestHistory", new Object[]{symbol})).join();
@@ -25,7 +25,7 @@ public class TestFetchOpenInterestHistory extends BaseTest {
             TestOpenInterest.testOpenInterest(exchange, skippedProperties, method, Helpers.GetValue(openInterestHistory, i));
         }
         return true;
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
+        });
 
     }
 

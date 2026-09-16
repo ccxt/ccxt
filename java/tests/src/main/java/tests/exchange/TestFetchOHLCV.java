@@ -15,7 +15,7 @@ public class TestFetchOHLCV extends BaseTest {
     public CompletableFuture<Object> testFetchOHLCV(BaseExchange exchange, Object skippedProperties, Object symbol)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
         String method = "fetchOHLCV";
         Object timeframeKeys = Helpers.objectKeys(exchange.timeframes);
@@ -38,7 +38,7 @@ public class TestFetchOHLCV extends BaseTest {
         }
         // todo: sorted timestamps check
         return true;
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
+        });
 
     }
 

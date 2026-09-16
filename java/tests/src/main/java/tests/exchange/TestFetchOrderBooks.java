@@ -17,7 +17,7 @@ public class TestFetchOrderBooks extends BaseTest {
     public CompletableFuture<Object> testFetchOrderBooks(BaseExchange exchange, Object skippedProperties)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
         String method = "fetchOrderBooks";
         Object symbols = exchange.symbols;
@@ -33,7 +33,7 @@ public class TestFetchOrderBooks extends BaseTest {
             TestOrderBook.testOrderBook(exchange, skippedProperties, method, Helpers.GetValue(orderBooks, symbolInner), symbolInner);
         }
         return true;
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
+        });
 
     }
 

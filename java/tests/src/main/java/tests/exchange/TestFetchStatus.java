@@ -15,13 +15,13 @@ public class TestFetchStatus extends BaseTest {
     public CompletableFuture<Object> testFetchStatus(BaseExchange exchange, Object skippedProperties)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
         String method = "fetchStatus";
         Object status = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchStatus", new Object[]{})).join();
         TestStatus.testStatus(exchange, skippedProperties, method, status, exchange.milliseconds());
         return true;
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
+        });
 
     }
 

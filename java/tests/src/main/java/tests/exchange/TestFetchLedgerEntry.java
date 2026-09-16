@@ -15,7 +15,7 @@ public class TestFetchLedgerEntry extends BaseTest {
     public CompletableFuture<Object> testFetchLedgerEntry(BaseExchange exchange, Object skippedProperties, Object code)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
         String method = "fetchLedgerEntry";
         Object items = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchLedger", new Object[]{code})).join();
@@ -33,7 +33,7 @@ public class TestFetchLedgerEntry extends BaseTest {
             }
         }
         return true;
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
+        });
 
     }
 

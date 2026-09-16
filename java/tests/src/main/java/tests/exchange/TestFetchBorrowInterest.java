@@ -15,7 +15,7 @@ public class TestFetchBorrowInterest extends BaseTest {
     public CompletableFuture<Object> testFetchBorrowInterest(BaseExchange exchange, Object skippedProperties, Object code, Object symbol)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
         String method = "fetchBorrowInterest";
         Object borrowInterest = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchBorrowInterest", new Object[]{code, symbol})).join();
@@ -25,7 +25,7 @@ public class TestFetchBorrowInterest extends BaseTest {
             TestBorrowInterest.testBorrowInterest(exchange, skippedProperties, method, Helpers.GetValue(borrowInterest, i), code, symbol);
         }
         return true;
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
+        });
 
     }
 

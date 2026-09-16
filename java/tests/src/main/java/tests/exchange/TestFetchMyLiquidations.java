@@ -15,7 +15,7 @@ public class TestFetchMyLiquidations extends BaseTest {
     public CompletableFuture<Object> testFetchMyLiquidations(BaseExchange exchange, Object skippedProperties, Object code)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
         String method = "fetchMyLiquidations";
         if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(exchange.has, "fetchMyLiquidations"), null)) || Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(exchange.has, "fetchMyLiquidations"), false))))
@@ -31,7 +31,7 @@ public class TestFetchMyLiquidations extends BaseTest {
         }
         TestSharedMethods.AssertTimestampOrder(exchange, method, code, items);
         return true;
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
+        });
 
     }
 

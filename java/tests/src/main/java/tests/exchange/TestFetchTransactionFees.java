@@ -15,14 +15,14 @@ public class TestFetchTransactionFees extends BaseTest {
     public CompletableFuture<Object> testFetchTransactionFees(BaseExchange exchange, Object skippedProperties)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
         // const method = 'fetchTransactionFees';
         // const fees = await exchange.fetchTransactionFees ();
         // const withdrawKeys = Object.keys (fees['withdraw']);
         // todo : Assert each entry
         return null;
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
+        });
 
     }
 

@@ -18,7 +18,7 @@ public class TestWatchLiquidations extends BaseTest {
     public CompletableFuture<Object> testWatchLiquidations(Exchange exchange, Object skippedProperties, Object symbol)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
         // log (symbol.green, 'watching trades...')
         String method = "watchLiquidations";
@@ -64,7 +64,7 @@ public class TestWatchLiquidations extends BaseTest {
             }
         }
         return response;
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
+        });
 
     }
 

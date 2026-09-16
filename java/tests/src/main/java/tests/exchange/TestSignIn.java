@@ -15,7 +15,7 @@ public class TestSignIn extends BaseTest {
     public CompletableFuture<Object> testSignIn(BaseExchange exchange, Object skippedProperties)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
         String method = "signIn";
         if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(exchange.has, method), null)) && Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(exchange.has, method), false))))
@@ -23,7 +23,7 @@ public class TestSignIn extends BaseTest {
             ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "signIn", new Object[]{})).join();
         }
         return true;
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
+        });
 
     }
 

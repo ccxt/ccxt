@@ -20,7 +20,7 @@ public class TestFetchCurrencies extends BaseTest {
     public CompletableFuture<Object> testFetchCurrencies(BaseExchange exchange, Object skippedProperties)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
         String method = "fetchCurrencies";
         Object currencies = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchCurrencies", new Object[]{})).join();
@@ -71,7 +71,7 @@ public class TestFetchCurrencies extends BaseTest {
             detectCurrencyConflicts(exchange, currencies);
         }
         return true;
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
+        });
 
     }
     public Object detectCurrencyConflicts(BaseExchange exchange, Object currencyValues)

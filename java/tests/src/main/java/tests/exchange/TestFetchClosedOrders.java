@@ -17,7 +17,7 @@ public class TestFetchClosedOrders extends BaseTest {
     public CompletableFuture<Object> testFetchClosedOrders(BaseExchange exchange, Object skippedProperties, Object symbol)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
         String method = "fetchClosedOrders";
         Object orders = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchClosedOrders", new Object[]{symbol})).join();
@@ -31,7 +31,7 @@ public class TestFetchClosedOrders extends BaseTest {
         }
         TestSharedMethods.AssertTimestampOrder(exchange, method, symbol, orders);
         return true;
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
+        });
 
     }
 

@@ -18,20 +18,20 @@ public class TestProxies extends BaseTest {
     public CompletableFuture<Object> testProxies(BaseExchange exchange, Object skippedProperties)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
         (testProxyUrl(exchange, skippedProperties)).join();
         (testHttpProxy(exchange, skippedProperties)).join();
         // 'httpsProxy', 'socksProxy'
         (testProxyForExceptions(exchange, skippedProperties)).join();
         return true;
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
+        });
 
     }
     public CompletableFuture<Object> testProxyUrl(BaseExchange exchange, Object skippedProperties)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
         String method = "proxyUrl";
         String proxyServerIp = "5.75.153.75";
@@ -49,13 +49,13 @@ public class TestProxies extends BaseTest {
         // reset the instance property
         TestSharedMethods.setProxyOptions(exchange, skippedProperties, proxyUrl, httpProxy, httpsProxy, socksProxy);
         return true;
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
+        });
 
     }
     public CompletableFuture<Object> testHttpProxy(BaseExchange exchange, Object skippedProperties)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
         String method = "httpProxy";
         String proxyServerIp = "5.75.153.75";
@@ -71,14 +71,14 @@ public class TestProxies extends BaseTest {
         // reset the instance property
         TestSharedMethods.setProxyOptions(exchange, skippedProperties, proxyUrl, httpProxy, httpsProxy, socksProxy);
         return true;
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
+        });
 
     }
     // with the below method we test out all variations of possible proxy options, so at least 2 of them should be set together, and such cases must throw new RuntimeException(e)xception
     public CompletableFuture<Object> testProxyForExceptions(BaseExchange exchange, Object skippedProperties)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
         String method = "testProxyForExceptions";
         var proxyUrlhttpProxyhttpsProxysocksProxyVariable = TestSharedMethods.removeProxyOptions(exchange, skippedProperties);
@@ -115,7 +115,7 @@ public class TestProxies extends BaseTest {
         // reset the instance property
         TestSharedMethods.setProxyOptions(exchange, skippedProperties, proxyUrl, httpProxy, httpsProxy, socksProxy);
         return true;
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
+        });
 
     }
 

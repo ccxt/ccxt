@@ -18,7 +18,7 @@ public class TestFetchTickers extends BaseTest {
     public CompletableFuture<Object> testFetchTickers(BaseExchange exchange, Object skippedProperties, Object symbol)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
         // prediction venues list thousands of outcome markets, so fetching ALL tickers (no-arg)
         // is impractical and the "every active market has a ticker" check doesn't apply — test
@@ -33,13 +33,13 @@ public class TestFetchTickers extends BaseTest {
         Object results = (Helpers.promiseAll(new ArrayList<Object>(Arrays.asList(withoutSymbol, withSymbol)))).join();
         fetchTickersAmountsTest(exchange, skippedProperties, Helpers.GetValue(results, 0));
         return results;
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
+        });
 
     }
     public CompletableFuture<Object> fetchTickersHelperTest(BaseExchange exchange, Object skippedProperties, Object argSymbols2, Object... optionalArgs)
     {
         final Object argSymbols3 = argSymbols2;
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
             Object argSymbols = argSymbols3;
         Object argParams = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
         String method = "fetchTickers";
@@ -71,7 +71,7 @@ public class TestFetchTickers extends BaseTest {
             }
         }
         return response;
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
+        });
 
     }
     public static void fetchTickersAmountsTest(BaseExchange exchange, Object skippedProperties, Object tickers)

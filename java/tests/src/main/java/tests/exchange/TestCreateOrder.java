@@ -35,7 +35,7 @@ public class TestCreateOrder extends BaseTest {
     public CompletableFuture<Object> testCreateOrder(BaseExchange exchange, Object skippedProperties, Object symbol)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
         Object logPrefix = TestSharedMethods.logTemplate(exchange, "createOrder", new ArrayList<Object>(Arrays.asList(symbol)));
         Boolean hasCancelOrder = Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(exchange.has, "cancelOrder"), null))) && Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(exchange.has, "cancelOrder"), false)));
@@ -78,7 +78,7 @@ public class TestCreateOrder extends BaseTest {
         tcoDebug(exchange, symbol, "### SCENARIO 2 PASSED ###");
         // **************** [Scenario 3 - START] **************** //
         return true;
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
+        });
 
     }
     // ----------------------------------------------------------------------------
@@ -88,7 +88,7 @@ public class TestCreateOrder extends BaseTest {
         final Object bestBid3 = bestBid2;
         final Object bestAsk3 = bestAsk2;
         final Object buyOrSell3 = buyOrSell2;
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
             Object logPrefix = logPrefix3;
             Object bestBid = bestBid3;
             Object bestAsk = bestAsk3;
@@ -140,7 +140,7 @@ public class TestCreateOrder extends BaseTest {
             throw new RuntimeException((String)Helpers.add(Helpers.add(logPrefix, " failed for Scenario 1: "), String.valueOf(e))) ;
         }
         return true;
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
+        });
 
     }
     public CompletableFuture<Object> tcoCreateFillableOrder(BaseExchange exchange, Object market, Object logPrefix, Object skippedProperties, Object bestBid2, Object bestAsk2, Object limitPriceSafetyMultiplierFromMedian, Object buyOrSellString2, Object... optionalArgs)
@@ -148,7 +148,7 @@ public class TestCreateOrder extends BaseTest {
         final Object bestBid3 = bestBid2;
         final Object bestAsk3 = bestAsk2;
         final Object buyOrSellString3 = buyOrSellString2;
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
             Object bestBid = bestBid3;
             Object bestAsk = bestAsk3;
             Object buyOrSellString = buyOrSellString3;
@@ -190,7 +190,7 @@ public class TestCreateOrder extends BaseTest {
             throw new RuntimeException(Helpers.add("failed for Scenario 2: ", String.valueOf(e))) ;
         }
         return true;
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
+        });
 
     }
     public Object tcoAssertFilledOrder(BaseExchange exchange, Object market, Object logPrefix, Object skippedProperties, Object createdOrder, Object fetchedOrder, Object requestedSide, Object requestedAmount)
@@ -218,7 +218,7 @@ public class TestCreateOrder extends BaseTest {
     public CompletableFuture<Object> tcoCancelOrder(BaseExchange exchange, Object symbol, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
         Object orderId = Helpers.getArg(optionalArgs, 0, null);
         Object logPrefix = TestSharedMethods.logTemplate(exchange, "createOrder", new ArrayList<Object>(Arrays.asList(symbol)));
@@ -241,7 +241,7 @@ public class TestCreateOrder extends BaseTest {
         // TestSharedMethods.AssertOrderState (exchange, skippedProperties, 'cancelOrder', cancelResult, 'canceled', false);
         // TestSharedMethods.AssertOrderState (exchange, skippedProperties, 'cancelOrder', cancelResult, 'closed', true);
         return true;
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
+        });
 
     }
     // ----------------------------------------------------------------------------
@@ -249,7 +249,7 @@ public class TestCreateOrder extends BaseTest {
     public CompletableFuture<Object> tcoCreateOrderSafe(BaseExchange exchange, Object symbol, Object orderType2, Object side, Object amount, Object... optionalArgs)
     {
         final Object orderType3 = orderType2;
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
             Object orderType = orderType3;
         Object price = Helpers.getArg(optionalArgs, 0, null);
         Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -269,7 +269,7 @@ public class TestCreateOrder extends BaseTest {
             throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
         }
         return order;
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
+        });
 
     }
     public Object tcoMininumAmount(BaseExchange exchange, Object market)
@@ -329,7 +329,7 @@ public class TestCreateOrder extends BaseTest {
     public CompletableFuture<Object> tcoTryCancelOrder(BaseExchange exchange, Object symbol, Object order, Object skippedProperties)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
         Object orderFetched = (TestSharedMethods.fetchOrder(exchange, symbol, Helpers.GetValue(order, "id"), skippedProperties)).join();
         if (Helpers.isTrue(Helpers.isEqual(orderFetched, null)))
@@ -354,7 +354,7 @@ public class TestCreateOrder extends BaseTest {
             tcoDebug(exchange, symbol, "order is already closed/filled, no need to cancel it");
         }
         return true;
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
+        });
 
     }
 

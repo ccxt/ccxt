@@ -15,7 +15,7 @@ public class TestWatchTicker extends BaseTest {
     public CompletableFuture<Object> testWatchTicker(Exchange exchange, Object skippedProperties, String symbol)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
         String method = "watchTicker";
         Object now = exchange.milliseconds();
@@ -50,7 +50,7 @@ public class TestWatchTicker extends BaseTest {
             }
         }
         return true;
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
+        });
 
     }
 

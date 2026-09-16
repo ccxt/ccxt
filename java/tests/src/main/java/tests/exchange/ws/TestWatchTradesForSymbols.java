@@ -18,7 +18,7 @@ public class TestWatchTradesForSymbols extends BaseTest {
     public CompletableFuture<Object> testWatchTradesForSymbols(Exchange exchange, Object skippedProperties, Object symbols)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
         String method = "watchTradesForSymbols";
         Object logText = Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), " [symbols: "), exchange.json(symbols)), "] ");
@@ -68,7 +68,7 @@ public class TestWatchTradesForSymbols extends BaseTest {
         }
         Assert(Helpers.isEqual(Helpers.getArrayLength(returnedSymbols), Helpers.getArrayLength(symbols)), Helpers.add(Helpers.add(logText, "only received part of symbols: "), exchange.json(returnedSymbols)));
         return true;
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
+        });
 
     }
 

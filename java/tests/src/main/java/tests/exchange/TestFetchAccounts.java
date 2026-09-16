@@ -15,7 +15,7 @@ public class TestFetchAccounts extends BaseTest {
     public CompletableFuture<Object> testFetchAccounts(BaseExchange exchange, Object skippedProperties)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
         String method = "fetchAccounts";
         Object accounts = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchAccounts", new Object[]{})).join();
@@ -25,7 +25,7 @@ public class TestFetchAccounts extends BaseTest {
             TestAccount.testAccount(exchange, skippedProperties, method, Helpers.GetValue(accounts, i));
         }
         return true;
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
+        });
 
     }
 

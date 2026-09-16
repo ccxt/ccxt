@@ -15,7 +15,7 @@ public class TestWatchOrderBook extends BaseTest {
     public CompletableFuture<Object> testWatchOrderBook(Exchange exchange, Object skippedProperties, String symbol)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
 
         String method = "watchOrderBook";
         // `watchOrderBook` only resolves when the exchange pushes an update, and a
@@ -59,7 +59,7 @@ public class TestWatchOrderBook extends BaseTest {
             }
         }
         return true;
-        }, io.github.ccxt.BaseExchange.VIRTUAL_EXECUTOR);
+        });
 
     }
 
