@@ -114,6 +114,8 @@ jobs:
             npm run lint "ts/src/pro/$exchange.ts"
           fi
         done
+    - name: Test swap-only trade sequence skips
+      run: node --test build/tests/test.fetch-trades-side-sequence.mjs
     - name: Run Base Tests
       if: env.important_modified == 'true'
       run: npm run test-base-rest-js

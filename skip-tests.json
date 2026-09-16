@@ -242,6 +242,9 @@
         "httpsProxy": "http://188.245.226.105:8911",
         "wsProxy": "http://188.245.226.105:8911",
         "skipMethods": {
+            "fetchTrades": {
+                "sideSequenceSwap": "Swap trades within one millisecond can arrive out of fillId order (727492266 then 727492255); price monotonicity by side is not guaranteed. Spot checks remain enabled. https://github.com/ccxt/ccxt/actions/runs/35100731793/job/104810521452"
+            },
             "loadMarkets": {
                 "taker": "is undefined",
                 "maker": "is undefined",
