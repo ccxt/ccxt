@@ -404,15 +404,18 @@ public:
     std::vector<entry> entries;
     // flat open-addressing probe table: (hash, entryIndex), size a power of two,
     // load factor <= 0.5. Node-free: one contiguous allocation per dict, no
-    // per-key malloc, no pointer chasing.
+    // per-key malloc, no pointer chasing. indexDirty: setNew() appends without
+    // maintaining the table; the first lookup rebuilds it.
     std::vector<std::pair<std::size_t, std::size_t>> index;
+    mutable bool indexDirty = false;
 
     bool linearMode () const { return this->entries.size () <= LINEAR_THRESHOLD; }
 
     // indexed-mode probe: entry index for key, or NPOS. Skips tombstones.
     std::size_t findIdx (const std::string& key) const {
+        if (this->indexDirty) this->rebuildIndexNow ();
         if (this->index.empty ()) return NPOS;
-        const std::size_t h = std::hash<std::string> {} (key);
+        const std::size_t h = std::hash<std::string_view> {} (key);
         const std::size_t mask = this->index.size () - 1;
         std::size_t i = h & mask;
         for (;;) {
@@ -470,7 +473,25 @@ public:
         }
         if ((this->entries.size () + 1) * 2 > this->index.size ()) this->buildIndex ();
         this->entries.emplace_back (key, value);
-        this->insertSlot (std::hash<std::string> {} (key), this->entries.size () - 1);
+        this->insertSlot (std::hash<std::string_view> {} (key), this->entries.size () - 1);
+    }
+
+    // unchecked append for JSON object builds: the parser guarantees the key
+    // is new (JSON keys are unique), so the linear scan / index probe of set()
+    // is pure waste during construction. The probe index builds lazily on the
+    // first lookup after the bulk insert (indexDirty), so dicts that are only
+    // ever built and read stay scan-free and index-free until needed.
+    void setNew (const InternedKey& key, const any& value) {
+        this->entries.emplace_back (key, value);
+        if (this->entries.size () > LINEAR_THRESHOLD && !this->index.empty ()) {
+            if (this->entries.size () * 2 <= this->index.size ()) {
+                this->insertSlot (std::hash<std::string_view> {} (key.view ()), this->entries.size () - 1);
+            } else {
+                this->indexDirty = true;
+            }
+        } else if (this->entries.size () > LINEAR_THRESHOLD) {
+            this->indexDirty = true;
+        }
     }
 
     // pre-size the entries store (jsonToAny knows the object size up front);
@@ -528,8 +549,15 @@ private:
         this->index.assign (slotCount (this->entries.size ()), { EMPTY_HASH, 0 });
         const std::size_t n = this->entries.size ();
         for (std::size_t e = 0; e < n; e++) {
-            this->insertSlot (std::hash<std::string> {} (this->entries[e].first), e);
+            this->insertSlot (std::hash<std::string_view> {} (this->entries[e].first.view ()), e);
         }
+        this->indexDirty = false;
+    }
+
+    // const-visible rebuild for the lazy index after bulk setNew() inserts
+    void rebuildIndexNow () const {
+        auto* self = const_cast<OrderedMap*> (this);
+        self->buildIndex ();
     }
 };
 
