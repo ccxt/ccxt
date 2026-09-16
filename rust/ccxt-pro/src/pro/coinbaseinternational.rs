@@ -361,8 +361,8 @@ impl CoinbaseinternationalCore {
             productIds = marketIds.clone();
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_265: bool = true;
-                while { if !__for_first_265 { i = add(&i, &Value::Int(1)); } __for_first_265 = false; is_less_than(&i, &get_array_length(&parsedSymbols)) } {
+                let mut __for_first_266: bool = true;
+                while { if !__for_first_266 { i = add(&i, &Value::Int(1)); } __for_first_266 = false; is_less_than(&i, &get_array_length(&parsedSymbols)) } {
                 append_to_array(&mut messageHashes, add(&add(&name, &Value::Str("::".to_string())), &get_value(&parsedSymbols, &i)));
             }
             }
@@ -430,8 +430,8 @@ impl CoinbaseinternationalCore {
         let mut productIds: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_266: bool = true;
-            while { if !__for_first_266 { i = add(&i, &Value::Int(1)); } __for_first_266 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+            let mut __for_first_267: bool = true;
+            while { if !__for_first_267 { i = add(&i, &Value::Int(1)); } __for_first_267 = false; is_less_than(&i, &get_array_length(&symbols)) } {
             let mut marketId: Value = self.market_id(get_value(&symbols, &i));
             let mut symbol: Value = self.symbol(marketId.clone());
             append_to_array(&mut productIds, marketId.clone());
@@ -547,8 +547,8 @@ impl CoinbaseinternationalCore {
         let mut output: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_267: bool = true;
-            while { if !__for_first_267 { i = add(&i, &Value::Int(1)); } __for_first_267 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+            let mut __for_first_268: bool = true;
+            while { if !__for_first_268 { i = add(&i, &Value::Int(1)); } __for_first_268 = false; is_less_than(&i, &get_array_length(&symbols)) } {
             let mut symbol: Value = get_value(&symbols, &i);
             let mut symbol: Value = get_value(&symbols, &i);
             let mut market: Value = self.market(symbol.clone());
@@ -865,8 +865,8 @@ impl CoinbaseinternationalCore {
         let mut data: Value = self.safe_list_k(message.clone(), "candles", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_268: bool = true;
-            while { if !__for_first_268 { i = add(&i, &Value::Int(1)); } __for_first_268 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_269: bool = true;
+            while { if !__for_first_269 { i = add(&i, &Value::Int(1)); } __for_first_269 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut tick: Value = get_value(&data, &i);
             let mut tick: Value = get_value(&data, &i);
             let mut parsed: Value = self.parse_ohlcv(tick.clone(), &[market.clone()]);
@@ -1119,8 +1119,8 @@ impl CoinbaseinternationalCore {
     pub fn handle_deltas(&self, mut orderbook: Value, mut deltas: Value) {
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_269: bool = true;
-            while { if !__for_first_269 { i = add(&i, &Value::Int(1)); } __for_first_269 = false; is_less_than(&i, &get_array_length(&deltas)) } {
+            let mut __for_first_270: bool = true;
+            while { if !__for_first_270 { i = add(&i, &Value::Int(1)); } __for_first_270 = false; is_less_than(&i, &get_array_length(&deltas)) } {
             self.handle_delta(orderbook.clone(), get_value(&deltas, &i));
         }
         }

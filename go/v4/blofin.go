@@ -138,7 +138,7 @@ func (this *Blofin) Describe() any {
 			"setPositionMode":                      true,
 			"signIn":                               false,
 			"transfer":                             true,
-			"withdraw":                             false,
+			"withdraw":                             true,
 		},
 		"timeframes": map[string]any{
 			"1m":  "1m",
@@ -640,6 +640,46 @@ func (this *Blofin) Describe() any {
 				"102065": BadRequest,
 				"102068": BadRequest,
 				"103013": ExchangeError,
+				"102067": OrderNotFound,
+				"102089": BadRequest,
+				"102148": DuplicateOrderId,
+				"103003": InsufficientFunds,
+				"110006": InvalidOrder,
+				"110019": InvalidOrder,
+				"148082": BadRequest,
+				"148083": BadRequest,
+				"152011": PermissionDenied,
+				"152012": BadRequest,
+				"152013": PermissionDenied,
+				"152014": BadRequest,
+				"152015": BadRequest,
+				"152020": InvalidAddress,
+				"152022": BadRequest,
+				"152023": PermissionDenied,
+				"152024": PermissionDenied,
+				"152025": PermissionDenied,
+				"152026": BadRequest,
+				"152027": BadRequest,
+				"152028": InsufficientFunds,
+				"152029": PermissionDenied,
+				"152030": DuplicateOrderId,
+				"152031": InvalidAddress,
+				"152032": PermissionDenied,
+				"152401": AuthenticationError,
+				"152402": AuthenticationError,
+				"152404": PermissionDenied,
+				"152405": InvalidNonce,
+				"152406": PermissionDenied,
+				"152407": InvalidNonce,
+				"152408": AuthenticationError,
+				"152409": AuthenticationError,
+				"152410": InvalidNonce,
+				"152420": DuplicateOrderId,
+				"152421": DuplicateOrderId,
+				"152422": BadRequest,
+				"152423": InvalidOrder,
+				"152428": BadRequest,
+				"152429": BadRequest,
 				"Order failed. Insufficient USDT margin in account": InsufficientFunds,
 			},
 			"broad": map[string]any{
@@ -674,10 +714,35 @@ func (this *Blofin) Describe() any {
 				"USDT": "TRC20",
 			},
 			"networks": map[string]any{
-				"BTC":   "Bitcoin",
-				"BEP20": "BSC",
-				"ERC20": "ERC20",
-				"TRC20": "TRC20",
+				"BTC":      "Bitcoin",
+				"SOL":      "Solana",
+				"MATIC":    "Polygon POS",
+				"AVAXC":    "AVAX C-Chain",
+				"ARBITRUM": "Arbitrum One",
+				"OP":       "Optimism",
+				"KAIA":     "KAIA",
+			},
+			"networkPrefixes": map[string]any{
+				"TRC20": "Tron",
+				"ERC20": "Ethereum",
+				"BEP20": "BNB Smart Chain",
+				"APT":   "APT",
+				"TON":   "TON",
+			},
+			"networkSuffixes": map[string]any{
+				"TON": "Toncoin",
+			},
+			"networkCodesBySuffix": map[string]any{
+				"Toncoin": "TON",
+			},
+			"networksById": map[string]any{
+				"Bitcoin":      "BTC",
+				"Solana":       "SOL",
+				"Polygon POS":  "MATIC",
+				"AVAX C-Chain": "AVAXC",
+				"Arbitrum One": "ARBITRUM",
+				"Optimism":     "OP",
+				"BSC":          "BEP20",
 			},
 			"fetchOpenInterestHistory": map[string]any{
 				"timeframes": map[string]any{
@@ -851,8 +916,8 @@ func (this *Blofin) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes63612 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes63612)
+		retRes71512 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes71512)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -973,8 +1038,8 @@ func (this *Blofin) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes74212 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes74212)
+		retRes82112 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes82112)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -1012,8 +1077,8 @@ func (this *Blofin) fetchMarkPriceBody(ch chan any, symbol any, optionalArgs ...
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes76612 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes76612)
+		retRes84512 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes84512)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -1052,8 +1117,8 @@ func (this *Blofin) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes78912 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes78912)
+		retRes86812 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes86812)
 	}
 	symbols = this.MarketSymbols(symbols)
 
@@ -1204,8 +1269,8 @@ func (this *Blofin) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes92112 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes92112)
+		retRes100012 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes100012)
 	}
 	var paginate any = false
 	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchTrades", "paginate")
@@ -1213,9 +1278,9 @@ func (this *Blofin) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 	params = GetValue(paginateparamsVariable, 1)
 	if IsTrue(paginate) {
 
-		retRes92619 := (<-this.FetchPaginatedCallCursorAsync("fetchTrades", symbol, since, limit, params, "tradeId", "after", nil, 100))
-		PanicOnError(retRes92619)
-		ch <- retRes92619
+		retRes100519 := (<-this.FetchPaginatedCallCursorAsync("fetchTrades", symbol, since, limit, params, "tradeId", "after", nil, 100))
+		PanicOnError(retRes100519)
+		ch <- retRes100519
 		return nil
 	}
 	var market any = this.Market(symbol)
@@ -1291,8 +1356,8 @@ func (this *Blofin) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes98512 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes98512)
+		retRes106412 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes106412)
 	}
 	var market any = this.Market(symbol)
 	var paginate any = false
@@ -1301,9 +1366,9 @@ func (this *Blofin) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 	params = GetValue(paginateparamsVariable, 1)
 	if IsTrue(paginate) {
 
-		retRes99119 := (<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, params, 100))
-		PanicOnError(retRes99119)
-		ch <- retRes99119
+		retRes107019 := (<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, params, 100))
+		PanicOnError(retRes107019)
+		ch <- retRes107019
 		return nil
 	}
 	if IsTrue(IsEqual(limit, nil)) {
@@ -1362,8 +1427,8 @@ func (this *Blofin) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any
 	}
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes102912 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes102912)
+		retRes110812 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes110812)
 	}
 	var paginate any = false
 	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchFundingRateHistory", "paginate")
@@ -1371,9 +1436,9 @@ func (this *Blofin) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any
 	params = GetValue(paginateparamsVariable, 1)
 	if IsTrue(paginate) {
 
-		retRes103419 := (<-this.FetchPaginatedCallDeterministicAsync("fetchFundingRateHistory", symbol, since, limit, "8h", params, 100))
-		PanicOnError(retRes103419)
-		ch <- retRes103419
+		retRes111319 := (<-this.FetchPaginatedCallDeterministicAsync("fetchFundingRateHistory", symbol, since, limit, "8h", params, 100))
+		PanicOnError(retRes111319)
+		ch <- retRes111319
 		return nil
 	}
 	var market any = this.Market(symbol)
@@ -1469,8 +1534,8 @@ func (this *Blofin) fetchFundingRateBody(ch chan any, symbol any, optionalArgs .
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes111412 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes111412)
+		retRes119312 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes119312)
 	}
 	var market any = this.Market(symbol)
 	if IsTrue(!IsEqual(GetValue(market, "swap"), true)) {
@@ -1635,8 +1700,8 @@ func (this *Blofin) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes126412 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes126412)
+		retRes134312 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes134312)
 	}
 	var accountType any = nil
 	accountTypeparamsVariable := this.HandleOptionAndParams2(params, "fetchBalance", "accountType", "type")
@@ -1918,8 +1983,8 @@ func (this *Blofin) createOrderBody(ch chan any, symbol any, typeVar any, side a
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes152012 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes152012)
+		retRes159912 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes159912)
 	}
 	var market any = this.Market(symbol)
 	var isStopLossPriceDefined any = !IsEqual(this.SafeString(params, "stopLossPrice"), nil)
@@ -2057,8 +2122,8 @@ func (this *Blofin) cancelOrderBody(ch chan any, id any, optionalArgs ...any) an
 	}
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes162912 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes162912)
+		retRes170812 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes170812)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -2127,8 +2192,8 @@ func (this *Blofin) createOrdersBody(ch chan any, orders any, optionalArgs ...an
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes167612 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes167612)
+		retRes175512 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes175512)
 	}
 	var ordersRequests any = []any{}
 	for i := 0; IsLessThan(i, GetArrayLength(orders)); i++ {
@@ -2185,8 +2250,8 @@ func (this *Blofin) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes171312 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes171312)
+		retRes179212 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes179212)
 	}
 	var paginate any = false
 	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchOpenOrders", "paginate")
@@ -2194,9 +2259,9 @@ func (this *Blofin) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	params = GetValue(paginateparamsVariable, 1)
 	if IsTrue(paginate) {
 
-		retRes171819 := (<-this.FetchPaginatedCallDynamicAsync("fetchOpenOrders", symbol, since, limit, params))
-		PanicOnError(retRes171819)
-		ch <- retRes171819
+		retRes179719 := (<-this.FetchPaginatedCallDynamicAsync("fetchOpenOrders", symbol, since, limit, params))
+		PanicOnError(retRes179719)
+		ch <- retRes179719
 		return nil
 	}
 	var request map[string]any = map[string]any{}
@@ -2269,8 +2334,8 @@ func (this *Blofin) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes176512 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes176512)
+		retRes184412 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes184412)
 	}
 	var paginate any = false
 	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchMyTrades", "paginate")
@@ -2278,9 +2343,9 @@ func (this *Blofin) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	params = GetValue(paginateparamsVariable, 1)
 	if IsTrue(paginate) {
 
-		retRes177019 := (<-this.FetchPaginatedCallDynamicAsync("fetchMyTrades", symbol, since, limit, params))
-		PanicOnError(retRes177019)
-		ch <- retRes177019
+		retRes184919 := (<-this.FetchPaginatedCallDynamicAsync("fetchMyTrades", symbol, since, limit, params))
+		PanicOnError(retRes184919)
+		ch <- retRes184919
 		return nil
 	}
 	var request any = map[string]any{}
@@ -2368,8 +2433,8 @@ func (this *Blofin) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes183212 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes183212)
+		retRes191112 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes191112)
 	}
 	var paginate any = false
 	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchDeposits", "paginate")
@@ -2377,9 +2442,9 @@ func (this *Blofin) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	params = GetValue(paginateparamsVariable, 1)
 	if IsTrue(paginate) {
 
-		retRes183719 := (<-this.FetchPaginatedCallDynamicAsync("fetchDeposits", code, since, limit, params))
-		PanicOnError(retRes183719)
-		ch <- retRes183719
+		retRes191619 := (<-this.FetchPaginatedCallDynamicAsync("fetchDeposits", code, since, limit, params))
+		PanicOnError(retRes191619)
+		ch <- retRes191619
 		return nil
 	}
 	var request any = map[string]any{}
@@ -2437,8 +2502,8 @@ func (this *Blofin) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes187312 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes187312)
+		retRes195212 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes195212)
 	}
 	var paginate any = false
 	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchWithdrawals", "paginate")
@@ -2446,9 +2511,9 @@ func (this *Blofin) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 	params = GetValue(paginateparamsVariable, 1)
 	if IsTrue(paginate) {
 
-		retRes187819 := (<-this.FetchPaginatedCallDynamicAsync("fetchWithdrawals", code, since, limit, params))
-		PanicOnError(retRes187819)
-		ch <- retRes187819
+		retRes195719 := (<-this.FetchPaginatedCallDynamicAsync("fetchWithdrawals", code, since, limit, params))
+		PanicOnError(retRes195719)
+		ch <- retRes195719
 		return nil
 	}
 	var request any = map[string]any{}
@@ -2472,6 +2537,151 @@ func (this *Blofin) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 	var data any = this.SafeList(response, "data", []any{})
 
 	ch <- this.ParseTransactions(data, currency, since, limit, params)
+	return nil
+}
+func (this *Blofin) NetworkCodeToChainId(networkCode any) any {
+	// the live venue identifies chains by display names; the suffix
+	// family is built here as prefix + space + parenthesized suffix
+	// because such literals are not transpiler-safe in source
+	var networks any = this.SafeDict(this.Options, "networks", map[string]any{})
+	var direct any = this.SafeString(networks, networkCode)
+	if IsTrue(!IsEqual(direct, nil)) {
+		return direct
+	}
+	var prefixes any = this.SafeDict(this.Options, "networkPrefixes", map[string]any{})
+	var prefix any = this.SafeString(prefixes, networkCode)
+	if IsTrue(!IsEqual(prefix, nil)) {
+		var suffixes any = this.SafeDict(this.Options, "networkSuffixes", map[string]any{})
+		var suffix any = this.SafeString(suffixes, networkCode, networkCode)
+		return Add(Add(Add(Add(prefix, " "), "("), suffix), ")")
+	}
+	return networkCode
+}
+func (this *Blofin) ChainIdToNetworkCode(chainId any) any {
+	// live history rows and the currencies registry carry display-name
+	// chain ids like Tron with a parenthesized TRC20 suffix (verified
+	// live 2026-09-15), while the doc examples still show short forms -
+	// parse the suffix when present, fall back to the id maps otherwise
+	if IsTrue(IsEqual(chainId, nil)) {
+		return nil
+	}
+	if IsTrue(IsGreaterThan(GetIndexOf(chainId, "("), OpNeg(1))) {
+		// php-safe suffix extraction: split instead of index arithmetic,
+		// because a stored strpos result and a two-argument slice do not
+		// survive the php conversion (false-vs-int compare; length arg)
+		var parts []string = Split(chainId, "(")
+		var tail any = this.SafeString(parts, 1, "")
+		var tailParts []string = Split(tail, ")")
+		var suffix any = this.SafeString(tailParts, 0)
+		var bySuffix any = this.SafeDict(this.Options, "networkCodesBySuffix", map[string]any{})
+		return this.SafeString(bySuffix, suffix, suffix)
+	}
+	// delegate the paren-free branch to the base resolver so the
+	// currency-scoped networks and the deprecated-network-code aliases
+	// keep applying alongside options['networksById']
+	return this.NetworkIdToCode(chainId)
+}
+
+/**
+ * @method
+ * @name blofin#withdraw
+ * @description make a withdrawal
+ * @see https://docs.blofin.com/index.html#withdrawal
+ * @param {string} code unified currency code
+ * @param {float} amount the amount to withdraw, the withdrawal fee is not included and must be reserved on top
+ * @param {string} address the address to withdraw to, or a UID / email / phone number for an internal transfer
+ * @param {string} tag additional identifier (memo / payment id) required by certain networks
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.network] the unified network code for on-chain withdrawals, mapped to the exchange's chain name
+ * @param {string} [params.dest] 'onchain' (default) or 'internal' for an internal transfer
+ * @param {string} [params.addrType] address type, 1: wallet address, 2: UID, 3: email, 4: mobile phone
+ * @param {string} [params.areaCode] area code for the phone number, required when address is a phone number
+ * @param {string} [params.clientId] a client-supplied id of up to 32 case-sensitive alphanumerics
+ * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ */
+func (this *Blofin) WithdrawAsync(code any, amount any, address any, optionalArgs ...any) <-chan any {
+	ch := make(chan any, 1)
+	go this.withdrawBody(ch, code, amount, address, optionalArgs...)
+	return ch
+}
+func (this *Blofin) withdrawBody(ch chan any, code any, amount any, address any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	// LIVE API vs DOCS quirks, verified against the venue 2026-09-14:
+	// - addrType is documented optional but the live venue rejects
+	//   on-chain withdrawals without it: 152001 "Parameter addrType
+	//   cannot be empty" - defaulted to 1 below
+	// - the chain identifiers accepted here are the DISPLAY NAMES from
+	//   GET /asset/currencies ("Tron (TRC20)", "Ethereum (ERC20)", ...);
+	//   the short forms shown in the doc examples ("TRC20") are rejected
+	//   with 152002 "Invalid parameter" - see options["networks"]
+	// - 152002 responses omit the offending field name even though the
+	//   error table documents the message as "Parameter {} error"
+	tag := GetArg(optionalArgs, 0, nil)
+	_ = tag
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	tagparamsVariable := this.HandleWithdrawTagAndParams(tag, params)
+	tag = GetValue(tagparamsVariable, 0)
+	params = GetValue(tagparamsVariable, 1)
+
+	retRes20518 := (<-this.LoadMarketsAsync())
+	PanicOnError(retRes20518)
+	var currency any = this.Currency(code)
+	var request map[string]any = map[string]any{
+		"currency": GetValue(currency, "id"),
+		"address":  address,
+		"amount":   this.NumberToString(amount),
+	}
+	var dest any = this.SafeString(params, "dest", "onchain")
+	AddElementToObject(request, "dest", dest)
+	params = this.Omit(params, "dest")
+	if IsTrue(IsEqual(dest, "onchain")) {
+		this.CheckAddress(address)
+		// the doc's Request Parameters table marks addrType "Required:
+		// No", but the live venue rejects on-chain withdrawals without
+		// it (152001 "Parameter addrType cannot be empty") - default to
+		// 1 = wallet address, callers can override for other kinds
+		AddElementToObject(request, "addrType", this.SafeString(params, "addrType", "1"))
+		params = this.Omit(params, "addrType")
+	}
+	if IsTrue(!IsEqual(tag, nil)) {
+		AddElementToObject(request, "tag", tag)
+	}
+	// consume the unified network key unconditionally so it never leaks
+	// onto the wire; an explicit raw params['chain'] takes precedence
+	var networkCode any = nil
+	networkCodeparamsVariable := this.HandleNetworkCodeAndParams(params)
+	networkCode = GetValue(networkCodeparamsVariable, 0)
+	params = GetValue(networkCodeparamsVariable, 1)
+	var chain any = this.SafeString(params, "chain")
+	if IsTrue(IsEqual(chain, nil)) {
+		if IsTrue(!IsEqual(networkCode, nil)) {
+			AddElementToObject(request, "chain", this.NetworkCodeToChainId(networkCode))
+		} else if IsTrue(IsEqual(dest, "onchain")) {
+			panic(ArgumentsRequired(Add(this.Id, " withdraw() requires a params[\"network\"] or params[\"chain\"] for on-chain withdrawals")))
+		}
+	}
+
+	response := (<-this.PrivatePostAssetWithdrawalApply(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	//     {
+	//         "code": "0",
+	//         "msg": "success",
+	//         "data": {
+	//             "withdrawId": "a1b2c3d4e5",
+	//             "clientId": "broker-20260706-0001"
+	//         }
+	//     }
+	//
+	var data any = this.SafeDict(response, "data", map[string]any{})
+
+	// the response carries only withdrawId + clientId, and this class's
+	// parseTransaction reads every field from the payload - seed the
+	// parsed structure from the request so the unified transaction
+	// reflects what was actually submitted
+	ch <- this.ParseTransaction(this.Extend(request, data), currency)
 	return nil
 }
 
@@ -2507,8 +2717,8 @@ func (this *Blofin) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes191512 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes191512)
+		retRes212112 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes212112)
 	}
 	var paginate any = false
 	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchLedger", "paginate")
@@ -2516,9 +2726,9 @@ func (this *Blofin) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	params = GetValue(paginateparamsVariable, 1)
 	if IsTrue(paginate) {
 
-		retRes192019 := (<-this.FetchPaginatedCallDynamicAsync("fetchLedger", code, since, limit, params))
-		PanicOnError(retRes192019)
-		ch <- retRes192019
+		retRes212619 := (<-this.FetchPaginatedCallDynamicAsync("fetchLedger", code, since, limit, params))
+		PanicOnError(retRes212619)
+		ch <- retRes212619
 		return nil
 	}
 	var request any = map[string]any{}
@@ -2599,6 +2809,16 @@ func (this *Blofin) ParseTransaction(transaction any, optionalArgs ...any) any {
 	var currencyId any = this.SafeString(transaction, "currency")
 	var code any = this.SafeCurrencyCode(currencyId)
 	var amount any = this.SafeNumber(transaction, "amount")
+	// live history rows carry the DISPLAY-NAME chain identifiers
+	// ('Tron (TRC20)', verified live 2026-09-15) even though the doc
+	// examples show short forms ('TRC20') - chainIdToNetworkCode parses
+	// the parenthesized suffix for the display-name family, and the
+	// paren-free ids resolve through the base networkIdToCode with
+	// options['networksById']. note the history
+	// amount is NET of the fee: a 30 USDT withdrawal-apply lands as
+	// amount 29 + fee 1
+	var networkId any = this.SafeString(transaction, "chain")
+	var networkCode any = this.ChainIdToNetworkCode(networkId)
 	var txid any = this.SafeString(transaction, "txId")
 	var timestamp any = this.SafeInteger(transaction, "ts")
 	var feeCurrencyId any = this.SafeString(transaction, "feeCurrency")
@@ -2609,7 +2829,7 @@ func (this *Blofin) ParseTransaction(transaction any, optionalArgs ...any) any {
 		"id":          id,
 		"currency":    code,
 		"amount":      amount,
-		"network":     nil,
+		"network":     networkCode,
 		"addressFrom": nil,
 		"addressTo":   addressTo,
 		"address":     address,
@@ -2735,8 +2955,8 @@ func (this *Blofin) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) 
 	}
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes212112 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes212112)
+		retRes233712 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes233712)
 	}
 	var market any = this.Market(symbol)
 	var request any = []any{}
@@ -2818,8 +3038,8 @@ func (this *Blofin) transferBody(ch chan any, code any, amount any, fromAccount 
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes218712 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes218712)
+		retRes240312 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes240312)
 	}
 	var currency any = this.Currency(code)
 	var accountsByType any = this.SafeDict(this.Options, "accountsByType", map[string]any{})
@@ -2878,8 +3098,8 @@ func (this *Blofin) fetchPositionBody(ch chan any, symbol any, optionalArgs ...a
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes223112 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes223112)
+		retRes244712 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes244712)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -2922,8 +3142,8 @@ func (this *Blofin) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes225812 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes225812)
+		retRes247412 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes247412)
 	}
 	symbols = this.MarketSymbols(symbols)
 
@@ -2968,8 +3188,8 @@ func (this *Blofin) fetchPositionsHistoryBody(ch chan any, optionalArgs ...any) 
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes228312 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes228312)
+		retRes249912 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes249912)
 	}
 	var request any = map[string]any{}
 	var market any = nil
@@ -3191,8 +3411,8 @@ func (this *Blofin) fetchLeveragesBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes248612 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes248612)
+		retRes270212 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes270212)
 	}
 	if IsTrue(IsEqual(symbols, nil)) {
 		panic(ArgumentsRequired(Add(this.Id, " fetchLeverages() requires a symbols argument")))
@@ -3267,8 +3487,8 @@ func (this *Blofin) fetchLeverageBody(ch chan any, symbol any, optionalArgs ...a
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes254512 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes254512)
+		retRes276112 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes276112)
 	}
 	var marginMode any = nil
 	marginModeparamsVariable := this.HandleMarginModeAndParams("fetchLeverage", params)
@@ -3352,8 +3572,8 @@ func (this *Blofin) setLeverageBody(ch chan any, leverage any, optionalArgs ...a
 	}
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes261012 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes261012)
+		retRes282612 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes282612)
 	}
 	var market any = this.Market(symbol)
 	var marginMode any = nil
@@ -3407,8 +3627,8 @@ func (this *Blofin) closePositionBody(ch chan any, symbol any, optionalArgs ...a
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes264612 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes264612)
+		retRes286212 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes286212)
 	}
 	var market any = this.Market(symbol)
 	var clientOrderId any = this.SafeString(params, "clientOrderId")
@@ -3463,8 +3683,8 @@ func (this *Blofin) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any 
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes267912 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes267912)
+		retRes289512 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes289512)
 	}
 	var paginate any = false
 	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchClosedOrders", "paginate")
@@ -3472,9 +3692,9 @@ func (this *Blofin) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any 
 	params = GetValue(paginateparamsVariable, 1)
 	if IsTrue(paginate) {
 
-		retRes268419 := (<-this.FetchPaginatedCallDynamicAsync("fetchClosedOrders", symbol, since, limit, params))
-		PanicOnError(retRes268419)
-		ch <- retRes268419
+		retRes290019 := (<-this.FetchPaginatedCallDynamicAsync("fetchClosedOrders", symbol, since, limit, params))
+		PanicOnError(retRes290019)
+		ch <- retRes290019
 		return nil
 	}
 	var request map[string]any = map[string]any{}
@@ -3532,8 +3752,8 @@ func (this *Blofin) fetchMarginModeBody(ch chan any, symbol any, optionalArgs ..
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes272412 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes272412)
+		retRes294012 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes294012)
 	}
 	var market any = this.Market(symbol)
 
@@ -3588,8 +3808,8 @@ func (this *Blofin) setMarginModeBody(ch chan any, marginMode any, optionalArgs 
 	this.CheckRequiredArgument("setMarginMode", marginMode, "marginMode", []any{"cross", "isolated"})
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes276212 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes276212)
+		retRes297812 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes297812)
 	}
 	var market any = nil
 	if IsTrue(!IsEqual(symbol, nil)) {
@@ -3685,8 +3905,8 @@ func (this *Blofin) setPositionModeBody(ch chan any, hedged any, optionalArgs ..
 		"positionMode": Ternary(IsTrue(hedged), "long_short_mode", "net_mode"),
 	}
 
-	retRes283615 := (<-this.PrivatePostAccountSetPositionMode(this.Extend(request, params)))
-	PanicOnError(retRes283615)
+	retRes305215 := (<-this.PrivatePostAccountSetPositionMode(this.Extend(request, params)))
+	PanicOnError(retRes305215)
 	//
 	//     {
 	//         "code": "0",
@@ -3696,7 +3916,7 @@ func (this *Blofin) setPositionModeBody(ch chan any, hedged any, optionalArgs ..
 	//         }
 	//     }
 	//
-	ch <- retRes283615
+	ch <- retRes305215
 	return nil
 }
 
@@ -3723,8 +3943,8 @@ func (this *Blofin) fetchPositionsADLRankBody(ch chan any, optionalArgs ...any) 
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes285012 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes285012)
+		retRes306612 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes306612)
 	}
 	symbols = this.MarketSymbols(symbols, nil, true, true, true)
 
@@ -4343,6 +4563,37 @@ func (this *Blofin) FetchWithdrawals(options ...FetchWithdrawalsOptions) ([]Tran
 		return nil, CreateReturnError(res)
 	}
 	return NewTransactionArray(res), nil
+}
+
+/**
+ * @method
+ * @name blofin#withdraw
+ * @description make a withdrawal
+ * @see https://docs.blofin.com/index.html#withdrawal
+ * @param {string} code unified currency code
+ * @param {float} amount the amount to withdraw, the withdrawal fee is not included and must be reserved on top
+ * @param {string} address the address to withdraw to, or a UID / email / phone number for an internal transfer
+ * @param {string} tag additional identifier (memo / payment id) required by certain networks
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.network] the unified network code for on-chain withdrawals, mapped to the exchange's chain name
+ * @param {string} [params.dest] 'onchain' (default) or 'internal' for an internal transfer
+ * @param {string} [params.addrType] address type, 1: wallet address, 2: UID, 3: email, 4: mobile phone
+ * @param {string} [params.areaCode] area code for the phone number, required when address is a phone number
+ * @param {string} [params.clientId] a client-supplied id of up to 32 case-sensitive alphanumerics
+ * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ */
+func (this *Blofin) Withdraw(code string, amount float64, address string, options ...WithdrawOptions) (Transaction, error) {
+
+	opts := WithdrawOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+	res := <-this.WithdrawAsync(code, amount, address, opts.Tag, opts.Params)
+	if IsError(res) {
+		return Transaction{}, CreateReturnError(res)
+	}
+	return NewTransaction(res), nil
 }
 
 /**
@@ -5023,9 +5274,6 @@ func (this *Blofin) FetchTransfers(options ...FetchTransfersOptions) ([]Transfer
 }
 func (this *Blofin) SetMargin(symbol string, amount float64, options ...SetMarginOptions) (MarginModification, error) {
 	return this.exchangeTyped.SetMargin(symbol, amount, options...)
-}
-func (this *Blofin) Withdraw(code string, amount float64, address string, options ...WithdrawOptions) (Transaction, error) {
-	return this.exchangeTyped.Withdraw(code, amount, address, options...)
 }
 func (this *Blofin) CancelAllOrdersWs(options ...CancelAllOrdersWsOptions) ([]Order, error) {
 	return this.exchangeTyped.CancelAllOrdersWs(options...)

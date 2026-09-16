@@ -3202,14 +3202,16 @@ public partial class bitstamp : Exchange
         //         "next_funding_time": "1644406050"
         //     }
         //
+        // the websocket funding_rate channel additionally carries mark_price and index_price
+        //
         Int64? currentTime = this.safeIntegerProduct(fundingRate, "timestamp", 1000);
         Int64? nextFundingRateTimestamp = this.safeIntegerProduct(fundingRate, "next_funding_time", 1000);
         string? marketId = this.safeString(fundingRate, "market");
         return new Dictionary<string, object>() {
             { "info", fundingRate },
             { "symbol", this.safeSymbol(marketId, market) },
-            { "markPrice", null },
-            { "indexPrice", null },
+            { "markPrice", this.safeNumber(fundingRate, "mark_price") },
+            { "indexPrice", this.safeNumber(fundingRate, "index_price") },
             { "interestRate", null },
             { "estimatedSettlePrice", null },
             { "timestamp", currentTime },

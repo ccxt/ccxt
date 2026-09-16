@@ -1523,7 +1523,7 @@ class dydx(Exchange, ImplicitAPI):
         subAccountId, params = self.handle_option_and_params(params, 'cancelOrder', 'subAccountId', subAccountId)
         params = self.omit(params, ['clientOrderId', 'orderFlags', 'goodTillBlock', 'goodTillBlockTime', 'goodTillBlockTimeInSeconds', 'subaccountId', 'clientId'])
         if orderFlags != 0 and orderFlags != 64 and orderFlags != 32:
-            raise InvalidOrder(self.id + ' invalid orderFlags, allowed values are(0, 64, 32).')
+            raise InvalidOrder(self.id + ' invalid orderFlags, allowed values are (0, 64, 32).')
         if orderFlags > 0:
             if goodTillBlockTimeInSeconds is None:
                 raise ArgumentsRequired(self.id + ' goodTillBlockTimeInSeconds is required in params for long term or conditional order.')

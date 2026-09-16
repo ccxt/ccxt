@@ -232,7 +232,7 @@
         ],
         "fetchBalance": [
             {
-                "description": "Fetch account balance",
+                "description": "spot plus perp collateral balance",
                 "method": "fetchBalance",
                 "url": "https://test-api.pacifica.fi/api/v1/account?account=bNMBfVAEjgxhNruYTR2vSZ92UdVKP2pdZewEG7978Vt",
                 "input": [],

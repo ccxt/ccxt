@@ -17,6 +17,7 @@ import io.github.ccxt.types.DepositWithdrawFees;
 import io.github.ccxt.types.FundingHistory;
 import io.github.ccxt.types.FundingRate;
 import io.github.ccxt.types.FundingRateHistory;
+import io.github.ccxt.types.FundingRates;
 import io.github.ccxt.types.LedgerEntry;
 import io.github.ccxt.types.Leverage;
 import io.github.ccxt.types.LeverageTier;
@@ -116,7 +117,7 @@ public class Kucoin extends KucoinApi
                 put( "fetchFundingInterval", true );
                 put( "fetchFundingRate", true );
                 put( "fetchFundingRateHistory", true );
-                put( "fetchFundingRates", false );
+                put( "fetchFundingRates", true );
                 put( "fetchIndexOHLCV", true );
                 put( "fetchIsolatedBorrowRate", false );
                 put( "fetchIsolatedBorrowRates", false );
@@ -182,6 +183,7 @@ public class Kucoin extends KucoinApi
                     put( "broker", "https://api-broker.kucoin.com" );
                     put( "earn", "https://api.kucoin.com" );
                     put( "uta", "https://api.kucoin.com" );
+                    put( "utaV2", "https://api.kucoin.com" );
                     put( "utaPrivate", "https://api.kucoin.com" );
                 }} );
                 put( "www", "https://www.kucoin.com" );
@@ -1216,6 +1218,13 @@ public class Kucoin extends KucoinApi
                             put( "cost", 20 );
                         }} );
                         put( "market/fiat-price", new HashMap<String, Object>() {{
+                            put( "cost", 6 );
+                        }} );
+                    }} );
+                }} );
+                put( "utaV2", new HashMap<String, Object>() {{
+                    put( "get", new HashMap<String, Object>() {{
+                        put( "market/funding-rate", new HashMap<String, Object>() {{
                             put( "cost", 6 );
                         }} );
                     }} );
@@ -3527,7 +3536,17 @@ public class Kucoin extends KucoinApi
         market = this.safeMarket(marketId, market, "-");
         String last = this.safeString2(ticker, "price", "lastTradePrice");
         Long timestamp = this.safeIntegerProduct(ticker, "ts", 0.000001);
+        String change = this.safeString(ticker, "priceChg");
+        String percentage = null;
+        if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(last, null))) || Helpers.isTrue((Helpers.isEqual(change, null)))))
+        {
+            percentage = Precise.stringMul(this.safeString(ticker, "priceChgPct"), "100");
+        }
+        // Otherwise safeTicker derives percentage from last and change, since priceChgPct can be inconsistent.
         final Object finalMarket = market;
+        final Object finalLast = last;
+        final Object finalChange = change;
+        final Object finalPercentage = percentage;
         return this.safeTicker(new HashMap<String, Object>() {{
             put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
             put( "timestamp", timestamp );
@@ -3540,11 +3559,11 @@ public class Kucoin extends KucoinApi
             put( "askVolume", Kucoin.this.safeString(ticker, "bestAskSize") );
             put( "vwap", null );
             put( "open", null );
-            put( "close", last );
-            put( "last", last );
+            put( "close", finalLast );
+            put( "last", finalLast );
             put( "previousClose", null );
-            put( "change", Kucoin.this.safeString(ticker, "priceChg") );
-            put( "percentage", Precise.stringMul(Kucoin.this.safeString(ticker, "priceChgPct"), "100") );
+            put( "change", finalChange );
+            put( "percentage", finalPercentage );
             put( "average", null );
             put( "baseVolume", Kucoin.this.safeString(ticker, "volumeOf24h") );
             put( "quoteVolume", Kucoin.this.safeString(ticker, "turnoverOf24h") );
@@ -12200,6 +12219,65 @@ public class Kucoin extends KucoinApi
 
     }
 
+    /**
+     * @method
+     * @name kucoin#fetchFundingRates
+     * @description fetch the current funding rates for multiple markets
+     * @see https://www.kucoin.com/docs-new/v2/rest/ua/get-current-funding
+     * @param {string[]} [symbols] unified market symbols, all markets are returned if not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.productType] filter by USDT-FUTURES, USDC-FUTURES or COIN-FUTURES
+     * @param {string} [params.symbol] exchange-specific contract id (e.g. XBTUSDTM), overrides productType when provided
+     * @returns {object} a dictionary of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}, indexed by market symbols
+     */
+    public CompletableFuture<FundingRates> fetchFundingRates(Object... optionalArgs)
+    {
+
+        return CompletableFuture.supplyAsync(() -> {
+
+            Object symbols = Helpers.getArg(optionalArgs, 0, null);
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
+            symbols = this.marketSymbols(symbols);
+            Map<String, Object> response = (this.utaV2GetMarketFundingRate(parameters)).join();
+            //
+            //     {
+            //         "code": "200000",
+            //         "data": [
+            //             {
+            //                 "symbol": "XBTUSDTM",
+            //                 "nextFundingRate": "-0.000004",
+            //                 "fundingTime": 1789315200000,
+            //                 "fundingRateCap": "0.003",
+            //                 "fundingRateFloor": "-0.003",
+            //                 "currentGranularity": 28800000,
+            //                 "newGranularity": 28800000,
+            //                 "newGranularityStartTime": 1750147200000
+            //             }
+            //         ]
+            //     }
+            //
+            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> rates = new ArrayList<Object>(Arrays.asList());
+            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
+            {
+                Object entry = Helpers.GetValue(data, i);
+                String marketId = this.safeString(entry, "symbol");
+                // kucoin returns funding index symbols (e.g. .ETHUSDTMFPI8H) alongside tradeable contracts
+                Boolean isFundingIndex = Helpers.isTrue((!Helpers.isEqual(marketId, null))) && Helpers.isTrue((marketId.startsWith(((String)"."))));
+                if (!Helpers.isTrue(isFundingIndex))
+                {
+                    ((List<Object>)rates).add(entry);
+                }
+            }
+            return this.parseFundingRates(rates, symbols);
+        }).thenApply(FundingRates::new);
+
+    }
+
     public Object parseFundingRate(Object data, Object... optionalArgs)
     {
         // uta
@@ -14008,6 +14086,10 @@ final Object finalMarket = market;
         String version = this.safeString(parameters, "version", defaultVersion);
         parameters = this.omit(parameters, "version");
         Object endpoint = Helpers.add(Helpers.add(Helpers.add("/api/", version), "/"), this.implodeParams(path, parameters));
+        if (Helpers.isTrue(Helpers.isEqual(api, "utaV2")))
+        {
+            endpoint = Helpers.add("/api/ua/v2/", this.implodeParams(path, parameters));
+        }
         if (Helpers.isTrue(Helpers.isEqual(api, "webExchange")))
         {
             endpoint = Helpers.add("/", this.implodeParams(path, parameters));

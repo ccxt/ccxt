@@ -931,8 +931,8 @@ impl AlpacaCore {
         m.insert("timeInForce".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("IOC".to_string(), Value::Bool(true));
-        m.insert("FOK".to_string(), Value::Bool(true));
-        m.insert("PO".to_string(), Value::Bool(true));
+        m.insert("FOK".to_string(), Value::Bool(false));
+        m.insert("PO".to_string(), Value::Bool(false));
         m.insert("GTD".to_string(), Value::Bool(false));
     m
 }));
@@ -1024,6 +1024,7 @@ impl AlpacaCore {
         m.insert("40410000".to_string(), Value::Str("InvalidOrder".to_string()).clone());
         m.insert("40010001".to_string(), Value::Str("BadRequest".to_string()).clone());
         m.insert("40110000".to_string(), Value::Str("PermissionDenied".to_string()).clone());
+        m.insert("42210000".to_string(), Value::Str("BadRequest".to_string()).clone());
         m.insert("42910000".to_string(), Value::Str("RateLimitExceeded".to_string()).clone());
     m
 }));
@@ -1885,6 +1886,7 @@ impl AlpacaCore {
  * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
+ * @param {string} [params.timeInForce] 'GTC' or 'IOC', the venue supports only these two for crypto orders, defaults to 'GTC'
  * @param {float} [params.cost] *market orders only* the cost of the order in units of the quote currency
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
@@ -1929,6 +1931,10 @@ impl AlpacaCore {
         }
         let mut defaultTIF: Value = Value::Null;
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("createOrder".to_string()), Value::Str("timeInForce".to_string()), &[]); defaultTIF = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
+        if !is_equal(&defaultTIF, &Value::Null) {
+            // the venue only accepts lowercase values, normalize the unified uppercase spellings
+            defaultTIF = to_lower(&defaultTIF);
+        }
         add_element_to_object(&mut request, &Value::Str("time_in_force".to_string()), defaultTIF.clone());
         params = self.omit(params.clone(), Value::List(vec![Value::Str("timeInForce".to_string()), Value::Str("triggerPrice".to_string())]), &[]);
         add_element_to_object(&mut request, &Value::Str("client_order_id".to_string()), self.generate_client_order_id(params.clone()));
@@ -2043,6 +2049,7 @@ impl AlpacaCore {
  * @param {int} [limit] the maximum number of order structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] the latest time in ms to fetch orders for
+ * @param {string} [params.direction] the ordering of the results, 'asc' or 'desc', defaults to 'asc' when since is set
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
     pub async fn fetch_orders(&mut self, optional_args: &[Value]) -> Value {
@@ -2069,10 +2076,15 @@ impl AlpacaCore {
         let mut until: Value = self.safe_integer_k(params.clone(), "until", &[]);
         if !is_equal(&until, &Value::Null) {
             params = self.omit(params.clone(), Value::Str("until".to_string()), &[]);
-            add_element_to_object(&mut request, &Value::Str("endTime".to_string()), self.iso8601(until.clone()));
+            add_element_to_object(&mut request, &Value::Str("until".to_string()), self.iso8601(until.clone()));
         }
         if !is_equal(&since, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("after".to_string()), self.iso8601(since.clone()));
+            let mut direction: Value = self.safe_string_k(params.clone(), "direction", &[]);
+            if is_equal(&direction, &Value::Null) {
+                // the server default is desc, so a limit would truncate the newest window instead of the range starting at since — request oldest-first like krakenfutures does
+                add_element_to_object(&mut request, &Value::Str("direction".to_string()), Value::Str("asc".to_string()));
+            }
         }
         if !is_equal(&limit, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
@@ -2094,6 +2106,7 @@ impl AlpacaCore {
  * @param {int} [limit] the maximum number of order structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] the latest time in ms to fetch orders for
+ * @param {string} [params.direction] the ordering of the results, 'asc' or 'desc', defaults to 'asc' when since is set
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
     pub async fn fetch_open_orders(&mut self, optional_args: &[Value]) -> Value {
@@ -2125,6 +2138,7 @@ impl AlpacaCore {
  * @param {int} [limit] the maximum number of order structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] the latest time in ms to fetch orders for
+ * @param {string} [params.direction] the ordering of the results, 'asc' or 'desc', defaults to 'asc' when since is set
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
     pub async fn fetch_closed_orders(&mut self, optional_args: &[Value]) -> Value {
@@ -2159,7 +2173,7 @@ impl AlpacaCore {
  * @param {float} [price] the price for the order, in units of the quote currency, ignored in market orders
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.triggerPrice] the price to trigger a stop order
- * @param {string} [params.timeInForce] for crypto trading either 'gtc' or 'ioc' can be used
+ * @param {string} [params.timeInForce] 'GTC' or 'IOC', the venue supports only these two for crypto orders, defaults to 'GTC'
  * @param {string} [params.clientOrderId] a unique identifier for the order, automatically generated if not sent
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
@@ -2196,7 +2210,8 @@ impl AlpacaCore {
         let mut timeInForce: Value = Value::Null;
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("editOrder".to_string()), Value::Str("timeInForce".to_string()), &[Value::Str("gtc".to_string())]); timeInForce = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         if !is_equal(&timeInForce, &Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("time_in_force".to_string()), timeInForce.clone());
+            // the venue only accepts lowercase values, normalize the unified uppercase spellings
+            add_element_to_object(&mut request, &Value::Str("time_in_force".to_string()), to_lower(&timeInForce));
         }
         add_element_to_object(&mut request, &Value::Str("client_order_id".to_string()), self.generate_client_order_id(params.clone()));
         params = self.omit(params.clone(), Value::List(vec![Value::Str("clientOrderId".to_string())]), &[]);
@@ -2320,6 +2335,9 @@ impl AlpacaCore {
         let mut timeInForces: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("day".to_string(), Value::Str("Day".to_string()));
+                m.insert("gtc".to_string(), Value::Str("GTC".to_string()));
+                m.insert("ioc".to_string(), Value::Str("IOC".to_string()));
+                m.insert("fok".to_string(), Value::Str("FOK".to_string()));
             m
         });
         return self.safe_string(timeInForces.clone(), timeInForce.clone(), &[timeInForce.clone()]);

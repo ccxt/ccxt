@@ -1055,21 +1055,35 @@ public class Pacifica extends PacificaApi
             // {
             //   "success": true,
             //   "data": {
-            //     "balance": "2000.000000",
+            //     "balance": "4970.000323",           // USDC cash (perp collateral)
             //     "fee_level": 0,
             //     "maker_fee": "0.00015",
             //     "taker_fee": "0.0004",
-            //     "account_equity": "2150.250000",
-            //     "available_to_spend": "1800.750000",
-            //     "available_to_withdraw": "1500.850000",
-            //     "pending_balance": "0.000000",
-            //     "total_margin_used": "349.500000",
-            //     "cross_mmr": "420.690000",
-            //     "positions_count": 2,
-            //     "orders_count": 3,
-            //     "stop_orders_count": 1,
-            //     "updated_at": 1716200000000,
-            //     "use_ltp_for_stop_orders": false
+            //     "account_equity": "5478.140323",     // balance + spot_market_value
+            //     "cross_account_equity": "5376.512323",
+            //     "spot_market_value": "508.14",
+            //     "spot_collateral": "406.512",
+            //     "available_to_spend": "5376.512323",
+            //     "available_to_withdraw": "5376.512323",
+            //     "pending_balance": "0",
+            //     "pending_interest": "0",
+            //     "total_margin_used": "0",
+            //     "cross_mmr": "0",
+            //     "positions_count": 0,
+            //     "orders_count": 0,
+            //     "stop_orders_count": 0,
+            //     "spot_balances": [
+            //       {
+            //         "symbol": "SOL",
+            //         "amount": "5",
+            //         "available_to_withdraw": "5",
+            //         "pending_balance": "0",
+            //         "daily_withdraw_amount_usd": "0",
+            //         "effective_daily_deposit_limit_usd": "50000",
+            //         "effective_daily_withdraw_limit_usd": "250000"
+            //       }
+            //     ],
+            //     "updated_at": 1789394568220
             //   },
             //   "error": null,
             //   "code": null
@@ -1078,15 +1092,25 @@ public class Pacifica extends PacificaApi
             Map<String, Object> result = new HashMap<String, Object>() {{
                 put( "info", data );
             }};
-            Helpers.addElementToObject(result, "free", new HashMap<String, Object>() {{}});
-            Helpers.addElementToObject(result, "used", new HashMap<String, Object>() {{}});
-            Helpers.addElementToObject(result, "total", new HashMap<String, Object>() {{}});
-            Double totalBalance = this.safeNumber(data, "account_equity");
-            Double usedMargin = this.safeNumber(data, "total_margin_used");
-            Double freeBalance = this.safeNumber(data, "available_to_spend");
-            Helpers.addElementToObject(Helpers.GetValue(result, "total"), "USDC", totalBalance);
-            Helpers.addElementToObject(Helpers.GetValue(result, "used"), "USDC", usedMargin);
-            Helpers.addElementToObject(Helpers.GetValue(result, "free"), "USDC", freeBalance);
+            Object usdcAccount = this.account();
+            Helpers.addElementToObject(usdcAccount, "total", this.safeString(data, "balance"));
+            Helpers.addElementToObject(usdcAccount, "used", this.safeString(data, "total_margin_used"));
+            Helpers.addElementToObject(result, "USDC", usdcAccount);
+            Object spotBalances = this.safeList(data, "spot_balances", new ArrayList<Object>(Arrays.asList()));
+            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(spotBalances)); i++)
+            {
+                Object balance = Helpers.GetValue(spotBalances, i);
+                String currencyId = this.safeString(balance, "symbol");
+                String code = this.safeCurrencyCode(currencyId);
+                Object account = this.account();
+                Helpers.addElementToObject(account, "total", this.safeString(balance, "amount"));
+                Helpers.addElementToObject(account, "free", this.safeString(balance, "available_to_withdraw"));
+                // skip a spot USDC entry so it can't clobber the perp-collateral account above
+                if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(code, null))) && !Helpers.isTrue((Helpers.inOp(result, code)))))
+                {
+                    Helpers.addElementToObject(result, code, account);
+                }
+            }
             Long timestamp = this.safeInteger(data, "updated_at");
             Helpers.addElementToObject(result, "timestamp", timestamp);
             Helpers.addElementToObject(result, "datetime", this.iso8601(timestamp));

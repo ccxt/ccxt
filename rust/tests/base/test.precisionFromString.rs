@@ -54,4 +54,16 @@ pub fn testPrecisionFromString() {
     assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.precision_from_string(Value::Str("1.0".to_string())), &Value::Int(0))))));
     // Test 20: Mixed precision
     assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.precision_from_string(Value::Str("0.12345".to_string())), &Value::Int(5))))));
+    // Test 21: Negative mantissa with negative exponent
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.precision_from_string(Value::Str("-8e-8".to_string())), &Value::Int(8))))));
+    // Test 22: Negative mantissa uppercase E with zero-padded exponent
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.precision_from_string(Value::Str("-8E-08".to_string())), &Value::Int(8))))));
+    // Test 23: Negative decimal mantissa
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.precision_from_string(Value::Str("-2.5e-6".to_string())), &Value::Int(6))))));
+    // Test 24: Negative mantissa with positive exponent
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.precision_from_string(Value::Str("-1e4".to_string())), &negate(&Value::Int(4)))))));
+    // Test 25: Explicitly positive mantissa
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.precision_from_string(Value::Str("+1e-4".to_string())), &Value::Int(4))))));
+    // Test 26: Negative mantissa with explicitly signed exponent
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.precision_from_string(Value::Str("-1e+4".to_string())), &negate(&Value::Int(4)))))));
 }

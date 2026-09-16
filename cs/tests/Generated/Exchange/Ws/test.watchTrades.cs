@@ -37,7 +37,7 @@ public partial class testMainClass : BaseTest
                 testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, response);
                 for (int i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
                 {
-                    testTrade(exchange, skippedProperties, method, getValue(response, i), symbol, now);
+                    testTrade(exchange, skippedProperties, method, getValue(response, i), symbol, now, true);
                 }
                 if (isTrue(isGreaterThan((subtract(now, startTime)), maxIdleTime)))
                 {
