@@ -356,14 +356,30 @@ impl ClientState {
         *self.last_pong_ms.lock().unwrap() = now_ms();
     }
 
-    /// Drop resolved/rejected/subscription/future state (TS `client.reset`),
+    /// Drop resolved/rejected/subscription/future state,
     /// e.g. after a reconnect so stale hashes don't resolve new waiters.
+    /// Internal wipe only — the transpiled `client.reset(error)` goes through
+    /// `reset_with_error` below, which delivers the error first.
     pub fn reset(&self) {
         self.resolved.lock().unwrap().clear();
         self.rejections.lock().unwrap().clear();
         self.subscriptions.lock().unwrap().clear();
         self.futures.lock().unwrap().clear();
         self.flights.lock().unwrap().clear();
+    }
+
+    /// TS `client.reset(error)` — reject every pending future/flight with the
+    /// error so waiters fail fast instead of hanging, then drop the pending
+    /// future state. Mirrors the js/php/c#/go/java/python clients: rejections
+    /// are kept (they carry the error to the waiters) and subscriptions are
+    /// left to the caller — the TS `Client.reset` does not clear them either.
+    pub fn reset_with_error(&self, error: Value) {
+        let hashes: Vec<String> = self.futures.lock().unwrap().iter().cloned().collect();
+        for h in &hashes {
+            self.reject(h, error.clone());
+        }
+        self.futures.lock().unwrap().clear();
+        self.resolved.lock().unwrap().clear();
     }
 
     /// Snapshot of `subscriptions` as a `Value::Map { hash: subscription }` —
@@ -886,10 +902,10 @@ pub fn value_send(client: &Value, args: &[Value]) -> Value {
 }
 
 /// `client.reset(...)` routed by URL.
-pub fn value_reset(client: &Value) -> Value {
+pub fn value_reset(client: &Value, error: Value) -> Value {
     if let Some(url) = url_of(client) {
         if let Some(c) = get_client(&url) {
-            c.reset();
+            c.reset_with_error(error);
         }
     }
     Value::Null
