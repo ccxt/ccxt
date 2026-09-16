@@ -5,6 +5,7 @@ package io.github.ccxt.exchanges.pro;
 import io.github.ccxt.base.Precise;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
+import io.github.ccxt.BaseExchange;
 import io.github.ccxt.ws.*;
 import io.github.ccxt.Client;
 import io.github.ccxt.types.Balances;
@@ -166,7 +167,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
     public CompletableFuture<Ticker> watchTicker(String symbol2, Object... optionalArgs)
     {
         final Object symbol3 = symbol2;
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
@@ -210,7 +211,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
     public CompletableFuture<Object> unWatchTicker(String symbol, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             return (this.unWatchChannel(symbol, "ticker", "ticker", "watchTicker", parameters)).join();
@@ -233,7 +234,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
     public CompletableFuture<Tickers> watchTickers(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -501,7 +502,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
     public CompletableFuture<Tickers> watchBidsAsks(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -608,7 +609,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
     public CompletableFuture<List<OHLCV>> watchOHLCV(String symbol2, Object... optionalArgs)
     {
         final Object symbol3 = symbol2;
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object timeframe = Helpers.getArg(optionalArgs, 0, "1m");
             Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -676,7 +677,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
     public CompletableFuture<Object> unWatchOHLCV(String symbol, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object timeframe = Helpers.getArg(optionalArgs, 0, "1m");
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -880,7 +881,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
     public CompletableFuture<OrderBook> watchOrderBook(String symbol, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object limit = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -905,7 +906,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
     public CompletableFuture<Object> unWatchOrderBook(Object symbol, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
@@ -927,7 +928,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
     public CompletableFuture<Object> unWatchChannel(Object symbol, Object channel, Object messageHashTopic, Object methodName, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
@@ -983,7 +984,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
     public CompletableFuture<OrderBook> watchOrderBookForSymbols(Object symbols2, Object... optionalArgs)
     {
         final Object symbols3 = symbols2;
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
             Object symbols = symbols3;
             Object limit = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -1180,7 +1181,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
     public CompletableFuture<Object> handleCheckSumError(Client client, Object symbol, Object messageHash)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             (this.unWatchOrderBook(symbol)).join();
             var error = new ChecksumError(Helpers.add(Helpers.add(this.id, " "), this.orderbookChecksumMessage(symbol)));
@@ -1224,7 +1225,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
     public CompletableFuture<List<Trade>> watchTrades(String symbol, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, null);
@@ -1251,7 +1252,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
     public CompletableFuture<List<Trade>> watchTradesForSymbols(Object symbols2, Object... optionalArgs)
     {
         final Object symbols3 = symbols2;
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
             Object symbols = symbols3;
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, null);
@@ -1331,7 +1332,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
     public CompletableFuture<Object> unWatchTrades(String symbol, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Object values = this.handleOptionAndParams(parameters, "watchTrades", "uta", false);
@@ -1567,7 +1568,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
     public CompletableFuture<List<Position>> watchPositions(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -1868,7 +1869,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
     public CompletableFuture<List<Order>> watchOrders(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -2473,7 +2474,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
     public CompletableFuture<List<Trade>> watchMyTrades(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -2707,7 +2708,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
     public CompletableFuture<Balances> watchBalance(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Object uta = null;
@@ -2932,7 +2933,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
     public CompletableFuture<Object> watchPublic(Object uta2, Object messageHash, Object args, Object... optionalArgs)
     {
         final Object uta3 = uta2;
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
             Object uta = uta3;
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Object url = ((Helpers.isTrue((Helpers.isEqual(uta, true))))) ? Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "utaPublic") : Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "public");
@@ -2964,7 +2965,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
     public CompletableFuture<Object> unWatchPublic(Object uta2, Object messageHash, Object args, Object... optionalArgs)
     {
         final Object uta3 = uta2;
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
             Object uta = uta3;
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Object url = ((Helpers.isTrue((Helpers.isEqual(uta, true))))) ? Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "utaPublic") : Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "public");
@@ -2996,7 +2997,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
     public CompletableFuture<Object> watchPublicMultiple(Object uta2, Object messageHashes, Object argsArray, Object... optionalArgs)
     {
         final Object uta3 = uta2;
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
             Object uta = uta3;
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Object url = ((Helpers.isTrue((Helpers.isEqual(uta, true))))) ? Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "utaPublic") : Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "public");
@@ -3023,7 +3024,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
     public CompletableFuture<Object> authenticate(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             this.checkRequiredCredentials();
@@ -3059,7 +3060,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
     public CompletableFuture<Object> watchPrivate(Object uta2, Object messageHash, Object subscriptionHash, Object args, Object... optionalArgs)
     {
         final Object uta3 = uta2;
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
             Object uta = uta3;
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Object url = ((Helpers.isTrue((Helpers.isEqual(uta, true))))) ? Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "utaPrivate") : Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "private");

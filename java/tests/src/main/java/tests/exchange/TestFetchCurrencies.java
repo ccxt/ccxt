@@ -20,7 +20,7 @@ public class TestFetchCurrencies extends BaseTest {
     public CompletableFuture<Object> testFetchCurrencies(BaseExchange exchange, Object skippedProperties)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
         String method = "fetchCurrencies";
         Object currencies = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchCurrencies", new Object[]{})).join();

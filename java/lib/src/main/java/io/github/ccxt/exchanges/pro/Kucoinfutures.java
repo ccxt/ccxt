@@ -5,6 +5,7 @@ package io.github.ccxt.exchanges.pro;
 import io.github.ccxt.base.Precise;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
+import io.github.ccxt.BaseExchange;
 import io.github.ccxt.ws.*;
 import io.github.ccxt.Client;
 import io.github.ccxt.types.Tickers;
@@ -66,7 +67,7 @@ public class Kucoinfutures extends io.github.ccxt.exchanges.Kucoinfutures
     public CompletableFuture<Tickers> fetchBidsAsks(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -92,7 +93,7 @@ public class Kucoinfutures extends io.github.ccxt.exchanges.Kucoinfutures
     public CompletableFuture<TransferEntry> transfer(String code, Object amount, Object fromAccount, Object toAccount2, Object... optionalArgs)
     {
         final Object toAccount3 = toAccount2;
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
             Object toAccount = toAccount3;
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
