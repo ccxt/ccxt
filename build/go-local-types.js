@@ -22,8 +22,9 @@
 //      `this.Market`, `GetValue`, `Ternary`, `Add`, `this.SafeValue`, `this.Hash`,
 //      `this.ParseNumber`, `this.NumberToString`, `this.Iso8601` ... all return `any`
 //      and are deliberately absent.
-// The `this.Safe*` accessors and `Precise.String*` belong to the upstream printer
-// (ast-transpiler#70/#75, ccxt#30054) and are intentionally not listed here.
+// The upstream printer models Safe* and Precise.String* as nullable pointers.
+// The current CCXT runtime still returns `any` for those helpers, so suppress
+// that inference until the matching runtime migration (ccxt#30054) lands.
 //
 // Both the main-thread transpiler (build/goTranspiler.ts setupTranspiler) and the
 // Piscina worker (build/go-worker.js) must install this, or the two code paths
@@ -149,6 +150,11 @@ export function installCcxtGoLocalTypes (goTranspiler) {
     const upstream = goTranspiler.goTypeOfInitializer;
     goTranspiler.goTypeOfInitializer = function (initializer, printedValue) {
         const known = upstream.call (this, initializer, printedValue);
+        // Nullable pointer inference requires the matching Go runtime signatures.
+        // Keep the current any-returning Safe* / Precise helpers boxed.
+        if ([ '*string', '*int64', '*float64' ].includes (known)) {
+            return undefined;
+        }
         if (known !== undefined) {
             return known;
         }

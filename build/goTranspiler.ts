@@ -17,6 +17,7 @@ import os from 'os';
 import { isMainEntry } from "./transpile.js";
 import { filterDirtyExchangeFiles, skipUpToDateStage, testStageInputs } from "./transpile.js";
 import { installCcxtGoLocalTypes } from './go-local-types.js';
+import { GO_TEST_EXCHANGE_SETTER } from './go-test-transforms.js';
 
 type dict = { [key: string]: string };
 
@@ -3503,7 +3504,7 @@ func (this *${className}) Init(userConfig map[string]any) {
             // the has-gated test for the ones it has, and each single-method assertion succeeds.
             [/exchange\.(FetchL2OrderBook|FetchPositions|FetchTickers|FetchOpenOrders|EditOrder|FetchOrder|CancelOrderWithClientOrderId|CancelOrdersWithClientOrderIds|EditOrderWithClientOrderId|FetchOrderWithClientOrderId|FetchBidsAsks|WatchBidsAsks|WatchOrderBookForSymbols|WatchPosition|WatchTradesForSymbols)(Async)?\(/g, 'exchange.(ccxt.I$1).$1$2('],
             GO_TEST_ANY_RECEIVE_REGEX,
-            [/exchange.(\w+)\s*=\s*(.+)/g, 'exchange.Set$1($2)'],
+            GO_TEST_EXCHANGE_SETTER,
             [/exchange\.(\w+)(,|;|\)|\s)/g, 'exchange.Get$1()$2'],
             [/InitOfflineExchange\(exchangeName any, optionalArgs \.\.\.any\) any\s+{/g, 'InitOfflineExchange(exchangeName any, optionalArgs ...any) ccxt.ICoreExchange {'],
             [/assert\(/g, 'Assert('],
@@ -3622,7 +3623,7 @@ func (this *${className}) Init(userConfig map[string]any) {
                 GO_TEST_ANY_RECEIVE_REGEX,
                 [/testSharedMethods\./g, ''], // no need of class reference
                 [/assert/gm, 'Assert'],
-                [/exchange.(\w+)\s*=\s*(.+)/g, 'exchange.Set$1($2)'],
+                GO_TEST_EXCHANGE_SETTER,
                 [/exchange\.(\w+)(,|;|\)|\s)/g, 'exchange.Get$1()$2'],
                 [/Precise\./gm, 'ccxt.Precise.'],
                 // the spawned helper is an async test function, i.e. a suffixed channel trampoline
