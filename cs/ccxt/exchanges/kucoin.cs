@@ -11504,7 +11504,7 @@ public partial class kucoin : Exchange
             await this.loadMarkets();
         }
         symbols = this.marketSymbols(symbols);
-        object response = await ((Task<object>)callDynamically(this, "utaV2GetMarketFundingRate", new object[] { parameters }));
+        Dictionary<string, object> response = await this.utaV2GetMarketFundingRate(parameters);
         //
         //     {
         //         "code": "200000",

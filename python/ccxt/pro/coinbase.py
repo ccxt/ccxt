@@ -257,7 +257,7 @@ class coinbase(ccxt.async_support.coinbase):
             subscribe['signature'] = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256)
         else:
             if self.apiKey.startswith('-----BEGIN'):
-                raise ArgumentsRequired(self.id + ' apiKey should contain the name(eg: organizations/3b910e93....) and not the public key')
+                raise ArgumentsRequired(self.id + ' apiKey should contain the name (eg: organizations/3b910e93....) and not the public key')
             currentToken = self.safe_string(self.options, 'wsToken')
             tokenTimestamp = self.safe_integer(self.options, 'wsTokenTimestamp', 0)
             seconds = self.seconds()

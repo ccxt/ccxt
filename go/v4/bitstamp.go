@@ -3452,6 +3452,8 @@ func (this *Bitstamp) ParseFundingRate(fundingRate any, optionalArgs ...any) any
 	//         "next_funding_time": "1644406050"
 	//     }
 	//
+	// the websocket funding_rate channel additionally carries mark_price and index_price
+	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
 	var currentTime any = this.SafeIntegerProduct(fundingRate, "timestamp", 1000)
@@ -3460,8 +3462,8 @@ func (this *Bitstamp) ParseFundingRate(fundingRate any, optionalArgs ...any) any
 	return map[string]any{
 		"info":                     fundingRate,
 		"symbol":                   this.SafeSymbol(marketId, market),
-		"markPrice":                nil,
-		"indexPrice":               nil,
+		"markPrice":                this.SafeNumber(fundingRate, "mark_price"),
+		"indexPrice":               this.SafeNumber(fundingRate, "index_price"),
 		"interestRate":             nil,
 		"estimatedSettlePrice":     nil,
 		"timestamp":                currentTime,
@@ -3510,8 +3512,8 @@ func (this *Bitstamp) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any 
 	var market any = nil
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes253912 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes253912)
+		retRes254112 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes254112)
 	}
 	if IsTrue(!IsEqual(symbol, nil)) {
 		market = this.Market(symbol)
@@ -3626,8 +3628,8 @@ func (this *Bitstamp) withdrawBody(ch chan any, code any, amount any, address an
 	params = GetValue(tagparamsVariable, 1)
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes262512 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes262512)
+		retRes262712 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes262712)
 	}
 	this.CheckAddress(address)
 	var request map[string]any = map[string]any{
@@ -3690,8 +3692,8 @@ func (this *Bitstamp) transferBody(ch chan any, code any, amount any, fromAccoun
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes267212 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes267212)
+		retRes267412 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes267412)
 	}
 	var currency any = this.Currency(code)
 	var request map[string]any = map[string]any{

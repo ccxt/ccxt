@@ -651,7 +651,7 @@ class p2b(Exchange, ImplicitAPI):
             self.load_markets()
         lastId = self.safe_integer(params, 'lastId')
         if lastId is None:
-            raise ArgumentsRequired(self.id + ' fetchTrades() requires an extra parameter params["lastId"]')
+            raise ArgumentsRequired(self.id + ' fetchTrades () requires an extra parameter params["lastId"]')
         market = self.market(symbol)
         request = {
             'market': market['id'],
@@ -898,7 +898,7 @@ class p2b(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         if type == 'market':
-            raise BadRequest(self.id + ' createOrder() can only accept orders with type "limit"')
+            raise BadRequest(self.id + ' createOrder () can only accept orders with type "limit"')
         market = self.market(symbol)
         request = {
             'market': market['id'],
@@ -994,7 +994,7 @@ class p2b(Exchange, ImplicitAPI):
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires the symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchOpenOrders () requires the symbol argument')
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
@@ -1114,7 +1114,7 @@ class p2b(Exchange, ImplicitAPI):
         if since is None:
             since = until - 86400000
         if (until - since) > 86400000:
-            raise BadRequest(self.id + ' fetchMyTrades() the time between since and params["until"] cannot be greater than 24 hours')
+            raise BadRequest(self.id + ' fetchMyTrades () the time between since and params["until"] cannot be greater than 24 hours')
         market = self.market(symbol)
         sinceSec = self.parse_to_int(since / 1000)
         untilSec = self.parse_to_int(until / 1000)
@@ -1187,7 +1187,7 @@ class p2b(Exchange, ImplicitAPI):
         if since is None:
             since = until - 86400000
         if (until - since) > 86400000:
-            raise BadRequest(self.id + ' fetchClosedOrders() the time between since and params["until"] cannot be greater than 24 hours')
+            raise BadRequest(self.id + ' fetchClosedOrders () the time between since and params["until"] cannot be greater than 24 hours')
         sinceSec = self.parse_to_int(since / 1000)
         untilSec = self.parse_to_int(until / 1000)
         request = {

@@ -15,7 +15,7 @@ public class TestFetchDepositWithdrawals extends BaseTest {
     public CompletableFuture<Object> testFetchDepositWithdrawals(BaseExchange exchange, Object skippedProperties, Object code)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
         String method = "fetchTransactions";
         Object transactions = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchTransactions", new Object[]{code})).join();

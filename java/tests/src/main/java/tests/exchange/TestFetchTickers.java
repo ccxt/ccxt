@@ -18,7 +18,7 @@ public class TestFetchTickers extends BaseTest {
     public CompletableFuture<Object> testFetchTickers(BaseExchange exchange, Object skippedProperties, Object symbol)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
         // prediction venues list thousands of outcome markets, so fetching ALL tickers (no-arg)
         // is impractical and the "every active market has a ticker" check doesn't apply — test
@@ -39,7 +39,7 @@ public class TestFetchTickers extends BaseTest {
     public CompletableFuture<Object> fetchTickersHelperTest(BaseExchange exchange, Object skippedProperties, Object argSymbols2, Object... optionalArgs)
     {
         final Object argSymbols3 = argSymbols2;
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
             Object argSymbols = argSymbols3;
         Object argParams = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
         String method = "fetchTickers";

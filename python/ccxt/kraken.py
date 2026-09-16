@@ -2323,7 +2323,7 @@ class kraken(Exchange, ImplicitAPI):
         orderTrades = self.safe_value(params, 'trades')
         tradeIds = []
         if orderTrades is None:
-            raise ArgumentsRequired(self.id + " fetchOrderTrades() requires a unified order structure in the params argument or a 'trades' param(an array of trade id strings)")
+            raise ArgumentsRequired(self.id + " fetchOrderTrades() requires a unified order structure in the params argument or a 'trades' param (an array of trade id strings)")
         else:
             for i in range(0, len(orderTrades)):
                 orderTrade = orderTrades[i]
@@ -3234,7 +3234,7 @@ class kraken(Exchange, ImplicitAPI):
             #
             result = self.safe_dict(response, 'result', {})
             return self.parse_transaction(result, currency)
-        raise ExchangeError(self.id + " withdraw() requires a 'key' parameter(withdrawal key name, as set up on your account)")
+        raise ExchangeError(self.id + " withdraw() requires a 'key' parameter (withdrawal key name, as set up on your account)")
 
     def fetch_positions(self, symbols: Strings = None, params={}) -> list[Position]:
         """

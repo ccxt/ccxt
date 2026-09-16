@@ -15,7 +15,7 @@ public class TestFetchLedgerEntry extends BaseTest {
     public CompletableFuture<Object> testFetchLedgerEntry(BaseExchange exchange, Object skippedProperties, Object code)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
         String method = "fetchLedgerEntry";
         Object items = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchLedger", new Object[]{code})).join();

@@ -4,8 +4,7 @@ import io.github.ccxt.Helpers;
 import io.github.ccxt.Exchange;
 import io.github.ccxt.BaseExchange;
 import io.github.ccxt.errors.*;
-import java.util.ArrayList;
-import java.util.Arrays;
+import io.github.ccxt.base.Precise;
 import java.util.concurrent.CompletableFuture;
 
 
@@ -17,20 +16,94 @@ public class TestFetchTrades extends BaseTest {
     public CompletableFuture<Object> testFetchTrades(BaseExchange exchange, Object skippedProperties, Object symbol)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
         String method = "fetchTrades";
-        Object trades = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchTrades", new Object[]{symbol})).join();
+        Object trades = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchTrades", new Object[]{symbol, null, 12000})).join(); // test with unrealistically high amount
         TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, trades);
+        //
+        // test structure
+        //
         Object now = exchange.milliseconds();
+        Boolean isPublicTrade = true;
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(trades)); i++)
         {
-            TestTrade.testTrade(exchange, skippedProperties, method, Helpers.GetValue(trades, i), symbol, now);
-            TestSharedMethods.AssertInArray(exchange, skippedProperties, method, Helpers.GetValue(trades, i), "takerOrMaker", new ArrayList<Object>(Arrays.asList("taker", null)));
+            TestTrade.testTrade(exchange, skippedProperties, method, Helpers.GetValue(trades, i), symbol, now, isPublicTrade);
+        }
+        //
+        // test if both sides are being returned
+        //
+        Integer minTradesForBothSidesCheck = 99;
+        if (Helpers.isTrue(!Helpers.isTrue((Helpers.inOp(skippedProperties, "requireBothSides"))) && Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(trades), minTradesForBothSidesCheck))))
+        {
+            //
+            //  Check whether both "buy" and "sell" are returned from trades, when there are enough trades
+            //  for a one-sided result to be an implausible coincidence (see minTradesForBothSidesCheck)
+            //
+            Object grouped = exchange.groupBy(trades, "side");
+            String msg = Helpers.add("Both sides of trades are not being returned, instead only one side is being returned. If this error happens consistently, then it might be an implementation issue", TestSharedMethods.logTemplate(exchange, method, trades));
+            Assert((Helpers.inOp(grouped, "buy")), msg);
+            Assert((Helpers.inOp(grouped, "sell")), msg);
         }
         if (!Helpers.isTrue((Helpers.inOp(skippedProperties, "timestampSort"))))
         {
             TestSharedMethods.AssertTimestampOrder(exchange, method, symbol, trades);
+        }
+        if (Helpers.isTrue(!Helpers.isTrue((Helpers.inOp(skippedProperties, "side"))) && !Helpers.isTrue((Helpers.inOp(skippedProperties, "sideSequence")))))
+        {
+            (helperTestFetchTradesSideSequence(exchange, skippedProperties, symbol, method, trades)).join();
+        }
+        return true;
+        });
+
+    }
+    public CompletableFuture<Object> helperTestFetchTradesSideSequence(BaseExchange exchange, Object skippedProperties, Object symbol, Object method, Object trades)
+    {
+
+        return BaseExchange.supplyAsync(() -> {
+
+        //
+        // Check whether returned trades are sorted correctly by side - multi-trade orders at the same
+        // timestamp would definitely have an increasing (in case of buy) price. For instance, if we
+        // have trades like:
+        //     [ 1600000000003 ] 1.4 ETH at 1750.41
+        //     [ 1600000000111 ] 0.2 ETH at 1750.40
+        //     [ 1600000000111 ] 0.3 ETH at 1750.41
+        //     [ 1600000000111 ] 0.9 ETH at 1750.42
+        //     [ 1600000000555 ] 2.4 ETH at 1750.40
+        // it's obviously `buy` order on same timestamp.
+        // In case any specific exchange does not return correctly sorted results, either implementation
+        // might need a fix, or the exchange needs `timestampSort` skip to be added.
+        //
+        Object lastTs = null;
+        String lastPrice = null;
+        Object lastSide = null;
+        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(trades)); i++)
+        {
+            Object trade = Helpers.GetValue(trades, i);
+            Object ts = Helpers.GetValue(trade, "timestamp");
+            String price = exchange.safeString(trade, "price");
+            Object side = Helpers.GetValue(trade, "side");
+            //
+            Boolean isSameTs = Helpers.isEqual(ts, lastTs);
+            Object isSamePrice = Precise.stringEq(price, lastPrice);
+            Boolean isSameSide = Helpers.isEqual(side, lastSide);
+            // we are only interested in trades that have: same timestamp, same side, but different(!) price
+            if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(isSameTs) && Helpers.isTrue(isSameSide)) && !Helpers.isTrue(isSamePrice)))
+            {
+                Object priceIncreasing = Precise.stringGt(price, lastPrice);
+                Object priceDecreasing = Precise.stringLt(price, lastPrice);
+                if (Helpers.isTrue(priceIncreasing))
+                {
+                    Assert(Helpers.isEqual(side, "buy"), Helpers.add("Price is increasing, but side is not `buy`, either implementation needs fix or exchange returns unsorted trades, so add \"sideSequence\" skip", TestSharedMethods.logTemplate(exchange, method, trade)));
+                } else if (Helpers.isTrue(priceDecreasing))
+                {
+                    Assert(Helpers.isEqual(side, "sell"), Helpers.add("Price is decreasing, but side is not `sell`, either implementation needs fix or exchange returns unsorted trades, so add \"sideSequence\" skip", TestSharedMethods.logTemplate(exchange, method, trade)));
+                }
+            }
+            lastPrice = price;
+            lastTs = ts;
+            lastSide = side;
         }
         return true;
         });

@@ -9,20 +9,87 @@ namespace ccxt;
 // -----------------------------------------------------------------------------
 use React\Async;
 use React\Promise;
+use \ccxt\Precise;
 include_once PATH_TO_CCXT . '/test/exchange/base/test_trade.php';
 
 function test_fetch_trades($exchange, $skipped_properties, $symbol) {
     return Async\async(function () use ($exchange, $skipped_properties, $symbol) {
         $method = 'fetchTrades';
-        $trades = \React\Async\await($exchange->fetch_trades($symbol));
+        $trades = \React\Async\await($exchange->fetch_trades($symbol, null, 12000)); // test with unrealistically high amount
         assert_non_emtpy_array($exchange, $skipped_properties, $method, $trades);
+        //
+        // test structure
+        //
         $now = $exchange->milliseconds();
+        $is_public_trade = true;
         for ($i = 0; $i < count($trades); $i++) {
-            test_trade($exchange, $skipped_properties, $method, $trades[$i], $symbol, $now);
-            assert_in_array($exchange, $skipped_properties, $method, $trades[$i], 'takerOrMaker', ['taker', null]);
+            test_trade($exchange, $skipped_properties, $method, $trades[$i], $symbol, $now, $is_public_trade);
+        }
+        //
+        // test if both sides are being returned
+        //
+        $min_trades_for_both_sides_check = 99;
+        if (!(is_array($skipped_properties) && array_key_exists('requireBothSides', $skipped_properties)) && count($trades) > $min_trades_for_both_sides_check) {
+            //
+            //  Check whether both "buy" and "sell" are returned from trades, when there are enough trades
+            //  for a one-sided result to be an implausible coincidence (see minTradesForBothSidesCheck)
+            //
+            $grouped = $exchange->group_by($trades, 'side');
+            $msg = 'Both sides of trades are not being returned, instead only one side is being returned. If this error happens consistently, then it might be an implementation issue' . log_template($exchange, $method, $trades);
+            assert((is_array($grouped) && array_key_exists('buy', $grouped)), $msg);
+            assert((is_array($grouped) && array_key_exists('sell', $grouped)), $msg);
         }
         if (!(is_array($skipped_properties) && array_key_exists('timestampSort', $skipped_properties))) {
             assert_timestamp_order($exchange, $method, $symbol, $trades);
+        }
+        if (!(is_array($skipped_properties) && array_key_exists('side', $skipped_properties)) && !(is_array($skipped_properties) && array_key_exists('sideSequence', $skipped_properties))) {
+            \React\Async\await(helper_test_fetch_trades_side_sequence($exchange, $skipped_properties, $symbol, $method, $trades));
+        }
+        return true;
+    }) ();
+}
+
+
+function helper_test_fetch_trades_side_sequence($exchange, $skipped_properties, $symbol, $method, $trades) {
+    //
+    // Check whether returned trades are sorted correctly by side - multi-trade orders at the same
+    // timestamp would definitely have an increasing (in case of buy) price. For instance, if we
+    // have trades like:
+    //     [ 1600000000003 ] 1.4 ETH at 1750.41
+    //     [ 1600000000111 ] 0.2 ETH at 1750.40
+    //     [ 1600000000111 ] 0.3 ETH at 1750.41
+    //     [ 1600000000111 ] 0.9 ETH at 1750.42
+    //     [ 1600000000555 ] 2.4 ETH at 1750.40
+    // it's obviously `buy` order on same timestamp.
+    // In case any specific exchange does not return correctly sorted results, either implementation
+    // might need a fix, or the exchange needs `timestampSort` skip to be added.
+    //
+    return Async\async(function () use ($exchange, $skipped_properties, $symbol, $method, $trades) {
+        $last_ts = null;
+        $last_price = null;
+        $last_side = null;
+        for ($i = 0; $i < count($trades); $i++) {
+            $trade = $trades[$i];
+            $ts = $trade['timestamp'];
+            $price = $exchange->safe_string($trade, 'price');
+            $side = $trade['side'];
+            //
+            $is_same_ts = $ts === $last_ts;
+            $is_same_price = Precise::string_eq($price, $last_price);
+            $is_same_side = $side === $last_side;
+            // we are only interested in trades that have: same timestamp, same side, but different(!) price
+            if ($is_same_ts && $is_same_side && !$is_same_price) {
+                $price_increasing = Precise::string_gt($price, $last_price);
+                $price_decreasing = Precise::string_lt($price, $last_price);
+                if ($price_increasing) {
+                    assert($side === 'buy', 'Price is increasing, but side is not `buy`, either implementation needs fix or exchange returns unsorted trades, so add "sideSequence" skip' . log_template($exchange, $method, $trade));
+                } elseif ($price_decreasing) {
+                    assert($side === 'sell', 'Price is decreasing, but side is not `sell`, either implementation needs fix or exchange returns unsorted trades, so add "sideSequence" skip' . log_template($exchange, $method, $trade));
+                }
+            }
+            $last_price = $price;
+            $last_ts = $ts;
+            $last_side = $side;
         }
         return true;
     }) ();

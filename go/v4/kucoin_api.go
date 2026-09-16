@@ -1632,6 +1632,11 @@ func (this *Kucoin) UtaGetMarketFiatPrice(args ...any) <-chan any {
 	return this.callEndpointAsync("utaGetMarketFiatPrice", args...)
 }
 
+// UtaV2GetMarketFundingRate returns a channel that yields a JSON object.
+func (this *Kucoin) UtaV2GetMarketFundingRate(args ...any) <-chan any {
+	return this.callEndpointAsync("utaV2GetMarketFundingRate", args...)
+}
+
 // UtaPrivateGetMarketOrderbook returns a channel that yields a JSON object.
 func (this *Kucoin) UtaPrivateGetMarketOrderbook(args ...any) <-chan any {
 	return this.callEndpointAsync("utaPrivateGetMarketOrderbook", args...)

@@ -1439,7 +1439,7 @@ impl DeepcoinCore {
         //         "ts": "1760367816000"
         //     }
         //
-        let mut timestamp: Value = self.safe_integer_k(ticker.clone(), "ts", &[]);
+        let mut timestamp: Value = self.safe_integer_omit_zero(ticker.clone(), Value::Str("ts".to_string()), &[]);
         let mut marketId: Value = self.safe_string_k(ticker.clone(), "instId", &[]);
         market = self.safe_market(&[marketId.clone(), market.clone(), Value::Str("-".to_string())]);
         let mut symbol: Value = get_value(&market, &Value::Str("symbol".to_string()));

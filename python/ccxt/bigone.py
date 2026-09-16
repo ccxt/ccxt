@@ -1255,7 +1255,7 @@ class bigone(Exchange, ImplicitAPI):
             self.load_markets()
         market = self.market(symbol)
         if market['contract'] is True:
-            raise NotSupported(self.id + ' fetchTrades() can only fetch trades for spot markets')
+            raise NotSupported(self.id + ' fetchTrades () can only fetch trades for spot markets')
         request = {
             'asset_pair_name': market['id'],
         }
@@ -1322,7 +1322,7 @@ class bigone(Exchange, ImplicitAPI):
             self.load_markets()
         market = self.market(symbol)
         if market['contract'] is True:
-            raise NotSupported(self.id + ' fetchOHLCV() can only fetch ohlcvs for spot markets')
+            raise NotSupported(self.id + ' fetchOHLCV () can only fetch ohlcvs for spot markets')
         until = self.safe_integer(params, 'until')
         untilIsDefined = (until is not None)
         sinceIsDefined = (since is not None)
@@ -1577,7 +1577,7 @@ class bigone(Exchange, ImplicitAPI):
                 params = self.omit(params, 'cost')
                 if createMarketBuyOrderRequiresPrice:
                     if (price is None) and (cost is None):
-                        raise InvalidOrder(self.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend(amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to False and pass the cost to spend in the amount argument')
+                        raise InvalidOrder(self.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to False and pass the cost to spend in the amount argument')
                     else:
                         amountString = self.number_to_string(amount)
                         priceString = self.number_to_string(price)
