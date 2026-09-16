@@ -6,6 +6,7 @@ import io.github.ccxt.api.HyperliquidApi;
 import io.github.ccxt.base.Precise;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
+import io.github.ccxt.BaseExchange;
 import io.github.ccxt.types.Balances;
 import io.github.ccxt.types.FundingHistory;
 import io.github.ccxt.types.FundingRate;
@@ -434,7 +435,7 @@ public class Hyperliquid extends HyperliquidApi
     public CompletableFuture<Status> fetchStatus(Object... optionalArgs)
     {
 
-        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -469,7 +470,7 @@ public class Hyperliquid extends HyperliquidApi
     public CompletableFuture<Long> fetchTime(Object... optionalArgs)
     {
 
-        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -495,7 +496,7 @@ public class Hyperliquid extends HyperliquidApi
     public CompletableFuture<Object> fetchCurrencies(Object... optionalArgs)
     {
 
-        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(this.checkRequiredCredentials(false)))
@@ -596,7 +597,7 @@ public class Hyperliquid extends HyperliquidApi
     public CompletableFuture<Object> fetchMarkets(Object... optionalArgs)
     {
 
-        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Object options = this.safeDict(this.options, "fetchMarkets", new HashMap<String, Object>() {{}});
@@ -639,7 +640,7 @@ public class Hyperliquid extends HyperliquidApi
     public CompletableFuture<Object> fetchHip3Markets(Object... optionalArgs)
     {
 
-        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Object fetchDexes = (this.publicPostInfo(new HashMap<String, Object>() {{
@@ -807,7 +808,7 @@ public class Hyperliquid extends HyperliquidApi
     public CompletableFuture<Object> fetchSwapMarkets(Object... optionalArgs)
     {
 
-        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -925,7 +926,7 @@ public class Hyperliquid extends HyperliquidApi
     public CompletableFuture<Object> fetchSpotMarkets(Object... optionalArgs)
     {
 
-        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -1240,7 +1241,7 @@ public class Hyperliquid extends HyperliquidApi
     public CompletableFuture<Balances> fetchBalance(Object... optionalArgs)
     {
 
-        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             // if user provides a different address in params and does not provide the enableUnifiedMargin we assume we need to request the info again
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
@@ -1364,7 +1365,7 @@ public class Hyperliquid extends HyperliquidApi
     public CompletableFuture<OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
     {
 
-        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object limit = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -1426,7 +1427,7 @@ public class Hyperliquid extends HyperliquidApi
     public CompletableFuture<Tickers> fetchTickers(Object... optionalArgs)
     {
 
-        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -1497,7 +1498,7 @@ public class Hyperliquid extends HyperliquidApi
     public CompletableFuture<FundingRate> fetchFundingRate(String symbol, Object... optionalArgs)
     {
 
-        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             (this.loadMarkets()).join();
@@ -1525,7 +1526,7 @@ public class Hyperliquid extends HyperliquidApi
     public CompletableFuture<FundingRates> fetchFundingRates(Object... optionalArgs)
     {
 
-        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -1683,7 +1684,7 @@ public class Hyperliquid extends HyperliquidApi
     public CompletableFuture<List<OHLCV>> fetchOHLCV(Object symbol, Object... optionalArgs)
     {
 
-        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object timeframe = Helpers.getArg(optionalArgs, 0, "1m");
             Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -1791,7 +1792,7 @@ public class Hyperliquid extends HyperliquidApi
     public CompletableFuture<List<Trade>> fetchTrades(String symbol2, Object... optionalArgs)
     {
         final Object symbol3 = symbol2;
-        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, null);
@@ -2126,7 +2127,7 @@ public class Hyperliquid extends HyperliquidApi
     public CompletableFuture<Object> setRef()
     {
 
-        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             if (Helpers.isTrue(this.safeBool(this.options, "refSet", false)))
             {
@@ -2161,7 +2162,7 @@ public class Hyperliquid extends HyperliquidApi
     public CompletableFuture<Object> approveBuilderFee(Object builder, Object maxFeeRate)
     {
 
-        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Long nonce = this.milliseconds();
             Object isSandboxMode = this.safeBool(this.options, "sandboxMode", false);
@@ -2203,7 +2204,7 @@ public class Hyperliquid extends HyperliquidApi
     public CompletableFuture<Object> initializeClient()
     {
 
-        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             try
             {
@@ -2220,7 +2221,7 @@ public class Hyperliquid extends HyperliquidApi
     public CompletableFuture<Object> handleBuilderFeeApproval()
     {
 
-        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object buildFee = this.safeBool(this.options, "builderFee", true);
             Object approvedBuilderFee = this.safeBool(this.options, "approvedBuilderFee", false);
@@ -2263,7 +2264,7 @@ public class Hyperliquid extends HyperliquidApi
     public CompletableFuture<Object> isUnifiedEnabled(Object method, Object... optionalArgs)
     {
 
-        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object address = Helpers.getArg(optionalArgs, 0, null);
             Object shouldRefresh = Helpers.getArg(optionalArgs, 1, false);
@@ -2335,7 +2336,7 @@ public class Hyperliquid extends HyperliquidApi
     public CompletableFuture<Object> setUserAbstraction(Object abstraction, Object... optionalArgs)
     {
 
-        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Object userAddress = null;
@@ -2394,7 +2395,7 @@ public class Hyperliquid extends HyperliquidApi
     public CompletableFuture<Object> enableUserDexAbstraction(Object enabled, Object... optionalArgs)
     {
 
-        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Object userAddress = null;
@@ -2452,7 +2453,7 @@ public class Hyperliquid extends HyperliquidApi
     public CompletableFuture<Object> setAgentAbstraction(Object abstraction, Object... optionalArgs)
     {
 
-        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Long nonce = this.milliseconds();
@@ -2496,7 +2497,7 @@ public class Hyperliquid extends HyperliquidApi
     public CompletableFuture<Order> createOrder(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
     {
 
-        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object price = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -2532,7 +2533,7 @@ public class Hyperliquid extends HyperliquidApi
     {
         final Object side3 = side2;
         final Object duration3 = duration2;
-        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
             Object side = side3;
             Object duration = duration3;
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
@@ -2621,7 +2622,7 @@ public class Hyperliquid extends HyperliquidApi
     public CompletableFuture<List<Order>> createOrders(Object orders, Object... optionalArgs)
     {
 
-        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
@@ -2931,7 +2932,7 @@ public class Hyperliquid extends HyperliquidApi
     public CompletableFuture<Order> cancelOrder(Object id, Object... optionalArgs)
     {
 
-        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -2963,7 +2964,7 @@ public class Hyperliquid extends HyperliquidApi
     public CompletableFuture<List<Order>> cancelOrders(Object ids, Object... optionalArgs)
     {
 
-        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -3024,7 +3025,7 @@ public class Hyperliquid extends HyperliquidApi
     public CompletableFuture<Object> cancelTwapOrder(Object id, Object... optionalArgs)
     {
 
-        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -3176,7 +3177,7 @@ final Object finalClientOrderId = clientOrderId;
     public CompletableFuture<List<Order>> cancelOrdersForSymbols(Object orders, Object... optionalArgs)
     {
 
-        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             this.checkRequiredCredentials();
@@ -3270,7 +3271,7 @@ final Object finalClientOrderId = clientOrderId;
     public CompletableFuture<Object> cancelAllOrdersAfter(Object timeout, Object... optionalArgs)
     {
 
-        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             this.checkRequiredCredentials();
@@ -3481,7 +3482,7 @@ final Object finalClientOrderId = clientOrderId;
     public CompletableFuture<Order> editOrder(String id2, String symbol, Object type, Object side, Object... optionalArgs)
     {
         final Object id3 = id2;
-        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
             Object id = id3;
             Object amount = Helpers.getArg(optionalArgs, 0, null);
             Object price = Helpers.getArg(optionalArgs, 1, null);
@@ -3515,7 +3516,7 @@ final Object finalClientOrderId = clientOrderId;
     public CompletableFuture<List<Order>> editOrders(Object orders, Object... optionalArgs)
     {
 
-        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
@@ -3581,7 +3582,7 @@ final Object finalClientOrderId = clientOrderId;
     public CompletableFuture<Object> createVault(Object name, Object description, Object initialUsd, Object... optionalArgs)
     {
 
-        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             this.checkRequiredCredentials();
@@ -3634,7 +3635,7 @@ final Object finalClientOrderId = clientOrderId;
     public CompletableFuture<List<FundingRateHistory>> fetchFundingRateHistory(Object... optionalArgs)
     {
 
-        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -3732,7 +3733,7 @@ final Object finalClientOrderId = clientOrderId;
     public CompletableFuture<List<Order>> fetchOpenOrders(Object... optionalArgs)
     {
 
-        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -3816,7 +3817,7 @@ final Object finalClientOrderId = clientOrderId;
     public CompletableFuture<List<Order>> fetchClosedOrders(Object... optionalArgs)
     {
 
-        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -3847,7 +3848,7 @@ final Object finalClientOrderId = clientOrderId;
     public CompletableFuture<List<Order>> fetchCanceledOrders(Object... optionalArgs)
     {
 
-        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -3878,7 +3879,7 @@ final Object finalClientOrderId = clientOrderId;
     public CompletableFuture<List<Order>> fetchCanceledAndClosedOrders(Object... optionalArgs)
     {
 
-        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -3911,7 +3912,7 @@ final Object finalClientOrderId = clientOrderId;
     public CompletableFuture<List<Order>> fetchOrders(Object... optionalArgs)
     {
 
-        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -4015,7 +4016,7 @@ final Object finalClientOrderId = clientOrderId;
     public CompletableFuture<Order> fetchOrder(Object id, Object... optionalArgs)
     {
 
-        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -4329,7 +4330,7 @@ final Object finalClientOrderId = clientOrderId;
     public CompletableFuture<List<Trade>> fetchMyTrades(Object... optionalArgs)
     {
 
-        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -4481,7 +4482,7 @@ final Object finalClientOrderId = clientOrderId;
     public CompletableFuture<Position> fetchPosition(Object symbol, Object... optionalArgs)
     {
 
-        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Object positions = (this.fetchPositions((Object)(new ArrayList<Object>(Arrays.asList(symbol))), (Object)(parameters))).join();
@@ -4537,7 +4538,7 @@ final Object finalClientOrderId = clientOrderId;
     public CompletableFuture<List<Position>> fetchPositions(Object... optionalArgs)
     {
 
-        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -4720,7 +4721,7 @@ final Object finalClientOrderId = clientOrderId;
     public CompletableFuture<Object> setMarginMode(Object marginMode2, Object... optionalArgs)
     {
         final Object marginMode3 = marginMode2;
-        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
             Object marginMode = marginMode3;
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -4797,7 +4798,7 @@ final Object finalClientOrderId = clientOrderId;
     public CompletableFuture<Object> setLeverage(Object leverage, Object... optionalArgs)
     {
 
-        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -4866,7 +4867,7 @@ final Object finalClientOrderId = clientOrderId;
     public CompletableFuture<MarginModification> addMargin(String symbol, Object amount, Object... optionalArgs)
     {
 
-        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             return (this.modifyMarginHelper(symbol, amount, "add", parameters)).join();
@@ -4889,7 +4890,7 @@ final Object finalClientOrderId = clientOrderId;
     public CompletableFuture<MarginModification> reduceMargin(String symbol, Object amount, Object... optionalArgs)
     {
 
-        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             return (this.modifyMarginHelper(symbol, amount, "reduce", parameters)).join();
@@ -4900,7 +4901,7 @@ final Object finalClientOrderId = clientOrderId;
     public CompletableFuture<Object> modifyMarginHelper(String symbol, Object amount, Object type2, Object... optionalArgs)
     {
         final Object type3 = type2;
-        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
             Object type = type3;
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
@@ -4993,7 +4994,7 @@ final Object finalClientOrderId = clientOrderId;
         final Object code3 = code2;
         final Object fromAccount3 = fromAccount2;
         final Object toAccount3 = toAccount2;
-        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
             Object code = code3;
             Object fromAccount = fromAccount3;
             Object toAccount = toAccount3;
@@ -5165,7 +5166,7 @@ final Object finalClientOrderId = clientOrderId;
     public CompletableFuture<Transaction> withdraw(String code2, Object amount, Object address, Object... optionalArgs)
     {
         final Object code3 = code2;
-        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
             Object code = code3;
             Object tag = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -5309,7 +5310,7 @@ final Object finalClientOrderId = clientOrderId;
     public CompletableFuture<TradingFeeInterface> fetchTradingFee(String symbol, Object... optionalArgs)
     {
 
-        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
@@ -5435,7 +5436,7 @@ final Object finalClientOrderId = clientOrderId;
     public CompletableFuture<List<LedgerEntry>> fetchLedger(Object... optionalArgs)
     {
 
-        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object code = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -5556,7 +5557,7 @@ final Object finalClientOrderId = clientOrderId;
     public CompletableFuture<List<Transaction>> fetchDeposits(Object... optionalArgs)
     {
 
-        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object code = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -5654,7 +5655,7 @@ final Object finalClientOrderId = clientOrderId;
     public CompletableFuture<List<Transaction>> fetchWithdrawals(Object... optionalArgs)
     {
 
-        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object code = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -5743,7 +5744,7 @@ final Object finalClientOrderId = clientOrderId;
     public CompletableFuture<OpenInterests> fetchOpenInterests(Object... optionalArgs)
     {
 
-        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -5769,7 +5770,7 @@ final Object finalClientOrderId = clientOrderId;
     public CompletableFuture<OpenInterest> fetchOpenInterest(String symbol2, Object... optionalArgs)
     {
         final Object symbol3 = symbol2;
-        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             symbol = this.symbol(symbol);
@@ -5837,7 +5838,7 @@ final Object finalClientOrderId = clientOrderId;
     public CompletableFuture<List<FundingHistory>> fetchFundingHistory(Object... optionalArgs)
     {
 
-        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -5947,7 +5948,7 @@ final Object finalClientOrderId = clientOrderId;
     public CompletableFuture<Object> reserveRequestWeight(Object weight, Object... optionalArgs)
     {
 
-        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Long nonce = this.milliseconds();
@@ -5979,7 +5980,7 @@ final Object finalClientOrderId = clientOrderId;
     public CompletableFuture<Object> createSubAccount(Object name, Object... optionalArgs)
     {
 
-        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Long nonce = this.milliseconds();

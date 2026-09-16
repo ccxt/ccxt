@@ -2,6 +2,7 @@ package tests.exchange.ws;
 import tests.BaseTest;
 import io.github.ccxt.Helpers;
 import io.github.ccxt.Exchange;
+import io.github.ccxt.BaseExchange;
 import io.github.ccxt.errors.*;
 import tests.exchange.*;
 import java.util.ArrayList;
@@ -17,7 +18,7 @@ public class TestWatchMyTrades extends BaseTest {
     public CompletableFuture<Object> testWatchMyTrades(Exchange exchange, Object skippedProperties, Object symbol)
     {
 
-        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
         String method = "watchMyTrades";
         Object now = exchange.milliseconds();

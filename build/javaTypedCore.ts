@@ -122,7 +122,9 @@ export function coreConverter(m: MethodInfo): string {
 }
 
 /** Static helper every generated async lambda is passed to (ast-transpiler java `asyncSupplier`); it defaults to VIRTUAL_EXECUTOR. */
-export const JAVA_ASYNC_SUPPLIER = 'io.github.ccxt.BaseExchange.supplyAsync';
+export const JAVA_ASYNC_SUPPLIER = 'BaseExchange.supplyAsync';
+/** Import that makes JAVA_ASYNC_SUPPLIER resolve outside package io.github.ccxt. */
+export const JAVA_ASYNC_SUPPLIER_IMPORT = 'import io.github.ccxt.BaseExchange;';
 
 /** True for a trimmed line closing a generated supplyAsync lambda: `});`. */
 export function isAsyncLambdaClose(line: string): boolean {

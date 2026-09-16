@@ -21,7 +21,7 @@ import { filterDirtyExchangeFiles, skipUpToDateStage, testStageInputs } from "./
 import { unCamelCase } from "../js/src/base/functions.js";
 import { installJavaLocalTypes, installJavaNumericLocalTypes, patchJavaLiteralLocalTypes, elementAccessHasStringElements, JAVA_STRING_RETURN_METHODS, JAVA_STRING_PARAM_POSITIONS, patchJavaConsumerStringCasts, patchJavaMapChannelStringCasts, patchJavaStringReceiverCasts } from './java-local-types.js';
 import { ZERO_REQUIRED_TYPED_WHITELIST } from "./generateJavaWrappers.js";
-import { typeCoreReturns, typedReturnTable, JAVA_ASYNC_SUPPLIER, isAsyncLambdaClose } from "./javaTypedCore.js";
+import { typeCoreReturns, typedReturnTable, JAVA_ASYNC_SUPPLIER, JAVA_ASYNC_SUPPLIER_IMPORT, isAsyncLambdaClose } from "./javaTypedCore.js";
 import { applyJavaImports, shortenJavaReferences, ensureJavaImports } from "./javaUtilImports.js";
 
 ansi.nice
@@ -1663,6 +1663,7 @@ class NewTranspiler {
                 'import io.github.ccxt.base.Precise;',
                 'import io.github.ccxt.errors.*;',
                 'import io.github.ccxt.Helpers;',
+                JAVA_ASYNC_SUPPLIER_IMPORT,
                 'import io.github.ccxt.ws.*;',
                 'import io.github.ccxt.Client;',
             ];
@@ -1678,6 +1679,7 @@ class NewTranspiler {
                 'import io.github.ccxt.base.Precise;',
                 'import io.github.ccxt.errors.*;',
                 'import io.github.ccxt.Helpers;',
+                JAVA_ASYNC_SUPPLIER_IMPORT,
                 'import io.github.ccxt.ws.*;',
                 'import io.github.ccxt.Client;',
             ];
@@ -1688,7 +1690,8 @@ class NewTranspiler {
             `import io.github.ccxt.api.${this.capitalize(file)}Api;`,
             'import io.github.ccxt.base.Precise;',
             'import io.github.ccxt.errors.*;',
-            'import io.github.ccxt.Helpers;'
+            'import io.github.ccxt.Helpers;',
+            JAVA_ASYNC_SUPPLIER_IMPORT,
             // 'import io.github.ccxt.Exchange;',
             // 'import io.github.ccxt.Errors;'
         ]
@@ -4282,6 +4285,7 @@ class NewTranspiler {
             'package tests.exchange;',
             'import io.github.ccxt.Helpers;',
             'import io.github.ccxt.Exchange;',
+            JAVA_ASYNC_SUPPLIER_IMPORT,
             '',
             this.createGeneratedHeader().join('\n'),
             `public class ${className} {`,
@@ -4384,6 +4388,7 @@ class NewTranspiler {
                 'package tests.base;',
                 'import tests.BaseTest;',
                 'import io.github.ccxt.Helpers;',
+                JAVA_ASYNC_SUPPLIER_IMPORT,
                 exchangeImport,
                 preciseImport,
                 this.createGeneratedHeader().join('\n'),
@@ -4507,6 +4512,7 @@ class NewTranspiler {
             'package tests.exchange;',
             'import io.github.ccxt.Helpers;',
             'import io.github.ccxt.Exchange;',
+            JAVA_ASYNC_SUPPLIER_IMPORT,
             'import io.github.ccxt.BaseExchange;',
             'import tests.BaseTest;',
             'import io.github.ccxt.errors.*;',
@@ -4751,7 +4757,7 @@ class NewTranspiler {
                 'import tests.BaseTest;',
                 'import io.github.ccxt.Helpers;',
                 'import io.github.ccxt.Exchange;',
-                ...(isWs ? [] : ['import io.github.ccxt.BaseExchange;']),
+                JAVA_ASYNC_SUPPLIER_IMPORT,
                 'import io.github.ccxt.errors.*;',
                 ...(isWs ? ['import tests.exchange.*;'] : []),
                 preciseImport,

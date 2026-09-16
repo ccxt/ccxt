@@ -15,7 +15,7 @@ public class TestFetchMarketLeverageTiers extends BaseTest {
     public CompletableFuture<Object> testFetchMarketLeverageTiers(BaseExchange exchange, Object skippedProperties, Object symbol)
     {
 
-        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
         String method = "fetchMarketLeverageTiers";
         Object tiers = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchMarketLeverageTiers", new Object[]{symbol})).join();

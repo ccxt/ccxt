@@ -15,7 +15,7 @@ public class TestFetchOHLCV extends BaseTest {
     public CompletableFuture<Object> testFetchOHLCV(BaseExchange exchange, Object skippedProperties, Object symbol)
     {
 
-        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
         String method = "fetchOHLCV";
         Object timeframeKeys = Helpers.objectKeys(exchange.timeframes);

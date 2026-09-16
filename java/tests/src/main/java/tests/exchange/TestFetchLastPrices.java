@@ -18,7 +18,7 @@ public class TestFetchLastPrices extends BaseTest {
     public CompletableFuture<Object> testFetchLastPrices(BaseExchange exchange, Object skippedProperties, Object symbol)
     {
 
-        return io.github.ccxt.BaseExchange.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
         String method = "fetchLastprices";
         // log ('fetching all tickers at once...')
