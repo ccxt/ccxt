@@ -26,7 +26,7 @@ async function testWatchTrades (exchange: Exchange, skippedProperties: object, s
         if (success === true) {
             testSharedMethods.assertNonEmtpyArray (exchange, skippedProperties, method, response);
             for (let i = 0; i < response.length; i++) {
-                testTrade (exchange, skippedProperties, method, response[i], symbol, now);
+                testTrade (exchange, skippedProperties, method, response[i], symbol, now, true);
             }
             if ((now - startTime) > maxIdleTime) {
                 idle = true;
