@@ -1881,7 +1881,11 @@ class Transpiler {
                         .replace ('await asyncio.sleep', 'time.sleep')
                         .replace ('async ', '')
                         .replace ('await ', ''))
-                        .replace ('asyncio.gather\(\*', '(') // needed for async -> sync
+                        // needed for async -> sync. the previous string pattern also matched
+                        // (a plain literal drops the backslashes, so it was exactly
+                        // `asyncio.gather(*`), but String.replace with a string only rewrites the
+                        // first occurrence - the /g regex unwraps every gather on the line
+                        .replace (/asyncio\.gather\(\*/g, '(')
                         .replace ('asyncio.run', '') // needed for async -> sync
             })
 
@@ -3398,7 +3402,10 @@ class Transpiler {
                 phpSync = this.transpileAsyncPHPToSyncPHP (phpFixes(result[1].content));
             } else if (this.buildPython) {
                 pythonAsync = pyFixes(result[1].content);
-                pythonSync = pyFixes(result[0].content);
+                // the sync flag drives the async->sync fixes (asyncio.gather unwrap);
+                // omitting it here left every python-only build - the CI python lane -
+                // emitting a bare asyncio.gather over non-awaitables in sync tests
+                pythonSync = pyFixes(result[0].content, true);
             }
 
             const usesEqualsFunction = needsEquals[i];
