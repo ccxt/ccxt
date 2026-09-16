@@ -1611,7 +1611,7 @@ class lbank(Exchange, ImplicitAPI):
         fok = (timeInForce == 'FOK')
         maker = ((postOnly is True) or (timeInForce == 'PO'))
         if (type == 'market') and (ioc or fok or maker):
-            raise InvalidOrder(self.id + ' createOrder() does not allow market FOK, IOC, or postOnly orders. Only limit IOC, FOK, and postOnly orders are allowed')
+            raise InvalidOrder(self.id + ' createOrder () does not allow market FOK, IOC, or postOnly orders. Only limit IOC, FOK, and postOnly orders are allowed')
         if type == 'limit':
             request['type'] = side
             request['price'] = self.price_to_precision(symbol, price)
@@ -1637,7 +1637,7 @@ class lbank(Exchange, ImplicitAPI):
                     quoteAmount = self.cost_to_precision(symbol, cost)
                 elif createMarketBuyOrderRequiresPrice:
                     if price is None:
-                        raise InvalidOrder(self.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend(amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to False and pass the cost to spend in the amount argument')
+                        raise InvalidOrder(self.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to False and pass the cost to spend in the amount argument')
                     else:
                         amountString = self.number_to_string(amount)
                         priceString = self.number_to_string(price)

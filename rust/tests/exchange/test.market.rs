@@ -152,8 +152,8 @@ pub fn testMarket(mut exchange: Value, mut skippedProperties: Value, mut method:
     let mut checkedTypes: Value = Value::List(vec![Value::Str("spot".to_string()), Value::Str("swap".to_string()), Value::Str("future".to_string()), Value::Str("option".to_string())]);
     {
                 let mut i: Value = Value::Int(0);
-        let mut __for_first_1431: bool = true;
-        while { if !__for_first_1431 { i = add(&i, &Value::Int(1)); } __for_first_1431 = false; is_less_than(&i, &get_array_length(&checkedTypes)) } {
+        let mut __for_first_1432: bool = true;
+        while { if !__for_first_1432 { i = add(&i, &Value::Int(1)); } __for_first_1432 = false; is_less_than(&i, &get_array_length(&checkedTypes)) } {
         let mut type_var: Value = get_value(&checkedTypes, &i);
         if is_equal(&get_value(&market, &type_var), &Value::Bool(true)) {
             assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&type_var, &get_value(&market, &Value::Str("type".to_string())))))));
@@ -165,8 +165,8 @@ pub fn testMarket(mut exchange: Value, mut skippedProperties: Value, mut method:
         let mut checkedSubTypes: Value = Value::List(vec![Value::Str("linear".to_string()), Value::Str("inverse".to_string())]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1432: bool = true;
-            while { if !__for_first_1432 { i = add(&i, &Value::Int(1)); } __for_first_1432 = false; is_less_than(&i, &get_array_length(&checkedSubTypes)) } {
+            let mut __for_first_1433: bool = true;
+            while { if !__for_first_1433 { i = add(&i, &Value::Int(1)); } __for_first_1433 = false; is_less_than(&i, &get_array_length(&checkedSubTypes)) } {
             let mut subType: Value = get_value(&checkedSubTypes, &i);
             if is_equal(&get_value(&market, &subType), &Value::Bool(true)) {
                 assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&subType, &get_value(&market, &Value::Str("subType".to_string())))))));
@@ -258,8 +258,8 @@ pub fn testMarket(mut exchange: Value, mut skippedProperties: Value, mut method:
     assert!(ccxt::runtime::is_true(&(Value::Bool(is_greater_than_or_equal(&precisionKeysLen, &Value::Int(2))))));
     {
                 let mut i: Value = Value::Int(0);
-        let mut __for_first_1433: bool = true;
-        while { if !__for_first_1433 { i = add(&i, &Value::Int(1)); } __for_first_1433 = false; is_less_than(&i, &get_array_length(&precisionKeys)) } {
+        let mut __for_first_1434: bool = true;
+        while { if !__for_first_1434 { i = add(&i, &Value::Int(1)); } __for_first_1434 = false; is_less_than(&i, &get_array_length(&precisionKeys)) } {
         let mut priceOrAmountKey: Value = get_value(&precisionKeys, &i);
         // only allow very high priced markets (wher coin costs around 100k) to have a 5$ price tickSize
         let mut isExclusivePair: Value = Value::Bool(is_equal(&get_value(&market, &Value::Str("baseId".to_string())), &Value::Str("BTC".to_string())));
@@ -280,8 +280,8 @@ pub fn testMarket(mut exchange: Value, mut skippedProperties: Value, mut method:
     assert!(ccxt::runtime::is_true(&(Value::Bool(is_greater_than_or_equal(&limitsKeysLength, &Value::Int(3))))));
     {
                 let mut i: Value = Value::Int(0);
-        let mut __for_first_1434: bool = true;
-        while { if !__for_first_1434 { i = add(&i, &Value::Int(1)); } __for_first_1434 = false; is_less_than(&i, &get_array_length(&limitsKeys)) } {
+        let mut __for_first_1435: bool = true;
+        while { if !__for_first_1435 { i = add(&i, &Value::Int(1)); } __for_first_1435 = false; is_less_than(&i, &get_array_length(&limitsKeys)) } {
         let mut key: Value = get_value(&limitsKeys, &i);
         let mut limitEntry: Value = get_value(&get_value(&market, &Value::Str("limits".to_string())), &key);
         if is_true(&isInactiveMarket) {

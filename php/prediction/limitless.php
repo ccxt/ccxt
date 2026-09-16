@@ -2399,7 +2399,7 @@ class limitless extends Exchange {
             $conditionId = $this->safe_string($this->safe_dict($outcomeObj, 'info', array()), 'conditionId');
         }
         if ($conditionId === null) {
-            throw new ArgumentsRequired($this->id . ' redeem() could not resolve the market $conditionId - pass $params->conditionId(a bytes32 hex string)');
+            throw new ArgumentsRequired($this->id . ' redeem() could not resolve the market $conditionId - pass $params->conditionId (a bytes32 hex string)');
         }
         $request = array(
             'conditionId' => $conditionId,

@@ -1,6 +1,7 @@
 package tests.base;
 import tests.BaseTest;
 import io.github.ccxt.Helpers;
+import io.github.ccxt.BaseExchange;
 import io.github.ccxt.Exchange;
 import java.util.HashMap;
 

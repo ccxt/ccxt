@@ -1724,7 +1724,15 @@ public partial class hyperliquid : Exchange
     public override string? amountToPrecision(object symbol, object amount)
     {
         Dictionary<string, object> market = this.market(symbol);
-        return this.decimalToPrecision(amount, ROUND, getValue(getValue(market, "precision"), "amount"), this.precisionMode, this.paddingMode);
+        string result = this.decimalToPrecision(amount, ROUND, getValue(getValue(market, "precision"), "amount"), this.precisionMode, this.paddingMode);
+        // a size of zero is meaningful to hyperliquid, a whole position tp/sl order is sent
+        // with grouping positionTpsl and size 0, so only reject a positive amount that
+        // became zero after rounding, never an explicitly requested zero
+        if (isTrue(isTrue(Precise.stringEq(result, "0")) && isTrue(Precise.stringGt(this.numberToString(amount), "0"))))
+        {
+            throw new InvalidOrder ((string)add(add(add(add(this.id, " amount of "), getValue(market, "symbol")), " must be greater than minimum amount precision of "), this.numberToString(getValue(getValue(market, "precision"), "amount")))) ;
+        }
+        return result;
     }
 
     public override string? priceToPrecision(object symbol, object price)

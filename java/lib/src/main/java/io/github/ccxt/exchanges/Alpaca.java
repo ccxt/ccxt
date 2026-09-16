@@ -6,6 +6,7 @@ import io.github.ccxt.api.AlpacaApi;
 import io.github.ccxt.base.Precise;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
+import io.github.ccxt.BaseExchange;
 import io.github.ccxt.types.Balances;
 import io.github.ccxt.types.DepositAddress;
 import io.github.ccxt.types.OHLCV;
@@ -561,8 +562,8 @@ public class Alpaca extends AlpacaApi
                         }} );
                         put( "timeInForce", new HashMap<String, Object>() {{
                             put( "IOC", true );
-                            put( "FOK", true );
-                            put( "PO", true );
+                            put( "FOK", false );
+                            put( "PO", false );
                             put( "GTD", false );
                         }} );
                         put( "hedged", false );
@@ -632,6 +633,7 @@ public class Alpaca extends AlpacaApi
                     put( "40410000", InvalidOrder.class );
                     put( "40010001", BadRequest.class );
                     put( "40110000", PermissionDenied.class );
+                    put( "42210000", BadRequest.class );
                     put( "42910000", RateLimitExceeded.class );
                 }} );
                 put( "broad", new HashMap<String, Object>() {{
@@ -655,7 +657,7 @@ public class Alpaca extends AlpacaApi
     public CompletableFuture<Long> fetchTime(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Map<String, Object> response = (this.traderPrivateGetV2Clock(parameters)).join();
@@ -705,7 +707,7 @@ public class Alpaca extends AlpacaApi
     public CompletableFuture<Object> fetchMarkets(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -864,7 +866,7 @@ public class Alpaca extends AlpacaApi
     public CompletableFuture<List<Trade>> fetchTrades(String symbol, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, null);
@@ -959,7 +961,7 @@ public class Alpaca extends AlpacaApi
     public CompletableFuture<OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object limit = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -1041,7 +1043,7 @@ public class Alpaca extends AlpacaApi
     public CompletableFuture<List<OHLCV>> fetchOHLCV(Object symbol, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object timeframe = Helpers.getArg(optionalArgs, 0, "1m");
             Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -1206,7 +1208,7 @@ public class Alpaca extends AlpacaApi
     public CompletableFuture<Ticker> fetchTicker(String symbol2, Object... optionalArgs)
     {
         final Object symbol3 = symbol2;
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
@@ -1233,7 +1235,7 @@ public class Alpaca extends AlpacaApi
     public CompletableFuture<Tickers> fetchTickers(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -1377,7 +1379,7 @@ public class Alpaca extends AlpacaApi
     public CompletableFuture<Order> createMarketOrderWithCost(String symbol, Object side, Object cost, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
@@ -1405,7 +1407,7 @@ public class Alpaca extends AlpacaApi
     public CompletableFuture<Order> createMarketBuyOrderWithCost(String symbol, Object cost, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
@@ -1433,7 +1435,7 @@ public class Alpaca extends AlpacaApi
     public CompletableFuture<Order> createMarketSellOrderWithCost(String symbol, Object cost, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
@@ -1460,13 +1462,14 @@ public class Alpaca extends AlpacaApi
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
+     * @param {string} [params.timeInForce] 'GTC' or 'IOC', the venue supports only these two for crypto orders, defaults to 'GTC'
      * @param {float} [params.cost] *market orders only* the cost of the order in units of the quote currency
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public CompletableFuture<Order> createOrder(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object price = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -1512,6 +1515,11 @@ public class Alpaca extends AlpacaApi
             List<Object> defaultTIFparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createOrder", "timeInForce");
             defaultTIF = ((List<Object>) defaultTIFparametersVariable).get(0);
             parameters = ((List<Object>) defaultTIFparametersVariable).get(1);
+            if (Helpers.isTrue(!Helpers.isEqual(defaultTIF, null)))
+            {
+                // the venue only accepts lowercase values, normalize the unified uppercase spellings
+                defaultTIF = ((String)defaultTIF).toLowerCase();
+            }
             Helpers.addElementToObject(request, "time_in_force", defaultTIF);
             parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("timeInForce", "triggerPrice")));
             Helpers.addElementToObject(request, "client_order_id", this.generateClientOrderId(parameters));
@@ -1571,7 +1579,7 @@ public class Alpaca extends AlpacaApi
     public CompletableFuture<Order> cancelOrder(Object id, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -1602,7 +1610,7 @@ public class Alpaca extends AlpacaApi
     public CompletableFuture<List<Order>> cancelAllOrders(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -1637,7 +1645,7 @@ public class Alpaca extends AlpacaApi
     public CompletableFuture<Order> fetchOrder(Object id, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -1672,7 +1680,7 @@ public class Alpaca extends AlpacaApi
     public CompletableFuture<List<Order>> fetchOrders(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -1773,7 +1781,7 @@ public class Alpaca extends AlpacaApi
     public CompletableFuture<List<Order>> fetchOpenOrders(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -1803,7 +1811,7 @@ public class Alpaca extends AlpacaApi
     public CompletableFuture<List<Order>> fetchClosedOrders(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -1830,14 +1838,14 @@ public class Alpaca extends AlpacaApi
      * @param {float} [price] the price for the order, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.triggerPrice] the price to trigger a stop order
-     * @param {string} [params.timeInForce] for crypto trading either 'gtc' or 'ioc' can be used
+     * @param {string} [params.timeInForce] 'GTC' or 'IOC', the venue supports only these two for crypto orders, defaults to 'GTC'
      * @param {string} [params.clientOrderId] a unique identifier for the order, automatically generated if not sent
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public CompletableFuture<Order> editOrder(String id, String symbol2, Object type, Object side, Object... optionalArgs)
     {
         final Object symbol3 = symbol2;
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object amount = Helpers.getArg(optionalArgs, 0, null);
             Object price = Helpers.getArg(optionalArgs, 1, null);
@@ -1874,7 +1882,8 @@ public class Alpaca extends AlpacaApi
             parameters = ((List<Object>) timeInForceparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(timeInForce, null)))
             {
-                Helpers.addElementToObject(request, "time_in_force", timeInForce);
+                // the venue only accepts lowercase values, normalize the unified uppercase spellings
+                Helpers.addElementToObject(request, "time_in_force", ((String)timeInForce).toLowerCase());
             }
             Helpers.addElementToObject(request, "client_order_id", this.generateClientOrderId(parameters));
             parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId")));
@@ -1958,7 +1967,7 @@ public class Alpaca extends AlpacaApi
             put( "clientOrderId", Alpaca.this.safeString(order, "client_order_id") );
             put( "timestamp", timestamp );
             put( "datetime", datetime );
-            put( "lastTradeTimeStamp", null );
+            put( "lastTradeTimestamp", Alpaca.this.parse8601(Alpaca.this.safeString(order, "filled_at")) );
             put( "status", status );
             put( "symbol", symbol );
             put( "type", finalOrderType );
@@ -1983,10 +1992,22 @@ public class Alpaca extends AlpacaApi
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "pending_new", "open" );
             put( "accepted", "open" );
+            put( "accepted_for_bidding", "open" );
             put( "new", "open" );
             put( "partially_filled", "open" );
             put( "activated", "open" );
+            put( "done_for_day", "open" );
+            put( "stopped", "open" );
+            put( "suspended", "open" );
+            put( "held", "open" );
+            put( "pending_replace", "open" );
+            put( "pending_cancel", "canceling" );
             put( "filled", "closed" );
+            put( "calculated", "closed" );
+            put( "canceled", "canceled" );
+            put( "replaced", "canceled" );
+            put( "expired", "expired" );
+            put( "rejected", "rejected" );
         }};
         return this.safeString(statuses, status, status);
     }
@@ -1995,6 +2016,9 @@ public class Alpaca extends AlpacaApi
     {
         Map<String, Object> timeInForces = new HashMap<String, Object>() {{
             put( "day", "Day" );
+            put( "gtc", "GTC" );
+            put( "ioc", "IOC" );
+            put( "fok", "FOK" );
         }};
         return this.safeString(timeInForces, timeInForce, timeInForce);
     }
@@ -2015,7 +2039,7 @@ public class Alpaca extends AlpacaApi
     public CompletableFuture<List<Trade>> fetchMyTrades(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -2153,7 +2177,7 @@ public class Alpaca extends AlpacaApi
     public CompletableFuture<DepositAddress> fetchDepositAddress(String code, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
@@ -2217,7 +2241,7 @@ public class Alpaca extends AlpacaApi
     public CompletableFuture<Transaction> withdraw(String code, Object amount, Object address2, Object... optionalArgs)
     {
         final Object address3 = address2;
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
             Object address = address3;
             Object tag = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -2273,7 +2297,7 @@ public class Alpaca extends AlpacaApi
     {
         final Object type3 = type2;
         final Object code3 = code2;
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
             Object type = type3;
             Object code = code3;
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
@@ -2381,7 +2405,7 @@ public class Alpaca extends AlpacaApi
     public CompletableFuture<List<Transaction>> fetchDepositsWithdrawals(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object code = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -2406,7 +2430,7 @@ public class Alpaca extends AlpacaApi
     public CompletableFuture<List<Transaction>> fetchDeposits(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object code = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -2431,7 +2455,7 @@ public class Alpaca extends AlpacaApi
     public CompletableFuture<List<Transaction>> fetchWithdrawals(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object code = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -2608,7 +2632,7 @@ public class Alpaca extends AlpacaApi
     public CompletableFuture<Balances> fetchBalance(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))

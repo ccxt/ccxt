@@ -3438,7 +3438,7 @@ class hashkey(Exchange, ImplicitAPI):
         # current method warns user if he provides the exchange specific value in type parameter
         paramsType = self.safe_string(params, 'type')
         if (paramsType is not None) and (paramsType != 'spot') and (paramsType != 'swap'):
-            raise BadRequest(self.id + ' ' + methodName + '() type parameter can not be "' + paramsType + '". It should define the type of the market("spot" or "swap"). To define the type of an order use the trigger parameter(True for trigger orders)')
+            raise BadRequest(self.id + ' ' + methodName + ' () type parameter can not be "' + paramsType + '". It should define the type of the market ("spot" or "swap"). To define the type of an order use the trigger parameter (True for trigger orders)')
 
     def handle_trigger_option_and_params(self, params: object, methodName: str, defaultValue: Bool = None) -> list:
         isTrigger = defaultValue

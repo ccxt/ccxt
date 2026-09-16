@@ -2,6 +2,7 @@ package tests.exchange.ws;
 import tests.BaseTest;
 import io.github.ccxt.Helpers;
 import io.github.ccxt.Exchange;
+import io.github.ccxt.BaseExchange;
 import io.github.ccxt.errors.*;
 import tests.exchange.*;
 import java.util.ArrayList;
@@ -18,11 +19,12 @@ public class TestWatchTradesForSymbols extends BaseTest {
     public CompletableFuture<Object> testWatchTradesForSymbols(Exchange exchange, Object skippedProperties, Object symbols)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
         String method = "watchTradesForSymbols";
+        Object logText = Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), " [symbols: "), exchange.json(symbols)), "] ");
         Object now = exchange.milliseconds();
-        Object ends = Helpers.add(now, 15000);
+        Object ends = Helpers.add(now, 30000);
         Integer maxIdleTime = 5000;
         Boolean idle = false;
         List<Object> returnedSymbols = new ArrayList<Object>(Arrays.asList());
@@ -43,31 +45,29 @@ public class TestWatchTradesForSymbols extends BaseTest {
                 success = false;
             }
             now = exchange.milliseconds();
+            Object elapsedMs = Helpers.subtract(now, startTime);
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(success, true))) && Helpers.isTrue((!Helpers.isEqual(response, null)))))
             {
-                Assert(Helpers.isArray(response), Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), " "), exchange.json(symbols)), " must return an array. "), exchange.json(response)));
-                Object symbol = null;
+                Assert(Helpers.isArray(response), Helpers.add(Helpers.add(logText, "must return an array. "), exchange.json(response)));
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
                 {
                     Object trade = Helpers.GetValue(response, i);
-                    symbol = Helpers.GetValue(trade, "symbol");
-                    if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
-                    {
-                        continue;
-                    }
-                    TestTrade.testTrade(exchange, skippedProperties, method, trade, symbol, now);
+                    Object symbol = Helpers.GetValue(trade, "symbol");
+                    Assert(!Helpers.isEqual(symbol, null), Helpers.add(Helpers.add(logText, "returned a trade without a symbol "), exchange.json(trade)));
+                    TestTrade.testTrade(exchange, skippedProperties, method, trade, ((String)symbol), now, true);
                     TestSharedMethods.AssertInArray(exchange, skippedProperties, method, trade, "symbol", symbols);
                     if (!Helpers.isTrue(exchange.inArray(symbol, returnedSymbols)))
                     {
                         ((List<Object>)returnedSymbols).add(symbol);
                     }
                 }
-                if (Helpers.isTrue(Helpers.isGreaterThan((Helpers.subtract(now, startTime)), maxIdleTime)))
+                if (Helpers.isTrue(Helpers.isGreaterThan(elapsedMs, maxIdleTime)))
                 {
                     idle = true;
                 }
             }
         }
+        Assert(Helpers.isEqual(Helpers.getArrayLength(returnedSymbols), Helpers.getArrayLength(symbols)), Helpers.add(Helpers.add(logText, "only received part of symbols: "), exchange.json(returnedSymbols)));
         return true;
         });
 

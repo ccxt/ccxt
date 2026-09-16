@@ -1957,6 +1957,10 @@ public partial class kucoin : ccxt.kucoin
         object firstDelta = this.safeValue(cache, 0);
         Int64? nonce = this.safeInteger(orderbook, "nonce");
         Int64? firstDeltaStart = this.safeIntegerN(firstDelta, new List<object>() {"sequenceStart", "sequence", "O"});
+        if (isTrue(isTrue((isEqual(nonce, null))) || isTrue((isEqual(firstDeltaStart, null)))))
+        {
+            return -1;
+        }
         if (isTrue(isLessThan(nonce, subtract(firstDeltaStart, 1))))
         {
             return -1;
@@ -1966,6 +1970,10 @@ public partial class kucoin : ccxt.kucoin
             object delta = getValue(cache, i);
             Int64? deltaStart = this.safeIntegerN(delta, new List<object>() {"sequenceStart", "sequence", "O"});
             Int64? deltaEnd = this.safeIntegerN(delta, new List<object>() {"sequenceEnd", "sequence", "C"}); // todo check
+            if (isTrue(isTrue((isEqual(deltaStart, null))) || isTrue((isEqual(deltaEnd, null)))))
+            {
+                continue;
+            }
             if (isTrue(isTrue((isGreaterThanOrEqual(nonce, subtract(deltaStart, 1)))) && isTrue((isLessThan(nonce, deltaEnd)))))
             {
                 return i;

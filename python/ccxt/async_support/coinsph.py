@@ -1414,7 +1414,7 @@ class coinsph(Exchange, ImplicitAPI):
                     quoteAmount = self.cost_to_precision(symbol, cost)
                 elif createMarketBuyOrderRequiresPrice:
                     if price is None:
-                        raise InvalidOrder(self.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend(amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to False and pass the cost to spend in the amount argument')
+                        raise InvalidOrder(self.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to False and pass the cost to spend in the amount argument')
                     else:
                         amountString = self.number_to_string(amount)
                         priceString = self.number_to_string(price)
@@ -1426,7 +1426,7 @@ class coinsph(Exchange, ImplicitAPI):
         if orderType == 'STOP_LOSS' or orderType == 'STOP_LOSS_LIMIT' or orderType == 'TAKE_PROFIT' or orderType == 'TAKE_PROFIT_LIMIT':
             triggerPrice = self.safe_string_2(params, 'triggerPrice', 'stopPrice')
             if triggerPrice is None:
-                raise InvalidOrder(self.id + ' createOrder() requires a triggerPrice or stopPrice param for stop_loss, take_profit, stop_loss_limit, and take_profit_limit orders')
+                raise InvalidOrder(self.id + ' createOrder () requires a triggerPrice or stopPrice param for stop_loss, take_profit, stop_loss_limit, and take_profit_limit orders')
             request['stopPrice'] = self.price_to_precision(symbol, triggerPrice)
         request['newOrderRespType'] = newOrderRespType
         params = self.omit(params, 'price', 'stopPrice', 'triggerPrice', 'quantity', 'quoteOrderQty')
