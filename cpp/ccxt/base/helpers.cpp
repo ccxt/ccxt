@@ -38,10 +38,24 @@ namespace ccxt { namespace intern {
         }
     }
     std::string_view internKey (std::string_view s) {
+        // thread-local direct-mapped front cache: the parse and setMarkets
+        // repeat the same few thousand keys hundreds of thousands of times —
+        // the cache absorbs the hits without touching the shard mutex (the
+        // pool only ever ADDS, so cached views never go stale)
+        struct Slot { std::size_t hash; const char* data; std::size_t len; };
+        static thread_local Slot cache[512] = {};
         const std::size_t h = std::hash<std::string_view> {} (s);
+        Slot& slot = cache[h & 511];
+        if (slot.hash == h && slot.len == s.size ()
+            && std::memcmp (slot.data, s.data (), s.size ()) == 0) {
+            return std::string_view (slot.data, slot.len);
+        }
         KeyPoolShard& shard = shards ()[h & 15];
         std::lock_guard<std::mutex> guard (shard.mutex);
         const auto it = shard.set.emplace (s).first;
+        slot.hash = h;
+        slot.data = it->data ();
+        slot.len = it->size ();
         return std::string_view (it->data (), it->size ());
     }
 }}
