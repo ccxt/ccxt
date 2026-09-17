@@ -38,12 +38,12 @@ func (this *BaseExchange) Uuid22() string {
 
 // strip trims whitespace from both ends of a string.
 func (this *BaseExchange) Strip(str any) any {
-	return strings.TrimSpace(str.(string))
+	return strings.TrimSpace(derefScalar(str).(string))
 }
 
 // capitalize capitalizes the first letter of a string.
 func (this *BaseExchange) Capitalize(str2 any) string {
-	str := str2.(string)
+	str := derefScalar(str2).(string)
 	if len(str) == 0 {
 		return str
 	}
