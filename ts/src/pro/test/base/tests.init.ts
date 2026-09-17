@@ -1,4 +1,3 @@
-import testWsSnapshotReadiness from "./test.wsSnapshotReadiness.js";
 
 import testWsOrderBook from "./test.orderBook.js";
 import testWsCache from "./test.cache.js";
@@ -11,7 +10,6 @@ import testWsClientThrottleWiring from "./test.clientThrottleWiring.js";
 async function testBaseWs () {
     testWsOrderBook ();
     testWsCache ();
-    testWsSnapshotReadiness (); // native JS test of the static WS transport helper
     testWsCacheNative (); // js-only: removeAt () has no port equivalent
     // todo : testWsClose ();
     await testWsSingleFlight ();

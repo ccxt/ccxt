@@ -460,13 +460,7 @@ function ws_client_has_pending_futures($exchange, $url) {
     // whether the watch flow is currently awaiting a message - the frame
     // injector polls this instead of relying on a fixed head-start sleep
     $client = $exchange->client($url);
-    // REST balance snapshots do not wait for WebSocket frames.
-    foreach ($client->futures as $message_hash => $future) {
-        if (!str_ends_with((string) $message_hash, ':fetchBalanceSnapshot')) {
-            return true;
-        }
-    }
-    return false;
+    return count($client->futures) > 0;
 }
 
 $ws_completed_tests = array();

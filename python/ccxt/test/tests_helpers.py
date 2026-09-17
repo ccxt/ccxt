@@ -327,11 +327,8 @@ def ws_client_has_pending_futures(exchange, url):
     # whether the watch flow is currently awaiting a message - the frame
     # injector polls this instead of relying on a fixed head-start sleep
     client = exchange.client(url)
-    # REST balance snapshots do not wait for WebSocket frames.
-    # A cancelled asyncio waiter can stay registered until Client.future()
-    # replaces it. Unlike normal resolution, cancellation does not remove it.
-    for message_hash, future in client.futures.items():
-        if not message_hash.endswith(':fetchBalanceSnapshot') and not future.done():
+    for future in client.futures.values():
+        if not future.done():
             return True
     return False
 

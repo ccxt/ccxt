@@ -477,13 +477,7 @@ public class BaseTest {
         // injector polls this instead of relying on a fixed head-start sleep
         var exchange = (BaseExchange) exchange2;
         var client = exchange.client(url);
-        // REST balance snapshots do not wait for WebSocket frames.
-        for (Object messageHash : ((java.util.Map<?, ?>) client.futures).keySet()) {
-            if (!String.valueOf(messageHash).endsWith(":fetchBalanceSnapshot")) {
-                return true;
-            }
-        }
-        return false;
+        return !((java.util.Map<?, ?>) client.futures).isEmpty();
     }
 
     private static final java.util.Set<Object> wsCompletedClients =
