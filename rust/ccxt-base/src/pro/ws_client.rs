@@ -371,15 +371,20 @@ impl ClientState {
     /// TS `client.reset(error)` — reject every pending future/flight with the
     /// error so waiters fail fast instead of hanging, then drop the pending
     /// future state. Mirrors the js/php/c#/go/java/python clients: rejections
-    /// are kept (they carry the error to the waiters) and subscriptions are
-    /// left to the caller — the TS `Client.reset` does not clear them either.
+    /// are kept (they carry the error to the waiters), delivered-but-not-taken
+    /// `resolved` values are kept (in TS an already-resolved future is settled
+    /// — `reject` on it is a no-op — so its waiter still gets the value), and
+    /// subscriptions are left to the caller — the TS `Client.reset` does not
+    /// clear them either.
     pub fn reset_with_error(&self, error: Value) {
         let hashes: Vec<String> = self.futures.lock().unwrap().iter().cloned().collect();
         for h in &hashes {
+            if self.resolved.lock().unwrap().contains_key(h) {
+                continue;
+            }
             self.reject(h, error.clone());
         }
         self.futures.lock().unwrap().clear();
-        self.resolved.lock().unwrap().clear();
     }
 
     /// Snapshot of `subscriptions` as a `Value::Map { hash: subscription }` —
@@ -901,11 +906,17 @@ pub fn value_send(client: &Value, args: &[Value]) -> Value {
     Value::Null
 }
 
-/// `client.reset(...)` routed by URL.
+/// `client.reset(...)` routed by URL. An arg-less `client.reset()` reaches
+/// here with `Value::Null` — there is no error to deliver, so fall back to
+/// the internal wipe rather than rejecting every waiter with a null error.
 pub fn value_reset(client: &Value, error: Value) -> Value {
     if let Some(url) = url_of(client) {
         if let Some(c) = get_client(&url) {
-            c.reset_with_error(error);
+            if matches!(error, Value::Null) {
+                c.reset();
+            } else {
+                c.reset_with_error(error);
+            }
         }
     }
     Value::Null
@@ -951,6 +962,44 @@ mod tests {
             }
         });
         format!("ws://{addr}")
+    }
+
+    // The transpiled `client.reset(error)` path (`value_reset` →
+    // `reset_with_error`): a pending watch hash must observe the error (not
+    // hang), a delivered-but-not-taken value must survive the reset, and an
+    // arg-less `client.reset()` (error = `Value::Null`) must fall back to the
+    // silent wipe instead of rejecting waiters with a null error.
+    #[test]
+    fn value_reset_rejects_pending_futures() {
+        let url = "ws://reset-with-error.test";
+        mock_setup(url);
+        let client = get_client(url).expect("mock client");
+        client.note_futures(&["pending".to_string(), "delivered".to_string()]);
+        client.resolve("delivered", Value::Str("payload".to_string()));
+
+        let handle = client_value(url);
+        let error = Value::Str("[InvalidNonce] gap detected".to_string());
+        value_reset(&handle, error.clone());
+
+        // The pending waiter fails fast with the reset error…
+        assert_eq!(
+            client.take_settled(&["pending".to_string()]),
+            Some(Err(error))
+        );
+        // …while the already-delivered value still reaches its waiter.
+        assert_eq!(
+            client.take_settled(&["delivered".to_string()]),
+            Some(Ok(Value::Str("payload".to_string())))
+        );
+        assert!(!client.has_pending_futures());
+
+        // Arg-less reset: silent wipe, nothing settled with a null error.
+        client.note_futures(&["pending2".to_string()]);
+        value_reset(&handle, Value::Null);
+        assert_eq!(client.take_settled(&["pending2".to_string()]), None);
+        assert!(!client.has_pending_futures());
+
+        drop_client(url);
     }
 
     #[tokio::test]
