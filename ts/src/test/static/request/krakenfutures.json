@@ -3,6 +3,42 @@
     "skipKeys": [],
     "outputType": "urlencoded",
     "methods": {
+        "fetchPositionsHistory": [
+            {
+                "description": "since maps to since with ascending sort and until maps to before",
+                "method": "fetchPositionsHistory",
+                "url": "https://futures.kraken.com/api/history/v3/positions?closed=true&since=1789000000000&sort=asc&before=1790000000000",
+                "input": [
+                    null,
+                    1789000000000,
+                    null,
+                    {
+                        "until": 1790000000000
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "a single symbol is filtered by the exchange and limit maps to count",
+                "method": "fetchPositionsHistory",
+                "url": "https://futures.kraken.com/api/history/v3/positions?closed=true&tradeable=PF_DOGEUSD&count=1",
+                "input": [
+                    [
+                        "DOGE/USD:USD"
+                    ],
+                    null,
+                    1
+                ],
+                "output": null
+            },
+            {
+                "description": "closed positions by default",
+                "method": "fetchPositionsHistory",
+                "url": "https://futures.kraken.com/api/history/v3/positions?closed=true",
+                "input": [],
+                "output": null
+            }
+        ],
         "fetchFundingHistory": [
             {
                 "description": "since maps to since with ascending sort and until maps to before",
