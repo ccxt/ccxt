@@ -47,6 +47,16 @@ impl FoxbitCore {
         self.call_method(Value::Str("v3_public_get_markets_market_ticker24hr".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `v3PublicGetMarketsSparklineWindow` implicit endpoint.
+    pub async fn v3_public_get_markets_sparkline_window(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v3_public_get_markets_sparkline_window".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `v3PublicGetTravelRuleOperationReasons` implicit endpoint.
+    pub async fn v3_public_get_travel_rule_operation_reasons(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v3_public_get_travel_rule_operation_reasons".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `v3PrivateGetAccounts` implicit endpoint.
     pub async fn v3_private_get_accounts(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("v3_private_get_accounts".to_string()), optional_args).await
@@ -92,6 +102,11 @@ impl FoxbitCore {
         self.call_method(Value::Str("v3_private_get_me_fees_trading".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `v3PrivateGetPrimeDeskExecutionsQuoteId` implicit endpoint.
+    pub async fn v3_private_get_prime_desk_executions_quote_id(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v3_private_get_prime_desk_executions_quote_id".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `v3PrivatePostOrders` implicit endpoint.
     pub async fn v3_private_post_orders(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("v3_private_post_orders".to_string()), optional_args).await
@@ -110,6 +125,11 @@ impl FoxbitCore {
     /// Auto-generated wrapper for the `v3PrivatePostWithdrawals` implicit endpoint.
     pub async fn v3_private_post_withdrawals(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("v3_private_post_withdrawals".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `v3PrivatePostDepositsDepositSnTravelRule` implicit endpoint.
+    pub async fn v3_private_post_deposits_deposit_sn_travel_rule(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v3_private_post_deposits_deposit_sn_travel_rule".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `v3PrivatePutOrdersCancel` implicit endpoint.

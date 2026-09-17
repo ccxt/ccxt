@@ -166,6 +166,10 @@ class deepcoin(Exchange, ImplicitAPI):
                         'deepcoin/market/index-candles': {'cost': 1},
                         'deepcoin/market/trades': {'cost': 1},
                         'deepcoin/market/mark-price-candles': {'cost': 1},
+                        'deepcoin/market/mark-price': {'cost': 1},
+                        'deepcoin/market/open-interest-volume': {'cost': 1},
+                        'deepcoin/market/long-short-ratio': {'cost': 1},
+                        'deepcoin/market/taker-volume': {'cost': 1},
                         'deepcoin/market/step-margin': {'cost': 5},
                         'deepcoin/trade/funding-rate': {'cost': 5},
                         'deepcoin/trade/fund-rate/current-funding-rate': {'cost': 5},
@@ -175,10 +179,15 @@ class deepcoin(Exchange, ImplicitAPI):
                 'private': {
                     'get': {
                         'deepcoin/account/balances': {'cost': 5},
+                        'deepcoin/account/all-balances': {'cost': 5},
                         'deepcoin/account/bills': {'cost': 5},
                         'deepcoin/account/positions': {'cost': 5},
+                        'deepcoin/account/trade-fee': {'cost': 5},
+                        'deepcoin/account/leverage-info': {'cost': 5},
+                        'deepcoin/account/positions-history': {'cost': 5},
                         'deepcoin/trade/fills': {'cost': 5},
                         'deepcoin/trade/orderByID': {'cost': 5},
+                        'deepcoin/trade/order': {'cost': 5},
                         'deepcoin/trade/finishOrderByID': {'cost': 5},
                         'deepcoin/trade/orders-history': {'cost': 5},
                         'deepcoin/trade/v2/orders-pending': {'cost': 5},
@@ -200,6 +209,7 @@ class deepcoin(Exchange, ImplicitAPI):
                         'deepcoin/asset/recharge-chain-list': {'cost': 5},
                         'deepcoin/listenkey/acquire': {'cost': 5},
                         'deepcoin/listenkey/extend': {'cost': 5},
+                        'deepcoin/sub-account/sub-account-apikey': {'cost': 5},
                     },
                     'post': {
                         'deepcoin/account/set-leverage': {'cost': 5},
@@ -210,14 +220,20 @@ class deepcoin(Exchange, ImplicitAPI):
                         'deepcoin/trade/cancel-trigger-order': {'cost': 1 / 6},
                         'deepcoin/trade/swap/cancel-all': {'cost': 5},
                         'deepcoin/trade/trigger-order': {'cost': 5},
+                        'deepcoin/trade/amend-trigger-order': {'cost': 5},
                         'deepcoin/trade/batch-close-position': {'cost': 5},
                         'deepcoin/trade/replace-order-sltp': {'cost': 5},
                         'deepcoin/trade/close-position-by-ids': {'cost': 5},
+                        'deepcoin/trade/increase-position': {'cost': 5},
+                        'deepcoin/trade/merge-positions': {'cost': 5},
                         'deepcoin/copytrading/leader-settings': {'cost': 5},
                         'deepcoin/copytrading/set-contracts': {'cost': 5},
                         'deepcoin/internal-transfer': {'cost': 5},
                         'deepcoin/rebate/config': {'cost': 5},
                         'deepcoin/asset/transfer': {'cost': 5},
+                        'deepcoin/sub-account/create-sub-account': {'cost': 5},
+                        'deepcoin/sub-account/sub-account-apikey': {'cost': 5},
+                        'deepcoin/sub-account/delete-sub-account-apikey': {'cost': 5},
                     },
                 },
             },
@@ -575,7 +591,7 @@ class deepcoin(Exchange, ImplicitAPI):
             if (market is not None) and (market['swap'] is True):
                 additionalId = self.safe_string(market, 'baseId', '') + self.safe_string(market, 'quoteId', '')
                 if self.markets_by_id is not None:
-                    self.markets_by_id[additionalId] = [market]  # some endpoints return swap market id+quote
+                    self.markets_by_id[additionalId] = [market]  # some endpoints return swap market id as base+quote
         return result
 
     def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
@@ -634,7 +650,7 @@ class deepcoin(Exchange, ImplicitAPI):
         :param int [params.until]: timestamp in ms of the latest candle to fetch
         :param str [params.price]: "mark" or "index" for mark price and index price candles
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             self.load_markets()
@@ -662,8 +678,8 @@ class deepcoin(Exchange, ImplicitAPI):
         if calculateUntil is True:
             params = self.omit(params, 'calculateUntil')
             if since is not None:
-                # the exchange do not have a since param for self endpoint
-                # we calculate until(after) for correct pagination
+                # the exchange do not have a since param for this endpoint
+                # we calculate until (after) for correct pagination
                 duration = self.parse_timeframe(timeframe)
                 numberOfCandles = maxLimit if (limit is None) else limit
                 endTime = since + (duration * numberOfCandles) * 1000
@@ -751,7 +767,7 @@ class deepcoin(Exchange, ImplicitAPI):
         #         "ts": "1760367816000"
         #     }
         #
-        timestamp = self.safe_integer(ticker, 'ts')
+        timestamp = self.safe_integer_omit_zero(ticker, 'ts')
         marketId = self.safe_string(ticker, 'instId')
         market = self.safe_market(marketId, market, '-')
         symbol = market['symbol']
@@ -1118,7 +1134,7 @@ class deepcoin(Exchange, ImplicitAPI):
         #                     "inNotice": "",
         #                     "actLogo": "",
         #                     "address": "TNJYDW9Bk87VwfA6s7FtxURLEMHesQbYgF",
-        #                     "hasMemo": False,
+        #                     "hasMemo": false,
         #                     "memo": "",
         #                     "estimatedTime": 1,
         #                     "fastConfig": {
@@ -1176,7 +1192,7 @@ class deepcoin(Exchange, ImplicitAPI):
         #         "inNotice": "",
         #         "actLogo": "",
         #         "address": "TNJYDW9Bk87VwfA6s7FtxURLEMHesQbYgF",
-        #         "hasMemo": False,
+        #         "hasMemo": false,
         #         "memo": "",
         #         "estimatedTime": 1,
         #         "fastConfig": {
@@ -1453,7 +1469,7 @@ class deepcoin(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' requires a side argument')
         market = self.market(symbol)
         triggerPrice = self.safe_string(params, 'triggerPrice')
-        # isTriggerOrder = (triggerPrice is not None) or self.safe_string_2(params, 'stopLossPrice', 'takeProfitPrice') is not None
+        # const isTriggerOrder = (triggerPrice !== undefined) || this.safeString2 (params, 'stopLossPrice', 'takeProfitPrice') !== undefined;
         isTriggerOrder = (triggerPrice is not None)
         cost = self.safe_string(params, 'cost')
         if cost is not None:
@@ -1493,20 +1509,20 @@ class deepcoin(Exchange, ImplicitAPI):
         orderType, params = self.handle_type_post_only_and_time_in_force(type, params)
         request = {
             'instId': market['id'],
-            # 'tdMode': 'cash',  # 'cash' for spot, 'cross' or 'isolated' for swap
-            # 'ccy': currency['id'],  # only applicable to cross MARGIN orders in single-currency margin
+            # 'tdMode': 'cash', // 'cash' for spot, 'cross' or 'isolated' for swap
+            # 'ccy': currency['id'], // only applicable to cross MARGIN orders in single-currency margin
             # 'clOrdId': clientOrderId,
             'side': side,
             'ordType': orderType,
             # 'sz': amount or cost
-            # 'px': price,  # limit orders only
-            # 'reduceOnly': False,  # a mark to reduce the position size for margin and swap orders
-            # 'tgtCcy': 'base_ccy',  # spot only 'base_ccy' or 'quote_ccy', the default is 'base_ccy' for spot orders
-            # 'tpTriggerPx': takeProfitPrice,  # take profit trigger price
-            # 'slTriggerPx': stopLossPrice,  # stop loss trigger price
-            # 'posSide': 'long',  # swap only 'long' or 'short'
-            # 'mrgPosition': 'merge',  # swap only 'merge' or 'split'
-            # 'closePosId': 'id',  # swap only position ID to close, required in split mode
+            # 'px': price, // limit orders only
+            # 'reduceOnly': false, // a mark to reduce the position size for margin and swap orders
+            # 'tgtCcy': 'base_ccy', // spot only 'base_ccy' or 'quote_ccy', the default is 'base_ccy' for spot orders
+            # 'tpTriggerPx': takeProfitPrice, // take profit trigger price
+            # 'slTriggerPx': stopLossPrice, // stop loss trigger price
+            # 'posSide': 'long', // swap only 'long' or 'short'
+            # 'mrgPosition': 'merge', // swap only 'merge' or 'split'
+            # 'closePosId': 'id', // swap only position ID to close, required in split mode
         }
         clientOrderId = self.safe_string(params, 'clientOrderId')
         if clientOrderId is not None:
@@ -1588,25 +1604,25 @@ class deepcoin(Exchange, ImplicitAPI):
             'productGroup': self.capitalize(market['type']),
             'sz': self.amount_to_precision(symbol, amount),
             'side': side,
-            # 'posSide': 'long',  # 'long' or 'short' - required when product type is SWAP
+            # 'posSide': 'long', // 'long' or 'short' - required when product type is SWAP
             # 'price': price,
-            # 'isCrossMargin': 1,  # 1 for cross margin, 0 for isolated margin
+            # 'isCrossMargin': 1, // 1 for cross margin, 0 for isolated margin
             'orderType': type,
             # 'triggerPrice': triggerPrice,
-            # 'mrgPosition': 'merge',  # 'merge' or 'split', the default is 'merge' - required when product type is SWAP
-            # 'tdMode': 'cash',  # 'cash' for spot, 'cross' or 'isolated' for swap
+            # 'mrgPosition': 'merge', // 'merge' or 'split', the default is 'merge' - required when product type is SWAP
+            # 'tdMode': 'cash', // 'cash' for spot, 'cross' or 'isolated' for swap
         }
         triggerPrice = self.safe_string(params, 'triggerPrice')
-        # takeProfitPrice = self.safe_string(params, 'takeProfitPrice')
-        # stopLossPrice = self.safe_string(params, 'stopLossPrice')
-        # isTpOrSlOrder = (takeProfitPrice is not None) or (stopLossPrice is not None)
-        # if isTpOrSlOrder:
-        #     if takeProfitPrice is not None:
-        #         request['triggerPrice'] = self.price_to_precision(symbol, takeProfitPrice)
-        #     else:
-        #         request['triggerPrice'] = self.price_to_precision(symbol, stopLossPrice)
+        # const takeProfitPrice = this.safeString (params, 'takeProfitPrice');
+        # const stopLossPrice = this.safeString (params, 'stopLossPrice');
+        # const isTpOrSlOrder = (takeProfitPrice !== undefined) || (stopLossPrice !== undefined);
+        # if (isTpOrSlOrder) {
+        #     if (takeProfitPrice !== undefined) {
+        #         request['triggerPrice'] = this.priceToPrecision (symbol, takeProfitPrice);
+        #     } else {
+        #         request['triggerPrice'] = this.priceToPrecision (symbol, stopLossPrice);
         #     }
-        # else:
+        # } else {
         request['triggerPrice'] = self.price_to_precision(symbol, triggerPrice)
         # }
         if price is not None:
@@ -1714,7 +1730,7 @@ class deepcoin(Exchange, ImplicitAPI):
         #                 "instId": "ETH-USDT",
         #                 "tgtCcy": "",
         #                 "ccy": "",
-        #                 "ordId": "1001434573319675",
+        #                 "ordId": "1001434573319676",
         #                 "clOrdId": "",
         #                 "tag": "",
         #                 "px": "4056.620000000000",
@@ -2454,16 +2470,16 @@ class deepcoin(Exchange, ImplicitAPI):
             'contractSize': None,
             'side': self.safe_string(position, 'posSide'),
             'notional': None,
-            'leverage': self.omit_zero(self.safe_string(position, 'lever')),
+            'leverage': self.parse_number(self.omit_zero(self.safe_string(position, 'lever'))),
             'unrealizedPnl': None,
             'realizedPnl': None,
             'collateral': None,
             'entryPrice': self.safe_number(position, 'avgPx'),
             'markPrice': None,
-            'liquidationPrice': self.safe_string(position, 'liqPx'),
+            'liquidationPrice': self.safe_number(position, 'liqPx'),
             'marginMode': self.safe_string(position, 'mgnMode'),
             'hedged': True,
-            'maintenanceMargin': self.safe_string(position, 'useMargin'),
+            'maintenanceMargin': self.safe_number(position, 'useMargin'),
             'maintenanceMarginPercentage': None,
             'initialMargin': None,
             'initialMarginPercentage': None,

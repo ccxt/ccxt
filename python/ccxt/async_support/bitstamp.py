@@ -183,12 +183,18 @@ class bitstamp(Exchange, ImplicitAPI):
                         'travel_rule/vasps/': {'cost': 1},
                         'funding_rate/{market_symbol}/': {'cost': 1},
                         'funding_rate_history/{pair}/': {'cost': 1},
+                        'derivatives/market_hours/': {'cost': 1},
+                        'derivatives/market_hours/{market_symbol}/': {'cost': 1},
                     },
                 },
                 'private': {
                     'get': {
                         'travel_rule/contacts/': {'cost': 1},
                         'contacts/{contact_uuid}/': {'cost': 1},
+                        'travel_rule/utxo/xpub_registrations/': {'cost': 1},
+                        'travel_rule/utxo/xpub_registrations/{registration_id}/': {'cost': 1},
+                        'travel_rule/address_verification/': {'cost': 1},
+                        'crypto-transactions/deposits/': {'cost': 1},
                         'earn/subscriptions/': {'cost': 1},
                         'earn/transactions/': {'cost': 1},
                         'trade_history/': {'cost': 1},
@@ -204,6 +210,7 @@ class bitstamp(Exchange, ImplicitAPI):
                         'user_transactions/': {'cost': 1},
                         'user_transactions/{pair}/': {'cost': 1},
                         'crypto-transactions/': {'cost': 1},
+                        'crypto-transactions/deposits/{deposit_id}/reject/': {'cost': 1},
                         'open_order': {'cost': 1},
                         'open_orders/all/': {'cost': 1},
                         'open_orders/{pair}/': {'cost': 1},
@@ -235,6 +242,8 @@ class bitstamp(Exchange, ImplicitAPI):
                         'websockets_token/': {'cost': 1},
                         'revoke_all_api_keys/': {'cost': 1},
                         'get_max_order_amount/': {'cost': 1},
+                        'order_data/': {'cost': 1},
+                        'account_order_data/': {'cost': 1},
                         # individual coins
                         'btc_withdrawal/': {'cost': 1},
                         'btc_address/': {'cost': 1},
@@ -399,6 +408,8 @@ class bitstamp(Exchange, ImplicitAPI):
                         'ldo_withdrawal/': {'cost': 1},
                         'ldo_address/': {'cost': 1},
                         'travel_rule/contacts/': {'cost': 1},
+                        'travel_rule/utxo/xpub_registrations/': {'cost': 1},
+                        'travel_rule/utxo/xpub_registrations/{registration_id}/revoke/': {'cost': 1},
                         'earn/subscribe/': {'cost': 1},
                         'earn/subscriptions/setting/': {'cost': 1},
                         'earn/unsubscribe': {'cost': 1},
@@ -537,8 +548,8 @@ class bitstamp(Exchange, ImplicitAPI):
                     'Your account is frozen': PermissionDenied,
                     'Please update your profile with your FATCA information, before using API.': PermissionDenied,
                     'Order not found.': OrderNotFound,
-                    "Bitstamp.net is under scheduled maintenance. We'll be back soon.": OnMaintenance,  # {"error": "Bitstamp.net is under scheduled maintenance. We'll be back soon."}
-                    'Order could not be placed.': ExchangeNotAvailable,  # Order could not be placed(perhaps due to internal error or trade halt). Please retry placing order.
+                    "Bitstamp.net is under scheduled maintenance. We'll be back soon.": OnMaintenance,  # { "error": "Bitstamp.net is under scheduled maintenance. We'll be back soon." }
+                    'Order could not be placed.': ExchangeNotAvailable,  # Order could not be placed (perhaps due to internal error or trade halt). Please retry placing order.
                     'Invalid offset.': BadRequest,
                     'Trading is currently unavailable for your account.': AccountSuspended,  # {"status": "error", "reason": {"__all__": ["Trading is currently unavailable for your account."]}, "response_code": "403.004"}
                 },
@@ -546,7 +557,7 @@ class bitstamp(Exchange, ImplicitAPI):
                     'Minimum order size is': InvalidOrder,  # Minimum order size is 5.0 EUR.
                     'Price is more than': InvalidOrder,
                     'Check your account balance for details.': InsufficientFunds,  # You have only 0.00100000 BTC available. Check your account balance for details.
-                    'Ensure self value has at least': InvalidAddress,  # Ensure self value has at least 25 characters(it has 4).
+                    'Ensure self value has at least': InvalidAddress,  # Ensure this value has at least 25 characters (it has 4).
                     'Ensure that there are no more than': InvalidOrder,  # {"status": "error", "reason": {"amount": ["Ensure that there are no more than 0 decimal places."], "__all__": [""]}}
                 },
             },
@@ -783,7 +794,7 @@ class bitstamp(Exchange, ImplicitAPI):
         }
 
     async def fetch_markets_from_cache(self, params={}) -> list[dict]:
-        # self method is now redundant
+        # this method is now redundant
         # currencies are now fetched before markets
         options = self.safe_value(self.options, 'fetchMarkets', {})
         timestamp = self.safe_integer(options, 'timestamp')
@@ -842,7 +853,7 @@ class bitstamp(Exchange, ImplicitAPI):
 
     def parse_currencies(self, rawCurrencies: object) -> Currencies:
         # each market row yields two currencies so the accumulation happens
-        # in a local dictionary here instead of a temp key inside self.options
+        # in a local dictionary here instead of a temp key inside this.options
         # because the shared scratch key raced between concurrent
         # fetchCurrencies invocations in the multi threaded runtimes
         result = {}
@@ -892,14 +903,14 @@ class bitstamp(Exchange, ImplicitAPI):
         #         "timestamp": "1583652948",
         #         "microtimestamp": "1583652948955826",
         #         "bids": [
-        #             ["8750.00", "1.33685271"],
-        #             ["8749.39", "0.07700000"],
-        #             ["8746.98", "0.07400000"],
+        #             [ "8750.00", "1.33685271" ],
+        #             [ "8749.39", "0.07700000" ],
+        #             [ "8746.98", "0.07400000" ],
         #         ]
         #         "asks": [
-        #             ["8754.10", "1.51995636"],
-        #             ["8754.71", "1.40000000"],
-        #             ["8754.72", "2.50000000"],
+        #             [ "8754.10", "1.51995636" ],
+        #             [ "8754.71", "1.40000000" ],
+        #             [ "8754.72", "2.50000000" ],
         #         ]
         #     }
         #
@@ -1082,17 +1093,17 @@ class bitstamp(Exchange, ImplicitAPI):
 
     def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #
-        # fetchTrades(public)
+        # fetchTrades (public)
         #
         #      {
         #          "date": "1637845199",
         #          "tid": "209895701",
         #          "amount": "0.00500000",
-        #          "type": "0",             # Transaction type: 0 - buy; 1 - sell
+        #          "type": "0",             // Transaction type: 0 - buy; 1 - sell
         #          "price": "4451.25"
         #      }
         #
-        # fetchMyTrades, trades returned within fetchOrder(private)
+        # fetchMyTrades, trades returned within fetchOrder (private)
         #
         #      {
         #          "fee": "0.11128",
@@ -1103,12 +1114,12 @@ class bitstamp(Exchange, ImplicitAPI):
         #          "usd":  0,
         #          "btc":  0,
         #          "eth": "0.00500000",
-        #          "type": "2",                    # Transaction type: 0 - deposit; 1 - withdrawal; 2 - market trade; 14 - sub account transfer; 25 - credited with staked assets; 26 - sent assets to staking; 27 - staking reward; 32 - referral reward; 35 - inter account transfer.
+        #          "type": "2",                    // Transaction type: 0 - deposit; 1 - withdrawal; 2 - market trade; 14 - sub account transfer; 25 - credited with staked assets; 26 - sent assets to staking; 27 - staking reward; 32 - referral reward; 35 - inter account transfer.
         #          "id":  209895701,
         #          "eur":  0
         #      }
         #
-        # from fetchOrder(private)
+        # from fetchOrder (private)
         #
         #      {
         #          "fee": "0.11128",
@@ -1117,7 +1128,7 @@ class bitstamp(Exchange, ImplicitAPI):
         #          "usdt": "22.25625000",
         #          "tid": 209895701,
         #          "eth": "0.00500000",
-        #          "type": 2                       # Transaction type: 0 - deposit; 1 - withdrawal; 2 - market trade
+        #          "type": 2                       // Transaction type: 0 - deposit; 1 - withdrawal; 2 - market trade
         #      }
         #
         id = self.safe_string_2(trade, 'id', 'tid')
@@ -1146,7 +1157,7 @@ class bitstamp(Exchange, ImplicitAPI):
         priceString = self.safe_string(trade, priceId, priceString)
         amountString = self.safe_string(trade, self.safe_string(market, 'baseId'), amountString)
         costString = self.safe_string(trade, self.safe_string(market, 'quoteId'), costString)
-        # self endpoint is not aligned with "markets" endpoint
+        # this endpoint is not aligned with "markets" endpoint
         baseIdLower = self.safe_string_lower(market, 'baseId')
         quoteIdLower = self.safe_string_lower(market, 'quoteId')
         dashedIdLower = baseIdLower + '_' + quoteIdLower
@@ -1279,7 +1290,7 @@ class bitstamp(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()
@@ -1699,7 +1710,7 @@ class bitstamp(Exchange, ImplicitAPI):
         #                "market": "BTC/USD"
         #            }
         #        ],
-        #        "success": True
+        #        "success": true
         #    }
         #
         canceled = self.safe_list(response, 'canceled')
@@ -2034,7 +2045,7 @@ class bitstamp(Exchange, ImplicitAPI):
         tag = None
         address = self.safe_string(transaction, 'address')
         if address is not None:
-            # dt(destination tag) is embedded into the address field
+            # dt (destination tag) is embedded into the address field
             addressParts = address.split('?dt=')
             numParts = len(addressParts)
             if numParts > 1:
@@ -2077,7 +2088,7 @@ class bitstamp(Exchange, ImplicitAPI):
     def parse_transaction_status(self, status: Str):
         #
         #   withdrawals:
-        #   0(open), 1(in process), 2(finished), 3(canceled) or 4(failed).
+        #   0 (open), 1 (in process), 2 (finished), 3 (canceled) or 4 (failed).
         #
         statuses = {
             '0': 'pending',  # Open
@@ -2091,20 +2102,20 @@ class bitstamp(Exchange, ImplicitAPI):
     def parse_order(self, order: dict, market: Market = None) -> Order:
         #
         #   from fetch order:
-        #     {status: "Finished",
+        #     { status: "Finished",
         #       "id": 731693945,
         #       "client_order_id": '',
         #       "transactions":
-        #       [{fee: "0.000019",
+        #       [ { fee: "0.000019",
         #           "price": "0.00015803",
         #           "datetime": "2018-01-07 10:45:34.132551",
         #           "btc": "0.0079015000000000",
         #           "tid": 42777395,
         #           "type": 2,
-        #           "xrp": "50.00000000"}]}
+        #           "xrp": "50.00000000" } ] }
         #
         #   partially filled order:
-        #     {"id": 468646390,
+        #     { "id": 468646390,
         #       "client_order_id": "",
         #       "status": "Canceled",
         #       "transactions": [{
@@ -2344,14 +2355,16 @@ class bitstamp(Exchange, ImplicitAPI):
         #         "next_funding_time": "1644406050"
         #     }
         #
+        # the websocket funding_rate channel additionally carries mark_price and index_price
+        #
         currentTime = self.safe_integer_product(fundingRate, 'timestamp', 1000)
         nextFundingRateTimestamp = self.safe_integer_product(fundingRate, 'next_funding_time', 1000)
         marketId = self.safe_string(fundingRate, 'market')
         return {
             'info': fundingRate,
             'symbol': self.safe_symbol(marketId, market),
-            'markPrice': None,
-            'indexPrice': None,
+            'markPrice': self.safe_number(fundingRate, 'mark_price'),
+            'indexPrice': self.safe_number(fundingRate, 'index_price'),
             'interestRate': None,
             'estimatedSettlePrice': None,
             'timestamp': currentTime,
@@ -2413,7 +2426,7 @@ class bitstamp(Exchange, ImplicitAPI):
         """
         return code.lower()
 
-    def is_fiat(self, code: object):
+    def is_fiat(self, code: object) -> bool:
         return code == 'USD' or code == 'EUR' or code == 'GBP'
 
     async def fetch_deposit_address(self, code: str, params={}) -> DepositAddress:
@@ -2429,7 +2442,7 @@ class bitstamp(Exchange, ImplicitAPI):
         if self.is_fiat(code):
             raise NotSupported(self.id + ' fiat fetchDepositAddress() for ' + code + ' is not supported!')
         name = self.get_currency_name(code)
-        # the per-currency implicit methods(privatePostBtcAddress etc.) all route
+        # the per-currency implicit methods (privatePostBtcAddress etc.) all route
         # through request(), called here directly to avoid dynamic dispatch
         response = await self.request(name + '_address/', 'private', 'POST', params)
         address = self.safe_string(response, 'address')
@@ -2477,7 +2490,7 @@ class bitstamp(Exchange, ImplicitAPI):
                 if tag is not None:
                     request['memo_id'] = tag
             request['address'] = address
-            # the per-currency implicit methods(privatePostBtcWithdrawal etc.) all
+            # the per-currency implicit methods (privatePostBtcWithdrawal etc.) all
             # route through request(), called here directly to avoid dynamic dispatch
             response = await self.request(name + '_withdrawal/', 'private', 'POST', self.extend(request, params))
         else:
@@ -2518,7 +2531,7 @@ class bitstamp(Exchange, ImplicitAPI):
         else:
             raise BadRequest(self.id + ' transfer() only supports from or to main')
         #
-        #    {status: 'ok'}
+        #    { status: 'ok' }
         #
         transfer = self.parse_transfer(response, currency)
         transfer['amount'] = amount
@@ -2528,7 +2541,7 @@ class bitstamp(Exchange, ImplicitAPI):
 
     def parse_transfer(self, transfer: object, currency: Currency = None):
         #
-        #    {status: 'ok'}
+        #    { status: 'ok' }
         #
         status = self.safe_string(transfer, 'status')
         if currency is None:
@@ -2600,9 +2613,9 @@ class bitstamp(Exchange, ImplicitAPI):
         if response is None:
             return None
         #
-        #     {"error": "No permission found"}  # fetchDepositAddress returns self on apiKeys that don't have the permission required
+        #     {"error": "No permission found"} // fetchDepositAddress returns this on apiKeys that don't have the permission required
         #     {"status": "error", "reason": {"__all__": ["Minimum order size is 5.0 EUR."]}}
-        #     reuse of a nonce gives: {status: 'error', reason: 'Invalid nonce', code: 'API0004'}
+        #     reuse of a nonce gives: { status: 'error', reason: 'Invalid nonce', code: 'API0004' }
         #
         status = self.safe_string(response, 'status')
         error = self.safe_value(response, 'error')
@@ -2623,7 +2636,7 @@ class bitstamp(Exchange, ImplicitAPI):
             if isinstance(reasonInner, str):
                 errors.append(reasonInner)
             else:
-                all = self.safe_value(reasonInner, '__all__', [])
+                all = self.safe_list(reasonInner, '__all__', [])
                 for i in range(0, len(all)):
                     errors.append(all[i])
             code = self.safe_string(response, 'code')

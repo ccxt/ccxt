@@ -170,16 +170,19 @@ class deribit(Exchange, ImplicitAPI):
                         # Account management
                         'get_announcements': {'cost': 1},
                         # Market data
+                        'get_apr_history': {'cost': 1},
                         'get_book_summary_by_currency': {'cost': 1},
                         'get_book_summary_by_instrument': {'cost': 1},
                         'get_contract_size': {'cost': 1},
                         'get_currencies': {'cost': 1},
                         'get_delivery_prices': {'cost': 1},
+                        'get_expirations': {'cost': 1},
                         'get_funding_chart_data': {'cost': 1},
                         'get_funding_rate_history': {'cost': 1},
                         'get_funding_rate_value': {'cost': 1},
                         'get_historical_volatility': {'cost': 1},
                         'get_index': {'cost': 1},
+                        'get_index_chart_data': {'cost': 1},
                         'get_index_price': {'cost': 1},
                         'get_index_price_names': {'cost': 1},
                         'get_instrument': {'cost': 1},
@@ -192,6 +195,7 @@ class deribit(Exchange, ImplicitAPI):
                         'get_last_trades_by_instrument_and_time': {'cost': 1},
                         'get_mark_price_history': {'cost': 1},
                         'get_order_book': {'cost': 1},
+                        'get_supported_index_names': {'cost': 1},
                         'get_trade_volumes': {'cost': 1},
                         'get_tradingview_chart_data': {'cost': 1},
                         'get_volatility_index_data': {'cost': 1},
@@ -224,6 +228,7 @@ class deribit(Exchange, ImplicitAPI):
                         'get_account_summary': {'cost': 1},
                         'get_account_summaries': {'cost': 1},
                         'get_affiliate_program_info': {'cost': 1},
+                        'get_currencies': {'cost': 1},
                         'get_email_language': {'cost': 1},
                         'get_new_announcements': {'cost': 1},
                         'get_portfolio_margins': {'cost': 1},
@@ -238,16 +243,23 @@ class deribit(Exchange, ImplicitAPI):
                         'reset_api_key': {'cost': 1},
                         'set_announcement_as_read': {'cost': 1},
                         'set_api_key_as_default': {'cost': 1},
+                        'set_disabled_trading_products': {'cost': 1},
                         'set_email_for_subaccount': {'cost': 1},
                         'set_email_language': {'cost': 1},
                         'set_password_for_subaccount': {'cost': 1},
+                        'simulate_portfolio': {'cost': 1},
                         'toggle_notifications_from_subaccount': {'cost': 1},
                         'toggle_subaccount_login': {'cost': 1},
                         # Block Trade
+                        'approve_block_trade': {'cost': 1},
                         'execute_block_trade': {'cost': 4},
                         'get_block_trade': {'cost': 1},
+                        'get_block_trade_requests': {'cost': 1},
+                        'get_block_trades': {'cost': 1},
                         'get_last_block_trades_by_currency': {'cost': 1},
                         'invalidate_block_trade_signature': {'cost': 1},
+                        'reject_block_trade': {'cost': 1},
+                        'simulate_block_trade': {'cost': 4},
                         'verify_block_trade': {'cost': 4},
                         # Trading
                         'buy': {'cost': 4},
@@ -259,15 +271,20 @@ class deribit(Exchange, ImplicitAPI):
                         'cancel_all_by_currency': {'cost': 4},
                         'cancel_all_by_instrument': {'cost': 4},
                         'cancel_by_label': {'cost': 4},
+                        'cancel_quotes': {'cost': 4},
                         'close_position': {'cost': 4},
                         'get_margins': {'cost': 1},
                         'get_mmp_config': {'cost': 1},
+                        'get_mmp_status': {'cost': 1},
+                        'get_open_orders': {'cost': 1},
                         'get_open_orders_by_currency': {'cost': 1},
                         'get_open_orders_by_instrument': {'cost': 1},
+                        'get_open_orders_by_label': {'cost': 1},
                         'get_order_history_by_currency': {'cost': 1},
                         'get_order_history_by_instrument': {'cost': 1},
                         'get_order_margin_by_ids': {'cost': 1},
                         'get_order_state': {'cost': 1},
+                        'get_order_state_by_label': {'cost': 1},
                         'get_stop_order_history': {'cost': 1},  # deprecated
                         'get_trigger_order_history': {'cost': 1},
                         'get_user_trades_by_currency': {'cost': 1},
@@ -275,20 +292,28 @@ class deribit(Exchange, ImplicitAPI):
                         'get_user_trades_by_instrument': {'cost': 1},
                         'get_user_trades_by_instrument_and_time': {'cost': 1},
                         'get_user_trades_by_order': {'cost': 1},
+                        'mass_quote': {'cost': 4},
+                        'move_positions': {'cost': 4},
                         'reset_mmp': {'cost': 1},
                         'set_mmp_config': {'cost': 1},
                         'get_settlement_history_by_instrument': {'cost': 1},
                         'get_settlement_history_by_currency': {'cost': 1},
                         # Wallet
+                        'add_to_address_book': {'cost': 1},
                         'cancel_transfer_by_id': {'cost': 1},
                         'cancel_withdrawal': {'cost': 1},
                         'create_deposit_address': {'cost': 1},
+                        'get_address_book': {'cost': 1},
                         'get_current_deposit_address': {'cost': 1},
                         'get_deposits': {'cost': 1},
+                        'get_reward_eligibility': {'cost': 1},
                         'get_transfers': {'cost': 1},
                         'get_withdrawals': {'cost': 1},
+                        'remove_from_address_book': {'cost': 1},
+                        'set_clearance_originator': {'cost': 1},
                         'submit_transfer_to_subaccount': {'cost': 1},
                         'submit_transfer_to_user': {'cost': 1},
+                        'update_in_address_book': {'cost': 1},
                         'withdraw': {'cost': 1},
                     },
                 },
@@ -404,16 +429,16 @@ class deribit(Exchange, ImplicitAPI):
                 '10019': PermissionDenied,  # 'locked_by_admin' Trading is temporary locked by admin.
                 '10020': ExchangeError,  # 'invalid_or_unsupported_instrument' Instrument name is not valid.
                 '10021': InvalidOrder,  # 'invalid_amount' Amount is not valid.
-                '10022': InvalidOrder,  # 'invalid_quantity' quantity was not recognized valid number(for API v1).
-                '10023': InvalidOrder,  # 'invalid_price' price was not recognized valid number.
-                '10024': InvalidOrder,  # 'invalid_max_show' max_show parameter was not recognized valid number.
-                '10025': InvalidOrder,  # 'invalid_order_id' Order id is missing or its format was not recognized.
+                '10022': InvalidOrder,  # 'invalid_quantity' quantity was not recognized as a valid number (for API v1).
+                '10023': InvalidOrder,  # 'invalid_price' price was not recognized as a valid number.
+                '10024': InvalidOrder,  # 'invalid_max_show' max_show parameter was not recognized as a valid number.
+                '10025': InvalidOrder,  # 'invalid_order_id' Order id is missing or its format was not recognized as valid.
                 '10026': InvalidOrder,  # 'price_precision_exceeded' Extra precision of the price is not supported.
-                '10027': InvalidOrder,  # 'non_integer_contract_amount' Futures contract amount was not recognized.
+                '10027': InvalidOrder,  # 'non_integer_contract_amount' Futures contract amount was not recognized as integer.
                 '10028': DDoSProtection,  # 'too_many_requests' Allowed request rate has been exceeded.
                 '10029': OrderNotFound,  # 'not_owner_of_order' Attempt to operate with not own order.
                 '10030': ExchangeError,  # 'must_be_websocket_request' REST request where Websocket is expected.
-                '10031': ExchangeError,  # 'invalid_args_for_instrument' Some of arguments are not recognized.
+                '10031': ExchangeError,  # 'invalid_args_for_instrument' Some of arguments are not recognized as valid.
                 '10032': InvalidOrder,  # 'whole_cost_too_low' Total cost is too low.
                 '10033': NotSupported,  # 'not_implemented' Method is not implemented yet.
                 '10034': InvalidOrder,  # 'stop_price_too_high' Stop price is too high.
@@ -426,13 +451,13 @@ class deribit(Exchange, ImplicitAPI):
                 '10045': InvalidOrder,  # 'can_not_cancel_liquidation_order' Liquidation order can't be canceled.
                 '10046': InvalidOrder,  # 'can_not_edit_liquidation_order' Liquidation order can't be edited.
                 '10047': DDoSProtection,  # 'matching_engine_queue_full' Reached limit of pending Matching Engine requests for user.
-                '10048': ExchangeError,  # 'not_on_self_server' The requested operation is not available on self server.
+                '10048': ExchangeError,  # 'not_on_this_server' The requested operation is not available on this server.
                 '11008': InvalidOrder,  # 'already_filled' This request is not allowed in regards to the filled order.
                 '11029': BadRequest,  # 'invalid_arguments' Some invalid input has been detected.
-                '11030': ExchangeError,  # 'other_reject <Reason>' Some rejects which are not considered often, more info may be specified in <Reason>.
-                '11031': ExchangeError,  # 'other_error <Error>' Some errors which are not considered often, more info may be specified in <Error>.
+                '11030': ExchangeError,  # 'other_reject <Reason>' Some rejects which are not considered as very often, more info may be specified in <Reason>.
+                '11031': ExchangeError,  # 'other_error <Error>' Some errors which are not considered as very often, more info may be specified in <Error>.
                 '11035': DDoSProtection,  # 'no_more_stops <Limit>' Allowed amount of stop orders has been exceeded.
-                '11036': InvalidOrder,  # 'invalid_stoppx_for_index_or_last' Invalid StopPx(too high or too low) current index or market.
+                '11036': InvalidOrder,  # 'invalid_stoppx_for_index_or_last' Invalid StopPx (too high or too low) as to current index or market.
                 '11037': BadRequest,  # 'outdated_instrument_for_IV_order' Instrument already not available for trading.
                 '11038': InvalidOrder,  # 'no_adv_for_futures' Advanced orders are not available for futures.
                 '11039': InvalidOrder,  # 'no_adv_postonly' Advanced post-only orders are not supported yet.
@@ -447,7 +472,7 @@ class deribit(Exchange, ImplicitAPI):
                 '11049': BadRequest,  # 'bad_arguments' Several bad arguments have been passed.
                 '11050': BadRequest,  # 'bad_request' Request has not been parsed properly.
                 '11051': OnMaintenance,  # 'system_maintenance' System is under maintenance.
-                '11052': ExchangeError,  # 'subscribe_error_unsubscribed' Subscription error. However, subscription may fail without self error, please check list of subscribed channels returned, channels can be not subscribed due to wrong input or lack of permissions.
+                '11052': ExchangeError,  # 'subscribe_error_unsubscribed' Subscription error. However, subscription may fail without this error, please check list of subscribed channels returned, as some channels can be not subscribed due to wrong input or lack of permissions.
                 '11053': ExchangeError,  # 'transfer_not_found' Specified transfer is not found.
                 '11090': InvalidAddress,  # 'invalid_addr' Invalid address.
                 '11091': InvalidAddress,  # 'invalid_transfer_address' Invalid addres for the transfer.
@@ -458,14 +483,14 @@ class deribit(Exchange, ImplicitAPI):
                 '11096': ExchangeError,  # 'address_belongs_to_user' Withdrawal instead of transfer.
                 '12000': AuthenticationError,  # 'bad_tfa' Wrong TFA code
                 '12001': DDoSProtection,  # 'too_many_subaccounts' Limit of subbacounts is reached.
-                '12002': ExchangeError,  # 'wrong_subaccount_name' The input is not allowed of subaccount.
+                '12002': ExchangeError,  # 'wrong_subaccount_name' The input is not allowed as name of subaccount.
                 '12998': AuthenticationError,  # 'tfa_over_limit' The number of failed TFA attempts is limited.
                 '12003': AuthenticationError,  # 'login_over_limit' The number of failed login attempts is limited.
                 '12004': AuthenticationError,  # 'registration_over_limit' The number of registration requests is limited.
-                '12005': AuthenticationError,  # 'country_is_banned' The country is banned(possibly via IP check).
+                '12005': AuthenticationError,  # 'country_is_banned' The country is banned (possibly via IP check).
                 '12100': ExchangeError,  # 'transfer_not_allowed' Transfer is not allowed. Possible wrong direction or other mistake.
                 '12999': AuthenticationError,  # 'tfa_used' TFA code is correct but it is already used. Please, use next code.
-                '13000': AuthenticationError,  # 'invalid_login' Login name is invalid(not allowed or it contains wrong characters).
+                '13000': AuthenticationError,  # 'invalid_login' Login name is invalid (not allowed or it contains wrong characters).
                 '13001': AuthenticationError,  # 'account_not_activated' Account must be activated.
                 '13002': PermissionDenied,  # 'account_blocked' Account is blocked by admin.
                 '13003': AuthenticationError,  # 'tfa_required' This action requires TFA authentication.
@@ -608,7 +633,7 @@ class deribit(Exchange, ImplicitAPI):
         #         "usIn": 1583922446019955,
         #         "usOut": 1583922446019956,
         #         "usDiff": 1,
-        #         "testnet": False
+        #         "testnet": false
         #     }
         #
         return self.safe_integer(response, 'result')
@@ -638,13 +663,13 @@ class deribit(Exchange, ImplicitAPI):
         #                "withdrawal_priorities": [],
         #                "min_confirmations": "1",
         #                "currency_long": "XRP",
-        #                "in_cross_collateral_pool": False
+        #                "in_cross_collateral_pool": false
         #            },
         #        ],
         #        "usIn": "1760110326693923",
         #        "usOut": "1760110326944891",
         #        "usDiff": "250968",
-        #        "testnet": False
+        #        "testnet": false
         #    }
         #
         data = self.safe_list(response, 'result', [])
@@ -701,12 +726,12 @@ class deribit(Exchange, ImplicitAPI):
         #     {
         #         "jsonrpc": "2.0",
         #         "result": {
-        #             "locked": "false"  # True, partial, False
+        #             "locked": "false" // true, partial, false
         #         },
         #         "usIn": 1650641690226788,
         #         "usOut": 1650641690226836,
         #         "usDiff": 48,
-        #         "testnet": False
+        #         "testnet": false
         #     }
         #
         result = self.safe_value(response, 'result')
@@ -739,11 +764,11 @@ class deribit(Exchange, ImplicitAPI):
         #                 "username": "someusername",
         #                 "type": "main",
         #                 "system_name": "someusername",
-        #                 "security_keys_enabled": False,
+        #                 "security_keys_enabled": false,
         #                 "security_keys_assignments": [],
-        #                 "receive_notifications": False,
-        #                 "login_enabled": True,
-        #                 "is_password": True,
+        #                 "receive_notifications": false,
+        #                 "login_enabled": true,
+        #                 "is_password": true,
         #                 "id": "238216",
         #                 "email": "pablo@abcdef.com"
         #             },
@@ -751,11 +776,11 @@ class deribit(Exchange, ImplicitAPI):
         #                 "username": "someusername_1",
         #                 "type": "subaccount",
         #                 "system_name": "someusername_1",
-        #                 "security_keys_enabled": False,
+        #                 "security_keys_enabled": false,
         #                 "security_keys_assignments": [],
-        #                 "receive_notifications": False,
-        #                 "login_enabled": False,
-        #                 "is_password": False,
+        #                 "receive_notifications": false,
+        #                 "login_enabled": false,
+        #                 "is_password": false,
         #                 "id": "245499",
         #                 "email": "pablo@abcdef.com"
         #             }
@@ -763,7 +788,7 @@ class deribit(Exchange, ImplicitAPI):
         #         "usIn": "1652736468292006",
         #         "usOut": "1652736468292377",
         #         "usDiff": "371",
-        #         "testnet": False
+        #         "testnet": false
         #     }
         #
         result = self.safe_value(response, 'result', [])
@@ -775,11 +800,11 @@ class deribit(Exchange, ImplicitAPI):
         #          "username": "someusername_1",
         #          "type": "subaccount",
         #          "system_name": "someusername_1",
-        #          "security_keys_enabled": False,
+        #          "security_keys_enabled": false,
         #          "security_keys_assignments": [],
-        #          "receive_notifications": False,
-        #          "login_enabled": False,
-        #          "is_password": False,
+        #          "receive_notifications": false,
+        #          "login_enabled": false,
+        #          "is_password": false,
         #          "id": "245499",
         #          "email": "pablo@abcdef.com"
         #      }
@@ -817,8 +842,8 @@ class deribit(Exchange, ImplicitAPI):
             #         "result": [
             #             {
             #                 "withdrawal_priorities": [
-            #                     {value: 0.15, name: "very_low"},
-            #                     {value: 1.5, name: "very_high"},
+            #                     { value: 0.15, name: "very_low" },
+            #                     { value: 1.5, name: "very_high" },
             #                 ],
             #                 "withdrawal_fee": 0.0005,
             #                 "min_withdrawal_fee": 0.0005,
@@ -832,10 +857,10 @@ class deribit(Exchange, ImplicitAPI):
             #         "usIn": 1583761588590479,
             #         "usOut": 1583761588590544,
             #         "usDiff": 65,
-            #         "testnet": False
+            #         "testnet": false
             #     }
             #
-            currenciesResult = self.safe_value(currenciesResponse, 'result', [])
+            currenciesResult = self.safe_list(currenciesResponse, 'result', [])
             for i in range(0, len(currenciesResult)):
                 currencyId = self.safe_string(currenciesResult[i], 'currency')
                 request = {
@@ -853,7 +878,7 @@ class deribit(Exchange, ImplicitAPI):
                 #                 "settlement_period":"month",
                 #                 "settlement_currency":"BTC",
                 #                 "quote_currency":"BTC",
-                #                 "option_type":"put",  # put, call
+                #                 "option_type":"put", // put, call
                 #                 "min_trade_amount":0.1,
                 #                 "maker_commission":0.0003,
                 #                 "kind":"option",
@@ -869,7 +894,7 @@ class deribit(Exchange, ImplicitAPI):
                 #             {
                 #                 "tick_size":0.5,
                 #                 "taker_commission":0.0005,
-                #                 "settlement_period":"month",  # month, week
+                #                 "settlement_period":"month", // month, week
                 #                 "settlement_currency":"BTC",
                 #                 "quote_currency":"USD",
                 #                 "min_trade_amount":10.0,
@@ -917,7 +942,7 @@ class deribit(Exchange, ImplicitAPI):
                 #
                 instrumentsResponses.append(instrumentsResponse)
         for i in range(0, len(instrumentsResponses)):
-            instrumentsResult = self.safe_value(instrumentsResponses[i], 'result', [])
+            instrumentsResult = self.safe_list(instrumentsResponses[i], 'result', [])
             for k in range(0, len(instrumentsResult)):
                 market = instrumentsResult[k]
                 kind = self.safe_string(market, 'kind')
@@ -1079,7 +1104,7 @@ class deribit(Exchange, ImplicitAPI):
         #             "session_upl": 0,
         #             "session_rpl": 0,
         #             "session_funding": 0,
-        #             "portfolio_margining_enabled": False,
+        #             "portfolio_margining_enabled": false,
         #             "options_vega": 0,
         #             "options_theta": 0,
         #             "options_session_upl": 0,
@@ -1110,7 +1135,7 @@ class deribit(Exchange, ImplicitAPI):
         #         "usIn": 1583775838115975,
         #         "usOut": 1583775838116520,
         #         "usDiff": 545,
-        #         "testnet": False
+        #         "testnet": false
         #     }
         #
         result = self.safe_dict(response, 'result', {})
@@ -1179,7 +1204,7 @@ class deribit(Exchange, ImplicitAPI):
         #         "result": {
         #             "type": "deposit",
         #             "status": "ready",
-        #             "requires_confirmation": True,
+        #             "requires_confirmation": true,
         #             "currency": "BTC",
         #             "creation_timestamp": 1514694684651,
         #             "address": "13tUtNsJSZa1F5GeCmwBywVrymHpZispzw"
@@ -1187,7 +1212,7 @@ class deribit(Exchange, ImplicitAPI):
         #         "usIn": 1583785137274288,
         #         "usOut": 1583785137274454,
         #         "usDiff": 166,
-        #         "testnet": False
+        #         "testnet": false
         #     }
         #
         result = self.safe_value(response, 'result', {})
@@ -1207,7 +1232,7 @@ class deribit(Exchange, ImplicitAPI):
         #
         #     {
         #         "timestamp": 1583778859480,
-        #         "stats": {volume: 60627.57263769, low: 7631.5, high: 8311.5},
+        #         "stats": { volume: 60627.57263769, low: 7631.5, high: 8311.5 },
         #         "state": "open",
         #         "settlement_price": 7903.21,
         #         "open_interest": 111543850,
@@ -1300,7 +1325,7 @@ class deribit(Exchange, ImplicitAPI):
         #         "jsonrpc": "2.0",
         #         "result": {
         #             "timestamp": 1583778859480,
-        #             "stats": {volume: 60627.57263769, low: 7631.5, high: 8311.5},
+        #             "stats": { volume: 60627.57263769, low: 7631.5, high: 8311.5 },
         #             "state": "open",
         #             "settlement_price": 7903.21,
         #             "open_interest": 111543850,
@@ -1320,7 +1345,7 @@ class deribit(Exchange, ImplicitAPI):
         #         "usIn": 1583778859483941,
         #         "usOut": 1583778859484075,
         #         "usDiff": 134,
-        #         "testnet": False
+        #         "testnet": false
         #     }
         #
         result = self.safe_dict(response, 'result', {})
@@ -1352,7 +1377,7 @@ class deribit(Exchange, ImplicitAPI):
                     code = market['base']
                     type = market['type']
         if code is None:
-            raise ArgumentsRequired(self.id + ' fetchTickers requires a currency/code(eg: BTC/ETH/USDT) parameter to fetch tickers for')
+            raise ArgumentsRequired(self.id + ' fetchTickers requires a currency/code (eg: BTC/ETH/USDT) parameter to fetch tickers for')
         currency = self.currency(code)
         request = {
             'currency': currency['id'],
@@ -1395,7 +1420,7 @@ class deribit(Exchange, ImplicitAPI):
         #         "usIn": 1583783678361966,
         #         "usOut": 1583783678372069,
         #         "usDiff": 10103,
-        #         "testnet": False
+        #         "testnet": false
         #     }
         #
         result = self.safe_list(response, 'result', [])
@@ -1420,7 +1445,7 @@ class deribit(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.paginate]: whether to paginate the results, set to False by default
         :param int [params.until]: the latest time in ms to fetch ohlcv for
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             self.load_markets()
@@ -1456,19 +1481,19 @@ class deribit(Exchange, ImplicitAPI):
         #     {
         #         "jsonrpc": "2.0",
         #         "result": {
-        #             "volume": [3.6680847969999992, 22.682721123, 3.011587939, 0],
-        #             "ticks": [1583916960000, 1583917020000, 1583917080000, 1583917140000],
+        #             "volume": [ 3.6680847969999992, 22.682721123, 3.011587939, 0 ],
+        #             "ticks": [ 1583916960000, 1583917020000, 1583917080000, 1583917140000 ],
         #             "status": "ok",
-        #             "open": [7834, 7839, 7833.5, 7833],
-        #             "low": [7834, 7833.5, 7832.5, 7833],
-        #             "high": [7839.5, 7839, 7833.5, 7833],
-        #             "cost": [28740, 177740, 23590, 0],
-        #             "close": [7839.5, 7833.5, 7833, 7833]
+        #             "open": [ 7834, 7839, 7833.5, 7833 ],
+        #             "low": [ 7834, 7833.5, 7832.5, 7833 ],
+        #             "high": [ 7839.5, 7839, 7833.5, 7833 ],
+        #             "cost": [ 28740, 177740, 23590, 0 ],
+        #             "close": [ 7839.5, 7833.5, 7833, 7833 ]
         #         },
         #         "usIn": 1583917166709801,
         #         "usOut": 1583917166710175,
         #         "usDiff": 374,
-        #         "testnet": False
+        #         "testnet": false
         #     }
         #
         result = self.safe_value(response, 'result', {})
@@ -1477,7 +1502,7 @@ class deribit(Exchange, ImplicitAPI):
 
     def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #
-        # fetchTrades(public)
+        # fetchTrades (public)
         #
         #      {
         #          "trade_seq":132564271,
@@ -1493,7 +1518,7 @@ class deribit(Exchange, ImplicitAPI):
         #      }
         #
         #
-        # fetchMyTrades, fetchOrderTrades(private)
+        # fetchMyTrades, fetchOrderTrades (private)
         #
         #     {
         #         "trade_seq": 3,
@@ -1501,10 +1526,10 @@ class deribit(Exchange, ImplicitAPI):
         #         "timestamp": 1550219814585,
         #         "tick_direction": 1,
         #         "state": "open",
-        #         "self_trade": False,
-        #         "reduce_only": False,
+        #         "self_trade": false,
+        #         "reduce_only": false,
         #         "price": 0.04,
-        #         "post_only": False,
+        #         "post_only": false,
         #         "order_type": "limit",
         #         "order_id": "ETH-334607",
         #         "matching_id": null,
@@ -1650,7 +1675,7 @@ class deribit(Exchange, ImplicitAPI):
         #             "session_upl": 0,
         #             "session_rpl": 0,
         #             "session_funding": 0,
-        #             "portfolio_margining_enabled": False,
+        #             "portfolio_margining_enabled": false,
         #             "options_vega": 0,
         #             "options_theta": 0,
         #             "options_session_upl": 0,
@@ -1688,11 +1713,11 @@ class deribit(Exchange, ImplicitAPI):
         #         "usIn": 1583775838115975,
         #         "usOut": 1583775838116520,
         #         "usDiff": 545,
-        #         "testnet": False
+        #         "testnet": false
         #     }
         #
         result = self.safe_value(response, 'result', {})
-        fees = self.safe_value(result, 'fees', [])
+        fees = self.safe_list(result, 'fees', [])
         perpetualFee = {}
         futureFee = {}
         optionFee = {}
@@ -1764,7 +1789,7 @@ class deribit(Exchange, ImplicitAPI):
         #         "jsonrpc": "2.0",
         #         "result": {
         #             "timestamp": 1583781354740,
-        #             "stats": {volume: 61249.66735634, low: 7631.5, high: 8311.5},
+        #             "stats": { volume: 61249.66735634, low: 7631.5, high: 8311.5 },
         #             "state": "open",
         #             "settlement_price": 7903.21,
         #             "open_interest": 111536690,
@@ -1795,7 +1820,7 @@ class deribit(Exchange, ImplicitAPI):
         #         "usIn": 1583781354745804,
         #         "usOut": 1583781354745932,
         #         "usDiff": 128,
-        #         "testnet": False
+        #         "testnet": false
         #     }
         #
         result = self.safe_value(response, 'result', {})
@@ -1838,26 +1863,26 @@ class deribit(Exchange, ImplicitAPI):
         #
         #     {
         #         "time_in_force": "good_til_cancelled",
-        #         "reduce_only": False,
+        #         "reduce_only": false,
         #         "profit_loss": 0,
         #         "price": "market_price",
-        #         "post_only": False,
+        #         "post_only": false,
         #         "order_type": "market",
         #         "order_state": "filled",
         #         "order_id": "ETH-349249",
         #         "max_show": 40,
         #         "last_update_timestamp": 1550657341322,
         #         "label": "market0000234",
-        #         "is_liquidation": False,
+        #         "is_liquidation": false,
         #         "instrument_name": "ETH-PERPETUAL",
         #         "filled_amount": 40,
         #         "direction": "buy",
         #         "creation_timestamp": 1550657341322,
         #         "commission": 0.000139,
         #         "average_price": 143.81,
-        #         "api": True,
+        #         "api": true,
         #         "amount": 40,
-        #         "trades": [],  # injected by createOrder
+        #         "trades": [], // injected by createOrder
         #     }
         #
         marketId = self.safe_string(order, 'instrument_name')
@@ -1948,24 +1973,24 @@ class deribit(Exchange, ImplicitAPI):
         #         "id": 4316,
         #         "result": {
         #             "time_in_force": "good_til_cancelled",
-        #             "reduce_only": False,
+        #             "reduce_only": false,
         #             "profit_loss": 0.051134,
         #             "price": 118.94,
-        #             "post_only": False,
+        #             "post_only": false,
         #             "order_type": "limit",
         #             "order_state": "filled",
         #             "order_id": "ETH-331562",
         #             "max_show": 37,
         #             "last_update_timestamp": 1550219810944,
         #             "label": "",
-        #             "is_liquidation": False,
+        #             "is_liquidation": false,
         #             "instrument_name": "ETH-PERPETUAL",
         #             "filled_amount": 37,
         #             "direction": "sell",
         #             "creation_timestamp": 1550219749176,
         #             "commission": 0.000031,
         #             "average_price": 118.94,
-        #             "api": False,
+        #             "api": false,
         #             "amount": 37
         #         }
         #     }
@@ -1997,16 +2022,16 @@ class deribit(Exchange, ImplicitAPI):
             'instrument_name': market['id'],
             'amount': self.amount_to_precision(symbol, amount),
             'type': type,  # limit, stop_limit, market, stop_market, default is limit
-            # 'label': 'string',  # user-defined label for the order(maximum 64 characters)
-            # 'price': self.price_to_precision(symbol, 123.45),  # only for limit and stop_limit orders
-            # 'time_in_force' : 'good_til_cancelled',  # fill_or_kill, immediate_or_cancel
-            # 'max_show': 123.45,  # max amount within an order to be shown to other customers, 0 for invisible order
-            # 'post_only': False,  # if the new price would cause the order to be filled immediately(as taker), the price will be changed to be just below the spread.
-            # 'reject_post_only': False,  # if True the order is put to order book unmodified or request is rejected
-            # 'reduce_only': False,  # if True, the order is intended to only reduce a current position
-            # 'stop_price': False,  # stop price, required for stop_limit orders
-            # 'trigger': 'index_price',  # mark_price, last_price, required for stop_limit orders
-            # 'advanced': 'usd',  # 'implv', advanced option order type, options only
+            # 'label': 'string', // user-defined label for the order (maximum 64 characters)
+            # 'price': this.priceToPrecision (symbol, 123.45), // only for limit and stop_limit orders
+            # 'time_in_force' : 'good_til_cancelled', // fill_or_kill, immediate_or_cancel
+            # 'max_show': 123.45, // max amount within an order to be shown to other customers, 0 for invisible order
+            # 'post_only': false, // if the new price would cause the order to be filled immediately (as taker), the price will be changed to be just below the spread.
+            # 'reject_post_only': false, // if true the order is put to order book unmodified or request is rejected
+            # 'reduce_only': false, // if true, the order is intended to only reduce a current position
+            # 'stop_price': false, // stop price, required for stop_limit orders
+            # 'trigger': 'index_price', // mark_price, last_price, required for stop_limit orders
+            # 'advanced': 'usd', // 'implv', advanced option order type, options only
         }
         trigger = self.safe_string(params, 'trigger', 'last_price')
         timeInForce = self.safe_string_upper(params, 'timeInForce')
@@ -2024,7 +2049,7 @@ class deribit(Exchange, ImplicitAPI):
         isStopLossOrder = isStopLimit or isStopMarket or (stopLossPrice is not None)
         isTakeProfitOrder = isTakeLimit or isTakeMarket or (takeProfitPrice is not None)
         if isStopLossOrder and isTakeProfitOrder:
-            raise InvalidOrder(self.id + ' createOrder() only allows one of stopLossPrice or takeProfitPrice to be specified')
+            raise InvalidOrder(self.id + ' createOrder () only allows one of stopLossPrice or takeProfitPrice to be specified')
         isStopOrder = isStopLossOrder or isTakeProfitOrder
         isLimitOrder = (type == 'limit') or isStopLimit or isTakeLimit
         isMarketOrder = (type == 'market') or isStopMarket or isTakeMarket
@@ -2045,17 +2070,17 @@ class deribit(Exchange, ImplicitAPI):
             request['trigger'] = trigger
             if isStopLossOrder:
                 if isMarketOrder:
-                    # stop_market(sell only)
+                    # stop_market (sell only)
                     request['type'] = 'stop_market'
                 else:
-                    # stop_limit(sell only)
+                    # stop_limit (sell only)
                     request['type'] = 'stop_limit'
             else:
                 if isMarketOrder:
-                    # take_market(buy only)
+                    # take_market (buy only)
                     request['type'] = 'take_market'
                 else:
-                    # take_limit(buy only)
+                    # take_limit (buy only)
                     request['type'] = 'take_limit'
         if reduceOnly is True:
             request['reduce_only'] = True
@@ -2087,7 +2112,7 @@ class deribit(Exchange, ImplicitAPI):
         #                     "timestamp": 1550657341322,
         #                     "tick_direction": 2,
         #                     "state": "closed",
-        #                     "self_trade": False,
+        #                     "self_trade": false,
         #                     "price": 143.81,
         #                     "order_type": "market",
         #                     "order_id": "ETH-349249",
@@ -2104,24 +2129,24 @@ class deribit(Exchange, ImplicitAPI):
         #             ],
         #             "order": {
         #                 "time_in_force": "good_til_cancelled",
-        #                 "reduce_only": False,
+        #                 "reduce_only": false,
         #                 "profit_loss": 0,
         #                 "price": "market_price",
-        #                 "post_only": False,
+        #                 "post_only": false,
         #                 "order_type": "market",
         #                 "order_state": "filled",
         #                 "order_id": "ETH-349249",
         #                 "max_show": 40,
         #                 "last_update_timestamp": 1550657341322,
         #                 "label": "market0000234",
-        #                 "is_liquidation": False,
+        #                 "is_liquidation": false,
         #                 "instrument_name": "ETH-PERPETUAL",
         #                 "filled_amount": 40,
         #                 "direction": "buy",
         #                 "creation_timestamp": 1550657341322,
         #                 "commission": 0.000139,
         #                 "average_price": 143.81,
-        #                 "api": True,
+        #                 "api": true,
         #                 "amount": 40
         #             }
         #         }
@@ -2156,11 +2181,11 @@ class deribit(Exchange, ImplicitAPI):
         request = {
             'order_id': id,
             'amount': self.amount_to_precision(symbol, amount),
-            # 'post_only': False,  # if the new price would cause the order to be filled immediately(as taker), the price will be changed to be just below the spread.
-            # 'reject_post_only': False,  # if True the order is put to order book unmodified or request is rejected
-            # 'reduce_only': False,  # if True, the order is intended to only reduce a current position
-            # 'stop_price': False,  # stop price, required for stop_limit orders
-            # 'advanced': 'usd',  # 'implv', advanced option order type, options only
+            # 'post_only': false, // if the new price would cause the order to be filled immediately (as taker), the price will be changed to be just below the spread.
+            # 'reject_post_only': false, // if true the order is put to order book unmodified or request is rejected
+            # 'reduce_only': false, // if true, the order is intended to only reduce a current position
+            # 'stop_price': false, // stop price, required for stop_limit orders
+            # 'advanced': 'usd', // 'implv', advanced option order type, options only
         }
         if price is not None:
             request['price'] = self.price_to_precision(symbol, price)
@@ -2224,7 +2249,7 @@ class deribit(Exchange, ImplicitAPI):
         #        usIn: '1720508354127369',
         #        usOut: '1720508354133603',
         #        usDiff: '6234',
-        #        testnet: True
+        #        testnet: true
         #    }
         #
         return [
@@ -2328,10 +2353,10 @@ class deribit(Exchange, ImplicitAPI):
         #                     "timestamp": 1550219814585,
         #                     "tick_direction": 1,
         #                     "state": "open",
-        #                     "self_trade": False,
-        #                     "reduce_only": False,
+        #                     "self_trade": false,
+        #                     "reduce_only": false,
         #                     "price": 0.04,
-        #                     "post_only": False,
+        #                     "post_only": false,
         #                     "order_type": "limit",
         #                     "order_id": "ETH-334607",
         #                     "matching_id": null,
@@ -2345,7 +2370,7 @@ class deribit(Exchange, ImplicitAPI):
         #                     "amount": 11
         #                 },
         #             ],
-        #             "has_more": True
+        #             "has_more": true
         #         }
         #     }
         #
@@ -2405,10 +2430,10 @@ class deribit(Exchange, ImplicitAPI):
         #                     "timestamp": 1550219814585,
         #                     "tick_direction": 1,
         #                     "state": "open",
-        #                     "self_trade": False,
-        #                     "reduce_only": False,
+        #                     "self_trade": false,
+        #                     "reduce_only": false,
         #                     "price": 0.04,
-        #                     "post_only": False,
+        #                     "post_only": false,
         #                     "order_type": "limit",
         #                     "order_id": "ETH-334607",
         #                     "matching_id": null,
@@ -2422,7 +2447,7 @@ class deribit(Exchange, ImplicitAPI):
         #                     "amount": 11
         #                 },
         #             ],
-        #             "has_more": True
+        #             "has_more": true
         #         }
         #     }
         #
@@ -2798,7 +2823,7 @@ class deribit(Exchange, ImplicitAPI):
         #         "usIn": 1641515379467734,
         #         "usOut": 1641515379468095,
         #         "usDiff": 361,
-        #         "testnet": False
+        #         "testnet": false
         #     }
         #
         return self.parse_volatility_history(response)
@@ -2815,10 +2840,10 @@ class deribit(Exchange, ImplicitAPI):
         #         "usIn": 1641515379467734,
         #         "usOut": 1641515379468095,
         #         "usDiff": 361,
-        #         "testnet": False
+        #         "testnet": false
         #     }
         #
-        volatilityResult = self.safe_value(volatility, 'result', [])
+        volatilityResult = self.safe_list(volatility, 'result', [])
         result = []
         for i in range(0, len(volatilityResult)):
             timestamp = self.safe_integer(volatilityResult[i], 0)
@@ -3005,8 +3030,8 @@ class deribit(Exchange, ImplicitAPI):
             'currency': currency['id'],
             'address': address,  # must be in the address book
             'amount': amount,
-            # 'priority': 'high',  # low, mid, high, very_high, extreme_high, insane
-            # 'tfa': '123456',  # if enabled
+            # 'priority': 'high', // low, mid, high, very_high, extreme_high, insane
+            # 'tfa': '123456', // if enabled
         }
         if self.twofa is not None:
             request['tfa'] = self.totp(self.twofa)
@@ -3071,7 +3096,7 @@ class deribit(Exchange, ImplicitAPI):
         #      "usIn": 1688652701456124,
         #      "usOut": 1688652701456390,
         #      "usDiff": 266,
-        #      "testnet": True
+        #      "testnet": true
         #    }
         #
         data = self.safe_list(response, 'result', [])
@@ -3176,7 +3201,7 @@ class deribit(Exchange, ImplicitAPI):
         #    }
         #
         rates = []
-        result = self.safe_value(response, 'result', [])
+        result = self.safe_list(response, 'result', [])
         for i in range(0, len(result)):
             fr = result[i]
             rate = self.parse_funding_rate(fr, market)
@@ -3278,7 +3303,7 @@ class deribit(Exchange, ImplicitAPI):
         #         "usIn": 1696652052254890,
         #         "usOut": 1696652052255733,
         #         "usDiff": 843,
-        #         "testnet": False
+        #         "testnet": false
         #     }
         #
         result = self.safe_value(response, 'result', {})
@@ -3348,7 +3373,7 @@ class deribit(Exchange, ImplicitAPI):
         #         "usIn": 1696652052254890,
         #         "usOut": 1696652052255733,
         #         "usDiff": 843,
-        #         "testnet": False
+        #         "testnet": false
         #     }
         #
         result = self.safe_value(response, 'result', {})
@@ -3441,7 +3466,7 @@ class deribit(Exchange, ImplicitAPI):
         #         "usIn": 1699578548308414,
         #         "usOut": 1699578548308606,
         #         "usDiff": 192,
-        #         "testnet": False
+        #         "testnet": false
         #     }
         #
         result = self.safe_value(response, 'result', {})
@@ -3559,7 +3584,7 @@ class deribit(Exchange, ImplicitAPI):
         #         "usIn": 1711100949273223,
         #         "usOut": 1711100949273580,
         #         "usDiff": 357,
-        #         "testnet": False
+        #         "testnet": false
         #     }
         #
         result = self.safe_list(response, 'result', [])
@@ -3613,7 +3638,7 @@ class deribit(Exchange, ImplicitAPI):
         #         "usIn": 1711101594456388,
         #         "usOut": 1711101594484065,
         #         "usDiff": 27677,
-        #         "testnet": False
+        #         "testnet": false
         #     }
         #
         result = self.safe_list(response, 'result', [])
@@ -3716,7 +3741,7 @@ class deribit(Exchange, ImplicitAPI):
         #         "usIn": 1763674177068845,
         #         "usOut": 1763674177068996,
         #         "usDiff": 151,
-        #         "testnet": True
+        #         "testnet": true
         #     }
         #
         result = self.safe_list(response, 'result', [])
@@ -3798,10 +3823,10 @@ class deribit(Exchange, ImplicitAPI):
         #         "jsonrpc": "2.0",
         #         "error": {
         #             "message": "Invalid params",
-        #             "data": {reason: "invalid currency", param: "currency"},
+        #             "data": { reason: "invalid currency", param: "currency" },
         #             "code": -32602
         #         },
-        #         "testnet": False,
+        #         "testnet": false,
         #         "usIn": 1583763842150374,
         #         "usOut": 1583763842150410,
         #         "usDiff": 36

@@ -399,7 +399,7 @@ class bitrue(Exchange, ImplicitAPI):
                 'fetchMarkets': {
                     'types': ['spot', 'linear', 'inverse'],
                 },
-                # 'fetchTradesMethod': 'publicGetAggTrades',  # publicGetTrades, publicGetHistoricalTrades
+                # 'fetchTradesMethod': 'publicGetAggTrades', // publicGetTrades, publicGetHistoricalTrades
                 'fetchMyTradesMethod': 'v2PrivateGetMyTrades',  # spotV1PrivateGetMyTrades
                 'hasAlreadyAuthenticatedSuccessfully': False,
                 'currencyToPrecisionRoundingMode': TRUNCATE,
@@ -409,7 +409,7 @@ class bitrue(Exchange, ImplicitAPI):
                 'parseOrderToPrecision': False,  # force amounts and costs in parseOrder to precision
                 'newOrderRespType': {
                     'market': 'FULL',  # 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
-                    'limit': 'FULL',  # we change it from 'ACK' by default to 'FULL'(returns immediately if limit is not hit)
+                    'limit': 'FULL',  # we change it from 'ACK' by default to 'FULL' (returns immediately if limit is not hit)
                 },
                 'networks': {
                     'ERC20': 'ETH',
@@ -607,7 +607,7 @@ class bitrue(Exchange, ImplicitAPI):
                 'exact': {
                     'System is under maintenance.': OnMaintenance,  # {"code":1,"msg":"System is under maintenance."}
                     'System abnormality': ExchangeError,  # {"code":-1000,"msg":"System abnormality"}
-                    'You are not authorized to execute self request.': PermissionDenied,  # {"msg":"You are not authorized to execute self request."}
+                    'You are not authorized to execute self request.': PermissionDenied,  # {"msg":"You are not authorized to execute this request."}
                     'API key does not exist': AuthenticationError,
                     'Order would trigger immediately.': OrderImmediatelyFillable,
                     'Stop price would trigger immediately.': OrderImmediatelyFillable,  # {"code":-2010,"msg":"Stop price would trigger immediately."}
@@ -620,22 +620,22 @@ class bitrue(Exchange, ImplicitAPI):
                     'quantity less then minQty': InvalidOrder,  # {"code":-1111,"msg":"quantity less then minQty.","data":null}
                     '-1000': ExchangeNotAvailable,  # {"code":-1000,"msg":"An unknown error occured while processing the request."}
                     '-1001': ExchangeNotAvailable,  # 'Internal error; unable to process your request. Please try again.'
-                    '-1002': AuthenticationError,  # 'You are not authorized to execute self request.'
+                    '-1002': AuthenticationError,  # 'You are not authorized to execute this request.'
                     '-1003': RateLimitExceeded,  # {"code":-1003,"msg":"Too much request weight used, current limit is 1200 request weight per 1 MINUTE. Please use the websocket for live updates to avoid polling the API."}
                     '-1013': InvalidOrder,  # createOrder -> 'invalid quantity'/'invalid price'/MIN_NOTIONAL
                     '-1015': RateLimitExceeded,  # 'Too many new orders; current limit is %s orders per %s.'
                     '-1016': ExchangeNotAvailable,  # 'This service is no longer available.',
                     '-1020': BadRequest,  # 'This operation is not supported.'
                     '-1021': InvalidNonce,  # 'your time is ahead of server'
-                    '-1022': AuthenticationError,  # {"code":-1022,"msg":"Signature for self request is not valid."}
+                    '-1022': AuthenticationError,  # {"code":-1022,"msg":"Signature for this request is not valid."}
                     '-1100': BadRequest,  # createOrder(symbol, 1, asdf) -> 'Illegal characters found in parameter 'price'
                     '-1101': BadRequest,  # Too many parameters; expected %s and received %s.
-                    '-1102': BadRequest,  # Param %s or %s must be sent, but both were empty  # {"code":-1102,"msg":"timestamp IllegalArgumentException.","data":null}
+                    '-1102': BadRequest,  # Param %s or %s must be sent, but both were empty // {"code":-1102,"msg":"timestamp IllegalArgumentException.","data":null}
                     '-1103': BadRequest,  # An unknown parameter was sent.
                     '-1104': BadRequest,  # Not all sent parameters were read, read 8 parameters but was sent 9
                     '-1105': BadRequest,  # Parameter %s was empty.
                     '-1106': BadRequest,  # Parameter %s sent when not required.
-                    '-1111': BadRequest,  # Precision is over the maximum defined for self asset.
+                    '-1111': BadRequest,  # Precision is over the maximum defined for this asset.
                     '-1112': InvalidOrder,  # No orders on book for symbol.
                     '-1114': BadRequest,  # TimeInForce parameter sent when not required.
                     '-1115': BadRequest,  # Invalid timeInForce.
@@ -656,8 +656,8 @@ class bitrue(Exchange, ImplicitAPI):
                     '-2008': AuthenticationError,  # {"code":-2008,"msg":"Invalid Api-Key ID."}
                     '-2010': ExchangeError,  # generic error code for createOrder -> 'Account has insufficient balance for requested action.', {"code":-2010,"msg":"Rest API trading is not enabled."}, etc...
                     '-2011': OrderNotFound,  # cancelOrder(1, 'BTC/USDT') -> 'UNKNOWN_ORDER'
-                    '-2013': OrderNotFound,  # fetchOrder(1, 'BTC/USDT') -> 'Order does not exist'
-                    '-2014': AuthenticationError,  # {"code":-2014, "msg": "API-key format invalid."}
+                    '-2013': OrderNotFound,  # fetchOrder (1, 'BTC/USDT') -> 'Order does not exist'
+                    '-2014': AuthenticationError,  # { "code":-2014, "msg": "API-key format invalid." }
                     '-2015': AuthenticationError,  # "Invalid API-key, IP, or permissions for action."
                     '-2017': InsufficientFunds,  # {code":"-2017","msg":"Insufficient balance","data":null}
                     '-2019': InsufficientFunds,  # {"code":-2019,"msg":"Margin is insufficient."}
@@ -766,12 +766,12 @@ class bitrue(Exchange, ImplicitAPI):
         #           {
         #               "coin": "near",
         #               "coinFulName": "NEAR Protocol",
-        #               "chains": ["BEP20",],
+        #               "chains": [ "BEP20", ],
         #               "chainDetail": [
         #                 {
         #                     "chain": "BEP20",
-        #                     "enableWithdraw": True,
-        #                     "enableDeposit": False,
+        #                     "enableWithdraw": true,
+        #                     "enableDeposit": false,
         #                     "withdrawFee": "0.2000",
         #                     "minWithdraw": "5.0000",
         #                     "maxWithdraw": "1000000000000000.0000",
@@ -923,7 +923,7 @@ class bitrue(Exchange, ImplicitAPI):
         #           "multiplier": 6,
         #           "minOrderVolume": 1,
         #           "maxMarketMoney": 10000000,
-        #           "type": "H",  # E: perpetual contract, S: test contract, others are mixed contract
+        #           "type": "H", // E: perpetual contract, S: test contract, others are mixed contract
         #           "maxLimitVolume": 1000000,
         #           "maxValidOrder": 20,
         #           "multiplierCoin": "HT",
@@ -940,7 +940,7 @@ class bitrue(Exchange, ImplicitAPI):
     def parse_market(self, market: dict) -> Market:
         id = self.safe_string(market, 'symbol', '')
         lowercaseId = self.safe_string_lower(market, 'symbol')
-        side = self.safe_integer(market, 'side')  # 1 linear, 0 inverse, None spot
+        side = self.safe_integer(market, 'side')  # 1 linear, 0 inverse, undefined spot
         type = 'spot'
         isLinear = None
         isInverse = None
@@ -1088,7 +1088,7 @@ class bitrue(Exchange, ImplicitAPI):
             'info': response,
         }
         timestamp = self.safe_integer(response, 'updateTime')
-        balances = self.safe_value_2(response, 'balances', 'account', [])
+        balances = self.safe_list_2(response, 'balances', 'account', [])
         for i in range(0, len(balances)):
             balance = balances[i]
             currencyId = self.safe_string_2(balance, 'asset', 'marginCoin')
@@ -1436,7 +1436,7 @@ class bitrue(Exchange, ImplicitAPI):
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: the latest time in ms to fetch transfers for
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()
@@ -1686,7 +1686,7 @@ class bitrue(Exchange, ImplicitAPI):
         tickers = {}
         for i in range(0, len(data)):
             ticker = self.safe_dict(data, i, {})
-            # skip entries without a symbol: an None market id would become a null
+            # skip entries without a symbol: an undefined market id would become a null
             # dictionary key here, which crashes fetchTickers in the C# build
             marketId = self.safe_string(ticker, 'symbol')
             if marketId is None:
@@ -1703,9 +1703,9 @@ class bitrue(Exchange, ImplicitAPI):
         #         "id": 28457,
         #         "price": "4.00000100",
         #         "qty": "12.00000000",
-        #         "time": 1499865549590,  # Actual timestamp of trade
-        #         "isBuyerMaker": True,
-        #         "isBestMatch": True
+        #         "time": 1499865549590,  // Actual timestamp of trade
+        #         "isBuyerMaker": true,
+        #         "isBestMatch": true
         #     }
         #
         # fetchTrades - spot
@@ -1757,7 +1757,7 @@ class bitrue(Exchange, ImplicitAPI):
         if buyerMaker is not None:
             side = 'sell' if buyerMaker else 'buy'
         if isBuyer is not None:
-            side = 'buy' if isBuyer else 'sell'  # self is a True side
+            side = 'buy' if isBuyer else 'sell'  # this is a true side
         fee = None
         if 'commission' in trade:
             fee = {
@@ -1803,7 +1803,7 @@ class bitrue(Exchange, ImplicitAPI):
         if market['spot'] is True:
             request = {
                 'symbol': market['id'],
-                # 'limit': 100,  # default 100, max = 1000
+                # 'limit': 100, // default 100, max = 1000
             }
             if limit is not None:
                 request['limit'] = limit  # default 100, max 1000
@@ -1819,8 +1819,8 @@ class bitrue(Exchange, ImplicitAPI):
         #             "price": "4.00000100",
         #             "qty": "12.00000000",
         #             "time": 1499865549590,
-        #             "isBuyerMaker": True,
-        #             "isBestMatch": True
+        #             "isBuyerMaker": true,
+        #             "isBestMatch": true
         #         }
         #     ]
         #
@@ -1916,7 +1916,7 @@ class bitrue(Exchange, ImplicitAPI):
         amount = self.safe_string(order, 'origQty')
         # - Spot/Margin market: cummulativeQuoteQty
         # - Futures market: cumQuote.
-        #   Note self is not the actual cost, since the exchange uses leverage to calculate margins.
+        #   Note this is not the actual cost, since the exchange uses leverage to calculate margins.
         cost = self.safe_string_2(order, 'cummulativeQuoteQty', 'cumQuote')
         id = self.safe_string(order, 'orderId')
         type = self.safe_string_lower(order, 'type')
@@ -1994,7 +1994,7 @@ class bitrue(Exchange, ImplicitAPI):
  EXCHANGE SPECIFIC PARAMETERS
         :param decimal [params.icebergQty]:
         :param long [params.recvWindow]:
-        :param float [params.cost]: *swap market buy only* the quote quantity that can be used alternative for the amount
+        :param float [params.cost]: *swap market buy only* the quote quantity that can be used as an alternative for the amount
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         if self.markets is None:
@@ -2007,10 +2007,10 @@ class bitrue(Exchange, ImplicitAPI):
             'side': side.upper(),
             'type': uppercaseType,
             # 'timeInForce': '',
-            # 'price': self.price_to_precision(symbol, price),
-            # 'newClientOrderId': clientOrderId,  # automatically generated if not sent
-            # 'stopPrice': self.price_to_precision(symbol, 'stopPrice'),
-            # 'icebergQty': self.amount_to_precision(symbol, icebergQty),
+            # 'price': this.priceToPrecision (symbol, price),
+            # 'newClientOrderId': clientOrderId, // automatically generated if not sent
+            # 'stopPrice': this.priceToPrecision (symbol, 'stopPrice'),
+            # 'icebergQty': this.amountToPrecision (symbol, icebergQty),
         }
         if uppercaseType == 'LIMIT':
             if price is None:
@@ -2033,7 +2033,7 @@ class bitrue(Exchange, ImplicitAPI):
                 cost = self.safe_string(params, 'cost')
                 params = self.omit(params, 'cost')
                 if price is None and cost is None:
-                    raise InvalidOrder(self.id + ' createOrder() requires the price argument with swap market buy orders to calculate total order cost(amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options["createMarketBuyOrderRequiresPrice"] = False to supply the cost in the amount argument(the exchange-specific behaviour)')
+                    raise InvalidOrder(self.id + ' createOrder() requires the price argument with swap market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options["createMarketBuyOrderRequiresPrice"] = False to supply the cost in the amount argument (the exchange-specific behaviour)')
                 else:
                     amountString = self.number_to_string(amount)
                     priceString = self.number_to_string(price)
@@ -2158,7 +2158,7 @@ class bitrue(Exchange, ImplicitAPI):
         #         "icebergQty": "0.0",
         #         "time": 1499827319559,
         #         "updateTime": 1499827319559,
-        #         "isWorking": True
+        #         "isWorking": true
         #     }
         #
         # swap
@@ -2205,10 +2205,10 @@ class bitrue(Exchange, ImplicitAPI):
             raise NotSupported(self.id + ' fetchClosedOrders only support spot markets')
         request = {
             'symbol': market['id'],
-            # 'orderId': 123445,  # long
+            # 'orderId': 123445, // long
             # 'startTime': since,
-            # 'endTime': self.milliseconds(),
-            # 'limit': limit,  # default 100, max 1000
+            # 'endTime': this.milliseconds (),
+            # 'limit': limit, // default 100, max 1000
         }
         if since is not None:
             request['startTime'] = since
@@ -2233,7 +2233,7 @@ class bitrue(Exchange, ImplicitAPI):
         #             "icebergQty": "0.0",
         #             "time": 1499827319559,
         #             "updateTime": 1499827319559,
-        #             "isWorking": True
+        #             "isWorking": true
         #         }
         #     ]
         #
@@ -2533,13 +2533,13 @@ class bitrue(Exchange, ImplicitAPI):
             'coin': currency['id'],
             'status': 1,  # 0 init, 1 finished, default 0
             # 'offset': 0,
-            # 'limit': limit,  # default 10, max 1000
+            # 'limit': limit, // default 10, max 1000
             # 'startTime': since,
-            # 'endTime': self.milliseconds(),
+            # 'endTime': this.milliseconds (),
         }
         if since is not None:
             request['startTime'] = since
-            # request['endTime'] = self.sum(since, 7776000000)
+            # request['endTime'] = this.sum (since, 7776000000);
         if limit is not None:
             request['limit'] = limit
         response = await self.spotV1PrivateGetDepositHistory(self.extend(request, params))
@@ -2603,13 +2603,13 @@ class bitrue(Exchange, ImplicitAPI):
             'coin': currency['id'],
             'status': 5,  # 0 init, 5 finished, 6 canceled, default 0
             # 'offset': 0,
-            # 'limit': limit,  # default 10, max 1000
+            # 'limit': limit, // default 10, max 1000
             # 'startTime': since,
-            # 'endTime': self.milliseconds(),
+            # 'endTime': this.milliseconds (),
         }
         if since is not None:
             request['startTime'] = since
-            # request['endTime'] = self.sum(since, 7776000000)
+            # request['endTime'] = this.sum (since, 7776000000);
         if limit is not None:
             request['limit'] = limit
         response = await self.spotV1PrivateGetWithdrawHistory(self.extend(request, params))
@@ -2796,9 +2796,9 @@ class bitrue(Exchange, ImplicitAPI):
             'coin': currency['id'],
             'amount': amount,
             'addressTo': address,
-            # 'chainName': chainName,  # 'ERC20', 'TRC20', 'SOL'
-            # 'addressMark': '',  # mark of address
-            # 'addrType': '',  # type of address
+            # 'chainName': chainName, // 'ERC20', 'TRC20', 'SOL'
+            # 'addressMark': '', // mark of address
+            # 'addrType': '', // type of address
             # 'tag': tag,
         }
         networkCode = None
@@ -2831,8 +2831,8 @@ class bitrue(Exchange, ImplicitAPI):
         #   {
         #       "coin": "adx",
         #       "coinFulName": "Ambire AdEx",
-        #       "chains": ["BSC"],
-        #       "chainDetail": [[Object]]
+        #       "chains": [ "BSC" ],
+        #       "chainDetail": [ [Object] ]
         #   }
         #
         chainDetails = self.safe_list(fee, 'chainDetail', [])
@@ -3166,7 +3166,7 @@ class bitrue(Exchange, ImplicitAPI):
     def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         if (code == 418) or (code == 429):
             raise DDoSProtection(self.id + ' ' + str(code) + ' ' + reason + ' ' + body)
-        # error response in a form: {"code": -1013, "msg": "Invalid quantity."}
+        # error response in a form: { "code": -1013, "msg": "Invalid quantity." }
         # following block contains legacy checks against message patterns in "msg" property
         # will switch "code" checks eventually, when we know all of them
         if code >= 400:
@@ -3175,11 +3175,11 @@ class bitrue(Exchange, ImplicitAPI):
             if body.find('LOT_SIZE') >= 0:
                 raise InvalidOrder(self.id + ' order amount should be evenly divisible by lot size ' + body)
             if body.find('PRICE_FILTER') >= 0:
-                raise InvalidOrder(self.id + ' order price is invalid, i.e. exceeds allowed price precision, exceeds min price or max price limits or is invalid float value in general, use self.price_to_precision(symbol, amount) ' + body)
+                raise InvalidOrder(self.id + ' order price is invalid, i.e. exceeds allowed price precision, exceeds min price or max price limits or is invalid float value in general, use self.price_to_precision (symbol, amount) ' + body)
         if response is None:
             return None  # fallback to default error handler
         # check success value for wapi endpoints
-        # response in format {'msg': 'The coin does not exist.', 'success': True/false}
+        # response in format {'msg': 'The coin does not exist.', 'success': true/false}
         success = self.safe_bool(response, 'success', True)
         if success is not True:
             messageInner = self.safe_string(response, 'msg')

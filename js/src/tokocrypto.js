@@ -186,6 +186,7 @@ export default class tokocrypto extends Exchange {
                         'ticker/price': { 'cost': 1, 'noSymbol': 2 },
                         'ticker/bookTicker': { 'cost': 1, 'noSymbol': 2 },
                         'exchangeInfo': { 'cost': 10 },
+                        'executionRules': { 'cost': 2, 'noSymbol': 40 },
                     },
                     'put': {
                         'userDataStream': { 'cost': 1 },
@@ -225,6 +226,7 @@ export default class tokocrypto extends Exchange {
                         'open/v1/orders/oco': { 'cost': 1 },
                         'open/v1/withdraws': { 'cost': 1 },
                         'open/v1/user-data-stream': { 'cost': 1 },
+                        'open/v1/user-listen-token': { 'cost': 1 },
                     },
                 },
             },
@@ -775,7 +777,7 @@ export default class tokocrypto extends Exchange {
             await this.loadTimeDifference();
         }
         const data = this.safeValue(response, 'data', {});
-        const list = this.safeValue(data, 'list', []);
+        const list = this.safeList(data, 'list', []);
         const result = [];
         for (let i = 0; i < list.length; i++) {
             const market = list[i];
@@ -792,7 +794,7 @@ export default class tokocrypto extends Exchange {
             const filtersByType = this.indexBy(filters, 'filterType');
             const status = this.safeString(market, 'spotTradingEnable');
             let active = (status === '1');
-            const permissions = this.safeValue(market, 'permissions', []);
+            const permissions = this.safeList(market, 'permissions', []);
             for (let j = 0; j < permissions.length; j++) {
                 if (permissions[j] === 'TRD_GRP_003') {
                     active = false;
@@ -853,7 +855,7 @@ export default class tokocrypto extends Exchange {
                 'info': market,
             };
             if ('PRICE_FILTER' in filtersByType) {
-                const filter = this.safeValue(filtersByType, 'PRICE_FILTER', {});
+                const filter = this.safeDict(filtersByType, 'PRICE_FILTER', {});
                 entry['precision']['price'] = this.safeNumber(filter, 'tickSize');
                 // PRICE_FILTER reports zero values for maxPrice
                 // since they updated filter types in November 2018
@@ -1596,7 +1598,7 @@ export default class tokocrypto extends Exchange {
             'datetime': this.iso8601(timestamp),
         };
         const data = this.safeValue(response, 'data', {});
-        const balances = this.safeValue(data, 'accountAssets', []);
+        const balances = this.safeList(data, 'accountAssets', []);
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
             const currencyId = this.safeString(balance, 'asset');

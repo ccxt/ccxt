@@ -7,6 +7,9 @@
 
 package io.github.ccxt.api;
 import io.github.ccxt.Exchange;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 public class BithumbApi extends Exchange
 {
@@ -25,7 +28,7 @@ public class BithumbApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetPublicTickerALLQuoteId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetPublicTickerALLQuoteId (Object... optionalArgs)
     {
         return this.callAsync ("publicGetPublicTickerALLQuoteId", optionalArgs);
     }
@@ -36,7 +39,7 @@ public class BithumbApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetPublicTickerBaseIdQuoteId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetPublicTickerBaseIdQuoteId (Object... optionalArgs)
     {
         return this.callAsync ("publicGetPublicTickerBaseIdQuoteId", optionalArgs);
     }
@@ -47,7 +50,7 @@ public class BithumbApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetPublicOrderbookALLQuoteId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetPublicOrderbookALLQuoteId (Object... optionalArgs)
     {
         return this.callAsync ("publicGetPublicOrderbookALLQuoteId", optionalArgs);
     }
@@ -58,7 +61,7 @@ public class BithumbApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetPublicOrderbookBaseIdQuoteId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetPublicOrderbookBaseIdQuoteId (Object... optionalArgs)
     {
         return this.callAsync ("publicGetPublicOrderbookBaseIdQuoteId", optionalArgs);
     }
@@ -69,7 +72,7 @@ public class BithumbApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetPublicTransactionHistoryBaseIdQuoteId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetPublicTransactionHistoryBaseIdQuoteId (Object... optionalArgs)
     {
         return this.callAsync ("publicGetPublicTransactionHistoryBaseIdQuoteId", optionalArgs);
     }
@@ -80,7 +83,7 @@ public class BithumbApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetPublicNetworkInfo (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetPublicNetworkInfo (Object... optionalArgs)
     {
         return this.callAsync ("publicGetPublicNetworkInfo", optionalArgs);
     }
@@ -91,7 +94,7 @@ public class BithumbApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetPublicAssetsstatusMultichainALL (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetPublicAssetsstatusMultichainALL (Object... optionalArgs)
     {
         return this.callAsync ("publicGetPublicAssetsstatusMultichainALL", optionalArgs);
     }
@@ -102,7 +105,7 @@ public class BithumbApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetPublicAssetsstatusMultichainCurrency (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetPublicAssetsstatusMultichainCurrency (Object... optionalArgs)
     {
         return this.callAsync ("publicGetPublicAssetsstatusMultichainCurrency", optionalArgs);
     }
@@ -113,7 +116,7 @@ public class BithumbApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetPublicWithdrawMinimumALL (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetPublicWithdrawMinimumALL (Object... optionalArgs)
     {
         return this.callAsync ("publicGetPublicWithdrawMinimumALL", optionalArgs);
     }
@@ -124,7 +127,7 @@ public class BithumbApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetPublicWithdrawMinimumCurrency (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetPublicWithdrawMinimumCurrency (Object... optionalArgs)
     {
         return this.callAsync ("publicGetPublicWithdrawMinimumCurrency", optionalArgs);
     }
@@ -135,7 +138,7 @@ public class BithumbApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetPublicAssetsstatusALL (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetPublicAssetsstatusALL (Object... optionalArgs)
     {
         return this.callAsync ("publicGetPublicAssetsstatusALL", optionalArgs);
     }
@@ -146,7 +149,7 @@ public class BithumbApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetPublicAssetsstatusBaseId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetPublicAssetsstatusBaseId (Object... optionalArgs)
     {
         return this.callAsync ("publicGetPublicAssetsstatusBaseId", optionalArgs);
     }
@@ -157,7 +160,7 @@ public class BithumbApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetPublicCandlestickBaseIdQuoteIdInterval (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetPublicCandlestickBaseIdQuoteIdInterval (Object... optionalArgs)
     {
         return this.callAsync ("publicGetPublicCandlestickBaseIdQuoteIdInterval", optionalArgs);
     }
@@ -168,7 +171,7 @@ public class BithumbApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetV1MarketAll (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicGetV1MarketAll (Object... optionalArgs)
     {
         return this.callAsync ("publicGetV1MarketAll", optionalArgs);
     }
@@ -179,7 +182,7 @@ public class BithumbApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetV1CandlesMinutesUnit (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicGetV1CandlesMinutesUnit (Object... optionalArgs)
     {
         return this.callAsync ("publicGetV1CandlesMinutesUnit", optionalArgs);
     }
@@ -190,7 +193,7 @@ public class BithumbApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetV1CandlesDays (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicGetV1CandlesDays (Object... optionalArgs)
     {
         return this.callAsync ("publicGetV1CandlesDays", optionalArgs);
     }
@@ -201,7 +204,7 @@ public class BithumbApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetV1CandlesWeeks (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicGetV1CandlesWeeks (Object... optionalArgs)
     {
         return this.callAsync ("publicGetV1CandlesWeeks", optionalArgs);
     }
@@ -212,7 +215,7 @@ public class BithumbApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetV1CandlesMonths (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicGetV1CandlesMonths (Object... optionalArgs)
     {
         return this.callAsync ("publicGetV1CandlesMonths", optionalArgs);
     }
@@ -223,7 +226,7 @@ public class BithumbApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetV1TradesTicks (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicGetV1TradesTicks (Object... optionalArgs)
     {
         return this.callAsync ("publicGetV1TradesTicks", optionalArgs);
     }
@@ -234,7 +237,7 @@ public class BithumbApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetV1Ticker (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicGetV1Ticker (Object... optionalArgs)
     {
         return this.callAsync ("publicGetV1Ticker", optionalArgs);
     }
@@ -245,7 +248,7 @@ public class BithumbApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetV1Orderbook (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicGetV1Orderbook (Object... optionalArgs)
     {
         return this.callAsync ("publicGetV1Orderbook", optionalArgs);
     }
@@ -256,7 +259,7 @@ public class BithumbApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object or a JSON array, so this endpoint keeps Object
      */
-    public java.util.concurrent.CompletableFuture<Object>  publicGetV1MarketVirtualAssetWarning (Object... optionalArgs)
+    public CompletableFuture<Object>  publicGetV1MarketVirtualAssetWarning (Object... optionalArgs)
     {
         return this.callAsync ("publicGetV1MarketVirtualAssetWarning", optionalArgs);
     }
@@ -267,7 +270,7 @@ public class BithumbApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object or a JSON array, so this endpoint keeps Object
      */
-    public java.util.concurrent.CompletableFuture<Object>  publicGetV1Notices (Object... optionalArgs)
+    public CompletableFuture<Object>  publicGetV1Notices (Object... optionalArgs)
     {
         return this.callAsync ("publicGetV1Notices", optionalArgs);
     }
@@ -278,7 +281,7 @@ public class BithumbApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetV2FeeInoutCurrency (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetV2FeeInoutCurrency (Object... optionalArgs)
     {
         return this.callAsync ("publicGetV2FeeInoutCurrency", optionalArgs);
     }
@@ -289,7 +292,7 @@ public class BithumbApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetV1Accounts (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetV1Accounts (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV1Accounts", optionalArgs);
     }
@@ -300,7 +303,7 @@ public class BithumbApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV1OrdersChance (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV1OrdersChance (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV1OrdersChance", optionalArgs);
     }
@@ -311,7 +314,7 @@ public class BithumbApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV1Order (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV1Order (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV1Order", optionalArgs);
     }
@@ -322,9 +325,31 @@ public class BithumbApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetV1Orders (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetV1Orders (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV1Orders", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetV2OrdersPending endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public CompletableFuture<Map<String, Object>>  privateGetV2OrdersPending (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetV2OrdersPending", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetV2OrdersHistory endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public CompletableFuture<Map<String, Object>>  privateGetV2OrdersHistory (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetV2OrdersHistory", optionalArgs);
     }
 
     /**
@@ -333,7 +358,7 @@ public class BithumbApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV1Twap (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV1Twap (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV1Twap", optionalArgs);
     }
@@ -344,7 +369,7 @@ public class BithumbApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetV1Withdraws (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetV1Withdraws (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV1Withdraws", optionalArgs);
     }
@@ -355,7 +380,7 @@ public class BithumbApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetV1WithdrawsKrw (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetV1WithdrawsKrw (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV1WithdrawsKrw", optionalArgs);
     }
@@ -366,7 +391,7 @@ public class BithumbApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV1Withdraw (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV1Withdraw (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV1Withdraw", optionalArgs);
     }
@@ -377,7 +402,7 @@ public class BithumbApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV1WithdrawsChance (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV1WithdrawsChance (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV1WithdrawsChance", optionalArgs);
     }
@@ -388,7 +413,7 @@ public class BithumbApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetV1WithdrawsCoinAddresses (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetV1WithdrawsCoinAddresses (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV1WithdrawsCoinAddresses", optionalArgs);
     }
@@ -399,7 +424,7 @@ public class BithumbApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetV1Deposits (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetV1Deposits (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV1Deposits", optionalArgs);
     }
@@ -410,7 +435,7 @@ public class BithumbApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetV1DepositsKrw (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetV1DepositsKrw (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV1DepositsKrw", optionalArgs);
     }
@@ -421,7 +446,7 @@ public class BithumbApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV1Deposit (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV1Deposit (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV1Deposit", optionalArgs);
     }
@@ -432,7 +457,7 @@ public class BithumbApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetV1DepositsCoinAddresses (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetV1DepositsCoinAddresses (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV1DepositsCoinAddresses", optionalArgs);
     }
@@ -443,7 +468,7 @@ public class BithumbApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV1DepositsCoinAddress (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetV1DepositsCoinAddress (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV1DepositsCoinAddress", optionalArgs);
     }
@@ -454,7 +479,7 @@ public class BithumbApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object or a JSON array, so this endpoint keeps Object
      */
-    public java.util.concurrent.CompletableFuture<Object>  privateGetV1StatusWallet (Object... optionalArgs)
+    public CompletableFuture<Object>  privateGetV1StatusWallet (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV1StatusWallet", optionalArgs);
     }
@@ -465,7 +490,7 @@ public class BithumbApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object or a JSON array, so this endpoint keeps Object
      */
-    public java.util.concurrent.CompletableFuture<Object>  privateGetV1ApiKeys (Object... optionalArgs)
+    public CompletableFuture<Object>  privateGetV1ApiKeys (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV1ApiKeys", optionalArgs);
     }
@@ -476,7 +501,7 @@ public class BithumbApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostInfoAccount (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostInfoAccount (Object... optionalArgs)
     {
         return this.callAsync ("privatePostInfoAccount", optionalArgs);
     }
@@ -487,7 +512,7 @@ public class BithumbApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostInfoBalance (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostInfoBalance (Object... optionalArgs)
     {
         return this.callAsync ("privatePostInfoBalance", optionalArgs);
     }
@@ -498,7 +523,7 @@ public class BithumbApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostInfoWalletAddress (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostInfoWalletAddress (Object... optionalArgs)
     {
         return this.callAsync ("privatePostInfoWalletAddress", optionalArgs);
     }
@@ -509,7 +534,7 @@ public class BithumbApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostInfoTicker (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostInfoTicker (Object... optionalArgs)
     {
         return this.callAsync ("privatePostInfoTicker", optionalArgs);
     }
@@ -520,7 +545,7 @@ public class BithumbApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostInfoOrders (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostInfoOrders (Object... optionalArgs)
     {
         return this.callAsync ("privatePostInfoOrders", optionalArgs);
     }
@@ -531,7 +556,7 @@ public class BithumbApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostInfoUserTransactions (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostInfoUserTransactions (Object... optionalArgs)
     {
         return this.callAsync ("privatePostInfoUserTransactions", optionalArgs);
     }
@@ -542,7 +567,7 @@ public class BithumbApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostInfoOrderDetail (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostInfoOrderDetail (Object... optionalArgs)
     {
         return this.callAsync ("privatePostInfoOrderDetail", optionalArgs);
     }
@@ -553,7 +578,7 @@ public class BithumbApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostTradePlace (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostTradePlace (Object... optionalArgs)
     {
         return this.callAsync ("privatePostTradePlace", optionalArgs);
     }
@@ -564,7 +589,7 @@ public class BithumbApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostTradeCancel (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostTradeCancel (Object... optionalArgs)
     {
         return this.callAsync ("privatePostTradeCancel", optionalArgs);
     }
@@ -575,7 +600,7 @@ public class BithumbApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostTradeBtcWithdrawal (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostTradeBtcWithdrawal (Object... optionalArgs)
     {
         return this.callAsync ("privatePostTradeBtcWithdrawal", optionalArgs);
     }
@@ -586,7 +611,7 @@ public class BithumbApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostTradeKrwDeposit (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostTradeKrwDeposit (Object... optionalArgs)
     {
         return this.callAsync ("privatePostTradeKrwDeposit", optionalArgs);
     }
@@ -597,7 +622,7 @@ public class BithumbApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostTradeKrwWithdrawal (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostTradeKrwWithdrawal (Object... optionalArgs)
     {
         return this.callAsync ("privatePostTradeKrwWithdrawal", optionalArgs);
     }
@@ -608,7 +633,7 @@ public class BithumbApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostTradeMarketBuy (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostTradeMarketBuy (Object... optionalArgs)
     {
         return this.callAsync ("privatePostTradeMarketBuy", optionalArgs);
     }
@@ -619,7 +644,7 @@ public class BithumbApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostTradeMarketSell (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostTradeMarketSell (Object... optionalArgs)
     {
         return this.callAsync ("privatePostTradeMarketSell", optionalArgs);
     }
@@ -630,7 +655,7 @@ public class BithumbApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostTradeStopLimit (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostTradeStopLimit (Object... optionalArgs)
     {
         return this.callAsync ("privatePostTradeStopLimit", optionalArgs);
     }
@@ -641,7 +666,7 @@ public class BithumbApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV2Orders (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV2Orders (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV2Orders", optionalArgs);
     }
@@ -652,7 +677,7 @@ public class BithumbApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV2OrdersBatch (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV2OrdersBatch (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV2OrdersBatch", optionalArgs);
     }
@@ -663,9 +688,20 @@ public class BithumbApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV2OrdersCancel (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV2OrdersCancel (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV2OrdersCancel", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostV2OrdersSearch endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON array
+     */
+    public CompletableFuture<List<Object>>  privatePostV2OrdersSearch (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostV2OrdersSearch", optionalArgs);
     }
 
     /**
@@ -674,7 +710,7 @@ public class BithumbApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV1Twap (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV1Twap (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV1Twap", optionalArgs);
     }
@@ -685,7 +721,7 @@ public class BithumbApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV1WithdrawsCoin (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV1WithdrawsCoin (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV1WithdrawsCoin", optionalArgs);
     }
@@ -696,7 +732,7 @@ public class BithumbApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV1WithdrawsKrw (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV1WithdrawsKrw (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV1WithdrawsKrw", optionalArgs);
     }
@@ -707,7 +743,7 @@ public class BithumbApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV1DepositsGenerateCoinAddress (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV1DepositsGenerateCoinAddress (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV1DepositsGenerateCoinAddress", optionalArgs);
     }
@@ -718,7 +754,7 @@ public class BithumbApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV1DepositsKrw (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostV1DepositsKrw (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV1DepositsKrw", optionalArgs);
     }
@@ -729,7 +765,7 @@ public class BithumbApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateDeleteV2Order (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateDeleteV2Order (Object... optionalArgs)
     {
         return this.callAsync ("privateDeleteV2Order", optionalArgs);
     }
@@ -740,7 +776,7 @@ public class BithumbApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateDeleteV1Twap (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateDeleteV1Twap (Object... optionalArgs)
     {
         return this.callAsync ("privateDeleteV1Twap", optionalArgs);
     }
@@ -751,7 +787,7 @@ public class BithumbApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateDeleteV1WithdrawsCoin (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateDeleteV1WithdrawsCoin (Object... optionalArgs)
     {
         return this.callAsync ("privateDeleteV1WithdrawsCoin", optionalArgs);
     }

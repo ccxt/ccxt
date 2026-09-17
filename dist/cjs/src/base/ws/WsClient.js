@@ -5,9 +5,11 @@ Object.defineProperty(exports, '__esModule', { value: true });
 var WebSocket = require('ws');
 var Client = require('./Client.js');
 var platform = require('../functions/platform.js');
+require('../Precise.js');
 require('../functions/encode.js');
 require('../functions/crypto.js');
 var time = require('../functions/time.js');
+require('../functions/throttle.js');
 var misc = require('../functions/misc.js');
 require('../functions/io.js');
 var Future = require('./Future.js');
@@ -61,19 +63,11 @@ class WsClient extends Client["default"] {
         else if (platform.isNode) {
             this.options = this.options || {};
             this.connection = new WebSocketPlatform(this.url, this.protocols, this.options);
-            // message delivery goes through a duplex stream wrapper instead of
-            // per-message deferred events (the old allowSynchronousEvents:false
-            // patch): ws emits all messages of a socket chunk synchronously on
-            // one stack; the stream parks them in its internal buffer (O(1)
-            // push) and the async iterator in deliverLoop delivers exactly one
-            // message per step on a fresh stack, so consumer code never runs
-            // inside ws's emission stack. readableObjectMode keeps
-            // 1 chunk = 1 message (byte mode would fuse frames once anything
-            // buffers); readableHighWaterMark (counted in messages) is a
-            // memory circuit breaker: past it the socket is paused (TCP
-            // backpressure to the server) until reads drain. the duplex must
-            // be attached synchronously with the socket - messages emitted
-            // between 'open' and a later attachment would be dropped silently
+            // ws emits a whole socket chunk synchronously on one stack; the duplex buffers
+            // it and deliverLoop's async iterator hands out one message per step on a fresh
+            // stack, so consumer code never runs inside ws's emission stack.
+            // readableObjectMode keeps 1 chunk = 1 message; readableHighWaterMark (in messages)
+            // pauses the socket (TCP backpressure) until reads drain. attach synchronously - messages emitted before attachment are dropped
             this.duplex = WebSocket.createWebSocketStream(this.connection, { 'readableObjectMode': true, 'readableHighWaterMark': 1024 });
             this.duplex.on('error', () => { }); // teardown surfaces via the socket error/close handlers
         }
@@ -118,17 +112,11 @@ class WsClient extends Client["default"] {
         try {
             for await (const message of this.duplex) {
                 this.onMessage({ 'data': message });
-                // release valve: when the server sends faster than the paced
-                // delivery below drains, messages pile up inside the duplex
-                // buffer - flush them synchronously through onMessage, the
-                // same way the php client flushes its backlog in on_message
-                // (php/pro/Client.php) and the python client drains the
-                // aiohttp buffer in receive_loop (async_support/base/ws/
-                // client.py). this keeps queueing latency and memory bounded
-                // under bursts at the cost of per-message consumer wakeups
-                // (consumers awaiting futures observe the merged/cached
-                // state on their next wakeup - identical cross-language
-                // semantics)
+                // release valve: if the server outpaces the paced delivery below, flush
+                // the duplex backlog synchronously through onMessage - same as the php
+                // client's on_message and the python client's receive_loop. bounds queueing
+                // latency and memory under bursts; consumers awaiting futures observe the
+                // merged/cached state on their next wakeup
                 while (this.duplex.readableLength > 0) {
                     const queued = this.duplex.read();
                     if (queued === null) {
@@ -139,19 +127,11 @@ class WsClient extends Client["default"] {
             }
         }
         catch (e) {
-            // nothing escapes the loop body: onMessage handles all of its
-            // dispatch errors internally (Client.ts), so the only way into
-            // this catch is a rejection of the iterator itself. that happens
-            // when ws destroys the duplex with an error (ws/lib/stream.js) on
-            // WebSocket 'error' events - protocol violations such as
-            // malformed frames, invalid UTF-8 or oversized payloads - and by
-            // the time the rejection lands here the socket error/close
-            // handlers wired in createConnection have already applied the
-            // full error semantics (this.error set, pending futures rejected,
-            // exchange notified). the rejection is a duplicate signal from
-            // the already-destroyed stream - swallow it: deliverLoop is
-            // fire-and-forget, so an escaping rejection would crash the
-            // process as an unhandled promise rejection
+            // onMessage handles its own dispatch errors, so only an iterator rejection
+            // lands here: ws destroying the duplex on a socket 'error' (protocol
+            // violations). the error/close handlers in createConnection have already
+            // applied the full error semantics, so this is a duplicate signal - swallow
+            // it, deliverLoop is fire-and-forget and an escape would be an unhandled rejection
         }
     }
     connect(backoffDelay = 0) {

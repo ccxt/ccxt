@@ -184,6 +184,7 @@ class bitteam extends Exchange {
                         'trade/api/pairs' => array( 'cost' => 1 ), // not unified
                         'trade/api/pairs/precisions' => array( 'cost' => 1 ), // not unified
                         'trade/api/rates' => array( 'cost' => 1 ), // not unified
+                        'trade/api/stats' => array( 'cost' => 1 ), // not unified
                         'trade/api/trade/{id}' => array( 'cost' => 1 ), // not unified
                         'trade/api/trades' => array( 'cost' => 1 ), // not unified
                         'trade/api/ccxt/pairs' => array( 'cost' => 1 ),
@@ -328,24 +329,24 @@ class bitteam extends Exchange {
             ),
             'exceptions' => array(
                 'exact' => array(
-                    '400002' => '\\ccxt\\BadSymbol', // array("ok":false,"code":400002,"message":"An order cannot be created on a deactivated pair")
-                    '401000' => '\\ccxt\\AuthenticationError', // array("ok":false,"code":401000,"data" => array(),"message" => "Missing authentication")
-                    '403002' => '\\ccxt\\BadRequest', // array("ok":false,"code":403002,"data":array(),"message":"Order cannot be deleted, status does not match")
-                    '404200' => '\\ccxt\\BadSymbol', // array("ok":false,"code":404200,"data":array(),"message":"Pair was not found")
+                    '400002' => '\\ccxt\\BadSymbol', // {"ok":false,"code":400002,"message":"An order cannot be created on a deactivated pair"}
+                    '401000' => '\\ccxt\\AuthenticationError', // {"ok":false,"code":401000,"data": {},"message": "Missing authentication"}
+                    '403002' => '\\ccxt\\BadRequest', // {"ok":false,"code":403002,"data":{},"message":"Order cannot be deleted, status does not match"}
+                    '404200' => '\\ccxt\\BadSymbol', // {"ok":false,"code":404200,"data":{},"message":"Pair was not found"}
                 ),
                 'broad' => array(
-                    'is not allowed' => '\\ccxt\\BadRequest', // array("message":"\"createdAt\" is not allowed","path":["createdAt"],"type":"object.unknown","context":array("child":"createdAt","label":"createdAt","value":"DESC","key":"createdAt"))
-                    'Insufficient funds' => '\\ccxt\\InsufficientFunds', // array("ok":false,"code":450000,"data":null,"message":"Insufficient funds")
-                    'Invalid request params input' => '\\ccxt\\BadRequest', // array("ok":false,"code":400000,"data":array(),"message":"Invalid request params input")
-                    'must be a number' => '\\ccxt\\BadRequest', // [ExchangeError] bitteam array("message":"\"currency\" must be a number","path":["currency"],"type":"number.base","context":array("label":"currency","value":"adsf","key":"currency"))
-                    'must be a string' => '\\ccxt\\BadRequest', // array("message":"\"pairId\" must be a string","path":["pairId"],"type":"string.base","context":array("label":"pairId","value":87,"key":"pairId"))
-                    'must be of type' => '\\ccxt\\BadRequest', // array("message":"\"order\" must be of type object","path":["order"],"type":"object.base","context":array("type":"object","label":"order","value":"107218781","key":"order"))
-                    'must be one of' => '\\ccxt\\BadRequest', // array("message":"\"resolution\" must be one of [1, 5, 15, 60, 1D]","path":["resolution"],"type":"any.only","context":array("valids":["1","5","15","60","1D"],"label":"resolution","value":"1d","key":"resolution"))
-                    'Order not found' => '\\ccxt\\OrderNotFound', // array("ok":false,"code":404300,"data":array(),"message":"Order not found")
-                    'Pair with pair name' => '\\ccxt\\BadSymbol', // array("ok":false,"code":404000,"data":array("pairName":"ETH_USasdf"),"msg":"Pair with pair name ETH_USasdf was not found")
-                    'pairName' => '\\ccxt\\BadSymbol', // array("message":"\"pairName\" length must be at least 7 characters long","path":["pairName"],"type":"string.min","context":array("limit":7,"value":"ETH_US","label":"pairName","key":"pairName"))
-                    'Service Unavailable' => '\\ccxt\\ExchangeNotAvailable', // array("message":"Service Unavailable","code":403000,"ok":false)
-                    'Symbol ' => '\\ccxt\\BadSymbol', // array("ok":false,"code":404000,"data":array(),"message":"Symbol asdfasdfas was not found")
+                    'is not allowed' => '\\ccxt\\BadRequest', // {"message":"\"createdAt\" is not allowed","path":["createdAt"],"type":"object.unknown","context":{"child":"createdAt","label":"createdAt","value":"DESC","key":"createdAt"}}
+                    'Insufficient funds' => '\\ccxt\\InsufficientFunds', // {"ok":false,"code":450000,"data":null,"message":"Insufficient funds"}
+                    'Invalid request params input' => '\\ccxt\\BadRequest', // {"ok":false,"code":400000,"data":{},"message":"Invalid request params input"}
+                    'must be a number' => '\\ccxt\\BadRequest', // [ExchangeError] bitteam {"message":"\"currency\" must be a number","path":["currency"],"type":"number.base","context":{"label":"currency","value":"adsf","key":"currency"}}
+                    'must be a string' => '\\ccxt\\BadRequest', // {"message":"\"pairId\" must be a string","path":["pairId"],"type":"string.base","context":{"label":"pairId","value":87,"key":"pairId"}}
+                    'must be of type' => '\\ccxt\\BadRequest', // {"message":"\"order\" must be of type object","path":["order"],"type":"object.base","context":{"type":"object","label":"order","value":"107218781","key":"order"}}
+                    'must be one of' => '\\ccxt\\BadRequest', // {"message":"\"resolution\" must be one of [1, 5, 15, 60, 1D]","path":["resolution"],"type":"any.only","context":{"valids":["1","5","15","60","1D"],"label":"resolution","value":"1d","key":"resolution"}}
+                    'Order not found' => '\\ccxt\\OrderNotFound', // {"ok":false,"code":404300,"data":{},"message":"Order not found"}
+                    'Pair with pair name' => '\\ccxt\\BadSymbol', // {"ok":false,"code":404000,"data":{"pairName":"ETH_USasdf"},"msg":"Pair with pair name ETH_USasdf was not found"}
+                    'pairName' => '\\ccxt\\BadSymbol', // {"message":"\"pairName\" length must be at least 7 characters long","path":["pairName"],"type":"string.min","context":{"limit":7,"value":"ETH_US","label":"pairName","key":"pairName"}}
+                    'Service Unavailable' => '\\ccxt\\ExchangeNotAvailable', // {"message":"Service Unavailable","code":403000,"ok":false}
+                    'Symbol ' => '\\ccxt\\BadSymbol', // {"ok":false,"code":404000,"data":{},"message":"Symbol asdfasdfas was not found"}
                 ),
             ),
         ));
@@ -363,87 +364,87 @@ class bitteam extends Exchange {
         $response = $this->publicGetTradeApiCcxtPairs($params);
         //
         //     {
-        //         "ok" => true,
-        //         "result" => {
-        //             "count" => 28,
-        //             "pairs" => array(
-        //                 array(
-        //                     "id" => 2,
-        //                     "name" => "eth_usdt",
-        //                     "baseAssetId" => 2,
-        //                     "quoteAssetId" => 3,
-        //                     "fullName" => "ETH USDT",
-        //                     "description" => "ETH   USDT",
-        //                     "lastBuy" => 1964.665001,
-        //                     "lastSell" => 1959.835005,
-        //                     "lastPrice" => 1964.665001,
-        //                     "change24" => 1.41,
-        //                     "volume24" => 28.22627543,
-        //                     "volume24USD" => 55662.35636401598,
-        //                     "active" => true,
-        //                     "baseStep" => 8,
-        //                     "quoteStep" => 6,
-        //                     "status" => 1,
-        //                     "settings" => array(
-        //                         "limit_usd" => "0.1",
-        //                         "price_max" => "10000000000000",
-        //                         "price_min" => "1",
-        //                         "price_tick" => "1",
-        //                         "pricescale" => 10000,
-        //                         "lot_size_max" => "1000000000000000",
-        //                         "lot_size_min" => "1",
-        //                         "lot_size_tick" => "1",
-        //                         "price_view_min" => 6,
-        //                         "default_slippage" => 10,
-        //                         "lot_size_view_min" => 6
-        //                     ),
-        //                     "updateId" => "50620",
-        //                     "timeStart" => "2021-01-28T09:19:30.706Z",
-        //                     "makerFee" => 200,
-        //                     "takerFee" => 200,
-        //                     "quoteVolume24" => 54921.93404134529,
-        //                     "lowPrice24" => 1919.355,
-        //                     "highPrice24" => 1971.204995
-        //                 ),
+        //         "ok": true,
+        //         "result": {
+        //             "count": 28,
+        //             "pairs": [
         //                 {
-        //                     "id" => 27,
-        //                     "name" => "ltc_usdt",
-        //                     "baseAssetId" => 13,
-        //                     "quoteAssetId" => 3,
-        //                     "fullName" => "LTC USDT",
-        //                     "description" => "This is LTC USDT",
-        //                     "lastBuy" => 53.14,
-        //                     "lastSell" => 53.58,
-        //                     "lastPrice" => 53.58,
-        //                     "change24" => -6.72,
-        //                     "volume24" => 0,
-        //                     "volume24USD" => null,
-        //                     "active" => true,
-        //                     "baseStep" => 8,
-        //                     "quoteStep" => 6,
-        //                     "status" => 0,
-        //                     "settings" => array(
-        //                         "limit_usd" => "0.1",
-        //                         "price_max" => "1000000000000",
-        //                         "price_min" => "1",
-        //                         "price_tick" => "1",
-        //                         "pricescale" => 10000,
-        //                         "lot_size_max" => "1000000000000",
-        //                         "lot_size_min" => "1",
-        //                         "lot_size_tick" => "1",
-        //                         "price_view_min" => 6,
-        //                         "default_slippage" => 10,
-        //                         "lot_size_view_min" => 6
-        //                     ),
-        //                     "updateId" => "30",
-        //                     "timeStart" => "2021-10-13T12:11:05.359Z",
-        //                     "makerFee" => 200,
-        //                     "takerFee" => 200,
-        //                     "quoteVolume24" => 0,
-        //                     "lowPrice24" => null,
-        //                     "highPrice24" => null
+        //                     "id": 2,
+        //                     "name": "eth_usdt",
+        //                     "baseAssetId": 2,
+        //                     "quoteAssetId": 3,
+        //                     "fullName": "ETH USDT",
+        //                     "description": "ETH   USDT",
+        //                     "lastBuy": 1964.665001,
+        //                     "lastSell": 1959.835005,
+        //                     "lastPrice": 1964.665001,
+        //                     "change24": 1.41,
+        //                     "volume24": 28.22627543,
+        //                     "volume24USD": 55662.35636401598,
+        //                     "active": true,
+        //                     "baseStep": 8,
+        //                     "quoteStep": 6,
+        //                     "status": 1,
+        //                     "settings": {
+        //                         "limit_usd": "0.1",
+        //                         "price_max": "10000000000000",
+        //                         "price_min": "1",
+        //                         "price_tick": "1",
+        //                         "pricescale": 10000,
+        //                         "lot_size_max": "1000000000000000",
+        //                         "lot_size_min": "1",
+        //                         "lot_size_tick": "1",
+        //                         "price_view_min": 6,
+        //                         "default_slippage": 10,
+        //                         "lot_size_view_min": 6
+        //                     },
+        //                     "updateId": "50620",
+        //                     "timeStart": "2021-01-28T09:19:30.706Z",
+        //                     "makerFee": 200,
+        //                     "takerFee": 200,
+        //                     "quoteVolume24": 54921.93404134529,
+        //                     "lowPrice24": 1919.355,
+        //                     "highPrice24": 1971.204995
+        //                 },
+        //                 {
+        //                     "id": 27,
+        //                     "name": "ltc_usdt",
+        //                     "baseAssetId": 13,
+        //                     "quoteAssetId": 3,
+        //                     "fullName": "LTC USDT",
+        //                     "description": "This is LTC USDT",
+        //                     "lastBuy": 53.14,
+        //                     "lastSell": 53.58,
+        //                     "lastPrice": 53.58,
+        //                     "change24": -6.72,
+        //                     "volume24": 0,
+        //                     "volume24USD": null,
+        //                     "active": true,
+        //                     "baseStep": 8,
+        //                     "quoteStep": 6,
+        //                     "status": 0,
+        //                     "settings": {
+        //                         "limit_usd": "0.1",
+        //                         "price_max": "1000000000000",
+        //                         "price_min": "1",
+        //                         "price_tick": "1",
+        //                         "pricescale": 10000,
+        //                         "lot_size_max": "1000000000000",
+        //                         "lot_size_min": "1",
+        //                         "lot_size_tick": "1",
+        //                         "price_view_min": 6,
+        //                         "default_slippage": 10,
+        //                         "lot_size_view_min": 6
+        //                     },
+        //                     "updateId": "30",
+        //                     "timeStart": "2021-10-13T12:11:05.359Z",
+        //                     "makerFee": 200,
+        //                     "takerFee": 200,
+        //                     "quoteVolume24": 0,
+        //                     "lowPrice24": null,
+        //                     "highPrice24": null
         //                 }
-        //             )
+        //             ]
         //         }
         //     }
         //
@@ -534,91 +535,91 @@ class bitteam extends Exchange {
         $response = $this->publicGetTradeApiCurrencies($params);
         //
         //     {
-        //         "ok" => true,
-        //         "result" => {
-        //             "count" => 24,
-        //             "currencies" => array(
+        //         "ok": true,
+        //         "result": {
+        //             "count": 24,
+        //             "currencies": [
         //                 {
-        //                     "txLimits" => array(
-        //                         "minDeposit" => "0.0001",
-        //                         "minWithdraw" => "0.02",
-        //                         "maxWithdraw" => "10000",
-        //                         "withdrawCommissionPercentage" => "NaN",
-        //                         "withdrawCommissionFixed" => "0.005"
-        //                     ),
-        //                     "id" => 2,
-        //                     "status" => 1,
-        //                     "symbol" => "eth",
-        //                     "title" => "Ethereum",
-        //                     "logoURL" => "https://ethereum.org/static/6b935ac0e6194247347855dc3d328e83/34ca5/eth-diamond-black.png",
-        //                     "isDiscount" => false,
-        //                     "address" => "https://ethereum.org/",
-        //                     "description" => "Ethereum ETH",
-        //                     "decimals" => 18,
-        //                     "blockChain" => "Ethereum",
-        //                     "precision" => 8,
-        //                     "currentRate" => null,
-        //                     "active" => true,
-        //                     "timeStart" => "2021-01-28T08:57:41.719Z",
-        //                     "type" => "crypto",
-        //                     "typeNetwork" => "internalGW",
-        //                     "idSorting" => 2,
-        //                     "links" => array(
-        //                         array(
-        //                             "tx" => "https://etherscan.io/tx/",
-        //                             "address" => "https://etherscan.io/address/",
-        //                             "blockChain" => "Ethereum"
-        //                         }
-        //                     )
-        //                 ),
-        //                 {
-        //                     "txLimits" => {
-        //                         "minDeposit" => "0.001",
-        //                         "minWithdraw" => "1",
-        //                         "maxWithdraw" => "100000",
-        //                         "withdrawCommissionPercentage" => "NaN",
-        //                         "withdrawCommissionFixed" => array(
-        //                             "Tron" => "2",
-        //                             "Binance" => "2",
-        //                             "Ethereum" => "20"
-        //                         }
-        //                     ),
-        //                     "id" => 3,
-        //                     "status" => 1,
-        //                     "symbol" => "usdt",
-        //                     "title" => "Tether USD",
-        //                     "logoURL" => "https://cryptologos.cc/logos/tether-usdt-logo.png?v=010",
-        //                     "isDiscount" => false,
-        //                     "address" => "https://tether.to/",
-        //                     "description" => "Tether USD",
-        //                     "decimals" => 6,
-        //                     "blockChain" => "",
-        //                     "precision" => 6,
-        //                     "currentRate" => null,
-        //                     "active" => true,
-        //                     "timeStart" => "2021-01-28T09:04:17.170Z",
-        //                     "type" => "crypto",
-        //                     "typeNetwork" => "internalGW",
-        //                     "idSorting" => 0,
-        //                     "links" => array(
-        //                         array(
-        //                             "tx" => "https://etherscan.io/tx/",
-        //                             "address" => "https://etherscan.io/address/",
-        //                             "blockChain" => "Ethereum"
-        //                         ),
-        //                         array(
-        //                             "tx" => "https://tronscan.org/#/transaction/",
-        //                             "address" => "https://tronscan.org/#/address/",
-        //                             "blockChain" => "Tron"
-        //                         ),
+        //                     "txLimits": {
+        //                         "minDeposit": "0.0001",
+        //                         "minWithdraw": "0.02",
+        //                         "maxWithdraw": "10000",
+        //                         "withdrawCommissionPercentage": "NaN",
+        //                         "withdrawCommissionFixed": "0.005"
+        //                     },
+        //                     "id": 2,
+        //                     "status": 1,
+        //                     "symbol": "eth",
+        //                     "title": "Ethereum",
+        //                     "logoURL": "https://ethereum.org/static/6b935ac0e6194247347855dc3d328e83/34ca5/eth-diamond-black.png",
+        //                     "isDiscount": false,
+        //                     "address": "https://ethereum.org/",
+        //                     "description": "Ethereum ETH",
+        //                     "decimals": 18,
+        //                     "blockChain": "Ethereum",
+        //                     "precision": 8,
+        //                     "currentRate": null,
+        //                     "active": true,
+        //                     "timeStart": "2021-01-28T08:57:41.719Z",
+        //                     "type": "crypto",
+        //                     "typeNetwork": "internalGW",
+        //                     "idSorting": 2,
+        //                     "links": [
         //                         {
-        //                             "tx" => "https://bscscan.com/tx/",
-        //                             "address" => "https://bscscan.com/address/",
-        //                             "blockChain" => "Binance"
+        //                             "tx": "https://etherscan.io/tx/",
+        //                             "address": "https://etherscan.io/address/",
+        //                             "blockChain": "Ethereum"
         //                         }
-        //                     )
+        //                     ]
+        //                 },
+        //                 {
+        //                     "txLimits": {
+        //                         "minDeposit": "0.001",
+        //                         "minWithdraw": "1",
+        //                         "maxWithdraw": "100000",
+        //                         "withdrawCommissionPercentage": "NaN",
+        //                         "withdrawCommissionFixed": {
+        //                             "Tron": "2",
+        //                             "Binance": "2",
+        //                             "Ethereum": "20"
+        //                         }
+        //                     },
+        //                     "id": 3,
+        //                     "status": 1,
+        //                     "symbol": "usdt",
+        //                     "title": "Tether USD",
+        //                     "logoURL": "https://cryptologos.cc/logos/tether-usdt-logo.png?v=010",
+        //                     "isDiscount": false,
+        //                     "address": "https://tether.to/",
+        //                     "description": "Tether USD",
+        //                     "decimals": 6,
+        //                     "blockChain": "",
+        //                     "precision": 6,
+        //                     "currentRate": null,
+        //                     "active": true,
+        //                     "timeStart": "2021-01-28T09:04:17.170Z",
+        //                     "type": "crypto",
+        //                     "typeNetwork": "internalGW",
+        //                     "idSorting": 0,
+        //                     "links": [
+        //                         {
+        //                             "tx": "https://etherscan.io/tx/",
+        //                             "address": "https://etherscan.io/address/",
+        //                             "blockChain": "Ethereum"
+        //                         },
+        //                         {
+        //                             "tx": "https://tronscan.org/#/transaction/",
+        //                             "address": "https://tronscan.org/#/address/",
+        //                             "blockChain": "Tron"
+        //                         },
+        //                         {
+        //                             "tx": "https://bscscan.com/tx/",
+        //                             "address": "https://bscscan.com/address/",
+        //                             "blockChain": "Binance"
+        //                         }
+        //                     ]
         //                 }
-        //             )
+        //             ]
         //         }
         //     }
         //
@@ -628,22 +629,22 @@ class bitteam extends Exchange {
         $statusesResponse = $this->publicGetTradeApiCmcAssets();
         //
         //     {
-        //         "ZNX" => array(
-        //             "name" => "ZeNeX Coin",
-        //             "unified_cryptoasset_id" => 30,
-        //             "withdrawStatus" => true,
-        //             "depositStatus" => true,
-        //             "min_withdraw" => 0.00001,
-        //             "max_withdraw" => 10000
-        //         ),
-        //         "USDT" => array(
-        //             "name" => "Tether USD",
-        //             "unified_cryptoasset_id" => 3,
-        //             "withdrawStatus" => true,
-        //             "depositStatus" => true,
-        //             "min_withdraw" => 1,
-        //             "max_withdraw" => 100000
-        //         ),
+        //         "ZNX": {
+        //             "name": "ZeNeX Coin",
+        //             "unified_cryptoasset_id": 30,
+        //             "withdrawStatus": true,
+        //             "depositStatus": true,
+        //             "min_withdraw": 0.00001,
+        //             "max_withdraw": 10000
+        //         },
+        //         "USDT": {
+        //             "name": "Tether USD",
+        //             "unified_cryptoasset_id": 3,
+        //             "withdrawStatus": true,
+        //             "depositStatus": true,
+        //             "min_withdraw": 1,
+        //             "max_withdraw": 100000
+        //         },
         //     }
         //
         $statusesResponse = $this->index_by($statusesResponse, 'unified_cryptoasset_id');
@@ -668,7 +669,7 @@ class bitteam extends Exchange {
         $withdrawCommissionFixed = $this->safe_value($txLimits, 'withdrawCommissionFixed', array());
         $feesByNetworkId = array();
         $blockChain = $this->safe_string($currency, 'blockChain');
-        // if only one $blockChain
+        // if only one blockChain
         if (($blockChain !== null) && ($blockChain !== '')) {
             $fee = $this->parse_number($withdrawCommissionFixed);
             $feesByNetworkId[$blockChain] = $fee;
@@ -751,7 +752,7 @@ class bitteam extends Exchange {
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             $this->load_markets();
@@ -765,28 +766,28 @@ class bitteam extends Exchange {
         $response = $this->historyGetApiTwHistoryPairNameResolution($this->extend($request, $params));
         //
         //     {
-        //         "ok" => true,
-        //         "result" => {
-        //             "count" => 364,
-        //             "data" => array(
-        //                 array(
-        //                     "t" => 1669593600,
-        //                     "o" => 16211.259266,
-        //                     "h" => 16476.985001,
-        //                     "l" => 16023.714999,
-        //                     "c" => 16430.636894,
-        //                     "v" => 2.60150368999999
-        //                 ),
-        //                 array(
-        //                     "t" => 1669680000,
-        //                     "o" => 16430.636894,
-        //                     "h" => 17065.229582,
-        //                     "l" => 16346.114155,
-        //                     "c" => 16882.297736,
-        //                     "v" => 3.0872548400000115
-        //                 ),
+        //         "ok": true,
+        //         "result": {
+        //             "count": 364,
+        //             "data": [
+        //                 {
+        //                     "t": 1669593600,
+        //                     "o": 16211.259266,
+        //                     "h": 16476.985001,
+        //                     "l": 16023.714999,
+        //                     "c": 16430.636894,
+        //                     "v": 2.60150368999999
+        //                 },
+        //                 {
+        //                     "t": 1669680000,
+        //                     "o": 16430.636894,
+        //                     "h": 17065.229582,
+        //                     "l": 16346.114155,
+        //                     "c": 16882.297736,
+        //                     "v": 3.0872548400000115
+        //                 },
         //                 ...
-        //             )
+        //             ]
         //         }
         //     }
         //
@@ -797,14 +798,14 @@ class bitteam extends Exchange {
 
     public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
         //
-        //     array(
-        //         "t" => 1669680000,
-        //         "o" => 16430.636894,
-        //         "h" => 17065.229582,
-        //         "l" => 16346.114155,
-        //         "c" => 16882.297736,
-        //         "v" => 3.0872548400000115
-        //     ),
+        //     {
+        //         "t": 1669680000,
+        //         "o": 16430.636894,
+        //         "h": 17065.229582,
+        //         "l": 16346.114155,
+        //         "c": 16882.297736,
+        //         "v": 3.0872548400000115
+        //     },
         //
         return array(
             $this->safe_timestamp($ohlcv, 't'),
@@ -837,29 +838,29 @@ class bitteam extends Exchange {
         $response = $this->publicGetTradeApiCmcOrderbookPair($this->extend($request, $params));
         //
         //     {
-        //         "timestamp" => 1701166703284,
-        //         "bids" => array(
-        //             array(
+        //         "timestamp": 1701166703284,
+        //         "bids": [
+        //             [
         //                 2019.334988,
         //                 0.09048525
-        //             ),
-        //             array(
+        //             ],
+        //             [
         //                 1999.860002,
         //                 0.0225
-        //             ),
+        //             ],
         //             ...
-        //         ),
-        //         "asks" => array(
-        //             array(
+        //         ],
+        //         "asks": [
+        //             [
         //                 2019.334995,
         //                 0.00899078
-        //             ),
-        //             array(
+        //             ],
+        //             [
         //                 2019.335013,
         //                 0.09833052
-        //             ),
+        //             ],
         //             ...
-        //         )
+        //         ]
         //     }
         //
         $timestamp = $this->safe_integer($response, 'timestamp');
@@ -898,83 +899,83 @@ class bitteam extends Exchange {
         $response = $this->privateGetTradeApiCcxtOrdersOfUser($this->extend($request, $params));
         //
         //     {
-        //         "ok" => true,
-        //         "result" => {
-        //             "count" => 3,
-        //             "orders" => array(
-        //                 array(
-        //                     "id" => 106733026,
-        //                     "orderId" => null,
-        //                     "userId" => 21639,
-        //                     "pair" => "btc_usdt",
-        //                     "pairId" => 22,
-        //                     "quantity" => "0.00001",
-        //                     "price" => "40",
-        //                     "executedPrice" => "0",
-        //                     "fee" => null,
-        //                     "orderCid" => null,
-        //                     "executed" => "0",
-        //                     "expires" => null,
-        //                     "baseDecimals" => 8,
-        //                     "quoteDecimals" => 6,
-        //                     "timestamp" => 1700594804,
-        //                     "status" => "inactive",
-        //                     "side" => "buy",
-        //                     "type" => "limit",
-        //                     "createdAt" => "2023-11-21T19:26:43.868Z",
-        //                     "updatedAt" => "2023-11-21T19:26:43.868Z"
-        //                 ),
-        //                 array(
-        //                     "id" => 106733308,
-        //                     "orderId" => "13074362",
-        //                     "userId" => 21639,
-        //                     "pair" => "btc_usdt",
-        //                     "pairId" => 22,
-        //                     "quantity" => "0.00001",
-        //                     "price" => "50000",
-        //                     "executedPrice" => "37017.495008",
-        //                     "fee" => array(
-        //                         "amount" => "0.00000002",
-        //                         "symbol" => "btc",
-        //                         "userId" => 21639,
-        //                         "decimals" => 8,
-        //                         "symbolId" => 11
-        //                     ),
-        //                     "orderCid" => null,
-        //                     "executed" => "0.00001",
-        //                     "expires" => null,
-        //                     "baseDecimals" => 8,
-        //                     "quoteDecimals" => 6,
-        //                     "timestamp" => 1700594959,
-        //                     "status" => "executed",
-        //                     "side" => "buy",
-        //                     "type" => "limit",
-        //                     "createdAt" => "2023-11-21T19:29:19.946Z",
-        //                     "updatedAt" => "2023-11-21T19:29:19.946Z"
-        //                 ),
+        //         "ok": true,
+        //         "result": {
+        //             "count": 3,
+        //             "orders": [
         //                 {
-        //                     "id" => 106734455,
-        //                     "orderId" => "13248984",
-        //                     "userId" => 21639,
-        //                     "pair" => "eth_usdt",
-        //                     "pairId" => 2,
-        //                     "quantity" => "0.001",
-        //                     "price" => "1750",
-        //                     "executedPrice" => "0",
-        //                     "fee" => null,
-        //                     "orderCid" => null,
-        //                     "executed" => "0",
-        //                     "expires" => null,
-        //                     "baseDecimals" => 18,
-        //                     "quoteDecimals" => 6,
-        //                     "timestamp" => 1700595523,
-        //                     "status" => "accepted",
-        //                     "side" => "buy",
-        //                     "type" => "limit",
-        //                     "createdAt" => "2023-11-21T19:38:43.530Z",
-        //                     "updatedAt" => "2023-11-21T19:38:43.530Z"
+        //                     "id": 106733026,
+        //                     "orderId": null,
+        //                     "userId": 21639,
+        //                     "pair": "btc_usdt",
+        //                     "pairId": 22,
+        //                     "quantity": "0.00001",
+        //                     "price": "40",
+        //                     "executedPrice": "0",
+        //                     "fee": null,
+        //                     "orderCid": null,
+        //                     "executed": "0",
+        //                     "expires": null,
+        //                     "baseDecimals": 8,
+        //                     "quoteDecimals": 6,
+        //                     "timestamp": 1700594804,
+        //                     "status": "inactive",
+        //                     "side": "buy",
+        //                     "type": "limit",
+        //                     "createdAt": "2023-11-21T19:26:43.868Z",
+        //                     "updatedAt": "2023-11-21T19:26:43.868Z"
+        //                 },
+        //                 {
+        //                     "id": 106733308,
+        //                     "orderId": "13074362",
+        //                     "userId": 21639,
+        //                     "pair": "btc_usdt",
+        //                     "pairId": 22,
+        //                     "quantity": "0.00001",
+        //                     "price": "50000",
+        //                     "executedPrice": "37017.495008",
+        //                     "fee": {
+        //                         "amount": "0.00000002",
+        //                         "symbol": "btc",
+        //                         "userId": 21639,
+        //                         "decimals": 8,
+        //                         "symbolId": 11
+        //                     },
+        //                     "orderCid": null,
+        //                     "executed": "0.00001",
+        //                     "expires": null,
+        //                     "baseDecimals": 8,
+        //                     "quoteDecimals": 6,
+        //                     "timestamp": 1700594959,
+        //                     "status": "executed",
+        //                     "side": "buy",
+        //                     "type": "limit",
+        //                     "createdAt": "2023-11-21T19:29:19.946Z",
+        //                     "updatedAt": "2023-11-21T19:29:19.946Z"
+        //                 },
+        //                 {
+        //                     "id": 106734455,
+        //                     "orderId": "13248984",
+        //                     "userId": 21639,
+        //                     "pair": "eth_usdt",
+        //                     "pairId": 2,
+        //                     "quantity": "0.001",
+        //                     "price": "1750",
+        //                     "executedPrice": "0",
+        //                     "fee": null,
+        //                     "orderCid": null,
+        //                     "executed": "0",
+        //                     "expires": null,
+        //                     "baseDecimals": 18,
+        //                     "quoteDecimals": 6,
+        //                     "timestamp": 1700595523,
+        //                     "status": "accepted",
+        //                     "side": "buy",
+        //                     "type": "limit",
+        //                     "createdAt": "2023-11-21T19:38:43.530Z",
+        //                     "updatedAt": "2023-11-21T19:38:43.530Z"
         //                 }
-        //             )
+        //             ]
         //         }
         //     }
         //
@@ -1007,38 +1008,38 @@ class bitteam extends Exchange {
         $response = $this->privateGetTradeApiCcxtOrderId($this->extend($request, $params));
         //
         //     {
-        //         "ok" => true,
-        //         "result" => {
-        //             "id" => 106494347,
-        //             "orderId" => "13214332",
-        //             "userId" => 15912,
-        //             "pair" => "eth_usdt",
-        //             "pairId" => 2,
-        //             "quantity" => "0.00448598",
-        //             "price" => "2015.644995",
-        //             "executedPrice" => "2015.644995",
-        //             "fee" => array(
-        //                 "amount" => "0",
-        //                 "symbol" => "eth",
-        //                 "userId" => 15912,
-        //                 "decimals" => 18,
-        //                 "symbolId" => 2,
-        //                 "discountAmount" => "0",
-        //                 "discountSymbol" => "btt",
-        //                 "discountDecimals" => 18,
-        //                 "discountSymbolId" => 5
-        //             ),
-        //             "orderCid" => null,
-        //             "executed" => "0.00448598",
-        //             "expires" => null,
-        //             "baseDecimals" => 18,
-        //             "quoteDecimals" => 6,
-        //             "timestamp" => 1700470476,
-        //             "status" => "executed",
-        //             "side" => "buy",
-        //             "type" => "limit",
-        //             "stopPrice" => null,
-        //             "slippage" => null
+        //         "ok": true,
+        //         "result": {
+        //             "id": 106494347,
+        //             "orderId": "13214332",
+        //             "userId": 15912,
+        //             "pair": "eth_usdt",
+        //             "pairId": 2,
+        //             "quantity": "0.00448598",
+        //             "price": "2015.644995",
+        //             "executedPrice": "2015.644995",
+        //             "fee": {
+        //                 "amount": "0",
+        //                 "symbol": "eth",
+        //                 "userId": 15912,
+        //                 "decimals": 18,
+        //                 "symbolId": 2,
+        //                 "discountAmount": "0",
+        //                 "discountSymbol": "btt",
+        //                 "discountDecimals": 18,
+        //                 "discountSymbolId": 5
+        //             },
+        //             "orderCid": null,
+        //             "executed": "0.00448598",
+        //             "expires": null,
+        //             "baseDecimals": 18,
+        //             "quoteDecimals": 6,
+        //             "timestamp": 1700470476,
+        //             "status": "executed",
+        //             "side": "buy",
+        //             "type": "limit",
+        //             "stopPrice": null,
+        //             "slippage": null
         //         }
         //     }
         //
@@ -1143,24 +1144,24 @@ class bitteam extends Exchange {
         $response = $this->privatePostTradeApiCcxtOrdercreate($this->extend($request, $params));
         //
         //     {
-        //         "ok" => true,
-        //         "result" => {
-        //             "id" => 106733308,
-        //             "userId" => 21639,
-        //             "quantity" => "0.00001",
-        //             "pair" => "btc_usdt",
-        //             "side" => "buy",
-        //             "price" => "50000",
-        //             "executed" => "0",
-        //             "executedPrice" => "0",
-        //             "status" => "created",
-        //             "baseDecimals" => 8,
-        //             "quoteDecimals" => 6,
-        //             "pairId" => 22,
-        //             "type" => "limit",
-        //             "stopPrice" => null,
-        //             "slippage" => null,
-        //             "timestamp" => "1700594959"
+        //         "ok": true,
+        //         "result": {
+        //             "id": 106733308,
+        //             "userId": 21639,
+        //             "quantity": "0.00001",
+        //             "pair": "btc_usdt",
+        //             "side": "buy",
+        //             "price": "50000",
+        //             "executed": "0",
+        //             "executedPrice": "0",
+        //             "status": "created",
+        //             "baseDecimals": 8,
+        //             "quoteDecimals": 6,
+        //             "pairId": 22,
+        //             "type": "limit",
+        //             "stopPrice": null,
+        //             "slippage": null,
+        //             "timestamp": "1700594959"
         //         }
         //     }
         //
@@ -1188,9 +1189,9 @@ class bitteam extends Exchange {
         $response = $this->privatePostTradeApiCcxtCancelorder($this->extend($request, $params));
         //
         //     {
-        //         "ok" => true,
-        //         "result" => {
-        //             "message" => "The $request to cancel your order was received"
+        //         "ok": true,
+        //         "result": {
+        //             "message": "The request to cancel your order was received"
         //         }
         //     }
         //
@@ -1222,9 +1223,9 @@ class bitteam extends Exchange {
         $response = $this->privatePostTradeApiCcxtCancelAllOrder($this->extend($request, $params));
         //
         //     {
-        //         "ok" => true,
-        //         "result" => {
-        //             "message":"The $request to cancel all your $orders was received"
+        //         "ok": true,
+        //         "result": {
+        //             "message":"The request to cancel all your orders was received"
         //         }
         //     }
         //
@@ -1236,87 +1237,87 @@ class bitteam extends Exchange {
     public function parse_order(array $order, ?array $market = null): array {
         //
         // fetchOrders
-        //     array(
-        //         "id" => 106733308,
-        //         "orderId" => "13074362",
-        //         "userId" => 21639,
-        //         "pair" => "btc_usdt",
-        //         "pairId" => 22,
-        //         "quantity" => "0.00001",
-        //         "price" => "50000",
-        //         "executedPrice" => "37017.495008",
-        //         "fee" => array(
-        //             "amount" => "0.00000002",
-        //             "symbol" => "btc",
-        //             "userId" => 21639,
-        //             "decimals" => 8,
-        //             "symbolId" => 11
-        //         ),
-        //         "orderCid" => null,
-        //         "executed" => "0.00001",
-        //         "expires" => null,
-        //         "baseDecimals" => 8,
-        //         "quoteDecimals" => 6,
-        //         "timestamp" => 1700594959,
-        //         "status" => "executed",
-        //         "side" => "buy",
-        //         "type" => "limit",
-        //         "createdAt" => "2023-11-21T19:29:19.946Z",
-        //         "updatedAt" => "2023-11-21T19:29:19.946Z"
-        //     ),
+        //     {
+        //         "id": 106733308,
+        //         "orderId": "13074362",
+        //         "userId": 21639,
+        //         "pair": "btc_usdt",
+        //         "pairId": 22,
+        //         "quantity": "0.00001",
+        //         "price": "50000",
+        //         "executedPrice": "37017.495008",
+        //         "fee": {
+        //             "amount": "0.00000002",
+        //             "symbol": "btc",
+        //             "userId": 21639,
+        //             "decimals": 8,
+        //             "symbolId": 11
+        //         },
+        //         "orderCid": null,
+        //         "executed": "0.00001",
+        //         "expires": null,
+        //         "baseDecimals": 8,
+        //         "quoteDecimals": 6,
+        //         "timestamp": 1700594959,
+        //         "status": "executed",
+        //         "side": "buy",
+        //         "type": "limit",
+        //         "createdAt": "2023-11-21T19:29:19.946Z",
+        //         "updatedAt": "2023-11-21T19:29:19.946Z"
+        //     },
         //
         // fetchOrder
         //     {
-        //         "id" => 106494347,
-        //         "orderId" => "13214332",
-        //         "userId" => 15912,
-        //         "pair" => "eth_usdt",
-        //         "pairId" => 2,
-        //         "quantity" => "0.00448598",
-        //         "price" => "2015.644995",
-        //         "executedPrice" => "2015.644995",
-        //         "fee" => array(
-        //             "amount" => "0",
-        //             "symbol" => "eth",
-        //             "userId" => 15912,
-        //             "decimals" => 18,
-        //             "symbolId" => 2,
-        //             "discountAmount" => "0",
-        //             "discountSymbol" => "btt",
-        //             "discountDecimals" => 18,
-        //             "discountSymbolId" => 5
-        //         ),
-        //         "orderCid" => null,
-        //         "executed" => "0.00448598",
-        //         "expires" => null,
-        //         "baseDecimals" => 18,
-        //         "quoteDecimals" => 6,
-        //         "timestamp" => 1700470476,
-        //         "status" => "executed",
-        //         "side" => "buy",
-        //         "type" => "limit",
-        //         "stopPrice" => null,
-        //         "slippage" => null
+        //         "id": 106494347,
+        //         "orderId": "13214332",
+        //         "userId": 15912,
+        //         "pair": "eth_usdt",
+        //         "pairId": 2,
+        //         "quantity": "0.00448598",
+        //         "price": "2015.644995",
+        //         "executedPrice": "2015.644995",
+        //         "fee": {
+        //             "amount": "0",
+        //             "symbol": "eth",
+        //             "userId": 15912,
+        //             "decimals": 18,
+        //             "symbolId": 2,
+        //             "discountAmount": "0",
+        //             "discountSymbol": "btt",
+        //             "discountDecimals": 18,
+        //             "discountSymbolId": 5
+        //         },
+        //         "orderCid": null,
+        //         "executed": "0.00448598",
+        //         "expires": null,
+        //         "baseDecimals": 18,
+        //         "quoteDecimals": 6,
+        //         "timestamp": 1700470476,
+        //         "status": "executed",
+        //         "side": "buy",
+        //         "type": "limit",
+        //         "stopPrice": null,
+        //         "slippage": null
         //     }
         //
         // createOrder
         //     {
-        //         "id" => 106733308,
-        //         "userId" => 21639,
-        //         "quantity" => "0.00001",
-        //         "pair" => "btc_usdt",
-        //         "side" => "buy",
-        //         "price" => "50000",
-        //         "executed" => "0",
-        //         "executedPrice" => "0",
-        //         "status" => "created",
-        //         "baseDecimals" => 8,
-        //         "quoteDecimals" => 6,
-        //         "pairId" => 22,
-        //         "type" => "limit",
-        //         "stopPrice" => null,
-        //         "slippage" => null,
-        //         "timestamp" => "1700594959"
+        //         "id": 106733308,
+        //         "userId": 21639,
+        //         "quantity": "0.00001",
+        //         "pair": "btc_usdt",
+        //         "side": "buy",
+        //         "price": "50000",
+        //         "executed": "0",
+        //         "executedPrice": "0",
+        //         "status": "created",
+        //         "baseDecimals": 8,
+        //         "quoteDecimals": 6,
+        //         "pairId": 22,
+        //         "type": "limit",
+        //         "stopPrice": null,
+        //         "slippage": null,
+        //         "timestamp": "1700594959"
         //     }
         //
         $id = $this->safe_string($order, 'id');
@@ -1422,35 +1423,35 @@ class bitteam extends Exchange {
         }
         $response = $this->publicGetTradeApiCmcSummary();
         //
-        //     array(
-        //         array(
-        //             "trading_pairs" => "BTC_USDT",
-        //             "base_currency" => "BTC",
-        //             "quote_currency" => "USDT",
-        //             "last_price" => 37669.955001,
-        //             "lowest_ask" => 37670.055,
-        //             "highest_bid" => 37669.955,
-        //             "base_volume" => 6.81156888,
-        //             "quote_volume" => 257400.516878529,
-        //             "price_change_percent_24h" => -0.29,
-        //             "highest_price_24h" => 38389.994463,
-        //             "lowest_price_24h" => 37574.894999
-        //         ),
-        //         array(
-        //             "trading_pairs" => "BNB_USDT",
-        //             "base_currency" => "BNB",
-        //             "quote_currency" => "USDT",
-        //             "last_price" => 233.525142,
-        //             "lowest_ask" => 233.675,
-        //             "highest_bid" => 233.425,
-        //             "base_volume" => 245.0199339,
-        //             "quote_volume" => 57356.91823827642,
-        //             "price_change_percent_24h" => -0.32,
-        //             "highest_price_24h" => 236.171123,
-        //             "lowest_price_24h" => 231.634637
-        //         ),
+        //     [
+        //         {
+        //             "trading_pairs": "BTC_USDT",
+        //             "base_currency": "BTC",
+        //             "quote_currency": "USDT",
+        //             "last_price": 37669.955001,
+        //             "lowest_ask": 37670.055,
+        //             "highest_bid": 37669.955,
+        //             "base_volume": 6.81156888,
+        //             "quote_volume": 257400.516878529,
+        //             "price_change_percent_24h": -0.29,
+        //             "highest_price_24h": 38389.994463,
+        //             "lowest_price_24h": 37574.894999
+        //         },
+        //         {
+        //             "trading_pairs": "BNB_USDT",
+        //             "base_currency": "BNB",
+        //             "quote_currency": "USDT",
+        //             "last_price": 233.525142,
+        //             "lowest_ask": 233.675,
+        //             "highest_bid": 233.425,
+        //             "base_volume": 245.0199339,
+        //             "quote_volume": 57356.91823827642,
+        //             "price_change_percent_24h": -0.32,
+        //             "highest_price_24h": 236.171123,
+        //             "lowest_price_24h": 231.634637
+        //         },
         //         ...
-        //     )
+        //     ]
         //
         $tickers = array();
         $rawTickers = array();
@@ -1485,182 +1486,182 @@ class bitteam extends Exchange {
         $response = $this->publicGetTradeApiPairName($this->extend($request, $params));
         //
         //     {
-        //         "ok" => true,
-        //         "result" => {
-        //             "pair" => {
-        //                 "id" => 2,
-        //                 "name" => "eth_usdt",
-        //                 "baseAssetId" => 2,
-        //                 "quoteAssetId" => 3,
-        //                 "fullName" => "ETH USDT",
-        //                 "description" => "ETH   USDT",
-        //                 "lastBuy" => "1976.715012",
-        //                 "lastSell" => "1971.995006",
-        //                 "lastPrice" => "1976.715012",
-        //                 "change24" => "1.02",
-        //                 "volume24" => 24.0796457,
-        //                 "volume24USD" => 44282.347995912205,
-        //                 "active" => true,
-        //                 "baseStep" => 8,
-        //                 "quoteStep" => 6,
-        //                 "status" => 1,
-        //                 "settings" => array(
-        //                     "limit_usd" => "0.1",
-        //                     "price_max" => "10000000000000",
-        //                     "price_min" => "1",
-        //                     "price_tick" => "1",
-        //                     "pricescale" => 10000,
-        //                     "lot_size_max" => "1000000000000000",
-        //                     "lot_size_min" => "1",
-        //                     "lot_size_tick" => "1",
-        //                     "price_view_min" => 6,
-        //                     "default_slippage" => 10,
-        //                     "lot_size_view_min" => 6
-        //                 ),
-        //                 "asks" => array(
-        //                     array(
-        //                     "price" => "1976.405003",
-        //                     "quantity" => "0.0051171",
-        //                     "amount" => "10.1134620408513"
-        //                     ),
-        //                     array(
-        //                     "price" => "1976.405013",
-        //                     "quantity" => "0.09001559",
-        //                     "amount" => "177.90726332415267"
-        //                     ),
+        //         "ok": true,
+        //         "result": {
+        //             "pair": {
+        //                 "id": 2,
+        //                 "name": "eth_usdt",
+        //                 "baseAssetId": 2,
+        //                 "quoteAssetId": 3,
+        //                 "fullName": "ETH USDT",
+        //                 "description": "ETH   USDT",
+        //                 "lastBuy": "1976.715012",
+        //                 "lastSell": "1971.995006",
+        //                 "lastPrice": "1976.715012",
+        //                 "change24": "1.02",
+        //                 "volume24": 24.0796457,
+        //                 "volume24USD": 44282.347995912205,
+        //                 "active": true,
+        //                 "baseStep": 8,
+        //                 "quoteStep": 6,
+        //                 "status": 1,
+        //                 "settings": {
+        //                     "limit_usd": "0.1",
+        //                     "price_max": "10000000000000",
+        //                     "price_min": "1",
+        //                     "price_tick": "1",
+        //                     "pricescale": 10000,
+        //                     "lot_size_max": "1000000000000000",
+        //                     "lot_size_min": "1",
+        //                     "lot_size_tick": "1",
+        //                     "price_view_min": 6,
+        //                     "default_slippage": 10,
+        //                     "lot_size_view_min": 6
+        //                 },
+        //                 "asks": [
         //                     {
-        //                     "price" => "2010.704988",
-        //                     "quantity" => "0.00127892",
-        //                     "amount" => "2.57153082325296"
-        //                     }
-        //                 ),
-        //                 "bids" => array(
-        //                     array(
-        //                     "price" => "1976.404988",
-        //                     "quantity" => "0.09875861",
-        //                     "amount" => "195.18700941194668"
-        //                     ),
-        //                     array(
-        //                     "price" => "1905.472973",
-        //                     "quantity" => "0.00263591",
-        //                     "amount" => "5.02265526426043"
-        //                     ),
+        //                     "price": "1976.405003",
+        //                     "quantity": "0.0051171",
+        //                     "amount": "10.1134620408513"
+        //                     },
         //                     {
-        //                     "price" => "1904.274973",
-        //                     "quantity" => "0.09425304",
-        //                     "amount" => "179.48370520116792"
+        //                     "price": "1976.405013",
+        //                     "quantity": "0.09001559",
+        //                     "amount": "177.90726332415267"
+        //                     },
+        //                     {
+        //                     "price": "2010.704988",
+        //                     "quantity": "0.00127892",
+        //                     "amount": "2.57153082325296"
         //                     }
-        //                 ),
-        //                 "updateId" => "78",
-        //                 "timeStart" => "2021-01-28T09:19:30.706Z",
-        //                 "makerFee" => 200,
-        //                 "takerFee" => 200,
-        //                 "quoteVolume24" => 49125.1374009045,
-        //                 "lowPrice24" => 1966.704999,
-        //                 "highPrice24" => 2080.354997,
-        //                 "baseCurrency" => {
-        //                     "id" => 2,
-        //                     "status" => 1,
-        //                     "symbol" => "eth",
-        //                     "title" => "Ethereum",
-        //                     "logoURL" => "https://ethereum.org/static/6b935ac0e6194247347855dc3d328e83/34ca5/eth-diamond-black.png",
-        //                     "isDiscount" => false,
-        //                     "address" => "https://ethereum.org/",
-        //                     "description" => "Ethereum ETH",
-        //                     "decimals" => 18,
-        //                     "blockChain" => "Ethereum",
-        //                     "precision" => 8,
-        //                     "currentRate" => null,
-        //                     "active" => true,
-        //                     "timeStart" => "2021-01-28T08:57:41.719Z",
-        //                     "txLimits" => array(
-        //                         "minDeposit" => "100000000000000",
-        //                         "maxWithdraw" => "10000000000000000000000",
-        //                         "minWithdraw" => "20000000000000000",
-        //                         "withdrawCommissionFixed" => "5000000000000000",
-        //                         "withdrawCommissionPercentage" => "NaN"
-        //                     ),
-        //                     "type" => "crypto",
-        //                     "typeNetwork" => "internalGW",
-        //                     "icon" => "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAiIGhlaWdodD0iMzAiIHZpZXdCb3g9IjAgMCAzMCAzMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTAgMTVDMCA2LjcxNTczIDYuNzE1NzMgMCAxNSAwVjBDMjMuMjg0MyAwIDMwIDYuNzE1NzMgMzAgMTVWMTVDMzAgMjMuMjg0MyAyMy4yODQzIDMwIDE1IDMwVjMwQzYuNzE1NzMgMzAgMCAyMy4yODQzIDAgMTVWMTVaIiBmaWxsPSJibGFjayIvPgo8cGF0aCBkPSJNMTQuOTU1NyAxOS45NzM5TDkgMTYuMzUwOUwxNC45NTIxIDI1TDIwLjkxMDkgMTYuMzUwOUwxNC45NTIxIDE5Ljk3MzlIMTQuOTU1N1pNMTUuMDQ0MyA1TDkuMDkwOTUgMTUuMTg1M0wxNS4wNDQzIDE4LjgxNDZMMjEgMTUuMTg5MUwxNS4wNDQzIDVaIiBmaWxsPSJ3aGl0ZSIvPgo8L3N2Zz4K",
-        //                     "idSorting" => 2,
-        //                     "links" => array(
+        //                 ],
+        //                 "bids": [
+        //                     {
+        //                     "price": "1976.404988",
+        //                     "quantity": "0.09875861",
+        //                     "amount": "195.18700941194668"
+        //                     },
+        //                     {
+        //                     "price": "1905.472973",
+        //                     "quantity": "0.00263591",
+        //                     "amount": "5.02265526426043"
+        //                     },
+        //                     {
+        //                     "price": "1904.274973",
+        //                     "quantity": "0.09425304",
+        //                     "amount": "179.48370520116792"
+        //                     }
+        //                 ],
+        //                 "updateId": "78",
+        //                 "timeStart": "2021-01-28T09:19:30.706Z",
+        //                 "makerFee": 200,
+        //                 "takerFee": 200,
+        //                 "quoteVolume24": 49125.1374009045,
+        //                 "lowPrice24": 1966.704999,
+        //                 "highPrice24": 2080.354997,
+        //                 "baseCurrency": {
+        //                     "id": 2,
+        //                     "status": 1,
+        //                     "symbol": "eth",
+        //                     "title": "Ethereum",
+        //                     "logoURL": "https://ethereum.org/static/6b935ac0e6194247347855dc3d328e83/34ca5/eth-diamond-black.png",
+        //                     "isDiscount": false,
+        //                     "address": "https://ethereum.org/",
+        //                     "description": "Ethereum ETH",
+        //                     "decimals": 18,
+        //                     "blockChain": "Ethereum",
+        //                     "precision": 8,
+        //                     "currentRate": null,
+        //                     "active": true,
+        //                     "timeStart": "2021-01-28T08:57:41.719Z",
+        //                     "txLimits": {
+        //                         "minDeposit": "100000000000000",
+        //                         "maxWithdraw": "10000000000000000000000",
+        //                         "minWithdraw": "20000000000000000",
+        //                         "withdrawCommissionFixed": "5000000000000000",
+        //                         "withdrawCommissionPercentage": "NaN"
+        //                     },
+        //                     "type": "crypto",
+        //                     "typeNetwork": "internalGW",
+        //                     "icon": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAiIGhlaWdodD0iMzAiIHZpZXdCb3g9IjAgMCAzMCAzMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTAgMTVDMCA2LjcxNTczIDYuNzE1NzMgMCAxNSAwVjBDMjMuMjg0MyAwIDMwIDYuNzE1NzMgMzAgMTVWMTVDMzAgMjMuMjg0MyAyMy4yODQzIDMwIDE1IDMwVjMwQzYuNzE1NzMgMzAgMCAyMy4yODQzIDAgMTVWMTVaIiBmaWxsPSJibGFjayIvPgo8cGF0aCBkPSJNMTQuOTU1NyAxOS45NzM5TDkgMTYuMzUwOUwxNC45NTIxIDI1TDIwLjkxMDkgMTYuMzUwOUwxNC45NTIxIDE5Ljk3MzlIMTQuOTU1N1pNMTUuMDQ0MyA1TDkuMDkwOTUgMTUuMTg1M0wxNS4wNDQzIDE4LjgxNDZMMjEgMTUuMTg5MUwxNS4wNDQzIDVaIiBmaWxsPSJ3aGl0ZSIvPgo8L3N2Zz4K",
+        //                     "idSorting": 2,
+        //                     "links": [
         //                         {
-        //                             "tx" => "https://etherscan.io/tx/",
-        //                             "address" => "https://etherscan.io/address/",
-        //                             "blockChain" => "Ethereum"
+        //                             "tx": "https://etherscan.io/tx/",
+        //                             "address": "https://etherscan.io/address/",
+        //                             "blockChain": "Ethereum"
         //                         }
-        //                     ),
-        //                     "clientTxLimits" => array(
-        //                         "minDeposit" => "0.0001",
-        //                         "minWithdraw" => "0.02",
-        //                         "maxWithdraw" => "10000",
-        //                         "withdrawCommissionPercentage" => "NaN",
-        //                         "withdrawCommissionFixed" => "0.005"
+        //                     ],
+        //                     "clientTxLimits": {
+        //                         "minDeposit": "0.0001",
+        //                         "minWithdraw": "0.02",
+        //                         "maxWithdraw": "10000",
+        //                         "withdrawCommissionPercentage": "NaN",
+        //                         "withdrawCommissionFixed": "0.005"
         //                     }
-        //                 ),
-        //                 "quoteCurrency" => {
-        //                     "id" => 3,
-        //                     "status" => 1,
-        //                     "symbol" => "usdt",
-        //                     "title" => "Tether USD",
-        //                     "logoURL" => "https://cryptologos.cc/logos/tether-usdt-logo.png?v=010",
-        //                     "isDiscount" => false,
-        //                     "address" => "https://tether.to/",
-        //                     "description" => "Tether USD",
-        //                     "decimals" => 6,
-        //                     "blockChain" => "",
-        //                     "precision" => 6,
-        //                     "currentRate" => null,
-        //                     "active" => true,
-        //                     "timeStart" => "2021-01-28T09:04:17.170Z",
-        //                     "txLimits" => array(
-        //                         "minDeposit" => "1000",
-        //                         "maxWithdraw" => "100000000000",
-        //                         "minWithdraw" => "1000000",
-        //                         "withdrawCommissionFixed" => array(
-        //                             "Tron" => "2000000",
-        //                             "Binance" => "2000000000000000000",
-        //                             "Ethereum" => "20000000"
-        //                         ),
-        //                         "withdrawCommissionPercentage" => "NaN"
-        //                     ),
-        //                     "type" => "crypto",
-        //                     "typeNetwork" => "internalGW",
-        //                     "icon" => "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAiIGhlaWdodD0iMzAiIHZpZXdCb3g9IjAgMCAzMCAzMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTAgMTVDMCA2LjcxNTczIDYuNzE1NzMgMCAxNSAwVjBDMjMuMjg0MyAwIDMwIDYuNzE1NzMgMzAgMTVWMTVDMzAgMjMuMjg0MyAyMy4yODQzIDMwIDE1IDMwVjMwQzYuNzE1NzMgMzAgMCAyMy4yODQzIDAgMTVWMTVaIiBmaWxsPSIjNkZBNjg4Ii8+CjxwYXRoIGZpbGwtcnVsZT0iZXZlbm9kZCIgY2xpcC1ydWxlPSJldmVub2RkIiBkPSJNMjMgN0g3VjExSDEzVjEyLjA2MkM4Ljk5MjAyIDEyLjMxNDYgNiAxMy4zMTAyIDYgMTQuNUM2IDE1LjY4OTggOC45OTIwMiAxNi42ODU0IDEzIDE2LjkzOFYyM0gxN1YxNi45MzhDMjEuMDA4IDE2LjY4NTQgMjQgMTUuNjg5OCAyNCAxNC41QzI0IDEzLjMxMDIgMjEuMDA4IDEyLjMxNDYgMTcgMTIuMDYyVjExSDIzVjdaTTcuNSAxNC41QzcuNSAxMy40NjA2IDkuMzMzMzMgMTIuMzY4IDEzIDEyLjA3NTZWMTUuNUgxN1YxMi4wNzU5QzIwLjkzODQgMTIuMzkyNyAyMi41IDEzLjYzMzkgMjIuNSAxNC41QzIyLjUgMTUuMzIyIDIwLjAwMDggMTUuODA2MSAxNyAxNS45NTI1QzE1LjcwODIgMTYuMDQ2MiAxMy43OTUxIDE1Ljk4MjYgMTMgMTUuOTM5MUM5Ljk5OTIxIDE1Ljc1NTkgNy41IDE1LjE4MDkgNy41IDE0LjVaIiBmaWxsPSJ3aGl0ZSIvPgo8L3N2Zz4K",
-        //                     "idSorting" => 0,
-        //                     "links" => array(
-        //                         array(
-        //                             "tx" => "https://etherscan.io/tx/",
-        //                             "address" => "https://etherscan.io/address/",
-        //                             "blockChain" => "Ethereum"
-        //                         ),
-        //                         array(
-        //                             "tx" => "https://tronscan.org/#/transaction/",
-        //                             "address" => "https://tronscan.org/#/address/",
-        //                             "blockChain" => "Tron"
-        //                         ),
+        //                 },
+        //                 "quoteCurrency": {
+        //                     "id": 3,
+        //                     "status": 1,
+        //                     "symbol": "usdt",
+        //                     "title": "Tether USD",
+        //                     "logoURL": "https://cryptologos.cc/logos/tether-usdt-logo.png?v=010",
+        //                     "isDiscount": false,
+        //                     "address": "https://tether.to/",
+        //                     "description": "Tether USD",
+        //                     "decimals": 6,
+        //                     "blockChain": "",
+        //                     "precision": 6,
+        //                     "currentRate": null,
+        //                     "active": true,
+        //                     "timeStart": "2021-01-28T09:04:17.170Z",
+        //                     "txLimits": {
+        //                         "minDeposit": "1000",
+        //                         "maxWithdraw": "100000000000",
+        //                         "minWithdraw": "1000000",
+        //                         "withdrawCommissionFixed": {
+        //                             "Tron": "2000000",
+        //                             "Binance": "2000000000000000000",
+        //                             "Ethereum": "20000000"
+        //                         },
+        //                         "withdrawCommissionPercentage": "NaN"
+        //                     },
+        //                     "type": "crypto",
+        //                     "typeNetwork": "internalGW",
+        //                     "icon": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAiIGhlaWdodD0iMzAiIHZpZXdCb3g9IjAgMCAzMCAzMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTAgMTVDMCA2LjcxNTczIDYuNzE1NzMgMCAxNSAwVjBDMjMuMjg0MyAwIDMwIDYuNzE1NzMgMzAgMTVWMTVDMzAgMjMuMjg0MyAyMy4yODQzIDMwIDE1IDMwVjMwQzYuNzE1NzMgMzAgMCAyMy4yODQzIDAgMTVWMTVaIiBmaWxsPSIjNkZBNjg4Ii8+CjxwYXRoIGZpbGwtcnVsZT0iZXZlbm9kZCIgY2xpcC1ydWxlPSJldmVub2RkIiBkPSJNMjMgN0g3VjExSDEzVjEyLjA2MkM4Ljk5MjAyIDEyLjMxNDYgNiAxMy4zMTAyIDYgMTQuNUM2IDE1LjY4OTggOC45OTIwMiAxNi42ODU0IDEzIDE2LjkzOFYyM0gxN1YxNi45MzhDMjEuMDA4IDE2LjY4NTQgMjQgMTUuNjg5OCAyNCAxNC41QzI0IDEzLjMxMDIgMjEuMDA4IDEyLjMxNDYgMTcgMTIuMDYyVjExSDIzVjdaTTcuNSAxNC41QzcuNSAxMy40NjA2IDkuMzMzMzMgMTIuMzY4IDEzIDEyLjA3NTZWMTUuNUgxN1YxMi4wNzU5QzIwLjkzODQgMTIuMzkyNyAyMi41IDEzLjYzMzkgMjIuNSAxNC41QzIyLjUgMTUuMzIyIDIwLjAwMDggMTUuODA2MSAxNyAxNS45NTI1QzE1LjcwODIgMTYuMDQ2MiAxMy43OTUxIDE1Ljk4MjYgMTMgMTUuOTM5MUM5Ljk5OTIxIDE1Ljc1NTkgNy41IDE1LjE4MDkgNy41IDE0LjVaIiBmaWxsPSJ3aGl0ZSIvPgo8L3N2Zz4K",
+        //                     "idSorting": 0,
+        //                     "links": [
         //                         {
-        //                             "tx" => "https://bscscan.com/tx/",
-        //                             "address" => "https://bscscan.com/address/",
-        //                             "blockChain" => "Binance"
+        //                             "tx": "https://etherscan.io/tx/",
+        //                             "address": "https://etherscan.io/address/",
+        //                             "blockChain": "Ethereum"
+        //                         },
+        //                         {
+        //                             "tx": "https://tronscan.org/#/transaction/",
+        //                             "address": "https://tronscan.org/#/address/",
+        //                             "blockChain": "Tron"
+        //                         },
+        //                         {
+        //                             "tx": "https://bscscan.com/tx/",
+        //                             "address": "https://bscscan.com/address/",
+        //                             "blockChain": "Binance"
         //                         }
-        //                     ),
-        //                     "clientTxLimits" => {
-        //                         "minDeposit" => "0.001",
-        //                         "minWithdraw" => "1",
-        //                         "maxWithdraw" => "100000",
-        //                         "withdrawCommissionPercentage" => "NaN",
-        //                         "withdrawCommissionFixed" => array(
-        //                             "Tron" => "2",
-        //                             "Binance" => "2",
-        //                             "Ethereum" => "20"
+        //                     ],
+        //                     "clientTxLimits": {
+        //                         "minDeposit": "0.001",
+        //                         "minWithdraw": "1",
+        //                         "maxWithdraw": "100000",
+        //                         "withdrawCommissionPercentage": "NaN",
+        //                         "withdrawCommissionFixed": {
+        //                             "Tron": "2",
+        //                             "Binance": "2",
+        //                             "Ethereum": "20"
         //                         }
         //                     }
-        //                 ),
-        //                 "quantities" => {
-        //                     "asks" => "5.58760757",
-        //                     "bids" => "2226.98663823032198"
+        //                 },
+        //                 "quantities": {
+        //                     "asks": "5.58760757",
+        //                     "bids": "2226.98663823032198"
         //                 }
         //             }
         //         }
@@ -1675,81 +1676,81 @@ class bitteam extends Exchange {
         //
         // fetchTicker
         //     {
-        //         "id" => 2,
-        //         "name" => "eth_usdt",
-        //         "baseAssetId" => 2,
-        //         "quoteAssetId" => 3,
-        //         "fullName" => "ETH USDT",
-        //         "description" => "ETH   USDT",
-        //         "lastBuy" => "1976.715012",
-        //         "lastSell" => "1971.995006",
-        //         "lastPrice" => "1976.715012",
-        //         "change24" => "1.02",
-        //         "volume24" => 24.0796457,
-        //         "volume24USD" => 44282.347995912205,
-        //         "active" => true,
-        //         "baseStep" => 8,
-        //         "quoteStep" => 6,
-        //         "status" => 1,
-        //         "asks" => array(
-        //             array(
-        //             "price" => "1976.405003",
-        //             "quantity" => "0.0051171",
-        //             "amount" => "10.1134620408513"
-        //             ),
-        //             array(
-        //             "price" => "1976.405013",
-        //             "quantity" => "0.09001559",
-        //             "amount" => "177.90726332415267"
-        //             ),
+        //         "id": 2,
+        //         "name": "eth_usdt",
+        //         "baseAssetId": 2,
+        //         "quoteAssetId": 3,
+        //         "fullName": "ETH USDT",
+        //         "description": "ETH   USDT",
+        //         "lastBuy": "1976.715012",
+        //         "lastSell": "1971.995006",
+        //         "lastPrice": "1976.715012",
+        //         "change24": "1.02",
+        //         "volume24": 24.0796457,
+        //         "volume24USD": 44282.347995912205,
+        //         "active": true,
+        //         "baseStep": 8,
+        //         "quoteStep": 6,
+        //         "status": 1,
+        //         "asks": [
         //             {
-        //             "price" => "2010.704988",
-        //             "quantity" => "0.00127892",
-        //             "amount" => "2.57153082325296"
+        //             "price": "1976.405003",
+        //             "quantity": "0.0051171",
+        //             "amount": "10.1134620408513"
+        //             },
+        //             {
+        //             "price": "1976.405013",
+        //             "quantity": "0.09001559",
+        //             "amount": "177.90726332415267"
+        //             },
+        //             {
+        //             "price": "2010.704988",
+        //             "quantity": "0.00127892",
+        //             "amount": "2.57153082325296"
         //             }
         //                ...
-        //         ),
-        //         "bids" => array(
-        //             array(
-        //             "price" => "1976.404988",
-        //             "quantity" => "0.09875861",
-        //             "amount" => "195.18700941194668"
-        //             ),
-        //             array(
-        //             "price" => "1905.472973",
-        //             "quantity" => "0.00263591",
-        //             "amount" => "5.02265526426043"
-        //             ),
+        //         ],
+        //         "bids": [
         //             {
-        //             "price" => "1904.274973",
-        //             "quantity" => "0.09425304",
-        //             "amount" => "179.48370520116792"
+        //             "price": "1976.404988",
+        //             "quantity": "0.09875861",
+        //             "amount": "195.18700941194668"
+        //             },
+        //             {
+        //             "price": "1905.472973",
+        //             "quantity": "0.00263591",
+        //             "amount": "5.02265526426043"
+        //             },
+        //             {
+        //             "price": "1904.274973",
+        //             "quantity": "0.09425304",
+        //             "amount": "179.48370520116792"
         //             }
         //                ...
-        //         ),
-        //         "updateId" => "78",
-        //         "timeStart" => "2021-01-28T09:19:30.706Z",
-        //         "makerFee" => 200,
-        //         "takerFee" => 200,
-        //         "quoteVolume24" => 49125.1374009045,
-        //         "lowPrice24" => 1966.704999,
-        //         "highPrice24" => 2080.354997,
+        //         ],
+        //         "updateId": "78",
+        //         "timeStart": "2021-01-28T09:19:30.706Z",
+        //         "makerFee": 200,
+        //         "takerFee": 200,
+        //         "quoteVolume24": 49125.1374009045,
+        //         "lowPrice24": 1966.704999,
+        //         "highPrice24": 2080.354997,
         //         ...
         //     }
         //
         // fetchTickers
         //     {
-        //         "trading_pairs" => "BTC_USDT",
-        //         "base_currency" => "BTC",
-        //         "quote_currency" => "USDT",
-        //         "last_price" => 37669.955001,
-        //         "lowest_ask" => 37670.055,
-        //         "highest_bid" => 37669.955,
-        //         "base_volume" => 6.81156888,
-        //         "quote_volume" => 257400.516878529,
-        //         "price_change_percent_24h" => -0.29,
-        //         "highest_price_24h" => 38389.994463,
-        //         "lowest_price_24h" => 37574.894999
+        //         "trading_pairs": "BTC_USDT",
+        //         "base_currency": "BTC",
+        //         "quote_currency": "USDT",
+        //         "last_price": 37669.955001,
+        //         "lowest_ask": 37670.055,
+        //         "highest_bid": 37669.955,
+        //         "base_volume": 6.81156888,
+        //         "quote_volume": 257400.516878529,
+        //         "price_change_percent_24h": -0.29,
+        //         "highest_price_24h": 38389.994463,
+        //         "lowest_price_24h": 37574.894999
         //     }
         $marketId = $this->safe_string_lower($ticker, 'trading_pairs');
         $market = $this->safe_market($marketId, $market);
@@ -1820,25 +1821,25 @@ class bitteam extends Exchange {
         );
         $response = $this->publicGetTradeApiCmcTradesPair($this->extend($request, $params));
         //
-        //     array(
-        //         array(
-        //             "trade_id" => 34970337,
-        //             "price" => 37769.994793,
-        //             "base_volume" => 0.00119062,
-        //             "quote_volume" => 44.96971120044166,
-        //             "timestamp" => 1700827234000,
-        //             "type" => "buy"
-        //         ),
-        //         array(
-        //             "trade_id" => 34970347,
-        //             "price" => 37769.634497,
-        //             "base_volume" => 0.00104009,
-        //             "quote_volume" => 39.28381914398473,
-        //             "timestamp" => 1700827248000,
-        //             "type" => "buy"
-        //         ),
+        //     [
+        //         {
+        //             "trade_id": 34970337,
+        //             "price": 37769.994793,
+        //             "base_volume": 0.00119062,
+        //             "quote_volume": 44.96971120044166,
+        //             "timestamp": 1700827234000,
+        //             "type": "buy"
+        //         },
+        //         {
+        //             "trade_id": 34970347,
+        //             "price": 37769.634497,
+        //             "base_volume": 0.00104009,
+        //             "quote_volume": 39.28381914398473,
+        //             "timestamp": 1700827248000,
+        //             "type": "buy"
+        //         },
         //         ...
-        //     )
+        //     ]
         //
         return $this->parse_trades($response, $market, $since, $limit);
     }
@@ -1870,134 +1871,134 @@ class bitteam extends Exchange {
         $response = $this->privateGetTradeApiCcxtTradesOfUser($this->extend($request, $params));
         //
         //     {
-        //         "ok" => true,
-        //         "result" => {
-        //             "count" => 3,
-        //             "trades" => array(
-        //                 array(
-        //                     "id" => 34880724,
-        //                     "tradeId" => "4368041",
-        //                     "makerOrderId" => 106742914,
-        //                     "takerOrderId" => 106761614,
-        //                     "pairId" => 2,
-        //                     "quantity" => "0.00955449",
-        //                     "price" => "1993.674994",
-        //                     "isBuyerMaker" => true,
-        //                     "baseDecimals" => 18,
-        //                     "quoteDecimals" => 6,
-        //                     "side" => "sell",
-        //                     "timestamp" => 1700615250,
-        //                     "rewarded" => true,
-        //                     "makerUserId" => 21639,
-        //                     "takerUserId" => 15913,
-        //                     "baseCurrencyId" => 2,
-        //                     "quoteCurrencyId" => 3,
-        //                     "feeMaker" => array(
-        //                         "amount" => "0.0000191",
-        //                         "symbol" => "eth",
-        //                         "userId" => 21639,
-        //                         "decimals" => 18,
-        //                         "symbolId" => 2
-        //                     ),
-        //                     "feeTaker" => array(
-        //                         "amount" => "0",
-        //                         "symbol" => "usdt",
-        //                         "userId" => 15913,
-        //                         "decimals" => 6,
-        //                         "symbolId" => 3,
-        //                         "discountAmount" => "0",
-        //                         "discountSymbol" => "btt",
-        //                         "discountDecimals" => 18,
-        //                         "discountSymbolId" => 5
-        //                     ),
-        //                     "pair" => "eth_usdt",
-        //                     "createdAt" => "2023-11-22T01:07:30.593Z",
-        //                     "updatedAt" => "2023-11-22T01:10:00.117Z",
-        //                     "isCurrentSide" => "maker"
-        //                 ),
-        //                 array(
-        //                     "id" => 34875793,
-        //                     "tradeId" => "4368010",
-        //                     "makerOrderId" => 106742914,
-        //                     "takerOrderId" => 106745926,
-        //                     "pairId" => 2,
-        //                     "quantity" => "0.0027193",
-        //                     "price" => "1993.674994",
-        //                     "isBuyerMaker" => true,
-        //                     "baseDecimals" => 18,
-        //                     "quoteDecimals" => 6,
-        //                     "side" => "sell",
-        //                     "timestamp" => 1700602983,
-        //                     "rewarded" => true,
-        //                     "makerUserId" => 21639,
-        //                     "takerUserId" => 15912,
-        //                     "baseCurrencyId" => 2,
-        //                     "quoteCurrencyId" => 3,
-        //                     "feeMaker" => array(
-        //                         "amount" => "0.00000543",
-        //                         "symbol" => "eth",
-        //                         "userId" => 21639,
-        //                         "decimals" => 18,
-        //                         "symbolId" => 2
-        //                     ),
-        //                     "feeTaker" => array(
-        //                         "amount" => "0",
-        //                         "symbol" => "usdt",
-        //                         "userId" => 15912,
-        //                         "decimals" => 6,
-        //                         "symbolId" => 3,
-        //                         "discountAmount" => "0",
-        //                         "discountSymbol" => "btt",
-        //                         "discountDecimals" => 18,
-        //                         "discountSymbolId" => 5
-        //                     ),
-        //                     "pair" => "eth_usdt",
-        //                     "createdAt" => "2023-11-21T21:43:02.758Z",
-        //                     "updatedAt" => "2023-11-21T21:45:00.147Z",
-        //                     "isCurrentSide" => "maker"
-        //                 ),
+        //         "ok": true,
+        //         "result": {
+        //             "count": 3,
+        //             "trades": [
         //                 {
-        //                     "id" => 34871727,
-        //                     "tradeId" => "3441840",
-        //                     "makerOrderId" => 106733299,
-        //                     "takerOrderId" => 106733308,
-        //                     "pairId" => 22,
-        //                     "quantity" => "0.00001",
-        //                     "price" => "37017.495008",
-        //                     "isBuyerMaker" => false,
-        //                     "baseDecimals" => 8,
-        //                     "quoteDecimals" => 6,
-        //                     "side" => "buy",
-        //                     "timestamp" => 1700594960,
-        //                     "rewarded" => true,
-        //                     "makerUserId" => 15909,
-        //                     "takerUserId" => 21639,
-        //                     "baseCurrencyId" => 11,
-        //                     "quoteCurrencyId" => 3,
-        //                     "feeMaker" => array(
-        //                         "amount" => "0",
-        //                         "symbol" => "usdt",
-        //                         "userId" => 15909,
-        //                         "decimals" => 6,
-        //                         "symbolId" => 3,
-        //                         "discountAmount" => "0",
-        //                         "discountSymbol" => "btt",
-        //                         "discountDecimals" => 18,
-        //                         "discountSymbolId" => 5
-        //                     ),
-        //                     "feeTaker" => array(
-        //                         "amount" => "0.00000002",
-        //                         "symbol" => "btc",
-        //                         "userId" => 21639,
-        //                         "decimals" => 8,
-        //                         "symbolId" => 11
-        //                     ),
-        //                     "pair" => "btc_usdt",
-        //                     "createdAt" => "2023-11-21T19:29:20.092Z",
-        //                     "updatedAt" => "2023-11-21T19:30:00.159Z"
-        //                     "isCurrentSide" => "taker"
+        //                     "id": 34880724,
+        //                     "tradeId": "4368041",
+        //                     "makerOrderId": 106742914,
+        //                     "takerOrderId": 106761614,
+        //                     "pairId": 2,
+        //                     "quantity": "0.00955449",
+        //                     "price": "1993.674994",
+        //                     "isBuyerMaker": true,
+        //                     "baseDecimals": 18,
+        //                     "quoteDecimals": 6,
+        //                     "side": "sell",
+        //                     "timestamp": 1700615250,
+        //                     "rewarded": true,
+        //                     "makerUserId": 21639,
+        //                     "takerUserId": 15913,
+        //                     "baseCurrencyId": 2,
+        //                     "quoteCurrencyId": 3,
+        //                     "feeMaker": {
+        //                         "amount": "0.0000191",
+        //                         "symbol": "eth",
+        //                         "userId": 21639,
+        //                         "decimals": 18,
+        //                         "symbolId": 2
+        //                     },
+        //                     "feeTaker": {
+        //                         "amount": "0",
+        //                         "symbol": "usdt",
+        //                         "userId": 15913,
+        //                         "decimals": 6,
+        //                         "symbolId": 3,
+        //                         "discountAmount": "0",
+        //                         "discountSymbol": "btt",
+        //                         "discountDecimals": 18,
+        //                         "discountSymbolId": 5
+        //                     },
+        //                     "pair": "eth_usdt",
+        //                     "createdAt": "2023-11-22T01:07:30.593Z",
+        //                     "updatedAt": "2023-11-22T01:10:00.117Z",
+        //                     "isCurrentSide": "maker"
+        //                 },
+        //                 {
+        //                     "id": 34875793,
+        //                     "tradeId": "4368010",
+        //                     "makerOrderId": 106742914,
+        //                     "takerOrderId": 106745926,
+        //                     "pairId": 2,
+        //                     "quantity": "0.0027193",
+        //                     "price": "1993.674994",
+        //                     "isBuyerMaker": true,
+        //                     "baseDecimals": 18,
+        //                     "quoteDecimals": 6,
+        //                     "side": "sell",
+        //                     "timestamp": 1700602983,
+        //                     "rewarded": true,
+        //                     "makerUserId": 21639,
+        //                     "takerUserId": 15912,
+        //                     "baseCurrencyId": 2,
+        //                     "quoteCurrencyId": 3,
+        //                     "feeMaker": {
+        //                         "amount": "0.00000543",
+        //                         "symbol": "eth",
+        //                         "userId": 21639,
+        //                         "decimals": 18,
+        //                         "symbolId": 2
+        //                     },
+        //                     "feeTaker": {
+        //                         "amount": "0",
+        //                         "symbol": "usdt",
+        //                         "userId": 15912,
+        //                         "decimals": 6,
+        //                         "symbolId": 3,
+        //                         "discountAmount": "0",
+        //                         "discountSymbol": "btt",
+        //                         "discountDecimals": 18,
+        //                         "discountSymbolId": 5
+        //                     },
+        //                     "pair": "eth_usdt",
+        //                     "createdAt": "2023-11-21T21:43:02.758Z",
+        //                     "updatedAt": "2023-11-21T21:45:00.147Z",
+        //                     "isCurrentSide": "maker"
+        //                 },
+        //                 {
+        //                     "id": 34871727,
+        //                     "tradeId": "3441840",
+        //                     "makerOrderId": 106733299,
+        //                     "takerOrderId": 106733308,
+        //                     "pairId": 22,
+        //                     "quantity": "0.00001",
+        //                     "price": "37017.495008",
+        //                     "isBuyerMaker": false,
+        //                     "baseDecimals": 8,
+        //                     "quoteDecimals": 6,
+        //                     "side": "buy",
+        //                     "timestamp": 1700594960,
+        //                     "rewarded": true,
+        //                     "makerUserId": 15909,
+        //                     "takerUserId": 21639,
+        //                     "baseCurrencyId": 11,
+        //                     "quoteCurrencyId": 3,
+        //                     "feeMaker": {
+        //                         "amount": "0",
+        //                         "symbol": "usdt",
+        //                         "userId": 15909,
+        //                         "decimals": 6,
+        //                         "symbolId": 3,
+        //                         "discountAmount": "0",
+        //                         "discountSymbol": "btt",
+        //                         "discountDecimals": 18,
+        //                         "discountSymbolId": 5
+        //                     },
+        //                     "feeTaker": {
+        //                         "amount": "0.00000002",
+        //                         "symbol": "btc",
+        //                         "userId": 21639,
+        //                         "decimals": 8,
+        //                         "symbolId": 11
+        //                     },
+        //                     "pair": "btc_usdt",
+        //                     "createdAt": "2023-11-21T19:29:20.092Z",
+        //                     "updatedAt": "2023-11-21T19:30:00.159Z"
+        //                     "isCurrentSide": "taker"
         //                 }
-        //             )
+        //             ]
         //         }
         //     }
         //
@@ -2009,56 +2010,56 @@ class bitteam extends Exchange {
     public function parse_trade(array $trade, ?array $market = null): array {
         //
         // fetchTrades
-        //     array(
-        //         "trade_id" => 34970337,
-        //         "price" => 37769.994793,
-        //         "base_volume" => 0.00119062,
-        //         "quote_volume" => 44.96971120044166,
-        //         "timestamp" => 1700827234000,
-        //         "type" => "buy"
-        //     ),
+        //     {
+        //         "trade_id": 34970337,
+        //         "price": 37769.994793,
+        //         "base_volume": 0.00119062,
+        //         "quote_volume": 44.96971120044166,
+        //         "timestamp": 1700827234000,
+        //         "type": "buy"
+        //     },
         //
         // fetchMyTrades
         //     {
-        //         "id" => 34875793,
-        //         "tradeId" => "4368010",
-        //         "makerOrderId" => 106742914,
-        //         "takerOrderId" => 106745926,
-        //         "pairId" => 2,
-        //         "quantity" => "0.0027193",
-        //         "price" => "1993.674994",
-        //         "isBuyerMaker" => true,
-        //         "baseDecimals" => 18,
-        //         "quoteDecimals" => 6,
-        //         "side" => "sell",
-        //         "timestamp" => 1700602983,
-        //         "rewarded" => true,
-        //         "makerUserId" => 21639,
-        //         "takerUserId" => 15912,
-        //         "baseCurrencyId" => 2,
-        //         "quoteCurrencyId" => 3,
-        //         "feeMaker" => array(
-        //             "amount" => "0.00000543",
-        //             "symbol" => "eth",
-        //             "userId" => 21639,
-        //             "decimals" => 18,
-        //             "symbolId" => 2
-        //         ),
-        //         "feeTaker" => array(
-        //             "amount" => "0",
-        //             "symbol" => "usdt",
-        //             "userId" => 15912,
-        //             "decimals" => 6,
-        //             "symbolId" => 3,
-        //             "discountAmount" => "0",
-        //             "discountSymbol" => "btt",
-        //             "discountDecimals" => 18,
-        //             "discountSymbolId" => 5
-        //         ),
-        //         "pair" => "eth_usdt",
-        //         "createdAt" => "2023-11-21T21:43:02.758Z",
-        //         "updatedAt" => "2023-11-21T21:45:00.147Z",
-        //         "isCurrentSide" => "maker"
+        //         "id": 34875793,
+        //         "tradeId": "4368010",
+        //         "makerOrderId": 106742914,
+        //         "takerOrderId": 106745926,
+        //         "pairId": 2,
+        //         "quantity": "0.0027193",
+        //         "price": "1993.674994",
+        //         "isBuyerMaker": true,
+        //         "baseDecimals": 18,
+        //         "quoteDecimals": 6,
+        //         "side": "sell",
+        //         "timestamp": 1700602983,
+        //         "rewarded": true,
+        //         "makerUserId": 21639,
+        //         "takerUserId": 15912,
+        //         "baseCurrencyId": 2,
+        //         "quoteCurrencyId": 3,
+        //         "feeMaker": {
+        //             "amount": "0.00000543",
+        //             "symbol": "eth",
+        //             "userId": 21639,
+        //             "decimals": 18,
+        //             "symbolId": 2
+        //         },
+        //         "feeTaker": {
+        //             "amount": "0",
+        //             "symbol": "usdt",
+        //             "userId": 15912,
+        //             "decimals": 6,
+        //             "symbolId": 3,
+        //             "discountAmount": "0",
+        //             "discountSymbol": "btt",
+        //             "discountDecimals": 18,
+        //             "discountSymbolId": 5
+        //         },
+        //         "pair": "eth_usdt",
+        //         "createdAt": "2023-11-21T21:43:02.758Z",
+        //         "updatedAt": "2023-11-21T21:45:00.147Z",
+        //         "isCurrentSide": "maker"
         //     }
         //
         $marketId = $this->safe_string($trade, 'pair');
@@ -2073,7 +2074,7 @@ class bitteam extends Exchange {
         if ($takerOrMaker !== null) {
             $timestamp = Precise::string_mul($timestamp, '1000');
         }
-        // the exchange returns the $side of the taker
+        // the exchange returns the side of the taker
         $side = $this->safe_string_2($trade, 'side', 'type');
         $feeInfo = null;
         $order = null;
@@ -2132,40 +2133,40 @@ class bitteam extends Exchange {
     public function parse_balance(mixed $response): array {
         //
         //     {
-        //         "ok" => true,
-        //         "result" => {
-        //             "free" => array(
-        //                 "USDT" => "0",
-        //                 "DEL" => "0",
-        //                 "BTC" => "0",
+        //         "ok": true,
+        //         "result": {
+        //             "free": {
+        //                 "USDT": "0",
+        //                 "DEL": "0",
+        //                 "BTC": "0",
         //                 ...
-        //             ),
-        //                 "used" => array(
-        //                 "USDT" => "0",
-        //                 "DEL" => "0",
-        //                 "BTC" => "0",
+        //             },
+        //                 "used": {
+        //                 "USDT": "0",
+        //                 "DEL": "0",
+        //                 "BTC": "0",
         //                 ...
-        //             ),
-        //             "total" => array(
-        //                 "USDT" => "0",
-        //                 "DEL" => "0",
-        //                 "BTC" => "0",
+        //             },
+        //             "total": {
+        //                 "USDT": "0",
+        //                 "DEL": "0",
+        //                 "BTC": "0",
         //                 ...
-        //             ),
-        //             "USDT" => array(
-        //                 "free" => "0",
-        //                 "used" => "0",
-        //                 "total" => "0",
-        //             ),
-        //             "DEL" => array(
-        //                 "free" => "0",
-        //                 "used" => "0",
-        //                 "total" => "0",
-        //             ),
-        //             "BTC" => {
-        //                 "free" => "0",
-        //                 "used" => "0",
-        //                 "total" => "0",
+        //             },
+        //             "USDT": {
+        //                 "free": "0",
+        //                 "used": "0",
+        //                 "total": "0",
+        //             },
+        //             "DEL": {
+        //                 "free": "0",
+        //                 "used": "0",
+        //                 "total": "0",
+        //             },
+        //             "BTC": {
+        //                 "free": "0",
+        //                 "used": "0",
+        //                 "total": "0",
         //             }
         //             ...
         //         }
@@ -2225,89 +2226,89 @@ class bitteam extends Exchange {
         $response = $this->privateGetTradeApiTransactionsOfUser($this->extend($request, $params));
         //
         //     {
-        //         "ok" => true,
-        //         "result" => {
-        //             "count" => 2,
-        //             "transactions" => array(
+        //         "ok": true,
+        //         "result": {
+        //             "count": 2,
+        //             "transactions": [
         //                 {
-        //                     "id" => 1329686,
-        //                     "orderId" => "2f060ad5-30f7-4f2b-ac5f-1bb8f5fd34dc",
-        //                     "transactionCoreId" => "561863",
-        //                     "userId" => 21639,
-        //                     "recipient" => "0x9050dfA063D1bE7cA711c750b18D51fDD13e90Ee",
-        //                     "sender" => "0x6894a93B6fea044584649278621723cac51443Cd",
-        //                     "symbolId" => 2,
-        //                     "CommissionId" => 17571,
-        //                     "amount" => "44000000000000000",
-        //                     "params" => array(),
-        //                     "reason" => null,
-        //                     "timestamp" => 1700715341743,
-        //                     "status" => "approving",
-        //                     "statusDescription" => null,
-        //                     "type" => "withdraw",
-        //                     "message" => null,
-        //                     "blockChain" => "",
-        //                     "before" => null,
-        //                     "after" => null,
-        //                     "currency" => {
-        //                         "symbol" => "eth",
-        //                         "decimals" => 18,
-        //                         "blockChain" => "Ethereum",
-        //                         "links" => array(
-        //                             array(
-        //                                 "tx" => "https://etherscan.io/tx/",
-        //                                 "address" => "https://etherscan.io/address/",
-        //                                 "blockChain" => "Ethereum"
-        //                             }
-        //                         )
-        //                     }
-        //                 ),
-        //                 {
-        //                     "id" => 1329229,
-        //                     "orderId" => null,
-        //                     "transactionCoreId" => "561418",
-        //                     "userId" => 21639,
-        //                     "recipient" => "0x7d6a797f2406e06b2f9b41d067df324affa315dd",
-        //                     "sender" => null,
-        //                     "symbolId" => 3,
-        //                     "CommissionId" => null,
-        //                     "amount" => "100000000",
-        //                     "params" => array(
-        //                         "tx_id" => "0x2253823c828d838acd983fe6a348fb0e034efe3874b081871d8b80da76ec758b"
-        //                     ),
-        //                     "reason" => null,
-        //                     "timestamp" => 1700594180417,
-        //                     "status" => "success",
-        //                     "statusDescription" => null,
-        //                     "type" => "deposit",
-        //                     "message" => null,
-        //                     "blockChain" => "Ethereum",
-        //                     "before" => 0,
-        //                     "after" => 100000000,
-        //                     "currency" => {
-        //                         "symbol" => "usdt",
-        //                         "decimals" => 6,
-        //                         "blockChain" => "",
-        //                         "links" => array(
-        //                             array(
-        //                                 "tx" => "https://etherscan.io/tx/",
-        //                                 "address" => "https://etherscan.io/address/",
-        //                                 "blockChain" => "Ethereum"
-        //                             ),
-        //                             array(
-        //                                 "tx" => "https://tronscan.org/#/transaction/",
-        //                                 "address" => "https://tronscan.org/#/address/",
-        //                                 "blockChain" => "Tron"
-        //                             ),
+        //                     "id": 1329686,
+        //                     "orderId": "2f060ad5-30f7-4f2b-ac5f-1bb8f5fd34dc",
+        //                     "transactionCoreId": "561863",
+        //                     "userId": 21639,
+        //                     "recipient": "0x9050dfA063D1bE7cA711c750b18D51fDD13e90Ee",
+        //                     "sender": "0x6894a93B6fea044584649278621723cac51443Cd",
+        //                     "symbolId": 2,
+        //                     "CommissionId": 17571,
+        //                     "amount": "44000000000000000",
+        //                     "params": {},
+        //                     "reason": null,
+        //                     "timestamp": 1700715341743,
+        //                     "status": "approving",
+        //                     "statusDescription": null,
+        //                     "type": "withdraw",
+        //                     "message": null,
+        //                     "blockChain": "",
+        //                     "before": null,
+        //                     "after": null,
+        //                     "currency": {
+        //                         "symbol": "eth",
+        //                         "decimals": 18,
+        //                         "blockChain": "Ethereum",
+        //                         "links": [
         //                             {
-        //                                 "tx" => "https://bscscan.com/tx/",
-        //                                 "address" => "https://bscscan.com/address/",
-        //                                 "blockChain" => "Binance"
+        //                                 "tx": "https://etherscan.io/tx/",
+        //                                 "address": "https://etherscan.io/address/",
+        //                                 "blockChain": "Ethereum"
         //                             }
-        //                         )
+        //                         ]
+        //                     }
+        //                 },
+        //                 {
+        //                     "id": 1329229,
+        //                     "orderId": null,
+        //                     "transactionCoreId": "561418",
+        //                     "userId": 21639,
+        //                     "recipient": "0x7d6a797f2406e06b2f9b41d067df324affa315dd",
+        //                     "sender": null,
+        //                     "symbolId": 3,
+        //                     "CommissionId": null,
+        //                     "amount": "100000000",
+        //                     "params": {
+        //                         "tx_id": "0x2253823c828d838acd983fe6a348fb0e034efe3874b081871d8b80da76ec758b"
+        //                     },
+        //                     "reason": null,
+        //                     "timestamp": 1700594180417,
+        //                     "status": "success",
+        //                     "statusDescription": null,
+        //                     "type": "deposit",
+        //                     "message": null,
+        //                     "blockChain": "Ethereum",
+        //                     "before": 0,
+        //                     "after": 100000000,
+        //                     "currency": {
+        //                         "symbol": "usdt",
+        //                         "decimals": 6,
+        //                         "blockChain": "",
+        //                         "links": [
+        //                             {
+        //                                 "tx": "https://etherscan.io/tx/",
+        //                                 "address": "https://etherscan.io/address/",
+        //                                 "blockChain": "Ethereum"
+        //                             },
+        //                             {
+        //                                 "tx": "https://tronscan.org/#/transaction/",
+        //                                 "address": "https://tronscan.org/#/address/",
+        //                                 "blockChain": "Tron"
+        //                             },
+        //                             {
+        //                                 "tx": "https://bscscan.com/tx/",
+        //                                 "address": "https://bscscan.com/address/",
+        //                                 "blockChain": "Binance"
+        //                             }
+        //                         ]
         //                     }
         //                 }
-        //             )
+        //             ]
         //         }
         //     }
         //
@@ -2319,48 +2320,48 @@ class bitteam extends Exchange {
     public function parse_transaction(array $transaction, ?array $currency = null): array {
         //
         //     {
-        //         "id" => 1329229,
-        //         "orderId" => null,
-        //         "transactionCoreId" => "561418",
-        //         "userId" => 21639,
-        //         "recipient" => "0x7d6a797f2406e06b2f9b41d067df324affa315dd",
-        //         "sender" => null,
-        //         "symbolId" => 3,
-        //         "CommissionId" => null,
-        //         "amount" => "100000000",
-        //         "params" => array(
-        //             "tx_id" => "0x2253823c828d838acd983fe6a348fb0e034efe3874b081871d8b80da76ec758b"
-        //         ),
-        //         "reason" => null,
-        //         "timestamp" => 1700594180417,
-        //         "status" => "success",
-        //         "statusDescription" => null,
-        //         "type" => "deposit",
-        //         "message" => null,
-        //         "blockChain" => "Ethereum",
-        //         "before" => 0,
-        //         "after" => 100000000,
-        //         "currency" => {
-        //             "symbol" => "usdt",
-        //             "decimals" => 6,
-        //             "blockChain" => "",
-        //             "links" => array(
-        //                 array(
-        //                     "tx" => "https://etherscan.io/tx/",
-        //                     "address" => "https://etherscan.io/address/",
-        //                     "blockChain" => "Ethereum"
-        //                 ),
-        //                 array(
-        //                     "tx" => "https://tronscan.org/#/transaction/",
-        //                     "address" => "https://tronscan.org/#/address/",
-        //                     "blockChain" => "Tron"
-        //                 ),
+        //         "id": 1329229,
+        //         "orderId": null,
+        //         "transactionCoreId": "561418",
+        //         "userId": 21639,
+        //         "recipient": "0x7d6a797f2406e06b2f9b41d067df324affa315dd",
+        //         "sender": null,
+        //         "symbolId": 3,
+        //         "CommissionId": null,
+        //         "amount": "100000000",
+        //         "params": {
+        //             "tx_id": "0x2253823c828d838acd983fe6a348fb0e034efe3874b081871d8b80da76ec758b"
+        //         },
+        //         "reason": null,
+        //         "timestamp": 1700594180417,
+        //         "status": "success",
+        //         "statusDescription": null,
+        //         "type": "deposit",
+        //         "message": null,
+        //         "blockChain": "Ethereum",
+        //         "before": 0,
+        //         "after": 100000000,
+        //         "currency": {
+        //             "symbol": "usdt",
+        //             "decimals": 6,
+        //             "blockChain": "",
+        //             "links": [
         //                 {
-        //                     "tx" => "https://bscscan.com/tx/",
-        //                     "address" => "https://bscscan.com/address/",
-        //                     "blockChain" => "Binance"
+        //                     "tx": "https://etherscan.io/tx/",
+        //                     "address": "https://etherscan.io/address/",
+        //                     "blockChain": "Ethereum"
+        //                 },
+        //                 {
+        //                     "tx": "https://tronscan.org/#/transaction/",
+        //                     "address": "https://tronscan.org/#/address/",
+        //                     "blockChain": "Tron"
+        //                 },
+        //                 {
+        //                     "tx": "https://bscscan.com/tx/",
+        //                     "address": "https://bscscan.com/address/",
+        //                     "blockChain": "Binance"
         //                 }
-        //             )
+        //             ]
         //         }
         //     }
         //

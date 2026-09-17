@@ -219,6 +219,8 @@ class coinone(Exchange, ImplicitAPI):
                         'transaction/krw/history': {'cost': 1},
                         'transaction/coin/history': {'cost': 1},
                         'transaction/coin/withdrawal/limit': {'cost': 1},
+                        'event/order-reward/programs': {'cost': 1},
+                        'event/order-reward/history': {'cost': 1},
                     },
                 },
             },
@@ -729,17 +731,17 @@ class coinone(Exchange, ImplicitAPI):
 
     def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #
-        # fetchTrades(public)
+        # fetchTrades (public)
         #
         #     {
         #         "id": "1701075265708001",
         #         "timestamp": 1701075265708,
         #         "price": "50020000",
         #         "qty": "0.00155177",
-        #         "is_seller_maker": False
+        #         "is_seller_maker": false
         #     }
         #
-        # fetchMyTrades(private)
+        # fetchMyTrades (private)
         #
         #     {
         #         "timestamp": "1416561032",
@@ -823,7 +825,7 @@ class coinone(Exchange, ImplicitAPI):
         #                 "timestamp": 1701075265708,
         #                 "price": "50020000",
         #                 "qty": "0.00155177",
-        #                 "is_seller_maker": False
+        #                 "is_seller_maker": false
         #             }
         #         ]
         #     }
@@ -1045,7 +1047,7 @@ class coinone(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        # The returned amount might not be same ordered amount. If an order is partially filled, the returned amount means the remaining amount.
+        # The returned amount might not be same as the ordered amount. If an order is partially filled, the returned amount means the remaining amount.
         # For the same reason, the returned amount and remaining are always same, and the returned filled and cost are always zero.
         if symbol is None:
             raise ExchangeError(self.id + ' fetchOpenOrders() allows fetching closed orders with a specific symbol')

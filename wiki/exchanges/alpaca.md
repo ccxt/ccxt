@@ -291,6 +291,7 @@ create a trade order
 | price | <code>float</code> | No | the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.triggerPrice | <code>float</code> | No | The price at which a trigger order is triggered at |
+| params.timeInForce | <code>string</code> | No | 'GTC' or 'IOC', the venue supports only these two for crypto orders, defaults to 'GTC' |
 | params.cost | <code>float</code> | No | *market orders only* the cost of the order in units of the quote currency |
 
 
@@ -381,6 +382,7 @@ fetches information on multiple orders made by the user
 | limit | <code>int</code> | No | the maximum number of order structures to retrieve |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.until | <code>int</code> | No | the latest time in ms to fetch orders for |
+| params.direction | <code>string</code> | No | the ordering of the results, 'asc' or 'desc', defaults to 'asc' when since is set |
 
 
 ```javascript
@@ -405,6 +407,7 @@ fetch all unfilled currently open orders
 | limit | <code>int</code> | No | the maximum number of order structures to retrieve |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.until | <code>int</code> | No | the latest time in ms to fetch orders for |
+| params.direction | <code>string</code> | No | the ordering of the results, 'asc' or 'desc', defaults to 'asc' when since is set |
 
 
 ```javascript
@@ -429,6 +432,7 @@ fetches information on multiple closed orders made by the user
 | limit | <code>int</code> | No | the maximum number of order structures to retrieve |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.until | <code>int</code> | No | the latest time in ms to fetch orders for |
+| params.direction | <code>string</code> | No | the ordering of the results, 'asc' or 'desc', defaults to 'asc' when since is set |
 
 
 ```javascript
@@ -456,7 +460,7 @@ edit a trade order
 | price | <code>float</code> | No | the price for the order, in units of the quote currency, ignored in market orders |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.triggerPrice | <code>string</code> | No | the price to trigger a stop order |
-| params.timeInForce | <code>string</code> | No | for crypto trading either 'gtc' or 'ioc' can be used |
+| params.timeInForce | <code>string</code> | No | 'GTC' or 'IOC', the venue supports only these two for crypto orders, defaults to 'GTC' |
 | params.clientOrderId | <code>string</code> | No | a unique identifier for the order, automatically generated if not sent |
 
 

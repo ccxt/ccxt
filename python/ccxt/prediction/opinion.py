@@ -64,7 +64,7 @@ class opinion(PredictionExchange, ImplicitAPI):
             },
             'timeframes': {
                 # live-verified via GET /token/price-history: only 1h/1d are recognized,
-                # any other interval value(including 1m/1w) silently falls back to 1d
+                # any other interval value (including 1m/1w) silently falls back to 1d
                 '1h': '1h',
                 '1d': '1d',
             },
@@ -138,7 +138,7 @@ class opinion(PredictionExchange, ImplicitAPI):
                     '11004': AuthenticationError,  # "Self-service key issuance is temporarily disabled"
                     '11005': AuthenticationError,  # "Wallet is not a registered Opinion account"
                     '11009': AuthenticationError,  # "API key already exists"
-                    '11010': AuthenticationError,  # "No API key found for self wallet"
+                    '11010': AuthenticationError,  # "No API key found for this wallet"
                     '11011': AuthenticationError,  # "Invalid signature"
                     '11012': AuthenticationError,  # "Signature expired"
                     '11013': AuthenticationError,  # "Signature already used"
@@ -150,7 +150,7 @@ class opinion(PredictionExchange, ImplicitAPI):
                 },
             },
             'streaming': {
-                # the venue closes idle sockets without an application-level HEARTBEAT(see ping)
+                # the venue closes idle sockets without an application-level HEARTBEAT (see ping)
                 'keepAlive': 25000,
             },
             'options': {
@@ -169,7 +169,7 @@ class opinion(PredictionExchange, ImplicitAPI):
     async def fetch_markets(self, params={}) -> list[Market]:
         """
         fetches every kind of opinion market
- categorical parents double unified "events" and are cached into self.events side effect
+ categorical parents double as our unified "events" and are cached into self.events as a side effect
 
         https://docs.opinion.trade/developer-guide/opinion-open-api/market
 
@@ -183,7 +183,7 @@ class opinion(PredictionExchange, ImplicitAPI):
         maxPages = self.safe_integer(self.options, 'maxMarketsPages', 50)
         flatMarkets = []
         # seen-guard keyed by the event handle; the events themselves go through setEvents below
-        # so the cache gets the base indexing(id + handle + slug) instead of a raw assignment
+        # so the cache gets the base indexing (id + handle + slug) instead of a raw assignment
         seenEvents = {}
         eventsList = []
         page = 1
@@ -201,7 +201,7 @@ class opinion(PredictionExchange, ImplicitAPI):
             fetchedRawCount = self.sum(fetchedRawCount, rawMarketsLength)
             # categorical parents expand into several flatMarkets entries each, so the raw,
             # unflattened row count in 'total' must be compared against fetchedRawCount, not
-            # len(flatMarkets) - otherwise expansion makes the comparison meaningless
+            # flatMarkets.length - otherwise expansion makes the comparison meaningless
             total = self.safe_integer(result, 'total')
             for i in range(0, rawMarketsLength):
                 raw = rawMarkets[i]
@@ -232,7 +232,7 @@ class opinion(PredictionExchange, ImplicitAPI):
         """
  @ignore
         resolves a single outcome; a bare numeric token id carries no search text for
- the base's fetchEvents-driven resolution(opinion has no per-id lookup endpoint, unlike
+ the base's fetchEvents-driven resolution (opinion has no per-id lookup endpoint, unlike
  kalshi/polymarket), so bulk-warm the outcome cache via loadOutcomes() first for id-form input
         :param str outcomeSymbol: the outcome handle or token id
         :returns dict: the outcome cache
@@ -256,7 +256,7 @@ class opinion(PredictionExchange, ImplicitAPI):
         #     "conditionId": "469db44df1309dac7cf9fcaa142562f3c89719d47277e095d021c1561166539a",
         #     "createdAt": 1778750719,
         #     "cutoffAt": 0,
-        #     "isResolvableByAI": True,
+        #     "isResolvableByAI": true,
         #     "marketId": 16565,
         #     "marketTitle": "10–15s",
         #     "noLabel": "No",
@@ -321,7 +321,7 @@ class opinion(PredictionExchange, ImplicitAPI):
             })
         marketResolvedOutcome = resolvedOutcome
         # the venue sends cutoffAt 0 for markets without a scheduled cutoff - map it to
-        # None instead of the epoch, same for the event-level end date
+        # undefined instead of the epoch, same for the event-level end date
         expiryTimestamp = None
         if self.safe_integer(raw, 'cutoffAt', 0) != 0:
             expiryTimestamp = self.safe_timestamp(raw, 'cutoffAt')
@@ -491,7 +491,7 @@ class opinion(PredictionExchange, ImplicitAPI):
         #             "conditionId": "469db44df1309dac7cf9fcaa142562f3c89719d47277e095d021c1561166539a",
         #             "createdAt": 1778750719,
         #             "cutoffAt": 0,
-        #             "isResolvableByAI": True,
+        #             "isResolvableByAI": true,
         #             "marketId": 16565,
         #             "marketTitle": "10–15s",
         #             "noLabel": "No",
@@ -516,7 +516,7 @@ class opinion(PredictionExchange, ImplicitAPI):
         #             "conditionId": "c4054e23e1afc96c93bbc05378414f8286b2f3e3107bb80944ba8a7581428812",
         #             "createdAt": 1778750720,
         #             "cutoffAt": 0,
-        #             "isResolvableByAI": True,
+        #             "isResolvableByAI": true,
         #             "marketId": 16566,
         #             "marketTitle": "15s+",
         #             "noLabel": "No",
@@ -541,7 +541,7 @@ class opinion(PredictionExchange, ImplicitAPI):
         #     "coverUrl": "",
         #     "createdAt": 1778750719,
         #     "cutoffAt": 1778803200,
-        #     "isResolvableByAI": False,
+        #     "isResolvableByAI": false,
         #     "labelIds": [
         #         1
         #     ],
@@ -560,7 +560,7 @@ class opinion(PredictionExchange, ImplicitAPI):
         #     },
         #     "resolvedAt": 0,
         #     "resultTokenId": "",
-        #     "rules": "This market resolves based on the length of the longest qualifying handshake between Donald Trump and Xi Jinping on May 14, 2026(Beijing local time), the day of their bilateral meeting at the Great Hall of the People.\nBaseline already established: Video footage from the welcome ceremony confirms a qualifying handshake within the 10–15s range. The remaining question is whether any additional handshake on the same day produces a longer measured duration.\nOutcomes:\n\n10–15s — resolves YES if no qualifying handshake on May 14, 2026 exceeds 15 seconds.\n15s+ — resolves YES if any qualifying handshake on May 14, 2026 is measured at more than 15 seconds.\n\nMeasurement: Duration is measured from the exact moment hands make initial physical contact until the exact moment either party breaks contact. Where multiple video sources exist, the highest-resolution footage is used; where measurements differ, the consensus reading across major media is applied. A duration falling exactly on the 15s boundary resolves to 15s+.\nQualifying handshake: voluntary, intentional, in-person; direct hand-to-hand contact(gloves permitted); clearly visible on video from start to finish. Fist bumps, hugs, waves, back pats, and other non-handshake contact are excluded from the measured duration even if they occur during the same greeting.\nResolution window: All qualifying handshakes occurring on May 14, 2026 in Beijing local time are eligible, including those at arrival, bilateral sessions, signing ceremonies, state dinners, and departure. Handshakes on any other date do not count.\nResolution source: video footage from May 14, 2026.",
+        #     "rules": "This market resolves based on the length of the longest qualifying handshake between Donald Trump and Xi Jinping on May 14, 2026 (Beijing local time), the day of their bilateral meeting at the Great Hall of the People.\nBaseline already established: Video footage from the welcome ceremony confirms a qualifying handshake within the 10–15s range. The remaining question is whether any additional handshake on the same day produces a longer measured duration.\nOutcomes:\n\n10–15s — resolves YES if no qualifying handshake on May 14, 2026 exceeds 15 seconds.\n15s+ — resolves YES if any qualifying handshake on May 14, 2026 is measured at more than 15 seconds.\n\nMeasurement: Duration is measured from the exact moment hands make initial physical contact until the exact moment either party breaks contact. Where multiple video sources exist, the highest-resolution footage is used; where measurements differ, the consensus reading across major media is applied. A duration falling exactly on the 15s boundary resolves to 15s+.\nQualifying handshake: voluntary, intentional, in-person; direct hand-to-hand contact (gloves permitted); clearly visible on video from start to finish. Fist bumps, hugs, waves, back pats, and other non-handshake contact are excluded from the measured duration even if they occur during the same greeting.\nResolution window: All qualifying handshakes occurring on May 14, 2026 in Beijing local time are eligible, including those at arrival, bilateral sessions, signing ceremonies, state dinners, and departure. Handshakes on any other date do not count.\nResolution source: video footage from May 14, 2026.",
         #     "slug": "how-long-will-trump-and-xi-shake-hands-when-they-meet",
         #     "status": 1,
         #     "statusEnum": "Created",
@@ -641,12 +641,12 @@ class opinion(PredictionExchange, ImplicitAPI):
         #         "price": {
         #             "errmsg": "",
         #             "errno": 0,
-        #             "result": {"price": "0.002", "side": "buy-limit", "size": "205.03", "timestamp": 1766844546000, "tokenId": "..."}
+        #             "result": { "price": "0.002", "side": "buy-limit", "size": "205.03", "timestamp": 1766844546000, "tokenId": "..." }
         #         },
         #         "book": {
         #             "errmsg": "",
         #             "errno": 0,
-        #             "result": {"asks": [{"price": "0.999", "size": "5500"}], "bids": [], "market": "...", "timestamp": ..., "tokenId": "..."}
+        #             "result": { "asks": [ { "price": "0.999", "size": "5500" } ], "bids": [], "market": "...", "timestamp": ..., "tokenId": "..." }
         #         }
         #     }
         #
@@ -696,7 +696,7 @@ class opinion(PredictionExchange, ImplicitAPI):
         :returns dict: a dictionary of [prediction ticker structures](https://docs.ccxt.com/#/?id=prediction-ticker-structure) indexed by outcome
         """
         if outcomes is None:
-            raise ArgumentsRequired(self.id + ' fetchTickers() requires an outcomes argument — the venue has no all-tickers endpoint; pass the outcome handles or token ids to fetch(discover them via fetchEvents())')
+            raise ArgumentsRequired(self.id + ' fetchTickers() requires an outcomes argument — the venue has no all-tickers endpoint; pass the outcome handles or token ids to fetch (discover them via fetchEvents ())')
         await self.load_outcomes(outcomes)
         outcomesLength = len(outcomes)
         promises = []
@@ -742,7 +742,7 @@ class opinion(PredictionExchange, ImplicitAPI):
         #         "errno": 0,
         #         "result": {
         #             "asks": [
-        #                 {"price": "0.999", "size": "5500"}
+        #                 { "price": "0.999", "size": "5500" }
         #             ],
         #             "bids": [],
         #             "market": "ff7d2d935d0cce2922ea05a363e5a87439e1f8f86f01dacf7238d4c4cc542f6c",
@@ -767,7 +767,7 @@ class opinion(PredictionExchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum number of candles to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: a list of candles ordered, open, high, low, close, volume
+        :returns int[][]: a list of candles ordered as timestamp, open, high, low, close, volume
         """
         if not (timeframe in self.timeframes):
             supportedKeys = list(self.timeframes.keys())
@@ -785,7 +785,7 @@ class opinion(PredictionExchange, ImplicitAPI):
         #         "errno": 0,
         #         "result": {
         #             "history": [
-        #                 {"p": "0.001", "t": 1785495600}
+        #                 { "p": "0.001", "t": 1785495600 }
         #             ]
         #         }
         #     }
@@ -808,11 +808,11 @@ class opinion(PredictionExchange, ImplicitAPI):
         parses a single opinion price-history point into a unified OHLCV candle
         :param dict ohlcv: the raw {p, t} point
         :param dict [market]: the outcome object the candle belongs to
-        :returns int[]: a candle ordered, open, high, low, close, volume
+        :returns int[]: a candle ordered as timestamp, open, high, low, close, volume
         """
-        # Unused: fetchOHLCV maps {p, t} points directly.
+        # Unused: fetchOHLCV maps { p, t } points directly.
         #
-        #     {"p": "0.001", "t": 1785495600}
+        #     { "p": "0.001", "t": 1785495600 }
         #
         price = self.safe_number(ohlcv, 'p')
         return [self.safe_timestamp(ohlcv, 't'), price, price, price, price, None]
@@ -932,7 +932,7 @@ class opinion(PredictionExchange, ImplicitAPI):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: for limit orders, the number of outcome shares to trade; for market orders, the quote(USDT) to spend on a BUY or the shares to sell on a SELL
-        :param float [price]: the price per outcome token between 0 and 1; required for limit orders and market SELL orders(where it acts reference / worst acceptable price for the taker amount); ignored for market BUY orders(amount is already the quote to spend)
+        :param float [price]: the price per outcome token between 0 and 1; required for limit orders and market SELL orders(where it acts as the reference / worst acceptable price for the taker amount); ignored for market BUY orders(amount is already the quote to spend)
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param bool [params.postOnly]: limit orders only - reject the order if it would cross the spread
         :returns dict: a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
@@ -947,7 +947,7 @@ class opinion(PredictionExchange, ImplicitAPI):
             if not isMarket:
                 raise ArgumentsRequired(self.id + ' createOrder() requires a price for limit orders')
             if sideStr == 'SELL':
-                # the reference(worst acceptable) price the taker amount is computed from
+                # the reference (worst acceptable) price the taker amount is computed from
                 raise ArgumentsRequired(self.id + ' createOrder() requires a price for market sell orders')
         marketOrderPrice = '0'
         if isMarket and (sideStr == 'SELL'):
@@ -968,7 +968,7 @@ class opinion(PredictionExchange, ImplicitAPI):
         maker = await self.load_multi_sign_address()
         # Ethereum addresses are case-insensitive - a checksummed multiSignAddress compared
         # against a differently-cased walletAddress with strict equality would pick the wrong
-        # signatureType(0 EOA vs 2 Gnosis Safe) and break order signing/validation
+        # signatureType (0 EOA vs 2 Gnosis Safe) and break order signing/validation
         makerLower = maker.lower()
         walletAddressLower = self.walletAddress.lower()
         signatureType = 0 if (makerLower == walletAddressLower) else 2
@@ -1034,9 +1034,9 @@ class opinion(PredictionExchange, ImplicitAPI):
         response = await self.opinionPrivatePostOrderCancel(self.extend(request, params))
         result = self.safe_dict(response, 'result', {})
         canceled = self.safe_bool(result, 'result', False)
-        # a False result does NOT mean the order is still open — it may already be filled,
+        # a false result does NOT mean the order is still open — it may already be filled,
         # already cancelled, or unknown; don't invent a status the venue didn't report.
-        # error responses with an errno never reach self line, handleErrors throws on them
+        # error responses with an errno never reach this line, handleErrors throws on them
         status = 'canceled' if (canceled is True) else None
         return self.safe_prediction_order({'id': id, 'status': status, 'info': response})
 
@@ -1081,7 +1081,7 @@ class opinion(PredictionExchange, ImplicitAPI):
         #         "statusEnum": "Pending",
         #         "createdAt": 1785500000,
         #         "expiresAt": 0,
-        #         "postOnly": False
+        #         "postOnly": false
         #     }
         #
         id = self.safe_string(order, 'orderId')
@@ -1107,7 +1107,7 @@ class opinion(PredictionExchange, ImplicitAPI):
             'side': sideEnum,
             'price': self.safe_number(order, 'price'),
             'amount': self.safe_number(order, 'orderShares'),
-            # cost is the FILLED portion's collateral(unified cost = filled * price) — orderAmount
+            # cost is the FILLED portion's collateral (unified cost = filled * price) — orderAmount
             # is the full requested orderShares * price, wrong for a partially filled order
             'cost': self.safe_number(order, 'filledAmount'),
             'filled': self.safe_number(order, 'filledShares'),
@@ -1413,7 +1413,7 @@ class opinion(PredictionExchange, ImplicitAPI):
         return self.sign_hash(self.hash_message(message), privateKey[-64:])
 
     def sign_api_key_auth(self, walletAddress: str, action: str, timestamp: str) -> str:
-        # EIP-712 signature used to create/get/delete an API key(wallet-authenticated key management)
+        # EIP-712 signature used to create/get/delete an API key (wallet-authenticated key management)
         domain = {
             'name': 'Opinion OpenAPI',
             'version': '1',
@@ -1474,10 +1474,10 @@ class opinion(PredictionExchange, ImplicitAPI):
         """
         response = await self.opinionPrivateDeleteAuthApiKey(params)
         self.options['apiKey'] = None
-        # sign() prefers self.apiKey over options['apiKey'] - clear it too, or a directly-set
+        # sign() prefers this.apiKey over options['apiKey'] - clear it too, or a directly-set
         # exchange.apiKey would keep being used for private calls after the key is revoked.
-        # an empty string, not None: the strict base types the credential, and
-        # sign() treats an empty key
+        # an empty string, not undefined: the strict base types the credential as string, and
+        # sign() treats an empty key as absent
         self.apiKey = ''
         return response
 
@@ -1501,29 +1501,29 @@ class opinion(PredictionExchange, ImplicitAPI):
         try:
             creds = await self.fetch_api_key()
         except Exception as e:
-            # no key exists for self wallet yet(11010) - self-issue one; any other
-            # failure(unregistered wallet, disabled issuance) surfaces from the create call
+            # no key exists for this wallet yet (11010) - self-issue one; any other
+            # failure (unregistered wallet, disabled issuance) surfaces from the create call
             creds = await self.create_api_key()
         return self.safe_string(creds, 'apiKey')
 
     def set_api_credentials(self, response: dict) -> dict:
         #
-        #     {"apiKey": "...", "walletAddress": "..."}
+        #     { "apiKey": "...", "walletAddress": "..." }
         #
         creds = {
             'apiKey': self.safe_string(response, 'apiKey'),
             'walletAddress': self.safe_string(response, 'walletAddress'),
         }
         self.options['apiKey'] = creds['apiKey']
-        # checkRequiredCredentials()(called by createOrder()) checks self.apiKey, not
-        # options['apiKey'] - keep both in sync, same() clearing both
+        # checkRequiredCredentials() (called by createOrder()) checks this.apiKey, not
+        # options['apiKey'] - keep both in sync, same as deleteApiKey() clearing both
         self.apiKey = creds['apiKey']
         return creds
 
     def opinion_ws_url(self) -> str:
         """
  @ignore
-        builds the websocket url - the venue authenticates the whole connection with the apiKey passed query parameter, for public and private channels alike
+        builds the websocket url - the venue authenticates the whole connection with the apiKey passed as a query parameter, for public and private channels alike
         :returns str: the websocket url
         """
         hasDirectApiKey = not self.is_empty_string(self.apiKey)
@@ -1795,7 +1795,7 @@ class opinion(PredictionExchange, ImplicitAPI):
         :returns dict[]: a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
         """
         if outcome is None:
-            raise ArgumentsRequired(self.id + ' watchOrders() requires an outcome(the order update channel is per-market)')
+            raise ArgumentsRequired(self.id + ' watchOrders() requires an outcome (the order update channel is per-market)')
         outcomeObj = await self.load_outcome(outcome)
         info = self.safe_dict(outcomeObj, 'info', {})
         marketId = self.safe_integer(info, 'marketId')
@@ -1851,7 +1851,7 @@ class opinion(PredictionExchange, ImplicitAPI):
         outcomeSide = self.safe_integer(message, 'outcomeSide')
         outcomeObj = self.opinion_outcome_by_market_id_side(marketId, outcomeSide)
         timestamp = self.safe_timestamp(message, 'createdAt')
-        # unlike the REST order body(0 buy / 1 sell), the websocket channel uses 1 buy / 2 sell
+        # unlike the REST order body (0 buy / 1 sell), the websocket channel uses 1 buy / 2 sell
         # per the docs and confirmed live
         sideInt = self.safe_integer(message, 'side')
         side = 'buy' if (sideInt == 1) else 'sell'
@@ -1898,7 +1898,7 @@ class opinion(PredictionExchange, ImplicitAPI):
         :returns dict[]: a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
         """
         if outcome is None:
-            raise ArgumentsRequired(self.id + ' watchMyTrades() requires an outcome(the trade record channel is per-market)')
+            raise ArgumentsRequired(self.id + ' watchMyTrades() requires an outcome (the trade record channel is per-market)')
         outcomeObj = await self.load_outcome(outcome)
         info = self.safe_dict(outcomeObj, 'info', {})
         marketId = self.safe_integer(info, 'marketId')
@@ -2009,8 +2009,8 @@ class opinion(PredictionExchange, ImplicitAPI):
                 headers['OPINION_SIGNATURE'] = self.sign_api_key_auth(self.walletAddress, action, timestamp)
                 headers['OPINION_TIMESTAMP'] = timestamp
             else:
-                # an empty self.apiKey counts - deleteApiKey clears it to ''(the
-                # strict base types the credential, None can not be assigned)
+                # an empty this.apiKey counts as absent - deleteApiKey clears it to '' (the
+                # strict base types the credential as string, undefined can not be assigned)
                 hasDirectApiKey = not self.is_empty_string(self.apiKey)
                 apiKey = self.apiKey if (hasDirectApiKey) else self.safe_string(self.options, 'apiKey')
                 if apiKey is None:

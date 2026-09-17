@@ -60,6 +60,20 @@ public partial class foxbit : Exchange
         return await this.callAsync<Dictionary<string, object>> ("v3PublicGetMarketsMarketTicker24hr",parameters);
     }
 
+    /// <summary>Calls the v3PublicGetMarketsSparklineWindow endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v3PublicGetMarketsSparklineWindow (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("v3PublicGetMarketsSparklineWindow",parameters);
+    }
+
+    /// <summary>Calls the v3PublicGetTravelRuleOperationReasons endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v3PublicGetTravelRuleOperationReasons (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("v3PublicGetTravelRuleOperationReasons",parameters);
+    }
+
     /// <summary>Calls the v3PrivateGetAccounts endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> v3PrivateGetAccounts (object parameters = null)
@@ -123,6 +137,13 @@ public partial class foxbit : Exchange
         return await this.callAsync<Dictionary<string, object>> ("v3PrivateGetMeFeesTrading",parameters);
     }
 
+    /// <summary>Calls the v3PrivateGetPrimeDeskExecutionsQuoteId endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v3PrivateGetPrimeDeskExecutionsQuoteId (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("v3PrivateGetPrimeDeskExecutionsQuoteId",parameters);
+    }
+
     /// <summary>Calls the v3PrivatePostOrders endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> v3PrivatePostOrders (object parameters = null)
@@ -149,6 +170,13 @@ public partial class foxbit : Exchange
     public async Task<Dictionary<string, object>> v3PrivatePostWithdrawals (object parameters = null)
     {
         return await this.callAsync<Dictionary<string, object>> ("v3PrivatePostWithdrawals",parameters);
+    }
+
+    /// <summary>Calls the v3PrivatePostDepositsDepositSnTravelRule endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v3PrivatePostDepositsDepositSnTravelRule (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("v3PrivatePostDepositsDepositSnTravelRule",parameters);
     }
 
     /// <summary>Calls the v3PrivatePutOrdersCancel endpoint.</summary>

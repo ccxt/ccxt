@@ -244,9 +244,11 @@ class poloniex(Exchange, ImplicitAPI):
                         'v3/market/indexPrice': {'cost': 2 / 3},
                         'v3/market/indexPriceComponents': {'cost': 2 / 3},
                         'v3/market/fundingRate': {'cost': 2 / 3},
+                        'v3/market/fundingRate/history': {'cost': 2 / 3},
                         'v3/market/openInterest': {'cost': 2 / 3},
                         'v3/market/insurance': {'cost': 2 / 3},
                         'v3/market/riskLimit': {'cost': 2 / 3},
+                        'v3/market/limitPrice': {'cost': 2 / 3},
                     },
                 },
                 'swapPrivate': {
@@ -256,10 +258,12 @@ class poloniex(Exchange, ImplicitAPI):
                         'v3/trade/order/opens': {'cost': 20},
                         'v3/trade/order/trades': {'cost': 20},
                         'v3/trade/order/history': {'cost': 20},
+                        'v3/trade/order/details': {'cost': 20},
                         'v3/trade/position/opens': {'cost': 20},
-                        'v3/trade/position/history': {'cost': 20},  # todo: method for self
+                        'v3/trade/position/history': {'cost': 20},  # todo: method for this
                         'v3/position/leverages': {'cost': 20},
                         'v3/position/mode': {'cost': 20},
+                        'v3/position/riskLimit': {'cost': 20},
                     },
                     'post': {
                         'v3/trade/order': {'cost': 4},
@@ -301,7 +305,7 @@ class poloniex(Exchange, ImplicitAPI):
                 'ITC': 'Information Coin',
                 'KEY': 'KEYCoin',
                 'MASK': 'NFTX Hashmasks Index',  # conflict with Mask Network
-                'MEME': 'Degenerator Meme',  # Degenerator Meme migrated to Meme Inu, self exchange still has the old price
+                'MEME': 'Degenerator Meme',  # Degenerator Meme migrated to Meme Inu, this exchange still has the old price
                 'PLX': 'ParallaxCoin',
                 'REPV2': 'REP',
                 'STR': 'XLM',
@@ -309,12 +313,12 @@ class poloniex(Exchange, ImplicitAPI):
                 'TRADE': 'Unitrade',
                 'TRXETH': 'TRX',
                 'XAP': 'API Coin',
-                # self is not documented in the API docs for Poloniex
+                # this is not documented in the API docs for Poloniex
                 # https://github.com/ccxt/ccxt/issues/7084
-                # when the user calls withdraw('USDT', amount, address, tag, params)
-                # with params = {'currencyToWithdrawAs': 'USDTTRON'}
-                # or params = {'currencyToWithdrawAs': 'USDTETH'}
-                # fetchWithdrawals('USDT') returns the corresponding withdrawals
+                # when the user calls withdraw ('USDT', amount, address, tag, params)
+                # with params = { 'currencyToWithdrawAs': 'USDTTRON' }
+                # or params = { 'currencyToWithdrawAs': 'USDTETH' }
+                # fetchWithdrawals ('USDT') returns the corresponding withdrawals
                 # with a USDTTRON or a USDTETH currency id, respectfully
                 # therefore we have map them back to the original code USDT
                 # otherwise the returned withdrawals are filtered out
@@ -329,7 +333,7 @@ class poloniex(Exchange, ImplicitAPI):
                 'networks': {
                     'BEP20': 'BSC',
                     'ERC20': 'ETH',
-                    # v2 withdraw accepts only the blockchain id: 'TRX' passes validation, 'TRON' is rejected with 830111(live-verified)
+                    # v2 withdraw accepts only the blockchain id: 'TRX' passes validation, 'TRON' is rejected with 830111 (live-verified)
                     'TRC20': 'TRX',
                     'TRX': 'TRX',
                 },
@@ -504,16 +508,16 @@ class poloniex(Exchange, ImplicitAPI):
                     '10060': ExchangeError,  # Symbol setup error
                     '10020': BadSymbol,  # Invalid currency
                     '10041': BadSymbol,  # Symbol frozen for trading
-                    '21340': OnMaintenance,  # No order creation/cancelation is allowed is in Maintenane Mode
-                    '21341': InvalidOrder,  # Post-only orders(type) allowed is in Post Only Mode
-                    '21342': InvalidOrder,  # Price is higher than highest bid is in Maintenance Mode
-                    '21343': InvalidOrder,  # Price is lower than lowest bid is in Maintenance Mode
-                    '21351': AccountSuspended,  # Trading for self account is frozen. Contact support
-                    '21352': BadSymbol,  # Trading for self currency is frozen
+                    '21340': OnMaintenance,  # No order creation/cancelation is allowed as Poloniex is in Maintenane Mode
+                    '21341': InvalidOrder,  # Post-only orders (type as LIMIT_MAKER) allowed as Poloniex is in Post Only Mode
+                    '21342': InvalidOrder,  # Price is higher than highest bid as Poloniex is in Maintenance Mode
+                    '21343': InvalidOrder,  # Price is lower than lowest bid as Poloniex is in Maintenance Mode
+                    '21351': AccountSuspended,  # Trading for this account is frozen. Contact support
+                    '21352': BadSymbol,  # Trading for this currency is frozen
                     '21353': PermissionDenied,  # Trading for US customers is not supported
                     '21354': PermissionDenied,  # Account needs to be verified via email before trading is enabled. Contact support
-                    '21359': OrderNotFound,  # {"code" : 21359, "message" : "Order was already canceled or filled."}
-                    '21360': InvalidOrder,  # {"code" : 21360, "message" : "Order size exceeds the limit.Please enter a smaller amount and try again."}
+                    '21359': OrderNotFound,  # { "code" : 21359, "message" : "Order was already canceled or filled." }
+                    '21360': InvalidOrder,  # { "code" : 21360, "message" : "Order size exceeds the limit.Please enter a smaller amount and try again." }
                     '24106': BadRequest,  # Invalid market depth
                     '24201': ExchangeNotAvailable,  # Service busy. Try again later
                     # Orders
@@ -526,7 +530,7 @@ class poloniex(Exchange, ImplicitAPI):
                     '21310': InvalidOrder,  # Order price must be less than max price
                     '21311': InvalidOrder,  # Order price must be greater than min price
                     '21312': InvalidOrder,  # Client orderId already exists
-                    '21314': InvalidOrder,  # Max limit of open orders(2000) exceeded
+                    '21314': InvalidOrder,  # Max limit of open orders (2000) exceeded
                     '21315': InvalidOrder,  # Client orderId exceeded max length of 17 digits
                     '21317': InvalidOrder,  # Amount must be greater than 0
                     '21319': InvalidOrder,  # Invalid order side
@@ -537,9 +541,9 @@ class poloniex(Exchange, ImplicitAPI):
                     '21327': InvalidOrder,  # Order pice must be greater than 0
                     '21328': InvalidOrder,  # Order quantity must be greater than 0
                     '21330': InvalidOrder,  # Quantity is less than minQuantity trade limit
-                    '21335': InvalidOrder,  # Invalid priceScale for self symbol
-                    '21336': InvalidOrder,  # Invalid quantityScale for self symbol
-                    '21337': InvalidOrder,  # Invalid amountScale for self symbol
+                    '21335': InvalidOrder,  # Invalid priceScale for this symbol
+                    '21336': InvalidOrder,  # Invalid quantityScale for this symbol
+                    '21337': InvalidOrder,  # Invalid amountScale for this symbol
                     '21344': InvalidOrder,  # Value of limit param is greater than max value of 100
                     '21345': InvalidOrder,  # Value of limit param value must be greater than 0
                     '21346': InvalidOrder,  # Order Id must be of type Long
@@ -570,18 +574,18 @@ class poloniex(Exchange, ImplicitAPI):
                     '25010': PermissionDenied,  # Unauthorized to cancel order
                     '25011': InvalidOrder,  # Failed to cancel due to invalid paramters
                     '25012': ExchangeError,  # Failed to cancel
-                    '25013': OrderNotFound,  # Failed to cancel were not found
-                    '25014': OrderNotFound,  # Failed to cancel were not found
-                    '25015': OrderNotFound,  # Failed to cancel orders exist
-                    '25016': ExchangeError,  # Failed to cancel to release funds
+                    '25013': OrderNotFound,  # Failed to cancel as orders were not found
+                    '25014': OrderNotFound,  # Failed to cancel as smartorders were not found
+                    '25015': OrderNotFound,  # Failed to cancel as no orders exist
+                    '25016': ExchangeError,  # Failed to cancel as unable to release funds
                     '25017': ExchangeError,  # No orders were canceled
                     '25018': BadRequest,  # Invalid accountType
                     '25019': BadSymbol,  # Invalid symbol
-                    # Wallets v2(undocumented codes, live-verified via validation probes)
+                    # Wallets v2 (undocumented codes, live-verified via validation probes)
                     '820181': BadRequest,  # {"code":820181,"message":"amount must be greater than the transaction fee."}
                     '820201': BadRequest,  # {"code":820201,"message":"blockchain param check error"} — network param missing
                     '830111': BadRequest,  # {"code":830111,"message":"Currency or Network does not exist"}
-                    # Futures v3(https://api-docs.poloniex.com/v3/futures/error)
+                    # Futures v3 (https://api-docs.poloniex.com/v3/futures/error)
                     '250': DuplicateOrderId,  # {"code":250,"msg":"Client order id already exists"} — live-verified on v3/trade/order
                     '400': BadRequest,  # ILLEGAL_PARAM
                     '403': PermissionDenied,  # ACCESS_DENY
@@ -694,7 +698,7 @@ class poloniex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: timestamp in ms
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         await self.load_markets()
         paginate = False
@@ -810,7 +814,7 @@ class poloniex(Exchange, ImplicitAPI):
         return self.parse_markets(markets)
 
     async def fetch_swap_markets(self, params: object = {}) -> list[Market]:
-        # do similar per https://api-docs.poloniex.com/v3/futures/api/market/get-product-info
+        # do similar as spot per https://api-docs.poloniex.com/v3/futures/api/market/get-product-info
         response = await self.swapPublicGetV3MarketAllInstruments(params)
         #
         #    {
@@ -1212,8 +1216,8 @@ class poloniex(Exchange, ImplicitAPI):
         #        {
         #            "id": 668,
         #            "coin": "ADA",
-        #            "delisted": False,
-        #            "tradeEnable": True,
+        #            "delisted": false,
+        #            "tradeEnable": true,
         #            "name": "Cardano",
         #            "networkList": [
         #                {
@@ -1222,8 +1226,8 @@ class poloniex(Exchange, ImplicitAPI):
         #                    "name": "Cardano",
         #                    "currencyType": "address",
         #                    "blockchain": "ADA",
-        #                    "withdrawalEnable": True,
-        #                    "depositEnable": True,
+        #                    "withdrawalEnable": true,
+        #                    "depositEnable": true,
         #                    "depositAddress": null,
         #                    "withdrawMin": "5.00000000",
         #                    "decimals": 6,
@@ -1232,8 +1236,8 @@ class poloniex(Exchange, ImplicitAPI):
         #                    "contractAddress": null
         #                }
         #            ],
-        #            "supportCollateral": False,
-        #            "supportBorrow": False
+        #            "supportCollateral": false,
+        #            "supportBorrow": false
         #        },
         #
         return self.parse_currencies(response)
@@ -1408,7 +1412,7 @@ class poloniex(Exchange, ImplicitAPI):
         #         "actType": "TRADING"
         #     },
         #
-        # fetchOrderTrades(taker trades)
+        # fetchOrderTrades (taker trades)
         #
         #     {
         #         "id": "30341456333942784",
@@ -1491,7 +1495,7 @@ class poloniex(Exchange, ImplicitAPI):
             #         msg: "Success",
             #         data: [
             #         {
-            #             id: "105807320",  # descending order
+            #             id: "105807320", // descending order
             #             side: "sell",
             #             px: "84383.93",
             #             qty: "1",
@@ -1544,8 +1548,8 @@ class poloniex(Exchange, ImplicitAPI):
         marketType, params = self.handle_market_type_and_params('fetchMyTrades', market, params)
         isContract = self.in_array(marketType, ['swap', 'future'])
         request = {
-            # 'from': 12345678,  # A 'trade Id'. The query begins at ‘from'.
-            # 'direction': 'PRE',  # PRE, NEXT The direction before or after ‘from'.
+            # 'from': 12345678, // A 'trade Id'. The query begins at ‘from'.
+            # 'direction': 'PRE', // PRE, NEXT The direction before or after ‘from'.
         }
         startKey = 'sTime' if isContract else 'startTime'
         endKey = 'eTime' if isContract else 'endTime'
@@ -1651,7 +1655,7 @@ class poloniex(Exchange, ImplicitAPI):
         #         "updateTime" : 16xxxxxxxxx36
         #     }
         #
-        # fetchOpenOrders(and fetchClosedOrders same for contracts)
+        # fetchOpenOrders (and fetchClosedOrders same for contracts)
         #
         #  spot:
         #
@@ -1684,7 +1688,7 @@ class poloniex(Exchange, ImplicitAPI):
         #         "clOrdId": "polo418890767248232148",
         #         "mgnMode": "CROSS",
         #         "px": "81130.13",
-        #         "reduceOnly": False,
+        #         "reduceOnly": false,
         #         "lever": "20",
         #         "state": "NEW",
         #         "source": "WEB",
@@ -1702,13 +1706,13 @@ class poloniex(Exchange, ImplicitAPI):
         #         "feeAmt": "0",
         #         "deductCcy": "0",
         #         "deductAmt": "0",
-        #         "stpMode": "NONE",  # todo: selfTradePrevention
+        #         "stpMode": "NONE", // todo: selfTradePrevention
         #         "cTime": "1740837741523",
         #         "uTime": "1740840846882",
         #         "sz": "1",
         #         "posSide": "BOTH",
         #         "qCcy": "USDT"
-        #         "cancelReason": "",  # self field can only be in closed orders
+        #         "cancelReason": "", // this field can only be in closed orders
         #     },
         #
         # createOrder, editOrder
@@ -1861,7 +1865,7 @@ class poloniex(Exchange, ImplicitAPI):
             #                "clOrdId": "polo418890767248232148",
             #                "mgnMode": "CROSS",
             #                "px": "81130.13",
-            #                "reduceOnly": False,
+            #                "reduceOnly": false,
             #                "lever": "20",
             #                "state": "NEW",
             #                "source": "WEB",
@@ -1909,7 +1913,7 @@ class poloniex(Exchange, ImplicitAPI):
         #             "amount" : "0",
         #             "filledQuantity" : "0",
         #             "filledAmount" : "0",
-        #             "stopPrice": "3750.00",              # for trigger orders
+        #             "stopPrice": "3750.00",              // for trigger orders
         #             "createTime" : 16xxxxxxxxx26,
         #             "updateTime" : 16xxxxxxxxx36
         #         }
@@ -2004,7 +2008,7 @@ class poloniex(Exchange, ImplicitAPI):
         :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param float [params.triggerPrice]: the price at which a trigger order is triggered at
-        :param float [params.cost]: *spot market buy only* the quote quantity that can be used alternative for the amount
+        :param float [params.cost]: *spot market buy only* the quote quantity that can be used as an alternative for the amount
         :param str [params.clientOrderId]: a unique identifier for the order
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
@@ -2013,7 +2017,7 @@ class poloniex(Exchange, ImplicitAPI):
         request = {
             'symbol': market['id'],
             'side': side.upper(),  # uppercase, both for spot & swap
-            # 'timeInForce': timeInForce,  # matches unified values
+            # 'timeInForce': timeInForce, // matches unified values
             # 'accountType': 'SPOT',
             # 'amount': amount,
         }
@@ -2077,7 +2081,7 @@ class poloniex(Exchange, ImplicitAPI):
                     quoteAmount = self.cost_to_precision(symbol, cost)
                 elif createMarketBuyOrderRequiresPrice and (market['spot'] is True):
                     if price is None:
-                        raise InvalidOrder(self.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend(amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to False and pass the cost to spend(quote quantity) in the amount argument')
+                        raise InvalidOrder(self.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to False and pass the cost to spend (quote quantity) in the amount argument')
                     else:
                         amountString = self.number_to_string(amount)
                         priceString = self.number_to_string(price)
@@ -2155,12 +2159,12 @@ class poloniex(Exchange, ImplicitAPI):
         # @name poloniex#cancelOrder
         # @description cancels an open order
         # @see https://api-docs.poloniex.com/spot/api/private/order#cancel-order-by-id
-        # @see https://api-docs.poloniex.com/spot/api/private/smart-order#cancel-order-by-id  # trigger orders
+        # @see https://api-docs.poloniex.com/spot/api/private/smart-order#cancel-order-by-id  // trigger orders
         # @param {string} id order id
         # @param {string} symbol unified symbol of the market the order was made in
         # @param {object} [params] extra parameters specific to the exchange API endpoint
-        # @param {boolean} [params.trigger] True if canceling a trigger order
-        # @returns {object} An `order structure <https://docs.ccxt.com/?id=order-structure>`
+        # @param {boolean} [params.trigger] true if canceling a trigger order
+        # @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
         #
         await self.load_markets()
         if symbol is None:
@@ -2324,7 +2328,7 @@ class poloniex(Exchange, ImplicitAPI):
         #         "amount": "0.00",
         #         "filledQuantity": "0.00",
         #         "filledAmount": "0.00",
-        #         "stopPrice": "3750.00",              # for trigger orders
+        #         "stopPrice": "3750.00",              // for trigger orders
         #         "createTime": 1646196019020,
         #         "updateTime": 1646196019020
         #     }
@@ -2506,7 +2510,7 @@ class poloniex(Exchange, ImplicitAPI):
         response = await self.privateGetFeeinfo(params)
         #
         #     {
-        #         "trxDiscount" : False,
+        #         "trxDiscount" : false,
         #         "makerRate" : "0.00145",
         #         "takerRate" : "0.00155",
         #         "volume30D" : "0.00"
@@ -2553,8 +2557,8 @@ class poloniex(Exchange, ImplicitAPI):
             #    {
             #       "code": 200,
             #       "data": {
-            #         "asks": [["58700", "9934"], ..],
-            #         "bids": [["58600", "9952"], ..],
+            #         "asks": [ ["58700", "9934"], ..],
+            #         "bids": [ ["58600", "9952"], ..],
             #         "s": "100",
             #         "ts": 1719974138333
             #       },
@@ -2569,8 +2573,8 @@ class poloniex(Exchange, ImplicitAPI):
         #     {
         #         "time" : 1659695219507,
         #         "scale" : "-1",
-        #         "asks" : ["23139.82", "0.317981", "23140", "0.191091", "23170.06", "0.01", "23200", "0.107758", "23230.55", "0.01", "23247.2", "0.154", "23254", "0.005121", "23263", "0.038", "23285.4", "0.308", "23300", "0.108896"],
-        #         "bids" : ["23139.74", "0.432092", "23139.73", "0.198592", "23123.21", "0.000886", "23123.2", "0.308", "23121.4", "0.154", "23105", "0.000789", "23100", "0.078175", "23069.1", "0.026276", "23068.83", "0.001329", "23051", "0.000048"],
+        #         "asks" : [ "23139.82", "0.317981", "23140", "0.191091", "23170.06", "0.01", "23200", "0.107758", "23230.55", "0.01", "23247.2", "0.154", "23254", "0.005121", "23263", "0.038", "23285.4", "0.308", "23300", "0.108896" ],
+        #         "bids" : [ "23139.74", "0.432092", "23139.73", "0.198592", "23123.21", "0.000886", "23123.2", "0.308", "23121.4", "0.154", "23105", "0.000789", "23100", "0.078175", "23069.1", "0.026276", "23068.83", "0.001329", "23051", "0.000048" ],
         #         "ts" : 1659695219512
         #     }
         #
@@ -2767,7 +2771,7 @@ class poloniex(Exchange, ImplicitAPI):
         #
         #     {
         #         "response": "Withdrew 1.00000000 USDT.",
-        #         "email2FA": False,
+        #         "email2FA": false,
         #         "withdrawalNumber": 13449869
         #     }
         #
@@ -2809,7 +2813,7 @@ class poloniex(Exchange, ImplicitAPI):
         #         "withdrawals":[
         #             {
         #                 "withdrawalNumber":13449869,
-        #                 "currency":"USDTTRON",  # not documented in API docs, see commonCurrencies in describe()
+        #                 "currency":"USDTTRON", // not documented in API docs, see commonCurrencies in describe()
         #                 "address":"TXGaqPW23JdRWhsVwS2mRsGsegbdnAd3Rw",
         #                 "amount":"1.00000000",
         #                 "fee":"0.00000000",
@@ -2924,12 +2928,12 @@ class poloniex(Exchange, ImplicitAPI):
         #                 "minConf": 10000,
         #                 "depositAddress": null,
         #                 "blockchain": "1CR",
-        #                 "delisted": False,
+        #                 "delisted": false,
         #                 "tradingState": "NORMAL",
         #                 "walletState": "DISABLED",
         #                 "parentChain": null,
-        #                 "isMultiChain": False,
-        #                 "isChildChain": False,
+        #                 "isMultiChain": false,
+        #                 "isChildChain": false,
         #                 "childChains": []
         #             }
         #         }
@@ -2958,12 +2962,12 @@ class poloniex(Exchange, ImplicitAPI):
         #                 "minConf": 10000,
         #                 "depositAddress": null,
         #                 "blockchain": "1CR",
-        #                 "delisted": False,
+        #                 "delisted": false,
         #                 "tradingState": "NORMAL",
         #                 "walletState": "DISABLED",
         #                 "parentChain": null,
-        #                 "isMultiChain": False,
-        #                 "isChildChain": False,
+        #                 "isMultiChain": false,
+        #                 "isChildChain": false,
         #                 "childChains": []
         #             },
         #         }

@@ -7,7 +7,7 @@ namespace ccxt.pro;
 public partial class bitmex { public bitmex(object args = null) : base(args) { } }
 public partial class bitmex : ccxt.bitmex
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "has", new Dictionary<string, object>() {
@@ -97,13 +97,13 @@ public partial class bitmex : ccxt.bitmex
         List<object> rawSubscriptions = new List<object>() {};
         if (isTrue(!isEqual(symbols, null)))
         {
-            for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
             {
                 object symbol = getValue(symbols, i);
-                object market = this.market(symbol);
+                Dictionary<string, object> market = this.market(symbol);
                 object subscription = add(add(name, ":"), getValue(market, "id"));
                 ((IList<object>)rawSubscriptions).Add(subscription);
-                object messageHash = add("ticker:", symbol);
+                string messageHash = add("ticker:", symbol);
                 ((IList<object>)messageHashes).Add(messageHash);
             }
         } else
@@ -353,13 +353,13 @@ public partial class bitmex : ccxt.bitmex
         //         ]
         //     }
         //
-        object data = this.safeList(message, "data", new List<object>() {});
+        List<object> data = this.safeList(message, "data", new List<object>() {});
         Dictionary<string, object> tickers = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
             object update = getValue(data, i);
             string? marketId = this.safeString(update, "symbol");
-            object symbol = this.safeSymbol(marketId);
+            string? symbol = this.safeSymbol(marketId);
             if (!isTrue((inOp(this.tickers, symbol))))
             {
                 ((IDictionary<string,object>)this.tickers)[(string)symbol] = this.parseTicker(new Dictionary<string, object>() {});
@@ -368,7 +368,7 @@ public partial class bitmex : ccxt.bitmex
             Dictionary<string, object> fullParsedTicker = this.deepExtend(getValue(this.tickers, symbol), updatedTicker);
             ((IDictionary<string,object>)tickers)[(string)symbol] = fullParsedTicker;
             ((IDictionary<string,object>)this.tickers)[(string)symbol] = fullParsedTicker;
-            object messageHash = add("ticker:", symbol);
+            string messageHash = add("ticker:", symbol);
             callDynamically(client as WebSocketClient, "resolve", new object[] {fullParsedTicker, messageHash});
             callDynamically(client as WebSocketClient, "resolve", new object[] {fullParsedTicker, "alltickers"});
         }
@@ -419,10 +419,10 @@ public partial class bitmex : ccxt.bitmex
             ((IList<object>)messageHashes).Add("liquidations");
         } else
         {
-            for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
             {
                 object symbol = getValue(symbols, i);
-                object market = this.market(symbol);
+                Dictionary<string, object> market = this.market(symbol);
                 ((IList<object>)subscriptionHashes).Add(add("liquidation:", getValue(market, "id")));
                 ((IList<object>)messageHashes).Add(add("liquidations::", symbol));
             }
@@ -468,7 +468,7 @@ public partial class bitmex : ccxt.bitmex
         //        ]
         //    }
         //
-        object rawLiquidations = this.safeValue(message, "data", new List<object>() {});
+        List<object> rawLiquidations = this.safeList(message, "data", new List<object>() {});
         List<object> newLiquidations = new List<object>() {};
         if (isTrue(isEqual(this.liquidations, null)))
         {
@@ -476,7 +476,7 @@ public partial class bitmex : ccxt.bitmex
             this.liquidations = new ArrayCache(limit);
         }
         object cache = this.liquidations;
-        for (object i = 0; isLessThan(i, getArrayLength(rawLiquidations)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(rawLiquidations)); postFixIncrement(ref i))
         {
             object rawLiquidation = getValue(rawLiquidations, i);
             object liquidation = this.parseLiquidation(rawLiquidation);
@@ -486,9 +486,9 @@ public partial class bitmex : ccxt.bitmex
         callDynamically(client as WebSocketClient, "resolve", new object[] {newLiquidations, "liquidations"});
         Dictionary<string, object> liquidationsBySymbol = this.indexBy(newLiquidations, "symbol");
         List<object> symbols = new List<object>(((IDictionary<string,object>)liquidationsBySymbol).Keys);
-        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
-            object symbol = getValue(symbols, i);
+            string? symbol = ((string)getValue(symbols, i));
             callDynamically(client as WebSocketClient, "resolve", new object[] {getValue(liquidationsBySymbol, symbol), add("liquidations::", symbol)});
         }
     }
@@ -690,13 +690,13 @@ public partial class bitmex : ccxt.bitmex
         object data = this.safeValue(message, "data", new List<object>() {});
         Dictionary<string, object> dataByMarketIds = this.groupBy(data, "symbol");
         List<object> marketIds = new List<object>(((IDictionary<string,object>)dataByMarketIds).Keys);
-        for (object i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
         {
-            object marketId = getValue(marketIds, i);
-            object market = this.safeMarket(marketId);
+            string? marketId = ((string)getValue(marketIds, i));
+            Dictionary<string, object> market = this.safeMarket(marketId);
             object symbol = getValue(market, "symbol");
             object messageHash = add(add(table, ":"), symbol);
-            object trades = this.parseTrades(getValue(dataByMarketIds, marketId), market);
+            IList<object> trades = this.parseTrades(getValue(dataByMarketIds, marketId), market);
             object stored = this.safeValue(this.trades, symbol);
             if (isTrue(isEqual(stored, null)))
             {
@@ -704,7 +704,7 @@ public partial class bitmex : ccxt.bitmex
                 stored = new ArrayCache(limit);
                 ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
             }
-            for (object j = 0; isLessThan(j, getArrayLength(trades)); postFixIncrement(ref j))
+            for (int j = 0; isLessThan(j, getArrayLength(trades)); postFixIncrement(ref j))
             {
                 callDynamically(stored, "append", new object[] {getValue(trades, j)});
             }
@@ -741,7 +741,7 @@ public partial class bitmex : ccxt.bitmex
         {
             this.checkRequiredCredentials();
             Int64 timestamp = this.milliseconds();
-            object payload = add(add("GET", "/realtime"), ((object)timestamp).ToString());
+            string payload = add(add("GET", "/realtime"), ((object)timestamp).ToString());
             string signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256);
             Dictionary<string, object> request = new Dictionary<string, object>() {
                 { "op", "authKeyExpires" },
@@ -755,12 +755,12 @@ public partial class bitmex : ccxt.bitmex
 
     public virtual void handleAuthenticationMessage(WebSocketClient client, object message)
     {
-        object authenticated = this.safeBool(message, "success", false);
+        bool? authenticated = this.safeBool(message, "success", false);
         string messageHash = "authenticated";
         if (isTrue(isEqual(authenticated, true)))
         {
             // we resolve the future here permanently so authentication only happens once
-            var future = this.safeValue((client as WebSocketClient).futures, messageHash);
+            Future future = ((Future)this.safeValue((client as WebSocketClient).futures, messageHash));
             (future as Future).resolve(true);
         } else
         {
@@ -793,7 +793,7 @@ public partial class bitmex : ccxt.bitmex
         }
         await this.authenticate();
         string subscriptionHash = "position";
-        object messageHash = "positions";
+        string messageHash = "positions";
         if (!isTrue(this.isEmpty(symbols)))
         {
             symbols = this.marketSymbols(symbols);
@@ -967,9 +967,9 @@ public partial class bitmex : ccxt.bitmex
             this.positions = new ArrayCacheBySymbolBySide();
         }
         object cache = this.positions;
-        object rawPositions = this.safeValue(message, "data", new List<object>() {});
+        List<object> rawPositions = this.safeList(message, "data", new List<object>() {});
         List<object> newPositions = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(rawPositions)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(rawPositions)); postFixIncrement(ref i))
         {
             object rawPosition = getValue(rawPositions, i);
             object position = this.parsePosition(rawPosition);
@@ -981,7 +981,7 @@ public partial class bitmex : ccxt.bitmex
                 // the cached position for this symbol, otherwise appending would break
                 // the ArrayCacheBySymbolBySide index (see issue #29001).
                 string? symbol = this.safeString(position, "symbol");
-                object cachedBySide = this.safeDict((cache as ArrayCache).hashmap, symbol, new Dictionary<string, object>() {});
+                IDictionary<string, object> cachedBySide = this.safeDict((cache as ArrayCache).hashmap, symbol, new Dictionary<string, object>() {});
                 List<object> cachedSides = new List<object>(((IDictionary<string,object>)cachedBySide).Keys);
                 int sidesLength = getArrayLength(cachedSides);
                 if (isTrue(isEqual(sidesLength, 1)))
@@ -997,12 +997,12 @@ public partial class bitmex : ccxt.bitmex
             ((IList<object>)newPositions).Add(position);
             callDynamically(cache, "append", new object[] {position});
         }
-        object messageHashes = this.findMessageHashes(client as WebSocketClient, "positions::");
-        for (object i = 0; isLessThan(i, getArrayLength(messageHashes)); postFixIncrement(ref i))
+        List<object> messageHashes = this.findMessageHashes(client as WebSocketClient, "positions::");
+        for (int i = 0; isLessThan(i, getArrayLength(messageHashes)); postFixIncrement(ref i))
         {
             object messageHash = getValue(messageHashes, i);
             List<object> parts = ((string)messageHash).Split(new [] {((string)"::")}, StringSplitOptions.None).ToList<object>();
-            object symbolsString = getValue(parts, 1);
+            string? symbolsString = ((string)getValue(parts, 1));
             List<object> symbols = ((string)symbolsString).Split(new [] {((string)",")}, StringSplitOptions.None).ToList<object>();
             object positions = this.filterByArray(newPositions, "symbol", symbols, false);
             if (!isTrue(this.isEmpty(positions)))
@@ -1035,8 +1035,8 @@ public partial class bitmex : ccxt.bitmex
         }
         await this.authenticate();
         string name = "order";
-        object subscriptionHash = name;
-        object messageHash = name;
+        string subscriptionHash = name;
+        string messageHash = name;
         if (isTrue(!isEqual(symbolVar, null)))
         {
             symbolVar = this.symbol(symbolVar);
@@ -1206,7 +1206,7 @@ public partial class bitmex : ccxt.bitmex
         //         ]
         //     }
         //
-        object data = this.safeValue(message, "data", new List<object>() {});
+        List<object> data = this.safeList(message, "data", new List<object>() {});
         string messageHash = "order";
         // initial subscription response with multiple orders
         int dataLength = getArrayLength(data);
@@ -1219,7 +1219,7 @@ public partial class bitmex : ccxt.bitmex
             }
             object stored = this.orders;
             Dictionary<string, object> symbols = new Dictionary<string, object>() {};
-            for (object i = 0; isLessThan(i, dataLength); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, dataLength); postFixIncrement(ref i))
             {
                 object currentOrder = getValue(data, i);
                 string? orderId = this.safeString(currentOrder, "orderID");
@@ -1236,9 +1236,9 @@ public partial class bitmex : ccxt.bitmex
             }
             callDynamically(client as WebSocketClient, "resolve", new object[] {this.orders, messageHash});
             List<object> keys = new List<object>(((IDictionary<string,object>)symbols).Keys);
-            for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
             {
-                object symbol = getValue(keys, i);
+                string? symbol = ((string)getValue(keys, i));
                 callDynamically(client as WebSocketClient, "resolve", new object[] {this.orders, add(add(messageHash, ":"), symbol)});
             }
         }
@@ -1266,8 +1266,8 @@ public partial class bitmex : ccxt.bitmex
         }
         await this.authenticate();
         string name = "execution";
-        object subscriptionHash = name;
-        object messageHash = name;
+        string subscriptionHash = name;
+        string messageHash = name;
         if (isTrue(!isEqual(symbolVar, null)))
         {
             symbolVar = this.symbol(symbolVar);
@@ -1349,7 +1349,7 @@ public partial class bitmex : ccxt.bitmex
         object data = this.safeValue(message, "data", new List<object>() {});
         Dictionary<string, object> dataByExecType = this.groupBy(data, "execType");
         object rawTrades = this.safeValue(dataByExecType, "Trade", new List<object>() {});
-        object trades = this.parseTrades(rawTrades);
+        IList<object> trades = this.parseTrades(rawTrades);
         if (isTrue(isEqual(this.myTrades, null)))
         {
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
@@ -1357,7 +1357,7 @@ public partial class bitmex : ccxt.bitmex
         }
         object stored = this.myTrades;
         Dictionary<string, object> symbols = new Dictionary<string, object>() {};
-        for (object j = 0; isLessThan(j, getArrayLength(trades)); postFixIncrement(ref j))
+        for (int j = 0; isLessThan(j, getArrayLength(trades)); postFixIncrement(ref j))
         {
             object trade = getValue(trades, j);
             object symbol = getValue(trade, "symbol");
@@ -1370,7 +1370,7 @@ public partial class bitmex : ccxt.bitmex
             callDynamically(client as WebSocketClient, "resolve", new object[] {stored, messageHash});
         }
         List<object> keys = new List<object>(((IDictionary<string,object>)symbols).Keys);
-        for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
         {
             callDynamically(client as WebSocketClient, "resolve", new object[] {stored, add(add(messageHash, ":"), getValue(keys, i))});
         }
@@ -1426,10 +1426,10 @@ public partial class bitmex : ccxt.bitmex
         symbols = this.marketSymbols(symbols);
         List<object> topics = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             object symbol = getValue(symbols, i);
-            object market = this.market(symbol);
+            Dictionary<string, object> market = this.market(symbol);
             object topic = add(add(table, ":"), getValue(market, "id"));
             ((IList<object>)topics).Add(topic);
             object messageHash = add(add(table, ":"), symbol);
@@ -1467,10 +1467,10 @@ public partial class bitmex : ccxt.bitmex
         string table = "trade";
         List<object> topics = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             object symbol = getValue(symbols, i);
-            object market = this.market(symbol);
+            Dictionary<string, object> market = this.market(symbol);
             object topic = add(add(table, ":"), getValue(market, "id"));
             ((IList<object>)topics).Add(topic);
             object messageHash = add(add(table, ":"), symbol);
@@ -1514,9 +1514,9 @@ public partial class bitmex : ccxt.bitmex
         {
             await this.loadMarkets();
         }
-        object market = this.market(symbolVar);
+        Dictionary<string, object> market = this.market(symbolVar);
         symbolVar = getValue(market, "symbol");
-        object table = add("tradeBin", this.safeString(this.timeframes, timeframeVar, timeframeVar));
+        string table = add("tradeBin", this.safeString(this.timeframes, timeframeVar, timeframeVar));
         object messageHash = add(add(table, ":"), getValue(market, "id"));
         object url = getValue(getValue(this.urls, "api"), "ws");
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -1602,13 +1602,13 @@ public partial class bitmex : ccxt.bitmex
         string interval = ((string)((string)table)).Replace((string)"tradeBin", (string)"");
         object timeframe = this.findTimeframe(interval);
         int duration = this.parseTimeframe(timeframe);
-        object candles = this.safeValue(message, "data", new List<object>() {});
+        List<object> candles = this.safeList(message, "data", new List<object>() {});
         Dictionary<string, object> results = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(candles)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(candles)); postFixIncrement(ref i))
         {
             object candle = getValue(candles, i);
             string? marketId = this.safeString(candle, "symbol");
-            object market = this.safeMarket(marketId);
+            Dictionary<string, object> market = this.safeMarket(marketId);
             object symbol = getValue(market, "symbol");
             object messageHash = add(add(table, ":"), getValue(market, "id"));
             List<object> result = new List<object>() {subtract(this.parseToInt(this.parse8601(this.safeString(candle, "timestamp"))), multiply(duration, 1000)), null, this.safeFloat(candle, "high"), this.safeFloat(candle, "low"), this.safeFloat(candle, "close"), this.safeFloat(candle, "volume")};
@@ -1624,9 +1624,9 @@ public partial class bitmex : ccxt.bitmex
             ((IDictionary<string,object>)results)[(string)messageHash] = stored;
         }
         List<object> messageHashes = new List<object>(((IDictionary<string,object>)results).Keys);
-        for (object i = 0; isLessThan(i, getArrayLength(messageHashes)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(messageHashes)); postFixIncrement(ref i))
         {
-            object messageHash = getValue(messageHashes, i);
+            string? messageHash = ((string)getValue(messageHashes, i));
             callDynamically(client as WebSocketClient, "resolve", new object[] {getValue(results, messageHash), messageHash});
         }
     }
@@ -1700,17 +1700,17 @@ public partial class bitmex : ccxt.bitmex
         {
             return;  // protecting from weird updates
         }
-        object data = this.safeValue(message, "data", new List<object>() {});
+        List<object> data = this.safeList(message, "data", new List<object>() {});
         // if it's an initial snapshot
         if (isTrue(isEqual(action, "partial")))
         {
-            object filter = this.safeDict(message, "filter", new Dictionary<string, object>() {});
+            IDictionary<string, object> filter = this.safeDict(message, "filter", new Dictionary<string, object>() {});
             object marketId = this.safeValue(filter, "symbol");
             if (isTrue(isEqual(marketId, null)))
             {
                 return;  // protecting from weird update
             }
-            object market = this.safeMarket(marketId);
+            Dictionary<string, object> market = this.safeMarket(marketId);
             object symbol = getValue(market, "symbol");
             if (isTrue(isEqual(table, "orderBookL2")))
             {
@@ -1722,9 +1722,9 @@ public partial class bitmex : ccxt.bitmex
             {
                 ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.indexedOrderBook(new Dictionary<string, object>() {}, 10);
             }
-            object orderbook = getValue(this.orderbooks, symbol);
+            ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, symbol);
             ((IDictionary<string,object>)orderbook)["symbol"] = symbol;
-            for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
             {
                 double? price = this.safeFloat(getValue(data, i), "price");
                 object size = this.convertFromRawQuantity(symbol, this.safeString(getValue(data, i), "size"));
@@ -1742,7 +1742,7 @@ public partial class bitmex : ccxt.bitmex
         } else
         {
             Dictionary<string, object> numUpdatesByMarketId = new Dictionary<string, object>() {};
-            for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
             {
                 object marketId = this.safeValue(getValue(data, i), "symbol");
                 if (isTrue(isEqual(marketId, null)))
@@ -1754,10 +1754,10 @@ public partial class bitmex : ccxt.bitmex
                     ((IDictionary<string,object>)numUpdatesByMarketId)[(string)marketId] = 0;
                 }
                 ((IDictionary<string,object>)numUpdatesByMarketId)[(string)marketId] = this.sum(getValue(numUpdatesByMarketId, marketId), 1);
-                object market = this.safeMarket(marketId);
+                Dictionary<string, object> market = this.safeMarket(marketId);
                 object symbol = getValue(market, "symbol");
-                object orderbook = getValue(this.orderbooks, symbol);
-                object price = this.safeNumber(getValue(data, i), "price");
+                ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, symbol);
+                double? price = this.safeNumber(getValue(data, i), "price");
                 object size = ((bool) isTrue((isEqual(action, "delete")))) ? 0 : this.convertFromRawQuantity(symbol, this.safeString(getValue(data, i), "size", "0"));
                 string? id = this.safeString(getValue(data, i), "id");
                 string? side = this.safeString(getValue(data, i), "side");
@@ -1769,13 +1769,13 @@ public partial class bitmex : ccxt.bitmex
                 ((IDictionary<string,object>)orderbook)["datetime"] = datetime;
             }
             List<object> marketIds = new List<object>(((IDictionary<string,object>)numUpdatesByMarketId).Keys);
-            for (object i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
             {
-                object marketId = getValue(marketIds, i);
-                object market = this.safeMarket(marketId);
+                string? marketId = ((string)getValue(marketIds, i));
+                Dictionary<string, object> market = this.safeMarket(marketId);
                 object symbol = getValue(market, "symbol");
                 object messageHash = add(add(table, ":"), symbol);
-                object orderbook = getValue(this.orderbooks, symbol);
+                ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, symbol);
                 callDynamically(client as WebSocketClient, "resolve", new object[] {orderbook, messageHash});
             }
         }
@@ -1811,7 +1811,7 @@ public partial class bitmex : ccxt.bitmex
         return message;
     }
 
-    public virtual object handleErrorMessage(WebSocketClient client, object message)
+    public virtual bool? handleErrorMessage(WebSocketClient client, object message)
     {
         //
         // generic error format
@@ -1833,7 +1833,7 @@ public partial class bitmex : ccxt.bitmex
         if (isTrue(!isEqual(error, null)))
         {
             object request = this.safeValue(message, "request", new Dictionary<string, object>() {});
-            object args = this.safeValue(request, "args", new List<object>() {});
+            List<object> args = this.safeList(request, "args", new List<object>() {});
             int numArgs = getArrayLength(args);
             if (isTrue(isGreaterThan(numArgs, 0)))
             {
@@ -1849,10 +1849,10 @@ public partial class bitmex : ccxt.bitmex
                     exception = this.newException(getValue(broad, broadKey), error);
                 }
                 ((WebSocketClient)client).reject(exception, messageHash);
-                return false;
+                return ((bool?)((object)(false)));
             }
         }
-        return true;
+        return ((bool?)((object)(true)));
     }
 
     public override void handleMessage(WebSocketClient client, object message)

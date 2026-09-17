@@ -239,34 +239,34 @@ class binance extends Exchange {
             $response = Async\await($this->sapiPrivateGetMarketList($this->extend($request, $rest)));
             //
             //     {
-            //         "marketTopics" => array(
+            //         "marketTopics": [
             //             {
-            //                 "marketTopicId" => 4229564,
-            //                 "vendor" => "PREDICT_FUN",
-            //                 "chainId" => "56",
-            //                 "slug" => "btc-price-1h-up-or-down",
-            //                 "title" => "BTC Price 1h Up or Down?",
-            //                 "question" => "Will BTC price go UP?",
-            //                 "topicType" => "FLAT",
-            //                 "chartType" => "CRYPTO_UP_DOWN",
-            //                 "symbol" => "BTCUSDT",
-            //                 "participantCount" => 3420,
-            //                 "collateral" => "USDT",
-            //                 "feeRateBps" => 200,
-            //                 "slippageBps" => 1200,
-            //                 "tradeVolume" => "158234.56",
-            //                 "liquidity" => "45000.00",
-            //                 "publishedAt" => 1748100000000,
-            //                 "startDate" => 1748131200000,
-            //                 "endDate" => 1748134800000,
-            //                 "status" => "REGISTERED",
-            //                 "markets" => array()
+            //                 "marketTopicId": 4229564,
+            //                 "vendor": "PREDICT_FUN",
+            //                 "chainId": "56",
+            //                 "slug": "btc-price-1h-up-or-down",
+            //                 "title": "BTC Price 1h Up or Down?",
+            //                 "question": "Will BTC price go UP?",
+            //                 "topicType": "FLAT",
+            //                 "chartType": "CRYPTO_UP_DOWN",
+            //                 "symbol": "BTCUSDT",
+            //                 "participantCount": 3420,
+            //                 "collateral": "USDT",
+            //                 "feeRateBps": 200,
+            //                 "slippageBps": 1200,
+            //                 "tradeVolume": "158234.56",
+            //                 "liquidity": "45000.00",
+            //                 "publishedAt": 1748100000000,
+            //                 "startDate": 1748131200000,
+            //                 "endDate": 1748134800000,
+            //                 "status": "REGISTERED",
+            //                 "markets": []
             //             }
-            //         ),
-            //         "total" => 128,
-            //         "offset" => 0,
-            //         "limit" => 20,
-            //         "hasMore" => true
+            //         ],
+            //         "total": 128,
+            //         "offset": 0,
+            //         "limit": 20,
+            //         "hasMore": true
             //     }
             //
             $pageTopics = $this->safe_list($response, 'marketTopics', array());
@@ -351,7 +351,7 @@ class binance extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->query] a free-text search resolved against the semantic market search endpoint
          * @param {string[]} [$params->queries] multiple free-text searches (alternative to query)
-         * @param {string[]} [$params->tags] treated free-text searches (binance has no tag taxonomy)
+         * @param {string[]} [$params->tags] treated as additional free-text searches (binance has no tag taxonomy)
          * @param {string} [$params->eventId] a marketTopicId, fetched directly via the $detail endpoint
          * @param {string} [$params->l1Category] scope the listing server-side by a level-1 category id
          * @param {string} [$params->l2Category] scope the listing server-side by a level-2 category id
@@ -367,7 +367,7 @@ class binance extends Exchange {
             $this->require_event_query($params);
         }
         $queries = $this->parse_search_queries($params);
-        // binance has no tag taxonomy — resolve requested $tags through the semantic search too
+        // binance has no tag taxonomy — resolve requested tags through the semantic search too
         $tags = $this->safe_list($params, 'tags', array());
         $tagsLength = count($tags);
         $allQueries = array();
@@ -409,7 +409,7 @@ class binance extends Exchange {
             if ($sortBy !== null) {
                 // map the unified sort values onto the server enum, one of RECOMMENDED,
                 // VOLUME, PARTICIPANTS, CREATED_TIME or END_DATE — 'liquidity' has no
-                // server-side equivalent and stays in $params so the base
+                // server-side equivalent and stays in params so the base
                 // applyEventFetchParams sorts it client-side instead
                 if ($sortBy === 'NEWEST') {
                     $sortBy = 'CREATED_TIME';
@@ -433,7 +433,7 @@ class binance extends Exchange {
             $parsedMarketsLength = count($parsedMarkets);
             for ($mi = 0; $mi < $parsedMarketsLength; $mi++) {
                 $m = $parsedMarkets[$mi];
-                // prediction market rows are keyed by the unified 'market' $handle
+                // prediction market rows are keyed by the unified 'market' handle
                 $handle = $this->safe_string($m, 'market');
                 if ($handle !== null) {
                     $this->markets[$handle] = $m;
@@ -441,7 +441,7 @@ class binance extends Exchange {
             }
         }
         $this->populate_outcomes();
-        // scoping already happened server-side => the tag filter needs an event-level $tags field
+        // scoping already happened server-side: the tag filter needs an event-level tags field
         // binance topics lack, and the query filter would drop semantic-search matches whose
         // title uses different words than the query
         $postParams = $this->omit($params, array( 'tags', 'l1Category', 'l2Category' ));
@@ -479,16 +479,16 @@ class binance extends Exchange {
             $request['topK'] = $limit;
             $response = Async\await($this->sapiPrivateGetMarketSearch($this->extend($request, $rest)));
             //
-            //     array(
+            //     [
             //         {
-            //             "marketTopicId" => 4229564,
-            //             "vendor" => "PREDICT_FUN",
-            //             "slug" => "btc-price-1h-up-or-down",
-            //             "title" => "BTC Price 1h Up or Down?",
+            //             "marketTopicId": 4229564,
+            //             "vendor": "PREDICT_FUN",
+            //             "slug": "btc-price-1h-up-or-down",
+            //             "title": "BTC Price 1h Up or Down?",
             //             ...
-            //             "markets" => array()
+            //             "markets": []
             //         }
-            //     )
+            //     ]
             //
             $responseLength = count($response);
             for ($i = 0; $i < $responseLength; $i++) {
@@ -538,30 +538,30 @@ class binance extends Exchange {
          */
         //
         //     {
-        //         "marketTopicId" => 4229564,
-        //         "vendor" => "PREDICT_FUN",
-        //         "chainId" => "56",
-        //         "slug" => "btc-price-1h-up-or-down",
-        //         "title" => "BTC Price 1h Up or Down?",
-        //         "question" => "Will BTC price go UP?",
-        //         "description" => "Resolves YES if BTC spot price is higher than the starting price.",
-        //         "imageUrl" => "https://...",
-        //         "topicType" => "FLAT",
-        //         "chartType" => "CRYPTO_UP_DOWN",
-        //         "symbol" => "BTCUSDT",
-        //         "variantData" => array( "type" => "CRYPTO_UP_DOWN", "startPrice" => "67890.12", "endPrice" => null ),
-        //         "participantCount" => 3420,
-        //         "collateral" => "USDT",
-        //         "feeRateBps" => 200,
-        //         "slippageBps" => 1200,
-        //         "tradeVolume" => "158234.56",
-        //         "liquidity" => "45000.00",
-        //         "publishedAt" => 1748100000000,
-        //         "startDate" => 1748131200000,
-        //         "endDate" => 1748134800000,
-        //         "status" => "REGISTERED",
-        //         "timeline" => array( ... ),
-        //         "markets" => array( array( "marketId" => 5567895, "title" => "UP", "outcomes" => array( ... ) ) )
+        //         "marketTopicId": 4229564,
+        //         "vendor": "PREDICT_FUN",
+        //         "chainId": "56",
+        //         "slug": "btc-price-1h-up-or-down",
+        //         "title": "BTC Price 1h Up or Down?",
+        //         "question": "Will BTC price go UP?",
+        //         "description": "Resolves YES if BTC spot price is higher than the starting price.",
+        //         "imageUrl": "https://...",
+        //         "topicType": "FLAT",
+        //         "chartType": "CRYPTO_UP_DOWN",
+        //         "symbol": "BTCUSDT",
+        //         "variantData": { "type": "CRYPTO_UP_DOWN", "startPrice": "67890.12", "endPrice": null },
+        //         "participantCount": 3420,
+        //         "collateral": "USDT",
+        //         "feeRateBps": 200,
+        //         "slippageBps": 1200,
+        //         "tradeVolume": "158234.56",
+        //         "liquidity": "45000.00",
+        //         "publishedAt": 1748100000000,
+        //         "startDate": 1748131200000,
+        //         "endDate": 1748134800000,
+        //         "status": "REGISTERED",
+        //         "timeline": [ ... ],
+        //         "markets": [ { "marketId": 5567895, "title": "UP", "outcomes": [ ... ] } ]
         //     }
         //
         $rawMarkets = $this->safe_list($rawTopic, 'markets', array());
@@ -621,20 +621,20 @@ class binance extends Exchange {
          */
         //
         //     {
-        //         "marketId" => 5567895,
-        //         "externalId" => "ext_001",
-        //         "title" => "UP",
-        //         "question" => "Will BTC go UP?",
-        //         "description" => "Resolves YES if BTC $price increases.",
-        //         "conditionId" => "0xabc123",
-        //         "status" => "REGISTERED",
-        //         "tradingStatus" => "OPEN",
-        //         "tradeVolume" => "90000.00",
-        //         "liquidity" => "25000.00",
-        //         "decimalPrecision" => 2,
-        //         "outcomes" => array(
-        //             array( "name" => "YES", "price" => "0.52", "chance" => "0.52", "index" => 0, "tokenId" => "112233" )
-        //         )
+        //         "marketId": 5567895,
+        //         "externalId": "ext_001",
+        //         "title": "UP",
+        //         "question": "Will BTC go UP?",
+        //         "description": "Resolves YES if BTC price increases.",
+        //         "conditionId": "0xabc123",
+        //         "status": "REGISTERED",
+        //         "tradingStatus": "OPEN",
+        //         "tradeVolume": "90000.00",
+        //         "liquidity": "25000.00",
+        //         "decimalPrecision": 2,
+        //         "outcomes": [
+        //             { "name": "YES", "price": "0.52", "chance": "0.52", "index": 0, "tokenId": "112233" }
+        //         ]
         //     }
         //
         $marketId = $this->safe_string($rawMarket, 'marketId');
@@ -791,7 +791,7 @@ class binance extends Exchange {
         );
         $response = Async\await($this->sapiPrivateGetOrderBookLastTradePrice($this->extend($request, $params)));
         //
-        //     array( "marketId" => 5567895, "lastTradePrice" => "0.52" )
+        //     { "marketId": 5567895, "lastTradePrice": "0.52" }
         //
         return $this->parse_prediction_ticker($response, $outcomeObj);
     }
@@ -799,18 +799,18 @@ class binance extends Exchange {
     public function parse_prediction_ticker(array $raw, ?array $market = null): array {
         /**
          * @ignore
-         * parses a $last-trade-price response into a unified ticker object; the venue quotes the market's primary (YES) token, so a NO outcome mirrors - price
+         * parses a $last-trade-price response into a unified ticker object; the venue quotes the market's primary (YES) token, so a NO outcome mirrors as 1 - price
          * @param {array} $raw the $raw $last-trade-price object
          * @param {array} [$market] the outcome object the ticker belongs to
          * @return {array} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
          */
         //
-        //     array( "marketId" => 5567895, "lastTradePrice" => "0.52" )
+        //     { "marketId": 5567895, "lastTradePrice": "0.52" }
         //
         $marketAny = $market;
         $outcomeObj = $this->safe_outcome($this->safe_string($marketAny, 'outcome'), $marketAny);
         // the venue quotes the market's primary token (outcome index 0, e.g. YES or UP),
-        // any other outcome of a binary $market mirrors - price
+        // any other outcome of a binary market mirrors as 1 - price
         $outcomeInfo = $this->safe_dict($outcomeObj, 'info', array());
         $outcomeIndex = $this->safe_string($outcomeInfo, 'index');
         $isMirrored = false;
@@ -926,11 +926,11 @@ class binance extends Exchange {
         $response = Async\await($this->sapiPrivateGetOrderBook($this->extend($request, $params)));
         //
         //     {
-        //         "outcome" => "YES",
-        //         "tokenId" => "112233",
-        //         "timestamp" => 1748131800000,
-        //         "bids" => array( array( "price" => "0.51", "size" => "5000.00" ) ),
-        //         "asks" => array( array( "price" => "0.52", "size" => "3000.00" ) )
+        //         "outcome": "YES",
+        //         "tokenId": "112233",
+        //         "timestamp": 1748131800000,
+        //         "bids": [ { "price": "0.51", "size": "5000.00" } ],
+        //         "asks": [ { "price": "0.52", "size": "3000.00" } ]
         //     }
         //
         $timestamp = $this->safe_integer($response, 'timestamp');
@@ -957,13 +957,13 @@ class binance extends Exchange {
         $response = Async\await($this->sapiPrivateGetBalancePaymentOptions($params));
         //
         // {
-        //     "items" => array(
+        //     "items": [
         //         {
-        //             "accountType" => "SPOT",
-        //             "availableBalanceDisplay" => "1000.00",
-        //             "enabled" => true
+        //             "accountType": "SPOT",
+        //             "availableBalanceDisplay": "1000.00",
+        //             "enabled": true
         //         }
-        //     )
+        //     ]
         // }
         //
         $result = array(
@@ -993,29 +993,29 @@ class binance extends Exchange {
          */
         //
         // {
-        //     "orderId" => "54124",
-        //     "vendorOrderId" => "0x1234abcd...",
-        //     "vendor" => "PREDICT_FUN",
-        //     "marketTopicId" => 4229564,
-        //     "slug" => "btc-price-1h-up-or-down",
-        //     "marketTopicTitle" => "BTC Price 1h Up or Down?",
-        //     "marketId" => 5567895,
-        //     "marketTitle" => "UP",
-        //     "outcome" => "YES",
-        //     "outcomeIndex" => 0,
-        //     "status" => "OPENING",
-        //     "side" => "BUY",
-        //     "orderType" => "LIMIT",
-        //     "createTime" => 1748131500000,
-        //     "modifyTime" => 1748131500000,
-        //     "makerUsdtAmount" => "1.00",
-        //     "makerShareQty" => "2000.00",
-        //     "filledUsdtAmount" => "0.00",
-        //     "filledShareQty" => "0.00",
-        //     "fillPercentage" => "0.00",
-        //     "price" => "0.50",
-        //     "marketProviderFee" => "0.02",
-        //     "networkFee" => "0.000001"
+        //     "orderId": "54124",
+        //     "vendorOrderId": "0x1234abcd...",
+        //     "vendor": "PREDICT_FUN",
+        //     "marketTopicId": 4229564,
+        //     "slug": "btc-price-1h-up-or-down",
+        //     "marketTopicTitle": "BTC Price 1h Up or Down?",
+        //     "marketId": 5567895,
+        //     "marketTitle": "UP",
+        //     "outcome": "YES",
+        //     "outcomeIndex": 0,
+        //     "status": "OPENING",
+        //     "side": "BUY",
+        //     "orderType": "LIMIT",
+        //     "createTime": 1748131500000,
+        //     "modifyTime": 1748131500000,
+        //     "makerUsdtAmount": "1.00",
+        //     "makerShareQty": "2000.00",
+        //     "filledUsdtAmount": "0.00",
+        //     "filledShareQty": "0.00",
+        //     "fillPercentage": "0.00",
+        //     "price": "0.50",
+        //     "marketProviderFee": "0.02",
+        //     "networkFee": "0.000001"
         // }
         //
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
@@ -1065,9 +1065,9 @@ class binance extends Exchange {
         $statuses = array(
             'OPENING' => 'open',
             'FILLED' => 'closed',
-            // 'canceled' => 'canceled',
-            // 'rejected' => 'rejected',
-            // 'marginCanceled' => 'canceled',
+            // 'canceled': 'canceled',
+            // 'rejected': 'rejected',
+            // 'marginCanceled': 'canceled',
         );
         if ($status === null) {
             return null;
@@ -1129,36 +1129,36 @@ class binance extends Exchange {
         $response = Async\await($this->sapiPrivateGetOrderList($this->extend($request, $params)));
         //
         // {
-        //     "total" => 2,
-        //     "offset" => 0,
-        //     "limit" => 20,
-        //     "orders" => array(
+        //     "total": 2,
+        //     "offset": 0,
+        //     "limit": 20,
+        //     "orders": [
         //         {
-        //             "orderId" => "54124",
-        //             "vendorOrderId" => "0x1234abcd...",
-        //             "vendor" => "PREDICT_FUN",
-        //             "marketTopicId" => 4229564,
-        //             "slug" => "btc-price-1h-up-or-down",
-        //             "marketTopicTitle" => "BTC Price 1h Up or Down?",
-        //             "marketId" => 5567895,
-        //             "marketTitle" => "UP",
-        //             "outcome" => "YES",
-        //             "outcomeIndex" => 0,
-        //             "status" => "OPENING",
-        //             "side" => "BUY",
-        //             "orderType" => "LIMIT",
-        //             "createTime" => 1748131500000,
-        //             "modifyTime" => 1748131500000,
-        //             "makerUsdtAmount" => "1.00",
-        //             "makerShareQty" => "2000.00",
-        //             "filledUsdtAmount" => "0.00",
-        //             "filledShareQty" => "0.00",
-        //             "fillPercentage" => "0.00",
-        //             "price" => "0.50",
-        //             "marketProviderFee" => "0.02",
-        //             "networkFee" => "0.000001"
+        //             "orderId": "54124",
+        //             "vendorOrderId": "0x1234abcd...",
+        //             "vendor": "PREDICT_FUN",
+        //             "marketTopicId": 4229564,
+        //             "slug": "btc-price-1h-up-or-down",
+        //             "marketTopicTitle": "BTC Price 1h Up or Down?",
+        //             "marketId": 5567895,
+        //             "marketTitle": "UP",
+        //             "outcome": "YES",
+        //             "outcomeIndex": 0,
+        //             "status": "OPENING",
+        //             "side": "BUY",
+        //             "orderType": "LIMIT",
+        //             "createTime": 1748131500000,
+        //             "modifyTime": 1748131500000,
+        //             "makerUsdtAmount": "1.00",
+        //             "makerShareQty": "2000.00",
+        //             "filledUsdtAmount": "0.00",
+        //             "filledShareQty": "0.00",
+        //             "fillPercentage": "0.00",
+        //             "price": "0.50",
+        //             "marketProviderFee": "0.02",
+        //             "networkFee": "0.000001"
         //         }
-        //     )
+        //     ]
         // }
         //
         $orders = $this->safe_list($response, 'orders', array());
@@ -1222,37 +1222,37 @@ class binance extends Exchange {
         $response = Async\await($this->sapiPrivateGetOrderHistory($this->extend($request, $params)));
         //
         // {
-        //     "total" => 15,
-        //     "offset" => 0,
-        //     "limit" => 20,
-        //     "orders" => array(
+        //     "total": 15,
+        //     "offset": 0,
+        //     "limit": 20,
+        //     "orders": [
         //         {
-        //             "orderId" => "54100",
-        //             "vendorOrderId" => "0xabcd5678...",
-        //             "vendor" => "PREDICT_FUN",
-        //             "marketTopicId" => 4229500,
-        //             "slug" => "btc-price-1h-up-or-down-prev",
-        //             "marketTopicTitle" => "BTC Price 1h Up or Down?",
-        //             "marketId" => 5567800,
-        //             "marketTitle" => "UP",
-        //             "outcome" => "YES",
-        //             "outcomeIndex" => 0,
-        //             "status" => "CLOSED",
-        //             "side" => "BUY",
-        //             "orderType" => "MARKET",
-        //             "createTime" => 1748045100000,
-        //             "modifyTime" => 1748045101000,
-        //             "terminalTime" => 1748045101000,
-        //             "makerUsdtAmount" => "1.00",
-        //             "makerShareQty" => "1923.07",
-        //             "filledUsdtAmount" => "1.00",
-        //             "filledShareQty" => "1923.07",
-        //             "fillPercentage" => "1.00",
-        //             "price" => "0.52",
-        //             "marketProviderFee" => "0.02",
-        //             "networkFee" => "0.000001"
+        //             "orderId": "54100",
+        //             "vendorOrderId": "0xabcd5678...",
+        //             "vendor": "PREDICT_FUN",
+        //             "marketTopicId": 4229500,
+        //             "slug": "btc-price-1h-up-or-down-prev",
+        //             "marketTopicTitle": "BTC Price 1h Up or Down?",
+        //             "marketId": 5567800,
+        //             "marketTitle": "UP",
+        //             "outcome": "YES",
+        //             "outcomeIndex": 0,
+        //             "status": "CLOSED",
+        //             "side": "BUY",
+        //             "orderType": "MARKET",
+        //             "createTime": 1748045100000,
+        //             "modifyTime": 1748045101000,
+        //             "terminalTime": 1748045101000,
+        //             "makerUsdtAmount": "1.00",
+        //             "makerShareQty": "1923.07",
+        //             "filledUsdtAmount": "1.00",
+        //             "filledShareQty": "1923.07",
+        //             "fillPercentage": "1.00",
+        //             "price": "0.52",
+        //             "marketProviderFee": "0.02",
+        //             "networkFee": "0.000001"
         //         }
-        //     )
+        //     ]
         // }
         //
         $orders = $this->safe_list($response, 'orders', array());
@@ -1292,51 +1292,51 @@ class binance extends Exchange {
         $response = Async\await($this->sapiPrivateGetPositionList($this->extend($request, $params)));
         //
         // {
-        //     "summary" => array(
-        //         "totalValue" => "1523.45",
-        //         "positionValue" => "523.45",
-        //         "walletBalance" => "1000.00",
-        //         "totalClaimableAmount" => "50.00",
-        //         "todayRealizedPnl" => "15.30",
-        //         "todayRealizedPnlPercent" => "3.10",
-        //         "todayTotalCost" => "493.55"
-        //     ),
-        //     "counts" => array(
-        //         "ongoingCount" => 3,
-        //         "endedCount" => 12,
-        //         "pendingClaimCount" => 1
-        //     ),
-        //     "positions" => array(
+        //     "summary": {
+        //         "totalValue": "1523.45",
+        //         "positionValue": "523.45",
+        //         "walletBalance": "1000.00",
+        //         "totalClaimableAmount": "50.00",
+        //         "todayRealizedPnl": "15.30",
+        //         "todayRealizedPnlPercent": "3.10",
+        //         "todayTotalCost": "493.55"
+        //     },
+        //     "counts": {
+        //         "ongoingCount": 3,
+        //         "endedCount": 12,
+        //         "pendingClaimCount": 1
+        //     },
+        //     "positions": [
         //         {
-        //             "positionId" => 1001,
-        //             "vendor" => "PREDICT_FUN",
-        //             "chainId" => "56",
-        //             "tokenId" => "112233",
-        //             "collateralSymbol" => "USDT",
-        //             "topicType" => "FLAT",
-        //             "marketTopicId" => 4229564,
-        //             "marketId" => 5567895,
-        //             "marketTopicTitle" => "BTC Price 1h Up or Down?",
-        //             "marketTitle" => "UP",
-        //             "outcomeName" => "YES",
-        //             "outcomeIndex" => 0,
-        //             "shares" => "1923.07",
-        //             "avgPrice" => "0.52",
-        //             "totalCost" => "1.00",
-        //             "value" => "1.06",
-        //             "currentPrice" => "0.55",
-        //             "toWin" => "1923.07",
-        //             "positionStatus" => "OPEN",
-        //             "canClaim" => false,
-        //             "endDate" => 1748134800000,
-        //             "unrealizedPnl" => "0.06",
-        //             "unrealizedPnlPercent" => "6.00",
-        //             "realizedPnl" => "0.00",
-        //             "pnl" => "0.06",
-        //             "createdTime" => 1748131500000,
-        //             "updatedTime" => 1748132000000
+        //             "positionId": 1001,
+        //             "vendor": "PREDICT_FUN",
+        //             "chainId": "56",
+        //             "tokenId": "112233",
+        //             "collateralSymbol": "USDT",
+        //             "topicType": "FLAT",
+        //             "marketTopicId": 4229564,
+        //             "marketId": 5567895,
+        //             "marketTopicTitle": "BTC Price 1h Up or Down?",
+        //             "marketTitle": "UP",
+        //             "outcomeName": "YES",
+        //             "outcomeIndex": 0,
+        //             "shares": "1923.07",
+        //             "avgPrice": "0.52",
+        //             "totalCost": "1.00",
+        //             "value": "1.06",
+        //             "currentPrice": "0.55",
+        //             "toWin": "1923.07",
+        //             "positionStatus": "OPEN",
+        //             "canClaim": false,
+        //             "endDate": 1748134800000,
+        //             "unrealizedPnl": "0.06",
+        //             "unrealizedPnlPercent": "6.00",
+        //             "realizedPnl": "0.00",
+        //             "pnl": "0.06",
+        //             "createdTime": 1748131500000,
+        //             "updatedTime": 1748132000000
         //         }
-        //     )
+        //     ]
         // }
         //
         $data = $this->safe_list($response, 'positions', array());
@@ -1499,37 +1499,37 @@ class binance extends Exchange {
         $response = Async\await($this->sapiPrivateGetOrderHistory($this->extend($request, $params)));
         //
         // {
-        //     "total" => 15,
-        //     "offset" => 0,
-        //     "limit" => 20,
-        //     "orders" => array(
+        //     "total": 15,
+        //     "offset": 0,
+        //     "limit": 20,
+        //     "orders": [
         //         {
-        //             "orderId" => "54100",
-        //             "vendorOrderId" => "0xabcd5678...",
-        //             "vendor" => "PREDICT_FUN",
-        //             "marketTopicId" => 4229500,
-        //             "slug" => "btc-price-1h-up-or-down-prev",
-        //             "marketTopicTitle" => "BTC Price 1h Up or Down?",
-        //             "marketId" => 5567800,
-        //             "marketTitle" => "UP",
-        //             "outcome" => "YES",
-        //             "outcomeIndex" => 0,
-        //             "status" => "CLOSED",
-        //             "side" => "BUY",
-        //             "orderType" => "MARKET",
-        //             "createTime" => 1748045100000,
-        //             "modifyTime" => 1748045101000,
-        //             "terminalTime" => 1748045101000,
-        //             "makerUsdtAmount" => "1.00",
-        //             "makerShareQty" => "1923.07",
-        //             "filledUsdtAmount" => "1.00",
-        //             "filledShareQty" => "1923.07",
-        //             "fillPercentage" => "1.00",
-        //             "price" => "0.52",
-        //             "marketProviderFee" => "0.02",
-        //             "networkFee" => "0.000001"
+        //             "orderId": "54100",
+        //             "vendorOrderId": "0xabcd5678...",
+        //             "vendor": "PREDICT_FUN",
+        //             "marketTopicId": 4229500,
+        //             "slug": "btc-price-1h-up-or-down-prev",
+        //             "marketTopicTitle": "BTC Price 1h Up or Down?",
+        //             "marketId": 5567800,
+        //             "marketTitle": "UP",
+        //             "outcome": "YES",
+        //             "outcomeIndex": 0,
+        //             "status": "CLOSED",
+        //             "side": "BUY",
+        //             "orderType": "MARKET",
+        //             "createTime": 1748045100000,
+        //             "modifyTime": 1748045101000,
+        //             "terminalTime": 1748045101000,
+        //             "makerUsdtAmount": "1.00",
+        //             "makerShareQty": "1923.07",
+        //             "filledUsdtAmount": "1.00",
+        //             "filledShareQty": "1923.07",
+        //             "fillPercentage": "1.00",
+        //             "price": "0.52",
+        //             "marketProviderFee": "0.02",
+        //             "networkFee": "0.000001"
         //         }
-        //     )
+        //     ]
         // }
         //
         $trades = $this->safe_list($response, 'orders', array());
@@ -1547,29 +1547,29 @@ class binance extends Exchange {
          */
         //
         // {
-        //     "orderId" => "54124",
-        //     "vendorOrderId" => "0x1234abcd...",
-        //     "vendor" => "PREDICT_FUN",
-        //     "marketTopicId" => 4229564,
-        //     "slug" => "btc-$price-1h-up-or-down",
-        //     "marketTopicTitle" => "BTC Price 1h Up or Down?",
-        //     "marketId" => 5567895,
-        //     "marketTitle" => "UP",
-        //     "outcome" => "YES",
-        //     "outcomeIndex" => 0,
-        //     "status" => "OPENING",
-        //     "side" => "BUY",
-        //     "orderType" => "LIMIT",
-        //     "createTime" => 1748131500000,
-        //     "modifyTime" => 1748131500000,
-        //     "makerUsdtAmount" => "1.00",
-        //     "makerShareQty" => "2000.00",
-        //     "filledUsdtAmount" => "0.00",
-        //     "filledShareQty" => "0.00",
-        //     "fillPercentage" => "0.00",
-        //     "price" => "0.50",
-        //     "marketProviderFee" => "0.02",
-        //     "networkFee" => "0.000001"
+        //     "orderId": "54124",
+        //     "vendorOrderId": "0x1234abcd...",
+        //     "vendor": "PREDICT_FUN",
+        //     "marketTopicId": 4229564,
+        //     "slug": "btc-price-1h-up-or-down",
+        //     "marketTopicTitle": "BTC Price 1h Up or Down?",
+        //     "marketId": 5567895,
+        //     "marketTitle": "UP",
+        //     "outcome": "YES",
+        //     "outcomeIndex": 0,
+        //     "status": "OPENING",
+        //     "side": "BUY",
+        //     "orderType": "LIMIT",
+        //     "createTime": 1748131500000,
+        //     "modifyTime": 1748131500000,
+        //     "makerUsdtAmount": "1.00",
+        //     "makerShareQty": "2000.00",
+        //     "filledUsdtAmount": "0.00",
+        //     "filledShareQty": "0.00",
+        //     "fillPercentage": "0.00",
+        //     "price": "0.50",
+        //     "marketProviderFee": "0.02",
+        //     "networkFee": "0.000001"
         // }
         //
         if ($outcomeObj === null) {
@@ -1590,8 +1590,8 @@ class binance extends Exchange {
         $orderType = $this->safe_string_lower($trade, 'orderType');
         $fee = null;
         if (($orderType === 'market') && ($cost !== null) && ($price !== null) && ($filled !== null)) {
-            // buys pay $cost above $price*$filled, sells receive proceeds net of the $fee —
-            // either way the $fee is the absolute difference
+            // buys pay cost above price*filled, sells receive proceeds net of the fee —
+            // either way the fee is the absolute difference
             $feeCost = Precise::string_abs(Precise::string_sub($cost, Precise::string_mul($price, $filled)));
             $fee = array(
                 'currency' => 'USDT',
@@ -1643,13 +1643,13 @@ class binance extends Exchange {
         $response = Async\await($this->sapiPrivateGetWalletList());
         //
         // {
-        //     "wallets" => array(
+        //     "wallets": [
         //         {
-        //             "walletAddress" => "0x12e32db8817e292508c34111cbc4b23340df542c",
-        //             "walletId" => "5b5c1ec3be4e4416a5872b21c1ca5d20",
-        //             "registeredTime" => 1748000000000
+        //             "walletAddress": "0x12e32db8817e292508c34111cbc4b23340df542c",
+        //             "walletId": "5b5c1ec3be4e4416a5872b21c1ca5d20",
+        //             "registeredTime": 1748000000000
         //         }
-        //     )
+        //     ]
         // }
         //
         $wallets = $this->safe_list($response, 'wallets', array());
@@ -1694,31 +1694,31 @@ class binance extends Exchange {
         $response = Async\await($this->sapiPrivatePostTradeGetQuote($this->extend($request, $params)));
         //
         // {
-        //     "quoteId" => "q_20260525_abc123xyz",
-        //     "tokenId" => "112233",
-        //     "chance" => "0.52",
-        //     "vendor" => "PREDICT_FUN",
-        //     "marketTitle" => "UP",
-        //     "marketExtId" => "ext_001",
-        //     "side" => "BUY",
-        //     "amountIn" => "1000000000000000000",
-        //     "amountOut" => "1923070000000000000",
-        //     "isMinAmountOut" => false,
-        //     "feeAmount" => "20000000000000000",
-        //     "feeDiscountBps" => "0",
-        //     "averagePrice" => 0.52,
-        //     "lastPrice" => 0.52,
-        //     "priceImpact" => 0.001,
-        //     "timestamp" => 1748131500000,
-        //     "chainId" => "56",
-        //     "userId" => 100103755893,
-        //     "walletAddress" => "0x12e32db8817e292508c34111cbc4b23340df542c",
-        //     "orderType" => "MARKET",
-        //     "slippageBps" => 1200,
-        //     "feeRateBps" => 200,
-        //     "minReceive" => "1900000000000000000",
-        //     "expireAt" => 1748131800000,
-        //     "priceLimit" => null
+        //     "quoteId": "q_20260525_abc123xyz",
+        //     "tokenId": "112233",
+        //     "chance": "0.52",
+        //     "vendor": "PREDICT_FUN",
+        //     "marketTitle": "UP",
+        //     "marketExtId": "ext_001",
+        //     "side": "BUY",
+        //     "amountIn": "1000000000000000000",
+        //     "amountOut": "1923070000000000000",
+        //     "isMinAmountOut": false,
+        //     "feeAmount": "20000000000000000",
+        //     "feeDiscountBps": "0",
+        //     "averagePrice": 0.52,
+        //     "lastPrice": 0.52,
+        //     "priceImpact": 0.001,
+        //     "timestamp": 1748131500000,
+        //     "chainId": "56",
+        //     "userId": 100103755893,
+        //     "walletAddress": "0x12e32db8817e292508c34111cbc4b23340df542c",
+        //     "orderType": "MARKET",
+        //     "slippageBps": 1200,
+        //     "feeRateBps": 200,
+        //     "minReceive": "1900000000000000000",
+        //     "expireAt": 1748131800000,
+        //     "priceLimit": null
         // }
         //
         return $response;
@@ -1772,8 +1772,8 @@ class binance extends Exchange {
          */
         Async\await($this->load_outcome($outcome));
         $outcomeObj = $this->outcome($outcome);
-        // markets are keyed by the parent $market $outcome; the $outcome handle ("MARKET:LABEL")
-        // is not a $market id, so resolve the $market and price/amount precision via $outcomeObj['market']
+        // markets are keyed by the parent market outcome; the outcome handle ("MARKET:LABEL")
+        // is not a market id, so resolve the market and price/amount precision via outcomeObj['market']
         $marketSymbol = $this->safe_string($outcomeObj, 'market');
         $market = $this->market($marketSymbol);
         $typeUpper = strtoupper($type);
@@ -1934,15 +1934,15 @@ class binance extends Exchange {
         $response = Async\await($this->sapiPrivatePostTradeBatchCancel($this->extend($request, $params)));
         //
         // {
-        //     "canceled" => array(
+        //     "canceled": [
         //         "54124"
-        //     ),
-        //     "failed" => array(
+        //     ],
+        //     "failed": [
         //         {
-        //             "orderId" => "54126",
-        //             "reason" => "ORDER_NOT_FOUND"
+        //             "orderId": "54126",
+        //             "reason": "ORDER_NOT_FOUND"
         //         }
-        //     )
+        //     ]
         // }
         //
         $canceledOrders = $this->safe_list($response, 'canceled', array());

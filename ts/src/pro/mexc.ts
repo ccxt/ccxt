@@ -2108,7 +2108,7 @@ export default class mexc extends mexcRest {
         }
     }
 
-    handleProtobufMessage (client: Client, message: any) {
+    handleProtobufMessage (client: Client, message: any): boolean {
         // protobuf message decoded
         //  {
         //    "channel":"spot@public.kline.v3.api.pb@BTCUSDT@Min1",

@@ -140,7 +140,7 @@ class indodax extends Exchange {
                 'transfer' => false,
                 'withdraw' => true,
             ),
-            'version' => '2.0', // 9 April 2018
+            'version' => '2.0', // as of 9 April 2018
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/51840849/87070508-9358c880-c221-11ea-8dc5-5391afbbb422.jpg',
                 'api' => array(
@@ -174,7 +174,9 @@ class indodax extends Exchange {
                         'openOrders' => array( 'cost' => 4 ),
                         'orderHistory' => array( 'cost' => 4 ),
                         'getOrder' => array( 'cost' => 4 ),
+                        'getOrderByClientOrderId' => array( 'cost' => 4 ),
                         'cancelOrder' => array( 'cost' => 4 ),
+                        'cancelByClientOrderId' => array( 'cost' => 4 ),
                         'withdrawFee' => array( 'cost' => 4 ),
                         'withdrawCoin' => array( 'cost' => 4 ),
                         'listDownline' => array( 'cost' => 4 ),
@@ -193,7 +195,7 @@ class indodax extends Exchange {
             ),
             'exceptions' => array(
                 'exact' => array(
-                    'invalid_pair' => '\\ccxt\\BadSymbol', // array("error":"invalid_pair","error_description":"Invalid Pair")
+                    'invalid_pair' => '\\ccxt\\BadSymbol', // {"error":"invalid_pair","error_description":"Invalid Pair"}
                     'Insufficient balance.' => '\\ccxt\\InsufficientFunds',
                     'invalid order.' => '\\ccxt\\OrderNotFound',
                     'Invalid credentials. API not found or session has expired.' => '\\ccxt\\AuthenticationError',
@@ -224,17 +226,17 @@ class indodax extends Exchange {
                     'BSC' => 'bep20',
                     'TRC20' => 'trc20',
                     'MATIC' => 'polygon',
-                    // 'BEP2' => 'bep2',
-                    // 'ARBITRUM' => 'arb',
-                    // 'ERC20' => 'erc20',
-                    // 'KIP7' => 'kip7',
-                    // 'MAINNET' => 'mainnet',  // TODO => does mainnet just mean the default?
-                    // 'OEP4' => 'oep4',
-                    // 'OP' => 'op',
-                    // 'TRC10' => 'trc10',
-                    // 'ZRC2' => 'zrc2'
-                    // 'ETH' => 'eth'
-                    // 'BASE' => 'base'
+                    // 'BEP2': 'bep2',
+                    // 'ARBITRUM': 'arb',
+                    // 'ERC20': 'erc20',
+                    // 'KIP7': 'kip7',
+                    // 'MAINNET': 'mainnet',  // TODO: does mainnet just mean the default?
+                    // 'OEP4': 'oep4',
+                    // 'OP': 'op',
+                    // 'TRC10': 'trc10',
+                    // 'ZRC2': 'zrc2'
+                    // 'ETH': 'eth'
+                    // 'BASE': 'base'
                 ),
             ),
             'features' => array(
@@ -289,7 +291,7 @@ class indodax extends Exchange {
                         'symbolRequired' => true,
                     ),
                     'fetchOHLCV' => array(
-                        'limit' => 2000, // todo => not in request
+                        'limit' => 2000, // todo: not in request
                     ),
                 ),
                 'swap' => array(
@@ -332,8 +334,8 @@ class indodax extends Exchange {
         $response = Async\await($this->publicGetApiServerTime($params));
         //
         //     {
-        //         "timezone" => "UTC",
-        //         "server_time" => 1571205969552
+        //         "timezone": "UTC",
+        //         "server_time": 1571205969552
         //     }
         //
         return $this->safe_integer($response, 'server_time');
@@ -354,30 +356,30 @@ class indodax extends Exchange {
          */
         $response = Async\await($this->publicGetApiPairs($params));
         //
-        //     array(
+        //     [
         //         {
-        //             "id" => "btcidr",
-        //             "symbol" => "BTCIDR",
-        //             "base_currency" => "idr",
-        //             "traded_currency" => "btc",
-        //             "traded_currency_unit" => "BTC",
-        //             "description" => "BTC/IDR",
-        //             "ticker_id" => "btc_idr",
-        //             "volume_precision" => 0,
-        //             "price_precision" => 1000,
-        //             "price_round" => 8,
-        //             "pricescale" => 1000,
-        //             "trade_min_base_currency" => 10000,
-        //             "trade_min_traded_currency" => 0.00007457,
-        //             "has_memo" => false,
-        //             "memo_name" => false,
-        //             "has_payment_id" => false,
-        //             "trade_fee_percent" => 0.3,
-        //             "url_logo" => "https://indodax.com/v2/logo/svg/color/btc.svg",
-        //             "url_logo_png" => "https://indodax.com/v2/logo/png/color/btc.png",
-        //             "is_maintenance" => 0
+        //             "id": "btcidr",
+        //             "symbol": "BTCIDR",
+        //             "base_currency": "idr",
+        //             "traded_currency": "btc",
+        //             "traded_currency_unit": "BTC",
+        //             "description": "BTC/IDR",
+        //             "ticker_id": "btc_idr",
+        //             "volume_precision": 0,
+        //             "price_precision": 1000,
+        //             "price_round": 8,
+        //             "pricescale": 1000,
+        //             "trade_min_base_currency": 10000,
+        //             "trade_min_traded_currency": 0.00007457,
+        //             "has_memo": false,
+        //             "memo_name": false,
+        //             "has_payment_id": false,
+        //             "trade_fee_percent": 0.3,
+        //             "url_logo": "https://indodax.com/v2/logo/svg/color/btc.svg",
+        //             "url_logo_png": "https://indodax.com/v2/logo/png/color/btc.png",
+        //             "is_maintenance": 0
         //         }
-        //     )
+        //     ]
         //
         $result = array();
         $rawMarkets = $this->to_array($response);
@@ -448,7 +450,7 @@ class indodax extends Exchange {
 
     public function parse_balance(mixed $response): array {
         $balances = $this->safe_value($response, 'return', array());
-        $free = $this->safe_value($balances, 'balance', array());
+        $free = $this->safe_dict($balances, 'balance', array());
         $used = $this->safe_value($balances, 'balance_hold', array());
         $timestamp = $this->safe_timestamp($balances, 'server_time');
         $result = array(
@@ -492,22 +494,22 @@ class indodax extends Exchange {
         //         "success":1,
         //         "return":{
         //             "server_time":1619562628,
-        //             "balance":array(
+        //             "balance":{
         //                 "idr":167,
         //                 "btc":"0.00000000",
         //                 "1inch":"0.00000000",
-        //             ),
-        //             "balance_hold":array(
+        //             },
+        //             "balance_hold":{
         //                 "idr":0,
         //                 "btc":"0.00000000",
         //                 "1inch":"0.00000000",
-        //             ),
-        //             "address":array(
+        //             },
+        //             "address":{
         //                 "btc":"1KMntgzvU7iTSgMBWc11nVuJjAyfW3qJyk",
         //                 "1inch":"0x1106c8bb3172625e1f411c221be49161dac19355",
         //                 "xrp":"rwWr7KUZ3ZFwzgaDGjKBysADByzxvohQ3C",
         //                 "zrx":"0x1106c8bb3172625e1f411c221be49161dac19355"
-        //             ),
+        //             },
         //             "user_id":"276011",
         //             "name":"",
         //             "email":"testbitcoincoid@mailforspam.com",
@@ -612,7 +614,7 @@ class indodax extends Exchange {
         $response = Async\await($this->publicGetApiTickerPair($this->extend($request, $params)));
         //
         //     {
-        //         "ticker" => {
+        //         "ticker": {
         //             "high":"0.01951",
         //             "low":"0.01877",
         //             "vol_eth":"39.38839319",
@@ -647,16 +649,16 @@ class indodax extends Exchange {
         }
         //
         // {
-        //     "tickers" => {
-        //         "btc_idr" => {
-        //             "high" => "120009000",
-        //             "low" => "116735000",
-        //             "vol_btc" => "218.13777777",
-        //             "vol_idr" => "25800033297",
-        //             "last" => "117088000",
-        //             "buy" => "117002000",
-        //             "sell" => "117078000",
-        //             "server_time" => 1571207881
+        //     "tickers": {
+        //         "btc_idr": {
+        //             "high": "120009000",
+        //             "low": "116735000",
+        //             "vol_btc": "218.13777777",
+        //             "vol_idr": "25800033297",
+        //             "last": "117088000",
+        //             "buy": "117002000",
+        //             "sell": "117078000",
+        //             "server_time": 1571207881
         //         }
         //     }
         // }
@@ -725,12 +727,12 @@ class indodax extends Exchange {
     public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
         //
         //     {
-        //         "Time" => 1708416900,
-        //         "Open" => 51707.52,
-        //         "High" => 51707.52,
-        //         "Low" => 51707.52,
-        //         "Close" => 51707.52,
-        //         "Volume" => "0"
+        //         "Time": 1708416900,
+        //         "Open": 51707.52,
+        //         "High": 51707.52,
+        //         "Low": 51707.52,
+        //         "Close": 51707.52,
+        //         "Volume": "0"
         //     }
         //
         return array(
@@ -756,7 +758,7 @@ class indodax extends Exchange {
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] timestamp in ms of the latest candle to fetch
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -782,16 +784,16 @@ class indodax extends Exchange {
         }
         $response = Async\await($this->publicGetTradingviewHistoryV2($this->extend($request, $params)));
         //
-        //     array(
+        //     [
         //         {
-        //             "Time" => 1708416900,
-        //             "Open" => 51707.52,
-        //             "High" => 51707.52,
-        //             "Low" => 51707.52,
-        //             "Close" => 51707.52,
-        //             "Volume" => "0"
+        //             "Time": 1708416900,
+        //             "Open": 51707.52,
+        //             "High": 51707.52,
+        //             "Low": 51707.52,
+        //             "Close": 51707.52,
+        //             "Volume": "0"
         //         }
-        //     )
+        //     ]
         //
         return $this->parse_ohlcvs($this->to_array($response), $market, $timeframe, $since, $limit);
     }
@@ -808,41 +810,41 @@ class indodax extends Exchange {
     public function parse_order(array $order, ?array $market = null): array {
         //
         //     {
-        //         "order_id" => "12345",
-        //         "submit_time" => "1392228122",
-        //         "price" => "8000000",
-        //         "type" => "sell",
-        //         "order_ltc" => "100000000",
-        //         "remain_ltc" => "100000000"
+        //         "order_id": "12345",
+        //         "submit_time": "1392228122",
+        //         "price": "8000000",
+        //         "type": "sell",
+        //         "order_ltc": "100000000",
+        //         "remain_ltc": "100000000"
         //     }
         //
-        // $market closed orders - note that the $price is very high
-        // and does not reflect actual $price the $order executed at
+        // market closed orders - note that the price is very high
+        // and does not reflect actual price the order executed at
         //
         //     {
-        //       "order_id" => "49326856",
-        //       "type" => "sell",
-        //       "price" => "1000000000",
-        //       "submit_time" => "1618314671",
-        //       "finish_time" => "1618314671",
-        //       "status" => "filled",
-        //       "order_xrp" => "30.45000000",
-        //       "remain_xrp" => "0.00000000"
+        //       "order_id": "49326856",
+        //       "type": "sell",
+        //       "price": "1000000000",
+        //       "submit_time": "1618314671",
+        //       "finish_time": "1618314671",
+        //       "status": "filled",
+        //       "order_xrp": "30.45000000",
+        //       "remain_xrp": "0.00000000"
         //     }
         //
         // cancelOrder
         //
         //    {
-        //        "order_id" => 666883,
-        //        "client_order_id" => "clientx-sj82ks82j",
-        //        "type" => "sell",
-        //        "pair" => "btc_idr",
-        //        "balance" => {
-        //            "idr" => "33605800",
-        //            "btc" => "0.00000000",
+        //        "order_id": 666883,
+        //        "client_order_id": "clientx-sj82ks82j",
+        //        "type": "sell",
+        //        "pair": "btc_idr",
+        //        "balance": {
+        //            "idr": "33605800",
+        //            "btc": "0.00000000",
         //            ...
-        //            "frozen_idr" => "0",
-        //            "frozen_btc" => "0.00000000",
+        //            "frozen_idr": "0",
+        //            "frozen_btc": "0.00000000",
         //            ...
         //        }
         //    }
@@ -873,7 +875,7 @@ class indodax extends Exchange {
             $cost = $this->safe_string($order, 'order_' . $quoteId);
             $amount = $this->safe_string($order, 'order_' . $baseId);
             $remaining = $this->safe_string($order, 'remain_' . $baseId);
-            // $filled buy orders on idr-quoted markets carry the executed base $amount
+            // filled buy orders on idr-quoted markets carry the executed base amount
             // only in a dynamic receive_{base} field, https://github.com/ccxt/ccxt/issues/26413
             $filled = $this->safe_string($order, 'receive_' . $baseId);
         }
@@ -966,15 +968,15 @@ class indodax extends Exchange {
         $response = Async\await($this->privatePostOpenOrders($this->extend($request, $params)));
         $openOrdersResult = $this->safe_dict($response, 'return', array());
         $rawOrders = $openOrdersResult['orders'];
-        // array( success => 1, return => array( orders => null )) if no orders
+        // { success: 1, return: { orders: null }} if no orders
         if (($rawOrders === null) || ($rawOrders === null)) {
             return array();
         }
-        // array( success => 1, return => array( orders => array( ... objects ) )) for orders fetched by $symbol
+        // { success: 1, return: { orders: [ ... objects ] }} for orders fetched by symbol
         if ($symbol !== null) {
             return $this->parse_orders($rawOrders, $market, $since, $limit);
         }
-        // array( success => 1, return => array( orders => array( marketid => array( ... objects ) ))) if all orders are fetched
+        // { success: 1, return: { orders: { marketid: [ ... objects ] }}} if all orders are fetched
         $marketIds = is_array($rawOrders) ? array_keys($rawOrders) : array();
         $exchangeOrders = array();
         for ($i = 0; $i < count($marketIds); $i++) {
@@ -1128,18 +1130,18 @@ class indodax extends Exchange {
         $response = Async\await($this->privatePostCancelOrder($this->extend($request, $params)));
         //
         //    {
-        //        "success" => 1,
-        //        "return" => {
-        //            "order_id" => 666883,
-        //            "client_order_id" => "clientx-sj82ks82j",
-        //            "type" => "sell",
-        //            "pair" => "btc_idr",
-        //            "balance" => {
-        //                "idr" => "33605800",
-        //                "btc" => "0.00000000",
+        //        "success": 1,
+        //        "return": {
+        //            "order_id": 666883,
+        //            "client_order_id": "clientx-sj82ks82j",
+        //            "type": "sell",
+        //            "pair": "btc_idr",
+        //            "balance": {
+        //                "idr": "33605800",
+        //                "btc": "0.00000000",
         //                ...
-        //                "frozen_idr" => "0",
-        //                "frozen_btc" => "0.00000000",
+        //                "frozen_idr": "0",
+        //                "frozen_btc": "0.00000000",
         //                ...
         //            }
         //        }
@@ -1173,11 +1175,11 @@ class indodax extends Exchange {
         $response = Async\await($this->privatePostWithdrawFee($this->extend($request, $params)));
         //
         //     {
-        //         "success" => 1,
-        //         "return" => {
-        //             "server_time" => 1607923272,
-        //             "withdraw_fee" => 0.005,
-        //             "currency" => "eth"
+        //         "success": 1,
+        //         "return": {
+        //             "server_time": 1607923272,
+        //             "withdraw_fee": 0.005,
+        //             "currency": "eth"
         //         }
         //     }
         //
@@ -1212,11 +1214,11 @@ class indodax extends Exchange {
         $response = Async\await($this->privatePostWithdrawFee($this->extend($request, $params)));
         //
         //     {
-        //         "success" => 1,
-        //         "return" => {
-        //             "server_time" => 1607923272,
-        //             "withdraw_fee" => 0.005,
-        //             "currency" => "eth"
+        //         "success": 1,
+        //         "return": {
+        //             "server_time": 1607923272,
+        //             "withdraw_fee": 0.005,
+        //             "currency": "eth"
         //         }
         //     }
         //
@@ -1257,64 +1259,64 @@ class indodax extends Exchange {
         $response = Async\await($this->privatePostTransHistory($this->extend($request, $params)));
         //
         //     {
-        //         "success" => 1,
-        //         "return" => {
-        //             "withdraw" => array(
-        //                 "idr" => array(
-        //                     array(
-        //                         "status" => "success",
-        //                         "type" => "coupon",
-        //                         "rp" => "115205",
-        //                         "fee" => "500",
-        //                         "amount" => "114705",
-        //                         "submit_time" => "1539844166",
-        //                         "success_time" => "1539844189",
-        //                         "withdraw_id" => "1783717",
-        //                         "tx" => "BTC-IDR-RDTVVO2P-ETD0EVAW-VTNZGMIR-HTNTUAPI-84ULM9OI",
-        //                         "sender" => "boris",
-        //                         "used_by" => "viginia88"
-        //                     ),
+        //         "success": 1,
+        //         "return": {
+        //             "withdraw": {
+        //                 "idr": [
+        //                     {
+        //                         "status": "success",
+        //                         "type": "coupon",
+        //                         "rp": "115205",
+        //                         "fee": "500",
+        //                         "amount": "114705",
+        //                         "submit_time": "1539844166",
+        //                         "success_time": "1539844189",
+        //                         "withdraw_id": "1783717",
+        //                         "tx": "BTC-IDR-RDTVVO2P-ETD0EVAW-VTNZGMIR-HTNTUAPI-84ULM9OI",
+        //                         "sender": "boris",
+        //                         "used_by": "viginia88"
+        //                     },
         //                     ...
-        //                 ),
-        //                 "btc" => array(),
-        //                 "abyss" => array(),
+        //                 ],
+        //                 "btc": [],
+        //                 "abyss": [],
         //                 ...
-        //             ),
-        //             "deposit" => {
-        //                 "idr" => array(
-        //                     array(
-        //                         "status" => "success",
-        //                         "type" => "duitku",
-        //                         "rp" => "393000",
-        //                         "fee" => "5895",
-        //                         "amount" => "387105",
-        //                         "submit_time" => "1576555012",
-        //                         "success_time" => "1576555012",
-        //                         "deposit_id" => "3395438",
-        //                         "tx" => "Duitku OVO Settlement"
-        //                     ),
+        //             },
+        //             "deposit": {
+        //                 "idr": [
+        //                     {
+        //                         "status": "success",
+        //                         "type": "duitku",
+        //                         "rp": "393000",
+        //                         "fee": "5895",
+        //                         "amount": "387105",
+        //                         "submit_time": "1576555012",
+        //                         "success_time": "1576555012",
+        //                         "deposit_id": "3395438",
+        //                         "tx": "Duitku OVO Settlement"
+        //                     },
         //                     ...
-        //                 ),
-        //                 "btc" => array(
-        //                     array(
-        //                         "status" => "success",
-        //                         "btc" => "0.00118769",
-        //                         "amount" => "0.00118769",
-        //                         "success_time" => "1539529208",
-        //                         "deposit_id" => "3602369",
-        //                         "tx" => "c816aeb35a5b42f389970325a32aff69bb6b2126784dcda8f23b9dd9570d6573"
-        //                     ),
+        //                 ],
+        //                 "btc": [
+        //                     {
+        //                         "status": "success",
+        //                         "btc": "0.00118769",
+        //                         "amount": "0.00118769",
+        //                         "success_time": "1539529208",
+        //                         "deposit_id": "3602369",
+        //                         "tx": "c816aeb35a5b42f389970325a32aff69bb6b2126784dcda8f23b9dd9570d6573"
+        //                     },
         //                     ...
-        //                 ),
-        //                 "abyss" => array(),
+        //                 ],
+        //                 "abyss": [],
         //                 ...
         //             }
         //         }
         //     }
         //
         $data = $this->safe_value($response, 'return', array());
-        $withdraw = $this->safe_value($data, 'withdraw', array());
-        $deposit = $this->safe_value($data, 'deposit', array());
+        $withdraw = $this->safe_dict($data, 'withdraw', array());
+        $deposit = $this->safe_dict($data, 'deposit', array());
         $transactions = array();
         $currency = null;
         if ($code === null) {
@@ -1362,11 +1364,11 @@ class indodax extends Exchange {
         $currency = $this->currency($code);
         // Custom string you need to provide to identify each withdrawal.
         // Will be passed to callback URL (assigned via website to the API key)
-        // so your system can identify the $request and confirm it.
+        // so your system can identify the request and confirm it.
         // Alphanumeric, max length 255.
         $requestId = $this->milliseconds();
         // Alternatively:
-        // $requestId = $this->uuid();
+        // let requestId = this.uuid ();
         $request = array(
             'currency' => $currency['id'],
             'withdraw_amount' => $amount,
@@ -1379,17 +1381,17 @@ class indodax extends Exchange {
         $response = Async\await($this->privatePostWithdrawCoin($this->extend($request, $params)));
         //
         //     {
-        //         "success" => 1,
-        //         "status" => "approved",
-        //         "withdraw_currency" => "xrp",
-        //         "withdraw_address" => "rwWr7KUZ3ZFwzgaDGjKBysADByzxvohQ3C",
-        //         "withdraw_amount" => "10000.00000000",
-        //         "fee" => "2.00000000",
-        //         "amount_after_fee" => "9998.00000000",
-        //         "submit_time" => "1509469200",
-        //         "withdraw_id" => "xrp-12345",
-        //         "txid" => "",
-        //         "withdraw_memo" => "123123"
+        //         "success": 1,
+        //         "status": "approved",
+        //         "withdraw_currency": "xrp",
+        //         "withdraw_address": "rwWr7KUZ3ZFwzgaDGjKBysADByzxvohQ3C",
+        //         "withdraw_amount": "10000.00000000",
+        //         "fee": "2.00000000",
+        //         "amount_after_fee": "9998.00000000",
+        //         "submit_time": "1509469200",
+        //         "withdraw_id": "xrp-12345",
+        //         "txid": "",
+        //         "withdraw_memo": "123123"
         //     }
         //
         return $this->parse_transaction($response, $currency);
@@ -1400,43 +1402,43 @@ class indodax extends Exchange {
         // withdraw
         //
         //     {
-        //         "success" => 1,
-        //         "status" => "approved",
-        //         "withdraw_currency" => "xrp",
-        //         "withdraw_address" => "rwWr7KUZ3ZFwzgaDGjKBysADByzxvohQ3C",
-        //         "withdraw_amount" => "10000.00000000",
-        //         "fee" => "2.00000000",
-        //         "amount_after_fee" => "9998.00000000",
-        //         "submit_time" => "1509469200",
-        //         "withdraw_id" => "xrp-12345",
-        //         "txid" => "",
-        //         "withdraw_memo" => "123123"
+        //         "success": 1,
+        //         "status": "approved",
+        //         "withdraw_currency": "xrp",
+        //         "withdraw_address": "rwWr7KUZ3ZFwzgaDGjKBysADByzxvohQ3C",
+        //         "withdraw_amount": "10000.00000000",
+        //         "fee": "2.00000000",
+        //         "amount_after_fee": "9998.00000000",
+        //         "submit_time": "1509469200",
+        //         "withdraw_id": "xrp-12345",
+        //         "txid": "",
+        //         "withdraw_memo": "123123"
         //     }
         //
         // transHistory
         //
         //     {
-        //         "status" => "success",
-        //         "type" => "coupon",
-        //         "rp" => "115205",
-        //         "fee" => "500",
-        //         "amount" => "114705",
-        //         "submit_time" => "1539844166",
-        //         "success_time" => "1539844189",
-        //         "withdraw_id" => "1783717",
-        //         "tx" => "BTC-IDR-RDTVVO2P-ETD0EVAW-VTNZGMIR-HTNTUAPI-84ULM9OI",
-        //         "sender" => "boris",
-        //         "used_by" => "viginia88"
+        //         "status": "success",
+        //         "type": "coupon",
+        //         "rp": "115205",
+        //         "fee": "500",
+        //         "amount": "114705",
+        //         "submit_time": "1539844166",
+        //         "success_time": "1539844189",
+        //         "withdraw_id": "1783717",
+        //         "tx": "BTC-IDR-RDTVVO2P-ETD0EVAW-VTNZGMIR-HTNTUAPI-84ULM9OI",
+        //         "sender": "boris",
+        //         "used_by": "viginia88"
         //     }
         //
-        //     array(
-        //         "status" => "success",
-        //         "btc" => "0.00118769",
-        //         "amount" => "0.00118769",
-        //         "success_time" => "1539529208",
-        //         "deposit_id" => "3602369",
-        //         "tx" => "c816aeb35a5b42f389970325a32aff69bb6b2126784dcda8f23b9dd9570d6573"
-        //     ),
+        //     {
+        //         "status": "success",
+        //         "btc": "0.00118769",
+        //         "amount": "0.00118769",
+        //         "success_time": "1539529208",
+        //         "deposit_id": "3602369",
+        //         "tx": "c816aeb35a5b42f389970325a32aff69bb6b2126784dcda8f23b9dd9570d6573"
+        //     },
         $status = $this->safe_string($transaction, 'status');
         $timestamp = $this->safe_timestamp_2($transaction, 'success_time', 'submit_time');
         $depositId = $this->safe_string($transaction, 'deposit_id');
@@ -1500,36 +1502,36 @@ class indodax extends Exchange {
         $response = Async\await($this->privatePostGetInfo($params));
         //
         //    {
-        //        success => '1',
-        //        return => {
-        //            server_time => '1708031570',
-        //            balance => array(
-        //                idr => '29952',
+        //        success: '1',
+        //        return: {
+        //            server_time: '1708031570',
+        //            balance: {
+        //                idr: '29952',
         //                ...
-        //            ),
-        //            balance_hold => array(
-        //                idr => '0',
+        //            },
+        //            balance_hold: {
+        //                idr: '0',
         //                ...
-        //            ),
-        //            $address => array(
-        //                btc => '1KMntgzvU7iTSgMBWc11nVuJjAyfW3qJyk',
+        //            },
+        //            address: {
+        //                btc: '1KMntgzvU7iTSgMBWc11nVuJjAyfW3qJyk',
         //                ...
-        //            ),
-        //            memo_is_required => array(
-        //                btc => array( mainnet => false ),
+        //            },
+        //            memo_is_required: {
+        //                btc: { mainnet: false },
         //                ...
-        //            ),
-        //            $network => array(
-        //                btc => 'mainnet',
+        //            },
+        //            network: {
+        //                btc: 'mainnet',
         //                ...
-        //            ),
-        //            user_id => '276011',
-        //            name => '',
-        //            email => 'testbitcoincoid@mailforspam.com',
-        //            profile_picture => null,
-        //            verification_status => 'unverified',
-        //            gauth_enable => true,
-        //            withdraw_status => '0'
+        //            },
+        //            user_id: '276011',
+        //            name: '',
+        //            email: 'testbitcoincoid@mailforspam.com',
+        //            profile_picture: null,
+        //            verification_status: 'unverified',
+        //            gauth_enable: true,
+        //            withdraw_status: '0'
         //        }
         //    }
         //
@@ -1615,12 +1617,12 @@ class indodax extends Exchange {
         if ($response === null) {
             return null;
         }
-        // array( success => 0, $error => "invalid order." )
+        // { success: 0, error: "invalid order." }
         // or
-        // [array( data, ... ), array( ... ), ... ]
-        // array("success":"1","status":"approved","withdraw_currency":"strm","withdraw_address":"0x2b9A8cd5535D99b419aEfFBF1ae8D90a7eBdb24E","withdraw_amount":"2165.05767839","fee":"21.11000000","amount_after_fee":"2143.94767839","submit_time":"1730759489","withdraw_id":"strm-3423","txid":"")
+        // [{ data, ... }, { ... }, ... ]
+        // {"success":"1","status":"approved","withdraw_currency":"strm","withdraw_address":"0x2b9A8cd5535D99b419aEfFBF1ae8D90a7eBdb24E","withdraw_amount":"2165.05767839","fee":"21.11000000","amount_after_fee":"2143.94767839","submit_time":"1730759489","withdraw_id":"strm-3423","txid":""}
         if ((gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response)))) {
-            return null; // public endpoints may return array()-arrays
+            return null; // public endpoints may return []-arrays
         }
         $error = $this->safe_value($response, 'error', '');
         if (!(is_array($response) && array_key_exists('success' ?? '', $response)) && $error === '') {
@@ -1631,7 +1633,7 @@ class indodax extends Exchange {
             return null;
         }
         if ($this->safe_integer($response, 'success', 0) === 1) {
-            // array( success => 1, return => array( orders => array() ))
+            // { success: 1, return: { orders: [] }}
             if (!(is_array($response) && array_key_exists('return' ?? '', $response))) {
                 throw new ExchangeError($this->id . ' => malformed $response => ' . $this->json($response));
             } else {

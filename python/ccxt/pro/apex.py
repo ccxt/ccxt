@@ -125,9 +125,9 @@ class apex(ccxt.async_support.apex):
         #                 "p": "16578.50",
         #                 "L": "PlusTick",
         #                 "i": "20f43950-d8dd-5b31-9112-a178eb6023ef",
-        #                 "BT": False
+        #                 "BT": false
         #             },
-        #             # sorted by newest first
+        #             // sorted by newest first
         #         ]
         #     }
         #
@@ -162,7 +162,7 @@ class apex(ccxt.async_support.apex):
         #         "p": "16578.50",
         #         "L": "PlusTick",
         #         "i": "20f43950-d8dd-5b31-9112-a178eb6023af",
-        #         "BT": False
+        #         "BT": false
         #     }
         #
         id = self.safe_string_n(trade, ['i', 'id', 'v'])
@@ -236,9 +236,9 @@ class apex(ccxt.async_support.apex):
 
     async def watch_topics(self, url: object, messageHashes: object, topics: object, params={}):
         # apex's server rejects a subscribe whose args include any
-        # already-subscribed topic("topic:already subscribed ..."). Since the
+        # already-subscribed topic ("topic:already subscribed ..."). Since the
         # connection is now reused across watch* calls, filter to only the
-        # topics whose messageHash isn't yet tracked on self client; if all
+        # topics whose messageHash isn't yet tracked on this client; if all
         # are already subscribed, skip the subscribe entirely.
         client = self.client(url)
         newTopics = []
@@ -450,7 +450,7 @@ class apex(ccxt.async_support.apex):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         params['callerMethodName'] = 'watchOHLCV'
         result = await self.watch_ohlcv_for_symbols([[symbol, timeframe]], since, limit, params)
@@ -466,7 +466,7 @@ class apex(ccxt.async_support.apex):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A list of candles ordered, open, high, low, close, volume
+        :returns dict: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()
@@ -503,7 +503,7 @@ class apex(ccxt.async_support.apex):
         #                 "low": "16608",
         #                 "volume": "2.081",
         #                 "turnover": "34666.4005",
-        #                 "confirm": False,
+        #                 "confirm": false,
         #                 "timestamp": 1672324988882
         #             }
         #         ],
@@ -547,7 +547,7 @@ class apex(ccxt.async_support.apex):
         #         "low": "16987.5",
         #         "volume": "23.511",
         #         "turnover": "399396.344",
-        #         "confirm": False,
+        #         "confirm": false,
         #         "timestamp": 1670363219614
         #     }
         #
@@ -738,7 +738,7 @@ class apex(ccxt.async_support.apex):
             self.spawn(self.load_positions_snapshot, client, messageHash)
 
     async def load_positions_snapshot(self, client: Client, messageHash: object):
-        # one ws channel gives positions for all types, for snapshot must load all positions
+        # as only one ws channel gives positions for all types, for snapshot must load all positions
         fetchFunctions = [
             self.fetch_positions(),
         ]
@@ -788,7 +788,7 @@ class apex(ccxt.async_support.apex):
             position = self.parse_position(rawPosition)
             side = self.safe_string(position, 'side')
             # hacky solution to handle closing positions
-            # without crashing, we should handle self properly later
+            # without crashing, we should handle this properly later
             newPositions.append(position)
             if side is None or side == '':
                 # closing update, adding both sides to "reset" both sides
@@ -845,16 +845,16 @@ class apex(ccxt.async_support.apex):
     def handle_error_message(self, client: Client, message: object) -> Bool:
         #
         #   {
-        #       "success": False,
+        #       "success": false,
         #       "ret_msg": "error:invalid op",
         #       "conn_id": "5e079fdd-9c7f-404d-9dbf-969d650838b5",
-        #       "request": {op: '', args: null}
+        #       "request": { op: '', args: null }
         #   }
         #
         # auth error
         #
         #   {
-        #       "success": False,
+        #       "success": false,
         #       "ret_msg": "error:USVC1111",
         #       "conn_id": "e73770fb-a0dc-45bd-8028-140e20958090",
         #       "request": {
@@ -866,7 +866,7 @@ class apex(ccxt.async_support.apex):
         #         ]
         #   }
         #
-        #   {code: '-10009', desc: "Invalid period!"}
+        #   { code: '-10009', desc: "Invalid period!" }
         #
         #   {
         #       "reqId":"1",
@@ -899,10 +899,10 @@ class apex(ccxt.async_support.apex):
                 ret_msg = self.safe_string(message, 'ret_msg')
                 request = self.safe_value(message, 'request', {})
                 op = self.safe_string(request, 'op')
-                # Benign re-subscribe notice(same shape 90008 /
+                # Benign re-subscribe notice (same shape as bitmart 90008 /
                 # krakenfutures "Already subscribed"): the original subscription
-                # is still active and delivering data on self socket. Without
-                # self short-circuit the catch-clause's `client.reject(error,
+                # is still active and delivering data on this socket. Without
+                # this short-circuit the catch-clause's `client.reject(error,
                 # messageHash)` rejects every in-flight future on the connection
                 # because apex doesn't echo a `reqId` on these warnings.
                 if ret_msg is not None and ret_msg.find('already subscribed') >= 0:
@@ -925,6 +925,11 @@ class apex(ccxt.async_support.apex):
 
     def handle_message(self, client: Client, message: object):
         if self.handle_error_message(client, message) is True:
+            return
+        ret_msg = self.safe_string(message, 'ret_msg')
+        pong = self.safe_integer(message, 'pong')
+        if ret_msg == 'pong' or pong is not None:
+            self.handle_pong(client, message)
             return
         topic = self.safe_string_2(message, 'topic', 'op', '')
         methods = {
@@ -979,18 +984,19 @@ class apex(ccxt.async_support.apex):
     def handle_pong(self, client: Client, message: object):
         #
         #   {
-        #       "success": True,
+        #       "success": true,
         #       "ret_msg": "pong",
         #       "conn_id": "db3158a0-8960-44b9-a9de-ac350ee13158",
-        #       "request": {op: "ping", args: null}
+        #       "request": { op: "ping", args: null }
         #   }
         #
-        #   {pong: 1653296711335}
+        #   { pong: 1653296711335 }
         #
         client.lastPong = self.safe_integer(message, 'pong', self.milliseconds())
         return message
 
     def handle_ping(self, client: Client, message: object):
+        client.lastPong = self.milliseconds()
         self.spawn(self.pong, client, message)
 
     def handle_account(self, client: Client, message: object):
@@ -1008,7 +1014,7 @@ class apex(ccxt.async_support.apex):
     def handle_authenticate(self, client: Client, message: object):
         #
         #    {
-        #        "success": True,
+        #        "success": true,
         #        "ret_msg": '',
         #        "op": "auth",
         #        "conn_id": "ce3dpomvha7dha97tvp0-2xh"

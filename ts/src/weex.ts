@@ -6,7 +6,7 @@ import Exchange from './abstract/weex.js';
 import { ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ExchangeError, InsufficientFunds, InvalidOrder, NotSupported, OrderNotFound, PermissionDenied, NullResponse } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Bool, Currencies, Currency, CurrencyInterface, Dict, FundingRate, FundingRateHistory, FundingRates, LastPrice, LastPrices, LedgerEntry, Int, int, List, Market, NullableDict, FeeString, NullableList, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TransferEntry, Position, TradingFeeInterface, MarginMode, MarginModes, Leverage, Leverages, MarginModification, Status, PositionModeInfo, Endpoint } from './base/types.js';
+import type { Balances, Bool, Currencies, Currency, CurrencyInterface, Dict, FundingHistory, FundingRate, FundingRateHistory, FundingRates, LastPrice, LastPrices, LedgerEntry, Int, int, List, Market, NullableDict, FeeString, NullableList, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TransferEntry, Position, TradingFeeInterface, MarginMode, MarginModes, Leverage, Leverages, MarginModification, Status, PositionModeInfo, Endpoint } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -96,7 +96,7 @@ export default class weex extends Exchange {
                 'fetchDepositsWithdrawals': false,
                 'fetchDepositWithdrawFee': false,
                 'fetchDepositWithdrawFees': false,
-                'fetchFundingHistory': false,
+                'fetchFundingHistory': true,
                 'fetchFundingInterval': false,
                 'fetchFundingIntervals': false,
                 'fetchFundingRate': true,
@@ -242,6 +242,13 @@ export default class weex extends Exchange {
                         'api/v3/agency/verifyReferrals': { 'cost': 20 } as Endpoint<List>, // not unified
                         'api/v3/agency/getAssert': { 'cost': 20 } as Endpoint<Dict>, // not unified
                         'api/v3/agency/getDealData': { 'cost': 20 } as Endpoint<Dict>, // not unified
+                        'api/v3/apiReferral/checkUserEligibility': { 'cost': 5 } as Endpoint<Dict>, // not unified - broker access
+                        'api/v3/apiReferral/rebate/recentRecord': { 'cost': 5 } as Endpoint<Dict>, // not unified - broker access
+                        'api/v3/apiReferral/rebateRatio': { 'cost': 5 } as Endpoint<Dict>, // not unified - broker access
+                        'api/v3/content/articles/detail': { 'cost': 1 } as Endpoint<Dict>, // not unified - partner content
+                        'api/v3/content/articles/list': { 'cost': 1 } as Endpoint<Dict>, // not unified - partner content
+                        'api/v3/content/articles/listByCoin': { 'cost': 1 } as Endpoint<Dict>, // not unified - partner content
+                        'api/v3/content/banners/latest': { 'cost': 1 } as Endpoint<Dict>, // not unified - partner content
                     },
                     'post': {
                         'api/v3/account/bills': { 'cost': 5 } as Endpoint<List>, // done
@@ -249,6 +256,7 @@ export default class weex extends Exchange {
                         'api/v3/order': { 'cost': 5 } as Endpoint<Dict>, // done
                         'api/v3/order/batch': { 'cost': 50 } as Endpoint<Dict>, // not supported, returns {"code":-1150,"msg":"Request method 'POST' not supported"}
                         'api/v3/rebate/affiliate/internalWithdrawal': { 'cost': 100 } as Endpoint<string>, // not unified
+                        'api/v3/tax/income': { 'cost': 5 } as Endpoint<List>, // not unified - tax reporting
                     },
                     'delete': {
                         'api/v3/order': { 'cost': 1 } as Endpoint<Dict>, // done
@@ -293,6 +301,15 @@ export default class weex extends Exchange {
                         'capi/v3/sim/balance': { 'cost': 10 } as Endpoint<List>, // done - demo trading variant of capi/v3/account/balance
                         'capi/v3/sim/position/allPosition': { 'cost': 15 } as Endpoint<List>, // done - demo trading variant of capi/v3/account/position/allPosition
                         'capi/v3/sim/order/history': { 'cost': 10 } as Endpoint<List>, // done - demo trading variant of capi/v3/order/history
+                        'capi/v3/copy/follower/historyOrders': { 'cost': 10 } as Endpoint<Dict>, // not unified - copy trading
+                        'capi/v3/copy/follower/myTraders': { 'cost': 10 } as Endpoint<Dict>, // not unified - copy trading
+                        'capi/v3/copy/follower/openOrders': { 'cost': 10 } as Endpoint<List>, // not unified - copy trading
+                        'capi/v3/copy/follower/settings': { 'cost': 10 } as Endpoint<List>, // not unified - copy trading
+                        'capi/v3/copy/trader/historyOrders': { 'cost': 10 } as Endpoint<Dict>, // not unified - copy trading
+                        'capi/v3/copy/trader/openOrders': { 'cost': 10 } as Endpoint<List>, // not unified - copy trading
+                        'capi/v3/copy/trader/pairs': { 'cost': 1 } as Endpoint<List>, // not unified - copy trading
+                        'capi/v3/trailing/openOrders': { 'cost': 2 } as Endpoint<List>, // not unified - trailing orders
+                        'capi/v3/trailing/historyOrders': { 'cost': 10 } as Endpoint<List>, // not unified - trailing orders
                     },
                     'post': {
                         'capi/v3/account/income': { 'cost': 5 } as Endpoint<Dict>, // done
@@ -307,6 +324,9 @@ export default class weex extends Exchange {
                         'capi/v3/placeTpSlOrder': { 'cost': 5 } as Endpoint<List>, // not unified
                         'capi/v3/modifyTpSlOrder': { 'cost': 5 } as Endpoint<Dict>, // not unified
                         'capi/v3/sim/order': { 'cost': 5 } as Endpoint<Dict>, // done - demo trading variant of capi/v3/order
+                        'capi/v3/copy/follower/closePos': { 'cost': 50 } as Endpoint<Dict>, // not unified - copy trading
+                        'capi/v3/copy/follower/settings': { 'cost': 10 } as Endpoint<Dict>, // not unified - copy trading
+                        'capi/v3/copy/follower/stopCopy': { 'cost': 10 } as Endpoint<Dict>, // not unified - copy trading
                     },
                     'delete': {
                         'capi/v3/order': { 'cost': 3 } as Endpoint<Dict>, // done
@@ -3428,10 +3448,7 @@ export default class weex extends Exchange {
             currency = this.currency (code);
         }
         if (accountType === 'contract') {
-            if (currency === undefined) {
-                throw new ExchangeError (this.id + ' fetchLedger() could not resolve currency');
-            }
-            if (code !== undefined) {
+            if (currency !== undefined) {
                 request['currency'] = currency['id'];
             }
             if (since !== undefined) {
@@ -3569,6 +3586,106 @@ export default class weex extends Exchange {
             'position_close_short': 'trade',
         };
         return this.safeString (types, (type as string), type);
+    }
+
+    /**
+     * @method
+     * @name weex#fetchFundingHistory
+     * @description fetch the history of funding payments paid and received on this account
+     * @see https://www.weex.com/api-doc/contract/Account_API/GetContractBills
+     * @param {string} [symbol] unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch funding history for
+     * @param {int} [limit] the maximum number of funding history structures to retrieve (default 20, max 100)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest funding history entry, requires since to be set, the span may not exceed 100 days
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns {object[]} a list of [funding history structures]{@link https://docs.ccxt.com/?id=funding-history-structure}
+     */
+    override async fetchFundingHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<FundingHistory[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchFundingHistory', 'paginate', false);
+        if (paginate) {
+            return await this.fetchPaginatedCallDynamic ('fetchFundingHistory', symbol, since, limit, params, 100) as FundingHistory[];
+        }
+        let market: Market = undefined;
+        let request: Dict = {
+            'incomeType': 'position_funding', // deposit, withdraw, transfer_in, transfer_out, margin_move_in, margin_move_out, position_open_long, position_open_short, position_close_long, position_close_short, position_funding, order_fill_fee_income, order_liquidate_fee_income, start_liquidate, finish_liquidate, order_fix_margin_amount, tracking_follow_pay, tracking_system_pre_receive, tracking_follow_back, tracking_trader_income, tracking_third_party_share
+        };
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            if (market['swap'] !== true) {
+                throw new NotSupported (this.id + ' fetchFundingHistory() supports swap contracts only');
+            }
+            request['symbol'] = market['id'];
+        }
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        [ request, params ] = this.handleUntilOption ('endTime', request, params);
+        // the exchange rejects startTime and endTime when either is sent alone, they only work as a pair
+        const hasSince = ('startTime' in request);
+        const hasUntil = ('endTime' in request);
+        if (hasSince && !hasUntil) {
+            request['endTime'] = this.milliseconds ();
+        } else if (hasUntil && !hasSince) {
+            throw new ArgumentsRequired (this.id + ' fetchFundingHistory() requires since to be set when until is used');
+        }
+        const response = await this.contractPrivatePostCapiV3AccountIncome (this.extend (request, params));
+        //
+        //     {
+        //         "hasNextPage": false,
+        //         "nextKey": null,
+        //         "items": [
+        //             {
+        //                 "billId": "793622764958253481",
+        //                 "asset": "USDT",
+        //                 "symbol": "VIRTUALUSDT",
+        //                 "income": "0.00000378",
+        //                 "incomeType": "position_funding",
+        //                 "balance": "29.36239410",
+        //                 "fillFee": "0",
+        //                 "time": "1789214411964",
+        //                 "transferReason": "UNKNOWN_TRANSFER_REASON"
+        //             }
+        //         ]
+        //     }
+        //
+        const items = this.safeList (response, 'items', []);
+        return this.parseIncomes (items, market, since, limit);
+    }
+
+    override parseIncome (income: any, market: Market = undefined): object {
+        //
+        //     {
+        //         "billId": "793622764958253481",
+        //         "asset": "USDT",
+        //         "symbol": "VIRTUALUSDT",
+        //         "income": "0.00000378",
+        //         "incomeType": "position_funding",
+        //         "balance": "29.36239410",
+        //         "fillFee": "0",
+        //         "time": "1789214411964",
+        //         "transferReason": "UNKNOWN_TRANSFER_REASON"
+        //     }
+        //
+        const marketId = this.safeString (income, 'symbol');
+        const currencyId = this.safeString (income, 'asset');
+        const timestamp = this.safeInteger (income, 'time');
+        return {
+            'info': income,
+            'symbol': this.safeSymbol (marketId, market, undefined, 'swap'),
+            'code': this.safeCurrencyCode (currencyId),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'id': this.safeString (income, 'billId'),
+            'amount': this.safeNumber (income, 'income'),
+        };
     }
 
     /**

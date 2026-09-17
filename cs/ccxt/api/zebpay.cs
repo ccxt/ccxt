@@ -32,6 +32,13 @@ public partial class zebpay : Exchange
         return await this.callAsync<Dictionary<string, object>> ("publicSpotGetV2MarketOrderbook",parameters);
     }
 
+    /// <summary>Calls the publicSpotGetV2MarketOrderbookTicker endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicSpotGetV2MarketOrderbookTicker (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("publicSpotGetV2MarketOrderbookTicker",parameters);
+    }
+
     /// <summary>Calls the publicSpotGetV2MarketTrades endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> publicSpotGetV2MarketTrades (object parameters = null)
@@ -109,6 +116,20 @@ public partial class zebpay : Exchange
         return await this.callAsync<Dictionary<string, object>> ("publicSwapGetV1ExchangeTradefees",parameters);
     }
 
+    /// <summary>Calls the publicSwapGetV1ExchangeExchangeInfo endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicSwapGetV1ExchangeExchangeInfo (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("publicSwapGetV1ExchangeExchangeInfo",parameters);
+    }
+
+    /// <summary>Calls the publicSwapGetV1ExchangePairs endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicSwapGetV1ExchangePairs (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("publicSwapGetV1ExchangePairs",parameters);
+    }
+
     /// <summary>Calls the publicSwapGetV1MarketOrderBook endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> publicSwapGetV1MarketOrderBook (object parameters = null)
@@ -128,6 +149,13 @@ public partial class zebpay : Exchange
     public async Task<Dictionary<string, object>> publicSwapGetV1MarketMarkets (object parameters = null)
     {
         return await this.callAsync<Dictionary<string, object>> ("publicSwapGetV1MarketMarkets",parameters);
+    }
+
+    /// <summary>Calls the publicSwapGetV1MarketMarketInfo endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicSwapGetV1MarketMarketInfo (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("publicSwapGetV1MarketMarketInfo",parameters);
     }
 
     /// <summary>Calls the publicSwapGetV1MarketAggTrade endpoint.</summary>
@@ -170,6 +198,13 @@ public partial class zebpay : Exchange
     public async Task<Dictionary<string, object>> privateSpotGetV2ExTradefee (object parameters = null)
     {
         return await this.callAsync<Dictionary<string, object>> ("privateSpotGetV2ExTradefee",parameters);
+    }
+
+    /// <summary>Calls the privateSpotGetV2ExMyfeeSymbol endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateSpotGetV2ExMyfeeSymbol (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateSpotGetV2ExMyfeeSymbol",parameters);
     }
 
     /// <summary>Calls the privateSpotGetV2ExOrder endpoint.</summary>
@@ -228,6 +263,13 @@ public partial class zebpay : Exchange
         return await this.callAsync<Dictionary<string, object>> ("privateSwapGetV1TradeOrderOpenOrders",parameters);
     }
 
+    /// <summary>Calls the privateSwapGetV1TradeOrderHistory endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateSwapGetV1TradeOrderHistory (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateSwapGetV1TradeOrderHistory",parameters);
+    }
+
     /// <summary>Calls the privateSwapGetV1TradeUserLeverages endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> privateSwapGetV1TradeUserLeverages (object parameters = null)
@@ -254,6 +296,13 @@ public partial class zebpay : Exchange
     public async Task<Dictionary<string, object>> privateSwapGetV1TradeHistory (object parameters = null)
     {
         return await this.callAsync<Dictionary<string, object>> ("privateSwapGetV1TradeHistory",parameters);
+    }
+
+    /// <summary>Calls the privateSwapGetV1TradeTransactionHistory endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateSwapGetV1TradeTransactionHistory (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateSwapGetV1TradeTransactionHistory",parameters);
     }
 
     /// <summary>Calls the privateSwapPostV1TradeOrder endpoint.</summary>
@@ -303,6 +352,20 @@ public partial class zebpay : Exchange
     public async Task<Dictionary<string, object>> privateSwapDeleteV1TradeOrder (object parameters = null)
     {
         return await this.callAsync<Dictionary<string, object>> ("privateSwapDeleteV1TradeOrder",parameters);
+    }
+
+    /// <summary>Calls the privateSwapDeleteV1TradeOrderAll endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateSwapDeleteV1TradeOrderAll (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateSwapDeleteV1TradeOrderAll",parameters);
+    }
+
+    /// <summary>Calls the privateSwapPatchV1TradeOrder endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateSwapPatchV1TradeOrder (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateSwapPatchV1TradeOrder",parameters);
     }
 
 }

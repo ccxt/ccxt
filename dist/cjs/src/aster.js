@@ -269,6 +269,13 @@ class aster extends aster$1["default"] {
                         // builder
                         'v3/agent': { 'cost': 1 },
                         'v3/builder': { 'cost': 1 },
+                        'v3/builder/userTrades': { 'cost': 5 },
+                        'v3/builder/approvedUserList': { 'cost': 5 },
+                        'v3/stpMode': { 'cost': 30 },
+                        'v3/asset/migrateUser/history': { 'cost': 50 },
+                        // strategy
+                        'v3/strategyOpenOrder': { 'cost': 5 },
+                        'v3/strategyHistoryOrder': { 'cost': 5 },
                     },
                     'post': {
                         'v1/positionSide/dual': { 'cost': 1 },
@@ -302,6 +309,13 @@ class aster extends aster$1["default"] {
                         'v3/updateAgent': { 'cost': 1 },
                         'v3/approveBuilder': { 'cost': 1 },
                         'v3/updateBuilder': { 'cost': 1 },
+                        'v3/registerAndApproveAgent': { 'cost': 50 },
+                        'v3/asset/migrateUser': { 'cost': 50 },
+                        'v3/chase': { 'cost': 1 },
+                        'v3/stpMode': { 'cost': 1 },
+                        // strategy
+                        'v3/placeStrategyOrder': { 'cost': 50 },
+                        'v3/updateStrategyOrder': { 'cost': 50 },
                     },
                     'put': {
                         'v1/listenKey': { 'cost': 1 },
@@ -314,6 +328,8 @@ class aster extends aster$1["default"] {
                         'v3/allOpenOrders': { 'cost': 1 },
                         'v1/batchOrders': { 'cost': 1 },
                         'v3/batchOrders': { 'cost': 1 },
+                        'v3/guardedCancelOrder': { 'cost': 1 },
+                        'v3/guardedBatchOrders': { 'cost': 1 },
                         'v3/mmp': { 'cost': 1 },
                         'v1/listenKey': { 'cost': 1 },
                         'v3/listenKey': { 'cost': 1 },
@@ -2796,20 +2812,11 @@ class aster extends aster$1["default"] {
         if (postOnly) {
             request['timeInForce'] = 'GTX';
         }
-        //
-        // spot
-        // LIMIT timeInForce, quantity, price
-        // MARKET quantity or quoteOrderQty
-        // STOP and TAKE_PROFIT quantity, price, stopPrice
-        // STOP_MARKET and TAKE_PROFIT_MARKET quantity, stopPrice
-        // future
-        // LIMIT timeInForce, quantity, price
-        // MARKET quantity
-        // STOP/TAKE_PROFIT quantity, price, stopPrice
-        // STOP_MARKET/TAKE_PROFIT_MARKET stopPrice
-        // TRAILING_STOP_MARKET callbackRate
-        //
-        // additional required fields depending on the order type
+        // additional required fields per order type
+        // spot: LIMIT timeInForce, quantity, price; MARKET quantity or quoteOrderQty;
+        //       STOP/TAKE_PROFIT quantity, price, stopPrice; STOP_MARKET/TAKE_PROFIT_MARKET quantity, stopPrice
+        // future: LIMIT timeInForce, quantity, price; MARKET quantity; STOP/TAKE_PROFIT quantity, price, stopPrice;
+        //       STOP_MARKET/TAKE_PROFIT_MARKET stopPrice; TRAILING_STOP_MARKET callbackRate
         const closePosition = this.safeBool(params, 'closePosition', false);
         let timeInForceIsRequired = false;
         let priceIsRequired = false;

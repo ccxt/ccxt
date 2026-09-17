@@ -108,6 +108,7 @@ class blockchaincom extends blockchaincom$1["default"] {
                 'private': {
                     'get': {
                         'fees': { 'cost': 1 }, // fetchFees
+                        'internal/orders': { 'cost': 1 }, // getOrdersInternal
                         'orders': { 'cost': 1 }, // fetchOpenOrders, fetchClosedOrders
                         'orders/{orderId}': { 'cost': 1 }, // fetchOrder(id)
                         'trades': { 'cost': 1 },

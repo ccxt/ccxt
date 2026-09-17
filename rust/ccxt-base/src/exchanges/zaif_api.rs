@@ -52,6 +52,21 @@ impl ZaifCore {
         self.call_method(Value::Str("public_get_trades_pair".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `publicGetVaspInfoVaspMasterId` implicit endpoint.
+    pub async fn public_get_vasp_info_vasp_master_id(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("public_get_vasp_info_vasp_master_id".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `publicGetCountryInfoCode` implicit endpoint.
+    pub async fn public_get_country_info_code(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("public_get_country_info_code".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `publicGetCorpTypeIdInfoId` implicit endpoint.
+    pub async fn public_get_corp_type_id_info_id(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("public_get_corp_type_id_info_id".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `privatePostActiveOrders` implicit endpoint.
     pub async fn private_post_active_orders(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_active_orders".to_string()), optional_args).await

@@ -36,7 +36,7 @@ class coinbase(Exchange, ImplicitAPI):
             # ADVANCED API: https://docs.cdp.coinbase.com/advanced-trade/docs/rest-api-rate-limits
             # - max 30 req/second for private data, 10 req/s for public data
             # DATA API    : https://docs.cdp.coinbase.com/coinbase-app/api-architecture/rate-limiting
-            # - max 10000 req/hour(to prevent userland mistakes we apply ~3 req/second RL per call
+            # - max 10000 req/hour (to prevent userland mistakes we apply ~3 req/second RL per call
             'rateLimit': 34,
             'version': 'v2',
             'userAgent': self.userAgents['chrome'],
@@ -227,6 +227,7 @@ class coinbase(Exchange, ImplicitAPI):
                             'payment-methods/{payment_method_id}': {'cost': 10.6},
                             'user': {'cost': 10.6},
                             'user/auth': {'cost': 10.6},
+                            'subscriptions/coinbase-one': {'cost': 10.6},
                         },
                         'post': {
                             'accounts': {'cost': 10.6},
@@ -286,6 +287,9 @@ class coinbase(Exchange, ImplicitAPI):
                             'brokerage/cfm/positions': {'cost': 1},
                             'brokerage/cfm/positions/{product_id}': {'cost': 1},
                             'brokerage/cfm/sweeps': {'cost': 1},
+                            'brokerage/cfm/intraday/current_margin_window': {'cost': 1},
+                            'brokerage/cfm/intraday/margin_setting': {'cost': 1},
+                            'brokerage/intx/balances/{portfolio_uuid}': {'cost': 1},
                             'brokerage/intx/portfolio/{portfolio_uuid}': {'cost': 1},
                             'brokerage/intx/positions/{portfolio_uuid}': {'cost': 1},
                             'brokerage/intx/positions/{portfolio_uuid}/{symbol}': {'cost': 1},
@@ -304,7 +308,9 @@ class coinbase(Exchange, ImplicitAPI):
                             'brokerage/convert/quote': {'cost': 1},
                             'brokerage/convert/trade/{trade_id}': {'cost': 1},
                             'brokerage/cfm/sweeps/schedule': {'cost': 1},
+                            'brokerage/cfm/intraday/margin_setting': {'cost': 1},
                             'brokerage/intx/allocate': {'cost': 1},
+                            'brokerage/intx/multi_asset_collateral': {'cost': 1},
                             # futures
                             'brokerage/orders/close_position': {'cost': 1},
                         },
@@ -357,13 +363,13 @@ class coinbase(Exchange, ImplicitAPI):
                     'param_required': ExchangeError,  # 400 Missing parameter
                     'validation_error': ExchangeError,  # 400 Unable to validate POST/PUT
                     'invalid_request': ExchangeError,  # 400 Invalid request
-                    'personal_details_required': AuthenticationError,  # 400 User’s personal detail required to complete self request
-                    'identity_verification_required': AuthenticationError,  # 400 Identity verification is required to complete self request
-                    'jumio_verification_required': AuthenticationError,  # 400 Document verification is required to complete self request
-                    'jumio_face_match_verification_required': AuthenticationError,  # 400 Document verification including face match is required to complete self request
+                    'personal_details_required': AuthenticationError,  # 400 User’s personal detail required to complete this request
+                    'identity_verification_required': AuthenticationError,  # 400 Identity verification is required to complete this request
+                    'jumio_verification_required': AuthenticationError,  # 400 Document verification is required to complete this request
+                    'jumio_face_match_verification_required': AuthenticationError,  # 400 Document verification including face match is required to complete this request
                     'unverified_email': AuthenticationError,  # 400 User has not verified their email
-                    'authentication_error': AuthenticationError,  # 401 Invalid auth(generic)
-                    'unauthorized': AuthenticationError,  # 401 Not authorized to perform self operation
+                    'authentication_error': AuthenticationError,  # 401 Invalid auth (generic)
+                    'unauthorized': AuthenticationError,  # 401 Not authorized to perform this operation
                     'invalid_authentication_method': AuthenticationError,  # 401 API access is blocked for deleted users.
                     'invalid_token': AuthenticationError,  # 401 Invalid Oauth token
                     'revoked_token': AuthenticationError,  # 401 Revoked Oauth token
@@ -383,7 +389,7 @@ class coinbase(Exchange, ImplicitAPI):
                 'broad': {
                     'Insufficient balance in source account': InsufficientFunds,
                     'request timestamp expired': InvalidNonce,  # {"errors":[{"id":"authentication_error","message":"request timestamp expired"}]}
-                    'order with self orderID was not found': OrderNotFound,  # {"error":"unknown","error_details":"order with self orderID was not found","message":"order with self orderID was not found"}
+                    'order with self orderID was not found': OrderNotFound,  # {"error":"unknown","error_details":"order with this orderID was not found","message":"order with this orderID was not found"}
                 },
             },
             'timeframes': {
@@ -421,7 +427,7 @@ class coinbase(Exchange, ImplicitAPI):
                     'XLM': 'stellar',
                 },
                 'createMarketBuyOrderRequiresPrice': True,
-                'advanced': True,  # set to True if using any v3 endpoints from the advanced trade API
+                'advanced': True,  # set to true if using any v3 endpoints from the advanced trade API
                 'fetchMarkets': 'fetchMarketsV3',  # 'fetchMarketsV3' or 'fetchMarketsV2'
                 'timeDifference': 0,  # the difference between system clock and exchange server clock
                 'adjustForTimeDifference': False,  # controls the adjustment logic upon instantiation
@@ -599,7 +605,7 @@ class coinbase(Exchange, ImplicitAPI):
         #             {
         #                 "id": "XLM",
         #                 "name": "XLM Wallet",
-        #                 "primary": False,
+        #                 "primary": false,
         #                 "type": "wallet",
         #                 "currency": {
         #                     "code": "XLM",
@@ -611,7 +617,7 @@ class coinbase(Exchange, ImplicitAPI):
         #                     "address_regex": "^G[A-Z2-7]{55}$",
         #                     "asset_id": "13b83335-5ede-595b-821e-5bcdfa80560f",
         #                     "destination_tag_name": "XLM Memo ID",
-        #                     "destination_tag_regex": "^[-~]{1,28}$"
+        #                     "destination_tag_regex": "^[ -~]{1,28}$"
         #                 },
         #                 "balance": {
         #                     "amount": "0.0000000",
@@ -621,8 +627,8 @@ class coinbase(Exchange, ImplicitAPI):
         #                 "updated_at": null,
         #                 "resource": "account",
         #                 "resource_path": "/v2/accounts/XLM",
-        #                 "allow_deposits": True,
-        #                 "allow_withdrawals": True
+        #                 "allow_deposits": true,
+        #                 "allow_withdrawals": true
         #             },
         #         ]
         #     }
@@ -661,13 +667,13 @@ class coinbase(Exchange, ImplicitAPI):
         #                     "value": "0.0000000000000000",
         #                     "currency": "USDC"
         #                 },
-        #                 "default": True,
-        #                 "active": True,
+        #                 "default": true,
+        #                 "active": true,
         #                 "created_at": "2023-01-04T06:20:06.456Z",
         #                 "updated_at": "2023-01-04T06:20:07.181Z",
         #                 "deleted_at": null,
         #                 "type": "ACCOUNT_TYPE_CRYPTO",
-        #                 "ready": False,
+        #                 "ready": false,
         #                 "hold": {
         #                     "value": "0.0000000000000000",
         #                     "currency": "USDC"
@@ -675,7 +681,7 @@ class coinbase(Exchange, ImplicitAPI):
         #             },
         #             ...
         #         ],
-        #         "has_next": False,
+        #         "has_next": false,
         #         "cursor": "",
         #         "size": 9
         #     }
@@ -719,7 +725,7 @@ class coinbase(Exchange, ImplicitAPI):
         #     {
         #         "id": "XLM",
         #         "name": "XLM Wallet",
-        #         "primary": False,
+        #         "primary": false,
         #         "type": "wallet",
         #         "currency": {
         #             "code": "XLM",
@@ -731,7 +737,7 @@ class coinbase(Exchange, ImplicitAPI):
         #             "address_regex": "^G[A-Z2-7]{55}$",
         #             "asset_id": "13b83335-5ede-595b-821e-5bcdfa80560f",
         #             "destination_tag_name": "XLM Memo ID",
-        #             "destination_tag_regex": "^[-~]{1,28}$"
+        #             "destination_tag_regex": "^[ -~]{1,28}$"
         #         },
         #         "balance": {
         #             "amount": "0.0000000",
@@ -741,8 +747,8 @@ class coinbase(Exchange, ImplicitAPI):
         #         "updated_at": null,
         #         "resource": "account",
         #         "resource_path": "/v2/accounts/XLM",
-        #         "allow_deposits": True,
-        #         "allow_withdrawals": True
+        #         "allow_deposits": true,
+        #         "allow_withdrawals": true
         #     }
         #
         # fetchAccountsV3
@@ -755,13 +761,13 @@ class coinbase(Exchange, ImplicitAPI):
         #             "value": "0.0000000000000000",
         #             "currency": "USDC"
         #         },
-        #         "default": True,
-        #         "active": True,
+        #         "default": true,
+        #         "active": true,
         #         "created_at": "2023-01-04T06:20:06.456Z",
         #         "updated_at": "2023-01-04T06:20:07.181Z",
         #         "deleted_at": null,
         #         "type": "ACCOUNT_TYPE_CRYPTO",
-        #         "ready": False,
+        #         "ready": false,
         #         "hold": {
         #             "value": "0.0000000000000000",
         #             "currency": "USDC"
@@ -825,7 +831,7 @@ class coinbase(Exchange, ImplicitAPI):
         #             "resource_path": "/v2/accounts/14cfc769-e852-52f3-b831-711c104d194c/addresses/05b1ebbf-9438-5dd4-b297-2ddedc98d0e4",
         #             "warnings": [
         #                 {
-        #                     "title": "Only send EOS(EOS) to self address",
+        #                     "title": "Only send EOS (EOS) to this address",
         #                     "details": "Sending any other cryptocurrency will result in permanent loss.",
         #                     "image_url": "https://dynamic-assets.coinbase.com/deaca3d47b10ed4a91a872e9618706eec34081127762d88f2476ac8e99ada4b48525a9565cf2206d18c04053f278f693434af4d4629ca084a9d01b7a286a7e26/asset_icons/1f8489bb280fb0a0fd643c1161312ba49655040e9aaaced5f9ad3eeaf868eadc.png"
         #                 },
@@ -835,7 +841,7 @@ class coinbase(Exchange, ImplicitAPI):
         #                     "image_url": "https://www.coinbase.com/assets/receive-warning-2f3269d83547a7748fb39d6e0c1c393aee26669bfea6b9f12718094a1abff155.png"
         #                 }
         #             ],
-        #             "warning_title": "Only send EOS(EOS) to self address",
+        #             "warning_title": "Only send EOS (EOS) to this address",
         #             "warning_details": "Sending any other cryptocurrency will result in permanent loss.",
         #             "destination_tag": "287594668",
         #             "deposit_uri": "eosio:coinbasebase?dt=287594668",
@@ -1001,12 +1007,12 @@ class coinbase(Exchange, ImplicitAPI):
         #         "updated_at": "2017-02-09T07:01:26Z",
         #         "resource": "deposit",
         #         "resource_path": "/v2/accounts/91cd2d36-3a91-55b6-a5d4-0124cf105483/deposits/f34c19f3-b730-5e3d-9f72",
-        #         "committed": True,
+        #         "committed": true,
         #         "payout_at": "2017-02-12T07:01:17Z",
-        #         "instant": False,
-        #         "fee": {"amount": "0.00", "currency": "EUR"},
-        #         "amount": {"amount": "114.02", "currency": "EUR"},
-        #         "subtotal": {"amount": "114.02", "currency": "EUR"},
+        #         "instant": false,
+        #         "fee": { "amount": "0.00", "currency": "EUR" },
+        #         "amount": { "amount": "114.02", "currency": "EUR" },
+        #         "subtotal": { "amount": "114.02", "currency": "EUR" },
         #         "hold_until": null,
         #         "hold_days": 0,
         #         "hold_business_days": 0,
@@ -1033,12 +1039,12 @@ class coinbase(Exchange, ImplicitAPI):
         #         "updated_at": "2018-07-26T08:58:18Z",
         #         "resource": "withdrawal",
         #         "resource_path": "/v2/accounts/91cd2d36-3a91-55b6-a5d4-0124cf105483/withdrawals/cfcc3b4a-eeb6-5e8c-8058",
-        #         "committed": True,
+        #         "committed": true,
         #         "payout_at": "2018-07-31T08:55:12Z",
-        #         "instant": False,
-        #         "fee": {"amount": "0.15", "currency": "EUR"},
-        #         "amount": {"amount": "13130.69", "currency": "EUR"},
-        #         "subtotal": {"amount": "13130.84", "currency": "EUR"},
+        #         "instant": false,
+        #         "fee": { "amount": "0.15", "currency": "EUR" },
+        #         "amount": { "amount": "13130.69", "currency": "EUR" },
+        #         "subtotal": { "amount": "13130.84", "currency": "EUR" },
         #         "idem": "e549dee5-63ed-4e79-8a96",
         #         "next_step": null
         #     }
@@ -1062,10 +1068,10 @@ class coinbase(Exchange, ImplicitAPI):
         #         "updated_at": "2024-01-12T01:27:31Z",
         #         "resource": "transaction",
         #         "resource_path": "/v2/accounts/a34bgfad-ed67-538b-bffc-730c98c10da0/transactions/a1794ecf-5693-55fa-70cf-ef731748ed82",
-        #         "instant_exchange": False,
+        #         "instant_exchange": false,
         #         "network": {
         #             "status": "pending",
-        #             "status_description": "Pending(est. less than 10 minutes)",
+        #             "status_description": "Pending (est. less than 10 minutes)",
         #             "transaction_fee": {
         #                 "amount": "4.008308",
         #                 "currency": "USDC"
@@ -1088,28 +1094,28 @@ class coinbase(Exchange, ImplicitAPI):
         #         "details": {
         #             "title": "Sent USDC",
         #             "subtitle": "To USDC address on Ethereum network",
-        #             "header": "Sent 14.008308 USDC($18.74)",
+        #             "header": "Sent 14.008308 USDC ($18.74)",
         #             "health": "warning"
         #         },
-        #         "hide_native_amount": False
+        #         "hide_native_amount": false
         #     }
         #
         #
-        # crypto deposit & withdrawal(using `/transactions` endpoint)
+        # crypto deposit & withdrawal (using `/transactions` endpoint)
         #    {
         #        "amount": {
-        #            "amount": "0.00014200",(negative for withdrawal)
+        #            "amount": "0.00014200", (negative for withdrawal)
         #            "currency": "BTC"
         #        },
         #        "created_at": "2024-03-29T15:48:30Z",
         #        "id": "0031a605-241d-514d-a97b-d4b99f3225d3",
-        #        "idem": "092a979b-017e-4403-940a-2ca57811f442",  # field present only in case of withdrawal
+        #        "idem": "092a979b-017e-4403-940a-2ca57811f442", // field present only in case of withdrawal
         #        "native_amount": {
-        #            "amount": "9.85",(negative for withdrawal)
+        #            "amount": "9.85", (negative for withdrawal)
         #            "currency": "USD"
         #        },
         #        "network": {
-        #            "status": "pending",  # if status is `off_blockchain` then no more other fields are hasattr(self, present) object
+        #            "status": "pending", // if status is `off_blockchain` then no more other fields are present in this object
         #            "hash": "5jYuvrNsvX2DZoMnzGYzVpYxJLfYu4GSK3xetG1H5LHrSovsuFCFYdFMwNRoiht3s6fBk92MM8QLLnz65xuEFTrE",
         #            "network_name": "solana",
         #            "transaction_fee": {
@@ -1121,16 +1127,16 @@ class coinbase(Exchange, ImplicitAPI):
         #        "resource_path": "/v2/accounts/dc504b1c-248e-5b68-a3b0-b991f7fa84e6/transactions/0031a605-241d-514d-a97b-d4b99f3225d3",
         #        "status": "completed",
         #        "type": "send",
-        #        "from": { # in some cases, field might be present for deposit
+        #        "from": { // in some cases, field might be present for deposit
         #            "id": "7fd10cd7-b091-5cee-ba41-c29e49a7cccf",
         #            "name": "Coinbase",
         #            "resource": "user"
         #        },
-        #        "to": { # field only present for withdrawal
+        #        "to": { // field only present for withdrawal
         #            "address": "5HA12BNthAvBwNYARYf9y5MqqCpB4qhCNFCs1Qw48ACE",
         #            "resource": "address"
         #        },
-        #        "description": "C3 - One Time BTC Credit . Reference Case  # 123.",  #  in some cases, field might be present for deposit
+        #        "description": "C3 - One Time BTC Credit . Reference Case # 123.", //  in some cases, field might be present for deposit
         #    }
         #
         transactionType = self.safe_string(transaction, 'type')
@@ -1207,16 +1213,16 @@ class coinbase(Exchange, ImplicitAPI):
         #             "resource": "transaction",
         #             "resource_path": "/v2/accounts/2bbf394c-193b-5b2a-9155-3b4732659ede/transactions/441b9494-b3f0-5b98-b9b0-4d82c21c252a"
         #         },
-        #         "amount": {"amount": "1.00000000", "currency": "BTC"},
-        #         "total": {"amount": "10.25", "currency": "USD"},
-        #         "subtotal": {"amount": "10.10", "currency": "USD"},
+        #         "amount": { "amount": "1.00000000", "currency": "BTC" },
+        #         "total": { "amount": "10.25", "currency": "USD" },
+        #         "subtotal": { "amount": "10.10", "currency": "USD" },
         #         "created_at": "2015-01-31T20:49:02Z",
         #         "updated_at": "2015-02-11T16:54:02-08:00",
         #         "resource": "buy",
         #         "resource_path": "/v2/accounts/2bbf394c-193b-5b2a-9155-3b4732659ede/buys/67e0eaec-07d7-54c4-a72c-2e92826897df",
-        #         "committed": True,
-        #         "instant": False,
-        #         "fee": {"amount": "0.15", "currency": "USD"},
+        #         "committed": true,
+        #         "instant": false,
+        #         "fee": { "amount": "0.15", "currency": "USD" },
         #         "payout_at": "2015-02-18T16:54:00-08:00"
         #     }
         #
@@ -1247,7 +1253,7 @@ class coinbase(Exchange, ImplicitAPI):
         #         "product_id": "BTC-USDT",
         #         "sequence_timestamp": "2023-01-18T01:37:38.092520Z",
         #         "liquidity_indicator": "UNKNOWN_LIQUIDITY_INDICATOR",
-        #         "size_in_quote": True,
+        #         "size_in_quote": true,
         #         "user_id": "1111111-1111-1111-1111-111111111111",
         #         "side": "BUY"
         #     }
@@ -1429,25 +1435,25 @@ class coinbase(Exchange, ImplicitAPI):
         #                base_max_size: '3400',
         #                base_name: 'Bitcoin',
         #                quote_name: 'US Dollar',
-        #                watched: False,
-        #                is_disabled: False,
-        #                new: False,
+        #                watched: false,
+        #                is_disabled: false,
+        #                new: false,
         #                status: 'online',
-        #                cancel_only: False,
-        #                limit_only: False,
-        #                post_only: False,
-        #                trading_disabled: False,
-        #                auction_mode: False,
+        #                cancel_only: false,
+        #                limit_only: false,
+        #                post_only: false,
+        #                trading_disabled: false,
+        #                auction_mode: false,
         #                product_type: 'SPOT',
         #                quote_currency_id: 'USD',
         #                base_currency_id: 'BTC',
         #                fcm_trading_session_details: null,
         #                mid_market_price: '',
         #                alias: '',
-        #                alias_to: ['BTC-USDC'],
+        #                alias_to: [ 'BTC-USDC' ],
         #                base_display_symbol: 'BTC',
         #                quote_display_symbol: 'USD',
-        #                view_only: False,
+        #                view_only: false,
         #                price_increment: '0.01',
         #                display_name: 'BTC-USD',
         #                product_venue: 'CBE'
@@ -1479,7 +1485,7 @@ class coinbase(Exchange, ImplicitAPI):
         #        coinbase_pro_volume: '0',
         #        coinbase_pro_fees: '0',
         #        total_balance: '',
-        #        has_promo_fee: False
+        #        has_promo_fee: false
         #    }
         #
         promises = await asyncio.gather(*spotUnresolvedPromises)
@@ -1563,15 +1569,15 @@ class coinbase(Exchange, ImplicitAPI):
         #             "base_max_size": "267187147.2294696735908216",
         #             "base_name": "TE-FOOD",
         #             "quote_name": "US Dollar",
-        #             "watched": False,
-        #             "is_disabled": False,
-        #             "new": False,
+        #             "watched": false,
+        #             "is_disabled": false,
+        #             "new": false,
         #             "status": "online",
-        #             "cancel_only": False,
-        #             "limit_only": False,
-        #             "post_only": False,
-        #             "trading_disabled": False,
-        #             "auction_mode": False,
+        #             "cancel_only": false,
+        #             "limit_only": false,
+        #             "post_only": false,
+        #             "trading_disabled": false,
+        #             "auction_mode": false,
         #             "product_type": "SPOT",
         #             "quote_currency_id": "USD",
         #             "base_currency_id": "TONE",
@@ -1976,7 +1982,7 @@ class coinbase(Exchange, ImplicitAPI):
                 if code is not None:
                     networks[code] = lowerCaseName
                 networksById[lowerCaseName] = code
-        # we have to add other currencies here( https://discord.com/channels/1220414409550336183/1220464770239430761/1372215891940479098 )
+        # we have to add other currencies here ( https://discord.com/channels/1220414409550336183/1220464770239430761/1372215891940479098 )
         for i in range(0, len(ratesIds)):
             currencyId = ratesIds[i]
             code = self.safe_currency_code(currencyId)
@@ -2080,15 +2086,15 @@ class coinbase(Exchange, ImplicitAPI):
         #                 "base_max_size": "267187147.2294696735908216",
         #                 "base_name": "TE-FOOD",
         #                 "quote_name": "US Dollar",
-        #                 "watched": False,
-        #                 "is_disabled": False,
-        #                 "new": False,
+        #                 "watched": false,
+        #                 "is_disabled": false,
+        #                 "new": false,
         #                 "status": "online",
-        #                 "cancel_only": False,
-        #                 "limit_only": False,
-        #                 "post_only": False,
-        #                 "trading_disabled": False,
-        #                 "auction_mode": False,
+        #                 "cancel_only": false,
+        #                 "limit_only": false,
+        #                 "post_only": false,
+        #                 "trading_disabled": false,
+        #                 "auction_mode": false,
         #                 "product_type": "SPOT",
         #                 "quote_currency_id": "USD",
         #                 "base_currency_id": "TONE",
@@ -2241,25 +2247,25 @@ class coinbase(Exchange, ImplicitAPI):
         #            "base_max_size": "42000",
         #            "base_name": "Ethereum",
         #            "quote_name": "US Dollar",
-        #            "watched": False,
-        #            "is_disabled": False,
-        #            "new": False,
+        #            "watched": false,
+        #            "is_disabled": false,
+        #            "new": false,
         #            "status": "online",
-        #            "cancel_only": False,
-        #            "limit_only": False,
-        #            "post_only": False,
-        #            "trading_disabled": False,
-        #            "auction_mode": False,
+        #            "cancel_only": false,
+        #            "limit_only": false,
+        #            "post_only": false,
+        #            "trading_disabled": false,
+        #            "auction_mode": false,
         #            "product_type": "SPOT",
         #            "quote_currency_id": "USD",
         #            "base_currency_id": "ETH",
         #            "fcm_trading_session_details": null,
         #            "mid_market_price": "",
         #            "alias": "",
-        #            "alias_to": ["ETH-USDC"],
+        #            "alias_to": [ "ETH-USDC" ],
         #            "base_display_symbol": "ETH",
         #            "quote_display_symbol": "USD",
-        #            "view_only": False,
+        #            "view_only": false,
         #            "price_increment": "0.01",
         #            "display_name": "ETH-USD",
         #            "product_venue": "CBE",
@@ -2459,13 +2465,13 @@ class coinbase(Exchange, ImplicitAPI):
         #                     "value": "0.0000000000000000",
         #                     "currency": "USDC"
         #                 },
-        #                 "default": True,
-        #                 "active": True,
+        #                 "default": true,
+        #                 "active": true,
         #                 "created_at": "2023-01-04T06:20:06.456Z",
         #                 "updated_at": "2023-01-04T06:20:07.181Z",
         #                 "deleted_at": null,
         #                 "type": "ACCOUNT_TYPE_CRYPTO",
-        #                 "ready": False,
+        #                 "ready": false,
         #                 "hold": {
         #                     "value": "0.0000000000000000",
         #                     "currency": "USDC"
@@ -2473,7 +2479,7 @@ class coinbase(Exchange, ImplicitAPI):
         #             },
         #             ...
         #         ],
-        #         "has_next": False,
+        #         "has_next": false,
         #         "cursor": "",
         #         "size": 9
         #     }
@@ -2535,11 +2541,11 @@ class coinbase(Exchange, ImplicitAPI):
             'sell': 'trade',
             'fiat_deposit': 'transaction',
             'fiat_withdrawal': 'transaction',
-            'exchange_deposit': 'transaction',  # fiat withdrawal(from coinbase to coinbasepro)
-            'exchange_withdrawal': 'transaction',  # fiat deposit(to coinbase from coinbasepro)
+            'exchange_deposit': 'transaction',  # fiat withdrawal (from coinbase to coinbasepro)
+            'exchange_withdrawal': 'transaction',  # fiat deposit (to coinbase from coinbasepro)
             'send': 'transaction',  # crypto deposit OR withdrawal
-            'pro_deposit': 'transaction',  # crypto withdrawal(from coinbase to coinbasepro)
-            'pro_withdrawal': 'transaction',  # crypto deposit(to coinbase from coinbasepro)
+            'pro_deposit': 'transaction',  # crypto withdrawal (from coinbase to coinbasepro)
+            'pro_withdrawal': 'transaction',  # crypto deposit (to coinbase from coinbasepro)
         }
         return self.safe_string(types, type, type)
 
@@ -2551,21 +2557,21 @@ class coinbase(Exchange, ImplicitAPI):
         #         "id": "34e4816b-4c8c-5323-a01c-35a9fa26e490",
         #         "type": "send",
         #         "status": "completed",
-        #         "amount": {amount: "28.31976528", currency: "BCH"},
-        #         "native_amount": {amount: "2799.65", currency: "GBP"},
+        #         "amount": { amount: "28.31976528", currency: "BCH" },
+        #         "native_amount": { amount: "2799.65", currency: "GBP" },
         #         "description": null,
         #         "created_at": "2019-02-28T12:35:20Z",
         #         "updated_at": "2019-02-28T12:43:24Z",
         #         "resource": "transaction",
         #         "resource_path": "/v2/accounts/c01d7364-edd7-5f3a-bd1d-de53d4cbb25e/transactions/34e4816b-4c8c-5323-a01c-35a9fa26e490",
-        #         "instant_exchange": False,
+        #         "instant_exchange": false,
         #         "network": {
         #             "status": "confirmed",
         #             "hash": "56222d865dae83774fccb2efbd9829cf08c75c94ce135bfe4276f3fb46d49701",
         #             "transaction_url": "https://bch.btc.com/56222d865dae83774fccb2efbd9829cf08c75c94ce135bfe4276f3fb46d49701"
         #         },
-        #         "from": {resource: "bitcoin_cash_network", currency: "BCH"},
-        #         "details": {title: 'Received Bitcoin Cash', subtitle: "From Bitcoin Cash address"}
+        #         "from": { resource: "bitcoin_cash_network", currency: "BCH" },
+        #         "details": { title: 'Received Bitcoin Cash', subtitle: "From Bitcoin Cash address" }
         #     }
         #
         # crypto withdrawal transaction
@@ -2574,27 +2580,27 @@ class coinbase(Exchange, ImplicitAPI):
         #         "id": "459aad99-2c41-5698-ac71-b6b81a05196c",
         #         "type": "send",
         #         "status": "completed",
-        #         "amount": {amount: "-0.36775642", currency: "BTC"},
-        #         "native_amount": {amount: "-1111.65", currency: "GBP"},
+        #         "amount": { amount: "-0.36775642", currency: "BTC" },
+        #         "native_amount": { amount: "-1111.65", currency: "GBP" },
         #         "description": null,
         #         "created_at": "2019-03-20T08:37:07Z",
         #         "updated_at": "2019-03-20T08:49:33Z",
         #         "resource": "transaction",
         #         "resource_path": "/v2/accounts/c6afbd34-4bd0-501e-8616-4862c193cd84/transactions/459aad99-2c41-5698-ac71-b6b81a05196c",
-        #         "instant_exchange": False,
+        #         "instant_exchange": false,
         #         "network": {
         #             "status": "confirmed",
         #             "hash": "2732bbcf35c69217c47b36dce64933d103895277fe25738ffb9284092701e05b",
         #             "transaction_url": "https://blockchain.info/tx/2732bbcf35c69217c47b36dce64933d103895277fe25738ffb9284092701e05b",
-        #             "transaction_fee": {amount: "0.00000000", currency: "BTC"},
-        #             "transaction_amount": {amount: "0.36775642", currency: "BTC"},
+        #             "transaction_fee": { amount: "0.00000000", currency: "BTC" },
+        #             "transaction_amount": { amount: "0.36775642", currency: "BTC" },
         #             "confirmations": 15682
         #         },
         #         "to": {
         #             "resource": "bitcoin_address",
         #             "address": "1AHnhqbvbYx3rnZx8uC7NbFZaTe4tafFHX",
         #             "currency": "BTC",
-        #             "address_info": {address: "1AHnhqbvbYx3rnZx8uC7NbFZaTe4tafFHX"}
+        #             "address_info": { address: "1AHnhqbvbYx3rnZx8uC7NbFZaTe4tafFHX" }
         #         },
         #         "idem": "da0a2f14-a2af-4c5a-a37e-d4484caf582bsend",
         #         "application": {
@@ -2602,7 +2608,7 @@ class coinbase(Exchange, ImplicitAPI):
         #             "resource": "application",
         #             "resource_path": "/v2/applications/5756ab6e-836b-553b-8950-5e389451225d"
         #         },
-        #         "details": {title: 'Sent Bitcoin', subtitle: "To Bitcoin address"}
+        #         "details": { title: 'Sent Bitcoin', subtitle: "To Bitcoin address" }
         #     }
         #
         # withdrawal transaction from coinbase to coinbasepro
@@ -2611,20 +2617,20 @@ class coinbase(Exchange, ImplicitAPI):
         #         "id": "5b1b9fb8-5007-5393-b923-02903b973fdc",
         #         "type": "pro_deposit",
         #         "status": "completed",
-        #         "amount": {amount: "-0.00001111", currency: "BCH"},
-        #         "native_amount": {amount: "0.00", currency: "GBP"},
+        #         "amount": { amount: "-0.00001111", currency: "BCH" },
+        #         "native_amount": { amount: "0.00", currency: "GBP" },
         #         "description": null,
         #         "created_at": "2019-02-28T13:31:58Z",
         #         "updated_at": "2019-02-28T13:31:58Z",
         #         "resource": "transaction",
         #         "resource_path": "/v2/accounts/c01d7364-edd7-5f3a-bd1d-de53d4cbb25e/transactions/5b1b9fb8-5007-5393-b923-02903b973fdc",
-        #         "instant_exchange": False,
+        #         "instant_exchange": false,
         #         "application": {
         #             "id": "5756ab6e-836b-553b-8950-5e389451225d",
         #             "resource": "application",
         #             "resource_path": "/v2/applications/5756ab6e-836b-553b-8950-5e389451225d"
         #         },
-        #         "details": {title: 'Transferred Bitcoin Cash', subtitle: "To Coinbase Pro"}
+        #         "details": { title: 'Transferred Bitcoin Cash', subtitle: "To Coinbase Pro" }
         #     }
         #
         # withdrawal transaction from coinbase to gdax
@@ -2633,15 +2639,15 @@ class coinbase(Exchange, ImplicitAPI):
         #         "id": "badb7313-a9d3-5c07-abd0-00f8b44199b1",
         #         "type": "exchange_deposit",
         #         "status": "completed",
-        #         "amount": {amount: "-0.43704149", currency: "BCH"},
-        #         "native_amount": {amount: "-51.90", currency: "GBP"},
+        #         "amount": { amount: "-0.43704149", currency: "BCH" },
+        #         "native_amount": { amount: "-51.90", currency: "GBP" },
         #         "description": null,
         #         "created_at": "2019-03-19T10:30:40Z",
         #         "updated_at": "2019-03-19T10:30:40Z",
         #         "resource": "transaction",
         #         "resource_path": "/v2/accounts/c01d7364-edd7-5f3a-bd1d-de53d4cbb25e/transactions/badb7313-a9d3-5c07-abd0-00f8b44199b1",
-        #         "instant_exchange": False,
-        #         "details": {title: 'Transferred Bitcoin Cash', subtitle: "To GDAX"}
+        #         "instant_exchange": false,
+        #         "details": { title: 'Transferred Bitcoin Cash', subtitle: "To GDAX" }
         #     }
         #
         # deposit transaction from gdax to coinbase
@@ -2650,15 +2656,15 @@ class coinbase(Exchange, ImplicitAPI):
         #         "id": "9c4b642c-8688-58bf-8962-13cef64097de",
         #         "type": "exchange_withdrawal",
         #         "status": "completed",
-        #         "amount": {amount: "0.57729420", currency: "BTC"},
-        #         "native_amount": {amount: "4418.72", currency: "GBP"},
+        #         "amount": { amount: "0.57729420", currency: "BTC" },
+        #         "native_amount": { amount: "4418.72", currency: "GBP" },
         #         "description": null,
         #         "created_at": "2018-02-17T11:33:33Z",
         #         "updated_at": "2018-02-17T11:33:33Z",
         #         "resource": "transaction",
         #         "resource_path": "/v2/accounts/c6afbd34-4bd0-501e-8616-4862c193cd84/transactions/9c4b642c-8688-58bf-8962-13cef64097de",
-        #         "instant_exchange": False,
-        #         "details": {title: 'Transferred Bitcoin', subtitle: "From GDAX"}
+        #         "instant_exchange": false,
+        #         "details": { title: 'Transferred Bitcoin', subtitle: "From GDAX" }
         #     }
         #
         # deposit transaction from coinbasepro to coinbase
@@ -2667,20 +2673,20 @@ class coinbase(Exchange, ImplicitAPI):
         #         "id": "8d6dd0b9-3416-568a-889d-8f112fae9e81",
         #         "type": "pro_withdrawal",
         #         "status": "completed",
-        #         "amount": {amount: "0.40555386", currency: "BTC"},
-        #         "native_amount": {amount: "1140.27", currency: "GBP"},
+        #         "amount": { amount: "0.40555386", currency: "BTC" },
+        #         "native_amount": { amount: "1140.27", currency: "GBP" },
         #         "description": null,
         #         "created_at": "2019-03-04T19:41:58Z",
         #         "updated_at": "2019-03-04T19:41:58Z",
         #         "resource": "transaction",
         #         "resource_path": "/v2/accounts/c6afbd34-4bd0-501e-8616-4862c193cd84/transactions/8d6dd0b9-3416-568a-889d-8f112fae9e81",
-        #         "instant_exchange": False,
+        #         "instant_exchange": false,
         #         "application": {
         #             "id": "5756ab6e-836b-553b-8950-5e389451225d",
         #             "resource": "application",
         #             "resource_path": "/v2/applications/5756ab6e-836b-553b-8950-5e389451225d"
         #         },
-        #         "details": {title: 'Transferred Bitcoin', subtitle: "From Coinbase Pro"}
+        #         "details": { title: 'Transferred Bitcoin', subtitle: "From Coinbase Pro" }
         #     }
         #
         # sell trade
@@ -2689,14 +2695,14 @@ class coinbase(Exchange, ImplicitAPI):
         #         "id": "a9409207-df64-585b-97ab-a50780d2149e",
         #         "type": "sell",
         #         "status": "completed",
-        #         "amount": {amount: "-9.09922880", currency: "BTC"},
-        #         "native_amount": {amount: "-7285.73", currency: "GBP"},
+        #         "amount": { amount: "-9.09922880", currency: "BTC" },
+        #         "native_amount": { amount: "-7285.73", currency: "GBP" },
         #         "description": null,
         #         "created_at": "2017-03-27T15:38:34Z",
         #         "updated_at": "2017-03-27T15:38:34Z",
         #         "resource": "transaction",
         #         "resource_path": "/v2/accounts/c6afbd34-4bd0-501e-8616-4862c193cd84/transactions/a9409207-df64-585b-97ab-a50780d2149e",
-        #         "instant_exchange": False,
+        #         "instant_exchange": false,
         #         "sell": {
         #             "id": "e3550b4d-8ae6-5de3-95fe-1fb01ba83051",
         #             "resource": "sell",
@@ -2715,14 +2721,14 @@ class coinbase(Exchange, ImplicitAPI):
         #         "id": "63eeed67-9396-5912-86e9-73c4f10fe147",
         #         "type": "buy",
         #         "status": "completed",
-        #         "amount": {amount: "2.39605772", currency: "ETH"},
-        #         "native_amount": {amount: "98.31", currency: "GBP"},
+        #         "amount": { amount: "2.39605772", currency: "ETH" },
+        #         "native_amount": { amount: "98.31", currency: "GBP" },
         #         "description": null,
         #         "created_at": "2017-03-27T09:07:56Z",
         #         "updated_at": "2017-03-27T09:07:57Z",
         #         "resource": "transaction",
         #         "resource_path": "/v2/accounts/8902f85d-4a69-5d74-82fe-8e390201bda7/transactions/63eeed67-9396-5912-86e9-73c4f10fe147",
-        #         "instant_exchange": False,
+        #         "instant_exchange": false,
         #         "buy": {
         #             "id": "20b25b36-76c6-5353-aa57-b06a29a39d82",
         #             "resource": "buy",
@@ -2741,14 +2747,14 @@ class coinbase(Exchange, ImplicitAPI):
         #         "id": "04ed4113-3732-5b0c-af86-b1d2146977d0",
         #         "type": "fiat_deposit",
         #         "status": "completed",
-        #         "amount": {amount: "114.02", currency: "EUR"},
-        #         "native_amount": {amount: "97.23", currency: "GBP"},
+        #         "amount": { amount: "114.02", currency: "EUR" },
+        #         "native_amount": { amount: "97.23", currency: "GBP" },
         #         "description": null,
         #         "created_at": "2017-02-09T07:01:21Z",
         #         "updated_at": "2017-02-09T07:01:22Z",
         #         "resource": "transaction",
         #         "resource_path": "/v2/accounts/91cd2d36-3a91-55b6-a5d4-0124cf105483/transactions/04ed4113-3732-5b0c-af86-b1d2146977d0",
-        #         "instant_exchange": False,
+        #         "instant_exchange": false,
         #         "fiat_deposit": {
         #             "id": "f34c19f3-b730-5e3d-9f72-96520448677a",
         #             "resource": "fiat_deposit",
@@ -2756,8 +2762,8 @@ class coinbase(Exchange, ImplicitAPI):
         #         },
         #         "details": {
         #             "title": "Deposited funds",
-        #             "subtitle": "From SEPA Transfer(GB47 BARC 20..., reference CBADVI)",
-        #             "payment_method_name": "SEPA Transfer(GB47 BARC 20..., reference CBADVI)"
+        #             "subtitle": "From SEPA Transfer (GB47 BARC 20..., reference CBADVI)",
+        #             "payment_method_name": "SEPA Transfer (GB47 BARC 20..., reference CBADVI)"
         #         }
         #     }
         #
@@ -2767,14 +2773,14 @@ class coinbase(Exchange, ImplicitAPI):
         #         "id": "957d98e2-f80e-5e2f-a28e-02945aa93079",
         #         "type": "fiat_withdrawal",
         #         "status": "completed",
-        #         "amount": {amount: "-11000.00", currency: "EUR"},
-        #         "native_amount": {amount: "-9698.22", currency: "GBP"},
+        #         "amount": { amount: "-11000.00", currency: "EUR" },
+        #         "native_amount": { amount: "-9698.22", currency: "GBP" },
         #         "description": null,
         #         "created_at": "2017-12-06T13:19:19Z",
         #         "updated_at": "2017-12-06T13:19:19Z",
         #         "resource": "transaction",
         #         "resource_path": "/v2/accounts/91cd2d36-3a91-55b6-a5d4-0124cf105483/transactions/957d98e2-f80e-5e2f-a28e-02945aa93079",
-        #         "instant_exchange": False,
+        #         "instant_exchange": false,
         #         "fiat_withdrawal": {
         #             "id": "f4bf1fd9-ab3b-5de7-906d-ed3e23f7a4e7",
         #             "resource": "fiat_withdrawal",
@@ -2782,8 +2788,8 @@ class coinbase(Exchange, ImplicitAPI):
         #         },
         #         "details": {
         #             "title": "Withdrew funds",
-        #             "subtitle": "To HSBC BANK PLC(GB74 MIDL...)",
-        #             "payment_method_name": "HSBC BANK PLC(GB74 MIDL...)"
+        #             "subtitle": "To HSBC BANK PLC (GB74 MIDL...)",
+        #             "payment_method_name": "HSBC BANK PLC (GB74 MIDL...)"
         #         }
         #     }
         #
@@ -2801,15 +2807,15 @@ class coinbase(Exchange, ImplicitAPI):
         #
         # the address and txid do not belong to the unified ledger structure
         #
-        #     address = None
-        #     if item['to']:
-        #         address = self.safe_string(item['to'], 'address')
+        #     let address = undefined;
+        #     if (item['to']) {
+        #         address = this.safeString (item['to'], 'address');
         #     }
-        #     txid = None
+        #     let txid = undefined;
         #
         fee = None
         networkInfo = self.safe_dict(item, 'network', {})
-        # txid = network['hash']  # txid does not belong to the unified ledger structure
+        # txid = network['hash']; // txid does not belong to the unified ledger structure
         feeInfo = self.safe_dict(networkInfo, 'transaction_fee')
         if feeInfo is not None:
             feeCurrencyId = self.safe_string(feeInfo, 'currency')
@@ -2861,7 +2867,7 @@ class coinbase(Exchange, ImplicitAPI):
     def prepare_account_request(self, limit: Int = None, params={}):
         accountId = self.safe_string_2(params, 'account_id', 'accountId')
         if accountId is None:
-            raise ArgumentsRequired(self.id + ' prepareAccountRequest() method requires an account_id(or accountId) parameter')
+            raise ArgumentsRequired(self.id + ' prepareAccountRequest() method requires an account_id (or accountId) parameter')
         request = {
             'account_id': accountId,
         }
@@ -2874,7 +2880,7 @@ class coinbase(Exchange, ImplicitAPI):
         params = self.omit(params, ['account_id', 'accountId'])
         if accountId is None:
             if code is None:
-                raise ArgumentsRequired(self.id + ' prepareAccountRequestWithCurrencyCode() method requires an account_id(or accountId) parameter OR a currency code argument')
+                raise ArgumentsRequired(self.id + ' prepareAccountRequestWithCurrencyCode() method requires an account_id (or accountId) parameter OR a currency code argument')
             accountId = await self.find_account_id(code, params)
             if accountId is None:
                 raise ExchangeError(self.id + ' prepareAccountRequestWithCurrencyCode() could not find account id for ' + code + '. You might try to generate the deposit address in the website for that coin first.')
@@ -2924,7 +2930,7 @@ class coinbase(Exchange, ImplicitAPI):
         :param str [params.timeInForce]: 'GTC', 'IOC', 'GTD' or 'PO', 'FOK'
         :param str [params.stop_direction]: 'UNKNOWN_STOP_DIRECTION', 'STOP_DIRECTION_STOP_UP', 'STOP_DIRECTION_STOP_DOWN' the direction the stopPrice is triggered from
         :param str [params.end_time]: '2023-05-25T17:01:05.092Z' for 'GTD' orders
-        :param float [params.cost]: *spot market buy only* the quote quantity that can be used alternative for the amount
+        :param float [params.cost]: *spot market buy only* the quote quantity that can be used as an alternative for the amount
         :param boolean [params.preview]: default to False, wether to use the test/preview endpoint or not
         :param float [params.leverage]: default to 1, the leverage to use for the order
         :param str [params.marginMode]: 'cross' or 'isolated'
@@ -3048,7 +3054,7 @@ class coinbase(Exchange, ImplicitAPI):
                     total = self.cost_to_precision(symbol, cost)
                 elif createMarketBuyOrderRequiresPrice:
                     if price is None:
-                        raise InvalidOrder(self.id + ' createOrder() requires a price argument for market buy orders on spot markets to calculate the total amount to spend(amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to False and pass the cost to spend in the amount argument')
+                        raise InvalidOrder(self.id + ' createOrder() requires a price argument for market buy orders on spot markets to calculate the total amount to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to False and pass the cost to spend in the amount argument')
                     else:
                         amountString = self.number_to_string(amount)
                         priceString = self.number_to_string(price)
@@ -3086,7 +3092,7 @@ class coinbase(Exchange, ImplicitAPI):
         # successful order
         #
         #     {
-        #         "success": True,
+        #         "success": true,
         #         "failure_reason": "UNKNOWN_FAILURE_REASON",
         #         "order_id": "52cfe5e2-0b29-4c19-a245-a6a773de5030",
         #         "success_response": {
@@ -3101,7 +3107,7 @@ class coinbase(Exchange, ImplicitAPI):
         # failed order
         #
         #     {
-        #         "success": False,
+        #         "success": false,
         #         "failure_reason": "UNKNOWN_FAILURE_REASON",
         #         "order_id": "",
         #         "error_response": {
@@ -3114,7 +3120,7 @@ class coinbase(Exchange, ImplicitAPI):
         #             "limit_limit_gtc": {
         #                 "base_size": "100",
         #                 "limit_price": "40000",
-        #                 "post_only": False
+        #                 "post_only": false
         #             }
         #         }
         #     }
@@ -3145,7 +3151,7 @@ class coinbase(Exchange, ImplicitAPI):
         # cancelOrder, cancelOrders
         #
         #     {
-        #         "success": True,
+        #         "success": true,
         #         "failure_reason": "UNKNOWN_CANCEL_FAILURE_REASON",
         #         "order_id": "bb8851a3-4fda-4a2c-aa06-9048db0e0f0d"
         #     }
@@ -3160,7 +3166,7 @@ class coinbase(Exchange, ImplicitAPI):
         #             "limit_limit_gtc": {
         #                 "base_size": "0.2",
         #                 "limit_price": "0.006",
-        #                 "post_only": False
+        #                 "post_only": false
         #             },
         #             "stop_limit_stop_limit_gtc": {
         #                 "base_size": "48.54",
@@ -3180,15 +3186,15 @@ class coinbase(Exchange, ImplicitAPI):
         #         "fee": "",
         #         "number_of_fills": "0",
         #         "filled_value": "0",
-        #         "pending_cancel": False,
-        #         "size_in_quote": False,
+        #         "pending_cancel": false,
+        #         "size_in_quote": false,
         #         "total_fees": "0",
-        #         "size_inclusive_of_fees": False,
+        #         "size_inclusive_of_fees": false,
         #         "total_value_after_fees": "0",
         #         "trigger_status": "INVALID_ORDER_TYPE",
         #         "order_type": "LIMIT",
         #         "reject_reason": "REJECT_REASON_UNSPECIFIED",
-        #         "settled": False,
+        #         "settled": false,
         #         "product_type": "SPOT",
         #         "reject_message": "",
         #         "cancel_message": ""
@@ -3334,7 +3340,7 @@ class coinbase(Exchange, ImplicitAPI):
         #     {
         #         "results": [
         #             {
-        #                 "success": True,
+        #                 "success": true,
         #                 "failure_reason": "UNKNOWN_CANCEL_FAILURE_REASON",
         #                 "order_id": "bb8851a3-4fda-4a2c-aa06-9048db0e0f0d"
         #             }
@@ -3383,7 +3389,7 @@ class coinbase(Exchange, ImplicitAPI):
             response = await self.v3PrivatePostBrokerageOrdersEdit(self.extend(request, params))
         #
         #     {
-        #         "success": True,
+        #         "success": true,
         #         "errors": {
         #           "edit_failure_reason": "UNKNOWN_EDIT_ORDER_FAILURE_REASON",
         #           "preview_failure_reason": "UNKNOWN_PREVIEW_FAILURE_REASON"
@@ -3422,7 +3428,7 @@ class coinbase(Exchange, ImplicitAPI):
         #                 "limit_limit_gtc": {
         #                     "base_size": "0.2",
         #                     "limit_price": "0.006",
-        #                     "post_only": False
+        #                     "post_only": false
         #                 }
         #             },
         #             "side": "SELL",
@@ -3436,15 +3442,15 @@ class coinbase(Exchange, ImplicitAPI):
         #             "fee": "",
         #             "number_of_fills": "0",
         #             "filled_value": "0",
-        #             "pending_cancel": False,
-        #             "size_in_quote": False,
+        #             "pending_cancel": false,
+        #             "size_in_quote": false,
         #             "total_fees": "0",
-        #             "size_inclusive_of_fees": False,
+        #             "size_inclusive_of_fees": false,
         #             "total_value_after_fees": "0",
         #             "trigger_status": "INVALID_ORDER_TYPE",
         #             "order_type": "LIMIT",
         #             "reject_reason": "REJECT_REASON_UNSPECIFIED",
-        #             "settled": False,
+        #             "settled": false,
         #             "product_type": "SPOT",
         #             "reject_message": "",
         #             "cancel_message": ""
@@ -3512,22 +3518,22 @@ class coinbase(Exchange, ImplicitAPI):
         #                 "fee": "",
         #                 "number_of_fills": "2",
         #                 "filled_value": "6.3220675944333996",
-        #                 "pending_cancel": False,
-        #                 "size_in_quote": True,
+        #                 "pending_cancel": false,
+        #                 "size_in_quote": true,
         #                 "total_fees": "0.0379324055666004",
-        #                 "size_inclusive_of_fees": True,
+        #                 "size_inclusive_of_fees": true,
         #                 "total_value_after_fees": "6.36",
         #                 "trigger_status": "INVALID_ORDER_TYPE",
         #                 "order_type": "MARKET",
         #                 "reject_reason": "REJECT_REASON_UNSPECIFIED",
-        #                 "settled": True,
+        #                 "settled": true,
         #                 "product_type": "SPOT",
         #                 "reject_message": "",
         #                 "cancel_message": "Internal error"
         #             },
         #         ],
         #         "sequence": "0",
-        #         "has_next": False,
+        #         "has_next": false,
         #         "cursor": ""
         #     }
         #
@@ -3583,22 +3589,22 @@ class coinbase(Exchange, ImplicitAPI):
         #                 "fee": "",
         #                 "number_of_fills": "2",
         #                 "filled_value": "6.3220675944333996",
-        #                 "pending_cancel": False,
-        #                 "size_in_quote": True,
+        #                 "pending_cancel": false,
+        #                 "size_in_quote": true,
         #                 "total_fees": "0.0379324055666004",
-        #                 "size_inclusive_of_fees": True,
+        #                 "size_inclusive_of_fees": true,
         #                 "total_value_after_fees": "6.36",
         #                 "trigger_status": "INVALID_ORDER_TYPE",
         #                 "order_type": "MARKET",
         #                 "reject_reason": "REJECT_REASON_UNSPECIFIED",
-        #                 "settled": True,
+        #                 "settled": true,
         #                 "product_type": "SPOT",
         #                 "reject_message": "",
         #                 "cancel_message": "Internal error"
         #             },
         #         ],
         #         "sequence": "0",
-        #         "has_next": False,
+        #         "has_next": false,
         #         "cursor": ""
         #     }
         #
@@ -3683,7 +3689,7 @@ class coinbase(Exchange, ImplicitAPI):
         :param int [params.until]: the latest time in ms to fetch trades for
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :param boolean [params.usePrivate]: default False, when True will use the private endpoint to fetch the candles
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()
@@ -3866,7 +3872,7 @@ class coinbase(Exchange, ImplicitAPI):
         #                 "product_id": "BTC-USDT",
         #                 "sequence_timestamp": "2023-01-18T01:37:38.092520Z",
         #                 "liquidity_indicator": "UNKNOWN_LIQUIDITY_INDICATOR",
-        #                 "size_in_quote": True,
+        #                 "size_in_quote": true,
         #                 "user_id": "1111111-1111-1111-1111-111111111111",
         #                 "side": "BUY"
         #             },
@@ -4007,7 +4013,7 @@ class coinbase(Exchange, ImplicitAPI):
         params = self.omit(params, ['account_id', 'accountId'])
         if accountId is None:
             if code is None:
-                raise ArgumentsRequired(self.id + ' withdraw() requires an account_id(or accountId) parameter OR a currency code argument')
+                raise ArgumentsRequired(self.id + ' withdraw() requires an account_id (or accountId) parameter OR a currency code argument')
             accountId = await self.find_account_id(code, params)
             if accountId is None:
                 raise ExchangeError(self.id + ' withdraw() could not find account id for ' + code)
@@ -4036,10 +4042,10 @@ class coinbase(Exchange, ImplicitAPI):
         #             "updated_at": "2024-01-12T01:27:31Z",
         #             "resource": "transaction",
         #             "resource_path": "/v2/accounts/a34bgfad-ed67-538b-bffc-730c98c10da0/transactions/a1794ecf-5693-55fa-70cf-ef731748ed82",
-        #             "instant_exchange": False,
+        #             "instant_exchange": false,
         #             "network": {
         #                 "status": "pending",
-        #                 "status_description": "Pending(est. less than 10 minutes)",
+        #                 "status_description": "Pending (est. less than 10 minutes)",
         #                 "transaction_fee": {
         #                     "amount": "4.008308",
         #                     "currency": "USDC"
@@ -4062,10 +4068,10 @@ class coinbase(Exchange, ImplicitAPI):
         #             "details": {
         #                 "title": "Sent USDC",
         #                 "subtitle": "To USDC address on Ethereum network",
-        #                 "header": "Sent 14.008308 USDC($18.74)",
+        #                 "header": "Sent 14.008308 USDC ($18.74)",
         #                 "health": "warning"
         #             },
-        #             "hide_native_amount": False
+        #             "hide_native_amount": false
         #         }
         #     }
         #
@@ -4104,7 +4110,7 @@ class coinbase(Exchange, ImplicitAPI):
         #            {
         #                id: '64ceb5f1-5fa2-5310-a4ff-9fd46271003d',
         #                address: '5xjPKeAXpnhA2kHyinvdVeui6RXVdEa3B2J3SCAwiKnk',
-        #                address_info: {address: '5xjPKeAXpnhA2kHyinvdVeui6RXVdEa3B2J3SCAwiKnk'},
+        #                address_info: { address: '5xjPKeAXpnhA2kHyinvdVeui6RXVdEa3B2J3SCAwiKnk' },
         #                name: null,
         #                created_at: '2023-05-29T21:12:12Z',
         #                updated_at: '2023-05-29T21:12:12Z',
@@ -4116,14 +4122,14 @@ class coinbase(Exchange, ImplicitAPI):
         #                    {
         #                    type: 'correct_address_warning',
         #                    title: 'This is an ERC20 USDC address.',
-        #                    details: 'Only send ERC20 USD Coin(USDC) to self address.',
+        #                    details: 'Only send ERC20 USD Coin (USDC) to this address.',
         #                    image_url: 'https://www.coinbase.com/assets/addresses/global-receive-warning-a3d91807e61c717e5a38d270965003dcc025ca8a3cea40ec3d7835b7c86087fa.png',
-        #                    options: [{text: 'I understand', style: 'primary', id: 'dismiss'}]
+        #                    options: [ { text: 'I understand', style: 'primary', id: 'dismiss' } ]
         #                    }
         #                ],
         #                qr_code_image_url: 'https://static-assets.coinbase.com/p2p/l2/asset_network_combinations/v5/usdc-solana.png',
-        #                address_label: 'USDC address(Solana)',
-        #                default_receive: True,
+        #                address_label: 'USDC address (Solana)',
+        #                default_receive: true,
         #                deposit_uri: 'solana:5xjPKeAXpnhA2kHyinvdVeui6RXVdEa3B2J3SCAwiKnk?spl-token=EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
         #                callback_url: null,
         #                share_address_copy: {
@@ -4134,7 +4140,7 @@ class coinbase(Exchange, ImplicitAPI):
         #                inline_warning: {
         #                    text: 'This address can only receive USDC-SPL from Solana network. Don’t send USDC from other networks, other SPL tokens or NFTs, or it may result in a loss of funds.',
         #                    tooltip: {
-        #                    title: 'USDC(Solana)',
+        #                    title: 'USDC (Solana)',
         #                    subtitle: 'This address can only receive USDC-SPL from Solana network.'
         #                    }
         #                }
@@ -4167,14 +4173,14 @@ class coinbase(Exchange, ImplicitAPI):
         #            {
         #            type: 'correct_address_warning',
         #            title: 'This is an ERC20 USDC address.',
-        #            details: 'Only send ERC20 USD Coin(USDC) to self address.',
+        #            details: 'Only send ERC20 USD Coin (USDC) to this address.',
         #            image_url: 'https://www.coinbase.com/assets/addresses/global-receive-warning-a3d91807e61c717e5a38d270965003dcc025ca8a3cea40ec3d7835b7c86087fa.png',
-        #            options: [{text: 'I understand', style: 'primary', id: 'dismiss'}]
+        #            options: [ { text: 'I understand', style: 'primary', id: 'dismiss' } ]
         #            }
         #        ],
         #        qr_code_image_url: 'https://static-assets.coinbase.com/p2p/l2/asset_network_combinations/v5/usdc-solana.png',
-        #        address_label: 'USDC address(Solana)',
-        #        default_receive: True,
+        #        address_label: 'USDC address (Solana)',
+        #        default_receive: true,
         #        deposit_uri: 'solana:5xjPKeAXpnhA2kHyinvdVeui6RXVdEa3B2J3SCAwiKnk?spl-token=EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
         #        callback_url: null,
         #        share_address_copy: {
@@ -4185,7 +4191,7 @@ class coinbase(Exchange, ImplicitAPI):
         #        inline_warning: {
         #            text: 'This address can only receive USDC-SPL from Solana network. Don’t send USDC from other networks, other SPL tokens or NFTs, or it may result in a loss of funds.',
         #            tooltip: {
-        #            title: 'USDC(Solana)',
+        #            title: 'USDC (Solana)',
         #            subtitle: 'This address can only receive USDC-SPL from Solana network.'
         #            }
         #        }
@@ -4243,7 +4249,7 @@ class coinbase(Exchange, ImplicitAPI):
         params = self.omit(params, ['account_id', 'accountId'])
         if accountId is None:
             if code is None:
-                raise ArgumentsRequired(self.id + ' deposit() requires an account_id(or accountId) parameter OR a currency code argument')
+                raise ArgumentsRequired(self.id + ' deposit() requires an account_id (or accountId) parameter OR a currency code argument')
             accountId = await self.find_account_id(code, params)
             if accountId is None:
                 raise ExchangeError(self.id + ' deposit() could not find account id for ' + code)
@@ -4282,7 +4288,7 @@ class coinbase(Exchange, ImplicitAPI):
         #             "updated_at": "2015-02-11T16:54:02-08:00",
         #             "resource": "deposit",
         #             "resource_path": "/v2/accounts/2bbf394c-193b-5b2a-9155-3b4732659ede/deposits/67e0eaec-07d7-54c4-a72c-2e92826897df",
-        #             "committed": True,
+        #             "committed": true,
         #             "fee": {
         #                 "amount": "0.00",
         #                 "currency": "USD"
@@ -4313,7 +4319,7 @@ class coinbase(Exchange, ImplicitAPI):
         params = self.omit(params, ['account_id', 'accountId'])
         if accountId is None:
             if code is None:
-                raise ArgumentsRequired(self.id + ' fetchDeposit() requires an account_id(or accountId) parameter OR a currency code argument')
+                raise ArgumentsRequired(self.id + ' fetchDeposit() requires an account_id (or accountId) parameter OR a currency code argument')
             accountId = await self.find_account_id(code, params)
             if accountId is None:
                 raise ExchangeError(self.id + ' fetchDeposit() could not find account id for ' + code)
@@ -4349,7 +4355,7 @@ class coinbase(Exchange, ImplicitAPI):
         #             "updated_at": "2015-02-11T16:54:02-08:00",
         #             "resource": "deposit",
         #             "resource_path": "/v2/accounts/2bbf394c-193b-5b2a-9155-3b4732659ede/deposits/67e0eaec-07d7-54c4-a72c-2e92826897df",
-        #             "committed": True,
+        #             "committed": true,
         #             "fee": {
         #                 "amount": "0.00",
         #                 "currency": "USD"
@@ -4382,11 +4388,11 @@ class coinbase(Exchange, ImplicitAPI):
         #                 "type": "COINBASE_FIAT_ACCOUNT",
         #                 "name": "CAD Wallet",
         #                 "currency": "CAD",
-        #                 "verified": True,
-        #                 "allow_buy": False,
-        #                 "allow_sell": True,
-        #                 "allow_deposit": False,
-        #                 "allow_withdraw": False,
+        #                 "verified": true,
+        #                 "allow_buy": false,
+        #                 "allow_sell": true,
+        #                 "allow_deposit": false,
+        #                 "allow_withdraw": false,
         #                 "created_at": "2023-06-29T19:58:46Z",
         #                 "updated_at": "2023-10-30T20:25:01Z"
         #             }
@@ -4419,11 +4425,11 @@ class coinbase(Exchange, ImplicitAPI):
         #             "type": "COINBASE_FIAT_ACCOUNT",
         #             "name": "CAD Wallet",
         #             "currency": "CAD",
-        #             "verified": True,
-        #             "allow_buy": False,
-        #             "allow_sell": True,
-        #             "allow_deposit": False,
-        #             "allow_withdraw": False,
+        #             "verified": true,
+        #             "allow_buy": false,
+        #             "allow_sell": true,
+        #             "allow_deposit": false,
+        #             "allow_withdraw": false,
         #             "created_at": "2023-06-29T19:58:46Z",
         #             "updated_at": "2023-10-30T20:25:01Z"
         #         }
@@ -4658,7 +4664,7 @@ class coinbase(Exchange, ImplicitAPI):
             portfolio = None
             portfolio, params = self.handle_option_and_params(params, 'fetchPositions', 'portfolio')
             if portfolio is None:
-                raise ArgumentsRequired(self.id + ' fetchPositions() requires a "portfolio" value in params(eg: dbcb91e7-2bc9-515), or set.options["portfolio"]. You can get a list of portfolios with fetchPortfolios()')
+                raise ArgumentsRequired(self.id + ' fetchPositions() requires a "portfolio" value in params (eg: dbcb91e7-2bc9-515), or set as exchange.options["portfolio"]. You can get a list of portfolios with fetchPortfolios()')
             request = {
                 'portfolio_uuid': portfolio,
             }
@@ -4695,7 +4701,7 @@ class coinbase(Exchange, ImplicitAPI):
             portfolio = None
             portfolio, params = self.handle_option_and_params(params, 'fetchPositions', 'portfolio')
             if portfolio is None:
-                raise ArgumentsRequired(self.id + ' fetchPosition() requires a "portfolio" value in params(eg: dbcb91e7-2bc9-515), or set.options["portfolio"]. You can get a list of portfolios with fetchPortfolios()')
+                raise ArgumentsRequired(self.id + ' fetchPosition() requires a "portfolio" value in params (eg: dbcb91e7-2bc9-515), or set as exchange.options["portfolio"]. You can get a list of portfolios with fetchPortfolios()')
             request = {
                 'symbol': market['id'],
                 'portfolio_uuid': portfolio,
@@ -4879,7 +4885,7 @@ class coinbase(Exchange, ImplicitAPI):
         #     coinbase_pro_volume: '0',
         #     coinbase_pro_fees: '0',
         #     total_balance: '',
-        #     has_promo_fee: False
+        #     has_promo_fee: false
         # }
         #
         data = self.safe_dict(response, 'fee_tier', {})
@@ -4971,11 +4977,11 @@ class coinbase(Exchange, ImplicitAPI):
         if url is not None:
             uri = method + ' ' + url.replace('https://', '')
             quesPos = uri.find('?')
-            # Due to we use mb_strpos, quesPos could be False in php. In that case, the quesPos >= 0 is True
+            # Due to we use mb_strpos, quesPos could be false in php. In that case, the quesPos >= 0 is true
             # Also it's not possible that the question mark is first character, only check > 0 here.
             if quesPos > 0:
                 uri = uri[0:quesPos]
-        # self.eddsa{"sub":"d2efa49a-369c-43d7-a60e-ae26e28853c2","iss":"cdp","aud":["cdp_service"],"uris":["GET api.coinbase.com/api/v3/brokerage/transaction_summary"]}
+        # eddsa {"sub":"d2efa49a-369c-43d7-a60e-ae26e28853c2","iss":"cdp","aud":["cdp_service"],"uris":["GET api.coinbase.com/api/v3/brokerage/transaction_summary"]}
         nonce = self.random_bytes(16)
         aud = 'cdp_service' if useEddsa else 'retail_rest_api_proxy'
         iss = 'cdp' if useEddsa else 'coinbase-cloud'
@@ -4997,7 +5003,7 @@ class coinbase(Exchange, ImplicitAPI):
             seed = self.array_slice(byteArray, 0, 32)
             return self.jwt(request, seed, 'sha256', False, {'kid': self.apiKey, 'nonce': nonce, 'alg': 'EdDSA'})
         else:
-            # self.ecdsawith p256
+            # ecdsa with p256
             return self.jwt(request, self.encode(self.secret), 'sha256', False, {'kid': self.apiKey, 'nonce': nonce, 'alg': 'ES256'})
 
     def nonce(self):
@@ -5043,27 +5049,27 @@ class coinbase(Exchange, ImplicitAPI):
                 isV2CloudAPiKey = len(self.secret) == 88 or self.safe_bool(self.options, 'v2CloudAPiKey', False) or self.secret.endswith('=')
                 if isCloudAPiKey or isV2CloudAPiKey:
                     if isCloudAPiKey and self.apiKey.startswith('-----BEGIN'):
-                        raise ArgumentsRequired(self.id + ' apiKey should contain the name(eg: organizations/3b910e93....) and not the public key')
-                    #  # it may not work for v2
-                    # uri = method + ' ' + url.replace('https://', '')
-                    # quesPos = uri.find('?')
-                    #  # Due to we use mb_strpos, quesPos could be False in php. In that case, the quesPos >= 0 is True
-                    #  # Also it's not possible that the question mark is first character, only check > 0 here.
-                    # if quesPos > 0:
-                    #     uri = uri[0:quesPos]
+                        raise ArgumentsRequired(self.id + ' apiKey should contain the name (eg: organizations/3b910e93....) and not the public key')
+                    # // it may not work for v2
+                    # let uri = method + ' ' + url.replace ('https://', '');
+                    # const quesPos = uri.indexOf ('?');
+                    # // Due to we use mb_strpos, quesPos could be false in php. In that case, the quesPos >= 0 is true
+                    # // Also it's not possible that the question mark is first character, only check > 0 here.
+                    # if (quesPos > 0) {
+                    #     uri = uri.slice (0, quesPos);
                     # }
-                    # nonce = self.random_bytes(16)
-                    # request = {
-                    #     'aud': ['retail_rest_api_proxy'],
+                    # const nonce = this.randomBytes (16);
+                    # const request: Dict = {
+                    #     'aud': [ 'retail_rest_api_proxy' ],
                     #     'iss': 'coinbase-cloud',
                     #     'nbf': seconds,
                     #     'exp': seconds + 120,
-                    #     'sub': self.apiKey,
+                    #     'sub': this.apiKey,
                     #     'uri': uri,
                     #     'iat': seconds,
-                    # }
+                    # };
                     token = self.create_auth_token(seconds, method, url, isV2CloudAPiKey)
-                    # token = self.jwt(request, self.encode(self.secret), 'sha256', False, {'kid': self.apiKey, 'nonce': nonce, 'alg': 'ES256'})
+                    # const token = jwt (request, this.encode (this.secret), sha256, false, { 'kid': this.apiKey, 'nonce': nonce, 'alg': 'ES256' });
                     authorizationString = 'Bearer ' + token
                 else:
                     nonce = self.nonce()
@@ -5106,7 +5112,7 @@ class coinbase(Exchange, ImplicitAPI):
         #    }
         # or
         # {
-        #     "success": False,
+        #     "success": false,
         #     "error_response": {
         #       "error": "UNKNOWN_FAILURE_REASON",
         #       "message": "",
@@ -5119,7 +5125,7 @@ class coinbase(Exchange, ImplicitAPI):
         #         "limit_price": "2000",
         #         "stop_price": "2005",
         #         "stop_direction": "STOP_DIRECTION_STOP_DOWN",
-        #         "reduce_only": False
+        #         "reduce_only": false
         #       }
         #     }
         # }

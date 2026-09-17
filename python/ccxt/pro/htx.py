@@ -131,13 +131,13 @@ class htx(ccxt.async_support.htx):
             'exceptions': {
                 'ws': {
                     'exact': {
-                        'bad-request': BadRequest,  # { ts: 1586323747018,  status: 'error',    'err-code': 'bad-request',  err-msg': 'invalid mbp.150.symbol linkusdt', id: '2'}
-                        '2002': AuthenticationError,  # {action: 'sub', code: 2002, ch: 'accounts.update#2', message: 'invalid.auth.state'}
+                        'bad-request': BadRequest,  # {  ts: 1586323747018,  status: 'error',    'err-code': 'bad-request',  err-msg': 'invalid mbp.150.symbol linkusdt', id: '2'}
+                        '2002': AuthenticationError,  # { action: 'sub', code: 2002, ch: 'accounts.update#2', message: 'invalid.auth.state' }
                         '2021': BadRequest,
-                        '2001': BadSymbol,  # {action: 'sub', code: 2001, ch: 'orders#2ltcusdt', message: 'invalid.symbol'}
-                        '2011': BadSymbol,  # {op: 'sub', cid: '1649149285', topic: 'orders_cross.ltc-usdt', 'err-code': 2011, 'err-msg': "Contract doesn't exist.", ts: 1649149287637}
-                        '2040': BadRequest,  # {op: 'sub', cid: '1649152947', 'err-code': 2040, 'err-msg': 'Missing required parameter.', ts: 1649152948684}
-                        '4007': BadRequest,  # {op: 'sub', cid: '1', topic: 'accounts_unify.USDT', 'err-code': 4007, 'err-msg': 'Non - single account user is not available, please check through the cross and isolated account asset interface', ts: 1698419318540}
+                        '2001': BadSymbol,  # { action: 'sub', code: 2001, ch: 'orders#2ltcusdt', message: 'invalid.symbol'}
+                        '2011': BadSymbol,  # { op: 'sub', cid: '1649149285', topic: 'orders_cross.ltc-usdt', 'err-code': 2011, 'err-msg': "Contract doesn't exist.", ts: 1649149287637 }
+                        '2040': BadRequest,  # { op: 'sub', cid: '1649152947', 'err-code': 2040, 'err-msg': 'Missing required parameter.', ts: 1649152948684 }
+                        '4007': BadRequest,  # { op: 'sub', cid: '1', topic: 'accounts_unify.USDT', 'err-code': 4007, 'err-msg': 'Non - single account user is not available, please check through the cross and isolated account asset interface', ts: 1698419318540 }
                     },
                 },
             },
@@ -345,7 +345,7 @@ class htx(ccxt.async_support.htx):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()
@@ -371,7 +371,7 @@ class htx(ccxt.async_support.htx):
         :param str timeframe: the length of time each candle represents
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param dict [params.timezone]: if provided, kline intervals are interpreted in that timezone instead of UTC, example '+08:00'
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()
@@ -439,7 +439,7 @@ class htx(ccxt.async_support.htx):
         symbol = market['symbol']
         allowedLimits = [5, 20, 150, 400]
         # 2) 5-level/20-level incremental MBP is a tick by tick feed,
-        # which means whenever there is an order book change at that level, it pushes an update
+        # which means whenever there is an order book change at that level, it pushes an update;
         # 150-levels/400-level incremental MBP feed is based on the gap
         # between two snapshots at 100ms interval.
         options = self.safe_dict(self.options, 'watchOrderBook', {})
@@ -549,7 +549,7 @@ class htx(ccxt.async_support.htx):
                         client.subscriptions[messageHash] = subscription
                         self.delay(delayTime, self.watch_order_book_snapshot, client, message, subscription)
                 else:
-                    # raise upon failing to synchronize in maxAttempts
+                    # throw upon failing to synchronize in maxAttempts
                     raise InvalidNonce(self.id + ' failed to synchronize WebSocket feed with the snapshot for symbol ' + symbol + ' in ' + str(maxAttempts) + ' attempts')
             else:
                 orderbook.reset(snapshot)
@@ -581,7 +581,7 @@ class htx(ccxt.async_support.htx):
             'req': messageHash,
             'id': requestId,
         }
-        # self is a temporary subscription by a specific requestId
+        # this is a temporary subscription by a specific requestId
         # it has a very short lifetime until the snapshot is received over ws
         snapshotSubscription = {
             'id': requestId,
@@ -641,7 +641,7 @@ class htx(ccxt.async_support.htx):
         #             "asks":[],
         #             "bids":[
         #                 [43445.74,1],
-        #                 [43444.48,0],
+        #                 [43444.48,0 ],
         #                 [40593.92,9]
         #             ],
         #             "ch":"market.BTC220218.depth.size_150.high_freq",
@@ -660,12 +660,12 @@ class htx(ccxt.async_support.htx):
         #         "tick":{
         #             "asks":[
         #                 [43445.74,1],
-        #                 [43444.48,0],
+        #                 [43444.48,0 ],
         #                 [40593.92,9]
         #             ],
         #             "bids":[
         #                 [43445.74,1],
-        #                 [43444.48,0],
+        #                 [43444.48,0 ],
         #                 [40593.92,9]
         #             ],
         #             "ch":"market.BTC220218.depth.size_150.high_freq",
@@ -742,7 +742,7 @@ class htx(ccxt.async_support.htx):
         #             "asks":[],
         #             "bids":[
         #                 [43445.74,1],
-        #                 [43444.48,0],
+        #                 [43444.48,0 ],
         #                 [40593.92,9]
         #             ],
         #             "ch":"market.BTC220218.depth.size_150.high_freq",
@@ -971,12 +971,12 @@ class htx(ccxt.async_support.htx):
         #
         #     {
         #         "action":"push",
-        #         "ch":"orders#btcusdt",  # or "orders#*" for global subscriptions
+        #         "ch":"orders#btcusdt", // or "orders#*" for global subscriptions
         #         "data": {
         #             "orderStatus": "submitted",
         #             "eventType": "creation",
-        #             "totalTradeAmount": 0  # for "submitted" order status
-        #             "orderCreateTime": 1645116048355,  # only when `submitted` status
+        #             "totalTradeAmount": 0 // for "submitted" order status
+        #             "orderCreateTime": 1645116048355, // only when `submitted` status
         #             "orderSource": "spot-web",
         #             "accountId": 44234548,
         #             "orderPrice": "100",
@@ -996,7 +996,7 @@ class htx(ccxt.async_support.htx):
         #             "tradePrice": "0.676669",
         #             "tradeVolume": "8.8511",
         #             "tradeTime": 1760427775894,
-        #             "aggressor": False,
+        #             "aggressor": false,
         #             "execAmt": "8.8511",
         #             "tradeId": 100599712781,
         #             "remainAmt": "0",
@@ -1010,7 +1010,7 @@ class htx(ccxt.async_support.htx):
         #             "tradePrice": "130.01",
         #             "tradeVolume": "0.0385",
         #             "tradeTime": 1648714741525,
-        #             "aggressor": True,
+        #             "aggressor": true,
         #             "execAmt": "0.0385",
         #             "orderSource": "spot-web",
         #             "orderSize": "0.0385",
@@ -1107,7 +1107,7 @@ class htx(ccxt.async_support.htx):
         #             "margin_mode": "cross",
         #             "lever_rate": 10,
         #             "order_source": "api",
-        #             "reduce_only": False,
+        #             "reduce_only": false,
         #             "time_in_force": "gtc",
         #             "trade_avg_price": "0",
         #             "trade_volume": "0",
@@ -1171,7 +1171,7 @@ class htx(ccxt.async_support.htx):
         else:
             # contract branch
             parsedOrder = self.parse_ws_order(message, market)
-            rawTrades = self.safe_value(message, 'trade', [])
+            rawTrades = self.safe_list(message, 'trade', [])
             tradesLength = len(rawTrades)
             if tradesLength > 0:
                 tradesObject = {
@@ -1198,7 +1198,7 @@ class htx(ccxt.async_support.htx):
         if (messageHash == 'orders') and (marketId is not None):
             specificMessageHash = messageHash + '.' + marketId.lower()
             client.resolve(self.orders, specificMessageHash)
-        # when we make a global subscription(for contracts only) our message hash can't have a symbol/currency attached
+        # when we make a global subscription (for contracts only) our message hash can't have a symbol/currency attached
         # so we're removing it here
         if messageHash is None:
             return
@@ -1213,18 +1213,18 @@ class htx(ccxt.async_support.htx):
         #
         #     {
         #         "orderSource": "spot-web",
-        #         "orderCreateTime": 1645116048355,  # creating only
+        #         "orderCreateTime": 1645116048355, // creating only
         #         "accountId": 44234548,
         #         "orderPrice": "100",
         #         "orderSize": "0.05",
-        #         "orderValue": "3.71676361",  # market-buy only
+        #         "orderValue": "3.71676361", // market-buy only
         #         "symbol": "ethusdt",
         #         "type": "buy-limit",
         #         "orderId": "478861479986886",
         #         "eventType": "creation",
         #         "clientOrderId": '',
         #         "orderStatus": "submitted"
-        #         "lastActTime":1645118621810  # except creating
+        #         "lastActTime":1645118621810 // except creating
         #         "execAmt":"0"
         #     }
         #
@@ -1338,7 +1338,7 @@ class htx(ccxt.async_support.htx):
         #         "margin_mode": "cross",
         #         "lever_rate": 10,
         #         "order_source": "api",
-        #         "reduce_only": False,
+        #         "reduce_only": false,
         #         "time_in_force": "gtc",
         #         "trade_avg_price": "0",
         #         "trade_volume": "0",
@@ -1434,7 +1434,7 @@ class htx(ccxt.async_support.htx):
         #         "tradePrice": "130.01",
         #         "tradeVolume": "0.0385",
         #         "tradeTime": 1648714741525,
-        #         "aggressor": True,
+        #         "aggressor": true,
         #         "execAmt": "0.0385",
         #         "orderSource": "spot-web",
         #         "orderSize": "0.0385",
@@ -1628,7 +1628,7 @@ class htx(ccxt.async_support.htx):
         clientPositions = self.safe_value(self.positions, url)
         if clientPositions is None:
             self.positions[url] = {}
-        rawPositions = self.safe_value(message, 'data', [])
+        rawPositions = self.safe_list(message, 'data', [])
         if self.is_empty(rawPositions):
             prefixes = ['cross:positions', 'isolated:positions']
             for i in range(0, len(prefixes)):
@@ -1763,7 +1763,7 @@ class htx(ccxt.async_support.htx):
             'margin': marginMode,
             'isV5': isV5Linear,
         }
-        # we are differentiating the channel from the messageHash for global subscriptions(*)
+        # we are differentiating the channel from the messageHash for global subscriptions (*)
         # because huobi returns a different topic than the topic sent. Example: we send
         # "accounts.*" and "accounts" is returned so we're setting channel = "accounts.*" and
         # messageHash = "accounts" allowing handleBalance to freely resolve the topic in the message
@@ -1885,7 +1885,7 @@ class htx(ccxt.async_support.htx):
         #     }
         #
         channel = self.safe_string(message, 'ch')
-        data = self.safe_value(message, 'data', [])
+        data = self.safe_list(message, 'data', [])
         timestamp = self.safe_integer(data, 'changeTime', self.safe_integer(message, 'ts'))
         self.balance['timestamp'] = timestamp
         self.balance['datetime'] = self.iso8601(timestamp)
@@ -2051,11 +2051,11 @@ class htx(ccxt.async_support.htx):
     def handle_system_status(self, client: Client, message: object):
         #
         # todo: answer the question whether handleSystemStatus should be renamed
-        # and unified for any usage pattern that
+        # and unified as handleStatus for any usage pattern that
         # involves system status and maintenance updates
         #
         #     {
-        #         "id": "1578090234088",  # connectId
+        #         "id": "1578090234088", // connectId
         #         "type": "welcome",
         #     }
         #
@@ -2089,7 +2089,7 @@ class htx(ccxt.async_support.htx):
         #             "asks":[],
         #             "bids":[
         #                 [43445.74,1],
-        #                 [43444.48,0],
+        #                 [43444.48,0 ],
         #                 [40593.92,9]
         #             ],
         #             "ch":"market.BTC220218.depth.size_150.high_freq",
@@ -2110,7 +2110,7 @@ class htx(ccxt.async_support.htx):
         #         "data":{
         #             "eventType":"trade",
         #             "symbol":"ltcusdt",
-        #             # ...
+        #             // ...
         #         },
         #     }
         #
@@ -2127,7 +2127,7 @@ class htx(ccxt.async_support.htx):
         #             "symbol":"btcusdt",
         #             "eventType":"trigger",
         #             "errCode": 2002,
-        #             "errMessage":"invalid.client.order.id(NT)"
+        #             "errMessage":"invalid.client.order.id (NT)"
         #         }
         #     }
         #
@@ -2137,7 +2137,7 @@ class htx(ccxt.async_support.htx):
         #         "op":"notify",
         #         "topic":"orders.ada",
         #         "ts":1604388667226,
-        #         # ?
+        #         // ?
         #     }
         #
         ch = self.safe_value(message, 'ch', '')
@@ -2185,9 +2185,9 @@ class htx(ccxt.async_support.htx):
 
     async def pong(self, client: Client, message: object):
         #
-        #     {ping: 1583491673714}
-        #     {action: "ping", data: {ts: 1645108204665}}
-        #     {op: "ping", ts: "1645202800015"}
+        #     { ping: 1583491673714 }
+        #     { action: "ping", data: { ts: 1645108204665 } }
+        #     { op: "ping", ts: "1645202800015" }
         #
         try:
             ping = self.safe_integer(message, 'ping')
@@ -2229,7 +2229,7 @@ class htx(ccxt.async_support.htx):
         #        "type": "api",
         #        "err-code": 0,
         #        "ts": 1645200307319,
-        #        "data": {"user-id": "35930539"}
+        #        "data": { "user-id": "35930539" }
         #    }
         #
         promise = client.futures['auth']
@@ -2317,7 +2317,7 @@ class htx(ccxt.async_support.htx):
             #
             # first ping format
             #
-            #    {"ping": 1645106821667}
+            #    {"ping": 1645106821667 }
             #
             # second ping format
             #
@@ -2342,7 +2342,7 @@ class htx(ccxt.async_support.htx):
             #        "type": "api",
             #        "err-code": 0,
             #        "ts": 1645200307319,
-            #        "data": {"user-id": "35930539"}
+            #        "data": { "user-id": "35930539" }
             #    }
             #
             # trade
@@ -2352,7 +2352,7 @@ class htx(ccxt.async_support.htx):
             #         "ch":"trade.clearing#ltcusdt#1",
             #         "data":{
             #             "eventType":"trade",
-            #             # ?
+            #             // ?
             #         }
             #     }
             #
@@ -2498,25 +2498,25 @@ class htx(ccxt.async_support.htx):
                     specificMessageHash = messageHash + '.' + contractCode.lower()
                     client.resolve(self.myTrades, specificMessageHash)
             else:
-                # self trades object is artificially created
+                # this trades object is artificially created
                 # in handleOrder
-                rawTrades = self.safe_value(message, 'trades', [])
+                rawTrades = self.safe_list(message, 'trades', [])
                 marketId = self.safe_value(message, 'symbol')
                 market = self.market(marketId)
                 for i in range(0, len(rawTrades)):
                     trade = rawTrades[i]
                     parsedTrade = self.parse_trade(trade, market)
-                    # add extra params(side, type, ...) coming from the order
+                    # add extra params (side, type, ...) coming from the order
                     parsedTrade = self.extend(parsedTrade, extendParams)
                     cachedTrades.append(parsedTrade)
                 # messageHash here is the orders one, so
                 # we have to recreate the trades messageHash = orderMessageHash + ':' + 'trade'
                 tradesHash = messageHash + ':' + 'trade'
                 client.resolve(self.myTrades, tradesHash)
-                # when we make an global order sub we have to send the channel like self
+                # when we make an global order sub we have to send the channel like this
                 # ch = orders_cross.* and we store messageHash = 'orders_cross'
                 # however it is returned with the specific order update symbol: ch = orders_cross.btc-usd
-                # since self is a global sub, our messageHash does not specify any symbol(ex: orders_cross:trade)
+                # since this is a global sub, our messageHash does not specify any symbol (ex: orders_cross:trade)
                 # so we must remove it
                 genericOrderHash = messageHash.replace('.' + market['lowercaseId'], '')
                 lowerCaseBaseId = self.safe_string_lower(market, 'baseId')
@@ -2741,7 +2741,7 @@ class htx(ccxt.async_support.htx):
                     'Timestamp': timestamp,
                 }
             signatureParams = self.keysort(signatureParams)
-            auth = self.urlencode(signatureParams, True)  # True required in go
+            auth = self.urlencode(signatureParams, True)  # true required in go
             payload = "\n".join(['GET', hostname, relativePath, auth])  # eslint-disable-line quotes
             signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha256, 'base64')
             request = None

@@ -182,6 +182,9 @@ class onetrading(Exchange, ImplicitAPI):
                         'market-ticker': {'cost': 1},
                         'market-ticker/{instrument_code}': {'cost': 1},
                         'time': {'cost': 1},
+                        'funding-rate': {'cost': 1},
+                        'funding-rate/history': {'cost': 1},
+                        'funding-rate/settings': {'cost': 1},
                     },
                 },
                 'private': {
@@ -194,9 +197,16 @@ class onetrading(Exchange, ImplicitAPI):
                         'account/orders/{order_id}/trades': {'cost': 1},
                         'account/trades': {'cost': 1},
                         'account/trade/{trade_id}': {'cost': 1},
+                        'account/futures/summary': {'cost': 1},
+                        'account/futures/positions': {'cost': 1},
+                        'account/futures/positions-history': {'cost': 1},
+                        'account/futures/positions/{position_id}/trades': {'cost': 1},
+                        'account/futures/positions/{position_id}/funding-payments': {'cost': 1},
+                        'account/futures/funding-payments': {'cost': 1},
                     },
                     'post': {
                         'account/orders': {'cost': 1},
+                        'subaccounts/transfers': {'cost': 1},
                     },
                     'delete': {
                         'account/orders': {'cost': 1},
@@ -484,8 +494,8 @@ class onetrading(Exchange, ImplicitAPI):
         #     [
         #         {
         #             "state": "ACTIVE",
-        #             "base": {code: "ETH", precision: 8},
-        #             "quote": {code: "CHF", precision: 2},
+        #             "base": { code: "ETH", precision: 8 },
+        #             "quote": { code: "CHF", precision: 2 },
         #             "amount_precision": 4,
         #             "market_precision": 2,
         #             "min_size": "10.0"
@@ -665,7 +675,7 @@ class onetrading(Exchange, ImplicitAPI):
         #             },
         #         ],
         #     },
-        # ]
+        # ];
         #
         spotFees = self.safe_dict(response, 0, {})
         futuresFees = self.safe_dict(response, 1, {})
@@ -734,13 +744,13 @@ class onetrading(Exchange, ImplicitAPI):
         spotTakerFee = self.safe_string(spotFees, 'taker_fee')
         spotMakerFee = Precise.string_div(spotMakerFee, '100')
         spotTakerFee = Precise.string_div(spotTakerFee, '100')
-        # feeTiers = self.safe_value(response, 'fee_tiers')
+        # const feeTiers = this.safeValue (response, 'fee_tiers');
         futuresMakerFee = self.safe_string(futuresFees, 'maker_fee')
         futuresTakerFee = self.safe_string(futuresFees, 'taker_fee')
         futuresMakerFee = Precise.string_div(futuresMakerFee, '100')
         futuresTakerFee = Precise.string_div(futuresTakerFee, '100')
         result = {}
-        # tiers = self.parse_fee_tiers(feeTiers)
+        # const tiers = this.parseFeeTiers (feeTiers);
         symbols = self.symbols
         for i in range(0, len(symbols)):
             symbol = symbols[i]
@@ -927,8 +937,8 @@ class onetrading(Exchange, ImplicitAPI):
             # level 2 is a compiled order book up to market precision
             # level 3 is a full orderbook
             # if you wish to get regular updates about orderbooks please use the Websocket channel
-            # heavy usage of self endpoint may result in limited access according to rate limits rules
-            # 'level': 3,  # default
+            # heavy usage of this endpoint may result in limited access according to rate limits rules
+            # 'level': 3, // default
         }
         if limit is not None:
             request['depth'] = limit
@@ -1048,7 +1058,7 @@ class onetrading(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             self.load_markets()
@@ -1063,8 +1073,8 @@ class onetrading(Exchange, ImplicitAPI):
             limit = 1500
         request = {
             'instrument_code': market['id'],
-            # 'from': self.iso8601(since),
-            # 'to': self.iso8601(self.milliseconds()),
+            # 'from': this.iso8601 (since),
+            # 'to': this.iso8601 (this.milliseconds ()),
             'period': period,
             'unit': unit,
         }
@@ -1088,7 +1098,7 @@ class onetrading(Exchange, ImplicitAPI):
 
     def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #
-        # fetchTrades(public)
+        # fetchTrades (public)
         #
         #     {
         #         "instrument_code":"BTC_EUR",
@@ -1101,7 +1111,7 @@ class onetrading(Exchange, ImplicitAPI):
         #         "sequence":603047
         #     }
         #
-        # fetchMyTrades, fetchOrder, fetchOpenOrders, fetchClosedOrders trades(private)
+        # fetchMyTrades, fetchOrder, fetchOpenOrders, fetchClosedOrders trades (private)
         #
         #     {
         #         "fee": {
@@ -1166,7 +1176,7 @@ class onetrading(Exchange, ImplicitAPI):
         }, market)
 
     def parse_balance(self, response: object) -> Balances:
-        balances = self.safe_value(response, 'balances', [])
+        balances = self.safe_list(response, 'balances', [])
         result = {'info': response}
         for i in range(0, len(balances)):
             balance = balances[i]
@@ -1263,7 +1273,7 @@ class onetrading(Exchange, ImplicitAPI):
         #             "time_in_force": "GOOD_TILL_CANCELLED",
         #             "time_last_updated": "2019-08-24T14:15:22Z",
         #             "expire_after": "2019-08-24T14:15:22Z",
-        #             "is_post_only": False,
+        #             "is_post_only": false,
         #             "time_triggered": "2019-08-24T14:15:22Z",
         #             "trigger_price": "1234.5678"
         #         },
@@ -1327,7 +1337,7 @@ class onetrading(Exchange, ImplicitAPI):
             'filled': filled,
             'remaining': None,
             'status': status,
-            # 'fee': None,
+            # 'fee': undefined,
             'trades': rawTrades,
         }, market)
 
@@ -1367,12 +1377,12 @@ class onetrading(Exchange, ImplicitAPI):
             'type': uppercaseType,  # LIMIT, MARKET, STOP
             'side': side.upper(),  # or SELL
             'amount': self.amount_to_precision(symbol, amount),
-            # "price": "1234.5678",  # required for LIMIT and STOP orders
-            # "client_id": "d75fb03b-b599-49e9-b926-3f0b6d103206",  # optional
-            # "time_in_force": "GOOD_TILL_CANCELLED",  # limit orders only, GOOD_TILL_CANCELLED, GOOD_TILL_TIME, IMMEDIATE_OR_CANCELLED and FILL_OR_KILL
-            # "expire_after": "2020-07-02T19:40:13Z",  # required for GOOD_TILL_TIME
-            # "is_post_only": False,  # limit orders only, optional
-            # "trigger_price": "1234.5678"  # required for stop orders
+            # "price": "1234.5678", // required for LIMIT and STOP orders
+            # "client_id": "d75fb03b-b599-49e9-b926-3f0b6d103206", // optional
+            # "time_in_force": "GOOD_TILL_CANCELLED", // limit orders only, GOOD_TILL_CANCELLED, GOOD_TILL_TIME, IMMEDIATE_OR_CANCELLED and FILL_OR_KILL
+            # "expire_after": "2020-07-02T19:40:13Z", // required for GOOD_TILL_TIME
+            # "is_post_only": false, // limit orders only, optional
+            # "trigger_price": "1234.5678" // required for stop orders
         }
         priceIsRequired = False
         if uppercaseType == 'LIMIT' or uppercaseType == 'STOP':
@@ -1571,14 +1581,14 @@ class onetrading(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         request = {
-            # 'from': self.iso8601(since),
-            # 'to': self.iso8601(self.milliseconds()),  # max range is 30 days
+            # 'from': this.iso8601 (since),
+            # 'to': this.iso8601 (this.milliseconds ()), // max range is 30 days
             # 'instrument_code': market['id'],
-            # 'with_cancelled_and_rejected': False,  # default is False, orders which have been cancelled by the user before being filled or rejected by the system, additionally, all inactive filled orders which would return with "with_just_filled_inactive"
-            # 'with_just_filled_inactive': False,  # orders which have been filled and are no longer open, use of "with_cancelled_and_rejected" extends "with_just_filled_inactive" and in case both are specified the latter is ignored
-            # 'with_just_orders': False,  # do not return any trades corresponding to the orders, it may be significantly faster and should be used if user is not interesting in trade information
+            # 'with_cancelled_and_rejected': false, // default is false, orders which have been cancelled by the user before being filled or rejected by the system as invalid, additionally, all inactive filled orders which would return with "with_just_filled_inactive"
+            # 'with_just_filled_inactive': false, // orders which have been filled and are no longer open, use of "with_cancelled_and_rejected" extends "with_just_filled_inactive" and in case both are specified the latter is ignored
+            # 'with_just_orders': false, // do not return any trades corresponding to the orders, it may be significantly faster and should be used if user is not interesting in trade information
             # 'max_page_size': 100,
-            # 'cursor': 'string',  # pointer specifying the position from which the next pages should be returned
+            # 'cursor': 'string', // pointer specifying the position from which the next pages should be returned
         }
         market = None
         if symbol is not None:
@@ -1689,7 +1699,7 @@ class onetrading(Exchange, ImplicitAPI):
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         request = {
-            'with_cancelled_and_rejected': True,  # default is False, orders which have been cancelled by the user before being filled or rejected by the system, additionally, all inactive filled orders which would return with "with_just_filled_inactive"
+            'with_cancelled_and_rejected': True,  # default is false, orders which have been cancelled by the user before being filled or rejected by the system as invalid, additionally, all inactive filled orders which would return with "with_just_filled_inactive"
         }
         return self.fetch_open_orders(symbol, since, limit, self.extend(request, params))
 
@@ -1711,7 +1721,7 @@ class onetrading(Exchange, ImplicitAPI):
         request = {
             'order_id': id,
             # 'max_page_size': 100,
-            # 'cursor': 'string',  # pointer specifying the position from which the next pages should be returned
+            # 'cursor': 'string', // pointer specifying the position from which the next pages should be returned
         }
         if limit is not None:
             request['max_page_size'] = limit
@@ -1768,11 +1778,11 @@ class onetrading(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         request = {
-            # 'from': self.iso8601(since),
-            # 'to': self.iso8601(self.milliseconds()),  # max range is 30 days
+            # 'from': this.iso8601 (since),
+            # 'to': this.iso8601 (this.milliseconds ()), // max range is 30 days
             # 'instrument_code': market['id'],
             # 'max_page_size': 100,
-            # 'cursor': 'string',  # pointer specifying the position from which the next pages should be returned
+            # 'cursor': 'string', // pointer specifying the position from which the next pages should be returned
         }
         market = None
         if symbol is not None:

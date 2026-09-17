@@ -1838,6 +1838,19 @@ func GetArg(v []any, index int, def any) any {
 		}
 	}
 
+	// Generated wrappers bind `symbols` as a typed `[]string`, and a nil `[]string` boxed
+	// into `any` is not `== nil`, so the check at the top of this function cannot see it.
+	// Unwrap it to an untyped nil so that a caller passing nil means "argument absent",
+	// matching `undefined` in the TypeScript source these bodies are ported from.
+	// Only nil is collapsed, never a non-nil empty slice: the empty-vs-absent decision
+	// belongs to MarketSymbols/allowEmpty, which must still panic with ArgumentsRequired
+	// for `allowEmpty: false` callers rather than silently substituting the default.
+	if res, ok := val.([]string); ok {
+		if res == nil {
+			return def
+		}
+	}
+
 	// do we need this??
 	// if IsNil(val) { // check  https://blog.devtrovert.com/p/go-secret-interface-nil-is-not-nil
 	// 	return def
@@ -2420,10 +2433,18 @@ func setDefaults(p any) {
 	}
 }
 
+// suffix carried by every transpiled channel-returning (async) method; the plain
+// name is the typed sync method. Mirrors GO_ASYNC_SUFFIX in build/goTranspiler.ts.
+const asyncMethodSuffix = "Async"
+
 func CallInternalMethod3(itf any, name2 string, args ...any) <-chan any {
 	name := Capitalize(name2)
 	baseValue := reflect.ValueOf(itf)
 	baseType := baseValue.Type()
+	// prefer the Async-suffixed channel trampoline over the same-named typed sync method
+	if _, ok := baseType.MethodByName(name + asyncMethodSuffix); ok {
+		name += asyncMethodSuffix
+	}
 
 	ch := make(chan any)
 	go func() {
@@ -2538,8 +2559,14 @@ func CallInternalMethod(methodCache *sync.Map, itf any, name2 string, args ...an
 			}
 		}()
 
+		// dynamic callers name the unified method (fetchTicker). Its channel form is the
+		// Async-suffixed trampoline; the plain name is the typed sync method (or a plain
+		// sync helper when no trampoline exists), so the trampoline is looked up first.
 		cacheKey := fmt.Sprintf("%s", name)
-		cachedMethod, found := methodCache.Load(cacheKey)
+		cachedMethod, found := methodCache.Load(cacheKey + asyncMethodSuffix)
+		if !found {
+			cachedMethod, found = methodCache.Load(cacheKey)
+		}
 
 		if !found {
 			panic(name + " :method not found")

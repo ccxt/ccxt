@@ -17,6 +17,9 @@ interface Exchange {
     publicGetMarketTicker (params?: {}): Promise<List>;
     publicGetMarketTickerInstrumentCode (params?: {}): Promise<Dict>;
     publicGetTime (params?: {}): Promise<Dict>;
+    publicGetFundingRate (params?: {}): Promise<List>;
+    publicGetFundingRateHistory (params?: {}): Promise<Dict>;
+    publicGetFundingRateSettings (params?: {}): Promise<List>;
     privateGetAccountBalances (params?: {}): Promise<Dict>;
     privateGetAccountFees (params?: {}): Promise<Dict>;
     privateGetAccountOrders (params?: {}): Promise<Dict>;
@@ -25,7 +28,14 @@ interface Exchange {
     privateGetAccountOrdersOrderIdTrades (params?: {}): Promise<Dict>;
     privateGetAccountTrades (params?: {}): Promise<Dict>;
     privateGetAccountTradeTradeId (params?: {}): Promise<Dict>;
+    privateGetAccountFuturesSummary (params?: {}): Promise<Dict>;
+    privateGetAccountFuturesPositions (params?: {}): Promise<Dict>;
+    privateGetAccountFuturesPositionsHistory (params?: {}): Promise<Dict>;
+    privateGetAccountFuturesPositionsPositionIdTrades (params?: {}): Promise<Dict>;
+    privateGetAccountFuturesPositionsPositionIdFundingPayments (params?: {}): Promise<Dict>;
+    privateGetAccountFuturesFundingPayments (params?: {}): Promise<Dict>;
     privatePostAccountOrders (params?: {}): Promise<Dict>;
+    privatePostSubaccountsTransfers (params?: {}): Promise<Dict>;
     privateDeleteAccountOrders (params?: {}): Promise<List>;
     privateDeleteAccountOrdersOrderId (params?: {}): Promise<Dict>;
     privateDeleteAccountOrdersClientClientId (params?: {}): Promise<Dict>;

@@ -10,6 +10,10 @@ use crate::runtime::*;
 // `self.load_markets(...)`, … on this Core resolve to the base defaults.
 use crate::exchange_generated::ExchangeBase;
 use crate::exchange::ExchangeRuntime;
+// Dynamic `this[method](...)` re-entries are emitted as
+// `self.call_dynamic_checked(...)` (blanket-impl'd on every Core) so an
+// unresolvable name raises NotSupported instead of yielding a silent Null.
+use crate::exchange::CallDynamicChecked;
 use crate::pro::*;
 
 
@@ -433,8 +437,8 @@ impl CoinexCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_271: bool = true;
-            while { if !__for_first_271 { i = add(&i, &Value::Int(1)); } __for_first_271 = false; is_less_than(&i, &get_array_length(&rawTickers)) } {
+            let mut __for_first_272: bool = true;
+            while { if !__for_first_272 { i = add(&i, &Value::Int(1)); } __for_first_272 = false; is_less_than(&i, &get_array_length(&rawTickers)) } {
             let mut entry: Value = get_value(&rawTickers, &i);
             let mut entry: Value = get_value(&rawTickers, &i);
             let mut marketId: Value = self.safe_string_k(entry.clone(), "market", &[]);
@@ -448,8 +452,8 @@ impl CoinexCore {
         let mut messageHashes: Value = self.find_message_hashes(client.clone(), Value::Str("tickers::".to_string()));
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_272: bool = true;
-            while { if !__for_first_272 { i = add(&i, &Value::Int(1)); } __for_first_272 = false; is_less_than(&i, &get_array_length(&messageHashes)) } {
+            let mut __for_first_273: bool = true;
+            while { if !__for_first_273 { i = add(&i, &Value::Int(1)); } __for_first_273 = false; is_less_than(&i, &get_array_length(&messageHashes)) } {
             let mut messageHash: Value = get_value(&messageHashes, &i);
             let mut messageHash: Value = get_value(&messageHashes, &i);
             let mut parts: Value = split(&messageHash, &Value::Str("::".to_string()));
@@ -651,8 +655,8 @@ impl CoinexCore {
             account = Value::Str("spot".to_string());
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_273: bool = true;
-                while { if !__for_first_273 { i = add(&i, &Value::Int(1)); } __for_first_273 = false; is_less_than(&i, &get_array_length(&balances)) } {
+                let mut __for_first_274: bool = true;
+                while { if !__for_first_274 { i = add(&i, &Value::Int(1)); } __for_first_274 = false; is_less_than(&i, &get_array_length(&balances)) } {
                 rawBalances = self.array_concat(rawBalances.clone(), balances.clone());
             }
             }
@@ -662,8 +666,8 @@ impl CoinexCore {
             account = Value::Str("swap".to_string());
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_274: bool = true;
-                while { if !__for_first_274 { i = add(&i, &Value::Int(1)); } __for_first_274 = false; is_less_than(&i, &get_array_length(&balances)) } {
+                let mut __for_first_275: bool = true;
+                while { if !__for_first_275 { i = add(&i, &Value::Int(1)); } __for_first_275 = false; is_less_than(&i, &get_array_length(&balances)) } {
                 rawBalances = self.array_concat(rawBalances.clone(), balances.clone());
             }
             }
@@ -671,8 +675,8 @@ impl CoinexCore {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_275: bool = true;
-            while { if !__for_first_275 { i = add(&i, &Value::Int(1)); } __for_first_275 = false; is_less_than(&i, &get_array_length(&rawBalances)) } {
+            let mut __for_first_276: bool = true;
+            while { if !__for_first_276 { i = add(&i, &Value::Int(1)); } __for_first_276 = false; is_less_than(&i, &get_array_length(&rawBalances)) } {
             let mut entry: Value = get_value(&rawBalances, &i);
             let mut entry: Value = get_value(&rawBalances, &i);
             self.parse_ws_balance(entry.clone(), &[account.clone()]);
@@ -908,8 +912,8 @@ impl CoinexCore {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_276: bool = true;
-            while { if !__for_first_276 { i = add(&i, &Value::Int(1)); } __for_first_276 = false; is_less_than(&i, &get_array_length(&trades)) } {
+            let mut __for_first_277: bool = true;
+            while { if !__for_first_277 { i = add(&i, &Value::Int(1)); } __for_first_277 = false; is_less_than(&i, &get_array_length(&trades)) } {
             let mut trade: Value = get_value(&trades, &i);
             let mut trade: Value = get_value(&trades, &i);
             let mut parsed: Value = self.parse_ws_trade(trade.clone(), &[market.clone()]);
@@ -1050,8 +1054,8 @@ impl CoinexCore {
         if is_true(&symbolsDefined) {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_277: bool = true;
-                while { if !__for_first_277 { i = add(&i, &Value::Int(1)); } __for_first_277 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+                let mut __for_first_278: bool = true;
+                while { if !__for_first_278 { i = add(&i, &Value::Int(1)); } __for_first_278 = false; is_less_than(&i, &get_array_length(&symbols)) } {
                 let mut symbol: Value = get_value(&symbols, &i);
                 let mut symbol: Value = get_value(&symbols, &i);
                 market = self.market(symbol.clone());
@@ -1143,8 +1147,8 @@ impl CoinexCore {
         if is_true(&symbolsDefined) {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_278: bool = true;
-                while { if !__for_first_278 { i = add(&i, &Value::Int(1)); } __for_first_278 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+                let mut __for_first_279: bool = true;
+                while { if !__for_first_279 { i = add(&i, &Value::Int(1)); } __for_first_279 = false; is_less_than(&i, &get_array_length(&symbols)) } {
                 let mut symbol: Value = get_value(&symbols, &i);
                 let mut symbol: Value = get_value(&symbols, &i);
                 market = self.market(symbol.clone());
@@ -1233,8 +1237,8 @@ impl CoinexCore {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_279: bool = true;
-            while { if !__for_first_279 { i = add(&i, &Value::Int(1)); } __for_first_279 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+            let mut __for_first_280: bool = true;
+            while { if !__for_first_280 { i = add(&i, &Value::Int(1)); } __for_first_280 = false; is_less_than(&i, &get_array_length(&symbols)) } {
             let mut symbol: Value = get_value(&symbols, &i);
             let mut symbol: Value = get_value(&symbols, &i);
             market = self.market(symbol.clone());
@@ -1298,8 +1302,8 @@ impl CoinexCore {
     pub fn handle_deltas(&self, mut bookside: Value, mut deltas: Value) {
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_280: bool = true;
-            while { if !__for_first_280 { i = add(&i, &Value::Int(1)); } __for_first_280 = false; is_less_than(&i, &get_array_length(&deltas)) } {
+            let mut __for_first_281: bool = true;
+            while { if !__for_first_281 { i = add(&i, &Value::Int(1)); } __for_first_281 = false; is_less_than(&i, &get_array_length(&deltas)) } {
             self.handle_delta(bookside.clone(), get_value(&deltas, &i));
         }
         }
@@ -1775,8 +1779,8 @@ impl CoinexCore {
         if is_true(&symbolsDefined) {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_281: bool = true;
-                while { if !__for_first_281 { i = add(&i, &Value::Int(1)); } __for_first_281 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+                let mut __for_first_282: bool = true;
+                while { if !__for_first_282 { i = add(&i, &Value::Int(1)); } __for_first_282 = false; is_less_than(&i, &get_array_length(&symbols)) } {
                 let mut symbol: Value = get_value(&symbols, &i);
                 let mut symbol: Value = get_value(&symbols, &i);
                 market = self.market(symbol.clone());

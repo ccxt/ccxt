@@ -25,7 +25,9 @@ interface Exchange {
     privatePostOpenOrders (params?: {}): Promise<Dict>;
     privatePostOrderHistory (params?: {}): Promise<Dict>;
     privatePostGetOrder (params?: {}): Promise<Dict>;
+    privatePostGetOrderByClientOrderId (params?: {}): Promise<Dict>;
     privatePostCancelOrder (params?: {}): Promise<Dict>;
+    privatePostCancelByClientOrderId (params?: {}): Promise<Dict>;
     privatePostWithdrawFee (params?: {}): Promise<Dict>;
     privatePostWithdrawCoin (params?: {}): Promise<Dict>;
     privatePostListDownline (params?: {}): Promise<Dict>;

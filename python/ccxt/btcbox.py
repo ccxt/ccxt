@@ -144,6 +144,7 @@ class btcbox(Exchange, ImplicitAPI):
                 'private': {
                     'post': {
                         'balance': {'cost': 1},
+                        'order_history': {'cost': 1},
                         'trade_add': {'cost': 1},
                         'trade_cancel': {'cost': 1},
                         'trade_list': {'cost': 1},
@@ -486,7 +487,7 @@ class btcbox(Exchange, ImplicitAPI):
 
     def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #
-        # fetchTrades(public)
+        # fetchTrades (public)
         #
         #      {
         #          "date":"0",
@@ -634,7 +635,7 @@ class btcbox(Exchange, ImplicitAPI):
         #         "amount_original":1.2,
         #         "amount_outstanding":1.2,
         #         "status":"closed",
-        #         "trades":[]  # no clarification of trade value structure of order endpoint
+        #         "trades":[] // no clarification of trade value structure of order endpoint
         #     }
         #
         id = self.safe_string(order, 'id')
@@ -651,7 +652,7 @@ class btcbox(Exchange, ImplicitAPI):
         if status is None:
             if Precise.string_equals(remaining, '0'):
                 status = 'closed'
-        trades = None  # todo: self.parse_trades(order['trades'])
+        trades = None  # todo: this.parseTrades (order['trades']);
         market = self.safe_market(None, market)
         side = self.safe_string(order, 'type')
         return self.safe_order({
@@ -739,8 +740,8 @@ class btcbox(Exchange, ImplicitAPI):
         # ]
         #
         orders = self.parse_orders(response, market, since, limit)
-        # status(open/closed/canceled) is None
-        # btcbox does not return status, but we know it's 'open' queried for open orders
+        # status (open/closed/canceled) is undefined
+        # btcbox does not return status, but we know it's 'open' as we queried for open orders
         if type == 'open':
             for i in range(0, len(orders)):
                 orders[i]['status'] = 'open'
@@ -808,7 +809,7 @@ class btcbox(Exchange, ImplicitAPI):
             return None  # resort to defaultErrorHandler
         result = self.safe_value(response, 'result')
         if result is None or result is True:
-            return None  # either public API(no error codes expected) or success
+            return None  # either public API (no error codes expected) or success
         code = self.safe_value(response, 'code')
         feedback = self.id + ' ' + body
         self.throw_exactly_matched_exception(self.exceptions, code, feedback)

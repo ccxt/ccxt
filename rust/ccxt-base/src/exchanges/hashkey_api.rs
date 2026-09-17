@@ -237,6 +237,11 @@ impl HashkeyCore {
         self.call_method(Value::Str("private_get_api_v1_account_withdraw_orders".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `privateGetApiV1AffiliateInviteeInfo` implicit endpoint.
+    pub async fn private_get_api_v1_affiliate_invitee_info(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_api_v1_affiliate_invitee_info".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `privatePostApiV1UserDataStream` implicit endpoint.
     pub async fn private_post_api_v1_user_data_stream(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_api_v1_user_data_stream".to_string()), optional_args).await
@@ -327,6 +332,11 @@ impl HashkeyCore {
         self.call_method(Value::Str("private_delete_api_v1_spot_cancel_order_by_ids".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `privateDeleteApiV1SpotCancelAllOpenOrders` implicit endpoint.
+    pub async fn private_delete_api_v1_spot_cancel_all_open_orders(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_delete_api_v1_spot_cancel_all_open_orders".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `privateDeleteApiV1FuturesOrder` implicit endpoint.
     pub async fn private_delete_api_v1_futures_order(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_delete_api_v1_futures_order".to_string()), optional_args).await
@@ -340,6 +350,11 @@ impl HashkeyCore {
     /// Auto-generated wrapper for the `privateDeleteApiV1FuturesCancelOrderByIds` implicit endpoint.
     pub async fn private_delete_api_v1_futures_cancel_order_by_ids(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_delete_api_v1_futures_cancel_order_by_ids".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateDeleteApiV1FuturesCancelAllOpenOrders` implicit endpoint.
+    pub async fn private_delete_api_v1_futures_cancel_all_open_orders(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_delete_api_v1_futures_cancel_all_open_orders".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateDeleteApiV1UserDataStream` implicit endpoint.

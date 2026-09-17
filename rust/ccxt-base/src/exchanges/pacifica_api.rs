@@ -132,6 +132,21 @@ impl PacificaCore {
         self.call_method(Value::Str("public_get_orders_history_by_id".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `publicGetOrdersTwap` implicit endpoint.
+    pub async fn public_get_orders_twap(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("public_get_orders_twap".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `publicGetOrdersTwapHistory` implicit endpoint.
+    pub async fn public_get_orders_twap_history(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("public_get_orders_twap_history".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `publicGetOrdersTwapHistoryById` implicit endpoint.
+    pub async fn public_get_orders_twap_history_by_id(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("public_get_orders_twap_history_by_id".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `publicGetSpotAssets` implicit endpoint.
     pub async fn public_get_spot_assets(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_spot_assets".to_string()), optional_args).await
@@ -155,6 +170,21 @@ impl PacificaCore {
     /// Auto-generated wrapper for the `publicGetAccountBuilderCodesApprovals` implicit endpoint.
     pub async fn public_get_account_builder_codes_approvals(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_account_builder_codes_approvals".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `publicGetBuilderOverview` implicit endpoint.
+    pub async fn public_get_builder_overview(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("public_get_builder_overview".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `publicGetBuilderTrades` implicit endpoint.
+    pub async fn public_get_builder_trades(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("public_get_builder_trades".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `publicGetLeaderboardBuilderCode` implicit endpoint.
+    pub async fn public_get_leaderboard_builder_code(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("public_get_leaderboard_builder_code".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostAccountLeverage` implicit endpoint.
@@ -257,6 +287,16 @@ impl PacificaCore {
         self.call_method(Value::Str("private_post_orders_batch".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `privatePostOrdersTwapCreate` implicit endpoint.
+    pub async fn private_post_orders_twap_create(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_orders_twap_create".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostOrdersTwapCancel` implicit endpoint.
+    pub async fn private_post_orders_twap_cancel(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_orders_twap_cancel".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `privatePostAccountBuilderCodesApprove` implicit endpoint.
     pub async fn private_post_account_builder_codes_approve(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_account_builder_codes_approve".to_string()), optional_args).await
@@ -267,9 +307,54 @@ impl PacificaCore {
         self.call_method(Value::Str("private_post_account_builder_codes_revoke".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `privatePostBuilderUpdateFeeRate` implicit endpoint.
+    pub async fn private_post_builder_update_fee_rate(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_builder_update_fee_rate".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostReferralUserCodeClaim` implicit endpoint.
+    pub async fn private_post_referral_user_code_claim(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_referral_user_code_claim".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `privatePostAgentBind` implicit endpoint.
     pub async fn private_post_agent_bind(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_agent_bind".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostAgentList` implicit endpoint.
+    pub async fn private_post_agent_list(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_agent_list".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostAgentRevoke` implicit endpoint.
+    pub async fn private_post_agent_revoke(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_agent_revoke".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostAgentRevokeAll` implicit endpoint.
+    pub async fn private_post_agent_revoke_all(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_agent_revoke_all".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostAgentIpWhitelistList` implicit endpoint.
+    pub async fn private_post_agent_ip_whitelist_list(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_agent_ip_whitelist_list".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostAgentIpWhitelistAdd` implicit endpoint.
+    pub async fn private_post_agent_ip_whitelist_add(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_agent_ip_whitelist_add".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostAgentIpWhitelistRemove` implicit endpoint.
+    pub async fn private_post_agent_ip_whitelist_remove(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_agent_ip_whitelist_remove".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostAgentIpWhitelistToggle` implicit endpoint.
+    pub async fn private_post_agent_ip_whitelist_toggle(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_agent_ip_whitelist_toggle".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostAccountApiKeysCreate` implicit endpoint.

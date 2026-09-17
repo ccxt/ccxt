@@ -10,6 +10,10 @@ use crate::runtime::*;
 // `self.load_markets(...)`, … on this Core resolve to the base defaults.
 use crate::exchange_generated::ExchangeBase;
 use crate::exchange::ExchangeRuntime;
+// Dynamic `this[method](...)` re-entries are emitted as
+// `self.call_dynamic_checked(...)` (blanket-impl'd on every Core) so an
+// unresolvable name raises NotSupported instead of yielding a silent Null.
+use crate::exchange::CallDynamicChecked;
 
 
 pub struct AsterCore {
@@ -760,6 +764,36 @@ impl AsterCore {
         m.insert("cost".to_string(), Value::Int(1));
     m
 }));
+        m.insert("v3/builder/userTrades".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(5));
+    m
+}));
+        m.insert("v3/builder/approvedUserList".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(5));
+    m
+}));
+        m.insert("v3/stpMode".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(30));
+    m
+}));
+        m.insert("v3/asset/migrateUser/history".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(50));
+    m
+}));
+        m.insert("v3/strategyOpenOrder".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(5));
+    m
+}));
+        m.insert("v3/strategyHistoryOrder".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(5));
+    m
+}));
     m
 }));
         m.insert("post".to_string(), Value::Map({
@@ -909,6 +943,36 @@ impl AsterCore {
         m.insert("cost".to_string(), Value::Int(1));
     m
 }));
+        m.insert("v3/registerAndApproveAgent".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(50));
+    m
+}));
+        m.insert("v3/asset/migrateUser".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(50));
+    m
+}));
+        m.insert("v3/chase".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v3/stpMode".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v3/placeStrategyOrder".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(50));
+    m
+}));
+        m.insert("v3/updateStrategyOrder".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(50));
+    m
+}));
     m
 }));
         m.insert("put".to_string(), Value::Map({
@@ -953,6 +1017,16 @@ impl AsterCore {
     m
 }));
         m.insert("v3/batchOrders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v3/guardedCancelOrder".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v3/guardedBatchOrders".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(1));
     m
@@ -3687,20 +3761,11 @@ impl AsterCore {
         if is_true(&postOnly) {
             add_element_to_object(&mut request, &Value::Str("timeInForce".to_string()), Value::Str("GTX".to_string()));
         }
-        //
-        // spot
-        // LIMIT timeInForce, quantity, price
-        // MARKET quantity or quoteOrderQty
-        // STOP and TAKE_PROFIT quantity, price, stopPrice
-        // STOP_MARKET and TAKE_PROFIT_MARKET quantity, stopPrice
-        // future
-        // LIMIT timeInForce, quantity, price
-        // MARKET quantity
-        // STOP/TAKE_PROFIT quantity, price, stopPrice
-        // STOP_MARKET/TAKE_PROFIT_MARKET stopPrice
-        // TRAILING_STOP_MARKET callbackRate
-        //
-        // additional required fields depending on the order type
+        // additional required fields per order type
+        // spot: LIMIT timeInForce, quantity, price; MARKET quantity or quoteOrderQty;
+        //       STOP/TAKE_PROFIT quantity, price, stopPrice; STOP_MARKET/TAKE_PROFIT_MARKET quantity, stopPrice
+        // future: LIMIT timeInForce, quantity, price; MARKET quantity; STOP/TAKE_PROFIT quantity, price, stopPrice;
+        //       STOP_MARKET/TAKE_PROFIT_MARKET stopPrice; TRAILING_STOP_MARKET callbackRate
         let mut closePosition: Value = self.safe_bool_k(params.clone(), "closePosition", &[Value::Bool(false)]);
         let mut timeInForceIsRequired: bool = false;
         let mut priceIsRequired: bool = false;

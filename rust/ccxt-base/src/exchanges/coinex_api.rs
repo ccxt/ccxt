@@ -742,6 +742,11 @@ impl CoinexCore {
         self.call_method(Value::Str("v2_public_get_assets_all_deposit_withdraw_config".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `v2PublicGetAssetsInfo` implicit endpoint.
+    pub async fn v2_public_get_assets_info(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v2_public_get_assets_info".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `v2PrivateGetAccountSubs` implicit endpoint.
     pub async fn v2_private_get_account_subs(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("v2_private_get_account_subs".to_string()), optional_args).await
@@ -1265,6 +1270,16 @@ impl CoinexCore {
     /// Auto-generated wrapper for the `v2PrivatePostFuturesSetPositionTakeProfit` implicit endpoint.
     pub async fn v2_private_post_futures_set_position_take_profit(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("v2_private_post_futures_set_position_take_profit".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `v2PrivatePostFuturesModifyPositionStopLoss` implicit endpoint.
+    pub async fn v2_private_post_futures_modify_position_stop_loss(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v2_private_post_futures_modify_position_stop_loss".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `v2PrivatePostFuturesModifyPositionTakeProfit` implicit endpoint.
+    pub async fn v2_private_post_futures_modify_position_take_profit(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v2_private_post_futures_modify_position_take_profit".to_string()), optional_args).await
     }
 
 }

@@ -10,6 +10,10 @@ use crate::runtime::*;
 // `self.load_markets(...)`, … on this Core resolve to the base defaults.
 use crate::exchange_generated::ExchangeBase;
 use crate::exchange::ExchangeRuntime;
+// Dynamic `this[method](...)` re-entries are emitted as
+// `self.call_dynamic_checked(...)` (blanket-impl'd on every Core) so an
+// unresolvable name raises NotSupported instead of yielding a silent Null.
+use crate::exchange::CallDynamicChecked;
 use crate::pro::*;
 
 
@@ -766,7 +770,7 @@ impl BitmexCore {
         //        ]
         //    }
         //
-        let mut rawLiquidations: Value = self.safe_value_k(message.clone(), "data", &[Value::List(vec![])]);
+        let mut rawLiquidations: Value = self.safe_list_k(message.clone(), "data", &[Value::List(vec![])]);
         let mut newLiquidations: Value = Value::List(vec![]);
         if is_equal(&self.liquidations, &Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "liquidationsLimit", &[Value::Int(1000)]);
@@ -1293,7 +1297,7 @@ impl BitmexCore {
             self.positions = ArrayCacheBySymbolBySide::new(Value::Null);
         }
         let mut cache: Value = self.positions.clone();
-        let mut rawPositions: Value = self.safe_value_k(message.clone(), "data", &[Value::List(vec![])]);
+        let mut rawPositions: Value = self.safe_list_k(message.clone(), "data", &[Value::List(vec![])]);
         let mut newPositions: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
@@ -1542,7 +1546,7 @@ impl BitmexCore {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_value_k(message.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(message.clone(), "data", &[Value::List(vec![])]);
         let mut messageHash: Value = Value::Str("order".to_string());
         // initial subscription response with multiple orders
         let mut dataLength: Value = get_array_length(&data);
@@ -1982,7 +1986,7 @@ impl BitmexCore {
         let mut interval: Value = replace_str(&table, &Value::Str("tradeBin".to_string()), &Value::Str("".to_string()));
         let mut timeframe: Value = self.find_timeframe(interval.clone(), &[]);
         let mut duration: Value = self.parse_timeframe(timeframe.clone());
-        let mut candles: Value = self.safe_value_k(message.clone(), "data", &[Value::List(vec![])]);
+        let mut candles: Value = self.safe_list_k(message.clone(), "data", &[Value::List(vec![])]);
         let mut results: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -2094,7 +2098,7 @@ impl BitmexCore {
         if is_equal(&table, &Value::Null) {
             return;
         }
-        let mut data: Value = self.safe_value_k(message.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(message.clone(), "data", &[Value::List(vec![])]);
         // if it's an initial snapshot
         if is_equal(&action, &Value::Str("partial".to_string())) {
             let mut filter: Value = self.safe_dict_k(message.clone(), "filter", &[Value::Map({
@@ -2226,7 +2230,7 @@ impl BitmexCore {
                 let mut m = indexmap::IndexMap::new();
                 m
             })]);
-            let mut args: Value = self.safe_value_k(request.clone(), "args", &[Value::List(vec![])]);
+            let mut args: Value = self.safe_list_k(request.clone(), "args", &[Value::List(vec![])]);
             let mut numArgs: Value = get_array_length(&args);
             if is_greater_than(&numArgs, &Value::Int(0)) {
                 let mut messageHash: Value = get_value(&args, &Value::Int(0));

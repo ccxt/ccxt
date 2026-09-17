@@ -644,8 +644,8 @@ class digifinex(Exchange, ImplicitAPI):
         #                 "clear_currency": "USDT",
         #                 "contract_value": "0.001",
         #                 "contract_value_currency": "BTC",
-        #                 "is_inverse": False,
-        #                 "is_trading": True,
+        #                 "is_inverse": false,
+        #                 "is_trading": true,
         #                 "status": "ONLINE",
         #                 "price_precision": 4,
         #                 "tick_size": "0.0001",
@@ -674,14 +674,14 @@ class digifinex(Exchange, ImplicitAPI):
             quote = self.safe_currency_code(quoteId)
             settle = self.safe_currency_code(settleId)
             #
-            # The status is documented in the exchange API docs:
-            # TRADING, HALT(delisted), BREAK(trading paused)
+            # The status is documented in the exchange API docs as follows:
+            # TRADING, HALT (delisted), BREAK (trading paused)
             # https://docs.digifinex.vip/en-ww/v3/#/public/spot/symbols
-            # However, all spot markets actually have status == 'HALT'
+            # However, all spot markets actually have status === 'HALT'
             # despite that they appear to be active on the exchange website.
-            # Apparently, we can't trust self status.
-            # status = self.safe_string(market, 'status')
-            # active = (status == 'TRADING')
+            # Apparently, we can't trust this status.
+            # const status = this.safeString (market, 'status');
+            # const active = (status === 'TRADING');
             #
             isAllowed = self.safe_integer(market, 'is_allow', 1)
             type = 'margin' if (defaultType == 'margin') else 'spot'
@@ -768,7 +768,7 @@ class digifinex(Exchange, ImplicitAPI):
         #         "code":0
         #     }
         #
-        markets = self.safe_value(response, 'data', [])
+        markets = self.safe_list(response, 'data', [])
         result = []
         for i in range(0, len(markets)):
             market = markets[i]
@@ -1083,7 +1083,7 @@ class digifinex(Exchange, ImplicitAPI):
         #     }
         #
         result = {}
-        tickers = self.safe_value_2(response, 'ticker', 'data', [])
+        tickers = self.safe_list_2(response, 'ticker', 'data', [])
         date = self.safe_integer(response, 'date')
         for i in range(0, len(tickers)):
             rawTicker = self.extend({
@@ -1189,7 +1189,7 @@ class digifinex(Exchange, ImplicitAPI):
         #         "low":0.021791,
         #         "buy":0.021946,
         #         "high":0.022266,
-        #         "date"1564518452,  # injected from fetchTicker/fetchTickers
+        #         "date"1564518452, // injected from fetchTicker/fetchTickers
         #     }
         #
         # swap: fetchTicker, fetchTickers
@@ -1224,6 +1224,10 @@ class digifinex(Exchange, ImplicitAPI):
         if market['swap'] is True:
             timestamp = self.safe_integer(ticker, 'timestamp')
         last = self.safe_string(ticker, 'last')
+        percentage = self.safe_string_2(ticker, 'change', 'price_change_percent')
+        if market['swap'] is True:
+            # swap endpoints return a raw ratio, spot already returns a percent
+            percentage = Precise.string_mul(percentage, '100')
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -1240,7 +1244,7 @@ class digifinex(Exchange, ImplicitAPI):
             'last': last,
             'previousClose': None,
             'change': None,
-            'percentage': self.safe_string_2(ticker, 'change', 'price_change_percent'),
+            'percentage': percentage,
             'average': None,
             'baseVolume': self.safe_string_2(ticker, 'vol', 'volume_24h'),
             'quoteVolume': self.safe_string(ticker, 'base_vol'),
@@ -1283,8 +1287,8 @@ class digifinex(Exchange, ImplicitAPI):
         #         "fee": 0.096,
         #         "fee_currency": "USDT",
         #         "timestamp": 1499865549,
-        #         "side": "buy",  # or "side": "sell_market"
-        #         "is_maker": True
+        #         "side": "buy", // or "side": "sell_market"
+        #         "is_maker": true
         #     }
         #
         # swap: fetchMyTrades
@@ -1331,16 +1335,16 @@ class digifinex(Exchange, ImplicitAPI):
             else:
                 takerOrMaker = None
             if (side == '1') or (direction == '1'):
-                # side = 'open long'
+                # side = 'open long';
                 side = 'buy'
             elif (side == '2') or (direction == '2'):
-                # side = 'open short'
+                # side = 'open short';
                 side = 'sell'
             elif (side == '3') or (direction == '3'):
-                # side = 'close long'
+                # side = 'close long';
                 side = 'sell'
             elif (side == '4') or (direction == '4'):
-                # side = 'close short'
+                # side = 'close short';
                 side = 'buy'
         else:
             if side is None:
@@ -1536,7 +1540,7 @@ class digifinex(Exchange, ImplicitAPI):
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: timestamp in ms of the latest candle to fetch
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             self.load_markets()
@@ -1629,7 +1633,7 @@ class digifinex(Exchange, ImplicitAPI):
         :param bool [params.postOnly]: True or False
         :param bool [params.reduceOnly]: True or False
         :param str [params.marginMode]: 'cross' or 'isolated', for spot margin trading
-        :param float [params.cost]: *spot market buy only* the quote quantity that can be used alternative for the amount
+        :param float [params.cost]: *spot market buy only* the quote quantity that can be used as an alternative for the amount
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         if self.markets is None:
@@ -1707,7 +1711,7 @@ class digifinex(Exchange, ImplicitAPI):
                     marginMode = currentMarginMode
                 else:
                     if marginMode != currentMarginMode:
-                        raise BadRequest(self.id + ' createOrders() requires all orders to have the same margin mode(isolated or cross)')
+                        raise BadRequest(self.id + ' createOrders() requires all orders to have the same margin mode (isolated or cross)')
             orderRequest = self.create_order_request(marketId, type, side, amount, price, orderParams)
             ordersRequests.append(orderRequest)
         market = self.market(symbol)
@@ -1833,7 +1837,7 @@ class digifinex(Exchange, ImplicitAPI):
                     quantity = self.cost_to_precision(symbol, cost)
                 elif createMarketBuyOrderRequiresPrice:
                     if price is None:
-                        raise InvalidOrder(self.id + ' createOrder() requires a price argument for market buy orders on spot markets to calculate the total amount to spend(amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to False and pass the cost to spend in the amount argument')
+                        raise InvalidOrder(self.id + ' createOrder() requires a price argument for market buy orders on spot markets to calculate the total amount to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to False and pass the cost to spend in the amount argument')
                     else:
                         amountString = self.number_to_string(amount)
                         priceString = self.number_to_string(price)
@@ -1933,7 +1937,7 @@ class digifinex(Exchange, ImplicitAPI):
         #     }
         #
         if (marketType == 'spot') or (marketType == 'margin'):
-            canceledOrders = self.safe_value(response, 'success', [])
+            canceledOrders = self.safe_list(response, 'success', [])
             numCanceledOrders = len(canceledOrders)
             if numCanceledOrders != 1:
                 raise OrderNotFound(self.id + ' cancelOrder() ' + id + ' not found')
@@ -2723,9 +2727,9 @@ class digifinex(Exchange, ImplicitAPI):
         currency = None
         request = {
             # 'currency': currency['id'],
-            # 'from': 'fromId',  # When direct is' prev ', from is 1, returning from old to new ascending, when direct is' next ', from is the ID of the most recent record, returned from the old descending order
-            # 'size': 100,  # default 100, max 500
-            # 'direct': 'prev',  # "prev" ascending, "next" descending
+            # 'from': 'fromId', // When direct is' prev ', from is 1, returning from old to new ascending, when direct is' next ', from is the ID of the most recent record, returned from the old descending order
+            # 'size': 100, // default 100, max 500
+            # 'direct': 'prev', // "prev" ascending, "next" descending
         }
         if code is not None:
             currency = self.currency(code)
@@ -2789,8 +2793,8 @@ class digifinex(Exchange, ImplicitAPI):
         return self.fetch_transactions_by_type('withdrawal', code, since, limit, params)
 
     def parse_transaction_status(self, status: Str):
-        # deposit state includes: 1(in deposit), 2(to be confirmed), 3(successfully deposited), 4(stopped)
-        # withdrawal state includes: 1(application in progress), 2(to be confirmed), 3(completed), 4(rejected)
+        # deposit state includes: 1 (in deposit), 2 (to be confirmed), 3 (successfully deposited), 4 (stopped)
+        # withdrawal state includes: 1 (application in progress), 2 (to be confirmed), 3 (completed), 4 (rejected)
         statuses = {
             '1': 'pending',  # in Progress
             '2': 'pending',  # to be confirmed
@@ -2994,7 +2998,7 @@ class digifinex(Exchange, ImplicitAPI):
             self.load_markets()
         currency = self.currency(code)
         request = {
-            # 'chain': 'ERC20', 'OMNI', 'TRC20',  # required for USDT
+            # 'chain': 'ERC20', 'OMNI', 'TRC20', // required for USDT
             'address': address,
             'amount': self.currency_to_precision(code, amount),
             'currency': currency['id'],
@@ -3108,7 +3112,7 @@ class digifinex(Exchange, ImplicitAPI):
         #         "equity": 45.133305540922
         #     }
         #
-        data = self.safe_value(response, 'list', [])
+        data = self.safe_list(response, 'list', [])
         result = None
         for i in range(0, len(data)):
             entry = data[i]
@@ -3324,7 +3328,7 @@ class digifinex(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_value(response, 'data', {})
-        result = self.safe_value(data, 'funding_rates', [])
+        result = self.safe_list(data, 'funding_rates', [])
         rates = []
         for i in range(0, len(result)):
             entry = result[i]
@@ -3487,7 +3491,7 @@ class digifinex(Exchange, ImplicitAPI):
         #     }
         #
         positionRequest = 'data' if (marketType == 'swap') else 'positions'
-        positions = self.safe_value(response, positionRequest, [])
+        positions = self.safe_list(response, positionRequest, [])
         result = []
         for i in range(0, len(positions)):
             result.append(self.parse_position(positions[i], market))
@@ -3574,7 +3578,7 @@ class digifinex(Exchange, ImplicitAPI):
         #     }
         #
         dataRequest = 'data' if (marketType == 'swap') else 'positions'
-        data = self.safe_value(response, dataRequest, [])
+        data = self.safe_list(response, dataRequest, [])
         position = self.parse_position(data[0], market)
         if marketType == 'swap':
             return position
@@ -3786,8 +3790,8 @@ class digifinex(Exchange, ImplicitAPI):
         #                 "clear_currency": "USDT",
         #                 "contract_value": "0.001",
         #                 "contract_value_currency": "BTC",
-        #                 "is_inverse": False,
-        #                 "is_trading": True,
+        #                 "is_inverse": false,
+        #                 "is_trading": true,
         #                 "status": "ONLINE",
         #                 "price_precision": 1,
         #                 "tick_size": "0.1",
@@ -3837,8 +3841,8 @@ class digifinex(Exchange, ImplicitAPI):
         #             "clear_currency": "USDT",
         #             "contract_value": "0.001",
         #             "contract_value_currency": "BTC",
-        #             "is_inverse": False,
-        #             "is_trading": True,
+        #             "is_inverse": false,
+        #             "is_trading": true,
         #             "status": "ONLINE",
         #             "price_precision": 1,
         #             "tick_size": "0.1",
@@ -3866,8 +3870,8 @@ class digifinex(Exchange, ImplicitAPI):
         #         "clear_currency": "USDT",
         #         "contract_value": "0.001",
         #         "contract_value_currency": "BTC",
-        #         "is_inverse": False,
-        #         "is_trading": True,
+        #         "is_inverse": false,
+        #         "is_trading": true,
         #         "status": "ONLINE",
         #         "price_precision": 1,
         #         "tick_size": "0.1",

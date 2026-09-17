@@ -22,6 +22,11 @@ impl Bit2cCore {
         self.call_method(Value::Str("public_get_exchanges_pair_orderbook".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `publicGetExchangesPairOrderbookTop` implicit endpoint.
+    pub async fn public_get_exchanges_pair_orderbook_top(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("public_get_exchanges_pair_orderbook_top".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `publicGetExchangesPairTrades` implicit endpoint.
     pub async fn public_get_exchanges_pair_trades(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_exchanges_pair_trades".to_string()), optional_args).await
@@ -40,6 +45,11 @@ impl Bit2cCore {
     /// Auto-generated wrapper for the `privatePostFundsAddCoinFundsRequest` implicit endpoint.
     pub async fn private_post_funds_add_coin_funds_request(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_funds_add_coin_funds_request".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostFundsWithdrawCoin` implicit endpoint.
+    pub async fn private_post_funds_withdraw_coin(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_funds_withdraw_coin".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostOrderAddFund` implicit endpoint.
@@ -125,6 +135,11 @@ impl Bit2cCore {
     /// Auto-generated wrapper for the `privateGetOrderOrderHistory` implicit endpoint.
     pub async fn private_get_order_order_history(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_order_order_history".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetOrderHistoryByOrderId` implicit endpoint.
+    pub async fn private_get_order_history_by_order_id(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_order_history_by_order_id".to_string()), optional_args).await
     }
 
 }

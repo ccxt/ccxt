@@ -10,6 +10,10 @@ use crate::runtime::*;
 // `self.load_markets(...)`, … on this Core resolve to the base defaults.
 use crate::exchange_generated::ExchangeBase;
 use crate::exchange::ExchangeRuntime;
+// Dynamic `this[method](...)` re-entries are emitted as
+// `self.call_dynamic_checked(...)` (blanket-impl'd on every Core) so an
+// unresolvable name raises NotSupported instead of yielding a silent Null.
+use crate::exchange::CallDynamicChecked;
 use crate::pro::*;
 
 
@@ -432,8 +436,8 @@ impl HollaexCore {
         let mut parsedTrades: Value = self.parse_trades(data.clone(), &[market.clone()]);
         {
                         let mut j: Value = Value::Int(0);
-            let mut __for_first_385: bool = true;
-            while { if !__for_first_385 { j = add(&j, &Value::Int(1)); } __for_first_385 = false; is_less_than(&j, &get_array_length(&parsedTrades)) } {
+            let mut __for_first_386: bool = true;
+            while { if !__for_first_386 { j = add(&j, &Value::Int(1)); } __for_first_386 = false; is_less_than(&j, &get_array_length(&parsedTrades)) } {
             stored.append(get_value(&parsedTrades, &j));
         }
         }
@@ -523,8 +527,8 @@ impl HollaexCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_386: bool = true;
-            while { if !__for_first_386 { i = add(&i, &Value::Int(1)); } __for_first_386 = false; is_less_than(&i, &get_array_length(&rawTrades)) } {
+            let mut __for_first_387: bool = true;
+            while { if !__for_first_387 { i = add(&i, &Value::Int(1)); } __for_first_387 = false; is_less_than(&i, &get_array_length(&rawTrades)) } {
             let mut trade: Value = get_value(&rawTrades, &i);
             let mut trade: Value = get_value(&rawTrades, &i);
             let mut parsed: Value = self.parse_trade(trade.clone(), &[]);
@@ -542,8 +546,8 @@ impl HollaexCore {
         let mut keys: Value = object_keys(&marketIds);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_387: bool = true;
-            while { if !__for_first_387 { i = add(&i, &Value::Int(1)); } __for_first_387 = false; is_less_than(&i, &get_array_length(&keys)) } {
+            let mut __for_first_388: bool = true;
+            while { if !__for_first_388 { i = add(&i, &Value::Int(1)); } __for_first_388 = false; is_less_than(&i, &get_array_length(&keys)) } {
             let mut marketId: Value = get_value(&keys, &i);
             let mut marketId: Value = get_value(&keys, &i);
             let mut messageHash: Value = add(&add(&channel, &Value::Str(":".to_string())), &marketId);
@@ -676,8 +680,8 @@ impl HollaexCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_388: bool = true;
-            while { if !__for_first_388 { i = add(&i, &Value::Int(1)); } __for_first_388 = false; is_less_than(&i, &get_array_length(&rawOrders)) } {
+            let mut __for_first_389: bool = true;
+            while { if !__for_first_389 { i = add(&i, &Value::Int(1)); } __for_first_389 = false; is_less_than(&i, &get_array_length(&rawOrders)) } {
             let mut order: Value = get_value(&rawOrders, &i);
             let mut order: Value = get_value(&rawOrders, &i);
             let mut parsed: Value = self.parse_order(order.clone(), &[]);
@@ -695,8 +699,8 @@ impl HollaexCore {
         let mut keys: Value = object_keys(&marketIds);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_389: bool = true;
-            while { if !__for_first_389 { i = add(&i, &Value::Int(1)); } __for_first_389 = false; is_less_than(&i, &get_array_length(&keys)) } {
+            let mut __for_first_390: bool = true;
+            while { if !__for_first_390 { i = add(&i, &Value::Int(1)); } __for_first_390 = false; is_less_than(&i, &get_array_length(&keys)) } {
             let mut marketId: Value = get_value(&keys, &i);
             let mut marketId: Value = get_value(&keys, &i);
             let mut messageHash: Value = add(&add(&channel, &Value::Str(":".to_string())), &marketId);
@@ -750,8 +754,8 @@ impl HollaexCore {
         { let __be_tmp = self.iso8601(timestamp.clone()); add_element_to_object(&mut self.balance, &Value::Str("datetime".to_string()), __be_tmp); };
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_390: bool = true;
-            while { if !__for_first_390 { i = add(&i, &Value::Int(1)); } __for_first_390 = false; is_less_than(&i, &get_array_length(&keys)) } {
+            let mut __for_first_391: bool = true;
+            while { if !__for_first_391 { i = add(&i, &Value::Int(1)); } __for_first_391 = false; is_less_than(&i, &get_array_length(&keys)) } {
             let mut key: Value = get_value(&keys, &i);
             let mut key: Value = get_value(&keys, &i);
             let mut parts: Value = split(&key, &Value::Str("_".to_string()));

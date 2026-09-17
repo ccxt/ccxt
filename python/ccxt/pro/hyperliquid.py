@@ -156,7 +156,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         request = self.safe_dict(wrapped, 'request', {})
         requestId = self.safe_string(wrapped, 'requestId')
         response = await self.watch(url, requestId, request, requestId)
-        # response is the same self.edit_order
+        # response is the same as in this.editOrder
         responseObject = self.safe_dict(response, 'response', {})
         dataObject = self.safe_dict(responseObject, 'data', {})
         statuses = self.safe_list(dataObject, 'statuses', [])
@@ -332,7 +332,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         market = self.market(symbol)
         symbol = market['symbol']
         # the single-symbol path subscribes to the per-coin context channel, which hyperliquid
-        # pushes at block cadence with full ticker fields(mark, oracle, funding, volume),
+        # pushes at block cadence with full ticker fields (mark, oracle, funding, volume),
         # instead of the aggregate allMids broadcast that only carries mids and arrives at the
         # server's own batch cadence, see https://github.com/ccxt/ccxt/issues/27475
         messageHash = 'ticker:' + symbol
@@ -509,7 +509,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         message = self.extend(request, params)
         return await self.watch(url, messageHash, message, messageHash)
 
-    def handle_ws_tickers(self, client: Client, message: object):
+    def handle_ws_tickers(self, client: Client, message: object) -> bool:
         # hip3 mids
         # {
         #     channel: 'allMids',
@@ -545,7 +545,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
             client.resolve(self.tickers, messageHash)
         return True
 
-    def handle_active_asset_ctx(self, client: Client, message: object):
+    def handle_active_asset_ctx(self, client: Client, message: object) -> bool:
         #
         #     {
         #         "channel": "activeAssetCtx",
@@ -560,7 +560,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         #                 "funding": "0.0000125",
         #                 "openInterest": "688.11",
         #                 "premium": "0.00031774",
-        #                 "impactPxs": ["14.3047", "14.3444"]
+        #                 "impactPxs": [ "14.3047", "14.3444" ]
         #             }
         #         }
         #     }
@@ -588,7 +588,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         #     {
         #         "channel": "userFills",
         #         "data": {
-        #             "isSnapshot": True,
+        #             "isSnapshot": true,
         #             "user": "0x15f43d1f2dee81424afd891943262aa90f22cc2a",
         #             "fills": [
         #                 {
@@ -602,7 +602,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         #                     "closedPnl": "-0.81851",
         #                     "hash": "0xc5adaf35f8402750c218040b0a7bc301130051521273b6f398b3caad3e1f3f5f",
         #                     "oid": 7484888874,
-        #                     "crossed": True,
+        #                     "crossed": true,
         #                     "fee": "2.968244",
         #                     "liquidationMarkPx": null,
         #                     "tid": 567547935839686,
@@ -747,7 +747,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         #         "closedPnl": "-0.81851",
         #         "hash": "0xc5adaf35f8402750c218040b0a7bc301130051521273b6f398b3caad3e1f3f5f",
         #         "oid": 7484888874,
-        #         "crossed": True,
+        #         "crossed": true,
         #         "fee": "2.968244",
         #         "liquidationMarkPx": null,
         #         "tid": 567547935839686,
@@ -805,7 +805,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()
@@ -836,7 +836,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()
@@ -898,7 +898,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         #             id: <number>,
         #             response: {
         #                  type: "info" | "action" | "error",
-        #                  payload: {...}
+        #                  payload: { ... }
         #         }
         #    }
         data = self.safe_dict(message, 'data')
@@ -1264,10 +1264,10 @@ class hyperliquid(ccxt.async_support.hyperliquid):
             },
         }
         message = self.extend(request, params)
-        # dedup by(channel, user), not by messageHash: the server subscription is per-user,
-        # so a second user must send its own subscribe(https://github.com/ccxt/ccxt/issues/28369),
+        # dedup by (channel, user), not by messageHash: the server subscription is per-user,
+        # so a second user must send its own subscribe (https://github.com/ccxt/ccxt/issues/28369),
         # and a second symbol-scoped call for the same user must NOT resend - hyperliquid answers
-        # duplicates on the error channel("Already subscribed"), which rejects every pending
+        # duplicates on the error channel ("Already subscribed"), which rejects every pending
         # future on the connection. address lowercased because the server is case-insensitive.
         # note: orderUpdates payloads carry no user, so resolution/data stays shared across users
         if userAddress is None:
@@ -1380,7 +1380,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         #
         #    {
         #         "channel": "error",
-        #         "data": "Error parsing JSON into valid websocket request: {\"type\": \"allMids\"}"
+        #         "data": "Error parsing JSON into valid websocket request: { \"type\": \"allMids\" }"
         #     }
         #
         channel = self.safe_string(message, 'channel', '')
@@ -1483,7 +1483,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         subHash = 'order'
         unSubHash = 'unsubscribe:' + subHash
         self.clean_unsubscription(client, subHash, unSubHash, True)
-        # the prefix sweep above can't see the per-user dedup key(prefix-disjoint by design)
+        # the prefix sweep above can't see the per-user dedup key (prefix-disjoint by design);
         # clear it for the user echoed in the ack so a later watch re-subscribes
         user = self.safe_string_lower(subscription, 'user')
         if user is not None:
@@ -1499,7 +1499,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         subHash = 'myTrades'
         unSubHash = 'unsubscribe:' + subHash
         self.clean_unsubscription(client, subHash, unSubHash, True)
-        # the prefix sweep above can't see the per-user dedup key(prefix-disjoint by design)
+        # the prefix sweep above can't see the per-user dedup key (prefix-disjoint by design);
         # clear it for the user echoed in the ack so a later watch re-subscribes
         user = self.safe_string_lower(subscription, 'user')
         if user is not None:

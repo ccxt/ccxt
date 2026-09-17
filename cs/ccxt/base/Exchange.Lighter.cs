@@ -36,7 +36,7 @@ public partial class BaseExchange
         return lighterSigner;
     }
 
-    public async Task<LighterSigner.Signer> lighterCreateClient(object signer, object chainId, object privateKey, object apiKeyIndex, object accountIndex)
+    public LighterSigner.Signer lighterCreateClient(object signer, object chainId, object privateKey, object apiKeyIndex, object accountIndex)
     {
         string url = (string)this.implodeHostname(getValue(getValue(this.urls, "api"), "public"));
         ((LighterSigner.Signer)signer).CreateClient(
@@ -66,7 +66,7 @@ public partial class BaseExchange
         {
             ordersArr.Add(new LighterSigner.Signer.CreateOrderTxReq
             {
-                MarketIndex = Convert.ToByte(getValue(order, "market_index")),
+                MarketIndex = Convert.ToInt16(getValue(order, "market_index")),
                 ClientOrderIndex = Convert.ToInt64(getValue(order, "client_order_index")),
                 BaseAmount = Convert.ToInt64(getValue(order, "base_amount")),
                 Price = Convert.ToUInt32(getValue(order, "avg_execution_price")),
@@ -83,6 +83,8 @@ public partial class BaseExchange
             Convert.ToInt64(getValue(request, "integrator_account_index")),
             Convert.ToInt32(getValue(request, "integrator_taker_fee")),
             Convert.ToInt32(getValue(request, "integrator_maker_fee")),
+            Convert.ToByte(this.safeInteger(request, "self_trade_behavior_mode", 0)), // SelfTradeBehaviorExpireMaker
+            Convert.ToByte(this.safeInteger(request, "self_trade_equality_mode", 0)), // SelfTradeEqualityAccountIndex
             0x1, // skip nonce
             Convert.ToInt64(getValue(request, "nonce")), Convert.ToInt32(getValue(request, "api_key_index")), Convert.ToInt64(getValue(request, "account_index"))
         );
@@ -105,6 +107,8 @@ public partial class BaseExchange
             Convert.ToInt64(getValue(request, "integrator_account_index")),
             Convert.ToInt32(getValue(request, "integrator_taker_fee")),
             Convert.ToInt32(getValue(request, "integrator_maker_fee")),
+            Convert.ToByte(this.safeInteger(request, "self_trade_behavior_mode", 0)), // SelfTradeBehaviorExpireMaker
+            Convert.ToByte(this.safeInteger(request, "self_trade_equality_mode", 0)), // SelfTradeEqualityAccountIndex
             0x1, // skip nonce
             Convert.ToInt64(getValue(request, "nonce")),
             Convert.ToInt32(getValue(request, "api_key_index")),
@@ -156,6 +160,7 @@ public partial class BaseExchange
         LighterSigner.Signer.SignedTx signedTx = ((LighterSigner.Signer)signer).SignCancelAllOrders(
             Convert.ToInt32(getValue(request, "time_in_force")),
             Convert.ToInt64(getValue(request, "time")),
+            Convert.ToInt32(this.safeInteger(request, "cancel_all_market_index", 255)), // NilMarketIndex, every market
             0x1, // skip nonce
             Convert.ToInt64(getValue(request, "nonce")),
             Convert.ToInt32(getValue(request, "api_key_index")),
@@ -170,10 +175,16 @@ public partial class BaseExchange
             Convert.ToInt32(getValue(request, "market_index")),
             Convert.ToInt64(getValue(request, "index")),
             Convert.ToInt64(getValue(request, "base_amount")),
-            Convert.ToInt32(getValue(request, "price")),
-            Convert.ToInt32(getValue(request, "trigger_price")),
+            Convert.ToInt64(getValue(request, "price")),
+            Convert.ToInt64(getValue(request, "trigger_price")),
+            Convert.ToInt64(this.safeInteger(request, "integrator_account_index", 0)),
+            Convert.ToInt32(this.safeInteger(request, "integrator_taker_fee", 0)),
+            Convert.ToInt32(this.safeInteger(request, "integrator_maker_fee", 0)),
+            Convert.ToByte(this.safeInteger(request, "self_trade_behavior_mode", 0)), // SelfTradeBehaviorExpireMaker
+            Convert.ToByte(this.safeInteger(request, "self_trade_equality_mode", 0)), // SelfTradeEqualityAccountIndex
             0x1, // skip nonce
             Convert.ToInt64(getValue(request, "nonce")),
+            Convert.ToInt64(this.safeInteger(request, "order_version", 0)), // NilOrderVersion
             Convert.ToInt32(getValue(request, "api_key_index")),
             Convert.ToInt64(getValue(request, "account_index"))
         );

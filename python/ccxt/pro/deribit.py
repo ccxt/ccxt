@@ -62,7 +62,7 @@ class deribit(ccxt.async_support.deribit):
                     # watchOrderBook replacement
                     'watchOrderBookForSymbols': {
                         'interval': '100ms',  # 100ms, agg2, raw
-                        'useDepthEndpoint': False,  # if True, it will use the {books.group.depth.interval} endpoint instead of the {books.interval} endpoint
+                        'useDepthEndpoint': False,  # if true, it will use the {books.group.depth.interval} endpoint instead of the {books.interval} endpoint
                         'depth': '20',  # 1, 10, 20
                         'group': 'none',  # none, 1, 2, 5, 10, 25, 100, 250
                     },
@@ -92,7 +92,7 @@ class deribit(ccxt.async_support.deribit):
         await self.authenticate(params)
         messageHash = 'balance'
         url = self.urls['api']['ws']
-        currencies = self.safe_value(self.options, 'currencies', [])
+        currencies = self.safe_list(self.options, 'currencies', [])
         channels = []
         for i in range(0, len(currencies)):
             currencyCode = currencies[i]
@@ -123,7 +123,7 @@ class deribit(ccxt.async_support.deribit):
         #                 "projected_maintenance_margin": 0,
         #                 "projected_initial_margin": 0,
         #                 "projected_delta_total": 0,
-        #                 "portfolio_margining_enabled": False,
+        #                 "portfolio_margining_enabled": false,
         #                 "options_vega": 0,
         #                 "options_value": 0,
         #                 "options_theta": 0,
@@ -479,11 +479,11 @@ class deribit(ccxt.async_support.deribit):
         #                 "timestamp": 1655421193564,
         #                 "tick_direction": 0,
         #                 "state": "filled",
-        #                 "self_trade": False,
-        #                 "reduce_only": False,
+        #                 "self_trade": false,
+        #                 "reduce_only": false,
         #                 "profit_loss": 0,
         #                 "price": 20236.5,
-        #                 "post_only": False,
+        #                 "post_only": false,
         #                 "order_type": "market",
         #                 "order_id": "46108941243",
         #                 "matching_id": null,
@@ -709,27 +709,27 @@ class deribit(ccxt.async_support.deribit):
         #         "params": {
         #             "channel": "user.orders.any.any.raw",
         #             "data": {
-        #                 "web": True,
+        #                 "web": true,
         #                 "time_in_force": "good_til_cancelled",
-        #                 "replaced": False,
-        #                 "reduce_only": False,
+        #                 "replaced": false,
+        #                 "reduce_only": false,
         #                 "profit_loss": 0,
         #                 "price": 50000,
-        #                 "post_only": False,
+        #                 "post_only": false,
         #                 "order_type": "limit",
         #                 "order_state": "open",
         #                 "order_id": "46094375191",
         #                 "max_show": 10,
         #                 "last_update_timestamp": 1655401625037,
         #                 "label": '',
-        #                 "is_liquidation": False,
+        #                 "is_liquidation": false,
         #                 "instrument_name": "BTC-PERPETUAL",
         #                 "filled_amount": 0,
         #                 "direction": "sell",
         #                 "creation_timestamp": 1655401625037,
         #                 "commission": 0,
         #                 "average_price": 0,
-        #                 "api": False,
+        #                 "api": false,
         #                 "amount": 10
         #             }
         #         }
@@ -763,7 +763,7 @@ class deribit(ccxt.async_support.deribit):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()
@@ -781,7 +781,7 @@ class deribit(ccxt.async_support.deribit):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         symbolsLength = len(symbolsAndTimeframes)
         if symbolsLength == 0 or not isinstance(symbolsAndTimeframes[0], list):
@@ -914,7 +914,7 @@ class deribit(ccxt.async_support.deribit):
         #         "usIn": "1655391709417993",
         #         "usOut": "1655391709418049",
         #         "usDiff": 56,
-        #         "testnet": False
+        #         "testnet": false
         #     }
         #
         # subscribe
@@ -925,7 +925,7 @@ class deribit(ccxt.async_support.deribit):
         #         "usIn": "1655393625889396",
         #         "usOut": "1655393625889518",
         #         "usDiff": 122,
-        #         "testnet": False
+        #         "testnet": false
         #     }
         #
         # notification
@@ -1003,7 +1003,7 @@ class deribit(ccxt.async_support.deribit):
         #         "usIn": "1655391872327712",
         #         "usOut": "1655391872328515",
         #         "usDiff": 803,
-        #         "testnet": False
+        #         "testnet": false
         #     }
         #
         messageHash = 'authenticated'

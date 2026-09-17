@@ -7,7 +7,7 @@ namespace ccxt.pro;
 public partial class bitvavo { public bitvavo(object args = null) : base(args) { } }
 public partial class bitvavo : ccxt.bitvavo
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "has", new Dictionary<string, object>() {
@@ -77,7 +77,7 @@ public partial class bitvavo : ccxt.bitvavo
         {
             await this.loadMarkets();
         }
-        object market = this.market(symbol);
+        Dictionary<string, object> market = this.market(symbol);
         object messageHash = add(add(name, "@"), getValue(market, "id"));
         object url = getValue(getValue(this.urls, "api"), "ws");
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -101,9 +101,9 @@ public partial class bitvavo : ccxt.bitvavo
         symbols = this.marketSymbols(symbols);
         List<object> messageHashes = new List<object>() {methodName};
         List<object> args = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
-            object market = this.market(getValue(symbols, i));
+            Dictionary<string, object> market = this.market(getValue(symbols, i));
             ((IList<object>)args).Add(((string)getValue(market, "id")));
         }
         object url = getValue(getValue(this.urls, "api"), "ws");
@@ -180,13 +180,13 @@ public partial class bitvavo : ccxt.bitvavo
         //
         this.handleBidAsk(client as WebSocketClient, message);
         object eventVar = this.safeString(message, "event");
-        object tickers = this.safeValue(message, "data", new List<object>() {});
+        List<object> tickers = this.safeList(message, "data", new List<object>() {});
         List<object> result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(tickers)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(tickers)); postFixIncrement(ref i))
         {
             object data = getValue(tickers, i);
-            object marketId = this.safeString(data, "market");
-            object market = this.safeMarket(marketId, null, "-");
+            string? marketId = this.safeString(data, "market");
+            Dictionary<string, object> market = this.safeMarket(marketId, null, "-");
             object messageHash = add(add(eventVar, "@"), marketId);
             object ticker = this.parseTicker(data, market);
             object symbol = getValue(ticker, "symbol");
@@ -222,9 +222,9 @@ public partial class bitvavo : ccxt.bitvavo
     public virtual void handleBidAsk(WebSocketClient client, object message)
     {
         string eventVar = "bidask";
-        object tickers = this.safeValue(message, "data", new List<object>() {});
+        List<object> tickers = this.safeList(message, "data", new List<object>() {});
         List<object> result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(tickers)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(tickers)); postFixIncrement(ref i))
         {
             object data = getValue(tickers, i);
             object ticker = this.parseWsBidAsk(data);
@@ -296,8 +296,8 @@ public partial class bitvavo : ccxt.bitvavo
         //         "side": "buy"
         //     }
         //
-        object marketId = this.safeString(message, "market");
-        object market = this.safeMarket(marketId, null, "-");
+        string? marketId = this.safeString(message, "market");
+        Dictionary<string, object> market = this.safeMarket(marketId, null, "-");
         object symbol = getValue(market, "symbol");
         string name = "trades";
         object messageHash = add(add(name, "@"), marketId);
@@ -336,9 +336,9 @@ public partial class bitvavo : ccxt.bitvavo
         string name = "trades";
         List<object> marketIds = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
-            object market = this.market(getValue(symbols, i));
+            Dictionary<string, object> market = this.market(getValue(symbols, i));
             ((IList<object>)marketIds).Add(((string)getValue(market, "id")));
             ((IList<object>)messageHashes).Add(add(add(name, "@"), getValue(market, "id")));
         }
@@ -396,9 +396,9 @@ public partial class bitvavo : ccxt.bitvavo
         string name = "trades";
         List<object> marketIds = new List<object>() {};
         List<object> subMessageHashes = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
-            object market = this.market(getValue(symbols, i));
+            Dictionary<string, object> market = this.market(getValue(symbols, i));
             ((IList<object>)marketIds).Add(((string)getValue(market, "id")));
             ((IList<object>)subMessageHashes).Add(add(add(name, "@"), getValue(market, "id")));
         }
@@ -434,11 +434,11 @@ public partial class bitvavo : ccxt.bitvavo
         {
             await this.loadMarkets();
         }
-        object market = this.market(symbolVar);
+        Dictionary<string, object> market = this.market(symbolVar);
         symbolVar = getValue(market, "symbol");
         string name = "candles";
         object marketId = getValue(market, "id");
-        object interval = this.safeString(this.timeframes, timeframeVar, timeframeVar);
+        string? interval = this.safeString(this.timeframes, timeframeVar, timeframeVar);
         object messageHash = add(add(add(add(name, "@"), marketId), "_"), interval);
         object url = getValue(getValue(this.urls, "api"), "ws");
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -470,7 +470,7 @@ public partial class bitvavo : ccxt.bitvavo
         //    }
         //
         object response = this.safeValue(message, "response");
-        object ohlcv = this.parseOHLCVs(response, null, null, null);
+        IList<object> ohlcv = this.parseOHLCVs(response, null,((string)null), null);
         string? messageHash = this.safeString(message, "requestId");
         callDynamically(client as WebSocketClient, "resolve", new object[] {ohlcv, messageHash});
     }
@@ -495,10 +495,10 @@ public partial class bitvavo : ccxt.bitvavo
         //     }
         //
         string name = "candles";
-        object marketId = this.safeString(message, "market");
-        object market = this.safeMarket(marketId, null, "-");
+        string? marketId = this.safeString(message, "market");
+        Dictionary<string, object> market = this.safeMarket(marketId, null, "-");
         object symbol = getValue(market, "symbol");
-        object interval = this.safeString(message, "interval");
+        string? interval = this.safeString(message, "interval");
         // use a reverse lookup in a static map instead
         object timeframe = this.findTimeframe(interval);
         object messageHash = add(add(add(add(name, "@"), marketId), "_"), interval);
@@ -511,7 +511,7 @@ public partial class bitvavo : ccxt.bitvavo
             stored = new ArrayCacheByTimestamp(limit);
             ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[(string)((string)timeframe)] = stored;
         }
-        for (object i = 0; isLessThan(i, getArrayLength(candles)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(candles)); postFixIncrement(ref i))
         {
             object candle = getValue(candles, i);
             object parsed = this.parseOHLCV(candle, market);
@@ -543,12 +543,12 @@ public partial class bitvavo : ccxt.bitvavo
         string name = "candles";
         List<object> messageHashes = new List<object>() {};
         Dictionary<string, object> marketIdsByInterval = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(symbolsAndTimeframes)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(symbolsAndTimeframes)); postFixIncrement(ref i))
         {
             object symbolAndTimeframe = getValue(symbolsAndTimeframes, i);
-            object market = this.market(getValue(symbolAndTimeframe, 0));
+            Dictionary<string, object> market = this.market(getValue(symbolAndTimeframe, 0));
             object timeframeString = getValue(symbolAndTimeframe, 1);
-            object interval = this.safeString(this.timeframes, timeframeString, timeframeString);
+            string? interval = this.safeString(this.timeframes, timeframeString, timeframeString);
             if (!isTrue((inOp(marketIdsByInterval, interval))))
             {
                 ((IDictionary<string,object>)marketIdsByInterval)[(string)interval] = new List<object>() {};
@@ -559,9 +559,9 @@ public partial class bitvavo : ccxt.bitvavo
         }
         List<object> channels = new List<object>() {};
         List<object> intervals = new List<object>(((IDictionary<string,object>)marketIdsByInterval).Keys);
-        for (object i = 0; isLessThan(i, getArrayLength(intervals)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(intervals)); postFixIncrement(ref i))
         {
-            object interval = getValue(intervals, i);
+            string? interval = ((string)getValue(intervals, i));
             ((IList<object>)channels).Add(new Dictionary<string, object>() {
                 { "name", name },
                 { "interval", new List<object>() {interval} },
@@ -582,8 +582,8 @@ public partial class bitvavo : ccxt.bitvavo
         {
             limit = callDynamically(candles, "getLimit", new object[] {symbol, limit});
         }
-        object filtered = this.filterBySinceLimit(candles, since, limit, 0, true);
-        return ccxt.BaseExchange.ToOHLCVDict(this.createOHLCVObject(symbol, timeframe, filtered));
+        IList<object> filtered = this.filterBySinceLimit(candles, since, limit, 0, true);
+        return ccxt.BaseExchange.ToOHLCVDict(this.createOHLCVObject(symbol,((string)timeframe), filtered));
     }
 
     /**
@@ -596,11 +596,12 @@ public partial class bitvavo : ccxt.bitvavo
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {any} status of the unwatch request
      */
-    public async override Task<object> unWatchOHLCV(object symbol, object timeframe = null, object parameters = null)
+    public async override Task<object> unWatchOHLCV(object symbol, string timeframe = null, object parameters = null)
     {
-        timeframe ??= "1m";
+        object timeframeVar = timeframe;
+        timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        return await this.unWatchOHLCVForSymbols(new List<object>() {new List<object>() {symbol, timeframe}}, parameters);
+        return await this.unWatchOHLCVForSymbols(new List<object>() {new List<object>() {symbol, timeframeVar}}, parameters);
     }
 
     /**
@@ -622,12 +623,12 @@ public partial class bitvavo : ccxt.bitvavo
         string name = "candles";
         List<object> subMessageHashes = new List<object>() {};
         Dictionary<string, object> marketIdsByInterval = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(symbolsAndTimeframes)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(symbolsAndTimeframes)); postFixIncrement(ref i))
         {
             object symbolAndTimeframe = getValue(symbolsAndTimeframes, i);
-            object market = this.market(getValue(symbolAndTimeframe, 0));
+            Dictionary<string, object> market = this.market(getValue(symbolAndTimeframe, 0));
             object timeframeString = getValue(symbolAndTimeframe, 1);
-            object interval = this.safeString(this.timeframes, timeframeString, timeframeString);
+            string? interval = this.safeString(this.timeframes, timeframeString, timeframeString);
             if (!isTrue((inOp(marketIdsByInterval, interval))))
             {
                 ((IDictionary<string,object>)marketIdsByInterval)[(string)interval] = new List<object>() {};
@@ -640,9 +641,9 @@ public partial class bitvavo : ccxt.bitvavo
         }
         List<object> channels = new List<object>() {};
         List<object> intervals = new List<object>(((IDictionary<string,object>)marketIdsByInterval).Keys);
-        for (object i = 0; isLessThan(i, getArrayLength(intervals)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(intervals)); postFixIncrement(ref i))
         {
-            object interval = getValue(intervals, i);
+            string? interval = ((string)getValue(intervals, i));
             ((IList<object>)channels).Add(new Dictionary<string, object>() {
                 { "name", name },
                 { "interval", new List<object>() {interval} },
@@ -672,7 +673,7 @@ public partial class bitvavo : ccxt.bitvavo
         {
             await this.loadMarkets();
         }
-        object market = this.market(symbolVar);
+        Dictionary<string, object> market = this.market(symbolVar);
         symbolVar = getValue(market, "symbol");
         string name = "book";
         object messageHash = add(add(name, "@"), getValue(market, "id"));
@@ -719,9 +720,9 @@ public partial class bitvavo : ccxt.bitvavo
         string name = "book";
         List<object> marketIds = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
-            object market = this.market(getValue(symbols, i));
+            Dictionary<string, object> market = this.market(getValue(symbols, i));
             ((IList<object>)marketIds).Add(((string)getValue(market, "id")));
             ((IList<object>)messageHashes).Add(add(add(name, "@"), getValue(market, "id")));
         }
@@ -781,9 +782,9 @@ public partial class bitvavo : ccxt.bitvavo
         string name = "book";
         List<object> marketIds = new List<object>() {};
         List<object> subMessageHashes = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
-            object market = this.market(getValue(symbols, i));
+            Dictionary<string, object> market = this.market(getValue(symbols, i));
             ((IList<object>)marketIds).Add(((string)getValue(market, "id")));
             ((IList<object>)subMessageHashes).Add(add(add(name, "@"), getValue(market, "id")));
         }
@@ -806,7 +807,7 @@ public partial class bitvavo : ccxt.bitvavo
 
     public override void handleDeltas(object bookside, object deltas)
     {
-        for (object i = 0; isLessThan(i, getArrayLength(deltas)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(deltas)); postFixIncrement(ref i))
         {
             this.handleDelta(bookside, getValue(deltas, i));
         }
@@ -853,11 +854,11 @@ public partial class bitvavo : ccxt.bitvavo
         //     }
         //
         object eventVar = this.safeString(message, "event");
-        object marketId = this.safeString(message, "market");
-        object market = this.safeMarket(marketId, null, "-");
+        string? marketId = this.safeString(message, "market");
+        Dictionary<string, object> market = this.safeMarket(marketId, null, "-");
         object symbol = getValue(market, "symbol");
         object messageHash = add(add(eventVar, "@"), getValue(market, "id"));
-        object orderbook = this.safeValue(this.orderbooks, symbol);
+        ccxt.pro.IOrderBook orderbook = this.safeOrderBook(this.orderbooks, symbol);
         if (isTrue(isEqual(orderbook, null)))
         {
             return;
@@ -867,7 +868,7 @@ public partial class bitvavo : ccxt.bitvavo
             object subscription = this.safeValue(((WebSocketClient)client).subscriptions, messageHash, new Dictionary<string, object>() {});
             // multi-symbol watches share one subscription object, so the
             // snapshot-in-flight flag must be tracked per market
-            object flagKey = add("watchingOrderBookSnapshot@", marketId);
+            string flagKey = add("watchingOrderBookSnapshot@", marketId);
             object watchingOrderBookSnapshot = this.safeValue(subscription, flagKey);
             if (isTrue(isEqual(watchingOrderBookSnapshot, null)))
             {
@@ -891,8 +892,8 @@ public partial class bitvavo : ccxt.bitvavo
         object parameters = this.safeValue(subscription, "params");
         // multi-symbol watches share one subscription object without a marketId,
         // in that case the buffered delta message identifies the market
-        object marketId = this.safeString2(subscription, "marketId", "market", this.safeString(message, "market"));
-        object snapshotSymbol = this.safeSymbol(marketId, null, "-");
+        string? marketId = this.safeString2(subscription, "marketId", "market", this.safeString(message, "market"));
+        string? snapshotSymbol = this.safeSymbol(marketId, null, "-");
         if (!isTrue((inOp(this.orderbooks, snapshotSymbol))))
         {
             // this snapshot fetch was scheduled before an unsubscribe removed the
@@ -936,11 +937,11 @@ public partial class bitvavo : ccxt.bitvavo
         {
             return;
         }
-        object marketId = this.safeString(response, "market");
-        object symbol = this.safeSymbol(marketId, null, "-");
+        string? marketId = this.safeString(response, "market");
+        string? symbol = this.safeSymbol(marketId, null, "-");
         string name = "book";
         object messageHash = add(add(name, "@"), marketId);
-        object orderbook = this.safeValue(this.orderbooks, symbol);
+        ccxt.pro.IOrderBook orderbook = this.safeOrderBook(this.orderbooks, symbol);
         if (isTrue(isEqual(orderbook, null)))
         {
             // the market was unsubscribed while this snapshot request was in flight
@@ -951,7 +952,7 @@ public partial class bitvavo : ccxt.bitvavo
         (orderbook as IOrderBook).reset(snapshot);
         // unroll the accumulated deltas
         object messages = (orderbook as ccxt.pro.OrderBook).cache;
-        for (object i = 0; isLessThan(i, getArrayLength(messages)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(messages)); postFixIncrement(ref i))
         {
             object messageItem = getValue(messages, i);
             this.handleOrderBookMessage(client as WebSocketClient, messageItem, orderbook);
@@ -961,7 +962,7 @@ public partial class bitvavo : ccxt.bitvavo
         // getBook is a one-shot request but this.watch tracks it as a persistent
         // subscription - drop it so a later unsubscribe/subscribe re-fetches the snapshot
         // instead of suppressing the request as an already-active subscription
-        object snapshotHash = add("getBook@", marketId);
+        string snapshotHash = add("getBook@", marketId);
         if (isTrue(inOp(((WebSocketClient)client).subscriptions, snapshotHash)))
         {
             ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)snapshotHash);
@@ -982,10 +983,10 @@ public partial class bitvavo : ccxt.bitvavo
     public virtual void handleOrderBookSubscriptions(WebSocketClient client, object message, object marketIds)
     {
         string name = "book";
-        for (object i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
         {
-            object marketId = this.safeString(marketIds, i);
-            object symbol = this.safeSymbol(marketId, null, "-");
+            string? marketId = this.safeString(marketIds, i);
+            string? symbol = this.safeSymbol(marketId, null, "-");
             object messageHash = add(add(name, "@"), marketId);
             if (!isTrue((inOp(this.orderbooks, symbol))))
             {
@@ -1014,7 +1015,7 @@ public partial class bitvavo : ccxt.bitvavo
             { "channels", channels },
         };
         List<object> unsubHashes = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(subMessageHashes)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(subMessageHashes)); postFixIncrement(ref i))
         {
             ((IList<object>)unsubHashes).Add(add("unsubscribe:", getValue(subMessageHashes, i)));
         }
@@ -1038,9 +1039,9 @@ public partial class bitvavo : ccxt.bitvavo
         // the confirmation carries the remaining subscriptions without identifying
         // which unsubscribe request it belongs to, so settle every pending unsubscription
         List<object> keys = new List<object>(((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Keys);
-        for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
         {
-            object key = getValue(keys, i);
+            string? key = ((string)getValue(keys, i));
             if (!isTrue((inOp(((WebSocketClient)client).subscriptions, key))))
             {
                 continue;
@@ -1089,12 +1090,12 @@ public partial class bitvavo : ccxt.bitvavo
             await this.loadMarkets();
         }
         await this.authenticate();
-        object market = this.market(symbolVar);
+        Dictionary<string, object> market = this.market(symbolVar);
         symbolVar = getValue(market, "symbol");
         object marketId = getValue(market, "id");
         object url = getValue(getValue(this.urls, "api"), "ws");
         string name = "account";
-        object messageHash = add("order:", symbolVar);
+        string messageHash = add("order:", symbolVar);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "action", "subscribe" },
             { "channels", new List<object>() {new Dictionary<string, object>() {
@@ -1134,12 +1135,12 @@ public partial class bitvavo : ccxt.bitvavo
             await this.loadMarkets();
         }
         await this.authenticate();
-        object market = this.market(symbolVar);
+        Dictionary<string, object> market = this.market(symbolVar);
         symbolVar = getValue(market, "symbol");
         object marketId = getValue(market, "id");
         object url = getValue(getValue(this.urls, "api"), "ws");
         string name = "account";
-        object messageHash = add("myTrades:", symbolVar);
+        string messageHash = add("myTrades:", symbolVar);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "action", "subscribe" },
             { "channels", new List<object>() {new Dictionary<string, object>() {
@@ -1258,7 +1259,7 @@ public partial class bitvavo : ccxt.bitvavo
         await this.authenticate();
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         object operatorId = null;
-        var operatorIdparametersVariable = this.handleOptionAndParams(parameters, "cancelAllOrdersWs", "operatorId");
+        IList<object> operatorIdparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "cancelAllOrdersWs", "operatorId");
         operatorId = ((IList<object>)operatorIdparametersVariable)[0];
         parameters = ((IList<object>)operatorIdparametersVariable)[1];
         if (isTrue(!isEqual(operatorId, null)))
@@ -1268,7 +1269,7 @@ public partial class bitvavo : ccxt.bitvavo
         {
             throw new ArgumentsRequired ((string)add(this.id, " canceAllOrdersWs() requires an operatorId in params or options, eg: exchange.options['operatorId'] = 1234567890")) ;
         }
-        object market = null;
+        IDictionary<string, object> market = null;
         if (isTrue(!isEqual(symbol, null)))
         {
             market = this.market(symbol);
@@ -1288,10 +1289,10 @@ public partial class bitvavo : ccxt.bitvavo
         //    }
         //
         // const action = this.safeString (message, 'action');
-        object response = this.safeList(message, "response");
+        List<object> response = this.safeList(message, "response");
         // const firstRawOrder = this.safeValue (response, 0, {});
         // const marketId = this.safeString (firstRawOrder, 'market');
-        object orders = this.parseOrders(response);
+        IList<object> orders = this.parseOrders(response);
         // let messageHash = this.buildMessageHash (action, { 'market': marketId });
         // client.resolve (orders, messageHash);
         // messageHash = this.buildMessageHash (action, message);
@@ -1321,7 +1322,7 @@ public partial class bitvavo : ccxt.bitvavo
             await this.loadMarkets();
         }
         await this.authenticate();
-        object market = this.market(symbol);
+        Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "orderId", id },
             { "market", getValue(market, "id") },
@@ -1352,7 +1353,7 @@ public partial class bitvavo : ccxt.bitvavo
             await this.loadMarkets();
         }
         await this.authenticate();
-        object request = this.fetchOrdersRequest(symbol, since, limit, parameters);
+        Dictionary<string, object> request = this.fetchOrdersRequest(symbol, since, limit, parameters);
         object orders = await this.watchRequest("privateGetOrders", request);
         return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, symbol, since, limit));
     }
@@ -1394,7 +1395,7 @@ public partial class bitvavo : ccxt.bitvavo
         }
         await this.authenticate();
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        object market = null;
+        IDictionary<string, object> market = null;
         if (isTrue(!isEqual(symbol, null)))
         {
             market = this.market(symbol);
@@ -1427,7 +1428,7 @@ public partial class bitvavo : ccxt.bitvavo
             await this.loadMarkets();
         }
         await this.authenticate();
-        object request = this.fetchMyTradesRequest(symbol, since, limit, parameters);
+        Dictionary<string, object> request = this.fetchMyTradesRequest(symbol, since, limit, parameters);
         object myTrades = await this.watchRequest("privateGetTrades", request);
         return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(myTrades, symbol, since, limit));
     }
@@ -1456,9 +1457,9 @@ public partial class bitvavo : ccxt.bitvavo
         //
         //
         // const action = this.safeString (message, 'action');
-        object response = this.safeList(message, "response");
+        List<object> response = this.safeList(message, "response");
         // const marketId = this.safeString (firstRawTrade, 'market');
-        object trades = this.parseTrades((IList<object>)(response), null, null, null);
+        IList<object> trades = this.parseTrades((IList<object>)(response), null, null, null);
         // const messageHash = this.buildMessageHash (action, { 'market': marketId });
         string? messageHash = this.safeString(message, "requestId");
         callDynamically(client as WebSocketClient, "resolve", new object[] {trades, messageHash});
@@ -1479,7 +1480,7 @@ public partial class bitvavo : ccxt.bitvavo
     {
         object tagVar = tag;
         parameters ??= new Dictionary<string, object>();
-        var tagparametersVariable = this.handleWithdrawTagAndParams(tagVar, parameters);
+        IList<object> tagparametersVariable = (IList<object>)this.handleWithdrawTagAndParams(tagVar, parameters);
         tagVar = ((IList<object>)tagparametersVariable)[0];
         parameters = ((IList<object>)tagparametersVariable)[1];
         this.checkAddress(address);
@@ -1488,7 +1489,7 @@ public partial class bitvavo : ccxt.bitvavo
             await this.loadMarkets();
         }
         await this.authenticate();
-        object request = this.withdrawRequest(code, amount, address, tagVar, parameters);
+        Dictionary<string, object> request = this.withdrawRequest(((string)code), amount, address, tagVar, parameters);
         return ccxt.BaseExchange.ToTransaction(await this.watchRequest("privateWithdrawAssets", request));
     }
 
@@ -1531,9 +1532,9 @@ public partial class bitvavo : ccxt.bitvavo
             await this.loadMarkets();
         }
         await this.authenticate();
-        object request = this.fetchWithdrawalsRequest(code, since, limit, parameters);
+        Dictionary<string, object> request = this.fetchWithdrawalsRequest(((string)code), since, limit, parameters);
         object withdraws = await this.watchRequest("privateGetWithdrawalHistory", request);
-        return ccxt.BaseExchange.ToTransactionList(this.filterByCurrencySinceLimit(withdraws, code, since, limit));
+        return ccxt.BaseExchange.ToTransactionList(this.filterByCurrencySinceLimit(withdraws,((string)code), since, limit));
     }
 
     public virtual void handleWithdraws(WebSocketClient client, object message)
@@ -1555,9 +1556,9 @@ public partial class bitvavo : ccxt.bitvavo
         //
         // const action = this.safeString (message, 'action');
         // const messageHash = this.buildMessageHash (action, message);
-        object response = this.safeList(message, "response");
+        List<object> response = this.safeList(message, "response");
         string? messageHash = this.safeString(message, "requestId");
-        object withdrawals = this.parseTransactions((IList<object>)(response), null, null, null, new Dictionary<string, object>() {
+        IList<object> withdrawals = this.parseTransactions((IList<object>)(response), null, null, null, new Dictionary<string, object>() {
             { "type", "withdrawal" },
         });
         callDynamically(client as WebSocketClient, "resolve", new object[] {withdrawals, messageHash});
@@ -1584,7 +1585,7 @@ public partial class bitvavo : ccxt.bitvavo
         {
             await this.loadMarkets();
         }
-        object request = this.fetchOHLCVRequest(symbol, timeframeVar, since, limit, parameters);
+        Dictionary<string, object> request = this.fetchOHLCVRequest(symbol,((string)timeframeVar), since, limit, parameters);
         string action = "getCandles";
         object ohlcv = await this.watchRequest(action, request);
         return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(ohlcv, since, limit, 0, true));
@@ -1609,9 +1610,9 @@ public partial class bitvavo : ccxt.bitvavo
             await this.loadMarkets();
         }
         await this.authenticate();
-        object request = this.fetchDepositsRequest(code, since, limit, parameters);
+        Dictionary<string, object> request = this.fetchDepositsRequest(((string)code), since, limit, parameters);
         object deposits = await this.watchRequest("privateGetDepositHistory", request);
-        return ccxt.BaseExchange.ToTransactionList(this.filterByCurrencySinceLimit(deposits, code, since, limit));
+        return ccxt.BaseExchange.ToTransactionList(this.filterByCurrencySinceLimit(deposits,((string)code), since, limit));
     }
 
     public virtual void handleDeposits(WebSocketClient client, object message)
@@ -1632,7 +1633,7 @@ public partial class bitvavo : ccxt.bitvavo
         //    }
         //
         object response = this.safeValue(message, "response");
-        object deposits = this.parseTransactions(response, null, null, null, new Dictionary<string, object>() {
+        IList<object> deposits = this.parseTransactions(response, null, null, null, new Dictionary<string, object>() {
             { "type", "deposit" },
         });
         string? messageHash = this.safeString(message, "requestId");
@@ -1680,14 +1681,14 @@ public partial class bitvavo : ccxt.bitvavo
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
-    public async override Task<object> fetchCurrenciesWs(object parameters = null)
+    public async override Task<IDictionary<string, object>> fetchCurrenciesWs(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
-        return await this.watchRequest("getAssets", parameters);
+        return ((IDictionary<string, object>)((object)(await this.watchRequest("getAssets", parameters))));
     }
 
     public virtual void handleFetchCurrencies(WebSocketClient client, object message)
@@ -1714,7 +1715,7 @@ public partial class bitvavo : ccxt.bitvavo
         //
         string? messageHash = this.safeString(message, "requestId");
         object response = this.safeValue(message, "response");
-        object currencies = this.parseCurrencies(response);
+        Dictionary<string, object> currencies = this.parseCurrencies(response);
         callDynamically(client as WebSocketClient, "resolve", new object[] {currencies, messageHash});
     }
 
@@ -1734,7 +1735,7 @@ public partial class bitvavo : ccxt.bitvavo
         //
         string? messageHash = this.safeString(message, "requestId");
         object response = this.safeValue(message, "response");
-        object fees = this.parseTradingFees(response);
+        Dictionary<string, object> fees = this.parseTradingFees(response);
         callDynamically(client as WebSocketClient, "resolve", new object[] {fees, messageHash});
     }
 
@@ -1835,7 +1836,7 @@ public partial class bitvavo : ccxt.bitvavo
         //    }
         //
         object response = this.safeValue(message, "response", new Dictionary<string, object>() {});
-        object markets = this.parseMarkets(response);
+        IList<object> markets = this.parseMarkets(response);
         string? messageHash = this.safeString(message, "requestId");
         callDynamically(client as WebSocketClient, "resolve", new object[] {markets, messageHash});
     }
@@ -1862,14 +1863,14 @@ public partial class bitvavo : ccxt.bitvavo
     public virtual object actionAndMarketMessageHash(object action, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object symbol = this.safeString(parameters, "market", "");
+        string? symbol = this.safeString(parameters, "market", "");
         return add(action, symbol);
     }
 
     public virtual object actionAndOrderIdMessageHash(object action, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object orderId = this.safeString(parameters, "orderId");
+        string? orderId = this.safeString(parameters, "orderId");
         if (isTrue(isEqual(orderId, null)))
         {
             throw new ExchangeError ((string)add(this.id, " privateUpdateOrderMessageHash requires a orderId parameter")) ;
@@ -1901,9 +1902,9 @@ public partial class bitvavo : ccxt.bitvavo
         //     }
         //
         string? marketId = this.safeString(message, "market");
-        object market = this.safeMarket(marketId, null, "-");
+        Dictionary<string, object> market = this.safeMarket(marketId, null, "-");
         object symbol = getValue(market, "symbol");
-        object messageHash = add("order:", symbol);
+        string messageHash = add("order:", symbol);
         object order = this.parseOrder(message, market);
         if (isTrue(isEqual(this.orders, null)))
         {
@@ -1933,9 +1934,9 @@ public partial class bitvavo : ccxt.bitvavo
         //     }
         //
         string? marketId = this.safeString(message, "market");
-        object market = this.safeMarket(marketId, null, "-");
+        Dictionary<string, object> market = this.safeMarket(marketId, null, "-");
         object symbol = getValue(market, "symbol");
-        object messageHash = add("myTrades:", symbol);
+        string messageHash = add("myTrades:", symbol);
         object trade = this.parseTrade(message, market);
         if (isTrue(isEqual(this.myTrades, null)))
         {
@@ -1957,14 +1958,14 @@ public partial class bitvavo : ccxt.bitvavo
         //         }
         //     }
         //
-        object subscriptions = this.safeValue(message, "subscriptions", new Dictionary<string, object>() {});
+        IDictionary<string, object> subscriptions = this.safeDict(message, "subscriptions", new Dictionary<string, object>() {});
         Dictionary<string, object> methods = new Dictionary<string, object>() {
             { "book", this.handleOrderBookSubscriptions },
         };
         List<object> names = new List<object>(((IDictionary<string,object>)subscriptions).Keys);
-        for (object i = 0; isLessThan(i, getArrayLength(names)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(names)); postFixIncrement(ref i))
         {
-            object name = getValue(names, i);
+            string? name = ((string)getValue(names, i));
             object method = this.safeValue(methods, name);
             if (isTrue(!isEqual(method, null)))
             {
@@ -2011,7 +2012,7 @@ public partial class bitvavo : ccxt.bitvavo
         //     }
         //
         string messageHash = "authenticated";
-        object authenticated = this.safeBool(message, "authenticated", false);
+        bool? authenticated = this.safeBool(message, "authenticated", false);
         if (isTrue(isEqual(authenticated, true)))
         {
             // we resolve the future here permanently so authentication only happens once
@@ -2028,7 +2029,7 @@ public partial class bitvavo : ccxt.bitvavo
         }
     }
 
-    public virtual object handleErrorMessage(WebSocketClient client, object message)
+    public virtual bool? handleErrorMessage(WebSocketClient client, object message)
     {
         //
         //    {
@@ -2062,9 +2063,9 @@ public partial class bitvavo : ccxt.bitvavo
         if (!isTrue(rejected))
         {
             ((WebSocketClient)client).reject(message, messageHash);
-            return true;
+            return ((bool?)((object)(true)));
         }
-        return null;
+        return ((bool?)((object)(null)));
     }
 
     public override void handleMessage(WebSocketClient client, object message)

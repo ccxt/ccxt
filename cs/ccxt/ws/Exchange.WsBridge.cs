@@ -63,6 +63,21 @@ public partial class BaseExchange
         return new ccxt.pro.CountedOrderBook(snapshot, depth);
     }
 
+    // Typed reads of this.orderbooks. Every value stored into the map is constructed by
+    // orderBook() / indexedOrderBook() / countedOrderBook() (or read back from the same
+    // map), so a returned slot always holds a ccxt.pro.IOrderBook — the ws transpiler
+    // rewrites `this.safeValue(this.orderbooks, symbol)` and `this.orderbooks[symbol]`
+    // to these so generated locals can name the type without changing the box.
+    public ccxt.pro.IOrderBook getOrderBook(object orderbooks, object key)
+    {
+        return getValue(orderbooks, key) as ccxt.pro.IOrderBook;
+    }
+
+    public ccxt.pro.IOrderBook safeOrderBook(object orderbooks, object key, object defaultValue = null)
+    {
+        return safeValueN(orderbooks, new List<object> { key }, defaultValue) as ccxt.pro.IOrderBook;
+    }
+
     public virtual void onClose(WebSocketClient client, object error = null)
     {
         if (client.error)

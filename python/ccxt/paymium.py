@@ -84,6 +84,7 @@ class paymium(Exchange, ImplicitAPI):
                         'user/orders': {'cost': 1},
                         'user/orders/{uuid}': {'cost': 1},
                         'user/price_alerts': {'cost': 1},
+                        'user/withdrawals': {'cost': 1},
                         'merchant/get_payment/{uuid}': {'cost': 1},
                     },
                     'post': {
@@ -533,7 +534,7 @@ class paymium(Exchange, ImplicitAPI):
         #                 "name": "account_operation",
         #                 "address": "1FPDBXNqSkZMsw1kSkkajcj8berxDQkUoc",
         #                 "tx_hash": "string",
-        #                 "is_trading_account": True
+        #                 "is_trading_account": true
         #             }
         #         ]
         #     }
@@ -568,7 +569,7 @@ class paymium(Exchange, ImplicitAPI):
         #                 "name": "account_operation",
         #                 "address": "1FPDBXNqSkZMsw1kSkkajcj8berxDQkUoc",
         #                 "tx_hash": "string",
-        #                 "is_trading_account": True
+        #                 "is_trading_account": true
         #             }
         #         ]
         #     }

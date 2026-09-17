@@ -92,18 +92,18 @@ class bittrade extends \ccxt\async\bittrade {
     public function handle_ticker(Client $client, mixed $message) {
         //
         //     {
-        //         "ch" => "market.btcusdt.detail",
-        //         "ts" => 1583494163784,
-        //         "tick" => {
-        //             "id" => 209988464418,
-        //             "low" => 8988,
-        //             "high" => 9155.41,
-        //             "open" => 9078.91,
-        //             "close" => 9136.46,
-        //             "vol" => 237813910.5928412,
-        //             "amount" => 26184.202558551195,
-        //             "version" => 209988464418,
-        //             "count" => 265673
+        //         "ch": "market.btcusdt.detail",
+        //         "ts": 1583494163784,
+        //         "tick": {
+        //             "id": 209988464418,
+        //             "low": 8988,
+        //             "high": 9155.41,
+        //             "open": 9078.91,
+        //             "close": 9136.46,
+        //             "vol": 237813910.5928412,
+        //             "amount": 26184.202558551195,
+        //             "version": 209988464418,
+        //             "count": 265673
         //         }
         //     }
         //
@@ -143,7 +143,7 @@ class bittrade extends \ccxt\async\bittrade {
         }
         $market = $this->market($symbol);
         $symbol = $market['symbol'];
-        // only supports a $limit of 150 at this time
+        // only supports a limit of 150 at this time
         $messageHash = 'market.' . $market['id'] . '.trade.detail';
         $api = $this->safe_string($this->options, 'api', 'api');
         $hostname = array( 'hostname' => $this->hostname );
@@ -169,21 +169,21 @@ class bittrade extends \ccxt\async\bittrade {
     public function handle_trades(Client $client, mixed $message) {
         //
         //     {
-        //         "ch" => "market.btcusdt.trade.detail",
-        //         "ts" => 1583495834011,
-        //         "tick" => {
-        //             "id" => 105004645372,
-        //             "ts" => 1583495833751,
-        //             "data" => array(
+        //         "ch": "market.btcusdt.trade.detail",
+        //         "ts": 1583495834011,
+        //         "tick": {
+        //             "id": 105004645372,
+        //             "ts": 1583495833751,
+        //             "data": [
         //                 {
-        //                     "id" => 1.050046453727319e+22,
-        //                     "ts" => 1583495833751,
-        //                     "tradeId" => 102090727790,
-        //                     "amount" => 0.003893,
-        //                     "price" => 9150.01,
-        //                     "direction" => "sell"
+        //                     "id": 1.050046453727319e+22,
+        //                     "ts": 1583495833751,
+        //                     "tradeId": 102090727790,
+        //                     "amount": 0.003893,
+        //                     "price": 9150.01,
+        //                     "direction": "sell"
         //                 }
-        //             )
+        //             ]
         //         }
         //     }
         //
@@ -223,7 +223,7 @@ class bittrade extends \ccxt\async\bittrade {
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -257,17 +257,17 @@ class bittrade extends \ccxt\async\bittrade {
     public function handle_ohlcv(Client $client, mixed $message) {
         //
         //     {
-        //         "ch" => "market.btcusdt.kline.1min",
-        //         "ts" => 1583501786794,
-        //         "tick" => {
-        //             "id" => 1583501760,
-        //             "open" => 9094.5,
-        //             "close" => 9094.51,
-        //             "low" => 9094.5,
-        //             "high" => 9094.51,
-        //             "amount" => 0.44639786263800907,
-        //             "vol" => 4059.76919054,
-        //             "count" => 16
+        //         "ch": "market.btcusdt.kline.1min",
+        //         "ts": 1583501786794,
+        //         "tick": {
+        //             "id": 1583501760,
+        //             "open": 9094.5,
+        //             "close": 9094.51,
+        //             "low": 9094.5,
+        //             "high": 9094.51,
+        //             "amount": 0.44639786263800907,
+        //             "vol": 4059.76919054,
+        //             "count": 16
         //         }
         //     }
         //
@@ -314,7 +314,7 @@ class bittrade extends \ccxt\async\bittrade {
         }
         $market = $this->market($symbol);
         $symbol = $market['symbol'];
-        // only supports a $limit of 150 at this time
+        // only supports a limit of 150 at this time
         $limit = ($limit === null) ? 150 : $limit;
         $messageHash = 'market.' . $market['id'] . '.mbp.' . (string) $limit;
         $api = $this->safe_string($this->options, 'api', 'api');
@@ -340,22 +340,22 @@ class bittrade extends \ccxt\async\bittrade {
     public function handle_order_book_snapshot(Client $client, mixed $message, mixed $subscription) {
         //
         //     {
-        //         "id" => 1583473663565,
-        //         "rep" => "market.btcusdt.mbp.150",
-        //         "ts" => 1774979531056,
-        //         "status" => "ok",
-        //         "data" => {
-        //             "seqNum" => 104999417756,
-        //             "bids" => array(
+        //         "id": 1583473663565,
+        //         "rep": "market.btcusdt.mbp.150",
+        //         "ts": 1774979531056,
+        //         "status": "ok",
+        //         "data": {
+        //             "seqNum": 104999417756,
+        //             "bids": [
         //                 [9058.27, 0],
         //                 [9058.43, 0],
         //                 [9058.99, 0],
-        //             ),
-        //             "asks" => array(
+        //             ],
+        //             "asks": [
         //                 [9084.27, 0.2],
         //                 [9085.69, 0],
         //                 [9085.81, 0],
-        //             )
+        //             ]
         //         }
         //     }
         //
@@ -396,7 +396,7 @@ class bittrade extends \ccxt\async\bittrade {
                 'req' => $messageHash,
                 'id' => $requestId,
             );
-            // this is a temporary $subscription by a specific $requestId
+            // this is a temporary subscription by a specific requestId
             // it has a very short lifetime until the snapshot is received over ws
             $snapshotSubscription = array(
                 'id' => $requestId,
@@ -430,21 +430,21 @@ class bittrade extends \ccxt\async\bittrade {
     public function handle_order_book_message(Client $client, mixed $message, mixed $orderbook) {
         //
         //     {
-        //         "ch" => "market.btcusdt.mbp.150",
-        //         "ts" => 1583472025885,
-        //         "tick" => {
-        //             "seqNum" => 104998984994,
-        //             "prevSeqNum" => 104998984977,
-        //             "bids" => array(
+        //         "ch": "market.btcusdt.mbp.150",
+        //         "ts": 1583472025885,
+        //         "tick": {
+        //             "seqNum": 104998984994,
+        //             "prevSeqNum": 104998984977,
+        //             "bids": [
         //                 [9058.27, 0],
         //                 [9058.43, 0],
         //                 [9058.99, 0],
-        //             ),
-        //             "asks" => array(
+        //             ],
+        //             "asks": [
         //                 [9084.27, 0.2],
         //                 [9085.69, 0],
         //                 [9085.81, 0],
-        //             )
+        //             ]
         //         }
         //     }
         //
@@ -472,21 +472,21 @@ class bittrade extends \ccxt\async\bittrade {
         // deltas
         //
         //     {
-        //         "ch" => "market.btcusdt.mbp.150",
-        //         "ts" => 1583472025885,
-        //         "tick" => {
-        //             "seqNum" => 104998984994,
-        //             "prevSeqNum" => 104998984977,
-        //             "bids" => array(
+        //         "ch": "market.btcusdt.mbp.150",
+        //         "ts": 1583472025885,
+        //         "tick": {
+        //             "seqNum": 104998984994,
+        //             "prevSeqNum": 104998984977,
+        //             "bids": [
         //                 [9058.27, 0],
         //                 [9058.43, 0],
         //                 [9058.99, 0],
-        //             ),
-        //             "asks" => array(
+        //             ],
+        //             "asks": [
         //                 [9084.27, 0.2],
         //                 [9085.69, 0],
         //                 [9085.81, 0],
-        //             )
+        //             ]
         //         }
         //     }
         //
@@ -521,10 +521,10 @@ class bittrade extends \ccxt\async\bittrade {
     public function handle_subscription_status(Client $client, mixed $message) {
         //
         //     {
-        //         "id" => 1583414227,
-        //         "status" => "ok",
-        //         "subbed" => "market.btcusdt.mbp.150",
-        //         "ts" => 1583414229143
+        //         "id": 1583414227,
+        //         "status": "ok",
+        //         "subbed": "market.btcusdt.mbp.150",
+        //         "ts": 1583414229143
         //     }
         //
         $id = $this->safe_string($message, 'id');
@@ -548,13 +548,13 @@ class bittrade extends \ccxt\async\bittrade {
 
     public function handle_system_status(Client $client, mixed $message) {
         //
-        // todo => answer the question whether handleSystemStatus should be renamed
-        // and unified for any usage pattern that
+        // todo: answer the question whether handleSystemStatus should be renamed
+        // and unified as handleStatus for any usage pattern that
         // involves system status and maintenance updates
         //
         //     {
-        //         "id" => "1578090234088", // connectId
-        //         "type" => "welcome",
+        //         "id": "1578090234088", // connectId
+        //         "type": "welcome",
         //     }
         //
         return $message;
@@ -563,21 +563,21 @@ class bittrade extends \ccxt\async\bittrade {
     public function handle_subject(Client $client, mixed $message) {
         //
         //     {
-        //         "ch" => "market.btcusdt.mbp.150",
-        //         "ts" => 1583472025885,
-        //         "tick" => {
-        //             "seqNum" => 104998984994,
-        //             "prevSeqNum" => 104998984977,
-        //             "bids" => array(
+        //         "ch": "market.btcusdt.mbp.150",
+        //         "ts": 1583472025885,
+        //         "tick": {
+        //             "seqNum": 104998984994,
+        //             "prevSeqNum": 104998984977,
+        //             "bids": [
         //                 [9058.27, 0],
         //                 [9058.43, 0],
         //                 [9058.99, 0],
-        //             ),
-        //             "asks" => array(
+        //             ],
+        //             "asks": [
         //                 [9084.27, 0.2],
         //                 [9085.69, 0],
         //                 [9085.81, 0],
-        //             )
+        //             ]
         //         }
         //     }
         //
@@ -606,7 +606,7 @@ class bittrade extends \ccxt\async\bittrade {
 
     private function do_pong(Client $client, mixed $message) {
         //
-        //     array( ping => 1583491673714 )
+        //     { ping: 1583491673714 }
         //
         Async\await($client->send(array( 'pong' => $this->safe_integer($message, 'ping') )));
     }
@@ -618,11 +618,11 @@ class bittrade extends \ccxt\async\bittrade {
     public function handle_error_message(Client $client, mixed $message): ?bool {
         //
         //     {
-        //         "ts" => 1586323747018,
-        //         "status" => "error",
-        //         'err-code' => "bad-request",
-        //         'err-msg' => "invalid mbp.150.symbol linkusdt",
-        //         "id" => "2"
+        //         "ts": 1586323747018,
+        //         "status": "error",
+        //         'err-code': "bad-request",
+        //         'err-msg': "invalid mbp.150.symbol linkusdt",
+        //         "id": "2"
         //     }
         //
         $status = $this->safe_string($message, 'status');
@@ -654,7 +654,7 @@ class bittrade extends \ccxt\async\bittrade {
     public function handle_message(Client $client, mixed $message) {
         if ($this->handle_error_message($client, $message) === true) {
             //
-            //     array("id":1583414227,"status":"ok","subbed":"market.btcusdt.mbp.150","ts":1583414229143)
+            //     {"id":1583414227,"status":"ok","subbed":"market.btcusdt.mbp.150","ts":1583414229143}
             //
             //           ________________________
             //
@@ -662,7 +662,7 @@ class bittrade extends \ccxt\async\bittrade {
             //
             //     " {"ch":"market.ethbtc.m "
             //
-            // this is passed to handleMessage string since it failed to be decoded
+            // this is passed to handleMessage as a string since it failed to be decoded as JSON
             //
             if ($this->safe_string($message, 'id') !== null) {
                 $this->handle_subscription_status($client, $message);

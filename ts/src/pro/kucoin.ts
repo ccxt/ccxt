@@ -1406,18 +1406,8 @@ export default class kucoin extends kucoinRest {
     override async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         //
         // https://docs.kucoin.com/#level-2-market-data
-        //
-        // 1. After receiving the websocket Level 2 data flow, cache the data.
-        // 2. Initiate a REST request to get the snapshot data of Level 2 order book.
-        // 3. Playback the cached Level 2 data flow.
-        // 4. Apply the new Level 2 data flow to the local snapshot to ensure that
-        // the sequence of the new Level 2 update lines up with the sequence of
-        // the previous Level 2 data. Discard all the message prior to that
-        // sequence, and then playback the change to snapshot.
-        // 5. Update the level2 full data based on sequence according to the
-        // size. If the price is 0, ignore the messages and update the sequence.
-        // If the size=0, update the sequence and remove the price of which the
-        // size is 0 out of level 2. Fr other cases, please update the price.
+        // cache the ws level2 stream, fetch the REST snapshot, then replay only the cached deltas whose
+        // sequence follows the snapshot; price 0 → skip (bump sequence), size 0 → remove the price level
         //
         let uta = false;
         [ uta, params ] = this.handleOptionAndParams (params, 'watchOrderBook', 'uta', uta);
@@ -1770,6 +1760,9 @@ export default class kucoin extends kucoinRest {
         const firstDelta = this.safeValue (cache, 0);
         const nonce = this.safeInteger (orderbook, 'nonce');
         const firstDeltaStart = this.safeIntegerN (firstDelta, [ 'sequenceStart', 'sequence', 'O' ]);
+        if ((nonce === undefined) || (firstDeltaStart === undefined)) {
+            return -1;
+        }
         if ((nonce as number) < (firstDeltaStart as number) - 1) {
             return -1;
         }
@@ -1777,6 +1770,9 @@ export default class kucoin extends kucoinRest {
             const delta = cache[i];
             const deltaStart = this.safeIntegerN (delta, [ 'sequenceStart', 'sequence', 'O' ]);
             const deltaEnd = this.safeIntegerN (delta, [ 'sequenceEnd', 'sequence', 'C' ]); // todo check
+            if ((deltaStart === undefined) || (deltaEnd === undefined)) {
+                continue;
+            }
             if (((nonce as number) >= (deltaStart as number) - 1) && ((nonce as number) < (deltaEnd as number))) {
                 return i;
             }
@@ -2914,7 +2910,7 @@ export default class kucoin extends kucoinRest {
             return undefined;
         }
         const cache = this.positions.hashmap;
-        const symbolCache = this.safeValue (cache, symbol, {});
+        const symbolCache = this.safeDict (cache, symbol, {});
         const values = Object.values (symbolCache);
         return this.safeValue (values, 0);
     }

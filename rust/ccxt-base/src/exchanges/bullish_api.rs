@@ -32,6 +32,16 @@ impl BullishCore {
         self.call_method(Value::Str("public_get_v1_assets_symbol".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `publicGetV1VolGrids` implicit endpoint.
+    pub async fn public_get_v1_vol_grids(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("public_get_v1_vol_grids".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `publicGetV1AssetsSymbolVolGrid` implicit endpoint.
+    pub async fn public_get_v1_assets_symbol_vol_grid(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("public_get_v1_assets_symbol_vol_grid".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `publicGetV1Markets` implicit endpoint.
     pub async fn public_get_v1_markets(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_v1_markets".to_string()), optional_args).await
@@ -40,6 +50,11 @@ impl BullishCore {
     /// Auto-generated wrapper for the `publicGetV1MarketsSymbol` implicit endpoint.
     pub async fn public_get_v1_markets_symbol(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_v1_markets_symbol".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `publicGetV1HistoryMarkets` implicit endpoint.
+    pub async fn public_get_v1_history_markets(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("public_get_v1_history_markets".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetV1HistoryMarketsSymbol` implicit endpoint.
@@ -67,6 +82,16 @@ impl BullishCore {
         self.call_method(Value::Str("public_get_v1_markets_symbol_candle".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `publicGetV1MarketsSymbolAuctions` implicit endpoint.
+    pub async fn public_get_v1_markets_symbol_auctions(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("public_get_v1_markets_symbol_auctions".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `publicGetV1MarketsSymbolAuctionsNoii` implicit endpoint.
+    pub async fn public_get_v1_markets_symbol_auctions_noii(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("public_get_v1_markets_symbol_auctions_noii".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `publicGetV1HistoryMarketsSymbolTrades` implicit endpoint.
     pub async fn public_get_v1_history_markets_symbol_trades(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_v1_history_markets_symbol_trades".to_string()), optional_args).await
@@ -75,6 +100,16 @@ impl BullishCore {
     /// Auto-generated wrapper for the `publicGetV1HistoryMarketsSymbolFundingRate` implicit endpoint.
     pub async fn public_get_v1_history_markets_symbol_funding_rate(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_v1_history_markets_symbol_funding_rate".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `publicGetV1HistoryMarketsSymbolAuctions` implicit endpoint.
+    pub async fn public_get_v1_history_markets_symbol_auctions(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("public_get_v1_history_markets_symbol_auctions".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `publicGetV1HistoryOptionTrades` implicit endpoint.
+    pub async fn public_get_v1_history_option_trades(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("public_get_v1_history_option_trades".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetV1IndexPrices` implicit endpoint.
@@ -115,6 +150,11 @@ impl BullishCore {
     /// Auto-generated wrapper for the `privateGetV2OrdersOrderId` implicit endpoint.
     pub async fn private_get_v2_orders_order_id(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v2_orders_order_id".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetV2OrdersClientOrderIdClientOrderId` implicit endpoint.
+    pub async fn private_get_v2_orders_client_order_id_client_order_id(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_v2_orders_client_order_id_client_order_id".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV2AmmInstructions` implicit endpoint.
@@ -252,6 +292,21 @@ impl BullishCore {
         self.call_method(Value::Str("private_get_v2_otc_trades_unconfirmed_trade".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `privateGetV2OtcTradesDelegatedAccounts` implicit endpoint.
+    pub async fn private_get_v2_otc_trades_delegated_accounts(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_v2_otc_trades_delegated_accounts".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetV2IdbDelegatedAccounts` implicit endpoint.
+    pub async fn private_get_v2_idb_delegated_accounts(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_v2_idb_delegated_accounts".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetV2IdbOtcTrades` implicit endpoint.
+    pub async fn private_get_v2_idb_otc_trades(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_v2_idb_otc_trades".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `privatePostV2Orders` implicit endpoint.
     pub async fn private_post_v2_orders(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_v2_orders".to_string()), optional_args).await
@@ -282,6 +337,11 @@ impl BullishCore {
         self.call_method(Value::Str("private_post_v1_simulate_portfolio_margin".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `privatePostV1BulkSimulatePortfolioMargin` implicit endpoint.
+    pub async fn private_post_v1_bulk_simulate_portfolio_margin(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_v1_bulk_simulate_portfolio_margin".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `privatePostV1WalletsSelfHostedInitiate` implicit endpoint.
     pub async fn private_post_v1_wallets_self_hosted_initiate(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_v1_wallets_self_hosted_initiate".to_string()), optional_args).await
@@ -300,6 +360,16 @@ impl BullishCore {
     /// Auto-generated wrapper for the `privatePostV2OtcCommand` implicit endpoint.
     pub async fn private_post_v2_otc_command(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_v2_otc_command".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostV2IdbOtcTrades` implicit endpoint.
+    pub async fn private_post_v2_idb_otc_trades(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_v2_idb_otc_trades".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostV2IdbOtcCommand` implicit endpoint.
+    pub async fn private_post_v2_idb_otc_command(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_v2_idb_otc_command".to_string()), optional_args).await
     }
 
 }

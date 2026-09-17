@@ -216,6 +216,8 @@ export default class coinone extends Exchange {
                         'transaction/krw/history': { 'cost': 1 },
                         'transaction/coin/history': { 'cost': 1 },
                         'transaction/coin/withdrawal/limit': { 'cost': 1 },
+                        'event/order-reward/programs': { 'cost': 1 },
+                        'event/order-reward/history': { 'cost': 1 },
                     },
                 },
             },

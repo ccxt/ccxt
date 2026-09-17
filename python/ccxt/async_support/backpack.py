@@ -171,11 +171,17 @@ class backpack(Exchange, ImplicitAPI):
                         'api/v1/collateral': {'cost': 1},  # not used
                         'api/v1/borrowLend/markets': {'cost': 1},
                         'api/v1/borrowLend/markets/history': {'cost': 1},
+                        'api/v1/borrowLend/apy': {'cost': 1},
                         'api/v1/markets': {'cost': 1},  # done
                         'api/v1/market': {'cost': 1},  # not used
                         'api/v1/ticker': {'cost': 1},  # done
                         'api/v1/tickers': {'cost': 1},  # done
                         'api/v1/depth': {'cost': 1},  # done
+                        'api/v1/prediction': {'cost': 1},
+                        'api/v1/prediction/tags': {'cost': 1},
+                        'api/v1/market-sessions': {'cost': 1},
+                        'api/v1/market-holidays': {'cost': 1},
+                        'api/v1/securities': {'cost': 1},
                         'api/v1/klines': {'cost': 1},  # done
                         'api/v1/markPrices': {'cost': 1},  # done
                         'api/v1/openInterest': {'cost': 1},  # done
@@ -195,6 +201,7 @@ class backpack(Exchange, ImplicitAPI):
                         'api/v1/account/limits/order': {'cost': 1},  # not used
                         'api/v1/account/limits/withdrawal': {'cost': 1},  # not used
                         'api/v1/borrowLend/positions': {'cost': 1},  # todo fetchBorrowInterest
+                        'api/v1/borrowLend/position/liquidationPrice': {'cost': 1},
                         'api/v1/capital': {'cost': 1},  # done
                         'api/v1/capital/collateral': {'cost': 1},  # not used
                         'wapi/v1/capital/deposits': {'cost': 1},  # done
@@ -207,11 +214,17 @@ class backpack(Exchange, ImplicitAPI):
                         'wapi/v1/history/dust': {'cost': 1},  # not used
                         'wapi/v1/history/fills': {'cost': 1},  # done
                         'wapi/v1/history/funding': {'cost': 1},  # done
+                        'wapi/v1/history/position': {'cost': 1},
                         'wapi/v1/history/orders': {'cost': 1},  # done
+                        'api/v1/rfqs': {'cost': 1},
                         'wapi/v1/history/rfq': {'cost': 1},
                         'wapi/v1/history/quote': {'cost': 1},
+                        'wapi/v1/history/rfq/fill': {'cost': 1},
+                        'wapi/v1/history/quote/fill': {'cost': 1},
                         'wapi/v1/history/settlement': {'cost': 1},
                         'wapi/v1/history/strategies': {'cost': 1},
+                        'api/v1/strategy': {'cost': 1},
+                        'api/v1/strategies': {'cost': 1},
                         'api/v1/order': {'cost': 1},  # done
                         'api/v1/orders': {'cost': 1},  # done
                     },
@@ -226,10 +239,13 @@ class backpack(Exchange, ImplicitAPI):
                         'api/v1/rfq/refresh': {'cost': 1},
                         'api/v1/rfq/cancel': {'cost': 1},
                         'api/v1/rfq/quote': {'cost': 1},
+                        'api/v1/strategy': {'cost': 1},
                     },
                     'delete': {
                         'api/v1/order': {'cost': 1},  # done
                         'api/v1/orders': {'cost': 1},  # done
+                        'api/v1/strategy': {'cost': 1},
+                        'api/v1/strategies': {'cost': 1},
                     },
                     'patch': {
                         'api/v1/account': {'cost': 1},
@@ -501,7 +517,7 @@ class backpack(Exchange, ImplicitAPI):
                     'TRADING_PAUSED': ExchangeNotAvailable,
                     'UNAUTHORIZED': AuthenticationError,
                 },
-                # Bad Request parse request payload error: failed to parse "MarketSymbol": Invalid market symbol(occurred while parsing "OrderExecutePayload")
+                # Bad Request parse request payload error: failed to parse "MarketSymbol": Invalid market symbol (occurred while parsing "OrderExecutePayload")
                 # failed to parse parameter `interval`: failed to parse "KlineInterval": Expect a valid enumeration value.
                 'broad': {},
             },
@@ -527,12 +543,12 @@ class backpack(Exchange, ImplicitAPI):
         #                 {
         #                     "blockchain": "Solana",
         #                     "contractAddress": "jtojtomepa8beP8AuQc6eXt5FriJwfFMwQx2v2f9mCL",
-        #                     "depositEnabled": True,
+        #                     "depositEnabled": true,
         #                     "displayName": "Jito",
         #                     "maximumWithdrawal": null,
         #                     "minimumDeposit": "0.28",
         #                     "minimumWithdrawal": "0.58",
-        #                     "withdrawEnabled": True,
+        #                     "withdrawEnabled": true,
         #                     "withdrawalFee": "0.29"
         #                 }
         #             ]
@@ -949,7 +965,7 @@ class backpack(Exchange, ImplicitAPI):
         :param int [since]: timestamp in seconds of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch(default 100)
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()
@@ -1227,7 +1243,7 @@ class backpack(Exchange, ImplicitAPI):
         # fetchTrades
         #     {
         #         "id": 8721563,
-        #         "isBuyerMaker": False,
+        #         "isBuyerMaker": false,
         #         "price": "117427.6",
         #         "quantity": "0.00016",
         #         "quoteQuantity": "18.788416",
@@ -1239,7 +1255,7 @@ class backpack(Exchange, ImplicitAPI):
         #         "clientId": null,
         #         "fee": "0.004974",
         #         "feeSymbol": "USDC",
-        #         "isMaker": False,
+        #         "isMaker": false,
         #         "orderId": "4238907375",
         #         "price": "3826.15",
         #         "quantity": "0.0026",
@@ -1505,7 +1521,7 @@ class backpack(Exchange, ImplicitAPI):
         #         "fiatSymbol": null,
         #         "id": 5479929,
         #         "identifier": null,
-        #         "isInternal": False,
+        #         "isInternal": false,
         #         "providerId": null,
         #         "quantity": "10",
         #         "status": "pending",
@@ -1531,7 +1547,7 @@ class backpack(Exchange, ImplicitAPI):
         #             "fiatSymbol": null,
         #             "id": 5479929,
         #             "identifier": null,
-        #             "isInternal": False,
+        #             "isInternal": false,
         #             "providerId": null,
         #             "quantity": "10",
         #             "status": "confirmed",
@@ -1930,7 +1946,7 @@ class backpack(Exchange, ImplicitAPI):
         #         "executedQuoteQuantity": "0",
         #         "id": "4228978331",
         #         "orderType": "Limit",
-        #         "postOnly": True,
+        #         "postOnly": true,
         #         "price": "3000",
         #         "quantity": "0.001",
         #         "reduceOnly": null,
@@ -1962,7 +1978,7 @@ class backpack(Exchange, ImplicitAPI):
         #         "expiryReason": null,
         #         "id": "4239996998",
         #         "orderType": "Limit",
-        #         "postOnly": False,
+        #         "postOnly": false,
         #         "price": "4500",
         #         "quantity": null,
         #         "quoteQuantity": null,

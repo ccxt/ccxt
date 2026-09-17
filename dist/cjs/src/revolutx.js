@@ -92,6 +92,7 @@ class revolutx extends revolutx$1["default"] {
                         '1.0/orders/{venue_order_id}': 1,
                         '1.0/orders/fills/{venue_order_id}': 1,
                         '1.0/trades/private/{symbol}': 1,
+                        '1.0/transactions': 1,
                     },
                     'post': {
                         '1.0/orders': 1,
@@ -789,7 +790,7 @@ class revolutx extends revolutx$1["default"] {
             request['end_date'] = this.milliseconds();
         }
         if (limit !== undefined) {
-            request['limit'] = limit;
+            request['limit'] = Math.min(limit, 1900);
         }
         const cursor = this.safeString(params, 'cursor');
         if (cursor !== undefined) {

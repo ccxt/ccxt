@@ -5,7 +5,7 @@ namespace ccxt;
 
 public partial class latoken : Exchange
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "id", "latoken" },
@@ -186,7 +186,13 @@ public partial class latoken : Exchange
                         { "auth/account/currency/{currency}/{type}", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
+                        { "auth/account/filtered", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                         { "auth/order", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "auth/order/active", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
                         { "auth/order/getOrder/{id}", new Dictionary<string, object>() {
@@ -245,7 +251,13 @@ public partial class latoken : Exchange
                         { "auth/order/cancelAll/{currency}/{quote}", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
+                        { "auth/order/cancelBulk", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                         { "auth/order/place", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "auth/order/placeBulk", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
                         { "auth/spot/deposit", new Dictionary<string, object>() {
@@ -445,9 +457,9 @@ public partial class latoken : Exchange
         });
     }
 
-    public override object nonce()
+    public override Int64 nonce()
     {
-        return subtract(this.milliseconds(), getValue(this.options, "timeDifference"));
+        return ((Int64)((object)(subtract(this.milliseconds(), getValue(this.options, "timeDifference"))))!);
     }
 
     /**
@@ -461,7 +473,7 @@ public partial class latoken : Exchange
     public async override Task<Int64> FetchTime(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object response = await this.publicGetTime(parameters);
+        Dictionary<string, object> response = await this.publicGetTime(parameters);
         //
         //     {
         //         "serverTime": 1570615577321
@@ -481,7 +493,7 @@ public partial class latoken : Exchange
     public async override Task<List<ccxt.MarketInterface>> FetchMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object response = await this.publicGetPair(parameters);
+        List<object> response = await this.publicGetPair(parameters);
         //
         //     [
         //         {
@@ -506,25 +518,25 @@ public partial class latoken : Exchange
         {
             await this.loadTimeDifference();
         }
-        object currencies = this.safeDict(this.options, "cachedCurrencies", new Dictionary<string, object>() {});
+        IDictionary<string, object> currencies = this.safeDict(this.options, "cachedCurrencies", new Dictionary<string, object>() {});
         Dictionary<string, object> currenciesById = this.indexBy(currencies, "id");
         List<object> result = new List<object>() {};
         IList<object> rawMarkets = this.toArray(response);
-        for (object i = 0; isLessThan(i, getArrayLength(rawMarkets)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(rawMarkets)); postFixIncrement(ref i))
         {
             object market = getValue(rawMarkets, i);
             string? id = this.safeString(market, "id");
             // the exchange shows them inverted
             string? baseId = this.safeString(market, "baseCurrency");
             string? quoteId = this.safeString(market, "quoteCurrency");
-            object baseCurrency = this.safeDict(currenciesById, baseId);
-            object quoteCurrency = this.safeDict(currenciesById, quoteId);
-            object baseCurrencyInfo = this.safeDict(baseCurrency, "info");
-            object quoteCurrencyInfo = this.safeDict(quoteCurrency, "info");
+            IDictionary<string, object> baseCurrency = this.safeDict(currenciesById, baseId);
+            IDictionary<string, object> quoteCurrency = this.safeDict(currenciesById, quoteId);
+            IDictionary<string, object> baseCurrencyInfo = this.safeDict(baseCurrency, "info");
+            IDictionary<string, object> quoteCurrencyInfo = this.safeDict(quoteCurrency, "info");
             if (isTrue(isTrue(!isEqual(baseCurrencyInfo, null)) && isTrue(!isEqual(quoteCurrencyInfo, null))))
             {
                 object bs = this.safeCurrencyCode(this.safeString(baseCurrencyInfo, "tag"));
-                object quote = this.safeCurrencyCode(this.safeString(quoteCurrencyInfo, "tag"));
+                string? quote = this.safeCurrencyCode(this.safeString(quoteCurrencyInfo, "tag"));
                 if (isTrue(isTrue((isEqual(bs, null))) || isTrue((isEqual(quote, null)))))
                 {
                     continue;
@@ -593,10 +605,10 @@ public partial class latoken : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
-    public async override Task<object> fetchCurrencies(object parameters = null)
+    public async override Task<IDictionary<string, object>> fetchCurrencies(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object response = await this.publicGetCurrency(parameters);
+        List<object> response = await this.publicGetCurrency(parameters);
         //
         //     [
         //         {
@@ -632,11 +644,11 @@ public partial class latoken : Exchange
         return this.parseCurrencies(response);
     }
 
-    public override object parseCurrency(object currency)
+    public override Dictionary<string, object> parseCurrency(object currency)
     {
         string? id = this.safeString(currency, "id");
         string? tag = this.safeString(currency, "tag");
-        object code = this.safeCurrencyCode(tag);
+        string? code = this.safeCurrencyCode(tag);
         string? currencyType = this.safeString(currency, "type");
         bool isCrypto = (isTrue(isEqual(currencyType, "CURRENCY_TYPE_CRYPTO")) || isTrue(isEqual(currencyType, "CURRENCY_TYPE_IEO")));
         return this.safeCurrencyStructure(new Dictionary<string, object>() {
@@ -679,7 +691,7 @@ public partial class latoken : Exchange
         {
             await this.loadMarkets();
         }
-        object response = await this.privateGetAuthAccount(parameters);
+        List<object> response = await this.privateGetAuthAccount(parameters);
         //
         //     [
         //         {
@@ -713,8 +725,8 @@ public partial class latoken : Exchange
         object types = this.safeValue(this.options, "types", new Dictionary<string, object>() {});
         string? accountType = this.safeString(types, type, type);
         Dictionary<string, object> balancesByType = this.groupBy(response, "type");
-        object balances = this.safeValue(balancesByType, accountType, new List<object>() {});
-        for (object i = 0; isLessThan(i, getArrayLength(balances)); postFixIncrement(ref i))
+        List<object> balances = this.safeList(balancesByType, accountType, new List<object>() {});
+        for (int i = 0; isLessThan(i, getArrayLength(balances)); postFixIncrement(ref i))
         {
             object balance = getValue(balances, i);
             string? currencyId = this.safeString(balance, "currency");
@@ -729,8 +741,8 @@ public partial class latoken : Exchange
                     maxTimestamp = mathMax(maxTimestamp, timestamp);
                 }
             }
-            object code = this.safeCurrencyCode(currencyId);
-            object account = this.account();
+            string? code = this.safeCurrencyCode(currencyId);
+            Dictionary<string, object> account = this.account();
             ((IDictionary<string,object>)account)["free"] = this.safeString(balance, "available");
             ((IDictionary<string,object>)account)["used"] = this.safeString(balance, "blocked");
             if (isTrue(!isEqual(code, null)))
@@ -760,7 +772,7 @@ public partial class latoken : Exchange
         {
             await this.loadMarkets();
         }
-        object market = this.market(symbol);
+        Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "currency", getValue(market, "baseId") },
             { "quote", getValue(market, "quoteId") },
@@ -769,7 +781,7 @@ public partial class latoken : Exchange
         {
             ((IDictionary<string,object>)request)["limit"] = limit; // max 1000
         }
-        object response = await this.publicGetBookCurrencyQuote(this.extend(request, parameters));
+        Dictionary<string, object> response = await this.publicGetBookCurrencyQuote(this.extend(request, parameters));
         //
         //     {
         //         "ask":[
@@ -794,11 +806,11 @@ public partial class latoken : Exchange
         // observed live on 2026-08-17 with bestAskQuantity -0.1791852 served
         // for over half an hour - such a level is a deleted level their
         // aggregation failed to drop, so it is removed here
-        object rawAsks = this.safeList(response, "ask", new List<object>() {});
-        object rawBids = this.safeList(response, "bid", new List<object>() {});
+        List<object> rawAsks = this.safeList(response, "ask", new List<object>() {});
+        List<object> rawBids = this.safeList(response, "bid", new List<object>() {});
         List<object> asks = new List<object>() {};
         List<object> bids = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(rawAsks)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(rawAsks)); postFixIncrement(ref i))
         {
             object askEntry = getValue(rawAsks, i);
             string? askQuantity = this.safeString(askEntry, "quantity");
@@ -807,7 +819,7 @@ public partial class latoken : Exchange
                 ((IList<object>)asks).Add(askEntry);
             }
         }
-        for (object i = 0; isLessThan(i, getArrayLength(rawBids)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(rawBids)); postFixIncrement(ref i))
         {
             object bidEntry = getValue(rawBids, i);
             string? bidQuantity = this.safeString(bidEntry, "quantity");
@@ -888,12 +900,12 @@ public partial class latoken : Exchange
         {
             await this.loadMarkets();
         }
-        object market = this.market(symbol);
+        Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "base", getValue(market, "baseId") },
             { "quote", getValue(market, "quoteId") },
         };
-        object response = await this.publicGetTickerBaseQuote(this.extend(request, parameters));
+        Dictionary<string, object> response = await this.publicGetTickerBaseQuote(this.extend(request, parameters));
         //
         //    {
         //        "symbol": "92151d82-df98-4d88-9a4d-284fa9eca49f/0c3a106d-bde3-4c13-a26e-3fd2394529e5",
@@ -933,7 +945,7 @@ public partial class latoken : Exchange
         {
             await this.loadMarkets();
         }
-        object response = await this.publicGetTicker(parameters);
+        List<object> response = await this.publicGetTicker(parameters);
         //
         //    [
         //        {
@@ -1019,7 +1031,7 @@ public partial class latoken : Exchange
         string? baseId = this.safeString(trade, "baseCurrency");
         string? quoteId = this.safeString(trade, "quoteCurrency");
         object bs = this.safeCurrencyCode(baseId);
-        object quote = this.safeCurrencyCode(quoteId);
+        string? quote = this.safeCurrencyCode(quoteId);
         object symbol = add(add(bs, "/"), quote);
         if (isTrue(isTrue((!isEqual(this.markets, null))) && isTrue((inOp(this.markets, symbol)))))
         {
@@ -1028,7 +1040,7 @@ public partial class latoken : Exchange
         string? id = this.safeString(trade, "id");
         string? orderId = this.safeString(trade, "order");
         string? feeCost = this.safeString(trade, "fee");
-        object fee = null;
+        Dictionary<string, object> fee = null;
         if (isTrue(!isEqual(feeCost, null)))
         {
             fee = new Dictionary<string, object>() {
@@ -1071,7 +1083,7 @@ public partial class latoken : Exchange
         {
             await this.loadMarkets();
         }
-        object market = this.market(symbol);
+        Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "currency", getValue(market, "baseId") },
             { "quote", getValue(market, "quoteId") },
@@ -1080,7 +1092,7 @@ public partial class latoken : Exchange
         {
             ((IDictionary<string,object>)request)["limit"] = mathMin(limit, 100); // default 100, limit 100
         }
-        object response = await this.publicGetTradeHistoryCurrencyQuote(this.extend(request, parameters));
+        List<object> response = await this.publicGetTradeHistoryCurrencyQuote(this.extend(request, parameters));
         //
         //     [
         //         {"id":"c152f814-8eeb-44f0-8f3f-e5c568f2ffcf","isMakerBuyer":false,"baseCurrency":"620f2019-33c0-423b-8a9d-cde4d7f8ef7f","quoteCurrency":"0c3a106d-bde3-4c13-a26e-3fd2394529e5","price":"4435.56","quantity":"0.32534","cost":"1443.0650904","timestamp":1635854642725,"makerBuyer":false},
@@ -1127,12 +1139,12 @@ public partial class latoken : Exchange
         {
             await this.loadMarkets();
         }
-        object market = this.market(symbol);
+        Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "currency", getValue(market, "baseId") },
             { "quote", getValue(market, "quoteId") },
         };
-        object response = await this.publicGetTradeFeeCurrencyQuote(this.extend(request, parameters));
+        Dictionary<string, object> response = await this.publicGetTradeFeeCurrencyQuote(this.extend(request, parameters));
         //
         //     {
         //         "makerFee": "0.004900000000000000",
@@ -1151,12 +1163,12 @@ public partial class latoken : Exchange
         {
             await this.loadMarkets();
         }
-        object market = this.market(symbol);
+        Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "currency", getValue(market, "baseId") },
             { "quote", getValue(market, "quoteId") },
         };
-        object response = await this.privateGetAuthTradeFeeCurrencyQuote(this.extend(request, parameters));
+        Dictionary<string, object> response = await this.privateGetAuthTradeFeeCurrencyQuote(this.extend(request, parameters));
         //
         //     {
         //         "makerFee": "0.004900000000000000",
@@ -1188,12 +1200,12 @@ public partial class latoken : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        object market = null;
+        IDictionary<string, object> market = null;
         if (isTrue(!isEqual(limit, null)))
         {
             ((IDictionary<string,object>)request)["limit"] = limit; // default 100
         }
-        object response = new List<object>() {};
+        List<object> response = new List<object>() {};
         if (isTrue(!isEqual(symbol, null)))
         {
             market = this.market(symbol);
@@ -1225,7 +1237,7 @@ public partial class latoken : Exchange
         return ccxt.BaseExchange.ToTradeList(this.parseTrades(response, market, since, limit));
     }
 
-    public virtual object parseOrderStatus(object status)
+    public virtual string? parseOrderStatus(object status)
     {
         Dictionary<string, object> statuses = new Dictionary<string, object>() {
             { "ORDER_STATUS_PLACED", "open" },
@@ -1235,7 +1247,7 @@ public partial class latoken : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public virtual object parseOrderType(object status)
+    public virtual string? parseOrderType(object status)
     {
         Dictionary<string, object> statuses = new Dictionary<string, object>() {
             { "ORDER_TYPE_MARKET", "market" },
@@ -1244,7 +1256,7 @@ public partial class latoken : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public virtual object parseTimeInForce(object timeInForce)
+    public virtual string? parseTimeInForce(object timeInForce)
     {
         Dictionary<string, object> timeInForces = new Dictionary<string, object>() {
             { "ORDER_CONDITION_GOOD_TILL_CANCELLED", "GTC" },
@@ -1304,7 +1316,7 @@ public partial class latoken : Exchange
         string? baseId = this.safeString(order, "baseCurrency");
         string? quoteId = this.safeString(order, "quoteCurrency");
         object bs = this.safeCurrencyCode(baseId);
-        object quote = this.safeCurrencyCode(quoteId);
+        string? quote = this.safeCurrencyCode(quoteId);
         object symbol = null;
         if (isTrue(isTrue((!isEqual(bs, null))) && isTrue((!isEqual(quote, null)))))
         {
@@ -1322,12 +1334,12 @@ public partial class latoken : Exchange
             int partsLength = getArrayLength(parts);
             side = this.safeStringLower(parts, subtract(partsLength, 1));
         }
-        object type = this.parseOrderType(this.safeString(order, "type"));
+        string? type = this.parseOrderType(this.safeString(order, "type"));
         string? price = this.safeString(order, "price");
         string? amount = this.safeString(order, "quantity");
         string? filled = this.safeString(order, "filled");
         string? cost = this.safeString(order, "cost");
-        object status = this.parseOrderStatus(this.safeString(order, "status"));
+        string? status = this.parseOrderStatus(this.safeString(order, "status"));
         string? message = this.safeString(order, "message");
         if (isTrue(!isEqual(message, null)))
         {
@@ -1340,7 +1352,7 @@ public partial class latoken : Exchange
             }
         }
         string? clientOrderId = this.safeString(order, "clientOrderId");
-        object timeInForce = this.parseTimeInForce(this.safeString(order, "condition"));
+        string? timeInForce = this.parseTimeInForce(this.safeString(order, "condition"));
         return this.safeOrder(new Dictionary<string, object>() {
             { "id", id },
             { "clientOrderId", clientOrderId },
@@ -1394,7 +1406,7 @@ public partial class latoken : Exchange
         object isTrigger = this.safeValue2(parameters, "trigger", "stop");
         parameters = this.omit(parameters, "stop");
         // privateGetAuthOrderActive doesn't work even though its listed at https://api.latoken.com/doc/v2/#tag/Order/operation/getMyActiveOrders
-        object market = this.market(symbol);
+        Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "currency", getValue(market, "baseId") },
             { "quote", getValue(market, "quoteId") },
@@ -1454,7 +1466,7 @@ public partial class latoken : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        object market = null;
+        IDictionary<string, object> market = null;
         object isTrigger = this.safeValue2(parameters, "trigger", "stop");
         parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
         if (isTrue(!isEqual(limit, null)))
@@ -1590,7 +1602,7 @@ public partial class latoken : Exchange
         {
             await this.loadMarkets();
         }
-        object market = this.market(symbol);
+        Dictionary<string, object> market = this.market(symbol);
         string uppercaseType = ((string)type).ToUpper();
         if (isTrue(isEqual(side, null)))
         {
@@ -1699,7 +1711,7 @@ public partial class latoken : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        object market = null;
+        IDictionary<string, object> market = null;
         object isTrigger = this.safeValue2(parameters, "trigger", "stop");
         parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
         object response = null;
@@ -1746,7 +1758,7 @@ public partial class latoken : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public async override Task<List<ccxt.Transaction>> FetchTransactions(object code = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Transaction>> FetchTransactions(string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1754,7 +1766,7 @@ public partial class latoken : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        object response = await this.privateGetAuthTransaction(this.extend(request, parameters));
+        Dictionary<string, object> response = await this.privateGetAuthTransaction(this.extend(request, parameters));
         //
         //     {
         //         "hasNext":false,
@@ -1781,12 +1793,12 @@ public partial class latoken : Exchange
         //         "pageSize":10
         //     }
         //
-        object currency = null;
+        IDictionary<string, object> currency = null;
         if (isTrue(!isEqual(code, null)))
         {
-            currency = this.currency(code);
+            currency = this.currency(((string)code));
         }
-        object content = this.safeList(response, "content", new List<object>() {});
+        List<object> content = this.safeList(response, "content", new List<object>() {});
         return ccxt.BaseExchange.ToTransactionList(this.parseTransactions(content, currency, since, limit));
     }
 
@@ -1813,9 +1825,9 @@ public partial class latoken : Exchange
         string? id = this.safeString(transaction, "id");
         Int64? timestamp = this.safeInteger(transaction, "timestamp");
         string? currencyId = this.safeString(transaction, "currency");
-        object code = this.safeCurrencyCode(currencyId, currency);
-        object status = this.parseTransactionStatus(this.safeString(transaction, "status"));
-        object amount = this.safeNumber(transaction, "amount");
+        string? code = this.safeCurrencyCode(currencyId, currency);
+        string? status = this.parseTransactionStatus(this.safeString(transaction, "status"));
+        double? amount = this.safeNumber(transaction, "amount");
         string? addressFrom = this.safeString(transaction, "senderAddress");
         string? addressTo = this.safeString(transaction, "recipientAddress");
         string? txid = this.safeString(transaction, "transactionHash");
@@ -1825,13 +1837,13 @@ public partial class latoken : Exchange
             { "cost", null },
             { "rate", null },
         };
-        object feeCost = this.safeNumber(transaction, "transactionFee");
+        double? feeCost = this.safeNumber(transaction, "transactionFee");
         if (isTrue(!isEqual(feeCost, null)))
         {
             ((IDictionary<string,object>)fee)["cost"] = feeCost;
             ((IDictionary<string,object>)fee)["currency"] = code;
         }
-        object type = this.parseTransactionType(this.safeString(transaction, "type"));
+        string? type = this.parseTransactionType(this.safeString(transaction, "type"));
         return new Dictionary<string, object>() {
             { "info", transaction },
             { "id", id },
@@ -1856,7 +1868,7 @@ public partial class latoken : Exchange
         };
     }
 
-    public virtual object parseTransactionStatus(object status)
+    public virtual string? parseTransactionStatus(object status)
     {
         Dictionary<string, object> statuses = new Dictionary<string, object>() {
             { "TRANSACTION_STATUS_CONFIRMED", "ok" },
@@ -1869,7 +1881,7 @@ public partial class latoken : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public virtual object parseTransactionType(object type)
+    public virtual string? parseTransactionType(object type)
     {
         Dictionary<string, object> types = new Dictionary<string, object>() {
             { "TRANSACTION_TYPE_DEPOSIT", "deposit" },
@@ -1896,8 +1908,8 @@ public partial class latoken : Exchange
         {
             await this.loadMarkets();
         }
-        object currency = this.currency(code);
-        object response = await this.privateGetAuthTransfer(parameters);
+        Dictionary<string, object> currency = this.currency(((string)code));
+        Dictionary<string, object> response = await this.privateGetAuthTransfer(parameters);
         //
         //     {
         //         "hasNext": true,
@@ -1929,7 +1941,7 @@ public partial class latoken : Exchange
         //         "hasContent": true
         //     }
         //
-        object transfers = this.safeList(response, "content", new List<object>() {});
+        List<object> transfers = this.safeList(response, "content", new List<object>() {});
         return ccxt.BaseExchange.ToTransferEntryList(this.parseTransfers(transfers, currency, since, limit));
     }
 
@@ -1954,11 +1966,11 @@ public partial class latoken : Exchange
         {
             await this.loadMarkets();
         }
-        object currency = this.currency(code);
+        Dictionary<string, object> currency = this.currency(((string)code));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "currency", getValue(currency, "id") },
             { "recipient", toAccount },
-            { "value", this.currencyToPrecision(code, amount) },
+            { "value", this.currencyToPrecision(((string)code), amount) },
         };
         object response = null;
         if (isTrue(isGreaterThanOrEqual(getIndexOf(toAccount, "@"), 0)))
@@ -2036,7 +2048,7 @@ public partial class latoken : Exchange
         };
     }
 
-    public virtual object parseTransferStatus(object status)
+    public virtual string? parseTransferStatus(object status)
     {
         Dictionary<string, object> statuses = new Dictionary<string, object>() {
             { "TRANSFER_STATUS_COMPLETED", "ok" },
@@ -2053,10 +2065,10 @@ public partial class latoken : Exchange
         api ??= "public";
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        object request = add(add(add("/", this.version), "/"), this.implodeParams(path, parameters));
-        object requestString = request;
+        string request = add(add(add("/", this.version), "/"), this.implodeParams(path, parameters));
+        string requestString = request;
         object query = this.omit(parameters, this.extractParams(path));
-        object urlencodedQuery = this.urlencode(query);
+        string urlencodedQuery = this.urlencode(query);
         if (isTrue(isEqual(method, "GET")))
         {
             if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys)), 0)))
@@ -2102,7 +2114,7 @@ public partial class latoken : Exchange
         // {"result":false,"message":"Internal error","error":"For input string: \"NaN\"","status":"FAILURE"}
         //
         string? message = this.safeString(response, "message");
-        object feedback = add(add(this.id, " "), body);
+        string feedback = add(add(this.id, " "), body);
         if (isTrue(!isEqual(message, null)))
         {
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), message, feedback);

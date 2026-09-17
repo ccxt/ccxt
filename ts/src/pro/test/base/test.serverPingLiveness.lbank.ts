@@ -1,17 +1,11 @@
 import assert from 'assert';
 import ccxt from '../../../../ccxt.js';
 
-// native ts test, intentionally not transpiled - pins the liveness bookkeeping
-// in ccxt.pro.lbank.handlePing. lbank's server drives the heartbeat: it sends
-// { action: 'ping', ping: '<id>' } and closes the socket if the matching pong
-// does not arrive within a minute, but it does not reliably answer the RFC 6455
-// ping frames the base Client sends from onPingInterval. if handlePing answers
-// the server without recording the inbound ping as liveness, client.lastPong
-// never advances past the first onPingInterval tick and the
-// keepAlive * maxPingPongMisses check in Client.onPingInterval raises
-// RequestTimeout against a socket that is still streaming depth updates.
-// nothing here dials a socket: this.client (url) only constructs the WsClient
-// and client.send is stubbed to capture the outbound pong
+// native ts test, intentionally not transpiled - pins the liveness bookkeeping in
+// ccxt.pro.lbank.handlePing. lbank drives the heartbeat with { action: 'ping', ping: '<id>' }
+// and does not reliably answer RFC 6455 ping frames, so handlePing must record the inbound
+// ping as liveness or client.lastPong never advances and Client.onPingInterval raises
+// RequestTimeout on a live socket. no socket is dialed: client.send is stubbed to capture the pong
 
 function stubbedClient (exchange: any) {
     const url = exchange.urls['api']['ws'];

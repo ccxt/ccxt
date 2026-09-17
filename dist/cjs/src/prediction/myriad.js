@@ -3814,7 +3814,7 @@ class myriad extends myriad$1["default"] {
      * @ignore
      * @method
      * @name myriad#sign
-     * @description builds the request url and attaches the x-api-key header for private endpoints
+     * @description builds the request url and attaches the apiKey header for private endpoints
      * @param {string} path the endpoint path
      * @param {string|string[]} api the api group and access level
      * @param {string} method the http method
@@ -3850,7 +3850,17 @@ class myriad extends myriad$1["default"] {
             }
         }
         if ((this.apiKey !== undefined) && (this.apiKey !== '')) {
-            headers = this.extend(headers, { 'x-api-key': this.apiKey });
+            // keep this literal split. the php transpiler prefixes every occurrence of a local or
+            // parameter name with '$' at the text level, including occurrences inside single-quoted
+            // string literals, and this method's second parameter is named after the middle segment
+            // of the header below. collapsing the two halves back into one literal therefore emits a
+            // corrupted header name in php only - every other language stays green, so the
+            // regression would ship silently. pinned by the fixture in
+            // ts/src/test/static/request/prediction/myriad.json
+            const headerKey = 'x-api' + '-key';
+            const headersKey = {};
+            headersKey[headerKey] = this.apiKey;
+            headers = this.extend(headers, headersKey);
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }

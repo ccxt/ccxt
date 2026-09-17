@@ -427,7 +427,14 @@ func Print(v ...interface{}) {
 }
 
 func ReturnPanicError(ch chan interface{}) {
-	ccxt.ReturnPanicError(ch)
+	// recover() only stops a panic when called directly by the deferred function —
+	// delegating to ccxt.ReturnPanicError made its recover() a nested call that
+	// returned nil, so any panic in a test goroutine killed the whole binary
+	if r := recover(); r != nil {
+		if r != "break" {
+			ch <- ccxt.PanicMessage(r)
+		}
+	}
 }
 
 func callDynamically(name2 interface{}, args ...interface{}) <-chan interface{} {

@@ -15,7 +15,7 @@ function test_fetch_my_trades($exchange, $skipped_properties, $symbol) {
     assert_non_emtpy_array($exchange, $skipped_properties, $method, $trades, $symbol);
     $now = $exchange->milliseconds();
     for ($i = 0; $i < count($trades); $i++) {
-        test_trade($exchange, $skipped_properties, $method, $trades[$i], $symbol, $now);
+        test_trade($exchange, $skipped_properties, $method, $trades[$i], $symbol, $now, false);
     }
     assert_timestamp_order($exchange, $method, $symbol, $trades);
     return true;

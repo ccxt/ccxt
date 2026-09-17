@@ -144,10 +144,12 @@ export default class okx extends okxRest {
     /**
      * @method
      * @name okx#watchBidsAsks
+     * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-order-book-channel
      * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-tickers-channel
      * @description watches best bid & ask for symbols
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.channel] the channel to subscribe to, 'bbo-tbt' (default, 10ms L1) or 'tickers' (100ms)
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     watchBidsAsks(symbols?: Strings, params?: {}): Promise<Tickers>;

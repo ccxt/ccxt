@@ -55,7 +55,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 📚 **Official tokocrypto API documentation:** [tokocrypto.com](https://www.tokocrypto.com/apidocs/)
 
-> 33 implicit endpoints across 3 access groups.
+> 35 implicit endpoints across 3 access groups.
 
 ## binance
 
@@ -72,6 +72,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `binanceGetTickerPrice` | GET | `ticker/price` | 1 |
 | `binanceGetTickerBookTicker` | GET | `ticker/bookTicker` | 1 |
 | `binanceGetExchangeInfo` | GET | `exchangeInfo` | 10 |
+| `binanceGetExecutionRules` | GET | `executionRules` | 2 |
 | `binancePutUserDataStream` | PUT | `userDataStream` | 1 |
 | `binancePostUserDataStream` | POST | `userDataStream` | 1 |
 | `binanceDeleteUserDataStream` | DELETE | `userDataStream` | 1 |
@@ -104,4 +105,5 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privatePostOpenV1OrdersOco` | POST | `open/v1/orders/oco` | 1 |
 | `privatePostOpenV1Withdraws` | POST | `open/v1/withdraws` | 1 |
 | `privatePostOpenV1UserDataStream` | POST | `open/v1/user-data-stream` | 1 |
+| `privatePostOpenV1UserListenToken` | POST | `open/v1/user-listen-token` | 1 |
 
