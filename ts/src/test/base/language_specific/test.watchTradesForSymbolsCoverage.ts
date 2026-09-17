@@ -27,7 +27,7 @@ async function testWatchTradesForSymbolsCoverage () {
                 'datetime': exchange.iso8601 (now),
                 'symbol': symbol,
                 'order': undefined,
-                'side': 'buy',
+                'side': frame.side ?? 'buy',
                 'takerOrMaker': 'taker',
                 'price': 100,
                 'amount': 1,
@@ -43,7 +43,7 @@ async function testWatchTradesForSymbolsCoverage () {
         { delay: 6000, symbols: [ symbols[0] ] },
         { delay: 6000, symbols: [ symbols[1] ] },
     ]);
-    await testWatchTradesForSymbols (delayed.exchange, {}, symbols);
+    assert.strictEqual (await testWatchTradesForSymbols (delayed.exchange, {}, symbols), true);
     assert.strictEqual (delayed.calls (), 2);
     // Repeated updates for one symbol do not count as coverage of the second.
     const repeated = createExchange ([
@@ -51,16 +51,32 @@ async function testWatchTradesForSymbolsCoverage () {
         { delay: 6000, symbols: [ symbols[0] ] },
         { delay: 6000, symbols: [ symbols[1] ] },
     ]);
-    await testWatchTradesForSymbols (repeated.exchange, {}, symbols);
+    assert.strictEqual (await testWatchTradesForSymbols (repeated.exchange, {}, symbols), true);
     assert.strictEqual (repeated.calls (), 3);
     const missing = createExchange ([
         { delay: 6000, symbols: [ symbols[0] ] },
         { delay: 24000, symbols: [ symbols[0] ] },
     ]);
-    await assert.rejects (testWatchTradesForSymbols (missing.exchange, {}, symbols), /only received part of symbols/);
+    const warnings: string[] = [];
+    const originalLog = console.log;
+    console.log = (message) => warnings.push (message);
+    try {
+        assert.strictEqual (await testWatchTradesForSymbols (missing.exchange, {}, symbols), false);
+        const empty = createExchange ([ { delay: 30000, symbols: [] } ]);
+        assert.strictEqual (await testWatchTradesForSymbols (empty.exchange, {}, symbols), false);
+    } finally {
+        console.log = originalLog;
+    }
+    assert.strictEqual (warnings.length, 2);
+    assert (warnings[0].includes ('[TEST_WARNING]'));
+    assert (warnings[0].includes ('observed symbols: ["BTC/USDT"]'));
+    assert (warnings[1].includes ('observed symbols: []'));
+    assert (warnings.every ((warning) => warning.includes ('not all subscriptions could be verified')));
     assert.strictEqual (missing.calls (), 2);
     const wrong = createExchange ([ { delay: 6000, symbols: [ 'SOL/USDT' ] } ]);
     await assert.rejects (testWatchTradesForSymbols (wrong.exchange, {}, symbols), assert.AssertionError);
+    const malformed = createExchange ([ { delay: 6000, symbols: [ symbols[0] ], side: 'invalid' } ]);
+    await assert.rejects (testWatchTradesForSymbols (malformed.exchange, {}, symbols), assert.AssertionError);
     const failure = new Error ('watch failed');
     const broken = createExchange ([ { delay: 6000, error: failure } ]);
     await assert.rejects (testWatchTradesForSymbols (broken.exchange, {}, symbols), (error) => error === failure);

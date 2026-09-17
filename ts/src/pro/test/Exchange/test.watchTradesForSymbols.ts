@@ -44,7 +44,12 @@ async function testWatchTradesForSymbols (exchange: Exchange, skippedProperties:
             }
         }
     }
-    assert (returnedSymbols.length === symbols.length, logText + 'only received part of symbols: ' + exchange.json (returnedSymbols));
+    if (returnedSymbols.length !== symbols.length) {
+        // Live market activity cannot guarantee a trade for every symbol in this window.
+        // Keep the gap visible; this run has not verified all subscriptions.
+        console.log ('[TEST_WARNING] ' + logText + 'incomplete live coverage; observed symbols: ' + exchange.json (returnedSymbols) + '; not all subscriptions could be verified');
+        return false;
+    }
     return true;
 }
 
