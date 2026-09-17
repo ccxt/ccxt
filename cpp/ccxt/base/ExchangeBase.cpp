@@ -190,28 +190,71 @@ ccxt::any simdToAny (simdjson::ondemand::value v) {
 
 // nlohmann::json objects sort keys, which would break request signing, so serialise
 // dictionaries by hand in insertion order.
-std::string serialise (const ccxt::any& v) {
+namespace {
+// most keys and string values carry no escape; nlohmann's dump_escaped then
+// emits the raw chars inside quotes, so this fast path is byte-identical to
+// the json(s).dump() round-trip while skipping the construct+serialize per key
+bool needsEscape (const std::string& s) {
+    for (char c : s) {
+        if (c == '"' || c == '\\' || static_cast<unsigned char> (c) < 0x20) return true;
+    }
+    return false;
+}
+
+void appendQuoted (const std::string& s, std::string& out) {
+    if (!needsEscape (s)) {
+        out += '"';
+        out += s;
+        out += '"';
+    } else {
+        out += nlohmann::json (s).dump ();
+    }
+}
+
+void serialiseTo (const ccxt::any& v, std::string& out) {
     if (isDict (v)) {
-        std::string out = "{";
+        out += '{';
         bool first = true;
         for (const auto& kv : ccxt::any_cast<dict> (v).entries ()) {
-            if (!first) out += ",";
+            if (!first) out += ',';
             first = false;
-            out += nlohmann::json (kv.first).dump () + ":" + serialise (kv.second);
+            appendQuoted (kv.first.str (), out);
+            out += ':';
+            serialiseTo (kv.second, out);
         }
-        return out + "}";
+        out += '}';
+        return;
     }
     if (isList (v)) {
-        std::string out = "[";
+        out += '[';
         bool first = true;
         for (const auto& item : ccxt::any_cast<list> (v).items ()) {
-            if (!first) out += ",";
+            if (!first) out += ',';
             first = false;
-            out += serialise (item);
+            serialiseTo (item, out);
         }
-        return out + "]";
+        out += ']';
+        return;
     }
-    return anyToJson (v).dump ();
+    // scalars: emit the nlohmann-equivalent bytes directly; only floats and
+    // exotic payloads ride the nlohmann round-trip (their format is semantic —
+    // request bodies get signed over these bytes)
+    if (!v.has_value ()) { out += "null"; return; }
+    if (isBoolean (v))  { out += (ccxt::any_cast<bool> (v) ? "true" : "false"); return; }
+    if (isInt (v))      { out += std::to_string (toLong (v)); return; }
+    if (isStr (v))      { appendQuoted (ccxt::any_cast<std::string> (v), out); return; }
+    out += anyToJson (v).dump ();
+}
+} // namespace
+
+std::string serialise (const ccxt::any& v) {
+    // one output buffer for the whole tree: the recursive per-node string form
+    // re-copies every subtree through each ancestor (~3-4x the output volume on
+    // the 22MB markets tree, plus a std::any box per node)
+    std::string out;
+    out.reserve (1 << 16);
+    serialiseTo (v, out);
+    return out;
 }
 
 ccxt::any deepClone (const ccxt::any& v) {
