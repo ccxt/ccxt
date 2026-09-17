@@ -144,7 +144,32 @@ class Client(object):
         # language - transpiled code calls client.reset(error)
         if self.ping_looper:
             self.ping_looper.cancel()
+        # js rejects a promise with any value, python can only reject a Future
+        # with a BaseException. callers do pass raw wire payloads - binance
+        # resets with the 5xx error dict itself (ts/src/pro/binance.ts
+        # handleWsError -> python/ccxt/pro/binance.py:5175) - and
+        # Future.set_exception then raises TypeError('invalid exception object')
+        # out of the message handler, aborting the broadcast on the first
+        # pending future and leaving every watcher hanging: the exact failure
+        # mode reset() exists to prevent
+        if not isinstance(error, BaseException):
+            error = NetworkError(self.stringify_reset_payload(error))
         self.reject(error)
+
+    @staticmethod
+    def stringify_reset_payload(payload):
+        # keep the wire payload readable in the rejection message, but never let
+        # the formatting itself raise - reset() is a teardown path, a throw here
+        # would strand every pending future
+        if isinstance(payload, (dict, list)):
+            try:
+                return Exchange.json(payload)
+            except Exception:
+                pass
+        try:
+            return str(payload)
+        except Exception:
+            return 'connection reset'
 
     def receive_loop(self):
         if self.verbose:

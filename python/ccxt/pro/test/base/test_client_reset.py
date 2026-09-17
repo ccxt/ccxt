@@ -5,7 +5,7 @@ import sys
 root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))))
 sys.path.append(root)
 
-from ccxt import ExchangeError, InvalidNonce  # noqa: F402
+from ccxt import ExchangeError, InvalidNonce, NetworkError  # noqa: F402
 from ccxt.async_support.base.ws.client import Client  # noqa: F402
 
 # ----------------------------------------------------------------------------
@@ -105,9 +105,82 @@ async def test_reset_does_not_poison_new_futures():
     fresh.cancel()
 
 
+async def test_reset_with_a_non_exception_payload():
+    # binance resets with the raw 5xx wire payload, not an exception:
+    # python/ccxt/pro/binance.py:5175 `client.reset(message)` (transpiled from
+    # ts/src/pro/binance.ts handleWsError). js can reject a promise with any
+    # value, python's Future.set_exception raises TypeError('invalid exception
+    # object') on a dict - which would abort the broadcast on the FIRST pending
+    # future and leave every remaining watcher hanging forever, the precise
+    # failure reset() is supposed to prevent. wrap non-exceptions instead.
+    client = make_client()
+    first = client.future('orderbook:BTC/USDT')
+    second = client.future('trades:BTC/USDT')
+    message = {'id': 1, 'status': 503, 'error': {'code': '-1001', 'msg': 'Internal error'}}
+    client.reset(message)  # must not raise TypeError
+    assert len(client.futures) == 0, "reset must drain the futures registry even for a dict payload"
+    for future in (first, second):
+        try:
+            await asyncio.wait_for(future, 1)
+            assert False, "reset should have rejected the pending future"
+        except NetworkError as e:
+            assert 'Internal error' in str(e), f"payload must survive into the error message, got '{str(e)}'"
+
+
+async def test_reset_with_a_string_payload():
+    # a bare string is the other non-exception shape a transpiled caller can pass
+    client = make_client()
+    future = client.future('ticker:BTC/USDT')
+    client.reset('connection reset by peer')  # must not raise TypeError
+    try:
+        await asyncio.wait_for(future, 1)
+        assert False, "reset should have rejected the pending future"
+    except NetworkError as e:
+        assert str(e) == 'connection reset by peer', f"expected the payload text, got '{str(e)}'"
+
+
+async def test_reset_preserves_the_original_exception_type():
+    # the wrapping must not downgrade a real ccxt exception: watchers catch on
+    # type (InvalidNonce drives orderbook resync), so an exception argument has
+    # to arrive unchanged
+    client = make_client()
+    future = client.future('orderbook:BTC/USDT')
+    error = InvalidNonce('sequence gap')
+    client.reset(error)
+    try:
+        await asyncio.wait_for(future, 1)
+        assert False, "reset should have rejected the pending future"
+    except InvalidNonce as e:
+        assert e is error, "reset must reject with the exact exception instance it was given"
+
+
+async def test_reset_with_an_unserializable_payload():
+    # reset() is a teardown path: formatting the payload must never throw, or
+    # the futures it was called to drain are stranded. a set is not JSON
+    # serializable, so Exchange.json() raises on it and the fallback must run.
+    client = make_client()
+    future = client.future('orderbook:BTC/USDT')
+    client.reset({'codes': {500, 503}})  # must not raise TypeError
+    assert len(client.futures) == 0, "reset must drain the futures registry for an unserializable payload"
+    try:
+        await asyncio.wait_for(future, 1)
+        assert False, "reset should have rejected the pending future"
+    except NetworkError:
+        pass
+
+
 async def test_ws_client_reset():
     await test_reset_rejects_all_pending_futures()
     await test_reset_cancels_keepalive()
     await test_reset_without_ping_looper()
     await test_reset_is_idempotent()
     await test_reset_does_not_poison_new_futures()
+    await test_reset_with_a_non_exception_payload()
+    await test_reset_with_a_string_payload()
+    await test_reset_preserves_the_original_exception_type()
+    await test_reset_with_an_unserializable_payload()
+
+
+if __name__ == '__main__':
+    asyncio.run(test_ws_client_reset())
+    print('test_client_reset passed')
