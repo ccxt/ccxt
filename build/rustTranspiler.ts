@@ -1,4 +1,5 @@
 import Transpiler from "ast-transpiler";
+import ts from 'typescript6';
 import path from 'path';
 import errors from "../js/src/base/errors.js";
 import { basename } from 'path';
@@ -8494,7 +8495,16 @@ impl std::ops::DerefMut for ${coreName} {
      * wraps, namespace rewrites, assert handling, …). Used by both the
      * base-test and exchange-test transpilation so they stay in sync.
      */
-    runExchangeTestPipeline(content: string, asyncMethods: Set<string>): string {
+    runExchangeTestPipeline(content: string, asyncMethods: Set<string>, source = ''): string {
+        // methodsTypes omits free functions, and the printer drops `async` from one whose body has
+        // no await - but its callers still `.await` it (E0277). Keep the contract the TS declares.
+        const sourceFile = ts.createSourceFile ('test.ts', source, ts.ScriptTarget.Latest, true);
+        const asyncFunctions = new Set (sourceFile.statements
+            .filter (ts.isFunctionDeclaration)
+            .filter ((node) => node.modifiers?.some ((modifier) => modifier.kind === ts.SyntaxKind.AsyncKeyword))
+            .map ((node) => node.name?.text));
+        content = content.replace (/^(\s*)(pub\s+)?fn\s+(\w+)\s*\(/gm,
+            (full, indent, visibility, name) => (asyncFunctions.has (name) ? `${indent}${visibility || ''}async fn ${name}(` : full));
         content = this.regexAll(content, this.getRustRegexes(asyncMethods));
         content = this.rewriteHashAlgoConstants(content);
         content = this.rewriteBareErrorClassRefs(content);
@@ -8647,7 +8657,7 @@ impl std::ops::DerefMut for ${coreName} {
                     // `optional_args: &[Value]` slice.
                     const tsSrc = fs.readFileSync(tsFile, 'utf8');
                     const defaultArgFns = this.detectFreeFnDefaultArgs(tsSrc);
-                    let content = this.runExchangeTestPipeline(result.content ?? '', asyncMethods);
+                    let content = this.runExchangeTestPipeline(result.content ?? '', asyncMethods, tsSrc);
                     if (defaultArgFns.size > 0) {
                         content = this.foldDefaultArgsIntoOptional(content, defaultArgFns);
                     }
@@ -8780,7 +8790,7 @@ impl std::ops::DerefMut for ${coreName} {
                 );
                 const tsSrc = fs.readFileSync(tsFile, 'utf8');
                 const defaultArgFns = this.detectFreeFnDefaultArgs(tsSrc);
-                let content = this.runExchangeTestPipeline(result.content ?? '', asyncMethods);
+                let content = this.runExchangeTestPipeline(result.content ?? '', asyncMethods, tsSrc);
                 if (defaultArgFns.size > 0) {
                     content = this.foldDefaultArgsIntoOptional(content, defaultArgFns);
                 }
