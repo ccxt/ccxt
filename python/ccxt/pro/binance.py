@@ -2196,7 +2196,7 @@ class binance(ccxt.async_support.binance):
                     # eOptions tickers are per underlying+expiry: <underlying>@optionTicker@<YYMMDD>
                     expirationDate = self.safe_string(params, 'expirationDate')
                     if expirationDate is None:
-                        raise ArgumentsRequired(self.id + ' ' + methodName + '() requires params["expirationDate"](e.g. "260227") for eOptions tickers when no symbols are provided')
+                        raise ArgumentsRequired(self.id + ' ' + methodName + '() requires params["expirationDate"] (e.g. "260227") for eOptions tickers when no symbols are provided')
                     subscriptionArgs.append(underlying + '@optionTicker@' + expirationDate)
                 else:
                     # isOptionMarkPrice: one stream covers all contracts for the underlying

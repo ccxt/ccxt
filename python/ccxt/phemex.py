@@ -4832,7 +4832,7 @@ class phemex(Exchange, ImplicitAPI):
             if not (self.in_array(code, stableCoins)):
                 networkId = currency['id']
             else:
-                raise ArgumentsRequired(self.id + ' withdraw() requires an extra argument params["network"]')
+                raise ArgumentsRequired(self.id + ' withdraw () requires an extra argument params["network"]')
         request = {
             'currency': currency['id'],
             'address': address,

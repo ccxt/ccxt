@@ -50,5 +50,17 @@ function testPrecisionFromString() {
     assert(exchange.precisionFromString('1.0') === 0);
     // Test 20: Mixed precision
     assert(exchange.precisionFromString('0.12345') === 5);
+    // Test 21: Negative mantissa with negative exponent
+    assert(exchange.precisionFromString('-8e-8') === 8);
+    // Test 22: Negative mantissa uppercase E with zero-padded exponent
+    assert(exchange.precisionFromString('-8E-08') === 8);
+    // Test 23: Negative decimal mantissa
+    assert(exchange.precisionFromString('-2.5e-6') === 6);
+    // Test 24: Negative mantissa with positive exponent
+    assert(exchange.precisionFromString('-1e4') === -4);
+    // Test 25: Explicitly positive mantissa
+    assert(exchange.precisionFromString('+1e-4') === 4);
+    // Test 26: Negative mantissa with explicitly signed exponent
+    assert(exchange.precisionFromString('-1e+4') === -4);
 }
 export default testPrecisionFromString;

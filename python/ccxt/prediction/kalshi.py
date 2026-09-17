@@ -372,7 +372,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
     async def fetch_outcomes(self, outcomeSymbols: list[str]) -> object:
         """
  @ignore
-        resolves several uncached outcomes at once — ticker-shaped ids are batched through the markets listing's tickers filter(100 per request); anything left unresolved(handle-shaped symbols, unknown tickers) falls back to the single fetch and its guidance-rich BadSymbol
+        resolves several uncached outcomes at once — ticker-shaped ids are batched through the markets listing's tickers filter (100 per request); anything left unresolved (handle-shaped symbols, unknown tickers) falls back to the single fetch and its guidance-rich BadSymbol
 
         https://docs.kalshi.com/api-reference/market/get-markets
 
@@ -915,7 +915,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
         :returns dict: a dictionary of [prediction ticker structures](https://docs.ccxt.com/#/?id=prediction-ticker-structure) indexed by outcome
         """
         if outcomes is None:
-            raise ArgumentsRequired(self.id + ' fetchTickers() requires an outcomes argument — the venue has no all-tickers endpoint; pass the outcome handles to fetch(discover them via fetchEvents())')
+            raise ArgumentsRequired(self.id + ' fetchTickers() requires an outcomes argument — the venue has no all-tickers endpoint; pass the outcome handles to fetch (discover them via fetchEvents ())')
         # batch-resolve the uncached outcomes (one markets request per 100 tickers)
         await self.load_outcomes(outcomes)
         targets = []
@@ -1071,7 +1071,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
             # hoist Object.keys(...).join(...) to a local — inline in a throw mangles in PHP
             tfKeys = list(self.timeframes.keys())
             supported = ', '.join(tfKeys)
-            raise BadRequest(self.id + ' fetchOHLCV() does not support the ' + timeframe + ' timeframe(supported: ' + supported + ')')
+            raise BadRequest(self.id + ' fetchOHLCV() does not support the ' + timeframe + ' timeframe (supported: ' + supported + ')')
         request = {
             'series_ticker': seriesTicker,
             'ticker': ticker,
@@ -1462,7 +1462,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
 
     async def fetch_settlements(self, outcome: Str = None, since: Int = None, limit: Int = None, params={}) -> list[PredictionSettlement]:
         """
-        fetches the user's settled(resolved) positions, with the collateral paid out and realized pnl
+        fetches the user's settled (resolved) positions, with the collateral paid out and realized pnl
 
         https://trading-api.readme.io/reference/getportfoliosettlements
 
@@ -1790,7 +1790,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
         """
         # kalshi has no market orders — every order is a limit order and the price is required
         if price is None:
-            raise ArgumentsRequired(self.id + " createOrder() requires a price - kalshi has only limit orders(no market orders). For immediate execution pass an aggressive price with params {'time_in_force': 'immediate_or_cancel'}")
+            raise ArgumentsRequired(self.id + " createOrder() requires a price - kalshi has only limit orders (no market orders). For immediate execution pass an aggressive price with params {'time_in_force': 'immediate_or_cancel'}")
         await self.load_outcome(outcome)
         outcomeObj = self.outcome(outcome)
         ticker = self.safe_string(outcomeObj['info'], 'ticker')
@@ -1947,7 +1947,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
 
     async def fetch_events(self, params: fetchEventsParams = {}) -> list[PredictionEvent]:
         """
-        fetches kalshi events scoped by a search query, tag, category or series ticker — always live from the API, never from the local cache(it POPULATES the cache for later event()/outcome lookups). the scope decides the endpoint: a free-text `query` hits kalshi's ranked search endpoint and the top `limit` matches are fetched canonically; `tags`/`category` resolve to series via the /series listing then fetch their events; `series_ticker` is used verbatim. `limit` bounds how many events are actually fetched(broad scopes stop early), and any other param is forwarded straight to the /events endpoint.
+        fetches kalshi events scoped by a search query, tag, category or series ticker — always live from the API, never from the local cache(it POPULATES the cache for later event()/outcome lookups). the scope decides the endpoint: a free-text `query` hits kalshi's ranked search endpoint and the top `limit` matches are fetched canonically; `tags`/`category` resolve to series via the /series listing then fetch their events; `series_ticker` is used verbatim. `limit` bounds how many events are actually fetched (broad scopes stop early), and any other param is forwarded straight to the /events endpoint.
 
         https://docs.kalshi.com/api-reference/events/get-events
 
@@ -2025,7 +2025,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
     async def fetch_events_by_query(self, queries: list[str], limit: Int, rest={}) -> list[object]:
         """
  @ignore
-        resolves free-text queries to ranked event tickers via kalshi's search endpoint, then fetches the top `limit` events canonically(with nested markets)
+        resolves free-text queries to ranked event tickers via kalshi's search endpoint, then fetches the top `limit` events canonically (with nested markets)
         :param str[] queries: free-text search strings
         :param int [limit]: max number of events to fetch
         :param dict [rest]: extra params forwarded verbatim to the events endpoint

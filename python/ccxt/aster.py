@@ -3120,7 +3120,7 @@ class aster(Exchange, ImplicitAPI):
         :returns dict[]: a list of `margin structures <https://docs.ccxt.com/?id=margin-loan-structure>`
         """
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchMarginAdjustmentHistory() requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchMarginAdjustmentHistory () requires a symbol argument')
         self.load_markets_and_sign_in()
         market = self.market(symbol)
         until = self.safe_integer(params, 'until')
@@ -4170,10 +4170,10 @@ class aster(Exchange, ImplicitAPI):
         """
         if self.is_empty_string(self.privateKey):
             if not self.is_empty_string(self.apiKey) or not self.is_empty_string(self.secret):
-                raise NotSupported(self.id + 'after the latest upgrade(v4.5.52), CCXT now expects the l1 private key to be provided in the credentials.')
+                raise NotSupported(self.id + 'after the latest upgrade (v4.5.52), CCXT now expects the l1 private key to be provided in the credentials.')
             return False
         if len(self.privateKey) > 66:
-            raise NotSupported(self.id + ' after the latest update(v4.5.52), CCXT now expects the l1 private key to be provided in the credentials.')
+            raise NotSupported(self.id + ' after the latest update (v4.5.52), CCXT now expects the l1 private key to be provided in the credentials.')
         self.initialize_client(params)
         return True
 

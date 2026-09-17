@@ -405,7 +405,7 @@ class kucoin(ccxt.async_support.kucoin):
         uta, params = self.handle_option_and_params(params, 'watchTickers', 'uta', uta)
         isFuturesMethod = (marketType != 'spot') and (marketType != 'margin')
         if (isFuturesMethod or uta) and symbols is None:
-            raise ArgumentsRequired(self.id + ' watchTickers() requires a list of symbols for ' + marketType + ' markets and unified trading account(uta)')
+            raise ArgumentsRequired(self.id + ' watchTickers() requires a list of symbols for ' + marketType + ' markets and unified trading account (uta)')
         messageHash = 'tickers'
         method = '/market/ticker'
         if isFuturesMethod:
@@ -1622,12 +1622,16 @@ class kucoin(ccxt.async_support.kucoin):
         firstDelta = self.safe_value(cache, 0)
         nonce = self.safe_integer(orderbook, 'nonce')
         firstDeltaStart = self.safe_integer_n(firstDelta, ['sequenceStart', 'sequence', 'O'])
+        if (nonce is None) or (firstDeltaStart is None):
+            return -1
         if nonce < firstDeltaStart - 1:
             return -1
         for i in range(0, len(cache)):
             delta = cache[i]
             deltaStart = self.safe_integer_n(delta, ['sequenceStart', 'sequence', 'O'])
             deltaEnd = self.safe_integer_n(delta, ['sequenceEnd', 'sequence', 'C'])  # todo check
+            if (deltaStart is None) or (deltaEnd is None):
+                continue
             if (nonce >= deltaStart - 1) and (nonce < deltaEnd):
                 return i
         return len(cache)
