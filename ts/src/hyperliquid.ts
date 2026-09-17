@@ -2439,7 +2439,8 @@ export default class hyperliquid extends Exchange {
             'grouping': grouping,
         };
         if (this.safeBool (this.options, 'approvedBuilderFee', false)) {
-            const wallet = this.safeStringLower (this.options, 'builder', '0x6530512A6c89C7cfCEbC3BA7fcD9aDa5f30827a6');
+            const builder = '0x6530512A6c89C7cfCEbC3BA7fcD9aDa5f30827a6';
+            const wallet = this.safeStringLower (this.options, 'builder', builder.toLowerCase());
             // when builderFee is disabled the builder is still attached but with a 0% fee (f = 0), for statistics purposes only
             let feeInt = this.safeInteger (this.options, 'feeInt', 10);
             if (!this.safeBool (this.options, 'builderFee', true)) {
