@@ -918,7 +918,7 @@ export default class krakenfutures extends Exchange {
         if (priceType === 'index') {
             priceType = 'spot'; // the venue's name for index-price candles
         } else if ((priceType !== 'trade') && (priceType !== 'mark') && (priceType !== 'spot')) {
-            throw new NotSupported (this.id + ' fetchOHLCV() supports price values "mark" and "index" only');
+            throw new NotSupported (this.id + ' fetchOHLCV() price parameter must be one of "trade", "mark", "index" or "spot"');
         }
         const request: Dict = {
             'symbol': market['id'],

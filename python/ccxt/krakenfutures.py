@@ -906,7 +906,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         if priceType == 'index':
             priceType = 'spot'  # the venue's name for index-price candles
         elif (priceType != 'trade') and (priceType != 'mark') and (priceType != 'spot'):
-            raise NotSupported(self.id + ' fetchOHLCV() supports price values "mark" and "index" only')
+            raise NotSupported(self.id + ' fetchOHLCV() price parameter must be one of "trade", "mark", "index" or "spot"')
         request = {
             'symbol': market['id'],
             'price_type': priceType,
