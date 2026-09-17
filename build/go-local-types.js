@@ -172,6 +172,17 @@ export function installCcxtGoLocalTypes (goTranspiler) {
         }
         return goType;
     };
+    // TS has one number type, but boxed Go int/int64/float64 values compare by
+    // their dynamic types. Keep numeric equality on the runtime's IsEqual path.
+    if (typeof goTranspiler.printInlineEquality === 'function') {
+        const inlineEquality = goTranspiler.printInlineEquality;
+        goTranspiler.printInlineEquality = function (left, right, ...args) {
+            if (this.goScalarFamily (left) === 'number' || this.goScalarFamily (right) === 'number') {
+                return undefined;
+            }
+            return inlineEquality.call (this, left, right, ...args);
+        };
+    }
     goTranspiler.__ccxtGoLocalTypesInstalled = true;
 }
 
