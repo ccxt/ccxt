@@ -287,7 +287,11 @@ public partial class bingx : ccxt.bingx
         string marketType = ((bool) isTrue(isSwap)) ? "swap" : "spot";
         Dictionary<string, object> market = this.safeMarket(marketId, null, null, marketType);
         object symbol = getValue(market, "symbol");
-        object ticker = this.parseWsTicker(data, market);
+        // the Coin-M stream is a distinct endpoint, so it identifies an inverse
+        // ticker even when the market id could not be resolved
+        string? inverseUrl = this.safeString(getValue(getValue(this.urls, "api"), "ws"), "inverse");
+        bool isInverse = isTrue((!isEqual(inverseUrl, null))) && isTrue((isEqual(getIndexOf(client.url, inverseUrl), 0)));
+        object ticker = this.parseWsTicker(data, market, isInverse);
         ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
         callDynamically(client as WebSocketClient, "resolve", new object[] {ticker, this.getMessageHash("ticker", symbol)});
         if (isTrue(isEqual(this.safeString(message, "dataType"), "all@ticker")))
@@ -296,7 +300,7 @@ public partial class bingx : ccxt.bingx
         }
     }
 
-    public virtual object parseWsTicker(object message, object market = null)
+    public virtual object parseWsTicker(object message, object market = null, object isInverse = null)
     {
         //
         //     {
@@ -324,6 +328,11 @@ public partial class bingx : ccxt.bingx
         string? marketId = this.safeString(message, "s");
         market = this.safeMarket(marketId, market);
         string? close = this.safeString(message, "c");
+        // Coin-M m is coin volume; v is contracts and q is already USD turnover.
+        // prefer the caller's stream-derived flag so an unresolved market id on
+        // the Coin-M endpoint does not silently fall back to the contract count
+        object inverse = ((bool) isTrue((isEqual(isInverse, null)))) ? (isEqual(getValue(market, "inverse"), true)) : isInverse;
+        string baseVolumeKey = ((bool) isTrue(inverse)) ? "m" : "v";
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", getValue(market, "symbol") },
             { "timestamp", timestamp },
@@ -342,7 +351,7 @@ public partial class bingx : ccxt.bingx
             { "change", this.safeString(message, "p") },
             { "percentage", null },
             { "average", null },
-            { "baseVolume", this.safeString(message, "v") },
+            { "baseVolume", this.safeString(message, baseVolumeKey) },
             { "quoteVolume", this.safeString(message, "q") },
             { "info", message },
         }, market);

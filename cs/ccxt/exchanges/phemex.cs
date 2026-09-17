@@ -2799,7 +2799,7 @@ public partial class phemex : Exchange
             };
         }
         string? timeInForce = this.parseTimeInForce(this.safeString(order, "timeInForce"));
-        double? triggerPrice = this.parseNumber(this.omitZero(this.fromEp(this.safeString(order, "stopPxEp"))));
+        double? triggerPrice = this.parseNumber(this.omitZero(this.fromEp(this.safeString(order, "stopPxEp"), market)));
         bool postOnly = (isEqual(timeInForce, "PO"));
         return this.safeOrder(new Dictionary<string, object>() {
             { "info", order },
@@ -3651,6 +3651,17 @@ public partial class phemex : Exchange
         } else if (isTrue(isEqual(getValue(market, "spot"), true)))
         {
             List<object> rows = this.safeList(data, "rows", new List<object>() {});
+            int numRows = getArrayLength(rows);
+            if (isTrue(isLessThan(numRows, 1)))
+            {
+                if (isTrue(!isEqual(clientOrderId, null)))
+                {
+                    throw new OrderNotFound ((string)add(add(add(add(add(this.id, " fetchOrder() "), symbol), " order with clientOrderId "), clientOrderId), " not found")) ;
+                } else
+                {
+                    throw new OrderNotFound ((string)add(add(add(add(add(this.id, " fetchOrder() "), symbol), " order with id "), id), " not found")) ;
+                }
+            }
             order = this.safeDict(rows, 0, new Dictionary<string, object>() {});
         }
         return ccxt.BaseExchange.ToOrder(this.parseOrder(order, market));
