@@ -1271,7 +1271,7 @@ func (this *BaseExchange) SetProperty(obj any, property any, defaultValue any) {
 	}
 }
 
-func (this *BaseExchange) ExceptionMessage(exc any, includeStack ...any) any {
+func (this *BaseExchange) ExceptionMessage(exc any, includeStack ...any) string {
 	include := true
 	if len(includeStack) > 0 {
 		include = includeStack[0].(bool)
@@ -1373,11 +1373,11 @@ func (this *BaseExchange) ExtendedStarknetSign(a any, b any) any {
 	return this.Json([]any{r.String(), s.String()})
 }
 
-func (this *BaseExchange) ExtendedStarknetGetSelectorFromName(a any) any {
+func (this *BaseExchange) ExtendedStarknetGetSelectorFromName(a any) string {
 	return starknetGetSelectorFromName(ToString(a)).String()
 }
 
-func (this *BaseExchange) ExtendedStarknetComputePoseidonHashOnElements(a any) any {
+func (this *BaseExchange) ExtendedStarknetComputePoseidonHashOnElements(a any) string {
 	values, ok := derefScalar(a).([]any)
 	if !ok {
 		panic(ExchangeError(Add(this.Id, " extendedStarknetComputePoseidonHashOnElements() requires an array")))

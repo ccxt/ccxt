@@ -37,7 +37,7 @@ func (this *BaseExchange) Uuid22() string {
 }
 
 // strip trims whitespace from both ends of a string.
-func (this *BaseExchange) Strip(str any) any {
+func (this *BaseExchange) Strip(str any) string {
 	return strings.TrimSpace(derefScalar(str).(string))
 }
 

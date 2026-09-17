@@ -193,9 +193,9 @@ func  (this *PredictionExchange) FilterEventsByStatus(events any, optionalArgs .
     var result any = []any{}
     for i := 0; IsLessThan(i, GetArrayLength(events)); i++ {
         var event any = GetValue(events, i)
-        var isActive any = this.SafeBool(event, "active")
+        var isActive *bool = this.SafeBool(event, "active")
         // keep events whose status is unknown (already filtered server-side, no `active` field)
-        if (IsEqual(isActive, nil)) || ((isActive == wantActive)) {
+        if ((isActive == nil)) || ((isActive != nil && *isActive == wantActive)) {
             AppendToArray(&result, event)
         }
     }
@@ -256,7 +256,7 @@ func  (this *PredictionExchange) NormalizeTagKey(tag any) any  {
     var s any = ""
     var pendingSep bool = false
     for i := 0; IsLessThan(i, GetArrayLength(chars)); i++ {
-        var ch any = GetValue(chars, i)
+        var ch string = GetValue(chars, i).(string)
         if IsGreaterThanOrEqual(GetIndexOf(allowed, ch), 0) {
             if pendingSep && ((s != "")) {
                 s = Add(s, " ")
@@ -540,7 +540,7 @@ func  (this *PredictionExchange) ShortenSlug(slug any) any  {
     var s any = ""
     var lastDash bool = true // start true to drop leading separators
     for i := 0; IsLessThan(i, GetArrayLength(chars)); i++ {
-        var ch any = GetValue(chars, i)
+        var ch string = GetValue(chars, i).(string)
         if IsGreaterThanOrEqual(GetIndexOf(allowed, ch), 0) {
             s = Add(s, ch)
             lastDash = false
@@ -551,7 +551,7 @@ func  (this *PredictionExchange) ShortenSlug(slug any) any  {
     }
     var replacementKeys []string = ObjectKeys(replacements)
     for i := 0; IsLessThan(i, GetArrayLength(replacementKeys)); i++ {
-        var replacementKey any = GetValue(replacementKeys, i)
+        var replacementKey string = GetValue(replacementKeys, i).(string)
         var replacementValue *string = this.SafeString(replacements, replacementKey)
         if (replacementValue != nil) {
             s = Replace(s, replacementKey, replacementValue)
@@ -560,7 +560,7 @@ func  (this *PredictionExchange) ShortenSlug(slug any) any  {
     var rawParts []string = Split(s, "-")
     var parts any = []any{}
     for i := 0; IsLessThan(i, GetArrayLength(rawParts)); i++ {
-        var w any = GetValue(rawParts, i)
+        var w string = GetValue(rawParts, i).(string)
         if IsGreaterThan(GetLength(w), 0) && !this.InArray(w, stopWords) {
             AppendToArray(&parts, w)
         }
@@ -601,7 +601,7 @@ func  (this *PredictionExchange) SlugToOutcomeSymbol(eventSlug any, marketSlug a
     var label any = ""
     var pendingSep bool = false
     for i := 0; IsLessThan(i, GetArrayLength(chars)); i++ {
-        var ch any = GetValue(chars, i)
+        var ch string = GetValue(chars, i).(string)
         if IsGreaterThanOrEqual(GetIndexOf(allowed, ch), 0) {
             if pendingSep && ((label != "")) {
                 label = Add(label, "_")
@@ -638,7 +638,7 @@ func  (this *PredictionExchange) SetMarkets(markets any, optionalArgs ...any) an
     // so a leftover 'symbol' key would leak the deprecated field back to the caller
     var marketKeys []string = ObjectKeys(stored)
     for i := 0; IsLessThan(i, GetArrayLength(marketKeys)); i++ {
-        var key any = GetValue(marketKeys, i)
+        var key string = GetValue(marketKeys, i).(string)
         AddElementToObject(stored, key, this.Omit(GetValue(stored, key), "symbol"))
     }
     this.PopulateOutcomes()
@@ -763,8 +763,8 @@ func (this *PredictionExchange) loadOutcomesBody(ch chan any, optionalArgs ...an
             }
             var missingLength int =         GetArrayLength(missing)
             var wasWarm bool = (!IsEqual(this.Outcomes, nil)) && !EvalTruthy(this.IsEmpty(this.Outcomes))
-            var loadAll any = this.SafeBool(this.Options, "loadAllOutcomes", false)
-            if (IsGreaterThan(missingLength, 0)) && ((loadAll == true)) && !wasWarm && !EvalTruthy(reload) {
+            var loadAll *bool = this.SafeBool(this.Options, "loadAllOutcomes", false)
+            if (IsGreaterThan(missingLength, 0)) && ((loadAll != nil && *loadAll == true)) && !wasWarm && !EvalTruthy(reload) {
     
                 retRes71716 := (<-this.LoadOutcomesAsync())
                 PanicOnError(retRes71716)
@@ -862,8 +862,8 @@ func (this *PredictionExchange) loadOutcomeBody(ch chan any, outcomeSymbol any, 
                     return nil
                 }
             }
-            var loadAll any = this.SafeBool(this.Options, "loadAllOutcomes", false)
-            if ((loadAll == true)) && !wasWarm {
+            var loadAll *bool = this.SafeBool(this.Options, "loadAllOutcomes", false)
+            if ((loadAll != nil && *loadAll == true)) && !wasWarm {
                 // a miss on a cold cache: bulk-load once so later lookups are 0-network hits.
                 // a miss on an already-warm cache is authoritative — the outcome genuinely isn't
                 // listed, so fall through to fetchOutcome (a real BadSymbol) rather than refetching
@@ -904,7 +904,7 @@ func  (this *PredictionExchange) OutcomeSearchQuery(outcomeSymbol any) any  {
     var hasLetters bool = false
     var letters string = "abcdefghijklmnopqrstuvwxyz"
     for i := 0; IsLessThan(i, GetArrayLength(rawWords)); i++ {
-        var word any = GetValue(rawWords, i)
+        var word string = GetValue(rawWords, i).(string)
         // inline .length so the php transpiler emits strlen() — the standalone
         // `const n = str.length;` statement form wrongly becomes count() (array)
         if (GetLength(word) == 0) {
@@ -1705,7 +1705,7 @@ func  (this *PredictionExchange) SafePredictionOrder(outcomeOrder any, optionalA
     var price any = this.OmitZero(this.SafeString(outcomeOrder, "price"))
     var side *string = this.SafeString(outcomeOrder, "side")
     var status *string = this.SafeString(outcomeOrder, "status")
-    var lastTradeTimestamp any = this.SafeInteger(outcomeOrder, "lastTradeTimestamp")
+    var lastTradeTimestamp *int64 = this.SafeInteger(outcomeOrder, "lastTradeTimestamp")
     // parse embedded fills with the OUTCOME-aware parser (parseTrades would drop them on the symbol filter)
     var rawTrades any = this.SafeList(outcomeOrder, "trades", []any{})
     var trades any = this.ParsePredictionTrades(rawTrades, outcomeObj)
@@ -1733,7 +1733,7 @@ func  (this *PredictionExchange) SafePredictionOrder(outcomeOrder any, optionalA
             }
             var tradeTimestamp *int64 = this.SafeInteger(trade, "timestamp")
             if (tradeTimestamp != nil) {
-                if IsEqual(lastTradeTimestamp, nil) {
+                if (lastTradeTimestamp == nil) {
                     lastTradeTimestamp = tradeTimestamp
                 } else if IsGreaterThan(tradeTimestamp, lastTradeTimestamp) {
                     lastTradeTimestamp = tradeTimestamp
@@ -1778,7 +1778,7 @@ func  (this *PredictionExchange) SafePredictionOrder(outcomeOrder any, optionalA
     // trigger orders, so the isTriggerOrSLTp guard collapses): a market order defaults to IOC
     var orderType *string = this.SafeString(outcomeOrder, "type")
     var timeInForce any = this.SafeString(outcomeOrder, "timeInForce")
-    var postOnly any = this.SafeBool(outcomeOrder, "postOnly")
+    var postOnly any = DerefScalar(this.SafeBool(outcomeOrder, "postOnly"))
     if IsEqual(timeInForce, nil) {
         if (orderType != nil && *orderType == "market") {
             timeInForce = "IOC"
@@ -1790,8 +1790,8 @@ func  (this *PredictionExchange) SafePredictionOrder(outcomeOrder any, optionalA
         postOnly = ((timeInForce == "PO"))
     }
     var timestamp *int64 = this.SafeInteger(outcomeOrder, "timestamp")
-    var datetime any = this.SafeString(outcomeOrder, "datetime")
-    if IsEqual(datetime, nil) {
+    var datetime *string = this.SafeString(outcomeOrder, "datetime")
+    if (datetime == nil) {
         datetime = this.Iso8601(timestamp)
     }
     var result map[string]any = map[string]any {
@@ -1835,8 +1835,8 @@ func  (this *PredictionExchange) SafePredictionTrade(trade any, optionalArgs ...
         cost = Precise.StringMul(price, amount)
     }
     var timestamp *int64 = this.SafeInteger(trade, "timestamp")
-    var datetime any = this.SafeString(trade, "datetime")
-    if IsEqual(datetime, nil) {
+    var datetime *string = this.SafeString(trade, "datetime")
+    if (datetime == nil) {
         datetime = this.Iso8601(timestamp)
     }
     var result map[string]any = map[string]any {
@@ -1882,8 +1882,8 @@ func  (this *PredictionExchange) SafePredictionTicker(ticker any, optionalArgs .
         average = Precise.StringDiv(Precise.StringAdd(open, close), "2")
     }
     var timestamp *int64 = this.SafeInteger(ticker, "timestamp")
-    var datetime any = this.SafeString(ticker, "datetime")
-    if IsEqual(datetime, nil) {
+    var datetime *string = this.SafeString(ticker, "datetime")
+    if (datetime == nil) {
         datetime = this.Iso8601(timestamp)
     }
     var result map[string]any = map[string]any {
@@ -1917,8 +1917,8 @@ func  (this *PredictionExchange) SafePredictionPosition(position any) any  {
     // build the prediction position directly (no crypto safePosition, which carries the whole
     // leverage/marginMode/liquidation block the prediction type omits)
     var timestamp *int64 = this.SafeInteger(position, "timestamp")
-    var datetime any = this.SafeString(position, "datetime")
-    if IsEqual(datetime, nil) {
+    var datetime *string = this.SafeString(position, "datetime")
+    if (datetime == nil) {
         datetime = this.Iso8601(timestamp)
     }
     var result map[string]any = map[string]any {
@@ -2150,7 +2150,7 @@ func  (this *PredictionExchange) RlpEncodeBytes(hex any) any  {
         return ""
     }
     // RLP-encodes a single byte string (hex without 0x) per the Ethereum RLP spec
-    var byteLength any = this.ParseToInt(Divide(GetLength(hex), 2))
+    var byteLength int64 = this.ParseToInt(Divide(GetLength(hex), 2))
     if (byteLength == 0) {
         return "80"
     }
@@ -2162,7 +2162,7 @@ func  (this *PredictionExchange) RlpEncodeBytes(hex any) any  {
     }
     var lengthHex any = this.IntToBase16(byteLength)
     lengthHex = this.PadHexToEven(lengthHex)
-    var lengthOfLength any = this.ParseToInt(Divide(GetLength(lengthHex), 2))
+    var lengthOfLength int64 = this.ParseToInt(Divide(GetLength(lengthHex), 2))
     return Add(Add(this.IntToBase16(Add(183, lengthOfLength)), lengthHex), hex)
 }
 func  (this *PredictionExchange) RlpEncodeList(items any) any  {
@@ -2170,13 +2170,13 @@ func  (this *PredictionExchange) RlpEncodeList(items any) any  {
     for i := 0; IsLessThan(i, GetArrayLength(items)); i++ {
         concatenated = Add(concatenated, GetValue(items, i))
     }
-    var byteLength any = this.ParseToInt(Divide(GetLength(concatenated), 2))
+    var byteLength int64 = this.ParseToInt(Divide(GetLength(concatenated), 2))
     if IsLessThan(byteLength, 56) {
         return Add(this.IntToBase16(Add(192, byteLength)), concatenated)
     }
     var lengthHex any = this.IntToBase16(byteLength)
     lengthHex = this.PadHexToEven(lengthHex)
-    var lengthOfLength any = this.ParseToInt(Divide(GetLength(lengthHex), 2))
+    var lengthOfLength int64 = this.ParseToInt(Divide(GetLength(lengthHex), 2))
     return Add(Add(this.IntToBase16(Add(247, lengthOfLength)), lengthHex), concatenated)
 }
 func  (this *PredictionExchange) IntToRlpHex(value any) any  {
