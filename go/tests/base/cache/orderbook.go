@@ -266,14 +266,14 @@ func TestWsOrderBook() {
 		"bids": []any{[]any{100, 1, "a"}, []any{101, 0, "ghost"}, []any{102, 1, "c"}},
 		"asks": []any{[]any{200, 0, "ghost"}, []any{201, 1, "d"}},
 	}, 2)
-	Assert(IsEqual(GetArrayLength(GetValue(noopDeltas, "bids")), 2))
-	Assert(IsEqual(GetArrayLength(GetValue(noopDeltas, "asks")), 1))
+	Assert((GetArrayLength(GetValue(noopDeltas, "bids")) == 2))
+	Assert((GetArrayLength(GetValue(noopDeltas, "asks")) == 1))
 	Assert(!IsEqual(GetValue(GetValue(noopDeltas, "bids"), 0), nil))
 	Assert(!IsEqual(GetValue(GetValue(noopDeltas, "bids"), 1), nil))
 	Assert(!IsEqual(GetValue(GetValue(noopDeltas, "asks"), 0), nil))
 	noopDeltas.Limit()
-	Assert(IsEqual(GetArrayLength(GetValue(noopDeltas, "bids")), 2))
-	Assert(IsEqual(GetArrayLength(GetValue(noopDeltas, "asks")), 1))
+	Assert((GetArrayLength(GetValue(noopDeltas, "bids")) == 2))
+	Assert((GetArrayLength(GetValue(noopDeltas, "asks")) == 1))
 
 	// --------------------------------------------------------------------------------------------------------------------
 

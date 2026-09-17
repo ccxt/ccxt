@@ -2422,6 +2422,11 @@ public partial class testMainClass
                 {
                     continue;
                 }
+                object isDisabledRust = exchange.safeString(result, "disabledRS");
+                if (isTrue(isTrue((!isEqual(isDisabledRust, null))) && isTrue((isEqual(this.lang, "RUST")))))
+                {
+                    continue;
+                }
                 exchange.extendExchangeOptions(globalOptions);
                 object testExchangeOptions = exchange.safeValue(result, "options", new Dictionary<string, object>() {});
                 exchange.extendExchangeOptions(testExchangeOptions);
@@ -2942,7 +2947,7 @@ public partial class testMainClass
         //  -----------------------------------------------------------------------------
         //  --- Init of brokerId tests functions-----------------------------------------
         //  -----------------------------------------------------------------------------
-        List<object> promises = new List<object> {this.testBinance(), this.testOkx(), this.testCryptocom(), this.testBybit(), this.testKucoin(), this.testKucoinfutures(), this.testBitget(), this.testMexc(), this.testHtx(), this.testWoo(), this.testCoinex(), this.testBingx(), this.testPhemex(), this.testBlofin(), this.testCoinbaseinternational(), this.testCoinbaseAdvanced(), this.testWoofiPro(), this.testXT(), this.testParadex(), this.testHashkey(), this.testCryptomus(), this.testDerive(), this.testModeTrade(), this.testBackpack(), this.testToobit(), this.testWeex(), this.testFoxbit()};
+        List<object> promises = new List<object> {this.testBinance(), this.testOkx(), this.testCryptocom(), this.testBybit(), this.testKucoin(), this.testKucoinfutures(), this.testBitget(), this.testMexc(), this.testHtx(), this.testWoo(), this.testCoinex(), this.testBingx(), this.testPhemex(), this.testBlofin(), this.testCoinbaseinternational(), this.testCoinbaseAdvanced(), this.testWoofiPro(), this.testXT(), this.testParadex(), this.testHashkey(), this.testCryptomus(), this.testDerive(), this.testModeTrade(), this.testBackpack(), this.testToobit(), this.testWeex(), this.testFoxbit(), this.testBithumb()};
         await promiseAll(promises);
         string successMessage = add(add("[", this.lang), "][TEST_SUCCESS] brokerId tests passed.");
         dump(add("[INFO]", successMessage));
@@ -3114,6 +3119,50 @@ public partial class testMainClass
             reqHeaders = ((bool) isTrue((isTrue(!isEqual(exchange.last_request_headers, null)) && isTrue(!isEqual(exchange.last_request_headers, null))))) ? exchange.last_request_headers : new Dictionary<string, object>() {};
         }
         assert(isEqual(getValue(reqHeaders, "Referer"), id), add(add("bybit - id: ", id), " not in headers."));
+        if (!isTrue(isSync()))
+        {
+            await close(exchange);
+        }
+        return true;
+    }
+
+    public async virtual Task<object> testBithumb()
+    {
+        Exchange exchange = ((Exchange)this.initOfflineExchange("bithumb"));
+        string id = "CCXT";
+        object reqHeaders = new Dictionary<string, object>() {};
+        try
+        {
+            // default path: generation 2, the versioned (jwt-signed) endpoints
+            await exchange.CreateOrder("BTC/KRW", "limit", "buy", 1, 20000);
+        } catch(Exception e)
+        {
+            // we expect an error here, we're only interested in the headers
+            reqHeaders = ((bool) isTrue((isTrue(!isEqual(exchange.last_request_headers, null)) && isTrue(!isEqual(exchange.last_request_headers, null))))) ? exchange.last_request_headers : new Dictionary<string, object>() {};
+        }
+        assert(isEqual(getValue(reqHeaders, "OPEN-API-PARTNER"), id), add(add("bithumb - id: ", id), " not in headers (v2 endpoints)."));
+        reqHeaders = new Dictionary<string, object>() {};
+        try
+        {
+            // legacy path: generation 1, the hmac-signed endpoints
+            await exchange.CreateOrder("BTC/KRW", "limit", "buy", 1, 20000, new Dictionary<string, object>() {
+                { "generation", 1 },
+            });
+        } catch(Exception e)
+        {
+            reqHeaders = ((bool) isTrue((isTrue(!isEqual(exchange.last_request_headers, null)) && isTrue(!isEqual(exchange.last_request_headers, null))))) ? exchange.last_request_headers : new Dictionary<string, object>() {};
+        }
+        assert(isEqual(getValue(reqHeaders, "OPEN-API-PARTNER"), id), add(add("bithumb - id: ", id), " not in headers (legacy endpoints)."));
+        reqHeaders = new Dictionary<string, object>() {};
+        try
+        {
+            // public endpoints carry the partner header as well
+            await exchange.FetchTicker("BTC/KRW");
+        } catch(Exception e)
+        {
+            reqHeaders = ((bool) isTrue((isTrue(!isEqual(exchange.last_request_headers, null)) && isTrue(!isEqual(exchange.last_request_headers, null))))) ? exchange.last_request_headers : new Dictionary<string, object>() {};
+        }
+        assert(isEqual(getValue(reqHeaders, "OPEN-API-PARTNER"), id), add(add("bithumb - id: ", id), " not in headers (public endpoints)."));
         if (!isTrue(isSync()))
         {
             await close(exchange);

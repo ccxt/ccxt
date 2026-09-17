@@ -38,7 +38,7 @@ func TestMergeBalanceAccount() {
 	Assert(ccxt.IsEqual(exchange.SafeString(ccxt.GetValue(result, "USDT"), "free"), "5"))
 	Assert(ccxt.IsEqual(exchange.SafeString(ccxt.GetValue(result, "USDT"), "used"), nil))
 	var keys []string = ccxt.ObjectKeys(result)
-	Assert(ccxt.IsEqual(ccxt.GetArrayLength(keys), 2))
+	Assert((ccxt.IsEqual(ccxt.GetArrayLength(keys), 2)))
 	// the merged dict is a regular safeBalance input. safeBalance parses to a number,
 	// and each port spells that number differently (JS "3", PHP "3.0"), so assert on
 	// the parsed value rather than on its string form

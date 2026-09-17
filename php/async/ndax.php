@@ -727,7 +727,7 @@ class ndax extends Exchange {
             }
             $bidask = $this->parse_order_book_bid_ask($level, $priceKey, $amountKey);
             $levelSide = $this->safe_integer($level, 9);
-            $side = ($levelSide !== null && $levelSide !== null && $levelSide !== 0) ? $asksKey : $bidsKey;
+            $side = ($levelSide !== null && $levelSide !== 0) ? $asksKey : $bidsKey;
             $result[$side][] = $bidask;
         }
         $result['bids'] = $this->sort_by($result['bids'], 0, true);

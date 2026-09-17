@@ -2441,7 +2441,7 @@ class phemex extends phemex$1["default"] {
             };
         }
         const timeInForce = this.parseTimeInForce(this.safeString(order, 'timeInForce'));
-        const triggerPrice = this.parseNumber(this.omitZero(this.fromEp(this.safeString(order, 'stopPxEp'))));
+        const triggerPrice = this.parseNumber(this.omitZero(this.fromEp(this.safeString(order, 'stopPxEp'), market)));
         const postOnly = (timeInForce === 'PO');
         return this.safeOrder({
             'info': order,
@@ -3247,6 +3247,15 @@ class phemex extends phemex$1["default"] {
         }
         else if (market['spot'] === true) {
             const rows = this.safeList(data, 'rows', []);
+            const numRows = rows.length;
+            if (numRows < 1) {
+                if (clientOrderId !== undefined) {
+                    throw new errors.OrderNotFound(this.id + ' fetchOrder() ' + symbol + ' order with clientOrderId ' + clientOrderId + ' not found');
+                }
+                else {
+                    throw new errors.OrderNotFound(this.id + ' fetchOrder() ' + symbol + ' order with id ' + id + ' not found');
+                }
+            }
             order = this.safeDict(rows, 0, {});
         }
         return this.parseOrder(order, market);

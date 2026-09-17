@@ -3695,6 +3695,9 @@ public partial class bithumb : Exchange
         bool hasQuery = (isGreaterThan(queryKeysLength, 0));
         if (isTrue(isEqual(api, "public")))
         {
+            headers = new Dictionary<string, object>() {
+                { "OPEN-API-PARTNER", "CCXT" },
+            };
             if (isTrue(hasQuery))
             {
                 url = add(url, add("?", this.urlencode(query)));
@@ -3707,6 +3710,7 @@ public partial class bithumb : Exchange
             {
                 headers = new Dictionary<string, object>() {
                     { "Accept", "application/json" },
+                    { "OPEN-API-PARTNER", "CCXT" },
                 };
                 Dictionary<string, object> request = new Dictionary<string, object>() {
                     { "access_key", this.apiKey },
@@ -3753,6 +3757,7 @@ public partial class bithumb : Exchange
                     { "Api-Key", this.apiKey },
                     { "Api-Sign", signature64 },
                     { "Api-Nonce", nonce },
+                    { "OPEN-API-PARTNER", "CCXT" },
                 };
             }
         }

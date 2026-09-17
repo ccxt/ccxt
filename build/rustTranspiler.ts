@@ -9,7 +9,6 @@ import log from 'ololog';
 import ansi from 'ansicolor';
 import { isMainEntry } from "./transpile.js";
 import errorHierarchy from '../js/src/base/errorHierarchy.js';
-import ts from 'typescript6';
 
 ansi.nice;
 
@@ -63,7 +62,7 @@ const BASE_TESTS_FOLDER      = './rust/tests/base';
 const BASE_TESTS_WS_FOLDER   = './rust/tests/base_ws';
 const GENERATED_TESTS_FOLDER = './rust/tests/exchange';
 
-export class RustTranspilerBuilder {
+class RustTranspilerBuilder {
 
     transpiler!: Transpiler;
 
@@ -4524,7 +4523,7 @@ export class RustTranspilerBuilder {
         // `testFetchTickersAmounts` → `fetchTickersAmountsTest`. The
         // pre-rename `test*` prefix is also kept for legacy helpers and any
         // tests we haven't synced yet.
-        const pattern = /(?:\bself\.[a-zA-Z_][a-zA-Z0-9_]*|\bexchange\d*\.[a-zA-Z_][a-zA-Z0-9_]*|\brsa|\beddsa|\becdsa|\bjwt|\btotp|\bhelper[A-Z][a-zA-Z0-9_]*|\bprecise[A-Z][a-zA-Z0-9_]*|\btest[A-Z][a-zA-Z0-9_]*|\b[a-z][a-zA-Z0-9_]*(?:Helper(?:Test)?|Test)|\bassert[A-Z][a-zA-Z0-9_]*|\b(?:equals|deepEqual|assert|dump|callMethod|callMethodSync|callExchangeMethodDynamically|callExchangeMethodDynamicallySync|getExchangeProp|setExchangeProp|setFetchResponse|initExchange|close|jsonStringify|jsonParse|exceptionMessage|convertAscii|isNullValue|ioFileExists|ioFileRead|ioDirRead|setupWsMockTransport|getWsSentMessages|injectWsMessage|wsClientHasPendingFutures|markWsTestCompleted|isWsTestCompleted|rejectPendingWsFutures|preloadWsMessages|drainWsMessages))\(/;
+        const pattern = /(?:\bself\.[a-zA-Z_][a-zA-Z0-9_]*|\bexchange\d*\.[a-zA-Z_][a-zA-Z0-9_]*|\brsa|\beddsa|\becdsa|\bjwt|\btotp|\bhelper[A-Z][a-zA-Z0-9_]*|\bprecise[A-Z][a-zA-Z0-9_]*|\btest[A-Z][a-zA-Z0-9_]*|\b[a-z][a-zA-Z0-9_]*(?:Helper(?:Test)?|Test)|\bassert[A-Z][a-zA-Z0-9_]*|\b(?:equals|deepEqual|assert|dump|callMethod|callMethodSync|callExchangeMethodDynamically|callExchangeMethodDynamicallySync|getExchangeProp|setExchangeProp|setFetchResponse|initExchange|close|jsonStringify|jsonParse|exceptionMessage|convertAscii|isNullValue|ioFileExists|ioFileRead|ioDirRead|setupWsMockTransport|getWsSentMessages|injectWsMessage|wsClientHasPendingFutures|markWsTestCompleted|isWsTestCompleted|rejectPendingWsFutures|preloadWsMessages|wsHasQueuedMessages))\(/;
         while (i < content.length) {
             const rest = content.slice(i);
             const m = rest.match(pattern);
@@ -8335,6 +8334,32 @@ impl std::ops::DerefMut for ${coreName} {
         return out;
     }
 
+    // Names of every `async function NAME (...)` free function in a TS test
+    // source. The AST drops `async` and the body-scan passes only re-add it
+    // when the body itself awaits, so an async helper with no inner await
+    // (test.fetchTrades' helperTestFetchTradesSideSequence) is emitted as a
+    // sync `fn` while its caller keeps the `.await` -> E0277 `Value` is not
+    // a future.
+    detectFreeAsyncFns(tsSrc: string): Set<string> {
+        const out = new Set<string>();
+        const re = /\basync\s+function\s+([a-zA-Z_][a-zA-Z0-9_]*)\s*\(/g;
+        let m: RegExpExecArray | null;
+        while ((m = re.exec(tsSrc)) !== null) out.add(m[1]);
+        return out;
+    }
+
+    // Mark the given free functions `async fn` when the emitted signature
+    // lost the keyword; the declaration is left alone if already async.
+    markFreeFnsAsync(content: string, names: Set<string>): string {
+        for (const name of names) {
+            content = content.replace(
+                new RegExp(`(^|\\n)(\\s*)((?:pub\\s+)?)fn\\s+${name}\\s*\\(`),
+                (_full, before, indent, pub_) => `${before}${indent}${pub_}async fn ${name}(`,
+            );
+        }
+        return content;
+    }
+
     // Scans a TS source for `function NAME (p1, p2, ..., pK = default, ...)`
     // declarations and returns a map of `NAME → firstDefaultParamIdx`.
     // Used in test-file transpilation: the AST drops defaults from the
@@ -8495,17 +8520,7 @@ impl std::ops::DerefMut for ${coreName} {
      * wraps, namespace rewrites, assert handling, …). Used by both the
      * base-test and exchange-test transpilation so they stay in sync.
      */
-    runExchangeTestPipeline(content: string, asyncMethods: Set<string>, source = ''): string {
-        // methodsTypes omits free functions. Preserve their declared async
-        // contract even when their body contains no await (e.g. trade validators).
-        const sourceFile = ts.createSourceFile('test.ts', source, ts.ScriptTarget.Latest, true);
-        const asyncFunctions = new Set(sourceFile.statements
-            .filter(ts.isFunctionDeclaration)
-            .filter(node => node.modifiers?.some(modifier => modifier.kind === ts.SyntaxKind.AsyncKeyword))
-            .map(node => node.name?.text));
-        content = content.replace(/^(\s*)(pub\s+)?fn\s+(\w+)\s*\(/gm,
-            (full, indent, visibility, name) => asyncFunctions.has(name)
-                ? `${indent}${visibility || ''}async fn ${name}(` : full);
+    runExchangeTestPipeline(content: string, asyncMethods: Set<string>): string {
         content = this.regexAll(content, this.getRustRegexes(asyncMethods));
         content = this.rewriteHashAlgoConstants(content);
         content = this.rewriteBareErrorClassRefs(content);
@@ -8658,7 +8673,8 @@ impl std::ops::DerefMut for ${coreName} {
                     // `optional_args: &[Value]` slice.
                     const tsSrc = fs.readFileSync(tsFile, 'utf8');
                     const defaultArgFns = this.detectFreeFnDefaultArgs(tsSrc);
-                    let content = this.runExchangeTestPipeline(result.content ?? '', asyncMethods, tsSrc);
+                    let content = this.runExchangeTestPipeline(result.content ?? '', asyncMethods);
+                    content = this.markFreeFnsAsync(content, this.detectFreeAsyncFns(tsSrc));
                     if (defaultArgFns.size > 0) {
                         content = this.foldDefaultArgsIntoOptional(content, defaultArgFns);
                     }
@@ -8791,7 +8807,7 @@ impl std::ops::DerefMut for ${coreName} {
                 );
                 const tsSrc = fs.readFileSync(tsFile, 'utf8');
                 const defaultArgFns = this.detectFreeFnDefaultArgs(tsSrc);
-                let content = this.runExchangeTestPipeline(result.content ?? '', asyncMethods, tsSrc);
+                let content = this.runExchangeTestPipeline(result.content ?? '', asyncMethods);
                 if (defaultArgFns.size > 0) {
                     content = this.foldDefaultArgsIntoOptional(content, defaultArgFns);
                 }
@@ -9060,14 +9076,27 @@ impl std::ops::DerefMut for ${coreName} {
                 /\bsetFetchResponse\(\s*exchange\.clone\(\)/g,
                 'setFetchResponse(&mut exchange',
             );
-            // A single-result fixture watches once, then replays the remaining
-            // frames into the same Core. Re-watching would create extra futures
-            // and incorrectly surface a later rejection after the first result.
+            // Static-WS-test parsedResponse case: `Promise.all([watch, inject])`.
+            // The transpiler leaves `callExchangeMethodDynamically(...)` (the
+            // watch) un-awaited inside the vec (→ future-in-Vec<Value>), and the
+            // two sides must run concurrently: the watch drives its message loop
+            // while inject feeds the mock client's inbound queue. Inject only
+            // touches ClientState (no Core access), so a tokio::join! is sound.
+            // Static-WS-test parsedResponse case: `Promise.all([watch, inject])`.
+            // The two sides can't truly interleave in Rust (the transpiler left
+            // the watch un-awaited in a Vec<Value>, and a tokio::join! didn't
+            // reliably let the watch subscribe before inject fed). Instead
+            // pre-load the mock inbound queue, then re-watch until every frame is
+            // drained — the watch subscribes in ws_run before its drive loop
+            // reads, so each frame routes correctly and the final asserted
+            // structure reflects all deltas.
             content = content.replace(
                 /let mut promises: Value = Value::List\(vec!\[callExchangeMethodDynamically\(&mut exchange, (.+?)\), (self\.inject_ws_messages\(.+?\))\.await\]\);/,
                 'preloadWsMessages(exchange.clone(), url.clone(), messages.clone()); '
                 + 'let mut __w = callExchangeMethodDynamically(&mut exchange, $1).await; '
-                + 'drainWsMessages(exchange.clone(), url.clone()).await; '
+                + 'let mut __g = 0; '
+                + 'while is_true(&wsHasQueuedMessages(exchange.clone(), url.clone())) && __g < 500 { '
+                + '__w = callExchangeMethodDynamically(&mut exchange, $1).await; __g += 1; } '
                 + 'let mut promises: Value = Value::List(vec![__w, Value::Bool(true)]);',
             );
             // Static-WS-test parsedResponses (sequence) case: inject + watch-loop

@@ -1637,7 +1637,7 @@ impl BitbankCore {
         }
         let mut success: Value = self.safe_integer_k(response.clone(), "success", &[]);
         let mut data: Value = self.safe_value_k(response.clone(), "data", &[]);
-        if is_true(&(is_equal(&success, &Value::Null) || is_equal(&success, &Value::Null) || is_equal(&success, &Value::Int(0)))) || is_true(&(is_equal(&data, &Value::Null))) {
+        if is_true(&(is_equal(&success, &Value::Null) || is_equal(&success, &Value::Int(0)))) || is_true(&(is_equal(&data, &Value::Null))) {
             let mut errorMessages: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("10000".to_string(), Value::Str("URL does not exist".to_string()));

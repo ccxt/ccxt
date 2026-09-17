@@ -1273,7 +1273,7 @@ public partial class bitbank : Exchange
         }
         Int64? success = this.safeInteger(response, "success");
         object data = this.safeValue(response, "data");
-        if (isTrue(isTrue((isTrue(isTrue(isEqual(success, null)) || isTrue(isEqual(success, null))) || isTrue(isEqual(success, 0)))) || isTrue((isEqual(data, null)))))
+        if (isTrue(isTrue((isTrue(isEqual(success, null)) || isTrue(isEqual(success, 0)))) || isTrue((isEqual(data, null)))))
         {
             Dictionary<string, object> errorMessages = new Dictionary<string, object>() {
                 { "10000", "URL does not exist" },

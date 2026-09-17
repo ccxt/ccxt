@@ -14,5 +14,5 @@ func TestEthMethods() {
 	var privateKey string = "0x27c9c557bd398e354b57ba58046b055035c47788926eb53fcdb394769ef80e1b"
 	var publicKey string = "0x3096cD9827766E03f8b6DF58996399406DC270Af"
 	var generatedAddress any = exchange.EthGetAddressFromPrivateKey(privateKey)
-	assert(ccxt.IsEqual(ccxt.ToLower(generatedAddress), ccxt.ToLower(publicKey)), ccxt.Add(ccxt.Add(ccxt.Add("ethGetAddressFromPrivateKey did not generate the expected address: ", generatedAddress), " != "), publicKey))
+	assert((ccxt.ToLower(generatedAddress) == ccxt.ToLower(publicKey)), ccxt.Add(ccxt.Add(ccxt.Add("ethGetAddressFromPrivateKey did not generate the expected address: ", generatedAddress), " != "), publicKey))
 }
