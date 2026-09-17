@@ -142,6 +142,17 @@ class Client(object):
         # reject every pending future, so exchange-level teardown paths
         # (e.g. an unrecoverable orderbook desync) behave the same in every
         # language - transpiled code calls client.reset(error)
+        #
+        # cancelling the keepalive here is deliberate parity with
+        # ts/src/base/ws/Client.ts reset() (clearPingInterval) and
+        # php/pro/Client.php reset() (clear_ping_interval), NOT a copy of
+        # aiohttp_close(): unlike that one, reset() runs on a socket that stays
+        # open and nothing restarts the looper - it is only ever assigned in
+        # open(). Callers that reset without reconnecting therefore lose the
+        # pong-miss watchdog for the rest of the connection's life (e.g.
+        # python/ccxt/pro/cryptocom.py pong()). That is how every other port
+        # behaves, so the behaviour is kept; the dead pipe is still caught by
+        # the receive loop / server close, just not by the keepalive timer.
         if self.ping_looper:
             self.ping_looper.cancel()
         # js rejects a promise with any value, python can only reject a Future
