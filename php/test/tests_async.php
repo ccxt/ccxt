@@ -2515,7 +2515,7 @@ class testMainClass {
         //  --- Init of brokerId tests functions-----------------------------------------
         //  -----------------------------------------------------------------------------
         return Async\async(function () {
-            $promises = [$this->test_binance(), $this->test_okx(), $this->test_cryptocom(), $this->test_bybit(), $this->test_kucoin(), $this->test_kucoinfutures(), $this->test_bitget(), $this->test_mexc(), $this->test_htx(), $this->test_woo(), $this->test_coinex(), $this->test_bingx(), $this->test_phemex(), $this->test_blofin(), $this->test_coinbaseinternational(), $this->test_coinbase_advanced(), $this->test_woofi_pro(), $this->test_xt(), $this->test_paradex(), $this->test_hashkey(), $this->test_cryptomus(), $this->test_derive(), $this->test_mode_trade(), $this->test_backpack(), $this->test_toobit(), $this->test_weex(), $this->test_foxbit()];
+            $promises = [$this->test_binance(), $this->test_okx(), $this->test_cryptocom(), $this->test_bybit(), $this->test_kucoin(), $this->test_kucoinfutures(), $this->test_bitget(), $this->test_mexc(), $this->test_htx(), $this->test_woo(), $this->test_coinex(), $this->test_bingx(), $this->test_phemex(), $this->test_blofin(), $this->test_coinbaseinternational(), $this->test_coinbase_advanced(), $this->test_woofi_pro(), $this->test_xt(), $this->test_paradex(), $this->test_hashkey(), $this->test_cryptomus(), $this->test_derive(), $this->test_mode_trade(), $this->test_backpack(), $this->test_toobit(), $this->test_weex(), $this->test_foxbit(), $this->test_bithumb()];
             \React\Async\await(\React\Promise\all($promises));
             $success_message = '[' . $this->lang . '][TEST_SUCCESS] brokerId tests passed.';
             dump('[INFO]' . $success_message);
@@ -2669,6 +2669,44 @@ class testMainClass {
                 $req_headers = ($exchange->last_request_headers !== null && $exchange->last_request_headers !== null) ? $exchange->last_request_headers : array();
             }
             assert($req_headers['Referer'] === $id, 'bybit - id: ' . $id . ' not in headers.');
+            if (!is_sync()) {
+                \React\Async\await(close($exchange));
+            }
+            return true;
+        }) ();
+    }
+
+    public function test_bithumb() {
+        return Async\async(function () {
+            $exchange = $this->init_offline_exchange('bithumb');
+            $id = 'CCXT';
+            $req_headers = array();
+            try {
+                // default path: generation 2, the versioned (jwt-signed) endpoints
+                \React\Async\await($exchange->create_order('BTC/KRW', 'limit', 'buy', 1, 20000));
+            } catch(\Throwable $e) {
+                // we expect an error here, we're only interested in the headers
+                $req_headers = ($exchange->last_request_headers !== null && $exchange->last_request_headers !== null) ? $exchange->last_request_headers : array();
+            }
+            assert($req_headers['OPEN-API-PARTNER'] === $id, 'bithumb - id: ' . $id . ' not in headers (v2 endpoints).');
+            $req_headers = array();
+            try {
+                // legacy path: generation 1, the hmac-signed endpoints
+                \React\Async\await($exchange->create_order('BTC/KRW', 'limit', 'buy', 1, 20000, array(
+                    'generation' => 1,
+                )));
+            } catch(\Throwable $e) {
+                $req_headers = ($exchange->last_request_headers !== null && $exchange->last_request_headers !== null) ? $exchange->last_request_headers : array();
+            }
+            assert($req_headers['OPEN-API-PARTNER'] === $id, 'bithumb - id: ' . $id . ' not in headers (legacy endpoints).');
+            $req_headers = array();
+            try {
+                // public endpoints carry the partner header as well
+                \React\Async\await($exchange->fetch_ticker('BTC/KRW'));
+            } catch(\Throwable $e) {
+                $req_headers = ($exchange->last_request_headers !== null && $exchange->last_request_headers !== null) ? $exchange->last_request_headers : array();
+            }
+            assert($req_headers['OPEN-API-PARTNER'] === $id, 'bithumb - id: ' . $id . ' not in headers (public endpoints).');
             if (!is_sync()) {
                 \React\Async\await(close($exchange));
             }
