@@ -1302,8 +1302,8 @@ public partial class bitfinex : Exchange
             throw new ArgumentsRequired ((string)add(add(this.id, " transfer() toAccount must be one of "), String.Join(", ", ((IList<object>)keys).ToArray()))) ;
         }
         Dictionary<string, object> currency = this.currency(((string)code));
-        object fromCurrencyId = this.convertDerivativesId(currency, fromAccount);
-        object toCurrencyId = this.convertDerivativesId(currency, toAccount);
+        string? fromCurrencyId = this.convertDerivativesId(currency, fromAccount);
+        string? toCurrencyId = this.convertDerivativesId(currency, toAccount);
         string? requestedAmount = this.currencyToPrecision(((string)code), amount);
         // this request is slightly different from v1 fromAccount -> from
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -1401,7 +1401,7 @@ public partial class bitfinex : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public virtual object convertDerivativesId(object currency, object type)
+    public virtual string? convertDerivativesId(object currency, object type)
     {
         // there is a difference between this and the v1 api, namely trading wallet is called margin in v2
         // {
@@ -1428,7 +1428,7 @@ public partial class bitfinex : Exchange
         {
             currencyId = transferId;
         }
-        return currencyId;
+        return ((string?)((object)(currencyId)));
     }
 
     /**
@@ -1485,7 +1485,7 @@ public partial class bitfinex : Exchange
         return ccxt.BaseExchange.ToOrderBook(result);
     }
 
-    public override object parseTicker(object ticker, object market = null)
+    public override Dictionary<string, object> parseTicker(object ticker, object market = null)
     {
         //
         // on trading pairs (ex. tBTCUSD)
@@ -1698,7 +1698,7 @@ public partial class bitfinex : Exchange
         return ccxt.BaseExchange.ToTicker(this.parseTicker(ticker, market));
     }
 
-    public override object parseTrade(object trade, object market = null)
+    public override Dictionary<string, object> parseTrade(object trade, object market = null)
     {
         //
         // fetchTrades (public)
@@ -1871,7 +1871,7 @@ public partial class bitfinex : Exchange
      */
     public async override Task<List<ccxt.OHLCV>> FetchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object timeframeVar = timeframe;
+        string timeframeVar = timeframe;
         object limitVar = limit;
         timeframeVar ??= "1m";
         limitVar ??= 100;
@@ -1980,7 +1980,7 @@ public partial class bitfinex : Exchange
         return this.safeString(orderTypes, orderType, "GTC");
     }
 
-    public override object parseOrder(object order, object market = null)
+    public override Dictionary<string, object> parseOrder(object order, object market = null)
     {
         List<object> orderList = this.safeList(order, "result");
         string? id = this.safeString(orderList, 0);
@@ -2054,7 +2054,7 @@ public partial class bitfinex : Exchange
         }, market);
     }
 
-    public virtual object createOrderRequest(object symbol, object type, object side, object amount, object price = null, object parameters = null)
+    public virtual Dictionary<string, object> createOrderRequest(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(type, null)))
@@ -2202,7 +2202,7 @@ public partial class bitfinex : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        object request = this.createOrderRequest(symbol, type, side, amount, price, parameters);
+        Dictionary<string, object> request = this.createOrderRequest(symbol, type, side, amount, price, parameters);
         List<object> response = await this.privatePostAuthWOrderSubmit(request);
         //
         //      [
@@ -2292,7 +2292,7 @@ public partial class bitfinex : Exchange
             double? amount = this.safeNumber(rawOrder, "amount");
             double? price = this.safeNumber(rawOrder, "price");
             IDictionary<string, object> orderParams = this.safeDict(rawOrder, "params", new Dictionary<string, object>() {});
-            object orderRequest = this.createOrderRequest(symbol, type, side, amount, price, orderParams);
+            Dictionary<string, object> orderRequest = this.createOrderRequest(symbol, type, side, amount, price, orderParams);
             ((IList<object>)ordersRequests).Add(new List<object>() {"on", orderRequest});
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -3443,7 +3443,7 @@ public partial class bitfinex : Exchange
         return ccxt.BaseExchange.ToPositionList(this.parsePositions(positionsList, symbols));
     }
 
-    public override object parsePosition(object position, object market = null)
+    public override Dictionary<string, object> parsePosition(object position, object market = null)
     {
         //
         //    [

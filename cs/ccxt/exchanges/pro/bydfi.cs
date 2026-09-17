@@ -88,7 +88,7 @@ public partial class bydfi : ccxt.bydfi
     public virtual object requestId()
     {
         this.lockId();
-        object reqid = this.sum(this.safeInteger(this.options, "reqid", 0), 1);
+        Int64 reqid = ((Int64)this.sum(this.safeInteger(this.options, "reqid", 0), 1));
         ((IDictionary<string,object>)this.options)["reqid"] = reqid;
         this.unlockId();
         return reqid;
@@ -98,8 +98,8 @@ public partial class bydfi : ccxt.bydfi
     {
         parameters ??= new Dictionary<string, object>();
         subscription ??= new Dictionary<string, object>();
-        object url = getValue(getValue(this.urls, "api"), "ws");
-        object id = this.requestId();
+        string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
+        Int64 id = ((Int64)this.requestId());
         Dictionary<string, object> subscriptionParams = new Dictionary<string, object>() {
             { "id", id },
         };
@@ -124,14 +124,14 @@ public partial class bydfi : ccxt.bydfi
     {
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
-        object url = getValue(getValue(this.urls, "api"), "ws");
+        string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
         string subHash = "private";
         var client = this.client(url);
         object privateSubscription = this.safeValue(((WebSocketClient)client).subscriptions, subHash);
         Dictionary<string, object> subscription = new Dictionary<string, object>() {};
         if (isTrue(isEqual(privateSubscription, null)))
         {
-            object id = this.requestId();
+            Int64 id = ((Int64)this.requestId());
             string timestamp = ((object)this.milliseconds()).ToString();
             object payload = add(this.apiKey, timestamp);
             string signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256, "hex");
@@ -321,7 +321,7 @@ public partial class bydfi : ccxt.bydfi
         //         "o": 0.04657
         //     }
         //
-        object ticker = this.parseTicker(message);
+        Dictionary<string, object> ticker = this.parseTicker(message);
         object symbol = getValue(ticker, "symbol");
         string messageHash = add("ticker::", symbol);
         ((IDictionary<string,object>)this.tickers)[(string)((string)symbol)] = ticker;
@@ -343,7 +343,7 @@ public partial class bydfi : ccxt.bydfi
      */
     public async override Task<List<ccxt.OHLCV>> WatchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object timeframeVar = timeframe;
+        string timeframeVar = timeframe;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
         object result = ccxt.BaseExchange.FromOHLCVDict(await this.WatchOHLCVForSymbols(new List<object>() {new List<object>() {symbol, timeframeVar}}, since, limit, parameters));
@@ -362,7 +362,7 @@ public partial class bydfi : ccxt.bydfi
      */
     public async override Task<object> unWatchOHLCV(object symbol, string timeframe = null, object parameters = null)
     {
-        object timeframeVar = timeframe;
+        string timeframeVar = timeframe;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
         return await this.unWatchOHLCVForSymbols(new List<object>() {new List<object>() {symbol, timeframeVar}}, parameters);
@@ -471,10 +471,10 @@ public partial class bydfi : ccxt.bydfi
         //
         string? marketId = this.safeString(message, "s");
         Dictionary<string, object> market = this.safeMarket(marketId);
-        object symbol = getValue(market, "symbol");
+        string? symbol = ((string)getValue(market, "symbol"));
         string? interval = this.safeString(message, "i");
         IDictionary<string, object> timeframes = this.safeDict(this.options, "timeframes", new Dictionary<string, object>() {});
-        object timeframe = this.findTimeframe(interval, timeframes);
+        string? timeframe = this.findTimeframe(interval, timeframes);
         if (!isTrue((inOp(this.ohlcvs, symbol))))
         {
             ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = new Dictionary<string, object>() {};
@@ -636,7 +636,7 @@ public partial class bydfi : ccxt.bydfi
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook();
         }
         ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, symbol);
-        object parsed = this.parseOrderBook(message, symbol, timestamp, "b", "a");
+        Dictionary<string, object> parsed = ((Dictionary<string, object>)this.parseOrderBook(message, symbol, timestamp, "b", "a"));
         (orderbook as IOrderBook).reset(parsed);
         string messageHash = add("orderbook::", symbol);
         ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = orderbook;
@@ -740,16 +740,16 @@ public partial class bydfi : ccxt.bydfi
         IDictionary<string, object> rawOrder = this.safeDict(message, "o", new Dictionary<string, object>() {});
         string? marketId = this.safeString(rawOrder, "s");
         Dictionary<string, object> market = this.safeMarket(marketId);
-        object symbol = getValue(market, "symbol");
+        string? symbol = ((string)getValue(market, "symbol"));
         string messageHash = "orders";
-        object symbolMessageHash = add(add(messageHash, "::"), symbol);
+        string symbolMessageHash = add(add(messageHash, "::"), symbol);
         if (isTrue(isEqual(this.orders, null)))
         {
             Int64? limit = this.safeInteger(this.options, "ordersLimit", 1000);
             this.orders = new ArrayCacheBySymbolById(limit);
         }
         object orders = this.orders;
-        object order = this.parseWsOrder(rawOrder, market);
+        Dictionary<string, object> order = ((Dictionary<string, object>)this.parseWsOrder(rawOrder, market));
         Int64? lastUpdateTimestamp = this.safeInteger(message, "T");
         ((IDictionary<string,object>)order)["lastUpdateTimestamp"] = lastUpdateTimestamp;
         callDynamically(orders, "append", new object[] {order});
@@ -911,15 +911,15 @@ public partial class bydfi : ccxt.bydfi
         IDictionary<string, object> rawPosition = this.safeDict(positionsData, 0, new Dictionary<string, object>() {});
         string? marketId = this.safeString(rawPosition, "s");
         Dictionary<string, object> market = this.safeMarket(marketId);
-        object symbol = getValue(market, "symbol");
+        string? symbol = ((string)getValue(market, "symbol"));
         string messageHash = "positions";
-        object symbolMessageHash = add(add(messageHash, "::"), symbol);
+        string symbolMessageHash = add(add(messageHash, "::"), symbol);
         if (isTrue(isEqual(this.positions, null)))
         {
             this.positions = new ArrayCacheBySymbolBySide();
         }
         object cache = this.positions;
-        object parsedPosition = this.parseWsPosition(rawPosition, market);
+        Dictionary<string, object> parsedPosition = ((Dictionary<string, object>)this.parseWsPosition(rawPosition, market));
         Int64? timestamp = this.safeInteger(message, "T");
         ((IDictionary<string,object>)parsedPosition)["timestamp"] = timestamp;
         ((IDictionary<string,object>)parsedPosition)["datetime"] = this.iso8601(timestamp);
@@ -1008,7 +1008,7 @@ public partial class bydfi : ccxt.bydfi
         {
             await this.loadMarkets();
         }
-        object url = getValue(getValue(this.urls, "api"), "ws");
+        string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
         var client = this.client(url);
         this.fetchBalanceSnapshot(client);
         IDictionary<string, object> options = this.safeDict(this.options, "watchBalance");
@@ -1045,7 +1045,7 @@ public partial class bydfi : ccxt.bydfi
         object response = ccxt.BaseExchange.FromBalances(await this.FetchBalance(parameters));
         this.balance = this.extend(response, this.balance);
         // don't remove the future from the .futures cache
-        Future future = ((Future)getValue(client.futures, messageHash));
+        var future = getValue(client.futures, messageHash);
         (future as Future).resolve();
         callDynamically(client as WebSocketClient, "resolve", new object[] {this.balance, "balance"});
     }

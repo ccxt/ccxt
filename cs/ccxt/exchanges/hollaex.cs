@@ -775,13 +775,13 @@ public partial class hollaex : Exchange
             object ticker = getValue(tickers, key);
             string? marketId = this.safeString(ticker, "symbol", key);
             Dictionary<string, object> market = this.safeMarket(marketId, null, "-");
-            object symbol = getValue(market, "symbol");
+            string? symbol = ((string)getValue(market, "symbol"));
             ((IDictionary<string,object>)result)[(string)symbol] = this.extend(this.parseTicker(ticker, market), parameters);
         }
         return this.filterByArrayTickers(result, "symbol", symbols);
     }
 
-    public override object parseTicker(object ticker, object market = null)
+    public override Dictionary<string, object> parseTicker(object ticker, object market = null)
     {
         //
         // fetchTicker
@@ -878,7 +878,7 @@ public partial class hollaex : Exchange
         return ccxt.BaseExchange.ToTradeList(this.parseTrades(trades, market, since, limit));
     }
 
-    public override object parseTrade(object trade, object market = null)
+    public override Dictionary<string, object> parseTrade(object trade, object market = null)
     {
         //
         // fetchTrades (public)
@@ -1020,7 +1020,7 @@ public partial class hollaex : Exchange
      */
     public async override Task<List<ccxt.OHLCV>> FetchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object timeframeVar = timeframe;
+        string timeframeVar = timeframe;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1366,7 +1366,7 @@ public partial class hollaex : Exchange
         return this.safeString(statuses, ((string)status), status);
     }
 
-    public override object parseOrder(object order, object market = null)
+    public override Dictionary<string, object> parseOrder(object order, object market = null)
     {
         //
         // createOrder, fetchOpenOrder, fetchOpenOrders
@@ -2233,7 +2233,7 @@ public partial class hollaex : Exchange
         {
             this.checkRequiredCredentials();
             Int64? defaultExpires = this.safeInteger2(this.options, "api-expires", "expires", this.parseToInt(divide(this.timeout, 1000)));
-            object expires = this.sum(this.seconds(), defaultExpires);
+            Int64 expires = ((Int64)this.sum(this.seconds(), defaultExpires));
             string expiresString = ((object)expires).ToString();
             object auth = add(add(method, path), expiresString);
             headers = new Dictionary<string, object>() {
