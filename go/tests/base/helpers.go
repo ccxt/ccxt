@@ -220,7 +220,7 @@ func Jwt(request2 any, secret2 any, algorithm2 func() string, encode bool) any {
 	return ccxt.Jwt(request2, secret2, algorithm2, encode)
 }
 
-func Crc32(request2 any, signed2 bool) any {
+func Crc32(request2 any, signed2 bool) int64 {
 	return ccxt.Crc32(request2.(string), signed2)
 }
 
