@@ -2177,8 +2177,8 @@ class testMainClass {
                 if ((isDisabledPhp !== undefined) && (this.lang === 'PHP')) {
                     continue;
                 }
-                const isDisabledRust = exchange.safeString (result, 'disabledRust');
-                if ((isDisabledRust !== undefined) && (this.lang === 'RUST')) {
+                const isDisabledRust = exchange.safeBool (result, 'disabledRS', false);
+                if (isDisabledRust && (this.lang === 'RUST')) {
                     continue;
                 }
                 exchange.extendExchangeOptions (globalOptions);
