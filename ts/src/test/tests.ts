@@ -2210,14 +2210,14 @@ class testMainClass {
         let wasmExecPath: Str = undefined;
         let libraryPath: Str = undefined;
         // const wasmExecPath = getRootDir () + '/src/test/static/binaries/wasm_exec.js';
-        // const ligherWasmPath = getRootDir () + 'ts/src/test/static/binaries/lighter.wasm';
+        // const ligherWasmPath = getRootDir () + 'ts/src/test/static/binaries/lighter-signer.wasm';
         // const binaryPath = getRootDir () + '/ts/src/test/static/binaries/lighter-signer-linux-amd64.so';
         // const librarypath = (this.lang === 'JS') ? ligherWasmPath : binaryPath;
         const basePath = getRootDir () + 'ts/src/test/static/binaries/';
         if (exchangeName === 'lighter') {
             if (this.lang === 'JS') {
                 wasmExecPath = basePath + 'wasm_exec.js';
-                libraryPath = basePath + 'lighter.wasm';
+                libraryPath = basePath + 'lighter-signer.wasm';
             } else {
                 if (isWindows ()) {
                     libraryPath = basePath + 'lighter-signer-windows-amd64.dll';
