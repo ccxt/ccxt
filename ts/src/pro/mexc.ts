@@ -1258,7 +1258,7 @@ export default class mexc extends mexcRest {
             'symbol': this.safeSymbol (undefined, market),
             'type': undefined,
             'side': side,
-            'takerOrMaker': (isMaker !== undefined && isMaker !== null && isMaker !== 0) ? 'maker' : 'taker',
+            'takerOrMaker': (isMaker !== undefined && isMaker !== 0) ? 'maker' : 'taker',
             'price': priceString,
             'amount': amountString,
             'cost': this.safeString (trade, 'amount'),
