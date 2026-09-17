@@ -2558,6 +2558,11 @@ public class TestMain extends BaseTest
                     {
                         continue;
                     }
+                    String isDisabledRust = exchange.safeString(result, "disabledRS");
+                    if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(isDisabledRust, null))) && Helpers.isTrue((Helpers.isEqual(this.lang, "RUST")))))
+                    {
+                        continue;
+                    }
                     exchange.extendExchangeOptions(globalOptions);
                     Object testExchangeOptions = exchange.safeValue(result, "options", new HashMap<String, Object>() {{}});
                     exchange.extendExchangeOptions(testExchangeOptions);
