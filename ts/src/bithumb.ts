@@ -3392,6 +3392,7 @@ export default class bithumb extends Exchange {
                     'Api-Key': this.apiKey,
                     'Api-Sign': signature64,
                     'Api-Nonce': nonce,
+                    'OPEN-API-PARTNER': 'CCXT'
                 };
             }
         }
