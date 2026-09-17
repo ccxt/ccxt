@@ -1751,11 +1751,18 @@ class bingx(Exchange, ImplicitAPI):
         #         "markPrice": "16884.5",
         #         "indexPrice": "16886.9",
         #         "lastFundingRate": "0.0001",
-        #         "nextFundingTime": 1672041600000
+        #         "nextFundingTime": 1672041600000,
+        #         "fundingIntervalHours": 8,
+        #         "updateTime": 1672012800000
         #     }
         #
         marketId = self.safe_string(contract, 'symbol')
         nextFundingTimestamp = self.safe_integer(contract, 'nextFundingTime')
+        timestamp = self.safe_integer(contract, 'updateTime')
+        interval = self.safe_string(contract, 'fundingIntervalHours')
+        intervalString = None
+        if interval is not None:
+            intervalString = interval + 'h'
         return {
             'info': contract,
             'symbol': self.safe_symbol(marketId, market, '-', 'swap'),
@@ -1763,8 +1770,8 @@ class bingx(Exchange, ImplicitAPI):
             'indexPrice': self.safe_number(contract, 'indexPrice'),
             'interestRate': None,
             'estimatedSettlePrice': None,
-            'timestamp': None,
-            'datetime': None,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
             'fundingRate': self.safe_number(contract, 'lastFundingRate'),
             'fundingTimestamp': None,
             'fundingDatetime': None,
@@ -1774,7 +1781,7 @@ class bingx(Exchange, ImplicitAPI):
             'previousFundingRate': None,
             'previousFundingTimestamp': None,
             'previousFundingDatetime': None,
-            'interval': None,
+            'interval': intervalString,
         }
 
     async def fetch_funding_rate_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
@@ -3059,7 +3066,7 @@ class bingx(Exchange, ImplicitAPI):
                 request['price'] = self.parse_to_numeric(self.price_to_precision(symbol, price))
             if triggerPrice is not None:
                 if isMarketOrder and (side == 'buy') and self.safe_string(request, 'quoteOrderQty') is None:
-                    raise ArgumentsRequired(self.id + ' createOrder() requires the cost parameter(or the amount + price) for placing spot market-buy trigger orders')
+                    raise ArgumentsRequired(self.id + ' createOrder() requires the cost parameter (or the amount + price) for placing spot market-buy trigger orders')
                 request['stopPrice'] = self.price_to_precision(symbol, triggerPrice)
                 if type == 'LIMIT':
                     request['type'] = 'TRIGGER_LIMIT'
@@ -3229,7 +3236,7 @@ class bingx(Exchange, ImplicitAPI):
         :param float [params.takeProfit.triggerPrice]: take profit trigger price
         :param dict [params.stopLoss]: *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered
         :param float [params.stopLoss.triggerPrice]: stop loss trigger price
-        :param boolean [params.test]: *swap only* whether to use the test endpoint or not, default is False
+        :param boolean [params.test]: *linear swap only* whether to use the test endpoint or not, default is False
         :param str [params.positionSide]: *contracts only* "BOTH" for one way mode, "LONG" for buy side of hedged mode, "SHORT" for sell side of hedged mode
         :param boolean [params.hedged]: *swap only* whether the order is in hedged mode or one way mode
         :param bool [params.closePosition]: *swap only* True to close the entire position with a TP/SL order, in which case the quantity is not sent
@@ -3239,6 +3246,8 @@ class bingx(Exchange, ImplicitAPI):
             await self.load_markets()
         market = self.market(symbol)
         test = self.safe_bool(params, 'test', False)
+        if test and ((market['swap'] is not True) or (market['inverse'] is True)):
+            raise NotSupported(self.id + ' createOrder() only supports test orders for linear swap markets')
         params = self.omit(params, 'test')
         request = self.create_order_request(symbol, type, side, amount, price, params)
         response: dict | string
@@ -5523,9 +5532,9 @@ class bingx(Exchange, ImplicitAPI):
         """
         type = self.safe_integer(params, 'type')  # 1 increase margin 2 decrease margin
         if type is None:
-            raise ArgumentsRequired(self.id + ' setMargin() requires a type parameter either 1(increase margin) or 2(decrease margin)')
+            raise ArgumentsRequired(self.id + ' setMargin() requires a type parameter either 1 (increase margin) or 2 (decrease margin)')
         if not self.in_array(type, [1, 2]):
-            raise ArgumentsRequired(self.id + ' setMargin() requires a type parameter either 1(increase margin) or 2(decrease margin)')
+            raise ArgumentsRequired(self.id + ' setMargin() requires a type parameter either 1 (increase margin) or 2 (decrease margin)')
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
@@ -6217,7 +6226,7 @@ class bingx(Exchange, ImplicitAPI):
         subType = None
         subType, params = self.handle_sub_type_and_params('closeAllPositions', None, params)
         if marketType == 'margin':
-            raise BadRequest(self.id + ' closePositions() cannot be used for ' + marketType + ' markets')
+            raise BadRequest(self.id + ' closePositions () cannot be used for ' + marketType + ' markets')
         request = {
             'recvWindow': recvWindow,
         }

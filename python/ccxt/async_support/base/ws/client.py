@@ -137,6 +137,51 @@ class Client(object):
                 self.reject(result, message_hash)
         return result
 
+    def reset(self, error):
+        # mirrors the js/php/c#/go clients: stop the keepalive timer and
+        # reject every pending future, so exchange-level teardown paths
+        # (e.g. an unrecoverable orderbook desync) behave the same in every
+        # language - transpiled code calls client.reset(error)
+        #
+        # cancelling the keepalive here is deliberate parity with
+        # ts/src/base/ws/Client.ts reset() (clearPingInterval) and
+        # php/pro/Client.php reset() (clear_ping_interval), NOT a copy of
+        # aiohttp_close(): unlike that one, reset() runs on a socket that stays
+        # open and nothing restarts the looper - it is only ever assigned in
+        # open(). Callers that reset without reconnecting therefore lose the
+        # pong-miss watchdog for the rest of the connection's life (e.g.
+        # python/ccxt/pro/cryptocom.py pong()). That is how every other port
+        # behaves, so the behaviour is kept; the dead pipe is still caught by
+        # the receive loop / server close, just not by the keepalive timer.
+        if self.ping_looper:
+            self.ping_looper.cancel()
+        # js rejects a promise with any value, python can only reject a Future
+        # with a BaseException. callers do pass raw wire payloads - binance
+        # resets with the 5xx error dict itself (ts/src/pro/binance.ts
+        # handleWsError -> python/ccxt/pro/binance.py:5175) - and
+        # Future.set_exception then raises TypeError('invalid exception object')
+        # out of the message handler, aborting the broadcast on the first
+        # pending future and leaving every watcher hanging: the exact failure
+        # mode reset() exists to prevent
+        if not isinstance(error, BaseException):
+            error = NetworkError(self.stringify_reset_payload(error))
+        self.reject(error)
+
+    @staticmethod
+    def stringify_reset_payload(payload):
+        # keep the wire payload readable in the rejection message, but never let
+        # the formatting itself raise - reset() is a teardown path, a throw here
+        # would strand every pending future
+        if isinstance(payload, (dict, list)):
+            try:
+                return Exchange.json(payload)
+            except Exception:
+                pass
+        try:
+            return str(payload)
+        except Exception:
+            return 'connection reset'
+
     def receive_loop(self):
         if self.verbose:
             self.log(Exchange.iso8601(Exchange.milliseconds()), 'receive loop')

@@ -1618,6 +1618,7 @@ public partial class okx : ccxt.okx
                 ((IDictionary<string,object>)this.orderbooks).Remove((string)symbol);
             }
             ((WebSocketClient)client).reject(error, messageHash);
+            return orderbook;
         }
         Int64? timestamp = this.safeInteger(message, "ts");
         ((IDictionary<string,object>)orderbook)["nonce"] = seqId;
@@ -1738,7 +1739,11 @@ public partial class okx : ccxt.okx
                 ccxt.pro.OrderBook orderbook = this.orderBook(new Dictionary<string, object>() {}, limit);
                 ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = orderbook;
                 ((IDictionary<string,object>)orderbook)["symbol"] = symbol;
-                this.handleOrderBookMessage(client as WebSocketClient, update, orderbook, messageHash);
+                this.handleOrderBookMessage(client as WebSocketClient, update, orderbook, messageHash, market);
+                if (!isTrue((inOp(((WebSocketClient)client).subscriptions, messageHash))))
+                {
+                    break;
+                }
                 callDynamically(client as WebSocketClient, "resolve", new object[] {orderbook, messageHash});
             }
         } else if (isTrue(isEqual(action, "update")))
@@ -1750,6 +1755,12 @@ public partial class okx : ccxt.okx
                 {
                     object update = getValue(data, i);
                     this.handleOrderBookMessage(client as WebSocketClient, update, orderbook, messageHash, market);
+                    if (!isTrue((inOp(((WebSocketClient)client).subscriptions, messageHash))))
+                    {
+                        // a nonce gap rejected the future and always cleared the subscription entry, while the book
+                        // removal alone is skipped for a frame lacking an instrument id - stop replaying leftover rows
+                        break;
+                    }
                     callDynamically(client as WebSocketClient, "resolve", new object[] {orderbook, messageHash});
                 }
             }

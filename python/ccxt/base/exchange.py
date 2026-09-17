@@ -2398,7 +2398,7 @@ class BaseExchange(object):
     def load_lighter_library_helper(self, path, chainId, privateKey, apiKeyIndex, accountIndex, createClient):
         from ccxt.static_dependencies.lighter_client.signer import load_lighter_library
         if path is None:
-            raise NotSupported(self.id + ' load_lighter_library() requires a path to the lighter library. You can find it here https://github.com/elliottech/lighter-python/tree/main/lighter/signers. Please download the appropriate library for your system and provide the path to it.\nExample: exchange.options["libraryPath"] = "path/to/lighter-signer-linux-arm64.so"')
+            raise NotSupported(self.id + ' load_lighter_library() requires a path to the lighter library. The binaries this version of ccxt is built against are in the ccxt repository under "ts/src/test/static/binaries", they can also be downloaded here https://github.com/elliottech/lighter-python/tree/main/lighter/signers. Please download the appropriate library for your system and provide the path to it, the binary has to match your ccxt version.\nExample: exchange.options["libraryPath"] = "path/to/lighter-signer-linux-arm64.so"')
         if not os.path.isfile(path):
             raise NotSupported(self.id + ' the library path does not exist')
 
@@ -2407,7 +2407,22 @@ class BaseExchange(object):
             self.lighter_create_client(lighterSigner, chainId, privateKey, apiKeyIndex, accountIndex)
         return lighterSigner
 
+    def raise_lighter_signer_error(self, method, error, request=None):
+        message = method + '() failed with error: ' + str(error)
+        # the native signer keeps one client per (apiKeyIndex, accountIndex) pair, so this
+        # particular error means it was called with indices it has no client for. When the
+        # indices it reports are not the ones ccxt passed, the signer binary is not the one
+        # this version of ccxt binds against and the arguments are landing in the wrong slots
+        if str(error).find('client is not created for') >= 0:
+            from ccxt.static_dependencies.lighter_client.signer import SIGNER_ABI_HINT
+            passed = ''
+            if request is not None:
+                passed = ' ccxt signed this request with apiKeyIndex: ' + str(self.safe_string(request, 'api_key_index')) + ' accountIndex: ' + str(self.safe_string(request, 'account_index')) + '.'
+            message += '.' + passed + ' If those indices are not the ones reported above then the signer library set in options["libraryPath"] is not the one this version of ccxt binds against. ' + SIGNER_ABI_HINT
+        raise Exception(message)
+
     def lighter_create_client(self, lighterSigner, chainId, privateKey, apiKeyIndex, accountIndex):
+        from ccxt.static_dependencies.lighter_client.signer import decode_and_free
         url = self.implode_hostname(self.urls['api']['public'])
         res = lighterSigner.CreateClient(
             url.encode("utf-8"),
@@ -2416,8 +2431,10 @@ class BaseExchange(object):
             apiKeyIndex,
             accountIndex,
         )
-        if res is not None and str(res).find('error'):
-            raise Exception('lighter_create_client(): Failed to create lighter client: ' + str(res))
+        # CreateClient returns a null pointer on success and an error string otherwise
+        error = decode_and_free(res)
+        if error is not None:
+            self.raise_lighter_signer_error('lighter_create_client', error, {'api_key_index': apiKeyIndex, 'account_index': accountIndex})
         return lighterSigner
 
     def lighter_sign_create_grouped_orders(self, signer, request):
@@ -2447,11 +2464,15 @@ class BaseExchange(object):
             self.safe_integer(request, 'integrator_account_index', 0),
             self.safe_integer(request, 'integrator_taker_fee', 0),
             self.safe_integer(request, 'integrator_maker_fee', 0),
-            True,
+            self.safe_integer(request, 'self_trade_behavior_mode', 0),  # SelfTradeBehaviorExpireMaker
+            self.safe_integer(request, 'self_trade_equality_mode', 0),  # SelfTradeEqualityAccountIndex
+            True,  # skip nonce
             request['nonce'],
             request['api_key_index'],
             request['account_index']
         ))
+        if error:
+            self.raise_lighter_signer_error('lighter_sign_create_grouped_orders', error, request)
         return [tx_type, tx_info]
 
     def lighter_sign_create_order(self, signer, request):
@@ -2470,13 +2491,15 @@ class BaseExchange(object):
             self.safe_integer(request, 'integrator_account_index', 0),
             self.safe_integer(request, 'integrator_taker_fee', 0),
             self.safe_integer(request, 'integrator_maker_fee', 0),
-            True,
+            self.safe_integer(request, 'self_trade_behavior_mode', 0),  # SelfTradeBehaviorExpireMaker
+            self.safe_integer(request, 'self_trade_equality_mode', 0),  # SelfTradeEqualityAccountIndex
+            True,  # skip nonce
             request['nonce'],
             request['api_key_index'],
             request['account_index'],
         ))
         if error:
-            raise Exception('lighter_sign_create_order() failed with error: ' + str(error))
+            self.raise_lighter_signer_error('lighter_sign_create_order', error, request)
         return [tx_type, tx_info]
 
     def lighter_sign_cancel_order(self, signer, request):
@@ -2490,7 +2513,7 @@ class BaseExchange(object):
             request['account_index'],
         ))
         if error:
-            raise Exception('lighter_sign_cancel_order() failed with error: ' + str(error))
+            self.raise_lighter_signer_error('lighter_sign_cancel_order', error, request)
         return [tx_type, tx_info]
 
     def lighter_sign_withdraw(self, signer, request):
@@ -2505,7 +2528,7 @@ class BaseExchange(object):
             request['account_index'],
         ))
         if error:
-            raise Exception('lighter_sign_withdraw() failed with error: ' + str(error))
+            self.raise_lighter_signer_error('lighter_sign_withdraw', error, request)
         return [tx_type, tx_info]
 
     def lighter_sign_create_sub_account(self, signer, request):
@@ -2517,7 +2540,7 @@ class BaseExchange(object):
             request['account_index'],
         ))
         if error:
-            raise Exception('lighter_sign_create_sub_account() failed with error: ' + str(error))
+            self.raise_lighter_signer_error('lighter_sign_create_sub_account', error, request)
         return [tx_type, tx_info]
 
     def lighter_sign_cancel_all_orders(self, signer, request):
@@ -2525,13 +2548,14 @@ class BaseExchange(object):
         tx_type, tx_info, tx_hash, message_to_sign, error = decode_tx_info(signer.SignCancelAllOrders(
             request['time_in_force'],
             request['time'],
-            True,
+            self.safe_integer(request, 'cancel_all_market_index', 255),  # NilMarketIndex, every market
+            True,  # skip nonce
             request['nonce'],
             request['api_key_index'],
             request['account_index'],
         ))
         if error:
-            raise Exception('lighter_sign_cancel_all_orders() failed with error: ' + str(error))
+            self.raise_lighter_signer_error('lighter_sign_cancel_all_orders', error, request)
         return [tx_type, tx_info]
 
     def lighter_sign_modify_order(self, signer, request):
@@ -2545,13 +2569,16 @@ class BaseExchange(object):
             self.safe_integer(request, 'integrator_account_index', 0),
             self.safe_integer(request, 'integrator_taker_fee', 0),
             self.safe_integer(request, 'integrator_maker_fee', 0),
-            True,
+            self.safe_integer(request, 'self_trade_behavior_mode', 0),  # SelfTradeBehaviorExpireMaker
+            self.safe_integer(request, 'self_trade_equality_mode', 0),  # SelfTradeEqualityAccountIndex
+            True,  # skip nonce
             request['nonce'],
+            self.safe_integer(request, 'order_version', 0),  # NilOrderVersion
             request['api_key_index'],
             request['account_index'],
         ))
         if error:
-            raise Exception('lighter_sign_modify_order() failed with error: ' + str(error))
+            self.raise_lighter_signer_error('lighter_sign_modify_order', error, request)
         return [tx_type, tx_info]
 
     def lighter_sign_transfer(self, signer, request):
@@ -2563,14 +2590,15 @@ class BaseExchange(object):
             request['to_route_type'],
             request['amount'],
             request['usdc_fee'],
-            request['memo'],
+            # the signer takes the memo as a char*, ctypes rejects a str for it
+            request['memo'] if isinstance(request['memo'], bytes) else self.encode(request['memo']),
             True,
             request['nonce'],
             request['api_key_index'],
             request['account_index'],
         ))
         if error:
-            raise Exception('lighter_sign_transfer() failed with error: ' + str(error))
+            self.raise_lighter_signer_error('lighter_sign_transfer', error, request)
         return [tx_type, tx_info]
 
     def lighter_sign_update_leverage(self, signer, request):
@@ -2585,7 +2613,7 @@ class BaseExchange(object):
             request['account_index'],
         ))
         if error:
-            raise Exception('lighter_sign_update_leverage() failed with error: ' + str(error))
+            self.raise_lighter_signer_error('lighter_sign_update_leverage', error, request)
         return [tx_type, tx_info]
 
     def lighter_create_auth_token(self, signer, request):
@@ -2596,7 +2624,7 @@ class BaseExchange(object):
             request['account_index'],
         ))
         if error:
-            raise Exception('lighter_create_auth_token() failed with error: ' + str(error))
+            self.raise_lighter_signer_error('lighter_create_auth_token', error, request)
         return auth
 
     def lighter_sign_update_margin(self, signer, request):
@@ -2611,7 +2639,7 @@ class BaseExchange(object):
             request['account_index'],
         ))
         if error:
-            raise Exception('lighter_sign_update_margin() failed with error: ' + str(error))
+            self.raise_lighter_signer_error('lighter_sign_update_margin', error, request)
         return [tx_type, tx_info]
 
     def lighter_sign_approve_integrator(self, signer, request):
@@ -2629,14 +2657,14 @@ class BaseExchange(object):
             request['account_index'],
         ))
         if error:
-            raise Exception('lighter_sign_approve_integrator() failed with error: ' + str(error))
+            self.raise_lighter_signer_error('lighter_sign_approve_integrator', error, request)
         return [tx_type, tx_info, message_to_sign]
 
     def lighter_generate_api_key(self, signer):
         from ccxt.static_dependencies.lighter_client.signer import decode_api_key
         privateKey, publicKey, error = decode_api_key(signer.GenerateAPIKey())
         if error:
-            raise Exception('lighter_generate_api_key() failed with error: ' + str(error))
+            self.raise_lighter_signer_error('lighter_generate_api_key', error, None)
         return [privateKey, publicKey]
 
     def lighter_sign_change_pubkey(self, signer, request):
@@ -2649,7 +2677,7 @@ class BaseExchange(object):
             request['account_index'],
         ))
         if error:
-            raise Exception('lighter_sign_change_pubkey() failed with error: ' + str(error))
+            self.raise_lighter_signer_error('lighter_sign_change_pubkey', error, request)
         return [tx_type, tx_info, message_to_sign]
 
     def set_last_rest_request_timestamp(self):
@@ -3254,7 +3282,7 @@ class BaseExchange(object):
         length = len(usedProxies)
         if length > 1:
             joinedProxyNames = ','.join(usedProxies)
-            raise InvalidProxySettings(self.id + ' you have multiple conflicting proxy settings(' + joinedProxyNames + '), please use only one from : proxyUrl, proxy_url, proxyUrlCallback, proxy_url_callback')
+            raise InvalidProxySettings(self.id + ' you have multiple conflicting proxy settings (' + joinedProxyNames + '), please use only one from : proxyUrl, proxy_url, proxyUrlCallback, proxy_url_callback')
         return proxyUrl
 
     def url_encoder_for_proxy_url(self, targetUrl: str):
@@ -3305,7 +3333,7 @@ class BaseExchange(object):
         length = len(usedProxies)
         if length > 1:
             joinedProxyNames = ','.join(usedProxies)
-            raise InvalidProxySettings(self.id + ' you have multiple conflicting proxy settings(' + joinedProxyNames + '), please use only one from: httpProxy, httpsProxy, httpProxyCallback, httpsProxyCallback, socksProxy, socksProxyCallback')
+            raise InvalidProxySettings(self.id + ' you have multiple conflicting proxy settings (' + joinedProxyNames + '), please use only one from: httpProxy, httpsProxy, httpProxyCallback, httpsProxyCallback, socksProxy, socksProxyCallback')
         return [httpProxy, httpsProxy, socksProxy]
 
     def check_ws_proxy_settings(self):
@@ -3335,7 +3363,7 @@ class BaseExchange(object):
         length = len(usedProxies)
         if length > 1:
             joinedProxyNames = ','.join(usedProxies)
-            raise InvalidProxySettings(self.id + ' you have multiple conflicting proxy settings(' + joinedProxyNames + '), please use only one from: wsProxy, wssProxy, wsSocksProxy')
+            raise InvalidProxySettings(self.id + ' you have multiple conflicting proxy settings (' + joinedProxyNames + '), please use only one from: wsProxy, wssProxy, wsSocksProxy')
         return [wsProxy, wssProxy, wsSocksProxy]
 
     def check_conflicting_proxies(self, proxyAgentSet: object, proxyUrlSet: object):
@@ -3538,7 +3566,7 @@ class BaseExchange(object):
             raise NotSupported(self.id + ' fetchMarginMode() is not supported yet')
 
     def fetch_margin_modes(self, symbols: Strings = None, params={}):
-        raise NotSupported(self.id + ' fetchMarginModes() is not supported yet')
+        raise NotSupported(self.id + ' fetchMarginModes () is not supported yet')
 
     def un_watch_order_book(self, symbol: str, params={}):
         raise NotSupported(self.id + ' unWatchOrderBook() is not supported yet')
@@ -4275,7 +4303,7 @@ class BaseExchange(object):
     def set_markets_from_exchange(self, sourceExchange: object):
         # Validate that both exchanges are of the same type
         if self.id != sourceExchange.id:
-            raise ArgumentsRequired(self.id + ' shareMarkets() can only share markets with exchanges of the same type(got ' + sourceExchange['id'] + ')')
+            raise ArgumentsRequired(self.id + ' shareMarkets() can only share markets with exchanges of the same type (got ' + sourceExchange['id'] + ')')
         # Validate that source exchange has loaded markets
         if (sourceExchange.markets is None) or (sourceExchange.markets is None):
             raise ExchangeError('setMarketsFromExchange() source exchange must have loaded markets first. Can call by using loadMarkets function')
@@ -6401,7 +6429,7 @@ class BaseExchange(object):
         raise BadSymbol(self.id + ' does not have market symbol ' + symbol)
 
     def create_expired_option_market(self, symbol: str):
-        raise NotSupported(self.id + ' createExpiredOptionMarket() is not supported yet')
+        raise NotSupported(self.id + ' createExpiredOptionMarket () is not supported yet')
 
     def is_leveraged_currency(self, currencyCode: object, checkBaseCoin: Bool = False, existingCurrencies: dict = None):
         leverageSuffixes = [
@@ -6855,7 +6883,7 @@ class BaseExchange(object):
         raise NotSupported(self.id + ' fetchConvertCurrencies() is not supported yet')
 
     def parse_open_interest(self, interest: object, market: Market = None):
-        raise NotSupported(self.id + ' parseOpenInterest() is not supported yet')
+        raise NotSupported(self.id + ' parseOpenInterest () is not supported yet')
 
     def parse_open_interests(self, response: object, symbols: Strings = None):
         result = {}
@@ -6886,11 +6914,11 @@ class BaseExchange(object):
             rates = self.fetch_funding_rates([symbol], params)
             rate = self.safe_value(rates, symbol)
             if rate is None:
-                raise NullResponse(self.id + ' fetchFundingRate() returned no data for ' + symbol)
+                raise NullResponse(self.id + ' fetchFundingRate () returned no data for ' + symbol)
             else:
                 return rate
         else:
-            raise NotSupported(self.id + ' fetchFundingRate() is not supported yet')
+            raise NotSupported(self.id + ' fetchFundingRate () is not supported yet')
 
     def fetch_funding_interval(self, symbol: str, params={}):
         if self.has['fetchFundingIntervals'] is not None and self.has['fetchFundingIntervals'] is not False:
@@ -6924,7 +6952,7 @@ class BaseExchange(object):
             }
             return self.fetch_ohlcv(symbol, timeframe, since, limit, self.extend(request, params))
         else:
-            raise NotSupported(self.id + ' fetchMarkOHLCV() is not supported yet')
+            raise NotSupported(self.id + ' fetchMarkOHLCV () is not supported yet')
 
     def fetch_index_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}):
         """
@@ -6942,7 +6970,7 @@ class BaseExchange(object):
             }
             return self.fetch_ohlcv(symbol, timeframe, since, limit, self.extend(request, params))
         else:
-            raise NotSupported(self.id + ' fetchIndexOHLCV() is not supported yet')
+            raise NotSupported(self.id + ' fetchIndexOHLCV () is not supported yet')
 
     def fetch_premium_index_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}):
         """
@@ -6960,7 +6988,7 @@ class BaseExchange(object):
             }
             return self.fetch_ohlcv(symbol, timeframe, since, limit, self.extend(request, params))
         else:
-            raise NotSupported(self.id + ' fetchPremiumIndexOHLCV() is not supported yet')
+            raise NotSupported(self.id + ' fetchPremiumIndexOHLCV () is not supported yet')
 
     def handle_time_in_force(self, params={}):
         """
@@ -7089,7 +7117,7 @@ class BaseExchange(object):
         return fee
 
     def parse_income(self, info: object, market: Market = None):
-        raise NotSupported(self.id + ' parseIncome() is not supported yet')
+        raise NotSupported(self.id + ' parseIncome () is not supported yet')
 
     def parse_incomes(self, incomes: object, market: Market = None, since: Int = None, limit: Int = None):
         """
@@ -7145,7 +7173,7 @@ class BaseExchange(object):
         if self.has['fetchDepositsWithdrawals'] is not None and self.has['fetchDepositsWithdrawals'] is not False:
             return self.fetch_deposits_withdrawals(code, since, limit, params)
         else:
-            raise NotSupported(self.id + ' fetchTransactions() is not supported yet')
+            raise NotSupported(self.id + ' fetchTransactions () is not supported yet')
 
     def filter_by_array_positions(self, objects: object, key: IndexType, values: object = None, indexed=True):
         """
@@ -7501,7 +7529,7 @@ class BaseExchange(object):
         })
 
     def parse_liquidation(self, liquidation: object, market: Market = None):
-        raise NotSupported(self.id + ' parseLiquidation() is not supported yet')
+        raise NotSupported(self.id + ' parseLiquidation () is not supported yet')
 
     def parse_liquidations(self, liquidations: list[dict], market: Market = None, since: Int = None, limit: Int = None):
         """
@@ -7523,7 +7551,7 @@ class BaseExchange(object):
         return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
 
     def parse_greeks(self, greeks: dict, market: Market = None):
-        raise NotSupported(self.id + ' parseGreeks() is not supported yet')
+        raise NotSupported(self.id + ' parseGreeks () is not supported yet')
 
     def parse_all_greeks(self, greeks: object, symbols: Strings = None, params={}):
         #
@@ -7547,7 +7575,7 @@ class BaseExchange(object):
         return self.filter_by_array(results, 'symbol', symbols)
 
     def parse_option(self, chain: dict, currency: Currency = None, market: Market = None):
-        raise NotSupported(self.id + ' parseOption() is not supported yet')
+        raise NotSupported(self.id + ' parseOption () is not supported yet')
 
     def parse_option_chain(self, response: list[object], currencyKey: Str = None, symbolKey: Str = None):
         optionStructures = {}
@@ -7573,7 +7601,7 @@ class BaseExchange(object):
         return marginModeStructures
 
     def parse_margin_mode(self, marginMode: dict, market: Market = None):
-        raise NotSupported(self.id + ' parseMarginMode() is not supported yet')
+        raise NotSupported(self.id + ' parseMarginMode () is not supported yet')
 
     def parse_leverages(self, response: list[object], symbols: Strings = None, symbolKey: Str = None, marketType: MarketType | None = None):
         leverageStructures = {}
@@ -7588,7 +7616,7 @@ class BaseExchange(object):
         return leverageStructures
 
     def parse_leverage(self, leverage: dict, market: Market = None):
-        raise NotSupported(self.id + ' parseLeverage() is not supported yet')
+        raise NotSupported(self.id + ' parseLeverage () is not supported yet')
 
     def parse_conversions(self, conversions: list, code: Str = None, fromCurrencyKey: Str = None, toCurrencyKey: Str = None, since: Int = None, limit: Int = None, params={}):
         conversionsArray = self.to_array(conversions)
@@ -7621,8 +7649,8 @@ class BaseExchange(object):
 
     def parse_conversion(self, conversion: dict, fromCurrency: Currency = None, toCurrency: Currency = None):
         if conversion is None:
-            raise NotSupported(self.id + ' parseConversion() is not supported yet')
-        raise NotSupported(self.id + ' parseConversion() is not supported yet')
+            raise NotSupported(self.id + ' parseConversion () is not supported yet')
+        raise NotSupported(self.id + ' parseConversion () is not supported yet')
 
     def convert_expire_date(self, date: Str):
         if date is None:
@@ -7727,7 +7755,7 @@ class BaseExchange(object):
         :param dict params: extra parameters specific to the exchange api endpoint
         :returns dict: a `transfer structure <https://docs.ccxt.com/?id=transfer-structure>`
         """
-        raise NotSupported(self.id + ' fetchTransfer() is not supported yet')
+        raise NotSupported(self.id + ' fetchTransfer () is not supported yet')
 
     def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
         """
@@ -7738,7 +7766,7 @@ class BaseExchange(object):
         :param dict params: extra parameters specific to the exchange api endpoint
         :returns dict: a `transfer structure <https://docs.ccxt.com/?id=transfer-structure>`
         """
-        raise NotSupported(self.id + ' fetchTransfers() is not supported yet')
+        raise NotSupported(self.id + ' fetchTransfers () is not supported yet')
 
     def un_watch_ohlcv(self, symbol: str, timeframe: str = '1m', params={}):
         """
@@ -7748,7 +7776,7 @@ class BaseExchange(object):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
-        raise NotSupported(self.id + ' unWatchOHLCV() is not supported yet')
+        raise NotSupported(self.id + ' unWatchOHLCV () is not supported yet')
 
     def withdraw_ws(self, code: str, amount: float, address: str, tag: Str = None, params={}):
         """
@@ -7760,7 +7788,7 @@ class BaseExchange(object):
         :param dict [params]: extra parameters specific to the bitvavo api endpoint
         :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        raise NotSupported(self.id + ' withdrawWs() is not supported yet')
+        raise NotSupported(self.id + ' withdrawWs () is not supported yet')
 
     def un_watch_my_trades(self, symbol: Str = None, params={}):
         """
@@ -7769,7 +7797,7 @@ class BaseExchange(object):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        raise NotSupported(self.id + ' unWatchMyTrades() is not supported yet')
+        raise NotSupported(self.id + ' unWatchMyTrades () is not supported yet')
 
     def fetch_orders_by_status_ws(self, status: str, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
@@ -7779,7 +7807,7 @@ class BaseExchange(object):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        raise NotSupported(self.id + ' fetchOrdersByStatusWs() is not supported yet')
+        raise NotSupported(self.id + ' fetchOrdersByStatusWs () is not supported yet')
 
     def un_watch_bids_asks(self, symbols: Strings = None, params={}):
         """
@@ -7788,7 +7816,7 @@ class BaseExchange(object):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        raise NotSupported(self.id + ' unWatchBidsAsks() is not supported yet')
+        raise NotSupported(self.id + ' unWatchBidsAsks () is not supported yet')
 
     def clean_unsubscription(self, client: object, subHash: Str, unsubHash: Str, subHashIsPrefix=False):
         if (unsubHash is not None) and (unsubHash in client.subscriptions):
@@ -7922,7 +7950,7 @@ class Exchange(BaseExchange):
             positions = self.fetchPositionsHistory([symbol], since, limit, params)
             return positions
         else:
-            raise NotSupported(self.id + ' fetchPositionHistory() is not supported yet')
+            raise NotSupported(self.id + ' fetchPositionHistory () is not supported yet')
 
     def fetch_positions_history(self, symbols: Strings = None, since: Int = None, limit: Int = None, params={}):
         """
@@ -7933,7 +7961,7 @@ class Exchange(BaseExchange):
         :param dict params: extra parameters specific to the exchange api endpoint
         :returns dict[]: a list of `position structures <https://docs.ccxt.com/?id=position-structure>`
         """
-        raise NotSupported(self.id + ' fetchPositionsHistory() is not supported yet')
+        raise NotSupported(self.id + ' fetchPositionsHistory () is not supported yet')
 
     def fetch_positions_risk(self, symbols: Strings = None, params={}):
         raise NotSupported(self.id + ' fetchPositionsRisk() is not supported yet')
@@ -7995,7 +8023,7 @@ class Exchange(BaseExchange):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        raise NotSupported(self.id + ' watchMarkPrice() is not supported yet')
+        raise NotSupported(self.id + ' watchMarkPrice () is not supported yet')
 
     def watch_mark_prices(self, symbols: Strings = None, params={}):
         """
@@ -8004,7 +8032,7 @@ class Exchange(BaseExchange):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        raise NotSupported(self.id + ' watchMarkPrices() is not supported yet')
+        raise NotSupported(self.id + ' watchMarkPrices () is not supported yet')
 
     def fetch_l3_order_book(self, symbol: str, limit: Int = None, params={}):
         raise BadRequest(self.id + ' fetchL3OrderBook() is not supported yet')
@@ -8091,7 +8119,7 @@ class Exchange(BaseExchange):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        raise NotSupported(self.id + ' createOrdersWs() is not supported yet')
+        raise NotSupported(self.id + ' createOrdersWs () is not supported yet')
 
     def create_post_only_order_ws(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         if self.has['createPostOnlyOrderWs'] is None or self.has['createPostOnlyOrderWs'] is False:

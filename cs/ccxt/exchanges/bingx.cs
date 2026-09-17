@@ -2277,11 +2277,20 @@ public partial class bingx : Exchange
         //         "markPrice": "16884.5",
         //         "indexPrice": "16886.9",
         //         "lastFundingRate": "0.0001",
-        //         "nextFundingTime": 1672041600000
+        //         "nextFundingTime": 1672041600000,
+        //         "fundingIntervalHours": 8,
+        //         "updateTime": 1672012800000
         //     }
         //
         string? marketId = this.safeString(contract, "symbol");
         Int64? nextFundingTimestamp = this.safeInteger(contract, "nextFundingTime");
+        Int64? timestamp = this.safeInteger(contract, "updateTime");
+        object interval = this.safeString(contract, "fundingIntervalHours");
+        object intervalString = null;
+        if (isTrue(!isEqual(interval, null)))
+        {
+            intervalString = add(interval, "h");
+        }
         return new Dictionary<string, object>() {
             { "info", contract },
             { "symbol", this.safeSymbol(marketId, market, "-", "swap") },
@@ -2289,8 +2298,8 @@ public partial class bingx : Exchange
             { "indexPrice", this.safeNumber(contract, "indexPrice") },
             { "interestRate", null },
             { "estimatedSettlePrice", null },
-            { "timestamp", null },
-            { "datetime", null },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
             { "fundingRate", this.safeNumber(contract, "lastFundingRate") },
             { "fundingTimestamp", null },
             { "fundingDatetime", null },
@@ -2300,7 +2309,7 @@ public partial class bingx : Exchange
             { "previousFundingRate", null },
             { "previousFundingTimestamp", null },
             { "previousFundingDatetime", null },
-            { "interval", null },
+            { "interval", intervalString },
         };
     }
 
@@ -3846,7 +3855,7 @@ public partial class bingx : Exchange
      * @param {float} [params.takeProfit.triggerPrice] take profit trigger price
      * @param {object} [params.stopLoss] *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered
      * @param {float} [params.stopLoss.triggerPrice] stop loss trigger price
-     * @param {boolean} [params.test] *swap only* whether to use the test endpoint or not, default is false
+     * @param {boolean} [params.test] *linear swap only* whether to use the test endpoint or not, default is false
      * @param {string} [params.positionSide] *contracts only* "BOTH" for one way mode, "LONG" for buy side of hedged mode, "SHORT" for sell side of hedged mode
      * @param {boolean} [params.hedged] *swap only* whether the order is in hedged mode or one way mode
      * @param {bool} [params.closePosition] *swap only* true to close the entire position with a TP/SL order, in which case the quantity is not sent
@@ -3861,6 +3870,10 @@ public partial class bingx : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         bool? test = this.safeBool(parameters, "test", false);
+        if (isTrue(isTrue(test) && isTrue((isTrue((!isEqual(getValue(market, "swap"), true))) || isTrue((isEqual(getValue(market, "inverse"), true)))))))
+        {
+            throw new NotSupported ((string)add(this.id, " createOrder() only supports test orders for linear swap markets")) ;
+        }
         parameters = this.omit(parameters, "test");
         object request = this.createOrderRequest(symbol, type, side, amount, price, parameters);
         object response = null;

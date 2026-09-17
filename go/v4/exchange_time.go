@@ -59,6 +59,9 @@ func (this *BaseExchange) Microseconds() int64 {
 // }
 
 func (this *BaseExchange) ParseDate(datetime2 any) any {
+	// SafeString now yields *string, so the kind check must run on the
+	// dereferenced value or every pointer-carried datetime returns nil
+	datetime2 = derefScalar(datetime2)
 	if datetime2 == nil || reflect.TypeOf(datetime2).Kind() != reflect.String {
 		return nil
 	}
@@ -95,6 +98,8 @@ var iso8601PlainIntegerRegex = regexp.MustCompile("^[0-9]+$")
 
 // Iso8601 converts a timestamp to an ISO 8601 formatted string.
 func Iso8601(ts2 any) any {
+	// Safe* accessors hand over typed pointers, so normalise before the type switch
+	ts2 = derefScalar(ts2)
 	if ts2 == nil {
 		return nil
 	}
@@ -226,6 +231,8 @@ var parse8601Layouts = []string{
 }
 
 func (this *BaseExchange) Parse8601(datetime2 any) any {
+	// SafeString yields *string, so normalise before the kind check
+	datetime2 = derefScalar(datetime2)
 	if datetime2 == nil || reflect.TypeOf(datetime2).Kind() != reflect.String {
 		return nil
 	}

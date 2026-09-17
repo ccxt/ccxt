@@ -770,7 +770,7 @@ class myriad(PredictionExchange, ImplicitAPI):
         # an explicit opt-in so callers do not silently hit an untested signing/broadcast path
         enableAmm = self.safe_bool_2(params, 'enableAmm', 'enableAmmOrders', self.safe_bool(self.options, 'enableAmmOrders', False))
         if enableAmm is not True:
-            raise NotSupported(self.id + ' createOrder() only supports the gasless order book; self market uses the on-chain AMM(needs native gas and is unverified) — pass params.enableAmm=true to opt in')
+            raise NotSupported(self.id + ' createOrder() only supports the gasless order book; self market uses the on-chain AMM (needs native gas and is unverified) — pass params.enableAmm=true to opt in')
         return await self.create_amm_order(outcome, type, side, amount, price, self.omit(rest, ['enableAmm', 'enableAmmOrders']))
 
     async def create_orderbook_order(self, outcome: Str, type: Str, side: Str, amount: Num, price: Num = None, params={}) -> PredictionOrder:
@@ -868,7 +868,7 @@ class myriad(PredictionExchange, ImplicitAPI):
         amountWei = self.to_orderbook_wei(amount)
         # shares are integer wei (1e18 = 1 share); a sub-wei amount that rounds to zero is invalid
         if Precise.string_lt(amountWei, '1'):
-            raise InvalidOrder(self.id + ' createOrder() amount is too small(rounds to zero shares)')
+            raise InvalidOrder(self.id + ' createOrder() amount is too small (rounds to zero shares)')
         nonce = self.safe_string(params, 'nonce', self.number_to_string(self.milliseconds()))
         expiration = self.safe_string(params, 'expiration', '0')
         minFillAmount = self.safe_string(params, 'minFillAmount', '0')
@@ -968,7 +968,7 @@ class myriad(PredictionExchange, ImplicitAPI):
         sideLower = side.lower() if (side is not None) else None
         isCostDenominated = self.safe_bool(params, 'costDenominated', False)
         if (sideLower == 'buy') and (isCostDenominated is not True):
-            raise NotSupported(self.id + ' createOrder() market buy on the AMM sizes by collateral, not shares — use createMarketBuyOrderWithCost(outcome, collateral) for a dollar buy, or the default order book(omit enableAmm) for a share-denominated order')
+            raise NotSupported(self.id + ' createOrder() market buy on the AMM sizes by collateral, not shares — use createMarketBuyOrderWithCost(outcome, collateral) for a dollar buy, or the default order book (omit enableAmm) for a share-denominated order')
         if self.privateKey is None:
             raise ArgumentsRequired(self.id + ' createOrder() requires a privateKey to sign the on-chain transaction')
         await self.load_outcome(outcome)
@@ -1704,7 +1704,7 @@ class myriad(PredictionExchange, ImplicitAPI):
     async def fetch_my_trades(self, outcome: Str = None, since: Int = None, limit: Int = None, params={}) -> list[PredictionTrade]:
         """
         fetches the wallet's filled order book orders as trades. Note: Myriad's REST exposes the order's
- limit price, not the per-fill execution price, so the price reflects the order's limit(exact for resting/limit
+ limit price, not the per-fill execution price, so the price reflects the order's limit (exact for resting/limit
  fills, an upper/lower bound for market orders) — use watchTrades for live execution prices
 
         https://docs.myriad.markets/builders/myriad-order-book/order-book-api#37dc9e49da828171a003cf996487d008
@@ -1755,7 +1755,7 @@ class myriad(PredictionExchange, ImplicitAPI):
 
     async def fetch_balance(self, params={}) -> Balances:
         """
-        fetches the wallet's on-chain collateral balance for the order-book network(USD1 on BNB Chain)
+        fetches the wallet's on-chain collateral balance for the order-book network (USD1 on BNB Chain)
 
         https://docs.myriad.markets/builders/myriad-order-book/order-book-api
 
@@ -2597,7 +2597,7 @@ class myriad(PredictionExchange, ImplicitAPI):
         :returns dict: a dictionary of [prediction ticker structures](https://docs.ccxt.com/#/?id=prediction-ticker-structure) indexed by outcome
         """
         if outcomes is None:
-            raise ArgumentsRequired(self.id + ' fetchTickers() requires an outcomes argument — the venue has no all-tickers endpoint; pass the outcome handles to fetch(discover them via fetchEvents())')
+            raise ArgumentsRequired(self.id + ' fetchTickers() requires an outcomes argument — the venue has no all-tickers endpoint; pass the outcome handles to fetch (discover them via fetchEvents ())')
         result = {}
         # resolve the uncached outcomes first, then group by parent market to fetch each market only once
         await self.load_outcomes(outcomes)
@@ -3086,7 +3086,7 @@ class myriad(PredictionExchange, ImplicitAPI):
 
     async def watch_my_trades(self, outcome: Str = None, since: Int = None, limit: Int = None, params={}) -> list[PredictionTrade]:
         """
-        streams the wallet's own fills for a market over the Centrifugo trades channel(real
+        streams the wallet's own fills for a market over the Centrifugo trades channel (real
  execution prices, unlike the REST fetchMyTrades); requires a market outcome since the channel is per-market
 
         https://docs.myriad.markets/builders/myriad-order-book/order-book-api#37dc9e49da82810581f8d2c8be2364fa
@@ -3098,7 +3098,7 @@ class myriad(PredictionExchange, ImplicitAPI):
         :returns dict[]: a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
         """
         if outcome is None:
-            raise ArgumentsRequired(self.id + ' watchMyTrades() requires a outcome(the trades channel is per-market)')
+            raise ArgumentsRequired(self.id + ' watchMyTrades() requires a outcome (the trades channel is per-market)')
         outcomeObj = await self.load_outcome(outcome)
         info = self.safe_dict(outcomeObj, 'info', {})
         networkId = self.safe_string(info, 'networkId')
@@ -3240,7 +3240,7 @@ class myriad(PredictionExchange, ImplicitAPI):
         :returns dict: a dict of [prediction ticker structures](https://docs.ccxt.com/#/?id=prediction-ticker-structure) indexed by outcome
         """
         if outcomes is None:
-            raise ArgumentsRequired(self.id + ' watchTickers() requires a list of outcomes(the prices channel is per-market)')
+            raise ArgumentsRequired(self.id + ' watchTickers() requires a list of outcomes (the prices channel is per-market)')
         symbolsLength = len(outcomes)
         url = self.safe_string(self.urls['api'], 'ws')
         await self.connect_centrifugo(url)

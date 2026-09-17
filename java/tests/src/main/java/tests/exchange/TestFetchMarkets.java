@@ -17,7 +17,7 @@ public class TestFetchMarkets extends BaseTest {
     public CompletableFuture<Object> testFetchMarkets(BaseExchange exchange, Object skippedProperties)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
         String method = "fetchMarkets";
         Object markets = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchMarkets", new Object[]{})).join();

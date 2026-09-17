@@ -1848,7 +1848,7 @@ class bitfinex(Exchange, ImplicitAPI):
         if status != 'SUCCESS':
             errorCode = self.safe_string(response, 5)
             errorText = self.safe_string(response, 7)
-            raise ExchangeError(self.id + ' ' + status + ': ' + errorText + '(#' + errorCode + ')')
+            raise ExchangeError(self.id + ' ' + status + ': ' + errorText + ' (#' + errorCode + ')')
         orders = self.safe_list(response, 4, [])
         order = self.safe_list(orders, 0)
         newOrder = {'result': order}
@@ -1957,7 +1957,7 @@ class bitfinex(Exchange, ImplicitAPI):
         if cid is not None:
             cidDate = self.safe_value(params, 'cidDate')  # client order id date
             if cidDate is None:
-                raise InvalidOrder(self.id + " canceling an order by clientOrderId('cid') requires both 'cid' and 'cid_date'('YYYY-MM-DD')")
+                raise InvalidOrder(self.id + " canceling an order by clientOrderId ('cid') requires both 'cid' and 'cid_date' ('YYYY-MM-DD')")
             request = {
                 'cid': cid,
                 'cid_date': cidDate,
@@ -2959,7 +2959,7 @@ class bitfinex(Exchange, ImplicitAPI):
             self.throw_broadly_matched_exception(self.exceptions['broad'], errorText, feedback)
             self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
             self.throw_exactly_matched_exception(self.exceptions['exact'], errorText, feedback)
-            raise ExchangeError(self.id + ' ' + errorText + '(#' + errorCode + ')')
+            raise ExchangeError(self.id + ' ' + errorText + ' (#' + errorCode + ')')
         return response
 
     def parse_ledger_entry_type(self, type: Str):
@@ -3874,7 +3874,7 @@ class bitfinex(Exchange, ImplicitAPI):
         if status != 'SUCCESS':
             errorCode = self.safe_string(response, 5)
             errorText = self.safe_string(response, 7)
-            raise ExchangeError(self.id + ' ' + status + ': ' + errorText + '(#' + errorCode + ')')
+            raise ExchangeError(self.id + ' ' + status + ': ' + errorText + ' (#' + errorCode + ')')
         order = self.safe_list(response, 4, [])
         newOrder = {'result': order}
         return self.parse_order(newOrder, market)

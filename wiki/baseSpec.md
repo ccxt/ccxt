@@ -8996,6 +8996,7 @@ make a withdrawal
 * [bittrade](/exchanges/bittrade.md#withdraw)
 * [bitvavo](/exchanges/bitvavo.md#withdraw)
 * [blockchaincom](/exchanges/blockchaincom.md#withdraw)
+* [blofin](/exchanges/blofin.md#withdraw)
 * [btcmarkets](/exchanges/btcmarkets.md#withdraw)
 * [bullish](/exchanges/bullish.md#withdraw)
 * [bybit](/exchanges/bybit.md#withdraw)

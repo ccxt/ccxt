@@ -232,7 +232,7 @@ class opinion(PredictionExchange, ImplicitAPI):
         """
  @ignore
         resolves a single outcome; a bare numeric token id carries no search text for
- the base's fetchEvents-driven resolution(opinion has no per-id lookup endpoint, unlike
+ the base's fetchEvents-driven resolution (opinion has no per-id lookup endpoint, unlike
  kalshi/polymarket), so bulk-warm the outcome cache via loadOutcomes() first for id-form input
         :param str outcomeSymbol: the outcome handle or token id
         :returns dict: the outcome cache
@@ -696,7 +696,7 @@ class opinion(PredictionExchange, ImplicitAPI):
         :returns dict: a dictionary of [prediction ticker structures](https://docs.ccxt.com/#/?id=prediction-ticker-structure) indexed by outcome
         """
         if outcomes is None:
-            raise ArgumentsRequired(self.id + ' fetchTickers() requires an outcomes argument — the venue has no all-tickers endpoint; pass the outcome handles or token ids to fetch(discover them via fetchEvents())')
+            raise ArgumentsRequired(self.id + ' fetchTickers() requires an outcomes argument — the venue has no all-tickers endpoint; pass the outcome handles or token ids to fetch (discover them via fetchEvents ())')
         await self.load_outcomes(outcomes)
         outcomesLength = len(outcomes)
         promises = []
@@ -1795,7 +1795,7 @@ class opinion(PredictionExchange, ImplicitAPI):
         :returns dict[]: a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
         """
         if outcome is None:
-            raise ArgumentsRequired(self.id + ' watchOrders() requires an outcome(the order update channel is per-market)')
+            raise ArgumentsRequired(self.id + ' watchOrders() requires an outcome (the order update channel is per-market)')
         outcomeObj = await self.load_outcome(outcome)
         info = self.safe_dict(outcomeObj, 'info', {})
         marketId = self.safe_integer(info, 'marketId')
@@ -1898,7 +1898,7 @@ class opinion(PredictionExchange, ImplicitAPI):
         :returns dict[]: a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
         """
         if outcome is None:
-            raise ArgumentsRequired(self.id + ' watchMyTrades() requires an outcome(the trade record channel is per-market)')
+            raise ArgumentsRequired(self.id + ' watchMyTrades() requires an outcome (the trade record channel is per-market)')
         outcomeObj = await self.load_outcome(outcome)
         info = self.safe_dict(outcomeObj, 'info', {})
         marketId = self.safe_integer(info, 'marketId')

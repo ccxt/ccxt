@@ -101,7 +101,7 @@ class pacifica(ccxt.async_support.pacifica):
         :param str|None [params.clientOrderId]: client order id,(optional uuid v4 e.g.: f47ac10b-58cc-4372-a567-0e02b2c3d479)
         :param int|None [params.expiryWindow]: time to live in milliseconds
         :param str|None [params.agentAddress]: only if agent wallet in use.
-        :param str|None [params.originAddress]: only if agent in use. Agent's owner address( default = credentials walletAddress )
+        :param str|None [params.originAddress]: only if agent in use. Agent's owner address ( default = credentials walletAddress )
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         if self.markets is None:
@@ -178,7 +178,7 @@ class pacifica(ccxt.async_support.pacifica):
         :param str [params.clientOrderId]: client order id,(optional uuid v4 e.g.: f47ac10b-58cc-4372-a567-0e02b2c3d479)
         :param int|None [params.expiryWindow]: time to live in milliseconds
         :param str|None [params.agentAddress]: only if agent wallet in use
-        :param str|None [params.originAddress]: only if agent in use. Agent's owner address( default = credentials walletAddress )
+        :param str|None [params.originAddress]: only if agent in use. Agent's owner address ( default = credentials walletAddress )
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         batchOperationType = 'edit_order'
@@ -231,7 +231,7 @@ class pacifica(ccxt.async_support.pacifica):
         :param string|str[] [params.clientOrderId]: client order ids,(optional uuid v4 e.g.: f47ac10b-58cc-4372-a567-0e02b2c3d479)
         :param int|None [params.expiryWindow]: time to live in milliseconds
         :param str|None [params.agentAddress]: only if agent wallet in use
-        :param str|None [params.originAddress]: only if agent in use. Agent's owner address( default = credentials walletAddress )
+        :param str|None [params.originAddress]: only if agent in use. Agent's owner address ( default = credentials walletAddress )
         :returns dict: an list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         batchOperationType = 'batch_orders'
@@ -302,7 +302,7 @@ class pacifica(ccxt.async_support.pacifica):
         :param str|None [params.clientOrderId]: client order id,(optional uuid v4 e.g.: f47ac10b-58cc-4372-a567-0e02b2c3d479)
         :param int|None [params.expiryWindow]: time to live in milliseconds
         :param str|None [params.agentAddress]: only if agent wallet in use
-        :param str|None [params.originAddress]: only if agent in use. Agent's owner address( default = credentials walletAddress )
+        :param str|None [params.originAddress]: only if agent in use. Agent's owner address ( default = credentials walletAddress )
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         operationType = 'cancel_order'
@@ -356,7 +356,7 @@ class pacifica(ccxt.async_support.pacifica):
         :param boolean|None [params.excludeReduceOnly]: whether to exclude reduce-only orders
         :param int|None [params.expiryWindow]: time to live in milliseconds
         :param str|None [params.agentAddress]: only if agent wallet in use
-        :param str|None [params.originAddress]: only if agent in use. Agent's owner address( default = credentials walletAddress )
+        :param str|None [params.originAddress]: only if agent in use. Agent's owner address ( default = credentials walletAddress )
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         if self.markets is None:

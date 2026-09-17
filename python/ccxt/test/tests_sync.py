@@ -1710,14 +1710,14 @@ class testMainClass:
         wasm_exec_path = None
         library_path = None
         # const wasmExecPath = getRootDir () + '/src/test/static/binaries/wasm_exec.js';
-        # const ligherWasmPath = getRootDir () + 'ts/src/test/static/binaries/lighter.wasm';
+        # const ligherWasmPath = getRootDir () + 'ts/src/test/static/binaries/lighter-signer.wasm';
         # const binaryPath = getRootDir () + '/ts/src/test/static/binaries/lighter-signer-linux-amd64.so';
         # const librarypath = (this.lang === 'JS') ? ligherWasmPath : binaryPath;
         base_path = get_root_dir() + 'ts/src/test/static/binaries/'
         if exchange_name == 'lighter':
             if self.lang == 'JS':
                 wasm_exec_path = base_path + 'wasm_exec.js'
-                library_path = base_path + 'lighter.wasm'
+                library_path = base_path + 'lighter-signer.wasm'
             else:
                 if is_windows():
                     library_path = base_path + 'lighter-signer-windows-amd64.dll'

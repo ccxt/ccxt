@@ -1788,11 +1788,19 @@ class bingx extends Exchange {
         //         "markPrice": "16884.5",
         //         "indexPrice": "16886.9",
         //         "lastFundingRate": "0.0001",
-        //         "nextFundingTime": 1672041600000
+        //         "nextFundingTime": 1672041600000,
+        //         "fundingIntervalHours": 8,
+        //         "updateTime": 1672012800000
         //     }
         //
         $marketId = $this->safe_string($contract, 'symbol');
         $nextFundingTimestamp = $this->safe_integer($contract, 'nextFundingTime');
+        $timestamp = $this->safe_integer($contract, 'updateTime');
+        $interval = $this->safe_string($contract, 'fundingIntervalHours');
+        $intervalString = null;
+        if ($interval !== null) {
+            $intervalString = $interval . 'h';
+        }
         return array(
             'info' => $contract,
             'symbol' => $this->safe_symbol($marketId, $market, '-', 'swap'),
@@ -1800,8 +1808,8 @@ class bingx extends Exchange {
             'indexPrice' => $this->safe_number($contract, 'indexPrice'),
             'interestRate' => null,
             'estimatedSettlePrice' => null,
-            'timestamp' => null,
-            'datetime' => null,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
             'fundingRate' => $this->safe_number($contract, 'lastFundingRate'),
             'fundingTimestamp' => null,
             'fundingDatetime' => null,
@@ -1811,7 +1819,7 @@ class bingx extends Exchange {
             'previousFundingRate' => null,
             'previousFundingTimestamp' => null,
             'previousFundingDatetime' => null,
-            'interval' => null,
+            'interval' => $intervalString,
         );
     }
 
@@ -3372,7 +3380,7 @@ class bingx extends Exchange {
          * @param {float} [$params->takeProfit.triggerPrice] take profit trigger $price
          * @param {array} [$params->stopLoss] *$stopLoss object in $params* containing the triggerPrice at which the attached stop loss order will be triggered
          * @param {float} [$params->stopLoss.triggerPrice] stop loss trigger $price
-         * @param {boolean} [$params->test] *swap only* whether to use the $test endpoint or not, default is false
+         * @param {boolean} [$params->test] *linear swap only* whether to use the $test endpoint or not, default is false
          * @param {string} [$params->positionSide] *contracts only* "BOTH" for one way mode, "LONG" for buy $side of hedged mode, "SHORT" for sell $side of hedged mode
          * @param {boolean} [$params->hedged] *swap only* whether the order is in hedged mode or one way mode
          * @param {bool} [$params->closePosition] *swap only* true to close the entire position with a TP/SL order, in which case the quantity is not sent
@@ -3383,6 +3391,9 @@ class bingx extends Exchange {
         }
         $market = $this->market($symbol);
         $test = $this->safe_bool($params, 'test', false);
+        if ($test && (($market['swap'] !== true) || ($market['inverse'] === true))) {
+            throw new NotSupported($this->id . ' createOrder() only supports $test orders for linear swap markets');
+        }
         $params = $this->omit($params, 'test');
         $request = $this->create_order_request($symbol, $type, $side, $amount, $price, $params);
         if ($market['swap'] === true) {

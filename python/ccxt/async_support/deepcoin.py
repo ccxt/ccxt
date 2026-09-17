@@ -768,7 +768,7 @@ class deepcoin(Exchange, ImplicitAPI):
         #         "ts": "1760367816000"
         #     }
         #
-        timestamp = self.safe_integer(ticker, 'ts')
+        timestamp = self.safe_integer_omit_zero(ticker, 'ts')
         marketId = self.safe_string(ticker, 'instId')
         market = self.safe_market(marketId, market, '-')
         symbol = market['symbol']

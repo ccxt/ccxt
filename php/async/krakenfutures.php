@@ -11,6 +11,7 @@ use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
 use ccxt\OrderNotFound;
+use ccxt\NotSupported;
 use ccxt\DDoSProtection;
 use ccxt\ExchangeNotAvailable;
 use ccxt\Precise;
@@ -65,7 +66,7 @@ class krakenfutures extends Exchange {
                 'fetchFundingRate' => 'emulated',
                 'fetchFundingRateHistory' => true,
                 'fetchFundingRates' => true,
-                'fetchIndexOHLCV' => false,
+                'fetchIndexOHLCV' => true,
                 'fetchIsolatedBorrowRate' => false,
                 'fetchIsolatedBorrowRates' => false,
                 'fetchIsolatedPositions' => false,
@@ -932,6 +933,7 @@ class krakenfutures extends Exchange {
          * @param {int} [$limit] the maximum amount of $candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
+         * @param {string} [$params->price] "mark" for mark-price $candles or "index" for index-price $candles, defaults to trade-price $candles
          * @return {int[][]} A list of $candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
@@ -943,9 +945,15 @@ class krakenfutures extends Exchange {
         if ($paginate) {
             return Async\await($this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $params, 2000));
         }
+        $priceType = $this->safe_string($params, 'price', 'trade');
+        if ($priceType === 'index') {
+            $priceType = 'spot'; // the venue's name for index-price candles
+        } elseif (($priceType !== 'trade') && ($priceType !== 'mark') && ($priceType !== 'spot')) {
+            throw new NotSupported($this->id . ' fetchOHLCV() price parameter must be one of "trade", "mark", "index" or "spot"');
+        }
         $request = array(
             'symbol' => $market['id'],
-            'price_type' => $this->safe_string($params, 'price', 'trade'),
+            'price_type' => $priceType,
             'interval' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
         );
         $params = $this->omit($params, 'price');
@@ -1354,7 +1362,14 @@ class krakenfutures extends Exchange {
             $request['reduceOnly'] = true;
         }
         $request['orderType'] = $type;
-        if ($price !== null) {
+        $price = $this->parse_number($price); // some callers pass null instead of undefined, normalize it
+        $isLimitOrder = ($type === 'lmt') || ($type === 'post') || ($type === 'ioc');
+        $limitPriceParam = $this->safe_string($params, 'limitPrice'); // the venue's own field name, forwarded as-is by this.extend below
+        if ($isLimitOrder && ($price === null) && ($limitPriceParam === null)) {
+            throw new ArgumentsRequired($this->id . ' createOrder () requires a $price argument for ' . $type . ' orders');
+        }
+        $isMarketOrder = ($type === 'mkt');
+        if (($price !== null) && !$isMarketOrder) {
             $request['limitPrice'] = $this->price_to_precision($symbol, $price);
         }
         $params = $this->omit($params, array( 'clientOrderId', 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ));

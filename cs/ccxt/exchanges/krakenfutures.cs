@@ -51,7 +51,7 @@ public partial class krakenfutures : Exchange
                 { "fetchFundingRate", "emulated" },
                 { "fetchFundingRateHistory", true },
                 { "fetchFundingRates", true },
-                { "fetchIndexOHLCV", false },
+                { "fetchIndexOHLCV", true },
                 { "fetchIsolatedBorrowRate", false },
                 { "fetchIsolatedBorrowRates", false },
                 { "fetchIsolatedPositions", false },
@@ -1016,6 +1016,7 @@ public partial class krakenfutures : Exchange
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @param {string} [params.price] "mark" for mark-price candles or "index" for index-price candles, defaults to trade-price candles
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     public async override Task<List<ccxt.OHLCV>> FetchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
@@ -1037,9 +1038,17 @@ public partial class krakenfutures : Exchange
         {
             return ccxt.BaseExchange.ToOHLCVList(await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limitVar,((string)timeframeVar), parameters, 2000));
         }
+        string? priceType = this.safeString(parameters, "price", "trade");
+        if (isTrue(isEqual(priceType, "index")))
+        {
+            priceType = "spot"; // the venue's name for index-price candles
+        } else if (isTrue(isTrue(isTrue((!isEqual(priceType, "trade"))) && isTrue((!isEqual(priceType, "mark")))) && isTrue((!isEqual(priceType, "spot")))))
+        {
+            throw new NotSupported ((string)add(this.id, " fetchOHLCV() price parameter must be one of \"trade\", \"mark\", \"index\" or \"spot\"")) ;
+        }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
-            { "price_type", this.safeString(parameters, "price", "trade") },
+            { "price_type", priceType },
             { "interval", this.safeString(this.timeframes, timeframeVar, timeframeVar) },
         };
         parameters = this.omit(parameters, "price");
@@ -1490,7 +1499,15 @@ public partial class krakenfutures : Exchange
             ((IDictionary<string,object>)request)["reduceOnly"] = true;
         }
         ((IDictionary<string,object>)request)["orderType"] = type;
-        if (isTrue(!isEqual(price, null)))
+        price = this.parseNumber(price); // some callers pass null instead of undefined, normalize it
+        bool isLimitOrder = isTrue(isTrue((isEqual(type, "lmt"))) || isTrue((isEqual(type, "post")))) || isTrue((isEqual(type, "ioc")));
+        string? limitPriceParam = this.safeString(parameters, "limitPrice"); // the venue's own field name, forwarded as-is by this.extend below
+        if (isTrue(isTrue(isTrue(isLimitOrder) && isTrue((isEqual(price, null)))) && isTrue((isEqual(limitPriceParam, null)))))
+        {
+            throw new ArgumentsRequired ((string)add(add(add(this.id, " createOrder () requires a price argument for "), type), " orders")) ;
+        }
+        bool isMarketOrder = (isEqual(type, "mkt"));
+        if (isTrue(isTrue((!isEqual(price, null))) && !isTrue(isMarketOrder)))
         {
             ((IDictionary<string,object>)request)["limitPrice"] = this.priceToPrecision(symbol, price);
         }

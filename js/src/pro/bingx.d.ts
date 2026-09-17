@@ -1,5 +1,5 @@
 import bingxRest from '../bingx.js';
-import type { Int, Market, OHLCV, Str, Strings, OrderBook, Order, Trade, Balances, Ticker, Position, Dict } from '../base/types.js';
+import type { Int, Market, OHLCV, Str, Strings, OrderBook, Order, Trade, Balances, Ticker, Position, Dict, Bool } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class bingx extends bingxRest {
     describe(): any;
@@ -29,7 +29,7 @@ export default class bingx extends bingxRest {
      */
     unWatchTicker(symbol: string, params?: {}): Promise<any>;
     handleTicker(client: Client, message: any): void;
-    parseWsTicker(message: any, market?: Market): Ticker;
+    parseWsTicker(message: any, market?: Market, isInverse?: Bool): Ticker;
     getOrderBookLimitByMarketType(marketType: string, limit?: Int): number;
     getMessageHash(unifiedChannel: string, symbol?: Str, extra?: Str): string;
     /**

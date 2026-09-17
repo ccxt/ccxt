@@ -2460,7 +2460,7 @@ public partial class testMainClass
         object wasmExecPath = null;
         object libraryPath = null;
         // const wasmExecPath = getRootDir () + '/src/test/static/binaries/wasm_exec.js';
-        // const ligherWasmPath = getRootDir () + 'ts/src/test/static/binaries/lighter.wasm';
+        // const ligherWasmPath = getRootDir () + 'ts/src/test/static/binaries/lighter-signer.wasm';
         // const binaryPath = getRootDir () + '/ts/src/test/static/binaries/lighter-signer-linux-amd64.so';
         // const librarypath = (this.lang === 'JS') ? ligherWasmPath : binaryPath;
         object basePath = add(getRootDir(), "ts/src/test/static/binaries/");
@@ -2469,7 +2469,7 @@ public partial class testMainClass
             if (isTrue(isEqual(this.lang, "JS")))
             {
                 wasmExecPath = add(basePath, "wasm_exec.js");
-                libraryPath = add(basePath, "lighter.wasm");
+                libraryPath = add(basePath, "lighter-signer.wasm");
             } else
             {
                 if (isTrue(isWindows()))

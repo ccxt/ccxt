@@ -1797,11 +1797,19 @@ class bingx extends bingx$1["default"] {
         //         "markPrice": "16884.5",
         //         "indexPrice": "16886.9",
         //         "lastFundingRate": "0.0001",
-        //         "nextFundingTime": 1672041600000
+        //         "nextFundingTime": 1672041600000,
+        //         "fundingIntervalHours": 8,
+        //         "updateTime": 1672012800000
         //     }
         //
         const marketId = this.safeString(contract, 'symbol');
         const nextFundingTimestamp = this.safeInteger(contract, 'nextFundingTime');
+        const timestamp = this.safeInteger(contract, 'updateTime');
+        const interval = this.safeString(contract, 'fundingIntervalHours');
+        let intervalString = undefined;
+        if (interval !== undefined) {
+            intervalString = interval + 'h';
+        }
         return {
             'info': contract,
             'symbol': this.safeSymbol(marketId, market, '-', 'swap'),
@@ -1809,8 +1817,8 @@ class bingx extends bingx$1["default"] {
             'indexPrice': this.safeNumber(contract, 'indexPrice'),
             'interestRate': undefined,
             'estimatedSettlePrice': undefined,
-            'timestamp': undefined,
-            'datetime': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
             'fundingRate': this.safeNumber(contract, 'lastFundingRate'),
             'fundingTimestamp': undefined,
             'fundingDatetime': undefined,
@@ -1820,7 +1828,7 @@ class bingx extends bingx$1["default"] {
             'previousFundingRate': undefined,
             'previousFundingTimestamp': undefined,
             'previousFundingDatetime': undefined,
-            'interval': undefined,
+            'interval': intervalString,
         };
     }
     /**
@@ -3409,7 +3417,7 @@ class bingx extends bingx$1["default"] {
      * @param {float} [params.takeProfit.triggerPrice] take profit trigger price
      * @param {object} [params.stopLoss] *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered
      * @param {float} [params.stopLoss.triggerPrice] stop loss trigger price
-     * @param {boolean} [params.test] *swap only* whether to use the test endpoint or not, default is false
+     * @param {boolean} [params.test] *linear swap only* whether to use the test endpoint or not, default is false
      * @param {string} [params.positionSide] *contracts only* "BOTH" for one way mode, "LONG" for buy side of hedged mode, "SHORT" for sell side of hedged mode
      * @param {boolean} [params.hedged] *swap only* whether the order is in hedged mode or one way mode
      * @param {bool} [params.closePosition] *swap only* true to close the entire position with a TP/SL order, in which case the quantity is not sent
@@ -3421,6 +3429,9 @@ class bingx extends bingx$1["default"] {
         }
         const market = this.market(symbol);
         const test = this.safeBool(params, 'test', false);
+        if (test && ((market['swap'] !== true) || (market['inverse'] === true))) {
+            throw new errors.NotSupported(this.id + ' createOrder() only supports test orders for linear swap markets');
+        }
         params = this.omit(params, 'test');
         const request = this.createOrderRequest(symbol, type, side, amount, price, params);
         let response;

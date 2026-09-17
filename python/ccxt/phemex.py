@@ -2361,7 +2361,7 @@ class phemex(Exchange, ImplicitAPI):
                 'currency': self.safe_currency_code(self.safe_string(order, 'feeCurrency')),
             }
         timeInForce = self.parse_time_in_force(self.safe_string(order, 'timeInForce'))
-        triggerPrice = self.parse_number(self.omit_zero(self.from_ep(self.safe_string(order, 'stopPxEp'))))
+        triggerPrice = self.parse_number(self.omit_zero(self.from_ep(self.safe_string(order, 'stopPxEp'), market)))
         postOnly = (timeInForce == 'PO')
         return self.safe_order({
             'info': order,
@@ -3059,6 +3059,12 @@ class phemex(Exchange, ImplicitAPI):
             order = self.safe_dict(data, 0, {})
         elif market['spot'] is True:
             rows = self.safe_list(data, 'rows', [])
+            numRows = len(rows)
+            if numRows < 1:
+                if clientOrderId is not None:
+                    raise OrderNotFound(self.id + ' fetchOrder() ' + symbol + ' order with clientOrderId ' + clientOrderId + ' not found')
+                else:
+                    raise OrderNotFound(self.id + ' fetchOrder() ' + symbol + ' order with id ' + id + ' not found')
             order = self.safe_dict(rows, 0, {})
         return self.parse_order(order, market)
 
@@ -4832,7 +4838,7 @@ class phemex(Exchange, ImplicitAPI):
             if not (self.in_array(code, stableCoins)):
                 networkId = currency['id']
             else:
-                raise ArgumentsRequired(self.id + ' withdraw() requires an extra argument params["network"]')
+                raise ArgumentsRequired(self.id + ' withdraw () requires an extra argument params["network"]')
         request = {
             'currency': currency['id'],
             'address': address,

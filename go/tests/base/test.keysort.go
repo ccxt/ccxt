@@ -12,7 +12,7 @@ func TestKeysort() {
 		"id": "sampleexchange",
 	}, map[string]any{}, exchange)
 	// temporarily disable, as this test doesn't make sense in lib (bcz of GO) // todo: do something
-	if ccxt.IsTrue(ccxt.IsGreaterThan(exchange.Milliseconds(), 0)) {
+	if ccxt.IsGreaterThan(exchange.Milliseconds(), 0) {
 		return
 	}
 	// Test 1: Basic key sorting

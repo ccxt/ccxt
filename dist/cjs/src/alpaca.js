@@ -1528,7 +1528,7 @@ class alpaca extends alpaca$1["default"] {
         if (feeValue !== undefined) {
             fee = {
                 'cost': feeValue,
-                'currency': 'USD',
+                'currency': 'USD', // commission is denominated per the account currency; crypto fills omit the field entirely — their fee is taken from the received asset, verified live 2026-09-15
             };
         }
         let orderType = this.safeString(order, 'order_type');
@@ -1545,7 +1545,7 @@ class alpaca extends alpaca$1["default"] {
             'clientOrderId': this.safeString(order, 'client_order_id'),
             'timestamp': timestamp,
             'datetime': datetime,
-            'lastTradeTimeStamp': undefined,
+            'lastTradeTimestamp': this.parse8601(this.safeString(order, 'filled_at')), // set on complete fills only — per-fill timestamps for partials come from the account activities used by fetchMyTrades, and updated_at also moves on non-fill transitions so it is no substitute
             'status': status,
             'symbol': symbol,
             'type': orderType,
@@ -1568,10 +1568,22 @@ class alpaca extends alpaca$1["default"] {
         const statuses = {
             'pending_new': 'open',
             'accepted': 'open',
+            'accepted_for_bidding': 'open',
             'new': 'open',
             'partially_filled': 'open',
             'activated': 'open',
+            'done_for_day': 'open', // no more executions on that day, the order itself stays live
+            'stopped': 'open', // a fill is guaranteed at a stated price but has not occurred yet
+            'suspended': 'open',
+            'held': 'open',
+            'pending_replace': 'open',
+            'pending_cancel': 'canceling',
             'filled': 'closed',
+            'calculated': 'closed', // completed for the day, settlement calculations are pending
+            'canceled': 'canceled',
+            'replaced': 'canceled', // the venue closes the replaced id and opens a new order id for the replacement
+            'expired': 'expired',
+            'rejected': 'rejected',
         };
         return this.safeString(statuses, status, status);
     }

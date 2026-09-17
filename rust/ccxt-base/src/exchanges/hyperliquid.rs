@@ -2244,7 +2244,14 @@ impl HyperliquidCore {
 
     pub fn amount_to_precision(&self, mut symbol: Value, mut amount: Value) -> Value {
         let mut market: Value = self.market(symbol.clone());
-        return self.decimal_to_precision(amount.clone(), Value::Int(crate::runtime::ROUND), get_value(&get_value(&market, &Value::Str("precision".to_string())), &Value::Str("amount".to_string())), &[self.precisionMode.clone(), self.paddingMode.clone()]);
+        let mut result: Value = self.decimal_to_precision(amount.clone(), Value::Int(crate::runtime::ROUND), get_value(&get_value(&market, &Value::Str("precision".to_string())), &Value::Str("amount".to_string())), &[self.precisionMode.clone(), self.paddingMode.clone()]);
+        // a size of zero is meaningful to hyperliquid, a whole position tp/sl order is sent
+        // with grouping positionTpsl and size 0, so only reject a positive amount that
+        // became zero after rounding, never an explicitly requested zero
+        if is_true(&crate::precise::Precise::stringEq(&result, &Value::Str("0".to_string()))) && is_true(&crate::precise::Precise::stringGt(&self.number_to_string(amount.clone()), &Value::Str("0".to_string()))) {
+            panic!("{}", crate::exchange_errors::invalid_order(add(&add(&add(&add(&self.id, &Value::Str(" amount of ".to_string())), &get_value(&market, &Value::Str("symbol".to_string()))), &Value::Str(" must be greater than minimum amount precision of ".to_string())), &self.number_to_string(get_value(&get_value(&market, &Value::Str("precision".to_string())), &Value::Str("amount".to_string()))))));
+        }
+        return result;
 
     Value::Null
 }

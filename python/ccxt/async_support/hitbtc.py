@@ -2590,7 +2590,7 @@ class hitbtc(Exchange, ImplicitAPI):
             #     }
             #
         else:
-            raise BadSymbol(self.id + ' fetchMarginModes() supports swap contracts and margin only')
+            raise BadSymbol(self.id + ' fetchMarginModes () supports swap contracts and margin only')
         config = self.safe_list(response, 'config', [])
         return self.parse_margin_modes(config, symbols, 'symbol')
 
