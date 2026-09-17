@@ -695,7 +695,10 @@ export default class opinion extends Exchange {
         const bestBid = this.safeDict (bids, 0, {});
         const bestAsk = this.safeDict (asks, 0, {});
         const last = this.safeNumber (priceResult, 'price');
-        const timestamp = this.safeInteger (priceResult, 'timestamp');
+        let timestamp = this.safeInteger (priceResult, 'timestamp');
+        if (timestamp === 0) {
+            timestamp = undefined; // the venue reports timestamp 0 for outcomes that have not traded yet
+        }
         return this.safePredictionTicker ({
             'outcome': this.safeString (marketAny, 'outcome'),
             'outcomeId': this.safeString2 (marketAny, 'outcomeId', 'id'),
