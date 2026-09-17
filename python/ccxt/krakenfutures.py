@@ -19,6 +19,7 @@ from ccxt.base.errors import OrderImmediatelyFillable
 from ccxt.base.errors import OrderNotFillable
 from ccxt.base.errors import DuplicateOrderId
 from ccxt.base.errors import ContractUnavailable
+from ccxt.base.errors import NotSupported
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
@@ -74,7 +75,7 @@ class krakenfutures(Exchange, ImplicitAPI):
                 'fetchFundingRate': 'emulated',
                 'fetchFundingRateHistory': True,
                 'fetchFundingRates': True,
-                'fetchIndexOHLCV': False,
+                'fetchIndexOHLCV': True,
                 'fetchIsolatedBorrowRate': False,
                 'fetchIsolatedBorrowRates': False,
                 'fetchIsolatedPositions': False,
@@ -891,6 +892,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        :param str [params.price]: "mark" for mark-price candles or "index" for index-price candles, defaults to trade-price candles
         :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
@@ -900,9 +902,14 @@ class krakenfutures(Exchange, ImplicitAPI):
         paginate, params = self.handle_option_and_params(params, 'fetchOHLCV', 'paginate')
         if paginate:
             return self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, params, 2000)
+        priceType = self.safe_string(params, 'price', 'trade')
+        if priceType == 'index':
+            priceType = 'spot'  # the venue's name for index-price candles
+        elif (priceType != 'trade') and (priceType != 'mark') and (priceType != 'spot'):
+            raise NotSupported(self.id + ' fetchOHLCV() price parameter must be one of "trade", "mark", "index" or "spot"')
         request = {
             'symbol': market['id'],
-            'price_type': self.safe_string(params, 'price', 'trade'),
+            'price_type': priceType,
             'interval': self.safe_string(self.timeframes, timeframe, timeframe),
         }
         params = self.omit(params, 'price')
