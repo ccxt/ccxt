@@ -54,7 +54,7 @@ class krakenfutures extends Exchange {
                 'fetchFundingRate' => 'emulated',
                 'fetchFundingRateHistory' => true,
                 'fetchFundingRates' => true,
-                'fetchIndexOHLCV' => false,
+                'fetchIndexOHLCV' => true,
                 'fetchIsolatedBorrowRate' => false,
                 'fetchIsolatedBorrowRates' => false,
                 'fetchIsolatedPositions' => false,
@@ -897,6 +897,7 @@ class krakenfutures extends Exchange {
          * @param {int} [$limit] the maximum amount of $candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
+         * @param {string} [$params->price] "mark" for mark-price $candles or "index" for index-price $candles, defaults to trade-price $candles
          * @return {int[][]} A list of $candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
@@ -908,9 +909,15 @@ class krakenfutures extends Exchange {
         if ($paginate) {
             return $this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $params, 2000);
         }
+        $priceType = $this->safe_string($params, 'price', 'trade');
+        if ($priceType === 'index') {
+            $priceType = 'spot'; // the venue's name for index-price candles
+        } elseif (($priceType !== 'trade') && ($priceType !== 'mark') && ($priceType !== 'spot')) {
+            throw new NotSupported($this->id . ' fetchOHLCV() supports price values "mark" and "index" only');
+        }
         $request = array(
             'symbol' => $market['id'],
-            'price_type' => $this->safe_string($params, 'price', 'trade'),
+            'price_type' => $priceType,
             'interval' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
         );
         $params = $this->omit($params, 'price');
