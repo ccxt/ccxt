@@ -869,6 +869,22 @@ func safeIntOr(v any, defaultValue int64) int64 {
 	return SafeInt(v)
 }
 
+// lighterIntegratorL2TxAttr mirrors CreateIntegratorTxAttributes from lighter-go's
+// own signer (sharedlib), which the other language bindings go through: the three
+// integrator attributes are ALWAYS attached for create/grouped/modify order txs,
+// even when they are zero (builderFee disabled). Omitting them makes the exchange
+// reject the tx with {"code":20001,"message":"invalid param"}.
+func (this *BaseExchange) lighterIntegratorL2TxAttr(integratorAccountIndex int64, integratorTakerFee uint32, integratorMakerFee uint32, skipNonce uint8) types.L2TxAttributes {
+	l2TxAttr := types.L2TxAttributes{}
+	l2TxAttr.IntegratorAccountIndex = &integratorAccountIndex
+	l2TxAttr.IntegratorTakerFee = &integratorTakerFee
+	l2TxAttr.IntegratorMakerFee = &integratorMakerFee
+	if skipNonce == 1 {
+		l2TxAttr.SkipNonce = &skipNonce
+	}
+	return l2TxAttr
+}
+
 func (this *BaseExchange) lighterL2TxAttr(integratorAccountIndex int64, integratorTakerFee uint32, integratorMakerFee uint32, skipNonce uint8) types.L2TxAttributes {
 	l2TxAttr := types.L2TxAttributes{}
 	if integratorAccountIndex > 0 && integratorTakerFee > 0 && integratorMakerFee > 0 {
@@ -931,7 +947,7 @@ func (this *BaseExchange) lighterSignCreateGroupedOrders(signer *client.TxClient
 	}
 
 	nonce := int64(SafeInt(request["nonce"]))
-	l2TxAttr := this.lighterL2TxAttr(safeIntOr(request["integrator_account_index"], 0), uint32(safeIntOr(request["integrator_taker_fee"], 0)), uint32(safeIntOr(request["integrator_maker_fee"], 0)), uint8(1))
+	l2TxAttr := this.lighterIntegratorL2TxAttr(safeIntOr(request["integrator_account_index"], 0), uint32(safeIntOr(request["integrator_taker_fee"], 0)), uint32(safeIntOr(request["integrator_maker_fee"], 0)), uint8(1))
 	ops := &types.TransactOpts{
 		Nonce:        &nonce,
 		TxAttributes: &l2TxAttr,
@@ -977,7 +993,7 @@ func (this *BaseExchange) lighterSignCreateOrder(signer *client.TxClient, reques
 		OrderExpiry:      orderExpiry,
 	}
 	nonce := int64(SafeInt(request["nonce"]))
-	l2TxAttr := this.lighterL2TxAttr(safeIntOr(request["integrator_account_index"], 0), uint32(safeIntOr(request["integrator_taker_fee"], 0)), uint32(safeIntOr(request["integrator_maker_fee"], 0)), uint8(1))
+	l2TxAttr := this.lighterIntegratorL2TxAttr(safeIntOr(request["integrator_account_index"], 0), uint32(safeIntOr(request["integrator_taker_fee"], 0)), uint32(safeIntOr(request["integrator_maker_fee"], 0)), uint8(1))
 	ops := &types.TransactOpts{
 		Nonce:        &nonce,
 		TxAttributes: &l2TxAttr,
@@ -1134,7 +1150,7 @@ func (this *BaseExchange) lighterSignModifyOrder(signer *client.TxClient, reques
 		TriggerPrice: uint32(SafeInt(request["trigger_price"])),
 	}
 	nonce := int64(SafeInt(request["nonce"]))
-	l2TxAttr := this.lighterL2TxAttr(0, uint32(0), uint32(0), uint8(1))
+	l2TxAttr := this.lighterIntegratorL2TxAttr(safeIntOr(request["integrator_account_index"], 0), uint32(safeIntOr(request["integrator_taker_fee"], 0)), uint32(safeIntOr(request["integrator_maker_fee"], 0)), uint8(1))
 	ops := &types.TransactOpts{
 		Nonce:        &nonce,
 		TxAttributes: &l2TxAttr,
