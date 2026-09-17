@@ -1459,7 +1459,7 @@ export default class lighter extends lighterRest {
         const channel = this.safeString (message, 'channel', '');
         const parts = channel.split (':');
         const name = this.safeString (parts, 0, '');
-        const channelId = this.safeString (parts, 1, '');
+        const channelId = this.safeString (parts, 1);
         if (name === 'order_book') {
             this.handleOrderBookUnSubscription (client, channelId);
         } else if (name === 'market_stats') {
@@ -1471,7 +1471,7 @@ export default class lighter extends lighterRest {
         } else if (name === 'account_orders') {
             this.handleOrdersUnSubscription (client, channelId);
         } else if (name === 'account_all_orders') {
-            this.handleOrdersUnSubscription (client, undefined);
+            this.handleAllOrdersUnSubscription (client);
         }
     }
 
@@ -1526,16 +1526,18 @@ export default class lighter extends lighterRest {
     }
 
     handleOrdersUnSubscription (client: Client, marketId: Str) {
-        if (marketId !== undefined) {
-            const symbol = this.safeSymbol (marketId);
-            const subMessageHash = this.getMessageHash ('orders', symbol);
-            const messageHash = 'unsubscribe:' + subMessageHash;
-            this.cleanUnsubscription (client, subMessageHash, messageHash);
-            return;
-        }
-        // the account-wide channel feeds the plural hash and every per-symbol hash
-        const allMessageHash = 'unsubscribe:' + this.getMessageHash ('orders');
-        this.cleanUnsubscription (client, 'orders', allMessageHash, true);
+        const symbol = this.safeSymbol (marketId);
+        const subMessageHash = this.getMessageHash ('orders', symbol);
+        const messageHash = 'unsubscribe:' + subMessageHash;
+        this.cleanUnsubscription (client, subMessageHash, messageHash);
+    }
+
+    handleAllOrdersUnSubscription (client: Client) {
+        // only the plural hash is awaited on this channel, per-symbol order hashes
+        // belong to the account_orders/<marketId> channels and stay untouched here
+        const subMessageHash = this.getMessageHash ('orders');
+        const messageHash = 'unsubscribe:' + subMessageHash;
+        this.cleanUnsubscription (client, subMessageHash, messageHash);
         const ordersStructure: Dict = {
             'topic': 'orders',
         };
