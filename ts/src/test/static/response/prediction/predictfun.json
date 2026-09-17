@@ -1,10 +1,7 @@
 {
 	"exchange": "predictfun",
 	"asyncOnly": true,
-	"skipKeys": [
-		"timestamp",
-		"datetime"
-	],
+	"skipKeys": [],
 	"outputType": "json",
 	"apiKey": "test-api-key",
 	"walletAddress": "0xabababababababababababababababababababab",
@@ -113,8 +110,8 @@
 					"success": true
 				},
 				"parsedResponse": {
-					"timestamp": 1789116008352,
-					"datetime": "2026-09-11T08:40:08.352Z",
+					"timestamp": null,
+					"datetime": null,
 					"high": null,
 					"low": null,
 					"bid": 0.02,
@@ -323,8 +320,8 @@
 					"success": true
 				},
 				"parsedResponse": {
-					"timestamp": 1789116008356,
-					"datetime": "2026-09-11T08:40:08.356Z",
+					"timestamp": null,
+					"datetime": null,
 					"high": null,
 					"low": null,
 					"bid": 0.971,

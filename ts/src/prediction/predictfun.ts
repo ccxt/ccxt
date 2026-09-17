@@ -1421,23 +1421,22 @@ export default class predictfun extends Exchange {
         }
         if (!outcomeFound) {
             // an unmatched indexSet would otherwise return a ticker whose every quote is
-            // undefined next to a fresh timestamp, which reads as an empty book rather than as a
-            // market that never carried this outcome
+            // undefined, which reads as an empty book rather than as a market that never
+            // carried this outcome
             const requested = this.safeOutcomeSymbol (undefined, market);
             throw new BadSymbol (this.id + ' fetchTicker() did not find ' + requested + ' among the outcomes of its market');
         }
         // the venue quotes each outcome on its own side of the book, so no complement is needed
         const bestBid = this.safeDict (rawOutcome, 'bestBid', {});
         const bestAsk = this.safeDict (rawOutcome, 'bestAsk', {});
-        const timestamp = this.milliseconds ();
         return this.safePredictionTicker ({
             'outcome': this.safeOutcomeSymbol (undefined, market),
             'outcomeId': this.safeString (market, 'outcomeId'),
             'label': this.safeString (market, 'label'),
             'market': this.safeString (market, 'market'),
             'event': this.safeString (market, 'event'),
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
+            'timestamp': undefined,
+            'datetime': undefined,
             'high': undefined,
             'low': undefined,
             'bid': this.safeNumber (bestBid, 'price'),
