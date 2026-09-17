@@ -930,7 +930,8 @@ void assertTrue (const ccxt::any& condition, const ccxt::any& message) {
 // JSON and numeric parsing (declared late; see helpers.h)
 // ---------------------------------------------------------------------------
 
-ccxt::any jsonStringify (const ccxt::any& v) {
+namespace {
+void jsonStringifyTo (const ccxt::any& v, std::string& out) {
     // ws values serialize as their plain shapes (caches -> lists, books -> dicts),
     // matching the JS shape the fixtures assert against
     if (v.type () == typeid (ccxt::ws::WsOrderBook) ||
@@ -939,44 +940,58 @@ ccxt::any jsonStringify (const ccxt::any& v) {
         v.type () == typeid (ccxt::ws::ArrayCacheByTimestamp) ||
         v.type () == typeid (ccxt::ws::ArrayCacheBySymbolById) ||
         v.type () == typeid (ccxt::ws::ArrayCacheBySymbolBySide)) {
-        return jsonStringify (wsToPlain (v));
+        jsonStringifyTo (wsToPlain (v), out);
+        return;
     }
     // Dictionaries serialise in insertion order: ccxt signs request bodies verbatim.
     if (ccxt::isDict (v)) {
-        std::string out = "{";
+        out += '{';
         bool first = true;
         for (const auto& kv : ccxt::any_cast<dict> (v).entries ()) {
-            if (!first) out += ",";
+            if (!first) out += ',';
             first = false;
-            out += "\"" + kv.first.str () + "\":" + ccxt::any_cast<std::string> (jsonStringify (kv.second));
+            out += '"';
+            out += kv.first.str ();
+            out += "\":";
+            jsonStringifyTo (kv.second, out);
         }
-        return ccxt::any (out + "}");
+        out += '}';
+        return;
     }
     if (ccxt::isList (v)) {
-        std::string out = "[";
+        out += '[';
         bool first = true;
         for (const auto& item : ccxt::any_cast<list> (v).items ()) {
-            if (!first) out += ",";
+            if (!first) out += ',';
             first = false;
-            out += ccxt::any_cast<std::string> (jsonStringify (item));
+            jsonStringifyTo (item, out);
         }
-        return ccxt::any (out + "]");
+        out += ']';
+        return;
     }
-    if (!v.has_value ())      return ccxt::any (std::string ("null"));
-    if (ccxt::isBoolean (v))  return ccxt::any (std::string (ccxt::any_cast<bool> (v) ? "true" : "false"));
-    if (ccxt::isNum (v))      return toString (v);
-    std::string escaped = "\"";
+    if (!v.has_value ())      { out += "null"; return; }
+    if (ccxt::isBoolean (v))  { out += (ccxt::any_cast<bool> (v) ? "true" : "false"); return; }
+    if (ccxt::isNum (v))      { out += ccxt::any_cast<std::string> (toString (v)); return; }
+    out += '"';
     for (char c : anyToString (v)) {
         switch (c) {
-        case '"':  escaped += "\\\""; break;
-        case '\\': escaped += "\\\\"; break;
-        case '\n': escaped += "\\n";  break;
-        case '\r': escaped += "\\r";  break;
-        case '\t': escaped += "\\t";  break;
-        default:   escaped += c;      break;
+        case '"':  out += "\\\""; break;
+        case '\\': out += "\\\\"; break;
+        case '\n': out += "\\n";  break;
+        case '\r': out += "\\r";  break;
+        case '\t': out += "\\t";  break;
+        default:   out += c;      break;
         }
     }
-    return ccxt::any (escaped + "\"");
+    out += '"';
+}
+} // namespace
+
+ccxt::any jsonStringify (const ccxt::any& v) {
+    std::string out;
+    out.reserve (1 << 12);
+    jsonStringifyTo (v, out);
+    return ccxt::any (std::move (out));
 }
 
 ccxt::any parseFloat (const ccxt::any& v) {
