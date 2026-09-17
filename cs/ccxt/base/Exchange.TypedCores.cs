@@ -7705,6 +7705,12 @@ public partial class BaseExchange
                 return FromOHLCVList(value);
             case Dictionary<string, Dictionary<string, List<OHLCV>>> _:
                 return FromOHLCVDict(value);
+            case List<Dictionary<string, object>> _:
+                // a typed core declared as List<Dictionary<string, object>> (see the return-type
+                // map in build/csharpTranspiler.ts). List<T> is invariant, so the generated
+                // safeList's (List<object>) cast throws on it once the FromDictList call site is
+                // bypassed (e.g. the task went through promiseAll) - rebox the rows here instead
+                return FromDictList(value);
             default:
                 return value;
         }

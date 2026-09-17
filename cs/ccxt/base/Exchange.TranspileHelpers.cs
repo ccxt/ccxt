@@ -1129,6 +1129,18 @@ public partial class BaseExchange
 
     public static object FromDictList(object values)
     {
+        // getValue / getArrayLength read any IList through the non-generic interface, but the
+        // generated safeList hard-casts to List<object>, and List<T> is invariant - so a
+        // List<Dictionary<string, object>> coming off a typed core has to be reboxed row by row
+        if (values is List<Dictionary<string, object>> typed)
+        {
+            var result = new List<object>(typed.Count);
+            foreach (var row in typed)
+            {
+                result.Add(row);
+            }
+            return result;
+        }
         return values;
     }
 
