@@ -9,8 +9,7 @@ import { secp256k1 } from '@noble/curves/secp256k1.js';
 import Exchange from '../abstract/prediction/myriad.js';
 import { ecdsa } from '../base/functions/crypto.js';
 import { ArrayCache, ArrayCacheByOutcomeById } from '../base/ws/Cache.js';
-import type {
-    Int, Str, Num, Dict, int,
+import type { Int, Str, Num, Dict, int,
     Strings, PredictionOrderRequest,
     Market, PredictionOrderBook, OHLCV, PredictionTradingFee,
     PredictionEvent, Balances, fetchEventsParams,

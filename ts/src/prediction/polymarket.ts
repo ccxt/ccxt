@@ -6,8 +6,7 @@ import { ecdsa } from '../base/functions/crypto.js';
 import { TRUNCATE, ROUND, DECIMAL_PLACES } from '../base/functions/number.js';
 import { Precise } from '../base/Precise.js';
 import { ArrayCache, ArrayCacheByOutcomeById } from '../base/ws/Cache.js';
-import type {
-    Int, Str, Num, Dict,
+import type { Int, Str, Num, Dict,
     Market, PredictionTickers, PredictionOrderBook, OHLCV,
     PredictionOrderRequest, Balances,
     Strings, PredictionOpenInterest, PredictionTradingFee,

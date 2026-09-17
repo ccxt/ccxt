@@ -3,12 +3,11 @@ import { secp256k1 } from '@noble/curves/secp256k1.js';
 import Exchange from '../abstract/prediction/hyperliquid.js';
 import { Precise } from '../base/Precise.js';
 import { ecdsa } from '../base/functions/crypto.js';
-import type {
-    Int, int, Str, Num, Dict,
+import type { Int, int, Str, Num, Dict,
     Market, PredictionOrderBook, OHLCV,
     Balances, fetchEventsParams,
     Strings,
-    PredictionEvent, PredictionTicker, PredictionTickers, PredictionOrder, PredictionTrade, PredictionPosition, NullableDict, List, Endpoint} from '../base/types.js';
+    PredictionEvent, PredictionTicker, PredictionTickers, PredictionOrder, PredictionTrade, PredictionPosition, NullableDict, List, Endpoint } from '../base/types.js';
 import { ArgumentsRequired, ExchangeError, OrderNotFound, InvalidOrder, InsufficientFunds, RateLimitExceeded } from '../base/errors.js';
 
 // ---------------------------------------------------------------------------

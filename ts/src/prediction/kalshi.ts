@@ -810,7 +810,7 @@ export default class kalshi extends Exchange {
 
     override parsePredictionOpenInterest (interest: Dict, market: Market = undefined): PredictionOpenInterest {
         //
-        //     { "ticker": "...", "open_interest_fp": "60802.01", ... }   // open interest in contracts
+        //     { "ticker": "...", "open_interest_fp": "60802.01", "updated_time": "2026-04-09T10:32:47.890506Z", ... }   // the market object of GET /markets/{ticker}, open interest in contracts
         //
         const timestamp = this.parse8601 (this.safeString (interest, 'updated_time'));
         const openInterest: Dict = this.safeOpenInterest ({
