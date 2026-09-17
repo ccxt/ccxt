@@ -3,6 +3,76 @@
     "skipKeys": [],
     "options": {},
     "methods": {
+        "fetchFundingHistory": [
+            {
+                "description": "funding payments without a symbol, the market is resolved from the lower case contract id of the account log",
+                "method": "fetchFundingHistory",
+                "input": [],
+                "httpResponse": {
+                    "accountUid": "f92fc7de-2fce-4265-b806-4f3c1efb37ee",
+                    "logs": [
+                        {
+                            "asset": "usd",
+                            "contract": "pf_dogeusd",
+                            "booking_uid": "124f43a6-389a-4349-abc6-06fc7eeac86b",
+                            "collateral": null,
+                            "date": "2026-09-17T12:00:00.000Z",
+                            "execution": null,
+                            "fee": 0,
+                            "funding_rate": 9.288451412e-7,
+                            "id": 16,
+                            "info": "funding rate change",
+                            "margin_account": "flex",
+                            "mark_price": null,
+                            "new_average_entry_price": null,
+                            "new_balance": 0,
+                            "old_average_entry_price": null,
+                            "old_balance": 0.0002,
+                            "realized_funding": -0.0002,
+                            "realized_pnl": null,
+                            "trade_price": null,
+                            "conversion_spread_percentage": null,
+                            "liquidation_fee": null,
+                            "position_uid": null
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "asset": "usd",
+                            "contract": "pf_dogeusd",
+                            "booking_uid": "124f43a6-389a-4349-abc6-06fc7eeac86b",
+                            "collateral": null,
+                            "date": "2026-09-17T12:00:00.000Z",
+                            "execution": null,
+                            "fee": 0,
+                            "funding_rate": 9.288451412e-7,
+                            "id": 16,
+                            "info": "funding rate change",
+                            "margin_account": "flex",
+                            "mark_price": null,
+                            "new_average_entry_price": null,
+                            "new_balance": 0,
+                            "old_average_entry_price": null,
+                            "old_balance": 0.0002,
+                            "realized_funding": -0.0002,
+                            "realized_pnl": null,
+                            "trade_price": null,
+                            "conversion_spread_percentage": null,
+                            "liquidation_fee": null,
+                            "position_uid": null
+                        },
+                        "symbol": "DOGE/USD:USD",
+                        "code": "USD",
+                        "timestamp": 1789646400000,
+                        "datetime": "2026-09-17T12:00:00.000Z",
+                        "id": "16",
+                        "amount": -0.0002
+                    }
+                ]
+            }
+        ],
         "fetchIndexOHLCV": [
             {
                 "description": "index price candles map to the spot price type",
