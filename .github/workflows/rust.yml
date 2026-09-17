@@ -81,8 +81,6 @@ jobs:
         run: tsc --version
       - name: Install tsx
         run: npm install -g tsx
-      - name: Test Rust exchange-test generation
-        run: node --import tsx --test build/tests/test.rust-exchange-tests.mjs
       - name: export exchanges
         run: npm run export-exchanges
       - name: Generate implicit API

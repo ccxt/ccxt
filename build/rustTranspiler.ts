@@ -9,7 +9,6 @@ import log from 'ololog';
 import ansi from 'ansicolor';
 import { isMainEntry } from "./transpile.js";
 import errorHierarchy from '../js/src/base/errorHierarchy.js';
-import ts from 'typescript6';
 
 ansi.nice;
 
@@ -63,7 +62,7 @@ const BASE_TESTS_FOLDER      = './rust/tests/base';
 const BASE_TESTS_WS_FOLDER   = './rust/tests/base_ws';
 const GENERATED_TESTS_FOLDER = './rust/tests/exchange';
 
-export class RustTranspilerBuilder {
+class RustTranspilerBuilder {
 
     transpiler!: Transpiler;
 
@@ -8495,17 +8494,7 @@ impl std::ops::DerefMut for ${coreName} {
      * wraps, namespace rewrites, assert handling, …). Used by both the
      * base-test and exchange-test transpilation so they stay in sync.
      */
-    runExchangeTestPipeline(content: string, asyncMethods: Set<string>, source = ''): string {
-        // methodsTypes omits free functions. Preserve their declared async
-        // contract even when their body contains no await (e.g. trade validators).
-        const sourceFile = ts.createSourceFile('test.ts', source, ts.ScriptTarget.Latest, true);
-        const asyncFunctions = new Set(sourceFile.statements
-            .filter(ts.isFunctionDeclaration)
-            .filter(node => node.modifiers?.some(modifier => modifier.kind === ts.SyntaxKind.AsyncKeyword))
-            .map(node => node.name?.text));
-        content = content.replace(/^(\s*)(pub\s+)?fn\s+(\w+)\s*\(/gm,
-            (full, indent, visibility, name) => asyncFunctions.has(name)
-                ? `${indent}${visibility || ''}async fn ${name}(` : full);
+    runExchangeTestPipeline(content: string, asyncMethods: Set<string>): string {
         content = this.regexAll(content, this.getRustRegexes(asyncMethods));
         content = this.rewriteHashAlgoConstants(content);
         content = this.rewriteBareErrorClassRefs(content);
@@ -8658,7 +8647,7 @@ impl std::ops::DerefMut for ${coreName} {
                     // `optional_args: &[Value]` slice.
                     const tsSrc = fs.readFileSync(tsFile, 'utf8');
                     const defaultArgFns = this.detectFreeFnDefaultArgs(tsSrc);
-                    let content = this.runExchangeTestPipeline(result.content ?? '', asyncMethods, tsSrc);
+                    let content = this.runExchangeTestPipeline(result.content ?? '', asyncMethods);
                     if (defaultArgFns.size > 0) {
                         content = this.foldDefaultArgsIntoOptional(content, defaultArgFns);
                     }
@@ -8791,7 +8780,7 @@ impl std::ops::DerefMut for ${coreName} {
                 );
                 const tsSrc = fs.readFileSync(tsFile, 'utf8');
                 const defaultArgFns = this.detectFreeFnDefaultArgs(tsSrc);
-                let content = this.runExchangeTestPipeline(result.content ?? '', asyncMethods, tsSrc);
+                let content = this.runExchangeTestPipeline(result.content ?? '', asyncMethods);
                 if (defaultArgFns.size > 0) {
                     content = this.foldDefaultArgsIntoOptional(content, defaultArgFns);
                 }
