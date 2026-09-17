@@ -291,7 +291,7 @@ class grvt extends Exchange {
                 'apiKey' => false,
                 'secret' => false,
             ),
-            'quoteJsonNumbers' => false, // needed for some endpoints (todo => specify in implementations)
+            'quoteJsonNumbers' => false, // needed for some endpoints (todo: specify in implementations)
             'exceptions' => array(
                 'exact' => array(
                     '1000' => '\\ccxt\\AuthenticationError', // "You need to authenticate prior to using this functionality"
@@ -489,7 +489,7 @@ class grvt extends Exchange {
         );
     }
 
-    public function uses_private_key() {
+    public function uses_private_key(): bool {
         $privateKeyDefined = $this->privateKey !== null && $this->privateKey !== '';
         $apiKeyDefined = $this->apiKey !== null && $this->apiKey !== '';
         if ($privateKeyDefined && $apiKeyDefined) {
@@ -507,11 +507,11 @@ class grvt extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return response from exchange
          */
-        // if ($this->uses_private_key()) {
-        //     $this->sign_in_with_private_key($params);
-        //     $this->initialize_client($params);
+        // if (this.usesPrivateKey ()) {
+        //     await this.signInWithPrivateKey (params);
+        //     await this.initializeClient (params);
         // } else {
-        //     $this->sign_in_with_api_key($params);
+        //     await this.signInWithApiKey (params);
         // }
         if ($this->privateKey === null || $this->privateKey === '') {
             throw new PermissionDenied('Private key is required for this operation. If you used joined GRVT through email registration instead of Web3 wallet, then read => https://github.com/ccxt/ccxt/wiki/FAQ#how-to-use-the-grvt-exchange-in-ccxt');
@@ -524,7 +524,7 @@ class grvt extends Exchange {
 
     public function sign_in_with_api_key($params = array()) {
         $now = $this->milliseconds();
-        // $expires in 24 hours suggested
+        // expires in 24 hours as CS suggested
         $expires = $this->safe_integer($this->options, 'signInExpiration', 0);
         // if previous sign-in not expired (give 10 seconds margin)
         if ($expires !== null && $expires > $now + 10000) {
@@ -536,8 +536,8 @@ class grvt extends Exchange {
         $response = $this->privateEdgePostAuthApiKeyLogin($this->extend($request, $params));
         //
         //    {
-        //        "location" => "",
-        //        "status" => "success"
+        //        "location": "",
+        //        "status": "success"
         //    }
         //
         $this->options['signInExpiration'] = $now + 86400000; // 24 hours
@@ -547,7 +547,7 @@ class grvt extends Exchange {
     public function sign_in_with_private_key($params = array()) {
         $this->check_required_credentials();
         $now = $this->milliseconds();
-        // $expires in 24 hours suggested
+        // expires in 24 hours as CS suggested
         $expires = $this->safe_integer($this->options, 'signInExpiration', 0);
         // if previous sign-in not expired (give 10 seconds margin)
         if ($expires !== null && $expires > $now + 10000) {
@@ -562,8 +562,8 @@ class grvt extends Exchange {
         $response = $this->privateEdgePostAuthWalletLogin($this->extend($request, $params));
         //
         //    {
-        //        "location" => "",
-        //        "status" => "success"
+        //        "location": "",
+        //        "status": "success"
         //    }
         //
         $this->options['signInExpiration'] = $now + 86400000; // 24 hours
@@ -582,11 +582,11 @@ class grvt extends Exchange {
         $results = array( $this->privateTradingPostFullV1GetAuthorizedBuilders(), $this->load_account_infos() );
         //
         // {
-        //     "results" => [array(
-        //         "builder_account_id" => "GRVT_MAIN_ACCOUNT_ID_HERE",
-        //         "max_futures_fee_rate" => 0.001,
-        //         "max_spot_fee_rate" => 0.0001
-        //     )]
+        //     "results": [{
+        //         "builder_account_id": "GRVT_MAIN_ACCOUNT_ID_HERE",
+        //         "max_futures_fee_rate": 0.001,
+        //         "max_spot_fee_rate": 0.0001
+        //     }]
         // }
         //
         $currentBuilders = $results[0];
@@ -605,7 +605,7 @@ class grvt extends Exchange {
             $this->options['approvedBuilderFee'] = true;
         } else {
             try {
-                $defaultFromAccountId = $this->safe_string($this->options, 'userMainAccountId'); // $this->eth_get_address_from_private_key($this->secret); // $this->safe_string($this->options, 'userMainAccountId');
+                $defaultFromAccountId = $this->safe_string($this->options, 'userMainAccountId'); // this.ethGetAddressFromPrivateKey (this.secret); // this.safeString (this.options, 'userMainAccountId');
                 $request = array(
                     'main_account_id' => $defaultFromAccountId,
                     'builder_account_id' => $this->safe_string($this->options, 'builder'),
@@ -617,8 +617,8 @@ class grvt extends Exchange {
                 $authResponse = $this->privateTradingPostFullV1AuthorizeBuilder($this->extend($request, $params));
                 //
                 // {
-                //     "result" => {
-                //         "ack" => "true",
+                //     "result": {
+                //         "ack": "true",
                 //         "tx_id":"0"
                 //     }
                 // }
@@ -648,28 +648,28 @@ class grvt extends Exchange {
         $marketsPromise = $this->publicMarketPostFullV1AllInstruments($params);
         //
         //    {
-        //        "result" => [
-        //            array(
-        //                "instrument" => "AAVE_USDT_Perp",
-        //                "instrument_hash" => "0x032201",
-        //                "base" => "AAVE",
-        //                "quote" => "USDT",
-        //                "kind" => "PERPETUAL",
-        //                "venues" => array(
+        //        "result": [
+        //            {
+        //                "instrument": "AAVE_USDT_Perp",
+        //                "instrument_hash": "0x032201",
+        //                "base": "AAVE",
+        //                "quote": "USDT",
+        //                "kind": "PERPETUAL",
+        //                "venues": [
         //                    "ORDERBOOK",
         //                    "RFQ"
-        //                ),
-        //                "settlement_period" => "PERPETUAL",
-        //                "base_decimals" => "9",
-        //                "quote_decimals" => "6",
-        //                "tick_size" => "0.01",
-        //                "min_size" => "0.1",
-        //                "create_time" => "1764303867576216941",
-        //                "max_position_size" => "3000.0",
-        //                "funding_interval_hours" => "8",
-        //                "adjusted_funding_rate_cap" => "0.75",
-        //                "adjusted_funding_rate_floor" => "-0.75"
-        //            ),
+        //                ],
+        //                "settlement_period": "PERPETUAL",
+        //                "base_decimals": "9",
+        //                "quote_decimals": "6",
+        //                "tick_size": "0.01",
+        //                "min_size": "0.1",
+        //                "create_time": "1764303867576216941",
+        //                "max_position_size": "3000.0",
+        //                "funding_interval_hours": "8",
+        //                "adjusted_funding_rate_cap": "0.75",
+        //                "adjusted_funding_rate_floor": "-0.75"
+        //            },
         //            ...
         //
         $promises = array( $marketsPromise );
@@ -685,26 +685,26 @@ class grvt extends Exchange {
     public function parse_market(array $market): array {
         //
         //    {
-        //        "instrument" => "BTC_USDT_Perp",
-        //        "instrument_hash" => "0x030501",
-        //        "base" => "BTC",
-        //        "quote" => "USDT",
-        //        "kind" => "PERPETUAL",
-        //        "venues" => array(
+        //        "instrument": "BTC_USDT_Perp",
+        //        "instrument_hash": "0x030501",
+        //        "base": "BTC",
+        //        "quote": "USDT",
+        //        "kind": "PERPETUAL",
+        //        "venues": [
         //            "ORDERBOOK",
         //            "RFQ"
-        //        ),
-        //        "settlement_period" => "PERPETUAL",
-        //        "base_decimals" => 9,
-        //        "quote_decimals" => 6,
-        //        "tick_size" => "0.1",
-        //        "min_size" => "0.001",
-        //        "create_time" => "1768040726362828205",
-        //        "max_position_size" => "1000.0",
-        //        "funding_interval_hours" => 8,
-        //        "adjusted_funding_rate_cap" => "0.3",
-        //        "adjusted_funding_rate_floor" => "-0.3",
-        //        "min_notional" => "100.0"
+        //        ],
+        //        "settlement_period": "PERPETUAL",
+        //        "base_decimals": 9,
+        //        "quote_decimals": 6,
+        //        "tick_size": "0.1",
+        //        "min_size": "0.001",
+        //        "create_time": "1768040726362828205",
+        //        "max_position_size": "1000.0",
+        //        "funding_interval_hours": 8,
+        //        "adjusted_funding_rate_cap": "0.3",
+        //        "adjusted_funding_rate_floor": "-0.3",
+        //        "min_notional": "100.0"
         //    }
         //
         $marketId = $this->safe_string($market, 'instrument');
@@ -739,7 +739,7 @@ class grvt extends Exchange {
             'swap' => $isSwap,
             'future' => $isFuture,
             'option' => false,
-            'active' => null, // todo => ask support to add
+            'active' => null, // todo: ask support to add
             'contract' => $isContract,
             'linear' => $isSwap ? true : null,
             'inverse' => $isSwap ? false : null,
@@ -786,17 +786,17 @@ class grvt extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an associative dictionary of currencies
          */
-        $request = array( '' => '' ); // workaround for php array() empty arr
+        $request = array( '' => '' ); // workaround for php [] empty arr
         $response = $this->publicMarketPostFullV1Currency($request);
         //
         //    {
-        //        "result" => [
-        //            array(
-        //                "id" => "4",
-        //                "symbol" => "ETH",
-        //                "balance_decimals" => "9",
-        //                "quantity_multiplier" => "1000000000"
-        //            ),
+        //        "result": [
+        //            {
+        //                "id": "4",
+        //                "symbol": "ETH",
+        //                "balance_decimals": "9",
+        //                "quantity_multiplier": "1000000000"
+        //            },
         //            ..
         //
         $responseResult = $this->safe_list($response, 'result', array());
@@ -805,12 +805,12 @@ class grvt extends Exchange {
 
     public function parse_currency(array $rawCurrency): array {
         //
-        //            array(
-        //                "id" => "4",
-        //                "symbol" => "ETH",
-        //                "balance_decimals" => "9",
-        //                "quantity_multiplier" => "1000000000"
-        //            ),
+        //            {
+        //                "id": "4",
+        //                "symbol": "ETH",
+        //                "balance_decimals": "9",
+        //                "quantity_multiplier": "1000000000"
+        //            },
         //
         $id = $this->safe_string($rawCurrency, 'symbol');
         $code = $this->safe_currency_code($id);
@@ -864,33 +864,33 @@ class grvt extends Exchange {
         $response = $this->publicMarketPostFullV1Ticker($this->extend($request, $params));
         //
         //    {
-        //        "result" => {
-        //            "event_time" => "1764774730025055205",
-        //            "instrument" => "BTC_USDT_Perp",
-        //            "mark_price" => "92697.300078773",
-        //            "index_price" => "92727.818122278",
-        //            "last_price" => "92683.0",
-        //            "last_size" => "0.001",
-        //            "mid_price" => "92682.95",
-        //            "best_bid_price" => "92682.9",
-        //            "best_bid_size" => "5.332",
-        //            "best_ask_price" => "92683.0",
-        //            "best_ask_size" => "0.009",
-        //            "funding_rate_8h_curr" => "0.0037",
-        //            "funding_rate_8h_avg" => "0.0037",
-        //            "interest_rate" => "0.0",
-        //            "forward_price" => "0.0",
-        //            "buy_volume_24h_b" => "2893.898",
-        //            "sell_volume_24h_b" => "2907.847",
-        //            "buy_volume_24h_q" => "266955739.1606",
-        //            "sell_volume_24h_q" => "268170211.7109",
-        //            "high_price" => "93908.3",
-        //            "low_price" => "89900.1",
-        //            "open_price" => "90129.2",
-        //            "open_interest" => "1523.218935908",
-        //            "long_short_ratio" => "1.472543",
-        //            "funding_rate" => "0.0037",
-        //            "next_funding_time" => "1764777600000000000"
+        //        "result": {
+        //            "event_time": "1764774730025055205",
+        //            "instrument": "BTC_USDT_Perp",
+        //            "mark_price": "92697.300078773",
+        //            "index_price": "92727.818122278",
+        //            "last_price": "92683.0",
+        //            "last_size": "0.001",
+        //            "mid_price": "92682.95",
+        //            "best_bid_price": "92682.9",
+        //            "best_bid_size": "5.332",
+        //            "best_ask_price": "92683.0",
+        //            "best_ask_size": "0.009",
+        //            "funding_rate_8h_curr": "0.0037",
+        //            "funding_rate_8h_avg": "0.0037",
+        //            "interest_rate": "0.0",
+        //            "forward_price": "0.0",
+        //            "buy_volume_24h_b": "2893.898",
+        //            "sell_volume_24h_b": "2907.847",
+        //            "buy_volume_24h_q": "266955739.1606",
+        //            "sell_volume_24h_q": "268170211.7109",
+        //            "high_price": "93908.3",
+        //            "low_price": "89900.1",
+        //            "open_price": "90129.2",
+        //            "open_interest": "1523.218935908",
+        //            "long_short_ratio": "1.472543",
+        //            "funding_rate": "0.0037",
+        //            "next_funding_time": "1764777600000000000"
         //        }
         //    }
         //
@@ -901,32 +901,32 @@ class grvt extends Exchange {
     public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         //  {
-        //            "event_time" => "1764774730025055205",
-        //            "instrument" => "BTC_USDT_Perp",
-        //            "mark_price" => "92697.300078773",
-        //            "index_price" => "92727.818122278",
-        //            "last_price" => "92683.0",
-        //            "last_size" => "0.001",
-        //            "mid_price" => "92682.95",
-        //            "best_bid_price" => "92682.9",
-        //            "best_bid_size" => "5.332",
-        //            "best_ask_price" => "92683.0",
-        //            "best_ask_size" => "0.009",
-        //            "funding_rate_8h_curr" => "0.0037",
-        //            "funding_rate_8h_avg" => "0.0037",
-        //            "interest_rate" => "0.0",
-        //            "forward_price" => "0.0",
-        //            "buy_volume_24h_b" => "2893.898",
-        //            "sell_volume_24h_b" => "2907.847",
-        //            "buy_volume_24h_q" => "266955739.1606",
-        //            "sell_volume_24h_q" => "268170211.7109",
-        //            "high_price" => "93908.3",
-        //            "low_price" => "89900.1",
-        //            "open_price" => "90129.2",
-        //            "open_interest" => "1523.218935908",
-        //            "long_short_ratio" => "1.472543",
-        //            "funding_rate" => "0.0037",
-        //            "next_funding_time" => "1764777600000000000"
+        //            "event_time": "1764774730025055205",
+        //            "instrument": "BTC_USDT_Perp",
+        //            "mark_price": "92697.300078773",
+        //            "index_price": "92727.818122278",
+        //            "last_price": "92683.0",
+        //            "last_size": "0.001",
+        //            "mid_price": "92682.95",
+        //            "best_bid_price": "92682.9",
+        //            "best_bid_size": "5.332",
+        //            "best_ask_price": "92683.0",
+        //            "best_ask_size": "0.009",
+        //            "funding_rate_8h_curr": "0.0037",
+        //            "funding_rate_8h_avg": "0.0037",
+        //            "interest_rate": "0.0",
+        //            "forward_price": "0.0",
+        //            "buy_volume_24h_b": "2893.898",
+        //            "sell_volume_24h_b": "2907.847",
+        //            "buy_volume_24h_q": "266955739.1606",
+        //            "sell_volume_24h_q": "268170211.7109",
+        //            "high_price": "93908.3",
+        //            "low_price": "89900.1",
+        //            "open_price": "90129.2",
+        //            "open_interest": "1523.218935908",
+        //            "long_short_ratio": "1.472543",
+        //            "funding_rate": "0.0037",
+        //            "next_funding_time": "1764777600000000000"
         //        }
         //
         $marketId = $this->safe_string($ticker, 'instrument');
@@ -983,17 +983,17 @@ class grvt extends Exchange {
         $response = $this->publicMarketPostFullV1Book($this->extend($request, $params));
         //
         //    {
-        //        "result" => {
-        //            "event_time" => "1764777396650000000",
-        //            "instrument" => "BTC_USDT_Perp",
-        //            "bids" => array(
-        //                array( "price" => "92336.0", "size" => "0.005", "num_orders" => "1" ),
+        //        "result": {
+        //            "event_time": "1764777396650000000",
+        //            "instrument": "BTC_USDT_Perp",
+        //            "bids": [
+        //                { "price": "92336.0", "size": "0.005", "num_orders": "1" },
         //                ...
-        //            ),
-        //            "asks" => array(
-        //                array( "price" => "92336.1", "size" => "5.711", "num_orders" => "37" ),
+        //            ],
+        //            "asks": [
+        //                { "price": "92336.1", "size": "5.711", "num_orders": "37" },
         //                ...
-        //            )
+        //            ]
         //        }
         //    }
         //
@@ -1033,22 +1033,22 @@ class grvt extends Exchange {
         $response = $this->publicMarketPostFullV1TradeHistory($this->extend($request, $params));
         //
         //    {
-        //        "next" => "eyJ0cmFkZUlkIjo2NDc5MTAyMywidHJhZGVJbmRleCI6MX0",
-        //        "result" => [
-        //            array(
-        //                "event_time" => "1764779531332118705",
-        //                "instrument" => "ETH_USDT_Perp",
-        //                "is_taker_buyer" => false,
-        //                "size" => "23.73",
-        //                "price" => "3089.88",
-        //                "mark_price" => "3089.360002315",
-        //                "index_price" => "3090.443723246",
-        //                "interest_rate" => "0.0",
-        //                "forward_price" => "0.0",
-        //                "trade_id" => "64796657-1",
-        //                "venue" => "ORDERBOOK",
-        //                "is_rpi" => false
-        //            ),
+        //        "next": "eyJ0cmFkZUlkIjo2NDc5MTAyMywidHJhZGVJbmRleCI6MX0",
+        //        "result": [
+        //            {
+        //                "event_time": "1764779531332118705",
+        //                "instrument": "ETH_USDT_Perp",
+        //                "is_taker_buyer": false,
+        //                "size": "23.73",
+        //                "price": "3089.88",
+        //                "mark_price": "3089.360002315",
+        //                "index_price": "3090.443723246",
+        //                "interest_rate": "0.0",
+        //                "forward_price": "0.0",
+        //                "trade_id": "64796657-1",
+        //                "venue": "ORDERBOOK",
+        //                "is_rpi": false
+        //            },
         //            ...
         //
         $result = $this->safe_list($response, 'result', array());
@@ -1060,44 +1060,44 @@ class grvt extends Exchange {
         // fetchTrades
         //
         //            {
-        //                "event_time" => "1764779531332118705",
-        //                "instrument" => "ETH_USDT_Perp",
-        //                "size" => "23.73",
-        //                "price" => "3089.88",
-        //                "is_rpi" => false,
-        //                "mark_price" => "3089.360002315",
-        //                "index_price" => "3090.443723246",
-        //                "interest_rate" => "0.0",
-        //                "forward_price" => "0.0",
-        //                "trade_id" => "64796657-1",
-        //                "venue" => "ORDERBOOK",
-        //                "is_taker_buyer" => false
+        //                "event_time": "1764779531332118705",
+        //                "instrument": "ETH_USDT_Perp",
+        //                "size": "23.73",
+        //                "price": "3089.88",
+        //                "is_rpi": false,
+        //                "mark_price": "3089.360002315",
+        //                "index_price": "3090.443723246",
+        //                "interest_rate": "0.0",
+        //                "forward_price": "0.0",
+        //                "trade_id": "64796657-1",
+        //                "venue": "ORDERBOOK",
+        //                "is_taker_buyer": false
         //            }
         //
         // fetchMyTrades
         //
         //            {
-        //                "event_time" => "1764945709702747558",
-        //                "instrument" => "BTC_USDT_Perp",
-        //                "size" => "0.001",
-        //                "price" => "90000.0",
-        //                "is_rpi" => false
-        //                "mark_price" => "90050.164063298",
-        //                "index_price" => "90089.803654938",
-        //                "interest_rate" => "0.0",
-        //                "forward_price" => "0.0",
-        //                "trade_id" => "65424692-2",
-        //                "venue" => "ORDERBOOK",
-        //                "is_buyer" => true,
-        //                "is_taker" => false,
-        //                "broker" => "UNSPECIFIED",
-        //                "realized_pnl" => "0.0",
-        //                "fee" => "-0.00009",
-        //                "fee_rate" => "0.0",
-        //                "order_id" => "0x01010105034cddc7000000006621285c",
-        //                "client_order_id" => "1375879248",
-        //                "signer" => "0x42c9f56f2c9da534f64b8806d64813b29c62a01d",
-        //                "sub_account_id" => "2147050003876484",
+        //                "event_time": "1764945709702747558",
+        //                "instrument": "BTC_USDT_Perp",
+        //                "size": "0.001",
+        //                "price": "90000.0",
+        //                "is_rpi": false
+        //                "mark_price": "90050.164063298",
+        //                "index_price": "90089.803654938",
+        //                "interest_rate": "0.0",
+        //                "forward_price": "0.0",
+        //                "trade_id": "65424692-2",
+        //                "venue": "ORDERBOOK",
+        //                "is_buyer": true,
+        //                "is_taker": false,
+        //                "broker": "UNSPECIFIED",
+        //                "realized_pnl": "0.0",
+        //                "fee": "-0.00009",
+        //                "fee_rate": "0.0",
+        //                "order_id": "0x01010105034cddc7000000006621285c",
+        //                "client_order_id": "1375879248",
+        //                "signer": "0x42c9f56f2c9da534f64b8806d64813b29c62a01d",
+        //                "sub_account_id": "2147050003876484",
         //            }
         //
         $marketId = $this->safe_string($trade, 'instrument');
@@ -1173,7 +1173,7 @@ class grvt extends Exchange {
             'last' => 'TRADE',
             'mark' => 'MARK',
             'index' => 'INDEX',
-            // 'median' => 'MEDIAN',
+            // 'median': 'MEDIAN',
         );
         $selectedPriceType = $this->safe_string($params, 'priceType', 'last');
         $request['type'] = $this->safe_string($priceTypeMap, $selectedPriceType);
@@ -1187,21 +1187,21 @@ class grvt extends Exchange {
         $response = $this->publicMarketPostFullV1Kline($this->extend($request, $params));
         //
         //    {
-        //        "result" => array(
-        //            array(
-        //                "open_time" => "1767288240000000000",
-        //                "close_time" => "1767288300000000000",
-        //                "open" => "88178.8",
-        //                "close" => "88176.7",
-        //                "high" => "88192.7",
-        //                "low" => "88176.6",
-        //                "volume_b" => "15.32",
-        //                "volume_q" => "1350962.4782",
-        //                "trades" => 38,
-        //                "instrument" => "BTC_USDT_Perp"
-        //            ),
-        //        ),
-        //        "next" => "eyJvcGVuVGltZSI6MTc2NzI1ODMwMDAwMDAwMDAwMH0"
+        //        "result": [
+        //            {
+        //                "open_time": "1767288240000000000",
+        //                "close_time": "1767288300000000000",
+        //                "open": "88178.8",
+        //                "close": "88176.7",
+        //                "high": "88192.7",
+        //                "low": "88176.6",
+        //                "volume_b": "15.32",
+        //                "volume_q": "1350962.4782",
+        //                "trades": 38,
+        //                "instrument": "BTC_USDT_Perp"
+        //            },
+        //        ],
+        //        "next": "eyJvcGVuVGltZSI6MTc2NzI1ODMwMDAwMDAwMDAwMH0"
         //    }
         //
         $candles = $this->safe_list($response, 'result', array());
@@ -1211,16 +1211,16 @@ class grvt extends Exchange {
     public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
         //
         //            {
-        //                "open_time" => "1767288240000000000",
-        //                "close_time" => "1767288300000000000",
-        //                "open" => "88178.8",
-        //                "close" => "88176.7",
-        //                "high" => "88192.7",
-        //                "low" => "88176.6",
-        //                "volume_b" => "15.32",
-        //                "volume_q" => "1350962.4782",
-        //                "trades" => 38,
-        //                "instrument" => "BTC_USDT_Perp"
+        //                "open_time": "1767288240000000000",
+        //                "close_time": "1767288300000000000",
+        //                "open": "88178.8",
+        //                "close": "88176.7",
+        //                "high": "88192.7",
+        //                "low": "88176.6",
+        //                "volume_b": "15.32",
+        //                "volume_q": "1350962.4782",
+        //                "trades": 38,
+        //                "instrument": "BTC_USDT_Perp"
         //            }
         //
         return array(
@@ -1272,18 +1272,18 @@ class grvt extends Exchange {
         $response = $this->publicMarketPostFullV1Funding($this->extend($request, $params));
         //
         //    {
-        //        "result" => array(
-        //            array(
-        //                "instrument" => "BTC_USDT_Perp",
-        //                "funding_rate" => "-0.0034",
-        //                "funding_time" => "1760494260000000000",
-        //                "mark_price" => "112721.159060304",
-        //                "funding_rate_8_h_avg" => "-0.0038",
-        //                "funding_interval_hours" => "0"
-        //            ),
+        //        "result": [
+        //            {
+        //                "instrument": "BTC_USDT_Perp",
+        //                "funding_rate": "-0.0034",
+        //                "funding_time": "1760494260000000000",
+        //                "mark_price": "112721.159060304",
+        //                "funding_rate_8_h_avg": "-0.0038",
+        //                "funding_interval_hours": "0"
+        //            },
         //            ...
-        //        ),
-        //        "next" => "eyJmdW5kaW5nVGltZSI6MTc2MDQ5NDI2MDAwMDAwMDAwMH0"
+        //        ],
+        //        "next": "eyJmdW5kaW5nVGltZSI6MTc2MDQ5NDI2MDAwMDAwMDAwMH0"
         //    }
         //
         $result = $this->safe_list($response, 'result', array());
@@ -1292,14 +1292,14 @@ class grvt extends Exchange {
 
     public function parse_funding_rate_history(mixed $rawItem, ?array $market = null) {
         //
-        //            array(
-        //                "instrument" => "BTC_USDT_Perp",
-        //                "funding_rate" => "-0.0034",
-        //                "funding_time" => "1760494260000000000",
-        //                "mark_price" => "112721.159060304",
-        //                "funding_rate_8_h_avg" => "-0.0038",
-        //                "funding_interval_hours" => "0"
-        //            ),
+        //            {
+        //                "instrument": "BTC_USDT_Perp",
+        //                "funding_rate": "-0.0034",
+        //                "funding_time": "1760494260000000000",
+        //                "mark_price": "112721.159060304",
+        //                "funding_rate_8_h_avg": "-0.0038",
+        //                "funding_interval_hours": "0"
+        //            },
         //
         $marketId = $this->safe_string($rawItem, 'instrument');
         $ts = $this->safe_integer_product($rawItem, 'funding_time', 0.000001);
@@ -1340,29 +1340,29 @@ class grvt extends Exchange {
         $response = $this->privateTradingPostFullV1AccountSummary($this->extend($request, $params));
         //
         //    {
-        //        "result" => {
-        //            "event_time" => "1764863116142428457",
-        //            "sub_account_id" => "2147050003876484",
-        //            "margin_type" => "SIMPLE_CROSS_MARGIN",
-        //            "settle_currency" => "USDT",
-        //            "unrealized_pnl" => "0.0",
-        //            "total_equity" => "15.0",
-        //            "initial_margin" => "0.0",
-        //            "maintenance_margin" => "0.0",
-        //            "available_balance" => "15.0",
-        //            "spot_balances" => array(
+        //        "result": {
+        //            "event_time": "1764863116142428457",
+        //            "sub_account_id": "2147050003876484",
+        //            "margin_type": "SIMPLE_CROSS_MARGIN",
+        //            "settle_currency": "USDT",
+        //            "unrealized_pnl": "0.0",
+        //            "total_equity": "15.0",
+        //            "initial_margin": "0.0",
+        //            "maintenance_margin": "0.0",
+        //            "available_balance": "15.0",
+        //            "spot_balances": [
         //                {
-        //                    "currency" => "USDT",
-        //                    "balance" => "15.0",
-        //                    "index_price" => "1.000289735"
+        //                    "currency": "USDT",
+        //                    "balance": "15.0",
+        //                    "index_price": "1.000289735"
         //                }
-        //            ),
-        //            "positions" => array(),
-        //            "settle_index_price" => "1.000289735",
-        //            "derisk_margin" => "0.0",
-        //            "derisk_to_maintenance_margin_ratio" => "1.0",
-        //            "total_cross_equity" => "15.0",
-        //            "cross_unrealized_pnl" => "0.0"
+        //            ],
+        //            "positions": [],
+        //            "settle_index_price": "1.000289735",
+        //            "derisk_margin": "0.0",
+        //            "derisk_to_maintenance_margin_ratio": "1.0",
+        //            "total_cross_equity": "15.0",
+        //            "cross_unrealized_pnl": "0.0"
         //        }
         //    }
         //
@@ -1373,28 +1373,28 @@ class grvt extends Exchange {
     public function parse_balance(mixed $response): array {
         //
         //        {
-        //            "event_time" => "1764863116142428457",
-        //            "sub_account_id" => "2147050003876484",
-        //            "margin_type" => "SIMPLE_CROSS_MARGIN",
-        //            "settle_currency" => "USDT",
-        //            "unrealized_pnl" => "0.0",
-        //            "total_equity" => "15.0",
-        //            "initial_margin" => "0.0",
-        //            "maintenance_margin" => "0.0",
-        //            "available_balance" => "15.0",
-        //            "spot_balances" => array(
+        //            "event_time": "1764863116142428457",
+        //            "sub_account_id": "2147050003876484",
+        //            "margin_type": "SIMPLE_CROSS_MARGIN",
+        //            "settle_currency": "USDT",
+        //            "unrealized_pnl": "0.0",
+        //            "total_equity": "15.0",
+        //            "initial_margin": "0.0",
+        //            "maintenance_margin": "0.0",
+        //            "available_balance": "15.0",
+        //            "spot_balances": [
         //                {
-        //                    "currency" => "USDT",
-        //                    "balance" => "15.0",
-        //                    "index_price" => "1.000289735"
+        //                    "currency": "USDT",
+        //                    "balance": "15.0",
+        //                    "index_price": "1.000289735"
         //                }
-        //            ),
-        //            "positions" => array(),
-        //            "settle_index_price" => "1.000289735",
-        //            "derisk_margin" => "0.0",
-        //            "derisk_to_maintenance_margin_ratio" => "1.0",
-        //            "total_cross_equity" => "15.0",
-        //            "cross_unrealized_pnl" => "0.0"
+        //            ],
+        //            "positions": [],
+        //            "settle_index_price": "1.000289735",
+        //            "derisk_margin": "0.0",
+        //            "derisk_to_maintenance_margin_ratio": "1.0",
+        //            "total_cross_equity": "15.0",
+        //            "cross_unrealized_pnl": "0.0"
         //        }
         //
         $timestamp = $this->safe_integer_product($response, 'event_time', 0.000001);
@@ -1411,7 +1411,7 @@ class grvt extends Exchange {
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
             $account['total'] = $this->safe_string($balance, 'balance');
-            $account['free'] = $availableBalance; // todo => revise after API team clarification
+            $account['free'] = $availableBalance; // todo: revise after API team clarification
             if ($code !== null) {
                 $result[$code] = $account;
             }
@@ -1456,17 +1456,17 @@ class grvt extends Exchange {
             $response = $this->privateTradingPostFullV1DepositHistory($this->extend($request, $params));
             //
             // {
-            //     "result" => [array(
-            //         "l_1_hash" => "0x10000101000203040506",
-            //         "l_2_hash" => "0x10000101000203040506",
-            //         "to_account_id" => "0xc73c0c2538fd9b833d20933ccc88fdaa74fcb0d0",
-            //         "currency" => "USDT",
-            //         "num_tokens" => "1500.0",
-            //         "initiated_time" => "1697788800000000000",
-            //         "confirmed_time" => "1697788800000000000",
-            //         "from_address" => "0xc73c0c2538fd9b833d20933ccc88fdaa74fcb0d0"
-            //     )],
-            //     "next" => "Qw0918="
+            //     "result": [{
+            //         "l_1_hash": "0x10000101000203040506",
+            //         "l_2_hash": "0x10000101000203040506",
+            //         "to_account_id": "0xc73c0c2538fd9b833d20933ccc88fdaa74fcb0d0",
+            //         "currency": "USDT",
+            //         "num_tokens": "1500.0",
+            //         "initiated_time": "1697788800000000000",
+            //         "confirmed_time": "1697788800000000000",
+            //         "from_address": "0xc73c0c2538fd9b833d20933ccc88fdaa74fcb0d0"
+            //     }],
+            //     "next": "Qw0918="
             // }
             //
             $result = $this->safe_list($response, 'result', array());
@@ -1513,26 +1513,26 @@ class grvt extends Exchange {
             $response = $this->privateTradingPostFullV1WithdrawalHistory($this->extend($request, $params));
             //
             // {
-            //     "result" => [array(
-            //         "tx_id" => "1028403",
-            //         "from_account_id" => "0xc73c0c2538fd9b833d20933ccc88fdaa74fcb0d0",
-            //         "to_eth_address" => "0xc73c0c2538fd9b833d20933ccc88fdaa74fcb0d0",
-            //         "currency" => "USDT",
-            //         "num_tokens" => "1500.0",
-            //         "signature" => array(
-            //             "signer" => "0xc73c0c2538fd9b833d20933ccc88fdaa74fcb0d0",
-            //             "r" => "0xb788d96fee91c7cdc35918e0441b756d4000ec1d07d900c73347d9abbc20acc8",
-            //             "s" => "0x3d786193125f7c29c958647da64d0e2875ece2c3f845a591bdd7dae8c475e26d",
-            //             "v" => 28,
-            //             "expiration" => "1697788800000000000",
-            //             "nonce" => 1234567890,
-            //             "chain_id" => "325"
-            //         ),
-            //         "event_time" => "1697788800000000000",
-            //         "l_1_hash" => "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
-            //         "l_2_hash" => "0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890"
-            //     )],
-            //     "next" => "Qw0918="
+            //     "result": [{
+            //         "tx_id": "1028403",
+            //         "from_account_id": "0xc73c0c2538fd9b833d20933ccc88fdaa74fcb0d0",
+            //         "to_eth_address": "0xc73c0c2538fd9b833d20933ccc88fdaa74fcb0d0",
+            //         "currency": "USDT",
+            //         "num_tokens": "1500.0",
+            //         "signature": {
+            //             "signer": "0xc73c0c2538fd9b833d20933ccc88fdaa74fcb0d0",
+            //             "r": "0xb788d96fee91c7cdc35918e0441b756d4000ec1d07d900c73347d9abbc20acc8",
+            //             "s": "0x3d786193125f7c29c958647da64d0e2875ece2c3f845a591bdd7dae8c475e26d",
+            //             "v": 28,
+            //             "expiration": "1697788800000000000",
+            //             "nonce": 1234567890,
+            //             "chain_id": "325"
+            //         },
+            //         "event_time": "1697788800000000000",
+            //         "l_1_hash": "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
+            //         "l_2_hash": "0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890"
+            //     }],
+            //     "next": "Qw0918="
             // }
             //
             $result = $this->safe_list($response, 'result', array());
@@ -1544,31 +1544,31 @@ class grvt extends Exchange {
         $response = $this->privateTradingPostFullV1TransferHistory($req);
         //
         //    {
-        //        "result" => array(
-        //            array(
-        //                "tx_id" => "65119836",
-        //                "from_account_id" => "0xc451b0191351ce308fdfd779d73814c910fc5ecb",
-        //                "from_sub_account_id" => "0",
-        //                "to_account_id" => "0x42c9f56f2c9da534f64b8806d64813b29c62a01d",
-        //                "to_sub_account_id" => "0",
-        //                "currency" => "USDT",
-        //                "num_tokens" => "4.998",
-        //                "signature" => array(
-        //                    "signer" => "0xf4fdbaf9655bfd607098f4f887aaca58c9667203",
-        //                    "r" => "0x5f780b99e5e8516f85e66af49b469eeeeeee724290d7f49f1e84b25ad038fa81",
-        //                    "s" => "0x66c76fdb37a25db8c6b368625d96ee91ab1ffca1786d84dc806b08d1460e97bc",
-        //                    "v" => "27",
-        //                    "expiration" => "1767455807929000000",
-        //                    "nonce" => "45905",
-        //                    "chain_id" => "0"
-        //                ),
-        //                "event_time" => "1764863808817370541",
-        //                "transfer_type" => "NON_NATIVE_BRIDGE_DEPOSIT",
-        //                "transfer_metadata" => "array(\\"provider\\":\\"rhino\\",\\"direction\\":\\"deposit\\",\\"chainid\\":\\"8453\\",\\"endpoint\\":\\"0x01b89ac919ead1bd513b548962075137c683b9ab\\",\\"provider_tx_id\\":\\"0x1dff8c839f8e21b5af7e121a1ae926017e734aafe8c4ae9942756b3091793b4f\\",\\"provider_ref_id\\":\\"6931aefa5f1ab6fcf0d2f856\\")"
-        //            ),
+        //        "result": [
+        //            {
+        //                "tx_id": "65119836",
+        //                "from_account_id": "0xc451b0191351ce308fdfd779d73814c910fc5ecb",
+        //                "from_sub_account_id": "0",
+        //                "to_account_id": "0x42c9f56f2c9da534f64b8806d64813b29c62a01d",
+        //                "to_sub_account_id": "0",
+        //                "currency": "USDT",
+        //                "num_tokens": "4.998",
+        //                "signature": {
+        //                    "signer": "0xf4fdbaf9655bfd607098f4f887aaca58c9667203",
+        //                    "r": "0x5f780b99e5e8516f85e66af49b469eeeeeee724290d7f49f1e84b25ad038fa81",
+        //                    "s": "0x66c76fdb37a25db8c6b368625d96ee91ab1ffca1786d84dc806b08d1460e97bc",
+        //                    "v": "27",
+        //                    "expiration": "1767455807929000000",
+        //                    "nonce": "45905",
+        //                    "chain_id": "0"
+        //                },
+        //                "event_time": "1764863808817370541",
+        //                "transfer_type": "NON_NATIVE_BRIDGE_DEPOSIT",
+        //                "transfer_metadata": "{\\"provider\\":\\"rhino\\",\\"direction\\":\\"deposit\\",\\"chainid\\":\\"8453\\",\\"endpoint\\":\\"0x01b89ac919ead1bd513b548962075137c683b9ab\\",\\"provider_tx_id\\":\\"0x1dff8c839f8e21b5af7e121a1ae926017e734aafe8c4ae9942756b3091793b4f\\",\\"provider_ref_id\\":\\"6931aefa5f1ab6fcf0d2f856\\"}"
+        //            },
         //            ...
-        //        ),
-        //        "next" => ""
+        //        ],
+        //        "next": ""
         //    }
         //
         $rows = $this->safe_list($response, 'result', array());
@@ -1581,67 +1581,67 @@ class grvt extends Exchange {
         // fetchDeposits
         //
         //    {
-        //         "l_1_hash" => "0x10000101000203040506",
-        //         "l_2_hash" => "0x10000101000203040506",
-        //         "to_account_id" => "0xc73c0c2538fd9b833d20933ccc88fdaa74fcb0d0",
-        //         "currency" => "USDT",
-        //         "num_tokens" => "1500.0",
-        //         "initiated_time" => "1697788800000000000",
-        //         "confirmed_time" => "1697788800000000000",
-        //         "from_address" => "0xc73c0c2538fd9b833d20933ccc88fdaa74fcb0d0"
+        //         "l_1_hash": "0x10000101000203040506",
+        //         "l_2_hash": "0x10000101000203040506",
+        //         "to_account_id": "0xc73c0c2538fd9b833d20933ccc88fdaa74fcb0d0",
+        //         "currency": "USDT",
+        //         "num_tokens": "1500.0",
+        //         "initiated_time": "1697788800000000000",
+        //         "confirmed_time": "1697788800000000000",
+        //         "from_address": "0xc73c0c2538fd9b833d20933ccc88fdaa74fcb0d0"
         //     }
         //
         // fetchWithdrawals
         //
         //     {
-        //         "tx_id" => "1028403",
-        //         "from_account_id" => "0xc73c0c2538fd9b833d20933ccc88fdaa74fcb0d0",
-        //         "to_eth_address" => "0xc73c0c2538fd9b833d20933ccc88fdaa74fcb0d0",
-        //         "currency" => "USDT",
-        //         "num_tokens" => "1500.0",
-        //         "signature" => array(
-        //             "signer" => "0xc73c0c2538fd9b833d20933ccc88fdaa74fcb0d0",
-        //             "r" => "0xb788d96fee91c7cdc35918e0441b756d4000ec1d07d900c73347d9abbc20acc8",
-        //             "s" => "0x3d786193125f7c29c958647da64d0e2875ece2c3f845a591bdd7dae8c475e26d",
-        //             "v" => 28,
-        //             "expiration" => "1697788800000000000",
-        //             "nonce" => 1234567890,
-        //             "chain_id" => "325"
-        //         ),
-        //         "event_time" => "1697788800000000000",
-        //         "l_1_hash" => "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
-        //         "l_2_hash" => "0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890"
+        //         "tx_id": "1028403",
+        //         "from_account_id": "0xc73c0c2538fd9b833d20933ccc88fdaa74fcb0d0",
+        //         "to_eth_address": "0xc73c0c2538fd9b833d20933ccc88fdaa74fcb0d0",
+        //         "currency": "USDT",
+        //         "num_tokens": "1500.0",
+        //         "signature": {
+        //             "signer": "0xc73c0c2538fd9b833d20933ccc88fdaa74fcb0d0",
+        //             "r": "0xb788d96fee91c7cdc35918e0441b756d4000ec1d07d900c73347d9abbc20acc8",
+        //             "s": "0x3d786193125f7c29c958647da64d0e2875ece2c3f845a591bdd7dae8c475e26d",
+        //             "v": 28,
+        //             "expiration": "1697788800000000000",
+        //             "nonce": 1234567890,
+        //             "chain_id": "325"
+        //         },
+        //         "event_time": "1697788800000000000",
+        //         "l_1_hash": "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
+        //         "l_2_hash": "0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890"
         //     }
         //
         // fetchTransfers
         //
-        //     array(
-        //          "tx_id" => "65119836",
-        //          "from_account_id" => "0xc451b0191351ce308fdfd779d73814c910fc5ecb",
-        //          "from_sub_account_id" => "0",
-        //          "to_account_id" => "0x42c9f56f2c9da534f64b8806d64813b29c62a01d",
-        //          "to_sub_account_id" => "0",
-        //          "currency" => "USDT",
-        //          "num_tokens" => "4.998",
-        //          "signature" => array(
-        //              "signer" => "0xf4fdbaf9655bfd607098f4f887aaca58c9667203",
-        //              "r" => "0x5f780b99e5e8516f85e66af49b469eeeeeee724290d7f49f1e84b25ad038fa81",
-        //              "s" => "0x66c76fdb37a25db8c6b368625d96ee91ab1ffca1786d84dc806b08d1460e97bc",
-        //              "v" => "27",
-        //              "expiration" => "1767455807929000000",
-        //              "nonce" => "45905",
-        //              "chain_id" => "0"
-        //          ),
-        //          "event_time" => "1764863808817370541",
-        //          "transfer_type" => "NON_NATIVE_BRIDGE_DEPOSIT",
-        //          "transfer_metadata" => "array(\\"provider\\":\\"rhino\\",\\"direction\\":\\"deposit\\",\\"chainid\\":\\"8453\\",\\"endpoint\\":\\"0x01b89ac919ead1bd513b548962075137c683b9ab\\",\\"provider_tx_id\\":\\"0x1dff8c839f8e21b5af7e121a1ae926017e734aafe8c4ae9942756b3091793b4f\\",\\"provider_ref_id\\":\\"6931aefa5f1ab6fcf0d2f856\\")"
-        //      ),
+        //     {
+        //          "tx_id": "65119836",
+        //          "from_account_id": "0xc451b0191351ce308fdfd779d73814c910fc5ecb",
+        //          "from_sub_account_id": "0",
+        //          "to_account_id": "0x42c9f56f2c9da534f64b8806d64813b29c62a01d",
+        //          "to_sub_account_id": "0",
+        //          "currency": "USDT",
+        //          "num_tokens": "4.998",
+        //          "signature": {
+        //              "signer": "0xf4fdbaf9655bfd607098f4f887aaca58c9667203",
+        //              "r": "0x5f780b99e5e8516f85e66af49b469eeeeeee724290d7f49f1e84b25ad038fa81",
+        //              "s": "0x66c76fdb37a25db8c6b368625d96ee91ab1ffca1786d84dc806b08d1460e97bc",
+        //              "v": "27",
+        //              "expiration": "1767455807929000000",
+        //              "nonce": "45905",
+        //              "chain_id": "0"
+        //          },
+        //          "event_time": "1764863808817370541",
+        //          "transfer_type": "NON_NATIVE_BRIDGE_DEPOSIT",
+        //          "transfer_metadata": "{\\"provider\\":\\"rhino\\",\\"direction\\":\\"deposit\\",\\"chainid\\":\\"8453\\",\\"endpoint\\":\\"0x01b89ac919ead1bd513b548962075137c683b9ab\\",\\"provider_tx_id\\":\\"0x1dff8c839f8e21b5af7e121a1ae926017e734aafe8c4ae9942756b3091793b4f\\",\\"provider_ref_id\\":\\"6931aefa5f1ab6fcf0d2f856\\"}"
+        //      },
         //
         // withdraw
         //
         //    {
-        //        "result" => {
-        //            "ack" => "true"
+        //        "result": {
+        //            "ack": "true"
         //        }
         //    }
         //
@@ -1725,31 +1725,31 @@ class grvt extends Exchange {
         $response = $this->privateTradingPostFullV1TransferHistory($this->extend($request, $params));
         //
         //    {
-        //        "result" => array(
-        //            array(
-        //                "tx_id" => "65119836",
-        //                "from_account_id" => "0xc451b0191351ce308fdfd779d73814c910fc5ecb",
-        //                "from_sub_account_id" => "0",
-        //                "to_account_id" => "0x42c9f56f2c9da534f64b8806d64813b29c62a01d",
-        //                "to_sub_account_id" => "0",
-        //                "currency" => "USDT",
-        //                "num_tokens" => "4.998",
-        //                "signature" => array(
-        //                    "signer" => "0xf4fdbaf9655bfd607098f4f887aaca58c9667203",
-        //                    "r" => "0x5f780b99e5e8516f85e66af49b469eeeeeee724290d7f49f1e84b25ad038fa81",
-        //                    "s" => "0x66c76fdb37a25db8c6b368625d96ee91ab1ffca1786d84dc806b08d1460e97bc",
-        //                    "v" => "27",
-        //                    "expiration" => "1767455807929000000",
-        //                    "nonce" => "45905",
-        //                    "chain_id" => "0"
-        //                ),
-        //                "event_time" => "1764863808817370541",
-        //                "transfer_type" => "NON_NATIVE_BRIDGE_DEPOSIT",
-        //                "transfer_metadata" => "array(\\"provider\\":\\"rhino\\",\\"direction\\":\\"deposit\\",\\"chainid\\":\\"8453\\",\\"endpoint\\":\\"0x01b89ac919ead1bd513b548962075137c683b9ab\\",\\"provider_tx_id\\":\\"0x1dff8c839f8e21b5af7e121a1ae926017e734aafe8c4ae9942756b3091793b4f\\",\\"provider_ref_id\\":\\"6931aefa5f1ab6fcf0d2f856\\")"
-        //            ),
+        //        "result": [
+        //            {
+        //                "tx_id": "65119836",
+        //                "from_account_id": "0xc451b0191351ce308fdfd779d73814c910fc5ecb",
+        //                "from_sub_account_id": "0",
+        //                "to_account_id": "0x42c9f56f2c9da534f64b8806d64813b29c62a01d",
+        //                "to_sub_account_id": "0",
+        //                "currency": "USDT",
+        //                "num_tokens": "4.998",
+        //                "signature": {
+        //                    "signer": "0xf4fdbaf9655bfd607098f4f887aaca58c9667203",
+        //                    "r": "0x5f780b99e5e8516f85e66af49b469eeeeeee724290d7f49f1e84b25ad038fa81",
+        //                    "s": "0x66c76fdb37a25db8c6b368625d96ee91ab1ffca1786d84dc806b08d1460e97bc",
+        //                    "v": "27",
+        //                    "expiration": "1767455807929000000",
+        //                    "nonce": "45905",
+        //                    "chain_id": "0"
+        //                },
+        //                "event_time": "1764863808817370541",
+        //                "transfer_type": "NON_NATIVE_BRIDGE_DEPOSIT",
+        //                "transfer_metadata": "{\\"provider\\":\\"rhino\\",\\"direction\\":\\"deposit\\",\\"chainid\\":\\"8453\\",\\"endpoint\\":\\"0x01b89ac919ead1bd513b548962075137c683b9ab\\",\\"provider_tx_id\\":\\"0x1dff8c839f8e21b5af7e121a1ae926017e734aafe8c4ae9942756b3091793b4f\\",\\"provider_ref_id\\":\\"6931aefa5f1ab6fcf0d2f856\\"}"
+        //            },
         //            ...
-        //        ),
-        //        "next" => ""
+        //        ],
+        //        "next": ""
         //    }
         //
         $rows = $this->safe_list($response, 'result', array());
@@ -1829,9 +1829,9 @@ class grvt extends Exchange {
         }
         //
         // {
-        //     "result" => {
-        //         "ack" => "true",
-        //         "tx_id" => "1028403"
+        //     "result": {
+        //         "ack": "true",
+        //         "tx_id": "1028403"
         //     }
         // }
         //
@@ -1841,35 +1841,35 @@ class grvt extends Exchange {
 
     public function parse_transfer(array $transfer, ?array $currency = null): array {
         //
-        // $transfer
+        // transfer
         //
         //     {
-        //         "ack" => "true",
-        //         "tx_id" => "1028403"
+        //         "ack": "true",
+        //         "tx_id": "1028403"
         //     }
         //
         // fetchTransfers
         //
         //            {
-        //                "tx_id" => "65119836",
-        //                "from_account_id" => "0xc451b0191351ce308fdfd779d73814c910fc5ecb",
-        //                "from_sub_account_id" => "0",
-        //                "to_account_id" => "0x42c9f56f2c9da534f64b8806d64813b29c62a01d",
-        //                "to_sub_account_id" => "0",
-        //                "currency" => "USDT",
-        //                "num_tokens" => "4.998",
-        //                "signature" => array(
-        //                    "signer" => "0xf4fdbaf9655bfd607098f4f887aaca58c9667203",
-        //                    "r" => "0x5f780b99e5e8516f85e66af49b469eeeeeee724290d7f49f1e84b25ad038fa81",
-        //                    "s" => "0x66c76fdb37a25db8c6b368625d96ee91ab1ffca1786d84dc806b08d1460e97bc",
-        //                    "v" => "27",
-        //                    "expiration" => "1767455807929000000",
-        //                    "nonce" => "45905",
-        //                    "chain_id" => "0"
-        //                ),
-        //                "event_time" => "1764863808817370541",
-        //                "transfer_type" => "NON_NATIVE_BRIDGE_DEPOSIT",
-        //                "transfer_metadata" => "array(\\"provider\\":\\"rhino\\",\\"direction\\":\\"deposit\\",\\"chainid\\":\\"8453\\",\\"endpoint\\":\\"0x01b89ac919ead1bd513b548962075137c683b9ab\\",\\"provider_tx_id\\":\\"0x1dff8c839f8e21b5af7e121a1ae926017e734aafe8c4ae9942756b3091793b4f\\",\\"provider_ref_id\\":\\"6931aefa5f1ab6fcf0d2f856\\")"
+        //                "tx_id": "65119836",
+        //                "from_account_id": "0xc451b0191351ce308fdfd779d73814c910fc5ecb",
+        //                "from_sub_account_id": "0",
+        //                "to_account_id": "0x42c9f56f2c9da534f64b8806d64813b29c62a01d",
+        //                "to_sub_account_id": "0",
+        //                "currency": "USDT",
+        //                "num_tokens": "4.998",
+        //                "signature": {
+        //                    "signer": "0xf4fdbaf9655bfd607098f4f887aaca58c9667203",
+        //                    "r": "0x5f780b99e5e8516f85e66af49b469eeeeeee724290d7f49f1e84b25ad038fa81",
+        //                    "s": "0x66c76fdb37a25db8c6b368625d96ee91ab1ffca1786d84dc806b08d1460e97bc",
+        //                    "v": "27",
+        //                    "expiration": "1767455807929000000",
+        //                    "nonce": "45905",
+        //                    "chain_id": "0"
+        //                },
+        //                "event_time": "1764863808817370541",
+        //                "transfer_type": "NON_NATIVE_BRIDGE_DEPOSIT",
+        //                "transfer_metadata": "{\\"provider\\":\\"rhino\\",\\"direction\\":\\"deposit\\",\\"chainid\\":\\"8453\\",\\"endpoint\\":\\"0x01b89ac919ead1bd513b548962075137c683b9ab\\",\\"provider_tx_id\\":\\"0x1dff8c839f8e21b5af7e121a1ae926017e734aafe8c4ae9942756b3091793b4f\\",\\"provider_ref_id\\":\\"6931aefa5f1ab6fcf0d2f856\\"}"
         //            }
         //
         $currencyId = $this->safe_string($transfer, 'currency');
@@ -1896,25 +1896,25 @@ class grvt extends Exchange {
         $promises[] = $this->privateTradingPostFullV1AggregatedAccountSummary();
         //
         //     {
-        //         "result" => {
-        //             "main_account_id" => "0xc73c0c2538fd9b833d20933ccc88fdaa74fcb0d0",
-        //             "total_equity" => "3945034.23",
-        //             "spot_balances" => [array(
-        //                 "currency" => "USDT",
-        //                 "balance" => "123456.78",
-        //                 "index_price" => "1.0000102"
-        //             )],
-        //             "vault_investments" => [array(
-        //                 "vault_id" => 123456789,
-        //                 "num_lp_tokens" => 1000000,
-        //                 "share_price" => 1000000,
-        //                 "usd_notional_invested" => 1000000
-        //             )],
-        //             "total_sub_account_balance" => "3945034.23",
-        //             "total_sub_account_equity" => "3945034.23",
-        //             "total_vault_investments_balance" => "3945034.23",
-        //             "total_sub_account_available_balance" => "3945034.23",
-        //             "total_usd_notional_invested" => "3945034.23"
+        //         "result": {
+        //             "main_account_id": "0xc73c0c2538fd9b833d20933ccc88fdaa74fcb0d0",
+        //             "total_equity": "3945034.23",
+        //             "spot_balances": [{
+        //                 "currency": "USDT",
+        //                 "balance": "123456.78",
+        //                 "index_price": "1.0000102"
+        //             }],
+        //             "vault_investments": [{
+        //                 "vault_id": 123456789,
+        //                 "num_lp_tokens": 1000000,
+        //                 "share_price": 1000000,
+        //                 "usd_notional_invested": 1000000
+        //             }],
+        //             "total_sub_account_balance": "3945034.23",
+        //             "total_sub_account_equity": "3945034.23",
+        //             "total_vault_investments_balance": "3945034.23",
+        //             "total_sub_account_available_balance": "3945034.23",
+        //             "total_usd_notional_invested": "3945034.23"
         //         }
         //     }
         //
@@ -1924,7 +1924,7 @@ class grvt extends Exchange {
         }
         //
         //     {
-        //         "sub_account_ids" => ["4724219064482495","2095919380","1170592370"]
+        //         "sub_account_ids": ["4724219064482495","2095919380","1170592370"]
         //     }
         //
         $responses = $promises;
@@ -1981,8 +1981,8 @@ class grvt extends Exchange {
         $response = $this->privateTradingPostFullV1Withdrawal($this->extend($request, $query));
         //
         // {
-        //     "result" => {
-        //         "ack" => "true"
+        //     "result": {
+        //         "ack": "true"
         //     }
         // }
         //
@@ -2048,8 +2048,8 @@ class grvt extends Exchange {
             'is_market' => $isMarketOrder,
             'post_only' => false,
             'reduce_only' => $isReduceOnly,
-            // 'order_id' => null,
-            // 'state' => null,
+            // 'order_id': null,
+            // 'state': null,
         );
         $timeInForce = $this->safe_string_upper($params, 'timeInForce', 'GOOD_TILL_TIME');
         $postOnly = $this->is_post_only($isMarketOrder, null, $params);
@@ -2061,7 +2061,7 @@ class grvt extends Exchange {
         } else {
             $tifMap = array(
                 'GTC' => 'GOOD_TILL_TIME',
-                'FOK' => 'FILL_OR_KILL', // tbd => why not 'ALL_OR_NONE'
+                'FOK' => 'FILL_OR_KILL', // tbd: why not 'ALL_OR_NONE'
                 'IOC' => 'IMMEDIATE_OR_CANCEL',
             );
             $timeInForce = $this->safe_string($tifMap, $timeInForce, $timeInForce);
@@ -2081,7 +2081,7 @@ class grvt extends Exchange {
         $takeProfitPrice = null;
         list($triggerPrice, $stopLossPrice, $takeProfitPrice, $params) = $this->handle_trigger_prices_and_params($symbol, $params);
         if ($triggerPrice !== null || $stopLossPrice !== null || $takeProfitPrice !== null) {
-            // trigger $price
+            // trigger price
             $selectedPrice = null;
             if ($triggerPrice !== null) {
                 $selectedPrice = $triggerPrice;
@@ -2090,7 +2090,7 @@ class grvt extends Exchange {
             } elseif ($takeProfitPrice !== null) {
                 $selectedPrice = $takeProfitPrice;
             }
-            // trigger $type
+            // trigger type
             $selectedType = null;
             $isBuy = ($side === 'buy');
             if ($stopLossPrice !== null) {
@@ -2137,61 +2137,61 @@ class grvt extends Exchange {
         $response = $this->privateTradingPostFullV1CreateOrder($this->extend($request, $params));
         //
         //    {
-        //        "result" => {
-        //            "order_id" => "0x00",
-        //            "sub_account_id" => "2147050003876484",
-        //            "is_market" => false,
-        //            "time_in_force" => "GOOD_TILL_TIME",
-        //            "post_only" => false,
-        //            "reduce_only" => false,
-        //            "legs" => array(
+        //        "result": {
+        //            "order_id": "0x00",
+        //            "sub_account_id": "2147050003876484",
+        //            "is_market": false,
+        //            "time_in_force": "GOOD_TILL_TIME",
+        //            "post_only": false,
+        //            "reduce_only": false,
+        //            "legs": [
         //                {
-        //                    "instrument" => "BTC_USDT_Perp",
-        //                    "size" => "0.001",
-        //                    "limit_price" => "50000.0",
-        //                    "is_buying_asset" => true
+        //                    "instrument": "BTC_USDT_Perp",
+        //                    "size": "0.001",
+        //                    "limit_price": "50000.0",
+        //                    "is_buying_asset": true
         //                }
-        //            ),
-        //            "signature" => array(
-        //                "signer" => "0xbf465e6083a43b170791ea29393f60...",
-        //                "r" => "0x161826bc2fc43e07b4c1e4aeb01b3e58901f936af10b399e...",
-        //                "s" => "0x1b6d09609430ef73cb53dd87dbe73939824409296b3673719...",
-        //                "v" => 27,
-        //                "expiration" => "1766076771082000000",
-        //                "nonce" => 1766076671,
-        //                "chain_id" => "0"
-        //            ),
-        //            "metadata" => {
-        //                "client_order_id" => "1766076671",
-        //                "create_time" => "1766076671243762741",
-        //                "trigger" => array(
-        //                    "trigger_type" => "UNSPECIFIED",
-        //                    "tpsl" => array(
-        //                        "trigger_by" => "UNSPECIFIED",
-        //                        "trigger_price" => "0.0",
-        //                        "close_position" => false
+        //            ],
+        //            "signature": {
+        //                "signer": "0xbf465e6083a43b170791ea29393f60...",
+        //                "r": "0x161826bc2fc43e07b4c1e4aeb01b3e58901f936af10b399e...",
+        //                "s": "0x1b6d09609430ef73cb53dd87dbe73939824409296b3673719...",
+        //                "v": 27,
+        //                "expiration": "1766076771082000000",
+        //                "nonce": 1766076671,
+        //                "chain_id": "0"
+        //            },
+        //            "metadata": {
+        //                "client_order_id": "1766076671",
+        //                "create_time": "1766076671243762741",
+        //                "trigger": {
+        //                    "trigger_type": "UNSPECIFIED",
+        //                    "tpsl": {
+        //                        "trigger_by": "UNSPECIFIED",
+        //                        "trigger_price": "0.0",
+        //                        "close_position": false
         //                    }
-        //                ),
-        //                "broker" => "UNSPECIFIED",
-        //                "is_position_transfer" => false,
-        //                "allow_crossing" => false
-        //            ),
-        //            "state" => array(
-        //                "status" => "PENDING",
-        //                "reject_reason" => "UNSPECIFIED",
-        //                "book_size" => array(
+        //                },
+        //                "broker": "UNSPECIFIED",
+        //                "is_position_transfer": false,
+        //                "allow_crossing": false
+        //            },
+        //            "state": {
+        //                "status": "PENDING",
+        //                "reject_reason": "UNSPECIFIED",
+        //                "book_size": [
         //                    "0.001"
-        //                ),
-        //                "traded_size" => array(
+        //                ],
+        //                "traded_size": [
         //                    "0.0"
-        //                ),
-        //                "update_time" => "1766076671243762741",
-        //                "avg_fill_price" => array(
+        //                ],
+        //                "update_time": "1766076671243762741",
+        //                "avg_fill_price": [
         //                    "0.0"
-        //                )
-        //            ),
-        //            "builder" => "0x00",
-        //            "builder_fee" => "0.0"
+        //                ]
+        //            },
+        //            "builder": "0x00",
+        //            "builder_fee": "0.0"
         //        }
         //    }
         //
@@ -2252,7 +2252,7 @@ class grvt extends Exchange {
         );
         if ($structureType === 'EIP712_ORDER_WITH_BUILDER_TYPE' && $this->safe_bool($this->options, 'builderFee', true)) {
             $returnValue['builder'] = $order['builder'];
-            $returnValue['builderFee'] = $this->parse_to_int($this->convert_to_big_int_custom($this->fee_amount_multiplier()) * floatval($order['builder_fee'])); // the $order is matter for Multiply in go, b must be float64 otherwise the value would be 0
+            $returnValue['builderFee'] = $this->parse_to_int($this->convert_to_big_int_custom($this->fee_amount_multiplier()) * floatval($order['builder_fee'])); // the order is matter for Multiply in go, b must be float64 otherwise the value would be 0
         }
         return $returnValue;
     }
@@ -2298,33 +2298,33 @@ class grvt extends Exchange {
         $response = $this->privateTradingPostFullV1FillHistory($this->extend($request, $params));
         //
         //    {
-        //        "result" => array(
-        //            array(
-        //                "event_time" => "1764945709702747558",
-        //                "sub_account_id" => "2147050003876484",
-        //                "instrument" => "BTC_USDT_Perp",
-        //                "is_buyer" => true,
-        //                "is_taker" => false,
-        //                "size" => "0.001",
-        //                "price" => "90000.0",
-        //                "mark_price" => "90050.164063298",
-        //                "index_price" => "90089.803654938",
-        //                "interest_rate" => "0.0",
-        //                "forward_price" => "0.0",
-        //                "realized_pnl" => "0.0",
-        //                "fee" => "-0.00009",
-        //                "fee_rate" => "0.0",
-        //                "trade_id" => "65424692-2",
-        //                "order_id" => "0x01010105034cddc7000000006621285c",
-        //                "venue" => "ORDERBOOK",
-        //                "client_order_id" => "1375879248",
-        //                "signer" => "0x42c9f56f2c9da534f64b8806d64813b29c62a01d",
-        //                "broker" => "UNSPECIFIED",
-        //                "is_rpi" => false
-        //            ),
+        //        "result": [
+        //            {
+        //                "event_time": "1764945709702747558",
+        //                "sub_account_id": "2147050003876484",
+        //                "instrument": "BTC_USDT_Perp",
+        //                "is_buyer": true,
+        //                "is_taker": false,
+        //                "size": "0.001",
+        //                "price": "90000.0",
+        //                "mark_price": "90050.164063298",
+        //                "index_price": "90089.803654938",
+        //                "interest_rate": "0.0",
+        //                "forward_price": "0.0",
+        //                "realized_pnl": "0.0",
+        //                "fee": "-0.00009",
+        //                "fee_rate": "0.0",
+        //                "trade_id": "65424692-2",
+        //                "order_id": "0x01010105034cddc7000000006621285c",
+        //                "venue": "ORDERBOOK",
+        //                "client_order_id": "1375879248",
+        //                "signer": "0x42c9f56f2c9da534f64b8806d64813b29c62a01d",
+        //                "broker": "UNSPECIFIED",
+        //                "is_rpi": false
+        //            },
         //            ...
-        //        ),
-        //        "next" => ""
+        //        ],
+        //        "next": ""
         //    }
         //
         $result = $this->safe_list($response, 'result', array());
@@ -2362,27 +2362,27 @@ class grvt extends Exchange {
         $response = $this->privateTradingPostFullV1Positions($this->extend($request, $params));
         //
         //    {
-        //        "result" => array(
+        //        "result": [
         //            {
-        //                "event_time" => "1765258069092857642",
-        //                "sub_account_id" => "2147050003876484",
-        //                "instrument" => "BTC_USDT_Perp",
-        //                "size" => "0.001",
-        //                "notional" => "89.8169",
-        //                "entry_price" => "90000.0",
-        //                "exit_price" => "0.0",
-        //                "mark_price" => "89816.900008979",
-        //                "unrealized_pnl" => "-0.183099",
-        //                "realized_pnl" => "0.0",
-        //                "total_pnl" => "-0.183099",
-        //                "roi" => "-0.2034",
-        //                "quote_index_price" => "1.00017885",
-        //                "est_liquidation_price" => "77951.450008979",
-        //                "leverage" => "28.0",
-        //                "cumulative_fee" => "-0.00009",
-        //                "cumulative_realized_funding_payment" => "0.033862"
+        //                "event_time": "1765258069092857642",
+        //                "sub_account_id": "2147050003876484",
+        //                "instrument": "BTC_USDT_Perp",
+        //                "size": "0.001",
+        //                "notional": "89.8169",
+        //                "entry_price": "90000.0",
+        //                "exit_price": "0.0",
+        //                "mark_price": "89816.900008979",
+        //                "unrealized_pnl": "-0.183099",
+        //                "realized_pnl": "0.0",
+        //                "total_pnl": "-0.183099",
+        //                "roi": "-0.2034",
+        //                "quote_index_price": "1.00017885",
+        //                "est_liquidation_price": "77951.450008979",
+        //                "leverage": "28.0",
+        //                "cumulative_fee": "-0.00009",
+        //                "cumulative_realized_funding_payment": "0.033862"
         //            }
-        //        )
+        //        ]
         //    }
         //
         $result = $this->safe_list($response, 'result', array());
@@ -2392,23 +2392,23 @@ class grvt extends Exchange {
     public function parse_position(array $position, ?array $market = null) {
         //
         //            {
-        //                "event_time" => "1765258069092857642",
-        //                "sub_account_id" => "2147050003876484",
-        //                "instrument" => "BTC_USDT_Perp",
-        //                "size" => "0.001",
-        //                "notional" => "89.8169",
-        //                "entry_price" => "90000.0",
-        //                "exit_price" => "0.0",
-        //                "mark_price" => "89816.900008979",
-        //                "unrealized_pnl" => "-0.183099",
-        //                "realized_pnl" => "0.0",
-        //                "total_pnl" => "-0.183099",
-        //                "roi" => "-0.2034",
-        //                "quote_index_price" => "1.00017885",
-        //                "est_liquidation_price" => "77951.450008979",
-        //                "leverage" => "28.0",
-        //                "cumulative_fee" => "-0.00009",
-        //                "cumulative_realized_funding_payment" => "0.033862"
+        //                "event_time": "1765258069092857642",
+        //                "sub_account_id": "2147050003876484",
+        //                "instrument": "BTC_USDT_Perp",
+        //                "size": "0.001",
+        //                "notional": "89.8169",
+        //                "entry_price": "90000.0",
+        //                "exit_price": "0.0",
+        //                "mark_price": "89816.900008979",
+        //                "unrealized_pnl": "-0.183099",
+        //                "realized_pnl": "0.0",
+        //                "total_pnl": "-0.183099",
+        //                "roi": "-0.2034",
+        //                "quote_index_price": "1.00017885",
+        //                "est_liquidation_price": "77951.450008979",
+        //                "leverage": "28.0",
+        //                "cumulative_fee": "-0.00009",
+        //                "cumulative_realized_funding_payment": "0.033862"
         //            }
         //
         $marketId = $this->safe_string($position, 'instrument');
@@ -2464,14 +2464,14 @@ class grvt extends Exchange {
         $response = $this->privateTradingPostFullV1GetAllInitialLeverage($this->extend($request, $params));
         //
         //    {
-        //        "results" => [
-        //            array(
-        //                "instrument" => "AAVE_USDT_Perp",
-        //                "leverage" => "10.0",
-        //                "min_leverage" => "1.0",
-        //                "max_leverage" => "50.0",
-        //                "margin_type" => "CROSS"
-        //            ),
+        //        "results": [
+        //            {
+        //                "instrument": "AAVE_USDT_Perp",
+        //                "leverage": "10.0",
+        //                "min_leverage": "1.0",
+        //                "max_leverage": "50.0",
+        //                "margin_type": "CROSS"
+        //            },
         //
         $results = $this->safe_list($response, 'results', array());
         return $this->parse_leverages($results, $symbols);
@@ -2501,7 +2501,7 @@ class grvt extends Exchange {
         $response = $this->privateTradingPostFullV1SetInitialLeverage($this->extend($request, $params));
         //
         //    {
-        //        "success" => true
+        //        "success": true
         //    }
         //
         return $this->parse_leverage($response, $market);
@@ -2512,17 +2512,17 @@ class grvt extends Exchange {
         // setLeverage
         //
         //     {
-        //         "success" => true
+        //         "success": true
         //     }
         //
         // fetchLeverages
         //
         //     {
-        //         "instrument" => "AAVE_USDT_Perp",
-        //         "leverage" => "10.0",
-        //         "min_leverage" => "1.0",
-        //         "max_leverage" => "50.0",
-        //         "margin_type" => "CROSS"
+        //         "instrument": "AAVE_USDT_Perp",
+        //         "leverage": "10.0",
+        //         "min_leverage": "1.0",
+        //         "max_leverage": "50.0",
+        //         "margin_type": "CROSS"
         //     }
         //
         $marketId = $this->safe_string($leverage, 'instrument');
@@ -2554,14 +2554,14 @@ class grvt extends Exchange {
         $response = $this->privateTradingPostFullV1GetAllInitialLeverage($this->extend($request, $params));
         //
         //    {
-        //        "results" => [
-        //            array(
-        //                "instrument" => "AAVE_USDT_Perp",
-        //                "leverage" => "10.0",
-        //                "min_leverage" => "1.0",
-        //                "max_leverage" => "50.0",
-        //                "margin_type" => "CROSS"
-        //            ),
+        //        "results": [
+        //            {
+        //                "instrument": "AAVE_USDT_Perp",
+        //                "leverage": "10.0",
+        //                "min_leverage": "1.0",
+        //                "max_leverage": "50.0",
+        //                "margin_type": "CROSS"
+        //            },
         //
         $results = $this->safe_list($response, 'results', array());
         return $this->parse_leverages($results, $symbols);
@@ -2571,13 +2571,13 @@ class grvt extends Exchange {
         //
         // fetchMarginModes
         //
-        //            array(
-        //                "instrument" => "AAVE_USDT_Perp",
-        //                "leverage" => "10.0",
-        //                "min_leverage" => "1.0",
-        //                "max_leverage" => "50.0",
-        //                "margin_type" => "CROSS"
-        //            ),
+        //            {
+        //                "instrument": "AAVE_USDT_Perp",
+        //                "leverage": "10.0",
+        //                "min_leverage": "1.0",
+        //                "max_leverage": "50.0",
+        //                "margin_type": "CROSS"
+        //            },
         //
         $marketId = $this->safe_string($marginMode, 'symbol');
         return array(
@@ -2628,18 +2628,18 @@ class grvt extends Exchange {
         $response = $this->privateTradingPostFullV1FundingPaymentHistory($this->extend($request, $params));
         //
         //    {
-        //        "result" => array(
-        //            array(
-        //                "event_time" => "1765267200004987902",
-        //                "sub_account_id" => "2147050003876484",
-        //                "instrument" => "BTC_USDT_Perp",
-        //                "currency" => "USDT",
-        //                "amount" => "-0.004522",
-        //                "tx_id" => "66625184"
-        //            ),
+        //        "result": [
+        //            {
+        //                "event_time": "1765267200004987902",
+        //                "sub_account_id": "2147050003876484",
+        //                "instrument": "BTC_USDT_Perp",
+        //                "currency": "USDT",
+        //                "amount": "-0.004522",
+        //                "tx_id": "66625184"
+        //            },
         //            ..
-        //        ),
-        //        "next" => ""
+        //        ],
+        //        "next": ""
         //    }
         //
         $result = $this->safe_list($response, 'result', array());
@@ -2649,12 +2649,12 @@ class grvt extends Exchange {
     public function parse_income(mixed $income, ?array $market = null) {
         //
         //            {
-        //                "event_time" => "1765267200004987902",
-        //                "sub_account_id" => "2147050003876484",
-        //                "instrument" => "BTC_USDT_Perp",
-        //                "currency" => "USDT",
-        //                "amount" => "-0.004522",
-        //                "tx_id" => "66625184"
+        //                "event_time": "1765267200004987902",
+        //                "sub_account_id": "2147050003876484",
+        //                "instrument": "BTC_USDT_Perp",
+        //                "currency": "USDT",
+        //                "amount": "-0.004522",
+        //                "tx_id": "66625184"
         //            }
         //
         $marketId = $this->safe_string($income, 'instrument');
@@ -2707,64 +2707,64 @@ class grvt extends Exchange {
         $response = $this->privateTradingPostFullV1OrderHistory($this->extend($request, $params));
         //
         //    {
-        //        "result" => array(
+        //        "result": [
         //            {
-        //                "order_id" => "0x01010105034cddc7000000006621285c",
-        //                "sub_account_id" => "2147050003876484",
-        //                "is_market" => false,
-        //                "time_in_force" => "GOOD_TILL_TIME",
-        //                "post_only" => false,
-        //                "reduce_only" => false,
-        //                "legs" => array(
+        //                "order_id": "0x01010105034cddc7000000006621285c",
+        //                "sub_account_id": "2147050003876484",
+        //                "is_market": false,
+        //                "time_in_force": "GOOD_TILL_TIME",
+        //                "post_only": false,
+        //                "reduce_only": false,
+        //                "legs": [
         //                    {
-        //                        "instrument" => "BTC_USDT_Perp",
-        //                        "size" => "0.001",
-        //                        "limit_price" => "90000.0",
-        //                        "is_buying_asset" => true
+        //                        "instrument": "BTC_USDT_Perp",
+        //                        "size": "0.001",
+        //                        "limit_price": "90000.0",
+        //                        "is_buying_asset": true
         //                    }
-        //                ),
-        //                "signature" => array(
-        //                    "signer" => "0x42c9f56f2c9da534f64b8806d64813b29c62a01d",
-        //                    "r" => "0x2d567b0a04525baf0bbd792db3bb3a28c1bcc5e95936f6dc2515a28ad8529313",
-        //                    "s" => "0x0bc2468d96c819c8de005aa7bebfb58eecb34dd7a1bae1e81e74c7b8bc4cddc7",
-        //                    "v" => "27",
-        //                    "expiration" => "1767455222801000000",
-        //                    "nonce" => "1375879248",
-        //                    "chain_id" => "0"
-        //                ),
-        //                "metadata" => {
-        //                    "client_order_id" => "1375879248",
-        //                    "create_time" => "1764863234474424590",
-        //                    "trigger" => array(
-        //                        "trigger_type" => "UNSPECIFIED",
-        //                        "tpsl" => array(
-        //                            "trigger_by" => "UNSPECIFIED",
-        //                            "trigger_price" => "0.0",
-        //                            "close_position" => false
+        //                ],
+        //                "signature": {
+        //                    "signer": "0x42c9f56f2c9da534f64b8806d64813b29c62a01d",
+        //                    "r": "0x2d567b0a04525baf0bbd792db3bb3a28c1bcc5e95936f6dc2515a28ad8529313",
+        //                    "s": "0x0bc2468d96c819c8de005aa7bebfb58eecb34dd7a1bae1e81e74c7b8bc4cddc7",
+        //                    "v": "27",
+        //                    "expiration": "1767455222801000000",
+        //                    "nonce": "1375879248",
+        //                    "chain_id": "0"
+        //                },
+        //                "metadata": {
+        //                    "client_order_id": "1375879248",
+        //                    "create_time": "1764863234474424590",
+        //                    "trigger": {
+        //                        "trigger_type": "UNSPECIFIED",
+        //                        "tpsl": {
+        //                            "trigger_by": "UNSPECIFIED",
+        //                            "trigger_price": "0.0",
+        //                            "close_position": false
         //                        }
-        //                    ),
-        //                    "broker" => "UNSPECIFIED",
-        //                    "is_position_transfer" => false,
-        //                    "allow_crossing" => false
-        //                ),
-        //                "state" => array(
-        //                    "status" => "FILLED",
-        //                    "reject_reason" => "UNSPECIFIED",
-        //                    "book_size" => array(
+        //                    },
+        //                    "broker": "UNSPECIFIED",
+        //                    "is_position_transfer": false,
+        //                    "allow_crossing": false
+        //                },
+        //                "state": {
+        //                    "status": "FILLED",
+        //                    "reject_reason": "UNSPECIFIED",
+        //                    "book_size": [
         //                        "0.0"
-        //                    ),
-        //                    "traded_size" => array(
+        //                    ],
+        //                    "traded_size": [
         //                        "0.001"
-        //                    ),
-        //                    "update_time" => "1764945709704912003",
-        //                    "avg_fill_price" => array(
+        //                    ],
+        //                    "update_time": "1764945709704912003",
+        //                    "avg_fill_price": [
         //                        "90000.0"
-        //                    )
+        //                    ]
         //                }
-        //            ),
+        //            },
         //            ...
-        //        ),
-        //        "next" => ""
+        //        ],
+        //        "next": ""
         //    }
         //
         $result = $this->safe_list($response, 'result', array());
@@ -2790,62 +2790,62 @@ class grvt extends Exchange {
         $response = $this->privateTradingPostFullV1OpenOrders($this->extend($request, $params));
         //
         //    {
-        //        "result" => array(
+        //        "result": [
         //            {
-        //                "order_id" => "0x0101010503e693410000000069530a7d",
-        //                "sub_account_id" => "2147050003876484",
-        //                "is_market" => false,
-        //                "time_in_force" => "GOOD_TILL_TIME",
-        //                "post_only" => false,
-        //                "reduce_only" => false,
-        //                "legs" => array(
+        //                "order_id": "0x0101010503e693410000000069530a7d",
+        //                "sub_account_id": "2147050003876484",
+        //                "is_market": false,
+        //                "time_in_force": "GOOD_TILL_TIME",
+        //                "post_only": false,
+        //                "reduce_only": false,
+        //                "legs": [
         //                    {
-        //                        "instrument" => "BTC_USDT_Perp",
-        //                        "size" => "0.002",
-        //                        "limit_price" => "88123.0",
-        //                        "is_buying_asset" => true
+        //                        "instrument": "BTC_USDT_Perp",
+        //                        "size": "0.002",
+        //                        "limit_price": "88123.0",
+        //                        "is_buying_asset": true
         //                    }
-        //                ),
-        //                "signature" => array(
-        //                    "signer" => "0x0982ebb82523fd20d1347d59f5a989ed84caa4b5",
-        //                    "r" => "0x22b13e5bc7c8d6793db9d0adf6a51340437292baf83aa4f89a01a3c0c1fef4a8",
-        //                    "s" => "0x46ecd483126c388cc933022979a9636670f64af3773d04a84ecbeac423e69341",
-        //                    "v" => "28",
-        //                    "expiration" => "1767871961406000000",
-        //                    "nonce" => "588129369",
-        //                    "chain_id" => "0"
-        //                ),
-        //                "metadata" => {
-        //                    "client_order_id" => "588129369",
-        //                    "create_time" => "1765279966899943792",
-        //                    "trigger" => array(
-        //                        "trigger_type" => "UNSPECIFIED",
-        //                        "tpsl" => array(
-        //                            "trigger_by" => "UNSPECIFIED",
-        //                            "trigger_price" => "0.0",
-        //                            "close_position" => false
+        //                ],
+        //                "signature": {
+        //                    "signer": "0x0982ebb82523fd20d1347d59f5a989ed84caa4b5",
+        //                    "r": "0x22b13e5bc7c8d6793db9d0adf6a51340437292baf83aa4f89a01a3c0c1fef4a8",
+        //                    "s": "0x46ecd483126c388cc933022979a9636670f64af3773d04a84ecbeac423e69341",
+        //                    "v": "28",
+        //                    "expiration": "1767871961406000000",
+        //                    "nonce": "588129369",
+        //                    "chain_id": "0"
+        //                },
+        //                "metadata": {
+        //                    "client_order_id": "588129369",
+        //                    "create_time": "1765279966899943792",
+        //                    "trigger": {
+        //                        "trigger_type": "UNSPECIFIED",
+        //                        "tpsl": {
+        //                            "trigger_by": "UNSPECIFIED",
+        //                            "trigger_price": "0.0",
+        //                            "close_position": false
         //                        }
-        //                    ),
-        //                    "broker" => "UNSPECIFIED",
-        //                    "is_position_transfer" => false,
-        //                    "allow_crossing" => false
-        //                ),
-        //                "state" => {
-        //                    "status" => "OPEN",
-        //                    "reject_reason" => "UNSPECIFIED",
-        //                    "book_size" => array(
+        //                    },
+        //                    "broker": "UNSPECIFIED",
+        //                    "is_position_transfer": false,
+        //                    "allow_crossing": false
+        //                },
+        //                "state": {
+        //                    "status": "OPEN",
+        //                    "reject_reason": "UNSPECIFIED",
+        //                    "book_size": [
         //                        "0.002"
-        //                    ),
-        //                    "traded_size" => array(
+        //                    ],
+        //                    "traded_size": [
         //                        "0.0"
-        //                    ),
-        //                    "update_time" => "1765279966899943792",
-        //                    "avg_fill_price" => array(
+        //                    ],
+        //                    "update_time": "1765279966899943792",
+        //                    "avg_fill_price": [
         //                        "0.0"
-        //                    )
+        //                    ]
         //                }
         //            }
-        //        )
+        //        ]
         //    }
         //
         $result = $this->safe_list($response, 'result', array());
@@ -2879,58 +2879,58 @@ class grvt extends Exchange {
         $response = $this->privateTradingPostFullV1Order($this->extend($request, $params));
         //
         //    {
-        //        "result" => {
-        //            "order_id" => "0x01010105034cddc7000000006621285c",
-        //            "sub_account_id" => "2147050003876484",
-        //            "is_market" => false,
-        //            "time_in_force" => "GOOD_TILL_TIME",
-        //            "post_only" => false,
-        //            "reduce_only" => false,
-        //            "legs" => array(
+        //        "result": {
+        //            "order_id": "0x01010105034cddc7000000006621285c",
+        //            "sub_account_id": "2147050003876484",
+        //            "is_market": false,
+        //            "time_in_force": "GOOD_TILL_TIME",
+        //            "post_only": false,
+        //            "reduce_only": false,
+        //            "legs": [
         //                {
-        //                    "instrument" => "BTC_USDT_Perp",
-        //                    "size" => "0.001",
-        //                    "limit_price" => "90000.0",
-        //                    "is_buying_asset" => true
+        //                    "instrument": "BTC_USDT_Perp",
+        //                    "size": "0.001",
+        //                    "limit_price": "90000.0",
+        //                    "is_buying_asset": true
         //                }
-        //            ),
-        //            "signature" => array(
-        //                "signer" => "0x42c9f56f2c9da534f64b8806d64813b29c62a01d",
-        //                "r" => "0x2d567b0a04525baf0bbd792db3bb3a28c1bcc5e95936f6dc2515a28ad8529313",
-        //                "s" => "0x0bc2468d96c819c8de005aa7bebfb58eecb34dd7a1bae1e81e74c7b8bc4cddc7",
-        //                "v" => "27",
-        //                "expiration" => "1767455222801000000",
-        //                "nonce" => "1375879248",
-        //                "chain_id" => "0"
-        //            ),
-        //            "metadata" => {
-        //                "client_order_id" => "1375879248",
-        //                "create_time" => "1764863234474424590",
-        //                "trigger" => array(
-        //                    "trigger_type" => "UNSPECIFIED",
-        //                    "tpsl" => array(
-        //                        "trigger_by" => "UNSPECIFIED",
-        //                        "trigger_price" => "0.0",
-        //                        "close_position" => false
+        //            ],
+        //            "signature": {
+        //                "signer": "0x42c9f56f2c9da534f64b8806d64813b29c62a01d",
+        //                "r": "0x2d567b0a04525baf0bbd792db3bb3a28c1bcc5e95936f6dc2515a28ad8529313",
+        //                "s": "0x0bc2468d96c819c8de005aa7bebfb58eecb34dd7a1bae1e81e74c7b8bc4cddc7",
+        //                "v": "27",
+        //                "expiration": "1767455222801000000",
+        //                "nonce": "1375879248",
+        //                "chain_id": "0"
+        //            },
+        //            "metadata": {
+        //                "client_order_id": "1375879248",
+        //                "create_time": "1764863234474424590",
+        //                "trigger": {
+        //                    "trigger_type": "UNSPECIFIED",
+        //                    "tpsl": {
+        //                        "trigger_by": "UNSPECIFIED",
+        //                        "trigger_price": "0.0",
+        //                        "close_position": false
         //                    }
-        //                ),
-        //                "broker" => "UNSPECIFIED",
-        //                "is_position_transfer" => false,
-        //                "allow_crossing" => false
-        //            ),
-        //            "state" => {
-        //                "status" => "FILLED",
-        //                "reject_reason" => "UNSPECIFIED",
-        //                "book_size" => array(
+        //                },
+        //                "broker": "UNSPECIFIED",
+        //                "is_position_transfer": false,
+        //                "allow_crossing": false
+        //            },
+        //            "state": {
+        //                "status": "FILLED",
+        //                "reject_reason": "UNSPECIFIED",
+        //                "book_size": [
         //                    "0.0"
-        //                ),
-        //                "traded_size" => array(
+        //                ],
+        //                "traded_size": [
         //                    "0.001"
-        //                ),
-        //                "update_time" => "1764945709704912003",
-        //                "avg_fill_price" => array(
+        //                ],
+        //                "update_time": "1764945709704912003",
+        //                "avg_fill_price": [
         //                    "90000.0"
-        //                )
+        //                ]
         //            }
         //        }
         //    }
@@ -2944,66 +2944,66 @@ class grvt extends Exchange {
         // fetchOrders, fetchOpenOrders, fetchOrder, createOrder
         //
         //           {
-        //                "order_id" => "0x0101010503e693410000000069530a7d",
-        //                "sub_account_id" => "2147050003876484",
-        //                "is_market" => false,
-        //                "time_in_force" => "GOOD_TILL_TIME",
-        //                "post_only" => false,
-        //                "reduce_only" => false,
-        //                "legs" => array(
+        //                "order_id": "0x0101010503e693410000000069530a7d",
+        //                "sub_account_id": "2147050003876484",
+        //                "is_market": false,
+        //                "time_in_force": "GOOD_TILL_TIME",
+        //                "post_only": false,
+        //                "reduce_only": false,
+        //                "legs": [
         //                    {
-        //                        "instrument" => "BTC_USDT_Perp",
-        //                        "size" => "0.002",
-        //                        "limit_price" => "88123.0",
-        //                        "is_buying_asset" => true
+        //                        "instrument": "BTC_USDT_Perp",
+        //                        "size": "0.002",
+        //                        "limit_price": "88123.0",
+        //                        "is_buying_asset": true
         //                    }
-        //                ),
-        //                "signature" => array(
-        //                    "signer" => "0x0982ebb82523fd20d1347d59f5a989ed84caa4b5",
-        //                    "r" => "0x22b13e5bc7c8d6793db9d0adf6a51340437292baf83aa4f89a01a3c0c1fef4a8",
-        //                    "s" => "0x46ecd483126c388cc933022979a9636670f64af3773d04a84ecbeac423e69341",
-        //                    "v" => "28",
-        //                    "expiration" => "1767871961406000000",
-        //                    "nonce" => "588129369",
-        //                    "chain_id" => "0"
-        //                ),
-        //                "metadata" => {
-        //                    "client_order_id" => "588129369",
-        //                    "create_time" => "1765279966899943792",
-        //                    "trigger" => array(
-        //                        "trigger_type" => "UNSPECIFIED",
-        //                        "tpsl" => array(
-        //                            "trigger_by" => "UNSPECIFIED",
-        //                            "trigger_price" => "0.0",
-        //                            "close_position" => false
+        //                ],
+        //                "signature": {
+        //                    "signer": "0x0982ebb82523fd20d1347d59f5a989ed84caa4b5",
+        //                    "r": "0x22b13e5bc7c8d6793db9d0adf6a51340437292baf83aa4f89a01a3c0c1fef4a8",
+        //                    "s": "0x46ecd483126c388cc933022979a9636670f64af3773d04a84ecbeac423e69341",
+        //                    "v": "28",
+        //                    "expiration": "1767871961406000000",
+        //                    "nonce": "588129369",
+        //                    "chain_id": "0"
+        //                },
+        //                "metadata": {
+        //                    "client_order_id": "588129369",
+        //                    "create_time": "1765279966899943792",
+        //                    "trigger": {
+        //                        "trigger_type": "UNSPECIFIED",
+        //                        "tpsl": {
+        //                            "trigger_by": "UNSPECIFIED",
+        //                            "trigger_price": "0.0",
+        //                            "close_position": false
         //                        }
-        //                    ),
-        //                    "broker" => "UNSPECIFIED",
-        //                    "is_position_transfer" => false,
-        //                    "allow_crossing" => false
-        //                ),
-        //                "state" => array(
-        //                    "status" => "OPEN",
-        //                    "reject_reason" => "UNSPECIFIED",
-        //                    "book_size" => array(
+        //                    },
+        //                    "broker": "UNSPECIFIED",
+        //                    "is_position_transfer": false,
+        //                    "allow_crossing": false
+        //                },
+        //                "state": {
+        //                    "status": "OPEN",
+        //                    "reject_reason": "UNSPECIFIED",
+        //                    "book_size": [
         //                        "0.002"
-        //                    ),
-        //                    "traded_size" => array(
+        //                    ],
+        //                    "traded_size": [
         //                        "0.0"
-        //                    ),
-        //                    "update_time" => "1765279966899943792",
-        //                    "avg_fill_price" => array(
+        //                    ],
+        //                    "update_time": "1765279966899943792",
+        //                    "avg_fill_price": [
         //                        "0.0"
-        //                    )
-        //                ),
-        //                "builder" => "0x00",
-        //                "builder_fee" => "0.0"
+        //                    ]
+        //                },
+        //                "builder": "0x00",
+        //                "builder_fee": "0.0"
         //            }
         //
         // cancelOrder, cancelAllOrders
         //
         //    {
-        //        "ack" => true
+        //        "ack": true
         //    }
         //
         if (is_array($order) && array_key_exists('ack' ?? '', $order)) {
@@ -3041,7 +3041,7 @@ class grvt extends Exchange {
             $avgPrice = $this->safe_string($avgPrices, $primaryOrderIndex);
         }
         $timestamp = $this->safe_integer_product($metadata, 'create_time', 0.000001);
-        // $triggerDetails = $this->safe_dict($metadata, 'trigger', array());
+        // const triggerDetails = this.safeDict (metadata, 'trigger', {});
         $legsLength = count($legs);
         return $this->safe_order(array(
             'isMultiLeg' => ($legsLength > 1),
@@ -3076,7 +3076,7 @@ class grvt extends Exchange {
             'GOOD_TILL_TIME' => 'GTC', // yeah, not GTD
             'IMMEDIATE_OR_CANCEL' => 'IOC',
             'FILL_OR_KILL' => 'FOK',
-            // exchange specific $types
+            // exchange specific types
             'ALL_OR_NONE' => 'ALL_OR_NONE',
             'RETAIL_PRICE_IMPROVEMENT' => 'RETAIL_PRICE_IMPROVEMENT',
         );
@@ -3129,8 +3129,8 @@ class grvt extends Exchange {
         $response = $this->privateTradingPostFullV1CancelAllOrders($this->extend($request, $params));
         //
         //    {
-        //        "result" => {
-        //            "ack" => true
+        //        "result": {
+        //            "ack": true
         //        }
         //    }
         //
@@ -3165,8 +3165,8 @@ class grvt extends Exchange {
         $response = $this->privateTradingPostFullV1CancelOrder($this->extend($request, $params));
         //
         //    {
-        //        "result" => {
-        //            "ack" => true
+        //        "result": {
+        //            "ack": true
         //        }
         //    }
         //
@@ -3175,10 +3175,10 @@ class grvt extends Exchange {
     }
 
     public function eip_domain_data() {
-        //     GrvtEnv.DEV.value => 327,
-        //     GrvtEnv.STAGING.value => 327,
-        //     GrvtEnv.TESTNET.value => 326,
-        //     GrvtEnv.PROD.value => 325,
+        //     GrvtEnv.DEV.value: 327,
+        //     GrvtEnv.STAGING.value: 327,
+        //     GrvtEnv.TESTNET.value: 326,
+        //     GrvtEnv.PROD.value: 325,
         return array(
             'name' => 'GRVT Exchange',
             'version' => '0',
@@ -3303,12 +3303,12 @@ class grvt extends Exchange {
             }
         } elseif ($method === 'POST') {
             // the venue rejects json POSTs without an explicit content type with 1003 malformed syntax,
-            // the private branch below sets its own $headers, this covers the public market-data endpoints
+            // the private branch below sets its own headers, this covers the public market-data endpoints
             $headers = array(
                 'Content-Type' => 'application/json',
             );
-            // an empty $params dict must serialize as an empty json object, not an empty json array,
-            // php json_encode would produce array() here which the venue rejects with the same 1003 error
+            // an empty params dict must serialize as an empty json object, not an empty json array,
+            // php json_encode would produce [] here which the venue rejects with the same 1003 error
             $paramsKeys = is_array($params) ? array_keys($params) : array();
             $paramsKeysLength = count($paramsKeys);
             if ($paramsKeysLength === 0) {

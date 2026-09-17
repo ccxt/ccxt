@@ -28,7 +28,7 @@ export default class extended extends Exchange {
             'dex': true,
             'has': {
                 'CORS': undefined,
-                'spot': true,
+                'spot': false, // venue retired spot trading; SPOT rows are still parsed, see parseMarket
                 'margin': false,
                 'swap': true,
                 'future': false,
@@ -560,6 +560,9 @@ export default class extended extends Exchange {
         let contractSize = undefined;
         let linear = undefined;
         let inverse = undefined;
+        // SPOT rows are still parsed on purpose even though has['spot'] is false - that flag
+        // only advertises the capability and gates the unified spot tests, it does not filter
+        // markets, so accounts still holding spot balances keep resolving their symbols
         if (type === 'spot') {
             isSpot = true;
         }

@@ -75,11 +75,11 @@ public partial class testMainClass : BaseTest
         object swap = getValue(market, "swap");
         object future = getValue(market, "future");
         object option = getValue(market, "option");
-        object index = exchange.safeBool(market, "index"); // todo: unify
+        bool? index = exchange.safeBool(market, "index"); // todo: unify
         bool isIndex = isTrue((!isEqual(index, null))) && isTrue(index);
         object linear = getValue(market, "linear");
         object inverse = getValue(market, "inverse");
-        object quanto = exchange.safeBool(market, "quanto"); // todo: unify
+        bool? quanto = exchange.safeBool(market, "quanto"); // todo: unify
         bool isQuanto = isTrue((!isEqual(quanto, null))) && isTrue(quanto);
         bool isInactiveMarket = isEqual(getValue(market, "active"), false);
         //
@@ -185,7 +185,7 @@ public partial class testMainClass : BaseTest
             // if not spot, any of the below should be true
             assert(isTrue((isEqual(contract, true))) && isTrue((isTrue(isTrue(isTrue((isEqual(future, true))) || isTrue((isEqual(swap, true)))) || isTrue((isEqual(option, true)))) || isTrue((isEqual(isIndex, true))))), add("for non-spot markets, any of (future/swap/option/index) should be set", logText));
         }
-        object contractSize = exchange.safeString(market, "contractSize");
+        string? contractSize = exchange.safeString(market, "contractSize");
         // contract fields
         if (isTrue(isTrue((isEqual(contract, true))) && !isTrue(isInactiveMarket)))
         {
@@ -233,7 +233,7 @@ public partial class testMainClass : BaseTest
             assert(!isEqual(getValue(market, "expiry"), null), add("\"expiry\" must be defined when \"future\" is true", logText));
             assert(!isEqual(getValue(market, "expiryDatetime"), null), add("\"expiryDatetime\" must be defined when \"future\" is true", logText));
             // expiry datetime should be correct
-            object isoString = exchange.iso8601(getValue(market, "expiry"));
+            string? isoString = exchange.iso8601(getValue(market, "expiry"));
             assert(isEqual(getValue(market, "expiryDatetime"), isoString), add(add(add(add(add("expiryDatetime (\"", getValue(market, "expiryDatetime")), "\") must be equal to expiry in iso8601 format \""), isoString), "\""), logText));
             testSharedMethods.assertGreater(exchange, skippedProperties, method, market, "expiry", "0");
             if (isTrue(isEqual(option, true)))
@@ -295,7 +295,7 @@ public partial class testMainClass : BaseTest
                 // max >= 0
                 testSharedMethods.assertGreater(exchange, skippedProperties, method, limitEntry, "max", "0");
                 // max >= min
-                object minString = exchange.safeString(limitEntry, "min");
+                string? minString = exchange.safeString(limitEntry, "min");
                 if (isTrue(!isEqual(minString, null)))
                 {
                     testSharedMethods.assertGreaterOrEqual(exchange, skippedProperties, method, limitEntry, "max", minString);
@@ -315,7 +315,7 @@ public partial class testMainClass : BaseTest
         // margin modes
         if (!isTrue((inOp(skippedProperties, "marginModes"))))
         {
-            object marginModes = exchange.safeDict(market, "marginModes", new Dictionary<string, object>() {}); // in future, remove safeDict
+            IDictionary<string, object> marginModes = exchange.safeDict(market, "marginModes", new Dictionary<string, object>() {}); // in future, remove safeDict
             assert(inOp(marginModes, "cross"), add("marginModes should have \"cross\" key", logText));
             assert(inOp(marginModes, "isolated"), add("marginModes should have \"isolated\" key", logText));
             testSharedMethods.assertInArray(exchange, skippedProperties, method, marginModes, "cross", new List<object>() {true, false, null});

@@ -7,7 +7,7 @@ namespace ccxt.pro;
 public partial class whitebit { public whitebit(object args = null) : base(args) { } }
 public partial class whitebit : ccxt.whitebit
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "has", new Dictionary<string, object>() {
@@ -122,7 +122,7 @@ public partial class whitebit : ccxt.whitebit
         //     "id": null
         // }
         //
-        object parameters = this.safeValue(message, "params", new List<object>() {});
+        List<object> parameters = this.safeList(message, "params", new List<object>() {});
         for (int i = 0; isLessThan(i, getArrayLength(parameters)); postFixIncrement(ref i))
         {
             object data = getValue(parameters, i);
@@ -716,7 +716,7 @@ public partial class whitebit : ccxt.whitebit
         string? marketId = this.safeString(order, "market");
         market = this.safeMarket(marketId, market);
         string? id = this.safeString(order, "id");
-        object clientOrderId = this.omitZero(this.safeString(order, "client_order_id"));
+        string? clientOrderId = ((string)this.omitZero(this.safeString(order, "client_order_id")));
         string? price = this.safeString(order, "price");
         string? filled = this.safeString(order, "deal_stock");
         string? cost = this.safeString(order, "deal_money");
@@ -883,7 +883,7 @@ public partial class whitebit : ccxt.whitebit
         // don't remove the future from the .futures cache
         if (isTrue(inOp(client.futures, messageHash)))
         {
-            var future = getValue(client.futures, messageHash);
+            Future future = ((Future)getValue(client.futures, messageHash));
             (future as Future).resolve();
             callDynamically(client as WebSocketClient, "resolve", new object[] {this.balance, subscriptionHash});
         }
@@ -942,7 +942,7 @@ public partial class whitebit : ccxt.whitebit
             {
                 string? currencyId = this.safeString(balanceDict, "a");
                 string? code = this.safeCurrencyCode(currencyId);
-                object account = this.account();
+                Dictionary<string, object> account = this.account();
                 ((IDictionary<string,object>)account)["free"] = this.safeString(balanceDict, "av");
                 ((IDictionary<string,object>)account)["total"] = this.safeString(balanceDict, "B");
                 ((IDictionary<string,object>)account)["debt"] = this.safeString(balanceDict, "b");
@@ -958,7 +958,7 @@ public partial class whitebit : ccxt.whitebit
                     string? currencyId = ((string)getValue(keys, j));
                     IDictionary<string, object> rawBalance = this.safeDict(balanceDict, currencyId, new Dictionary<string, object>() {});
                     string? code = this.safeCurrencyCode(currencyId);
-                    object account = this.account();
+                    Dictionary<string, object> account = this.account();
                     ((IDictionary<string,object>)account)["free"] = this.safeString(rawBalance, "available");
                     ((IDictionary<string,object>)account)["used"] = this.safeString(rawBalance, "freeze");
                     if (isTrue(!isEqual(code, null)))
@@ -1031,7 +1031,7 @@ public partial class whitebit : ccxt.whitebit
             return await this.watch(url, messageHash, message, method, subscription);
         } else
         {
-            object subscription = this.safeValue(((WebSocketClient)client).subscriptions, method, new Dictionary<string, object>() {});
+            IDictionary<string, object> subscription = this.safeDict(((WebSocketClient)client).subscriptions, method, new Dictionary<string, object>() {});
             bool hasSymbolSubscription = true;
             Dictionary<string, object> market = this.market(symbol);
             object marketId = getValue(market, "id");
@@ -1185,7 +1185,7 @@ public partial class whitebit : ccxt.whitebit
         //
         //     { error: null, result: { status: "success" }, id: 1656084550 }
         //
-        var future = getValue(client.futures, "authenticated");
+        Future future = ((Future)getValue(client.futures, "authenticated"));
         (future as Future).resolve(1);
         return message;
     }
@@ -1271,7 +1271,7 @@ public partial class whitebit : ccxt.whitebit
     {
         // not every method stores its subscription
         // as an object so we can't do indeById here
-        object subs = ((WebSocketClient)client).subscriptions;
+        IDictionary<string, object> subs = ((WebSocketClient)client).subscriptions;
         List<object> values = new List<object>(((IDictionary<string,object>)subs).Values);
         for (int i = 0; isLessThan(i, getArrayLength(values)); postFixIncrement(ref i))
         {

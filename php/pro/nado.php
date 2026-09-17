@@ -914,13 +914,13 @@ class nado extends \ccxt\async\nado {
         $response = Async\await($this->watch_execute_request($requestIdString, $request));
         //
         //     {
-        //         "status" => "success",
-        //         "signature" => "0x...",
-        //         "data" => array(
-        //             "digest" => "0x..."
-        //         ),
-        //         "request_type" => "execute_place_order",
-        //         "id" => 100
+        //         "status": "success",
+        //         "signature": "0x...",
+        //         "data": {
+        //             "digest": "0x..."
+        //         },
+        //         "request_type": "execute_place_order",
+        //         "id": 100
         //     }
         //
         return $this->parse_order($this->extend(array( 'place_order' => $placeOrder ), $response), $market);
@@ -959,7 +959,7 @@ class nado extends \ccxt\async\nado {
         $this->check_required_credentials();
         Async\await($this->load_markets());
         $market = $this->market($symbol);
-        // for cancel_and_place the $request $id is echoed from the nested place_order object
+        // for cancel_and_place the request id is echoed from the nested place_order object
         $params = $this->extend(array( 'id' => $this->request_id() ), $params);
         $requestIdString = $this->safe_string($params, 'id');
         if ($requestIdString === null) {
@@ -969,13 +969,13 @@ class nado extends \ccxt\async\nado {
         $response = Async\await($this->watch_execute_request($requestIdString, $request));
         //
         //     {
-        //         "status" => "success",
-        //         "signature" => "0x...",
-        //         "data" => array(
-        //             "digest" => "0x..."
-        //         ),
-        //         "request_type" => "execute_cancel_and_place",
-        //         "id" => 100
+        //         "status": "success",
+        //         "signature": "0x...",
+        //         "data": {
+        //             "digest": "0x..."
+        //         },
+        //         "request_type": "execute_cancel_and_place",
+        //         "id": 100
         //     }
         //
         $cancelAndPlace = $this->safe_dict($request, 'cancel_and_place', array());
@@ -1044,13 +1044,13 @@ class nado extends \ccxt\async\nado {
         $response = Async\await($this->watch_execute_request($requestIdString, $request));
         //
         //     {
-        //         "status" => "success",
-        //         "signature" => "0x...",
-        //         "data" => array(
-        //             "cancelled_orders" => array()
-        //         ),
-        //         "request_type" => "execute_cancel_orders",
-        //         "id" => 100
+        //         "status": "success",
+        //         "signature": "0x...",
+        //         "data": {
+        //             "cancelled_orders": []
+        //         },
+        //         "request_type": "execute_cancel_orders",
+        //         "id": 100
         //     }
         //
         $data = $this->safe_dict($response, 'data', array());
@@ -1112,7 +1112,7 @@ class nado extends \ccxt\async\nado {
     private function do_watch_execute_request(?string $requestIdString, mixed $request) {
         // the v2 gateway dispatches requests concurrently, so responses arrive
         // in completion order, not send order — every execute carries a unique
-        // $request id and its response is correlated by the echoed id
+        // request id and its response is correlated by the echoed id
         if ($requestIdString === null) {
             throw new ArgumentsRequired($this->id . ' watchExecuteRequest() requires requestIdString');
         }
@@ -1366,9 +1366,11 @@ class nado extends \ccxt\async\nado {
         if ($value === null) {
             return null;
         }
-        $length = count($value);
-        if ($length > 13) {
-            return $this->parse_to_int(mb_substr($value, 0, $length - 6 - 0));
+        // keep the string-size reads inline: assigning the size to a standalone
+        // local is the regex transpiler's ARRAY hint and would emit php count()
+        // on a string, breaking every ws parser with a TypeError
+        if (strlen($value) > 13) {
+            return $this->parse_to_int(mb_substr($value, 0, strlen($value) - 6 - 0));
         }
         return $this->safe_integer($message, $key);
     }
@@ -1376,13 +1378,13 @@ class nado extends \ccxt\async\nado {
     public function parse_ws_trade(array $trade, ?array $market = null): array {
         //
         //     {
-        //         "type" => "trade",
-        //         "timestamp" => "1676151190656903000",
-        //         "product_id" => 1,
-        //         "price" => "25000000000000000000000",
-        //         "taker_qty" => "1000000000000000000",
-        //         "maker_qty" => "1000000000000000000",
-        //         "is_taker_buyer" => true
+        //         "type": "trade",
+        //         "timestamp": "1676151190656903000",
+        //         "product_id": 1,
+        //         "price": "25000000000000000000000",
+        //         "taker_qty": "1000000000000000000",
+        //         "maker_qty": "1000000000000000000",
+        //         "is_taker_buyer": true
         //     }
         //
         $marketId = $this->safe_string($trade, 'product_id');
@@ -1413,21 +1415,21 @@ class nado extends \ccxt\async\nado {
     public function parse_ws_my_trade(array $trade, ?array $market = null): array {
         //
         //     {
-        //         "type" => "fill",
-        //         "timestamp" => "1695081920633151000",
-        //         "product_id" => 1,
-        //         "subaccount" => "0x...",
-        //         "order_digest" => "0x...",
-        //         "appendix" => "1",
-        //         "filled_qty" => "18000000000000000",
-        //         "remaining_qty" => "82000000000000000",
-        //         "original_qty" => "100000000000000000",
-        //         "price" => "25000000000000000000000",
-        //         "is_taker" => true,
-        //         "is_bid" => true,
-        //         "fee" => "4500000000000000",
-        //         "submission_idx" => 1,
-        //         "id" => 100
+        //         "type": "fill",
+        //         "timestamp": "1695081920633151000",
+        //         "product_id": 1,
+        //         "subaccount": "0x...",
+        //         "order_digest": "0x...",
+        //         "appendix": "1",
+        //         "filled_qty": "18000000000000000",
+        //         "remaining_qty": "82000000000000000",
+        //         "original_qty": "100000000000000000",
+        //         "price": "25000000000000000000000",
+        //         "is_taker": true,
+        //         "is_bid": true,
+        //         "fee": "4500000000000000",
+        //         "submission_idx": 1,
+        //         "id": 100
         //     }
         //
         $marketId = $this->safe_string($trade, 'product_id');
@@ -1453,7 +1455,7 @@ class nado extends \ccxt\async\nado {
         }
         return $this->safe_trade(array(
             'info' => $trade,
-            // the id is required => myTrades are cached by id, and fills with an null id
+            // the id is required: myTrades are cached by id, and fills with an undefined id
             // would overwrite each other in the cache, collapsing the history to the last fill
             'id' => $this->safe_string_2($trade, 'id', 'submission_idx'),
             'timestamp' => $timestamp,
@@ -1502,15 +1504,15 @@ class nado extends \ccxt\async\nado {
     public function handle_ohlcv(Client $client, mixed $message) {
         //
         //     {
-        //         "type" => "latest_candlestick",
-        //         "timestamp" => "1782179760",
-        //         "product_id" => 2,
-        //         "granularity" => 60,
-        //         "open_x18" => "64148000000000000000000",
-        //         "high_x18" => "64148000000000000000000",
-        //         "low_x18" => "64148000000000000000000",
-        //         "close_x18" => "64148000000000000000000",
-        //         "volume" => "24250000000000000"
+        //         "type": "latest_candlestick",
+        //         "timestamp": "1782179760",
+        //         "product_id": 2,
+        //         "granularity": 60,
+        //         "open_x18": "64148000000000000000000",
+        //         "high_x18": "64148000000000000000000",
+        //         "low_x18": "64148000000000000000000",
+        //         "close_x18": "64148000000000000000000",
+        //         "volume": "24250000000000000"
         //     }
         //
         $marketId = $this->safe_string($message, 'product_id');
@@ -1539,15 +1541,15 @@ class nado extends \ccxt\async\nado {
     public function parse_ws_order(array $order, ?array $market = null): array {
         //
         //     {
-        //         "type" => "order_update",
-        //         "timestamp" => "1695081920633151000",
-        //         "product_id" => 1,
-        //         "digest" => "0xf7712b63ccf70358db8f201e9bf33977423e7a63f6a16f6dab180bdd580f7c6c",
-        //         "amount" => "82000000000000000",
-        //         "reason" => "filled",
-        //         "filled_qty" => "18000000000000000",
-        //         "filled_price" => "25000000000000000000000",
-        //         "id" => 100
+        //         "type": "order_update",
+        //         "timestamp": "1695081920633151000",
+        //         "product_id": 1,
+        //         "digest": "0xf7712b63ccf70358db8f201e9bf33977423e7a63f6a16f6dab180bdd580f7c6c",
+        //         "amount": "82000000000000000",
+        //         "reason": "filled",
+        //         "filled_qty": "18000000000000000",
+        //         "filled_price": "25000000000000000000000",
+        //         "id": 100
         //     }
         //
         $marketId = $this->safe_string($order, 'product_id');
@@ -1616,14 +1618,14 @@ class nado extends \ccxt\async\nado {
     public function parse_ws_position(array $position, ?array $market = null): array {
         //
         //     {
-        //         "type" => "position_change",
-        //         "timestamp" => "1695081920633151000",
-        //         "product_id" => 2,
-        //         "subaccount" => "0x15f43d1f2dee81424afd891943262aa90f22cc2a64656661756c740000000000",
-        //         "isolated" => false,
-        //         "amount" => "100000000000000000",
-        //         "v_quote_amount" => "-3033500000000000000000",
-        //         "reason" => "match_orders"
+        //         "type": "position_change",
+        //         "timestamp": "1695081920633151000",
+        //         "product_id": 2,
+        //         "subaccount": "0x15f43d1f2dee81424afd891943262aa90f22cc2a64656661756c740000000000",
+        //         "isolated": false,
+        //         "amount": "100000000000000000",
+        //         "v_quote_amount": "-3033500000000000000000",
+        //         "reason": "match_orders"
         //     }
         //
         $marketId = $this->safe_string($position, 'product_id');
@@ -1704,13 +1706,13 @@ class nado extends \ccxt\async\nado {
     public function parse_ws_bid_ask(array $bidask, ?array $market = null): array {
         //
         //     {
-        //         "type" => "best_bid_offer",
-        //         "timestamp" => "1676151190656903000",
-        //         "product_id" => 1,
-        //         "bid_price" => "24990000000000000000000",
-        //         "bid_qty" => "5000000000000000000",
-        //         "ask_price" => "25010000000000000000000",
-        //         "ask_qty" => "3000000000000000000"
+        //         "type": "best_bid_offer",
+        //         "timestamp": "1676151190656903000",
+        //         "product_id": 1,
+        //         "bid_price": "24990000000000000000000",
+        //         "bid_qty": "5000000000000000000",
+        //         "ask_price": "25010000000000000000000",
+        //         "ask_qty": "3000000000000000000"
         //     }
         //
         $marketId = $this->safe_string($bidask, 'product_id');
@@ -1747,10 +1749,10 @@ class nado extends \ccxt\async\nado {
     public function parse_ws_all_bids_asks(array $message): array {
         //
         //     {
-        //         "type" => "all_bbo",
-        //         "time" => "1781750134714",
-        //         "bbos" => {
-        //             "2" => array( "bid" => "64924000000000000000000", "ask" => "64935000000000000000000" )
+        //         "type": "all_bbo",
+        //         "time": "1781750134714",
+        //         "bbos": {
+        //             "2": { "bid": "64924000000000000000000", "ask": "64935000000000000000000" }
         //         }
         //     }
         //
@@ -1807,13 +1809,13 @@ class nado extends \ccxt\async\nado {
     public function handle_order_book(Client $client, mixed $message) {
         //
         //     {
-        //         "type" => "book_depth",
-        //         "min_timestamp" => "1683805381879572835",
-        //         "max_timestamp" => "1683805381879572835",
-        //         "last_max_timestamp" => "1683805381771464799",
-        //         "product_id" => 1,
-        //         "bids" => [["21594490000000000000000", "51007390115411548"]],
-        //         "asks" => [["21694490000000000000000", "0"]]
+        //         "type": "book_depth",
+        //         "min_timestamp": "1683805381879572835",
+        //         "max_timestamp": "1683805381879572835",
+        //         "last_max_timestamp": "1683805381771464799",
+        //         "product_id": 1,
+        //         "bids": [["21594490000000000000000", "51007390115411548"]],
+        //         "asks": [["21694490000000000000000", "0"]]
         //     }
         //
         $marketId = $this->safe_string($message, 'product_id');
@@ -1861,13 +1863,13 @@ class nado extends \ccxt\async\nado {
     public function handle_execute_response(Client $client, mixed $message) {
         //
         //     {
-        //         "status" => "success",
-        //         "signature" => "0x...",
-        //         "data" => array(
-        //             "digest" => "0x..."
-        //         ),
-        //         "request_type" => "execute_place_order",
-        //         "id" => 100
+        //         "status": "success",
+        //         "signature": "0x...",
+        //         "data": {
+        //             "digest": "0x..."
+        //         },
+        //         "request_type": "execute_place_order",
+        //         "id": 100
         //     }
         //
         $id = $this->safe_string($message, 'id');
@@ -1988,7 +1990,7 @@ class nado extends \ccxt\async\nado {
         $gatewayUrl = $this->urls['api']['ws']['gateway'];
         if ($client->url === $gatewayUrl) {
             // the v2 gateway is kept alive with protocol-level ping frames,
-            // returning null makes the $client send one instead of a message
+            // returning undefined makes the client send one instead of a message
             return null;
         }
         return array(
@@ -2001,12 +2003,12 @@ class nado extends \ccxt\async\nado {
     public function handle_pong(Client $client, mixed $message) {
         //
         //     {
-        //         "result" => array(
-        //             "method" => "pong",
-        //             "server_time" => "1780000000123",
-        //             "client_time" => "1780000000000"
-        //         ),
-        //         "id" => 10
+        //         "result": {
+        //             "method": "pong",
+        //             "server_time": "1780000000123",
+        //             "client_time": "1780000000000"
+        //         },
+        //         "id": 10
         //     }
         //
         $result = $this->safe_dict($message, 'result', array());
@@ -2052,13 +2054,13 @@ class nado extends \ccxt\async\nado {
         $method = $this->safe_string($result, 'method');
         if ($method === 'pong') {
             // pong replies carry both 'id' and 'result' so they must be routed
-            // before the $subscription-ack branch below swallows them
+            // before the subscription-ack branch below swallows them
             $this->handle_pong($client, $message);
             return;
         }
         $requestType = $this->safe_string($message, 'request_type');
         if ($requestType !== null) {
-            // v2 gateway execute responses carry 'request_type' and the echoed request $id
+            // v2 gateway execute responses carry 'request_type' and the echoed request id
             $this->handle_execute_response($client, $message);
             return;
         }

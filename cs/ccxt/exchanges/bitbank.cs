@@ -5,7 +5,7 @@ namespace ccxt;
 
 public partial class bitbank : Exchange
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "id", "bitbank" },
@@ -362,7 +362,7 @@ public partial class bitbank : Exchange
         return ccxt.BaseExchange.ToMarketInterfaceList(this.parseMarkets(pairs));
     }
 
-    public override object parseMarket(object entry)
+    public override Dictionary<string, object> parseMarket(object entry)
     {
         string? id = this.safeString(entry, "name");
         string? baseId = this.safeString(entry, "base_asset");
@@ -624,7 +624,7 @@ public partial class bitbank : Exchange
         //     }
         //
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        object pairs = this.safeValue(data, "pairs", new List<object>() {});
+        List<object> pairs = this.safeList(data, "pairs", new List<object>() {});
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         for (int i = 0; isLessThan(i, getArrayLength(pairs)); postFixIncrement(ref i))
         {
@@ -731,13 +731,13 @@ public partial class bitbank : Exchange
             { "datetime", null },
         };
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        object assets = this.safeValue(data, "assets", new List<object>() {});
+        List<object> assets = this.safeList(data, "assets", new List<object>() {});
         for (int i = 0; isLessThan(i, getArrayLength(assets)); postFixIncrement(ref i))
         {
             object balance = getValue(assets, i);
             string? currencyId = this.safeString(balance, "asset");
             string? code = this.safeCurrencyCode(currencyId);
-            object account = this.account();
+            Dictionary<string, object> account = this.account();
             ((IDictionary<string,object>)account)["free"] = this.safeString(balance, "free_amount");
             ((IDictionary<string,object>)account)["used"] = this.safeString(balance, "locked_amount");
             ((IDictionary<string,object>)account)["total"] = this.safeString(balance, "onhand_amount");

@@ -82,7 +82,7 @@ class luno extends luno$1["default"] {
         //         "timestamp": 1660598775360
         //     }
         //
-        const rawTrades = this.safeValue(message, 'trade_updates', []);
+        const rawTrades = this.safeList(message, 'trade_updates', []);
         const length = rawTrades.length;
         if (length === 0) {
             return;

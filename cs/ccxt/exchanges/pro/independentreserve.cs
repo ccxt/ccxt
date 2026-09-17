@@ -7,7 +7,7 @@ namespace ccxt.pro;
 public partial class independentreserve { public independentreserve(object args = null) : base(args) { } }
 public partial class independentreserve : ccxt.independentreserve
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "has", new Dictionary<string, object>() {
@@ -287,7 +287,7 @@ public partial class independentreserve : ccxt.independentreserve
 
     public override void handleDelta(object bookside, object delta)
     {
-        object bidAsk = this.parseOrderBookBidAsk(delta, "Price", "Volume");
+        List<object> bidAsk = this.parseOrderBookBidAsk(delta, "Price", "Volume");
         (bookside as IOrderBookSide).storeArray(bidAsk);
     }
 

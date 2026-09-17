@@ -7,7 +7,7 @@ namespace ccxt.pro;
 public partial class gemini { public gemini(object args = null) : base(args) { } }
 public partial class gemini : ccxt.gemini
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "has", new Dictionary<string, object>() {
@@ -365,7 +365,7 @@ public partial class gemini : ccxt.gemini
         string marketId = ((string)this.safeString(message, "symbol", "")).ToLower();
         Dictionary<string, object> market = this.safeMarket(marketId);
         string? symbol = this.safeSymbol(marketId, market);
-        object changes = this.safeValue(message, "changes", new List<object>() {});
+        List<object> changes = this.safeList(message, "changes", new List<object>() {});
         object timeframe = this.findTimeframe(timeframeId);
         object ohlcvsBySymbol = this.safeValue(this.ohlcvs, symbol);
         if (isTrue(isEqual(ohlcvsBySymbol, null)))
@@ -435,7 +435,7 @@ public partial class gemini : ccxt.gemini
     public virtual void handleOrderBook(WebSocketClient client, object message)
     {
         bool isInitial = isTrue(isTrue((inOp(message, "auction_events"))) && isTrue((inOp(message, "trades")))) && isTrue((inOp(message, "changes")));
-        object changes = this.safeValue(message, "changes", new List<object>() {});
+        List<object> changes = this.safeList(message, "changes", new List<object>() {});
         string? marketId = this.safeStringLower(message, "symbol");
         Dictionary<string, object> market = this.safeMarket(marketId);
         object symbol = getValue(market, "symbol");

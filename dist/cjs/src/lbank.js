@@ -559,7 +559,7 @@ class lbank extends lbank$1["default"] {
         //         "ts": 1691560288484
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         const result = [];
         for (let i = 0; i < data.length; i++) {
             const market = data[i];
@@ -655,7 +655,7 @@ class lbank extends lbank$1["default"] {
         //         "success": true
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         const result = [];
         for (let i = 0; i < data.length; i++) {
             const market = data[i];
@@ -1337,7 +1337,7 @@ class lbank extends lbank$1["default"] {
         const toBtc = this.safeValue(data, 'toBtc');
         if (toBtc !== undefined) {
             const used = this.safeValue(data, 'freeze', {});
-            const free = this.safeValue(data, 'free', {});
+            const free = this.safeDict(data, 'free', {});
             const currencies = Object.keys(free);
             for (let i = 0; i < currencies.length; i++) {
                 const currencyId = currencies[i];
@@ -1604,7 +1604,7 @@ class lbank extends lbank$1["default"] {
         }
         const request = {};
         const response = await this.spotPrivatePostSupplementCustomerTradeFee(this.extend(request, params));
-        const fees = this.safeValue(response, 'data', []);
+        const fees = this.safeList(response, 'data', []);
         const result = {};
         for (let i = 0; i < fees.length; i++) {
             const fee = this.parseTradingFee(fees[i]);
@@ -1997,7 +1997,7 @@ class lbank extends lbank$1["default"] {
         //          "ts":1647455270776
         //      }
         //
-        const result = this.safeValue(response, 'data', []);
+        const result = this.safeList(response, 'data', []);
         const numOrders = result.length;
         if (numOrders === 1) {
             return this.parseOrder(result[0]);
@@ -2741,13 +2741,13 @@ class lbank extends lbank$1["default"] {
         //        "code": 0
         //    }
         //
-        const result = this.safeValue(response, 'data', []);
+        const result = this.safeList(response, 'data', []);
         const withdrawFees = {};
         for (let i = 0; i < result.length; i++) {
             const entry = result[i];
             const currencyId = this.safeString(entry, 'coin');
             const code = this.safeCurrencyCode(currencyId);
-            const networkList = this.safeValue(entry, 'networkList', []);
+            const networkList = this.safeList(entry, 'networkList', []);
             if (code !== undefined) {
                 withdrawFees[code] = {};
             }
@@ -2805,7 +2805,7 @@ class lbank extends lbank$1["default"] {
         //        "ts": "1663364435973"
         //    }
         //
-        const result = this.safeValue(response, 'data', []);
+        const result = this.safeList(response, 'data', []);
         const withdrawFees = {};
         for (let i = 0; i < result.length; i++) {
             const item = result[i];
@@ -3028,7 +3028,7 @@ class lbank extends lbank$1["default"] {
         //
         const result = this.depositWithdrawFee(fee);
         const code = this.safeString(currency, 'code');
-        const networkList = this.safeValue(fee, 'networkList', []);
+        const networkList = this.safeList(fee, 'networkList', []);
         for (let j = 0; j < networkList.length; j++) {
             const networkEntry = networkList[j];
             const networkCode = this.networkIdToCode(this.safeString(networkEntry, 'name'), code);

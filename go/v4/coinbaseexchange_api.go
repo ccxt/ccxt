@@ -8,516 +8,516 @@
 package ccxt
 
 // PublicGetCurrencies returns a channel that yields a JSON array.
-func (this *CoinbaseexchangeCore) PublicGetCurrencies(args ...any) <-chan any {
+func (this *Coinbaseexchange) PublicGetCurrencies(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetCurrencies", args...)
 }
 
 // PublicGetProducts returns a channel that yields a JSON array.
-func (this *CoinbaseexchangeCore) PublicGetProducts(args ...any) <-chan any {
+func (this *Coinbaseexchange) PublicGetProducts(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetProducts", args...)
 }
 
 // PublicGetProductsId returns a channel that yields a JSON object.
-func (this *CoinbaseexchangeCore) PublicGetProductsId(args ...any) <-chan any {
+func (this *Coinbaseexchange) PublicGetProductsId(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetProductsId", args...)
 }
 
 // PublicGetProductsIdBook returns a channel that yields a JSON object.
-func (this *CoinbaseexchangeCore) PublicGetProductsIdBook(args ...any) <-chan any {
+func (this *Coinbaseexchange) PublicGetProductsIdBook(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetProductsIdBook", args...)
 }
 
 // PublicGetProductsIdCandles returns a channel that yields a JSON array.
-func (this *CoinbaseexchangeCore) PublicGetProductsIdCandles(args ...any) <-chan any {
+func (this *Coinbaseexchange) PublicGetProductsIdCandles(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetProductsIdCandles", args...)
 }
 
 // PublicGetProductsIdStats returns a channel that yields a JSON object.
-func (this *CoinbaseexchangeCore) PublicGetProductsIdStats(args ...any) <-chan any {
+func (this *Coinbaseexchange) PublicGetProductsIdStats(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetProductsIdStats", args...)
 }
 
 // PublicGetProductsIdTicker returns a channel that yields a JSON object.
-func (this *CoinbaseexchangeCore) PublicGetProductsIdTicker(args ...any) <-chan any {
+func (this *Coinbaseexchange) PublicGetProductsIdTicker(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetProductsIdTicker", args...)
 }
 
 // PublicGetProductsIdTrades returns a channel that yields a JSON array.
-func (this *CoinbaseexchangeCore) PublicGetProductsIdTrades(args ...any) <-chan any {
+func (this *Coinbaseexchange) PublicGetProductsIdTrades(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetProductsIdTrades", args...)
 }
 
 // PublicGetTime returns a channel that yields a JSON object.
-func (this *CoinbaseexchangeCore) PublicGetTime(args ...any) <-chan any {
+func (this *Coinbaseexchange) PublicGetTime(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetTime", args...)
 }
 
 // PublicGetProductsSparkLines returns a channel that yields a JSON object.
-func (this *CoinbaseexchangeCore) PublicGetProductsSparkLines(args ...any) <-chan any {
+func (this *Coinbaseexchange) PublicGetProductsSparkLines(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetProductsSparkLines", args...)
 }
 
 // PublicGetProductsVolumeSummary returns a channel that yields a JSON array.
-func (this *CoinbaseexchangeCore) PublicGetProductsVolumeSummary(args ...any) <-chan any {
+func (this *Coinbaseexchange) PublicGetProductsVolumeSummary(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetProductsVolumeSummary", args...)
 }
 
 // PublicGetWrappedAssets returns a channel that yields a JSON object.
-func (this *CoinbaseexchangeCore) PublicGetWrappedAssets(args ...any) <-chan any {
+func (this *Coinbaseexchange) PublicGetWrappedAssets(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetWrappedAssets", args...)
 }
 
 // PublicGetWrappedAssetsWrappedAssetId returns a channel that yields a JSON object.
-func (this *CoinbaseexchangeCore) PublicGetWrappedAssetsWrappedAssetId(args ...any) <-chan any {
+func (this *Coinbaseexchange) PublicGetWrappedAssetsWrappedAssetId(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetWrappedAssetsWrappedAssetId", args...)
 }
 
 // PublicGetWrappedAssetsWrappedAssetIdConversionRate returns a channel that yields a JSON object.
-func (this *CoinbaseexchangeCore) PublicGetWrappedAssetsWrappedAssetIdConversionRate(args ...any) <-chan any {
+func (this *Coinbaseexchange) PublicGetWrappedAssetsWrappedAssetIdConversionRate(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetWrappedAssetsWrappedAssetIdConversionRate", args...)
 }
 
 // PrivateGetAddressBook returns a channel that yields a JSON array.
-func (this *CoinbaseexchangeCore) PrivateGetAddressBook(args ...any) <-chan any {
+func (this *Coinbaseexchange) PrivateGetAddressBook(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetAddressBook", args...)
 }
 
 // PrivateGetAddressBookCounterparty returns a channel that yields a JSON array.
-func (this *CoinbaseexchangeCore) PrivateGetAddressBookCounterparty(args ...any) <-chan any {
+func (this *Coinbaseexchange) PrivateGetAddressBookCounterparty(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetAddressBookCounterparty", args...)
 }
 
 // PrivateGetAccounts returns a channel that yields a JSON object.
-func (this *CoinbaseexchangeCore) PrivateGetAccounts(args ...any) <-chan any {
+func (this *Coinbaseexchange) PrivateGetAccounts(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetAccounts", args...)
 }
 
 // PrivateGetAccountsId returns a channel that yields a JSON object.
-func (this *CoinbaseexchangeCore) PrivateGetAccountsId(args ...any) <-chan any {
+func (this *Coinbaseexchange) PrivateGetAccountsId(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetAccountsId", args...)
 }
 
 // PrivateGetAccountsIdHolds returns a channel that yields a JSON array.
-func (this *CoinbaseexchangeCore) PrivateGetAccountsIdHolds(args ...any) <-chan any {
+func (this *Coinbaseexchange) PrivateGetAccountsIdHolds(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetAccountsIdHolds", args...)
 }
 
 // PrivateGetAccountsIdLedger returns a channel that yields a JSON array.
-func (this *CoinbaseexchangeCore) PrivateGetAccountsIdLedger(args ...any) <-chan any {
+func (this *Coinbaseexchange) PrivateGetAccountsIdLedger(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetAccountsIdLedger", args...)
 }
 
 // PrivateGetAccountsIdTransfers returns a channel that yields a JSON array.
-func (this *CoinbaseexchangeCore) PrivateGetAccountsIdTransfers(args ...any) <-chan any {
+func (this *Coinbaseexchange) PrivateGetAccountsIdTransfers(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetAccountsIdTransfers", args...)
 }
 
 // PrivateGetCoinbaseAccounts returns a channel that yields a JSON array.
-func (this *CoinbaseexchangeCore) PrivateGetCoinbaseAccounts(args ...any) <-chan any {
+func (this *Coinbaseexchange) PrivateGetCoinbaseAccounts(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetCoinbaseAccounts", args...)
 }
 
 // PrivateGetFills returns a channel that yields a JSON array.
-func (this *CoinbaseexchangeCore) PrivateGetFills(args ...any) <-chan any {
+func (this *Coinbaseexchange) PrivateGetFills(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetFills", args...)
 }
 
 // PrivateGetFunding returns a channel that yields a JSON object.
-func (this *CoinbaseexchangeCore) PrivateGetFunding(args ...any) <-chan any {
+func (this *Coinbaseexchange) PrivateGetFunding(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetFunding", args...)
 }
 
 // PrivateGetFees returns a channel that yields a JSON object.
-func (this *CoinbaseexchangeCore) PrivateGetFees(args ...any) <-chan any {
+func (this *Coinbaseexchange) PrivateGetFees(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetFees", args...)
 }
 
 // PrivateGetMarginProfileInformation returns a channel that yields a JSON array.
-func (this *CoinbaseexchangeCore) PrivateGetMarginProfileInformation(args ...any) <-chan any {
+func (this *Coinbaseexchange) PrivateGetMarginProfileInformation(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetMarginProfileInformation", args...)
 }
 
 // PrivateGetMarginBuyingPower returns a channel that yields a JSON object.
-func (this *CoinbaseexchangeCore) PrivateGetMarginBuyingPower(args ...any) <-chan any {
+func (this *Coinbaseexchange) PrivateGetMarginBuyingPower(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetMarginBuyingPower", args...)
 }
 
 // PrivateGetMarginWithdrawalPower returns a channel that yields a JSON array.
-func (this *CoinbaseexchangeCore) PrivateGetMarginWithdrawalPower(args ...any) <-chan any {
+func (this *Coinbaseexchange) PrivateGetMarginWithdrawalPower(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetMarginWithdrawalPower", args...)
 }
 
 // PrivateGetMarginWithdrawalPowerAll returns a channel that yields a JSON object.
-func (this *CoinbaseexchangeCore) PrivateGetMarginWithdrawalPowerAll(args ...any) <-chan any {
+func (this *Coinbaseexchange) PrivateGetMarginWithdrawalPowerAll(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetMarginWithdrawalPowerAll", args...)
 }
 
 // PrivateGetMarginExitPlan returns a channel that yields a JSON object.
-func (this *CoinbaseexchangeCore) PrivateGetMarginExitPlan(args ...any) <-chan any {
+func (this *Coinbaseexchange) PrivateGetMarginExitPlan(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetMarginExitPlan", args...)
 }
 
 // PrivateGetMarginLiquidationHistory returns a channel that yields a JSON object.
-func (this *CoinbaseexchangeCore) PrivateGetMarginLiquidationHistory(args ...any) <-chan any {
+func (this *Coinbaseexchange) PrivateGetMarginLiquidationHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetMarginLiquidationHistory", args...)
 }
 
 // PrivateGetMarginPositionRefreshAmounts returns a channel that yields a JSON object.
-func (this *CoinbaseexchangeCore) PrivateGetMarginPositionRefreshAmounts(args ...any) <-chan any {
+func (this *Coinbaseexchange) PrivateGetMarginPositionRefreshAmounts(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetMarginPositionRefreshAmounts", args...)
 }
 
 // PrivateGetMarginStatus returns a channel that yields a JSON object.
-func (this *CoinbaseexchangeCore) PrivateGetMarginStatus(args ...any) <-chan any {
+func (this *Coinbaseexchange) PrivateGetMarginStatus(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetMarginStatus", args...)
 }
 
 // PrivateGetOracle returns a channel that yields a JSON object.
-func (this *CoinbaseexchangeCore) PrivateGetOracle(args ...any) <-chan any {
+func (this *Coinbaseexchange) PrivateGetOracle(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetOracle", args...)
 }
 
 // PrivateGetOrders returns a channel that yields a JSON array.
-func (this *CoinbaseexchangeCore) PrivateGetOrders(args ...any) <-chan any {
+func (this *Coinbaseexchange) PrivateGetOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetOrders", args...)
 }
 
 // PrivateGetOrdersId returns a channel that yields a JSON object.
-func (this *CoinbaseexchangeCore) PrivateGetOrdersId(args ...any) <-chan any {
+func (this *Coinbaseexchange) PrivateGetOrdersId(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetOrdersId", args...)
 }
 
 // PrivateGetOrdersClientClientOid returns a channel that yields a JSON object.
-func (this *CoinbaseexchangeCore) PrivateGetOrdersClientClientOid(args ...any) <-chan any {
+func (this *Coinbaseexchange) PrivateGetOrdersClientClientOid(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetOrdersClientClientOid", args...)
 }
 
 // PrivateGetOtcOrders returns a channel that yields a JSON array.
-func (this *CoinbaseexchangeCore) PrivateGetOtcOrders(args ...any) <-chan any {
+func (this *Coinbaseexchange) PrivateGetOtcOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetOtcOrders", args...)
 }
 
 // PrivateGetPaymentMethods returns a channel that yields a JSON array.
-func (this *CoinbaseexchangeCore) PrivateGetPaymentMethods(args ...any) <-chan any {
+func (this *Coinbaseexchange) PrivateGetPaymentMethods(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetPaymentMethods", args...)
 }
 
 // PrivateGetPosition returns a channel that yields a JSON array.
-func (this *CoinbaseexchangeCore) PrivateGetPosition(args ...any) <-chan any {
+func (this *Coinbaseexchange) PrivateGetPosition(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetPosition", args...)
 }
 
 // PrivateGetProfiles returns a channel that yields a JSON array.
-func (this *CoinbaseexchangeCore) PrivateGetProfiles(args ...any) <-chan any {
+func (this *Coinbaseexchange) PrivateGetProfiles(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetProfiles", args...)
 }
 
 // PrivateGetProfilesId returns a channel that yields a JSON object.
-func (this *CoinbaseexchangeCore) PrivateGetProfilesId(args ...any) <-chan any {
+func (this *Coinbaseexchange) PrivateGetProfilesId(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetProfilesId", args...)
 }
 
 // PrivateGetReportsReportId returns a channel that yields a JSON object.
-func (this *CoinbaseexchangeCore) PrivateGetReportsReportId(args ...any) <-chan any {
+func (this *Coinbaseexchange) PrivateGetReportsReportId(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetReportsReportId", args...)
 }
 
 // PrivateGetTransfers returns a channel that yields a JSON array.
-func (this *CoinbaseexchangeCore) PrivateGetTransfers(args ...any) <-chan any {
+func (this *Coinbaseexchange) PrivateGetTransfers(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetTransfers", args...)
 }
 
 // PrivateGetTransfersTransferId returns a channel that yields a JSON object.
-func (this *CoinbaseexchangeCore) PrivateGetTransfersTransferId(args ...any) <-chan any {
+func (this *Coinbaseexchange) PrivateGetTransfersTransferId(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetTransfersTransferId", args...)
 }
 
 // PrivateGetTravelRules returns a channel that yields a JSON array.
-func (this *CoinbaseexchangeCore) PrivateGetTravelRules(args ...any) <-chan any {
+func (this *Coinbaseexchange) PrivateGetTravelRules(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetTravelRules", args...)
 }
 
 // PrivateGetUsersSelfExchangeLimits returns a channel that yields a JSON object.
-func (this *CoinbaseexchangeCore) PrivateGetUsersSelfExchangeLimits(args ...any) <-chan any {
+func (this *Coinbaseexchange) PrivateGetUsersSelfExchangeLimits(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetUsersSelfExchangeLimits", args...)
 }
 
 // PrivateGetUsersSelfHoldBalances returns a channel that yields a JSON object.
-func (this *CoinbaseexchangeCore) PrivateGetUsersSelfHoldBalances(args ...any) <-chan any {
+func (this *Coinbaseexchange) PrivateGetUsersSelfHoldBalances(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetUsersSelfHoldBalances", args...)
 }
 
 // PrivateGetUsersSelfTrailingVolume returns a channel that yields a JSON object.
-func (this *CoinbaseexchangeCore) PrivateGetUsersSelfTrailingVolume(args ...any) <-chan any {
+func (this *Coinbaseexchange) PrivateGetUsersSelfTrailingVolume(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetUsersSelfTrailingVolume", args...)
 }
 
 // PrivateGetUsersUserIdTradingVolumes returns a channel that yields a JSON object.
-func (this *CoinbaseexchangeCore) PrivateGetUsersUserIdTradingVolumes(args ...any) <-chan any {
+func (this *Coinbaseexchange) PrivateGetUsersUserIdTradingVolumes(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetUsersUserIdTradingVolumes", args...)
 }
 
 // PrivateGetWithdrawalsFeeEstimate returns a channel that yields a JSON object.
-func (this *CoinbaseexchangeCore) PrivateGetWithdrawalsFeeEstimate(args ...any) <-chan any {
+func (this *Coinbaseexchange) PrivateGetWithdrawalsFeeEstimate(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetWithdrawalsFeeEstimate", args...)
 }
 
 // PrivateGetConversionsConversionId returns a channel that yields a JSON object.
-func (this *CoinbaseexchangeCore) PrivateGetConversionsConversionId(args ...any) <-chan any {
+func (this *Coinbaseexchange) PrivateGetConversionsConversionId(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetConversionsConversionId", args...)
 }
 
 // PrivateGetConversions returns a channel that yields a JSON array.
-func (this *CoinbaseexchangeCore) PrivateGetConversions(args ...any) <-chan any {
+func (this *Coinbaseexchange) PrivateGetConversions(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetConversions", args...)
 }
 
 // PrivateGetConversionsFees returns a channel that yields a JSON array.
-func (this *CoinbaseexchangeCore) PrivateGetConversionsFees(args ...any) <-chan any {
+func (this *Coinbaseexchange) PrivateGetConversionsFees(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetConversionsFees", args...)
 }
 
 // PrivateGetLoansLendingOverview returns a channel that yields a JSON object.
-func (this *CoinbaseexchangeCore) PrivateGetLoansLendingOverview(args ...any) <-chan any {
+func (this *Coinbaseexchange) PrivateGetLoansLendingOverview(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetLoansLendingOverview", args...)
 }
 
 // PrivateGetLoansLendingOverviewXm returns a channel that yields a JSON object.
-func (this *CoinbaseexchangeCore) PrivateGetLoansLendingOverviewXm(args ...any) <-chan any {
+func (this *Coinbaseexchange) PrivateGetLoansLendingOverviewXm(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetLoansLendingOverviewXm", args...)
 }
 
 // PrivateGetLoansLoanPreview returns a channel that yields a JSON object.
-func (this *CoinbaseexchangeCore) PrivateGetLoansLoanPreview(args ...any) <-chan any {
+func (this *Coinbaseexchange) PrivateGetLoansLoanPreview(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetLoansLoanPreview", args...)
 }
 
 // PrivateGetLoansLoanPreviewXm returns a channel that yields a JSON object.
-func (this *CoinbaseexchangeCore) PrivateGetLoansLoanPreviewXm(args ...any) <-chan any {
+func (this *Coinbaseexchange) PrivateGetLoansLoanPreviewXm(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetLoansLoanPreviewXm", args...)
 }
 
 // PrivateGetLoansRepaymentPreview returns a channel that yields a JSON object.
-func (this *CoinbaseexchangeCore) PrivateGetLoansRepaymentPreview(args ...any) <-chan any {
+func (this *Coinbaseexchange) PrivateGetLoansRepaymentPreview(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetLoansRepaymentPreview", args...)
 }
 
 // PrivateGetLoansRepaymentPreviewXm returns a channel that yields a JSON object.
-func (this *CoinbaseexchangeCore) PrivateGetLoansRepaymentPreviewXm(args ...any) <-chan any {
+func (this *Coinbaseexchange) PrivateGetLoansRepaymentPreviewXm(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetLoansRepaymentPreviewXm", args...)
 }
 
 // PrivateGetLoansInterestLoanId returns a channel that yields a JSON array.
-func (this *CoinbaseexchangeCore) PrivateGetLoansInterestLoanId(args ...any) <-chan any {
+func (this *Coinbaseexchange) PrivateGetLoansInterestLoanId(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetLoansInterestLoanId", args...)
 }
 
 // PrivateGetLoansInterestHistoryLoanId returns a channel that yields a JSON array.
-func (this *CoinbaseexchangeCore) PrivateGetLoansInterestHistoryLoanId(args ...any) <-chan any {
+func (this *Coinbaseexchange) PrivateGetLoansInterestHistoryLoanId(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetLoansInterestHistoryLoanId", args...)
 }
 
 // PrivateGetLoansInterest returns a channel that yields a JSON array.
-func (this *CoinbaseexchangeCore) PrivateGetLoansInterest(args ...any) <-chan any {
+func (this *Coinbaseexchange) PrivateGetLoansInterest(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetLoansInterest", args...)
 }
 
 // PrivateGetLoansAssets returns a channel that yields a JSON object.
-func (this *CoinbaseexchangeCore) PrivateGetLoansAssets(args ...any) <-chan any {
+func (this *Coinbaseexchange) PrivateGetLoansAssets(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetLoansAssets", args...)
 }
 
 // PrivateGetLoans returns a channel that yields a JSON array.
-func (this *CoinbaseexchangeCore) PrivateGetLoans(args ...any) <-chan any {
+func (this *Coinbaseexchange) PrivateGetLoans(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetLoans", args...)
 }
 
 // PrivateGetLoansOptions returns a channel that yields a JSON array.
-func (this *CoinbaseexchangeCore) PrivateGetLoansOptions(args ...any) <-chan any {
+func (this *Coinbaseexchange) PrivateGetLoansOptions(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetLoansOptions", args...)
 }
 
 // PrivateGetWrappedAssetsRedeem returns a channel that yields a JSON array.
-func (this *CoinbaseexchangeCore) PrivateGetWrappedAssetsRedeem(args ...any) <-chan any {
+func (this *Coinbaseexchange) PrivateGetWrappedAssetsRedeem(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetWrappedAssetsRedeem", args...)
 }
 
 // PrivateGetWrappedAssetsRedeemRedeemId returns a channel that yields a JSON object.
-func (this *CoinbaseexchangeCore) PrivateGetWrappedAssetsRedeemRedeemId(args ...any) <-chan any {
+func (this *Coinbaseexchange) PrivateGetWrappedAssetsRedeemRedeemId(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetWrappedAssetsRedeemRedeemId", args...)
 }
 
 // PrivateGetWrappedAssetsStakeWrap returns a channel that yields a JSON array.
-func (this *CoinbaseexchangeCore) PrivateGetWrappedAssetsStakeWrap(args ...any) <-chan any {
+func (this *Coinbaseexchange) PrivateGetWrappedAssetsStakeWrap(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetWrappedAssetsStakeWrap", args...)
 }
 
 // PrivateGetWrappedAssetsStakeWrapStakeWrapId returns a channel that yields a JSON object.
-func (this *CoinbaseexchangeCore) PrivateGetWrappedAssetsStakeWrapStakeWrapId(args ...any) <-chan any {
+func (this *Coinbaseexchange) PrivateGetWrappedAssetsStakeWrapStakeWrapId(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetWrappedAssetsStakeWrapStakeWrapId", args...)
 }
 
 // PrivatePostConversions returns a channel that yields a JSON object.
-func (this *CoinbaseexchangeCore) PrivatePostConversions(args ...any) <-chan any {
+func (this *Coinbaseexchange) PrivatePostConversions(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostConversions", args...)
 }
 
 // PrivatePostDepositsCoinbaseAccount returns a channel that yields a JSON object.
-func (this *CoinbaseexchangeCore) PrivatePostDepositsCoinbaseAccount(args ...any) <-chan any {
+func (this *Coinbaseexchange) PrivatePostDepositsCoinbaseAccount(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostDepositsCoinbaseAccount", args...)
 }
 
 // PrivatePostDepositsPaymentMethod returns a channel that yields a JSON object.
-func (this *CoinbaseexchangeCore) PrivatePostDepositsPaymentMethod(args ...any) <-chan any {
+func (this *Coinbaseexchange) PrivatePostDepositsPaymentMethod(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostDepositsPaymentMethod", args...)
 }
 
 // PrivatePostCoinbaseAccountsIdAddresses returns a channel that yields a JSON object.
-func (this *CoinbaseexchangeCore) PrivatePostCoinbaseAccountsIdAddresses(args ...any) <-chan any {
+func (this *Coinbaseexchange) PrivatePostCoinbaseAccountsIdAddresses(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostCoinbaseAccountsIdAddresses", args...)
 }
 
 // PrivatePostAddressBook returns a channel that yields a JSON object.
-func (this *CoinbaseexchangeCore) PrivatePostAddressBook(args ...any) <-chan any {
+func (this *Coinbaseexchange) PrivatePostAddressBook(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAddressBook", args...)
 }
 
 // PrivatePostFundingRepay returns a channel that yields a JSON object.
-func (this *CoinbaseexchangeCore) PrivatePostFundingRepay(args ...any) <-chan any {
+func (this *Coinbaseexchange) PrivatePostFundingRepay(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostFundingRepay", args...)
 }
 
 // PrivatePostOrders returns a channel that yields a JSON object.
-func (this *CoinbaseexchangeCore) PrivatePostOrders(args ...any) <-chan any {
+func (this *Coinbaseexchange) PrivatePostOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostOrders", args...)
 }
 
 // PrivatePostPositionClose returns a channel that yields a JSON object.
-func (this *CoinbaseexchangeCore) PrivatePostPositionClose(args ...any) <-chan any {
+func (this *Coinbaseexchange) PrivatePostPositionClose(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostPositionClose", args...)
 }
 
 // PrivatePostProfiles returns a channel that yields a JSON object.
-func (this *CoinbaseexchangeCore) PrivatePostProfiles(args ...any) <-chan any {
+func (this *Coinbaseexchange) PrivatePostProfiles(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostProfiles", args...)
 }
 
 // PrivatePostProfilesMarginTransfer returns a channel that yields a JSON object.
-func (this *CoinbaseexchangeCore) PrivatePostProfilesMarginTransfer(args ...any) <-chan any {
+func (this *Coinbaseexchange) PrivatePostProfilesMarginTransfer(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostProfilesMarginTransfer", args...)
 }
 
 // PrivatePostProfilesTransfer returns a channel that yields a JSON object.
-func (this *CoinbaseexchangeCore) PrivatePostProfilesTransfer(args ...any) <-chan any {
+func (this *Coinbaseexchange) PrivatePostProfilesTransfer(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostProfilesTransfer", args...)
 }
 
 // PrivatePostReports returns a channel that yields a JSON object.
-func (this *CoinbaseexchangeCore) PrivatePostReports(args ...any) <-chan any {
+func (this *Coinbaseexchange) PrivatePostReports(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostReports", args...)
 }
 
 // PrivatePostWithdrawalsCoinbase returns a channel that yields a JSON object.
-func (this *CoinbaseexchangeCore) PrivatePostWithdrawalsCoinbase(args ...any) <-chan any {
+func (this *Coinbaseexchange) PrivatePostWithdrawalsCoinbase(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostWithdrawalsCoinbase", args...)
 }
 
 // PrivatePostWithdrawalsCoinbaseAccount returns a channel that yields a JSON object.
-func (this *CoinbaseexchangeCore) PrivatePostWithdrawalsCoinbaseAccount(args ...any) <-chan any {
+func (this *Coinbaseexchange) PrivatePostWithdrawalsCoinbaseAccount(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostWithdrawalsCoinbaseAccount", args...)
 }
 
 // PrivatePostWithdrawalsCounterparty returns a channel that yields a JSON object.
-func (this *CoinbaseexchangeCore) PrivatePostWithdrawalsCounterparty(args ...any) <-chan any {
+func (this *Coinbaseexchange) PrivatePostWithdrawalsCounterparty(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostWithdrawalsCounterparty", args...)
 }
 
 // PrivatePostWithdrawalsCrypto returns a channel that yields a JSON object.
-func (this *CoinbaseexchangeCore) PrivatePostWithdrawalsCrypto(args ...any) <-chan any {
+func (this *Coinbaseexchange) PrivatePostWithdrawalsCrypto(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostWithdrawalsCrypto", args...)
 }
 
 // PrivatePostWithdrawalsPaymentMethod returns a channel that yields a JSON object.
-func (this *CoinbaseexchangeCore) PrivatePostWithdrawalsPaymentMethod(args ...any) <-chan any {
+func (this *Coinbaseexchange) PrivatePostWithdrawalsPaymentMethod(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostWithdrawalsPaymentMethod", args...)
 }
 
 // PrivatePostTransfersTransferIdTravelRules returns a channel that yields a JSON object.
-func (this *CoinbaseexchangeCore) PrivatePostTransfersTransferIdTravelRules(args ...any) <-chan any {
+func (this *Coinbaseexchange) PrivatePostTransfersTransferIdTravelRules(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostTransfersTransferIdTravelRules", args...)
 }
 
 // PrivatePostTravelRules returns a channel that yields a JSON object.
-func (this *CoinbaseexchangeCore) PrivatePostTravelRules(args ...any) <-chan any {
+func (this *Coinbaseexchange) PrivatePostTravelRules(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostTravelRules", args...)
 }
 
 // PrivatePostUsersUserIdSettlementPreferences returns a channel that yields a JSON object.
-func (this *CoinbaseexchangeCore) PrivatePostUsersUserIdSettlementPreferences(args ...any) <-chan any {
+func (this *Coinbaseexchange) PrivatePostUsersUserIdSettlementPreferences(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostUsersUserIdSettlementPreferences", args...)
 }
 
 // PrivatePostWrappedAssetsRedeem returns a channel that yields a JSON object.
-func (this *CoinbaseexchangeCore) PrivatePostWrappedAssetsRedeem(args ...any) <-chan any {
+func (this *Coinbaseexchange) PrivatePostWrappedAssetsRedeem(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostWrappedAssetsRedeem", args...)
 }
 
 // PrivatePostWrappedAssetsStakeWrap returns a channel that yields a JSON object.
-func (this *CoinbaseexchangeCore) PrivatePostWrappedAssetsStakeWrap(args ...any) <-chan any {
+func (this *Coinbaseexchange) PrivatePostWrappedAssetsStakeWrap(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostWrappedAssetsStakeWrap", args...)
 }
 
 // PrivatePostLoansOpen returns a channel that yields a JSON object.
-func (this *CoinbaseexchangeCore) PrivatePostLoansOpen(args ...any) <-chan any {
+func (this *Coinbaseexchange) PrivatePostLoansOpen(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostLoansOpen", args...)
 }
 
 // PrivatePostLoansRepayInterest returns a channel that yields a JSON object.
-func (this *CoinbaseexchangeCore) PrivatePostLoansRepayInterest(args ...any) <-chan any {
+func (this *Coinbaseexchange) PrivatePostLoansRepayInterest(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostLoansRepayInterest", args...)
 }
 
 // PrivatePostLoansRepayPrincipal returns a channel that yields a JSON object.
-func (this *CoinbaseexchangeCore) PrivatePostLoansRepayPrincipal(args ...any) <-chan any {
+func (this *Coinbaseexchange) PrivatePostLoansRepayPrincipal(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostLoansRepayPrincipal", args...)
 }
 
 // PrivateDeleteOrders returns a channel that yields a JSON array.
-func (this *CoinbaseexchangeCore) PrivateDeleteOrders(args ...any) <-chan any {
+func (this *Coinbaseexchange) PrivateDeleteOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privateDeleteOrders", args...)
 }
 
 // PrivateDeleteOrdersClientClientOid returns a channel that yields a JSON scalar.
-func (this *CoinbaseexchangeCore) PrivateDeleteOrdersClientClientOid(args ...any) <-chan any {
+func (this *Coinbaseexchange) PrivateDeleteOrdersClientClientOid(args ...any) <-chan any {
 	return this.callEndpointAsync("privateDeleteOrdersClientClientOid", args...)
 }
 
 // PrivateDeleteOrdersId returns a channel that yields a JSON object.
-func (this *CoinbaseexchangeCore) PrivateDeleteOrdersId(args ...any) <-chan any {
+func (this *Coinbaseexchange) PrivateDeleteOrdersId(args ...any) <-chan any {
 	return this.callEndpointAsync("privateDeleteOrdersId", args...)
 }
 
 // PrivateDeleteAddressBookId returns a channel that yields a JSON object.
-func (this *CoinbaseexchangeCore) PrivateDeleteAddressBookId(args ...any) <-chan any {
+func (this *Coinbaseexchange) PrivateDeleteAddressBookId(args ...any) <-chan any {
 	return this.callEndpointAsync("privateDeleteAddressBookId", args...)
 }
 
 // PrivateDeleteTravelRulesId returns a channel that yields a JSON object.
-func (this *CoinbaseexchangeCore) PrivateDeleteTravelRulesId(args ...any) <-chan any {
+func (this *Coinbaseexchange) PrivateDeleteTravelRulesId(args ...any) <-chan any {
 	return this.callEndpointAsync("privateDeleteTravelRulesId", args...)
 }
 
 // PrivatePutProfilesIdDeactivate returns a channel that yields a JSON object.
-func (this *CoinbaseexchangeCore) PrivatePutProfilesIdDeactivate(args ...any) <-chan any {
+func (this *Coinbaseexchange) PrivatePutProfilesIdDeactivate(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePutProfilesIdDeactivate", args...)
 }
 
 // PrivatePutProfilesId returns a channel that yields a JSON object.
-func (this *CoinbaseexchangeCore) PrivatePutProfilesId(args ...any) <-chan any {
+func (this *Coinbaseexchange) PrivatePutProfilesId(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePutProfilesId", args...)
 }
 
 // PrivatePutAddressBookId returns a channel that yields a JSON object.
-func (this *CoinbaseexchangeCore) PrivatePutAddressBookId(args ...any) <-chan any {
+func (this *Coinbaseexchange) PrivatePutAddressBookId(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePutAddressBookId", args...)
 }

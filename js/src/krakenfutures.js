@@ -444,7 +444,7 @@ export default class krakenfutures extends Exchange {
         //        "serverTime": "2018-07-19T11:32:39.433Z"
         //    }
         //
-        const instruments = this.safeValue(response, 'instruments', []);
+        const instruments = this.safeList(response, 'instruments', []);
         const result = [];
         for (let i = 0; i < instruments.length; i++) {
             const market = instruments[i];
@@ -1323,7 +1323,14 @@ export default class krakenfutures extends Exchange {
             request['reduceOnly'] = true;
         }
         request['orderType'] = type;
-        if (price !== undefined) {
+        price = this.parseNumber(price); // some callers pass null instead of undefined, normalize it
+        const isLimitOrder = (type === 'lmt') || (type === 'post') || (type === 'ioc');
+        const limitPriceParam = this.safeString(params, 'limitPrice'); // the venue's own field name, forwarded as-is by this.extend below
+        if (isLimitOrder && (price === undefined) && (limitPriceParam === undefined)) {
+            throw new ArgumentsRequired(this.id + ' createOrder () requires a price argument for ' + type + ' orders');
+        }
+        const isMarketOrder = (type === 'mkt');
+        if ((price !== undefined) && !isMarketOrder) {
             request['limitPrice'] = this.priceToPrecision(symbol, price);
         }
         params = this.omit(params, ['clientOrderId', 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice']);
@@ -1556,7 +1563,7 @@ export default class krakenfutures extends Exchange {
             await this.loadMarkets();
         }
         const orders = [];
-        const clientOrderIds = this.safeValue(params, 'clientOrderIds', []);
+        const clientOrderIds = this.safeList(params, 'clientOrderIds', []);
         const clientOrderIdsLength = clientOrderIds.length;
         if (clientOrderIdsLength > 0) {
             for (let i = 0; i < clientOrderIds.length; i++) {
@@ -2297,7 +2304,7 @@ export default class krakenfutures extends Exchange {
                 'trades': undefined,
             });
         }
-        const orderEvents = this.safeValue(order, 'orderEvents', []);
+        const orderEvents = this.safeList(order, 'orderEvents', []);
         const errorStatus = this.safeString(order, 'status');
         const orderEventsLength = orderEvents.length;
         if (('orderEvents' in order) && (errorStatus !== undefined) && (orderEventsLength === 0)) {
@@ -2864,7 +2871,7 @@ export default class krakenfutures extends Exchange {
         const accountType = this.safeString2(response, 'accountType', 'type');
         const isFlex = (accountType === 'multiCollateralMarginAccount');
         const isCash = (accountType === 'cashAccount');
-        const balances = this.safeValue2(response, 'balances', 'currencies', {});
+        const balances = this.safeDict2(response, 'balances', 'currencies', {});
         const result = {};
         const currencyIds = Object.keys(balances);
         for (let i = 0; i < currencyIds.length; i++) {

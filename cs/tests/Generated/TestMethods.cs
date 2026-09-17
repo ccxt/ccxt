@@ -2165,6 +2165,23 @@ public partial class testMainClass
         {
             object callOutput = exchange.safeValue(data, "output");
             this.assertStaticRequestOutput(exchange, type, skipKeys, getValue(data, "url"), ((string)requestUrl), callOutput, output);
+            // optional per-test header pinning. only the keys the fixture lists are compared, so a
+            // fixture can pin one auth header without freezing the whole header set. this is the
+            // only cross-language assertion on header *names*, which the php transpiler can
+            // silently corrupt when a header literal contains a local/parameter name of sign ()
+            object storedHeaders = exchange.safeDict(data, "headers");
+            if (isTrue(!isEqual(storedHeaders, null)))
+            {
+                object sentHeaders = ((bool) isTrue((!isEqual(exchange.last_request_headers, null)))) ? exchange.last_request_headers : new Dictionary<string, object>() {};
+                List<object> storedHeaderKeys = new List<object>(((IDictionary<string,object>)storedHeaders).Keys);
+                for (int i = 0; isLessThan(i, getArrayLength(storedHeaderKeys)); postFixIncrement(ref i))
+                {
+                    string? headerKey = ((string)getValue(storedHeaderKeys, i));
+                    object storedHeaderValue = getValue(storedHeaders, headerKey);
+                    object sentHeaderValue = exchange.safeString(sentHeaders, headerKey);
+                    this.assertStaticError(isEqual(sentHeaderValue, storedHeaderValue), add("header mismatch for ", headerKey), storedHeaderValue, sentHeaderValue);
+                }
+            }
         } catch(Exception e)
         {
             this.requestTestsFailed = true;

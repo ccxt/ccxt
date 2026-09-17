@@ -436,14 +436,14 @@ class modetrade(Exchange, ImplicitAPI):
                     '-1003': RateLimitExceeded,  # TOO_MANY_REQUEST Rate limit exceed.
                     '-1004': BadRequest,  # UNKNOWN_PARAM An unknown parameter was sent.
                     '-1005': BadRequest,  # INVALID_PARAM Some parameters are in wrong format for api.
-                    '-1006': InvalidOrder,  # RESOURCE_NOT_FOUND The data is not found in server. For example, when client try canceling a CANCELLED order, will raise self error.
+                    '-1006': InvalidOrder,  # RESOURCE_NOT_FOUND The data is not found in server. For example, when client try canceling a CANCELLED order, will raise this error.
                     '-1007': BadRequest,  # DUPLICATE_REQUEST The data is already exists or your request is duplicated.
                     '-1008': InvalidOrder,  # QUANTITY_TOO_HIGH The quantity of settlement is too high than you can request.
                     '-1009': InsufficientFunds,  # CAN_NOT_WITHDRAWAL Can not request withdrawal settlement, you need to deposit other arrears first.
                     '-1011': NetworkError,  # RPC_NOT_CONNECT Can not place/cancel orders, it may because internal network error. Please try again in a few seconds.
                     '-1012': BadRequest,  # RPC_REJECT The place/cancel order request is rejected by internal module, it may because the account is in liquidation or other internal errors. Please try again in a few seconds.
                     '-1101': InsufficientFunds,  # RISK_TOO_HIGH The risk exposure for client is too high, it may cause by sending too big order or the leverage is too low. please refer to client info to check the current exposure.
-                    '-1102': InvalidOrder,  # MIN_NOTIONAL The order value(price * size) is too small.
+                    '-1102': InvalidOrder,  # MIN_NOTIONAL The order value (price * size) is too small.
                     '-1103': InvalidOrder,  # PRICE_FILTER The order price is not following the tick size rule for the symbol.
                     '-1104': InvalidOrder,  # SIZE_FILTER The order quantity is not following the step size rule for the symbol.
                     '-1105': InvalidOrder,  # PERCENTAGE_FILTER Price is X% too high or X% too low from the mid price.
@@ -477,7 +477,7 @@ class modetrade(Exchange, ImplicitAPI):
         response = self.v1PublicGetPublicSystemInfo(params)
         #
         #     {
-        #         "success": True,
+        #         "success": true,
         #         "data": {
         #             "status": 0,
         #             "msg": "System is functioning properly."
@@ -513,7 +513,7 @@ class modetrade(Exchange, ImplicitAPI):
         response = self.v1PublicGetPublicSystemInfo(params)
         #
         #     {
-        #         "success": True,
+        #         "success": true,
         #         "data": {
         #             "status": 0,
         #             "msg": "System is functioning properly."
@@ -623,7 +623,7 @@ class modetrade(Exchange, ImplicitAPI):
         response = self.v1PublicGetPublicInfo(params)
         #
         #   {
-        #     "success": True,
+        #     "success": true,
         #     "timestamp": 1702989203989,
         #     "data": {
         #       "rows": [
@@ -672,7 +672,7 @@ class modetrade(Exchange, ImplicitAPI):
         response = self.v1PublicGetPublicToken(params)
         #
         # {
-        #     "success": True,
+        #     "success": true,
         #     "timestamp": 1702989203989,
         #     "data": {
         #       "rows": [{
@@ -785,7 +785,7 @@ class modetrade(Exchange, ImplicitAPI):
         #         "side": "BUY",
         #         "executed_timestamp": "1641481113084",
         #         "order_id": "87001234",
-        #         "order_tag": "default", <-- self param only in "fetchOrderTrades"
+        #         "order_tag": "default", <-- this param only in "fetchOrderTrades"
         #         "executed_price": "1",
         #         "executed_quantity": "12",
         #         "fee_asset": "BTC",
@@ -850,7 +850,7 @@ class modetrade(Exchange, ImplicitAPI):
         response = self.v1PublicGetPublicMarketTrades(self.extend(request, params))
         #
         # {
-        #     "success": True,
+        #     "success": true,
         #     "timestamp": 1702989203989,
         #     "data": {
         #       "rows": [{
@@ -950,7 +950,7 @@ class modetrade(Exchange, ImplicitAPI):
         response = self.v1PublicGetPublicFundingRateSymbol(self.extend(request, params))
         #
         # {
-        #     "success": True,
+        #     "success": true,
         #     "timestamp": 1702989203989,
         #     "data": {
         #         "symbol": "PERP_ETH_USDC",
@@ -982,7 +982,7 @@ class modetrade(Exchange, ImplicitAPI):
         response = self.v1PublicGetPublicFundingRates(params)
         #
         # {
-        #     "success": True,
+        #     "success": true,
         #     "timestamp": 1702989203989,
         #     "data": {
         #       "rows": [{
@@ -1032,7 +1032,7 @@ class modetrade(Exchange, ImplicitAPI):
         response = self.v1PublicGetPublicFundingRateHistory(self.extend(request, params))
         #
         # {
-        #     "success": True,
+        #     "success": true,
         #     "timestamp": 1702989203989,
         #     "data": {
         #       "rows": [{
@@ -1133,7 +1133,7 @@ class modetrade(Exchange, ImplicitAPI):
         response = self.v1PrivateGetFundingFeeHistory(self.extend(request, params))
         #
         # {
-        #     "success": True,
+        #     "success": true,
         #     "timestamp": 1702989203989,
         #     "data": {
         #         "meta": {
@@ -1172,7 +1172,7 @@ class modetrade(Exchange, ImplicitAPI):
         response = self.v1PrivateGetClientInfo(params)
         #
         # {
-        #     "success": True,
+        #     "success": true,
         #     "timestamp": 1702989203989,
         #     "data": {
         #         "account_id": "<string>",
@@ -1183,7 +1183,7 @@ class modetrade(Exchange, ImplicitAPI):
         #         "maker_fee_rate": 123,
         #         "futures_taker_fee_rate": 123,
         #         "futures_maker_fee_rate": 123,
-        #         "maintenance_cancel_orders": True,
+        #         "maintenance_cancel_orders": true,
         #         "imr_factor": {
         #             "PERP_BTC_USDC": 123,
         #             "PERP_ETH_USDC": 123,
@@ -1238,7 +1238,7 @@ class modetrade(Exchange, ImplicitAPI):
         response = self.v1PrivateGetOrderbookSymbol(self.extend(request, params))
         #
         # {
-        #     "success": True,
+        #     "success": true,
         #     "timestamp": 1702989203989,
         #     "data": {
         #       "asks": [{
@@ -1293,7 +1293,7 @@ class modetrade(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         #
         # {
-        #     "success": True,
+        #     "success": true,
         #     "timestamp": 1702989203989,
         #     "data": {
         #       "rows": [{
@@ -1322,7 +1322,7 @@ class modetrade(Exchange, ImplicitAPI):
         # * cancelOrder
         # * fetchOrder
         # * fetchOrders
-        # isFromFetchOrder = ('order_tag' in order); TO_DO
+        # const isFromFetchOrder = ('order_tag' in order); TO_DO
         #
         # stop order after creating it:
         #   {
@@ -1342,7 +1342,7 @@ class modetrade(Exchange, ImplicitAPI):
         #       "algoType": "STOP_LOSS",
         #       "side": "BUY",
         #       "quantity": "0.1",
-        #       "isTriggered": False,
+        #       "isTriggered": false,
         #       "triggerPrice": "100",
         #       "triggerStatus": "USELESS",
         #       "type": "LIMIT",
@@ -1355,14 +1355,14 @@ class modetrade(Exchange, ImplicitAPI):
         #       "averageExecutedPrice": "0",
         #       "totalFee": "0",
         #       "feeAsset": '',
-        #       "reduceOnly": False,
+        #       "reduceOnly": false,
         #       "createdTime": "1686149609.744",
         #       "updatedTime": "1686149903.362"
         #   }
         #
         timestamp = self.safe_integer_n(order, ['timestamp', 'created_time', 'createdTime'])
         orderId = self.safe_string_n(order, ['order_id', 'orderId', 'algoOrderId'])
-        clientOrderId = self.omit_zero(self.safe_string_2(order, 'client_order_id', 'clientOrderId'))  # Somehow, self always returns 0 for limit order
+        clientOrderId = self.omit_zero(self.safe_string_2(order, 'client_order_id', 'clientOrderId'))  # Somehow, this always returns 0 for limit order
         marketId = self.safe_string(order, 'symbol')
         market = self.safe_market(marketId, market)
         symbol = market['symbol']
@@ -1387,7 +1387,7 @@ class modetrade(Exchange, ImplicitAPI):
         childOrders = self.safe_value(order, 'childOrders')
         if childOrders is not None:
             first = self.safe_value(childOrders, 0)
-            innerChildOrders = self.safe_value(first, 'childOrders', [])
+            innerChildOrders = self.safe_list(first, 'childOrders', [])
             innerChildOrdersLength = len(innerChildOrders)
             if innerChildOrdersLength > 0:
                 takeProfitOrder = self.safe_value(innerChildOrders, 0)
@@ -1598,7 +1598,7 @@ class modetrade(Exchange, ImplicitAPI):
             response = self.v1PrivatePostAlgoOrder(request)
             #
             # {
-            #     "success": True,
+            #     "success": true,
             #     "timestamp": 1702989203989,
             #     "data": {
             #       "order_id": 13,
@@ -1612,7 +1612,7 @@ class modetrade(Exchange, ImplicitAPI):
             response = self.v1PrivatePostOrder(request)
             #
             # {
-            #     "success": True,
+            #     "success": true,
             #     "timestamp": 1702989203989,
             #     "data": {
             #       "order_id": 13,
@@ -1668,7 +1668,7 @@ class modetrade(Exchange, ImplicitAPI):
         response = self.v1PrivatePostBatchOrder(self.extend(request, params))
         #
         #     {
-        #         "success": True,
+        #         "success": true,
         #         "timestamp": 1702989203988,
         #         "data": {
         #             "rows": [{
@@ -1746,12 +1746,12 @@ class modetrade(Exchange, ImplicitAPI):
             params = self.omit(params, ['clOrdID', 'clientOrderId', 'client_order_id', 'postOnly', 'timeInForce'])
             if clientOrderId is not None:
                 request['client_order_id'] = clientOrderId
-            # request['side'] = side.upper()
-            # request['symbol'] = market['id']
+            # request['side'] = side.toUpperCase ();
+            # request['symbol'] = market['id'];
             response = self.v1PrivatePutOrder(self.extend(request, params))
         #
         # {
-        #     "success": True,
+        #     "success": true,
         #     "timestamp": 1702989203989,
         #     "data": {
         #       "status": "EDIT_SENT"
@@ -1812,7 +1812,7 @@ class modetrade(Exchange, ImplicitAPI):
                 response = self.v1PrivateDeleteOrder(self.extend(request, params))
         #
         # {
-        #     "success": True,
+        #     "success": true,
         #     "timestamp": 1702989203988,
         #     "data": {
         #       "status": "CANCEL_SENT"
@@ -1820,7 +1820,7 @@ class modetrade(Exchange, ImplicitAPI):
         # }
         #
         # {
-        #     "success": True,
+        #     "success": true,
         #     "timestamp": 1702989203988,
         #     "status": "CANCEL_SENT"
         # }
@@ -1862,7 +1862,7 @@ class modetrade(Exchange, ImplicitAPI):
             response = self.v1PrivateDeleteBatchOrder(self.extend(request, params))
         #
         # {
-        #     "success": True,
+        #     "success": true,
         #     "timestamp": 1702989203989,
         #     "data": {
         #         "status": "CANCEL_ALL_SENT"
@@ -1900,13 +1900,13 @@ class modetrade(Exchange, ImplicitAPI):
             response = self.v1PrivateDeleteOrders(self.extend(request, params))
         # trigger
         # {
-        #     "success": True,
+        #     "success": true,
         #     "timestamp": 1702989203989,
         #      "status": "CANCEL_ALL_SENT"
         # }
         #
         # {
-        #     "success": True,
+        #     "success": true,
         #     "timestamp": 1702989203989,
         #     "data": {
         #       "status": "CANCEL_ALL_SENT"
@@ -1961,7 +1961,7 @@ class modetrade(Exchange, ImplicitAPI):
                 response = self.v1PrivateGetOrderOid(self.extend(request, params))
         #
         # {
-        #     "success": True,
+        #     "success": true,
         #     "timestamp": 1702989203989,
         #     "data": {
         #         "order_id": 78151,
@@ -2037,7 +2037,7 @@ class modetrade(Exchange, ImplicitAPI):
             response = self.v1PrivateGetOrders(self.extend(request, params))
         #
         #     {
-        #         "success": True,
+        #         "success": true,
         #         "timestamp": 1702989203989,
         #         "data": {
         #             "meta": {
@@ -2143,7 +2143,7 @@ class modetrade(Exchange, ImplicitAPI):
         response = self.v1PrivateGetOrderOidTrades(self.extend(request, params))
         #
         # {
-        #     "success": True,
+        #     "success": true,
         #     "timestamp": 1702989203989,
         #     "data": {
         #       "rows": [{
@@ -2201,7 +2201,7 @@ class modetrade(Exchange, ImplicitAPI):
         response = self.v1PrivateGetTrades(self.extend(request, params))
         #
         # {
-        #     "success": True,
+        #     "success": true,
         #     "timestamp": 1702989203989,
         #     "data": {
         #       "meta": {
@@ -2258,7 +2258,7 @@ class modetrade(Exchange, ImplicitAPI):
         response = self.v1PrivateGetClientHolding(params)
         #
         # {
-        #     "success": True,
+        #     "success": true,
         #     "timestamp": 1702989203989,
         #     "data": {
         #       "holding": [{
@@ -2293,7 +2293,7 @@ class modetrade(Exchange, ImplicitAPI):
         response = self.v1PrivateGetAssetHistory(self.extend(request, params))
         #
         # {
-        #     "success": True,
+        #     "success": true,
         #     "timestamp": 1702989203989,
         #     "data": {
         #       "meta": {
@@ -2482,7 +2482,7 @@ class modetrade(Exchange, ImplicitAPI):
         response = self.v1PrivateGetWithdrawNonce(params)
         #
         #     {
-        #         "success": True,
+        #         "success": true,
         #         "timestamp": 1702989203989,
         #         "data": {
         #             "withdraw_nonce": 1
@@ -2573,7 +2573,7 @@ class modetrade(Exchange, ImplicitAPI):
         response = self.v1PrivatePostWithdrawRequest(self.extend(request, params))
         #
         #     {
-        #         "success": True,
+        #         "success": true,
         #         "timestamp": 1702989203989,
         #         "data": {
         #             "withdraw_id": 123
@@ -2609,7 +2609,7 @@ class modetrade(Exchange, ImplicitAPI):
         response = self.v1PrivateGetClientInfo(params)
         #
         # {
-        #     "success": True,
+        #     "success": true,
         #     "timestamp": 1702989203989,
         #     "data": {
         #         "account_id": "<string>",
@@ -2620,7 +2620,7 @@ class modetrade(Exchange, ImplicitAPI):
         #         "maker_fee_rate": 123,
         #         "futures_taker_fee_rate": 123,
         #         "futures_maker_fee_rate": 123,
-        #         "maintenance_cancel_orders": True,
+        #         "maintenance_cancel_orders": true,
         #         "imr_factor": {
         #             "PERP_BTC_USDC": 123,
         #             "PERP_ETH_USDC": 123,
@@ -2749,7 +2749,7 @@ class modetrade(Exchange, ImplicitAPI):
         response = self.v1PrivateGetPositionSymbol(self.extend(request, params))
         #
         # {
-        #     "success": True,
+        #     "success": true,
         #     "timestamp": 1702989203989,
         #     "data": {
         #         "IMR_withdraw_orders": 0.1,
@@ -2791,7 +2791,7 @@ class modetrade(Exchange, ImplicitAPI):
         response = self.v1PrivateGetPositions(params)
         #
         # {
-        #     "success": True,
+        #     "success": true,
         #     "timestamp": 1702989203989,
         #     "data": {
         #         "current_margin_ratio_with_orders": 1.2385,

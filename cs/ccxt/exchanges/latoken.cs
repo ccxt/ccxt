@@ -5,7 +5,7 @@ namespace ccxt;
 
 public partial class latoken : Exchange
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "id", "latoken" },
@@ -605,7 +605,7 @@ public partial class latoken : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
-    public async override Task<object> fetchCurrencies(object parameters = null)
+    public async override Task<IDictionary<string, object>> fetchCurrencies(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         List<object> response = await this.publicGetCurrency(parameters);
@@ -644,7 +644,7 @@ public partial class latoken : Exchange
         return this.parseCurrencies(response);
     }
 
-    public override object parseCurrency(object currency)
+    public override Dictionary<string, object> parseCurrency(object currency)
     {
         string? id = this.safeString(currency, "id");
         string? tag = this.safeString(currency, "tag");
@@ -725,7 +725,7 @@ public partial class latoken : Exchange
         object types = this.safeValue(this.options, "types", new Dictionary<string, object>() {});
         string? accountType = this.safeString(types, type, type);
         Dictionary<string, object> balancesByType = this.groupBy(response, "type");
-        object balances = this.safeValue(balancesByType, accountType, new List<object>() {});
+        List<object> balances = this.safeList(balancesByType, accountType, new List<object>() {});
         for (int i = 0; isLessThan(i, getArrayLength(balances)); postFixIncrement(ref i))
         {
             object balance = getValue(balances, i);
@@ -742,7 +742,7 @@ public partial class latoken : Exchange
                 }
             }
             string? code = this.safeCurrencyCode(currencyId);
-            object account = this.account();
+            Dictionary<string, object> account = this.account();
             ((IDictionary<string,object>)account)["free"] = this.safeString(balance, "available");
             ((IDictionary<string,object>)account)["used"] = this.safeString(balance, "blocked");
             if (isTrue(!isEqual(code, null)))

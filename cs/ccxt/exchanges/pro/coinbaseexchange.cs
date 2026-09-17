@@ -7,7 +7,7 @@ namespace ccxt.pro;
 public partial class coinbaseexchange { public coinbaseexchange(object args = null) : base(args) { } }
 public partial class coinbaseexchange : ccxt.coinbaseexchange
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "has", new Dictionary<string, object>() {
@@ -47,7 +47,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         this.checkRequiredCredentials();
         string path = "/users/self/verify";
         Int64 nonce = this.nonce();
-        object payload = add(add(((object)nonce).ToString(), "GET"), path);
+        string payload = add(add(((object)nonce).ToString(), "GET"), path);
         string signature = this.hmac(this.encode(payload), this.base64ToBinary(this.secret), sha256, "base64");
         return new Dictionary<string, object>() {
             { "timestamp", nonce },
@@ -1032,7 +1032,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         {
             ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, symbol);
             Int64? timestamp = this.parse8601(this.safeString(message, "time"));
-            object changes = this.safeValue(message, "changes", new List<object>() {});
+            List<object> changes = this.safeList(message, "changes", new List<object>() {});
             Dictionary<string, object> sides = new Dictionary<string, object>() {
                 { "sell", "asks" },
                 { "buy", "bids" },

@@ -7,7 +7,7 @@ namespace ccxt.pro;
 public partial class coinone { public coinone(object args = null) : base(args) { } }
 public partial class coinone : ccxt.coinone
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "has", new Dictionary<string, object>() {
@@ -136,7 +136,7 @@ public partial class coinone : ccxt.coinone
 
     public override void handleDelta(object bookside, object delta)
     {
-        object bidAsk = this.parseOrderBookBidAsk(delta, "price", "qty");
+        List<object> bidAsk = this.parseOrderBookBidAsk(delta, "price", "qty");
         (bookside as IOrderBookSide).storeArray(bidAsk);
     }
 

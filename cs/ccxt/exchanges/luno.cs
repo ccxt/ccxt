@@ -5,7 +5,7 @@ namespace ccxt;
 
 public partial class luno : Exchange
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "id", "luno" },
@@ -486,7 +486,7 @@ public partial class luno : Exchange
      * @param {dict} [params] extra parameters specific to the exchange API endpoint
      * @returns {dict} an associative dictionary of currencies
      */
-    public async override Task<object> fetchCurrencies(object parameters = null)
+    public async override Task<IDictionary<string, object>> fetchCurrencies(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (!isTrue(this.checkRequiredCredentials(false)))
@@ -512,7 +512,7 @@ public partial class luno : Exchange
         return this.parseCurrencies(values);
     }
 
-    public override object parseCurrency(object rawCurrency)
+    public override Dictionary<string, object> parseCurrency(object rawCurrency)
     {
         string? id = this.safeString(getValue(rawCurrency, 0), "native_currency"); // first item is guaranteed
         string? code = this.safeCurrencyCode(id);
@@ -603,7 +603,7 @@ public partial class luno : Exchange
         //     }
         //
         List<object> result = new List<object>() {};
-        object markets = this.safeValue(response, "markets", new List<object>() {});
+        List<object> markets = this.safeList(response, "markets", new List<object>() {});
         for (int i = 0; isLessThan(i, getArrayLength(markets)); postFixIncrement(ref i))
         {
             object market = getValue(markets, i);
@@ -710,7 +710,7 @@ public partial class luno : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> response = await this.privateGetBalance(parameters);
-        object wallets = this.safeValue(response, "balance", new List<object>() {});
+        List<object> wallets = this.safeList(response, "balance", new List<object>() {});
         List<object> result = new List<object>() {};
         for (int i = 0; isLessThan(i, getArrayLength(wallets)); postFixIncrement(ref i))
         {
@@ -730,7 +730,7 @@ public partial class luno : Exchange
 
     public override object parseBalance(object response)
     {
-        object wallets = this.safeValue(response, "balance", new List<object>() {});
+        List<object> wallets = this.safeList(response, "balance", new List<object>() {});
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
             { "timestamp", null },
@@ -752,7 +752,7 @@ public partial class luno : Exchange
                 ((IDictionary<string,object>)getValue(result, code))["total"] = Precise.stringAdd(getValue(getValue(result, code), "total"), balanceUnconfirmed);
             } else if (isTrue(!isEqual(code, null)))
             {
-                object account = this.account();
+                Dictionary<string, object> account = this.account();
                 ((IDictionary<string,object>)account)["used"] = reservedUnconfirmed;
                 ((IDictionary<string,object>)account)["total"] = balanceUnconfirmed;
                 ((IDictionary<string,object>)result)[(string)code] = account;
@@ -1291,7 +1291,7 @@ public partial class luno : Exchange
             ((IDictionary<string,object>)request)["since"] = this.parseToInt(since);
         } else
         {
-            object duration = multiply(multiply(1000, 1000), this.parseTimeframe(timeframeVar));
+            Int64 duration = multiply(multiply(1000, 1000), this.parseTimeframe(timeframeVar));
             ((IDictionary<string,object>)request)["since"] = subtract(this.milliseconds(), duration);
         }
         Dictionary<string, object> response = await this.exchangePrivateGetCandles(this.extend(request, parameters));
@@ -1595,7 +1595,7 @@ public partial class luno : Exchange
         return ccxt.BaseExchange.ToLedgerEntryList(this.parseLedger(entries, currency, since, limit));
     }
 
-    public virtual object parseLedgerComment(object comment)
+    public virtual Dictionary<string, object> parseLedgerComment(object comment)
     {
         List<object> words = ((string)comment).Split(new [] {((string)" ")}, StringSplitOptions.None).ToList<object>();
         Dictionary<string, object> types = new Dictionary<string, object>() {
@@ -1645,7 +1645,7 @@ public partial class luno : Exchange
         string? comment = this.safeString(entry, "description");
         string? before = after;
         string? amount = "0.0";
-        object result = this.parseLedgerComment(comment);
+        Dictionary<string, object> result = this.parseLedgerComment(comment);
         object type = getValue(result, "type");
         object referenceId = getValue(result, "referenceId");
         string? direction = null;
@@ -1846,7 +1846,7 @@ public partial class luno : Exchange
         //         "fee": "0.00015"
         //     }
         //
-        object result = this.depositWithdrawFee(response);
+        Dictionary<string, object> result = this.depositWithdrawFee(response);
         ((IDictionary<string,object>)getValue(result, "withdraw"))["fee"] = this.safeNumber(response, "fee");
         ((IDictionary<string,object>)getValue(result, "withdraw"))["percentage"] = false;
         return ccxt.BaseExchange.ToDepositWithdrawFee(this.assignDefaultDepositWithdrawFees(result, currency));

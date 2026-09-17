@@ -5,7 +5,7 @@ namespace ccxt;
 
 public partial class hashkey : Exchange
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "id", "hashkey" },
@@ -971,7 +971,7 @@ public partial class hashkey : Exchange
         return ccxt.BaseExchange.ToMarketInterfaceList(this.parseMarkets(markets));
     }
 
-    public override object parseMarket(object market)
+    public override Dictionary<string, object> parseMarket(object market)
     {
         // spot
         //     {
@@ -1162,7 +1162,7 @@ public partial class hashkey : Exchange
         IDictionary<string, object> priceFilter = this.safeDict(filters, "PRICE_FILTER", new Dictionary<string, object>() {});
         IDictionary<string, object> amountFilter = this.safeDict(filters, "LOT_SIZE", new Dictionary<string, object>() {});
         IDictionary<string, object> costFilter = this.safeDict(filters, "MIN_NOTIONAL", new Dictionary<string, object>() {});
-        object minCostString = this.omitZero(this.safeString(costFilter, "min_notional"));
+        string? minCostString = ((string)this.omitZero(this.safeString(costFilter, "min_notional")));
         string? contractSizeString = this.safeString(market, "contractMultiplier");
         string? amountPrecisionString = this.safeString(amountFilter, "stepSize");
         string? amountMinLimitString = this.safeString(amountFilter, "minQty");
@@ -1259,7 +1259,7 @@ public partial class hashkey : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
-    public async override Task<object> fetchCurrencies(object parameters = null)
+    public async override Task<IDictionary<string, object>> fetchCurrencies(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> response = await this.publicGetApiV1ExchangeInfo(parameters);
@@ -1294,11 +1294,11 @@ public partial class hashkey : Exchange
         return this.parseCurrencies(coins);
     }
 
-    public override object parseCurrency(object rawCurrency)
+    public override Dictionary<string, object> parseCurrency(object rawCurrency)
     {
         string? currencyId = this.safeString(rawCurrency, "coinId");
         string? code = this.safeCurrencyCode(currencyId);
-        object networks = this.safeList(rawCurrency, "chainTypes");
+        List<object> networks = this.safeList(rawCurrency, "chainTypes");
         Dictionary<string, object> parsedNetworks = new Dictionary<string, object>() {};
         for (int j = 0; isLessThan(j, getArrayLength(networks)); postFixIncrement(ref j))
         {
@@ -1986,13 +1986,13 @@ public partial class hashkey : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", balance },
         };
-        object balances = this.safeList(balance, "balances", new List<object>() {});
+        List<object> balances = this.safeList(balance, "balances", new List<object>() {});
         for (int i = 0; isLessThan(i, getArrayLength(balances)); postFixIncrement(ref i))
         {
             object balanceEntry = getValue(balances, i);
             string? currencyId = this.safeString(balanceEntry, "asset");
             string? code = this.safeCurrencyCode(currencyId);
-            object account = this.account();
+            Dictionary<string, object> account = this.account();
             ((IDictionary<string,object>)account)["total"] = this.safeString(balanceEntry, "total");
             ((IDictionary<string,object>)account)["free"] = this.safeString(balanceEntry, "free");
             ((IDictionary<string,object>)account)["used"] = this.safeString(balanceEntry, "locked");
@@ -2018,7 +2018,7 @@ public partial class hashkey : Exchange
         //
         string? currencyId = this.safeString(balance, "asset");
         string? code = this.safeCurrencyCode(currencyId);
-        object account = this.account();
+        Dictionary<string, object> account = this.account();
         ((IDictionary<string,object>)account)["total"] = this.safeString(balance, "balance");
         string? positionMargin = this.safeString(balance, "positionMargin");
         string? orderMargin = this.safeString(balance, "orderMargin");
@@ -2925,7 +2925,7 @@ public partial class hashkey : Exchange
         return this.extend(request, parameters);
     }
 
-    public virtual object createSwapOrderRequest(object symbol, object type, object side, object amount, object price = null, object parameters = null)
+    public virtual Dictionary<string, object> createSwapOrderRequest(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
         /**
         * @method
@@ -3029,7 +3029,7 @@ public partial class hashkey : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        object request = this.createSwapOrderRequest(symbol, type, side, amount, price, parameters);
+        Dictionary<string, object> request = this.createSwapOrderRequest(symbol, type, side, amount, price, parameters);
         Dictionary<string, object> response = await this.privatePostApiV1FuturesOrder(this.extend(request, parameters));
         //
         //     {
@@ -3107,7 +3107,7 @@ public partial class hashkey : Exchange
         {
             throw new NotSupported ((string)add(add(add(add(this.id, " "), "createOrderRequest() is not supported for "), getValue(market, "type")), " type of markets")) ;
         }
-        object result = this.safeList(response, "result", new List<object>() {});
+        List<object> result = this.safeList(response, "result", new List<object>() {});
         List<object> responseOrders = new List<object>() {};
         for (int i = 0; isLessThan(i, getArrayLength(result)); postFixIncrement(ref i))
         {
@@ -3230,7 +3230,7 @@ public partial class hashkey : Exchange
         {
             throw new NotSupported ((string)add(add(add(add(add(this.id, " "), methodName), "() is not supported for "), getValue(market, "type")), " type of markets")) ;
         }
-        object order = this.safeOrder(response);
+        Dictionary<string, object> order = this.safeOrder(response);
         ((IDictionary<string,object>)order)["info"] = response;
         return ccxt.BaseExchange.ToOrderList(new List<object>() {order});
     }
@@ -3278,7 +3278,7 @@ public partial class hashkey : Exchange
         {
             throw new NotSupported ((string)add(add(add(add(add(this.id, " "), methodName), "() is not supported for "), marketType), " type of markets")) ;
         }
-        object order = this.safeOrder(response);
+        Dictionary<string, object> order = this.safeOrder(response);
         ((IDictionary<string,object>)order)["info"] = response;
         return ccxt.BaseExchange.ToOrderList(new List<object>() {order});
     }
@@ -3640,7 +3640,7 @@ public partial class hashkey : Exchange
         }
     }
 
-    public virtual object handleTriggerOptionAndParams(object parameters, object methodName, object defaultValue = null)
+    public virtual List<object> handleTriggerOptionAndParams(object parameters, object methodName, object defaultValue = null)
     {
         object isTrigger = defaultValue;
         IList<object> isTriggerparametersVariable = (IList<object>)this.handleOptionAndParams2(parameters, methodName, "stop", "trigger", isTrigger);
@@ -3770,7 +3770,7 @@ public partial class hashkey : Exchange
         {
             type = "market";
         }
-        object price = this.omitZero(this.safeString(order, "price"));
+        string? price = ((string)this.omitZero(this.safeString(order, "price")));
         if (isTrue(isEqual(type, "STOP")))
         {
             if (isTrue(isEqual(price, null)))
@@ -3787,7 +3787,7 @@ public partial class hashkey : Exchange
         type = ((IList<object>)typetimeInForcepostOnlyVariable)[0];
         timeInForce = ((IList<object>)typetimeInForcepostOnlyVariable)[1];
         postOnly = ((IList<object>)typetimeInForcepostOnlyVariable)[2];
-        object average = this.omitZero(this.safeString(order, "avgPrice"));
+        string? average = ((string)this.omitZero(this.safeString(order, "avgPrice")));
         if (isTrue(isEqual(price, null)))
         {
             price = average;
@@ -3834,7 +3834,7 @@ public partial class hashkey : Exchange
         }, market);
     }
 
-    public virtual object parseOrderSideAndReduceOnly(object unparsed)
+    public virtual List<object> parseOrderSideAndReduceOnly(object unparsed)
     {
         List<object> parts = ((string)unparsed).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
         object side = getValue(parts, 0);
@@ -3869,7 +3869,7 @@ public partial class hashkey : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public virtual object parseOrderTypeTimeInForceAndPostOnly(object type, object timeInForce)
+    public virtual List<object> parseOrderTypeTimeInForceAndPostOnly(object type, object timeInForce)
     {
         bool? postOnly = null;
         if (isTrue(isEqual(type, "LIMIT_MAKER")))
@@ -4083,7 +4083,7 @@ public partial class hashkey : Exchange
         {
             await this.loadMarkets();
         }
-        return await this.FetchPositionsForSymbol(getValue(symbols, 0), this.extend(new Dictionary<string, object>() {
+        return await this.FetchPositionsForSymbol(((string)getValue(symbols, 0)), this.extend(new Dictionary<string, object>() {
             { "methodName", "fetchPositions" },
         }, parameters));
     }
@@ -4099,7 +4099,7 @@ public partial class hashkey : Exchange
      * @param {string} [params.side] 'LONG' or 'SHORT' - the direction of the position (if not provided, positions for both sides will be returned)
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public async override Task<List<ccxt.Position>> FetchPositionsForSymbol(object symbol, object parameters = null)
+    public async override Task<List<ccxt.Position>> FetchPositionsForSymbol(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -4210,7 +4210,7 @@ public partial class hashkey : Exchange
         //         }
         //     ]
         //
-        object leverage = this.safeDict(response, 0, new Dictionary<string, object>() {});
+        IDictionary<string, object> leverage = this.safeDict(response, 0, new Dictionary<string, object>() {});
         return ccxt.BaseExchange.ToLeverage(this.parseLeverage(leverage, market));
     }
 
@@ -4514,7 +4514,7 @@ public partial class hashkey : Exchange
         //         ]
         //     }
         //
-        object riskLimits = this.safeList(info, "riskLimits", new List<object>() {});
+        List<object> riskLimits = this.safeList(info, "riskLimits", new List<object>() {});
         string? marketId = this.safeString(info, "symbol");
         market = this.safeMarket(marketId, market);
         List<object> tiers = new List<object>() {};
@@ -4610,7 +4610,7 @@ public partial class hashkey : Exchange
         //         "updateTimestamp": "1722320137809"
         //     }
         //
-        object data = this.safeList(response, "data", new List<object>() {});
+        List<object> data = this.safeList(response, "data", new List<object>() {});
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
@@ -4740,7 +4740,7 @@ public partial class hashkey : Exchange
         Int64? responseCodeInteger = this.safeInteger(response, "code"); // some codes in response are returned as '0000' others as 0
         if (isTrue(isEqual(responseCodeInteger, 0)))
         {
-            object result = this.safeList(response, "result", new List<object>() {}); // for batch methods
+            List<object> result = this.safeList(response, "result", new List<object>() {}); // for batch methods
             for (int i = 0; isLessThan(i, getArrayLength(result)); postFixIncrement(ref i))
             {
                 IDictionary<string, object> entry = this.safeDict(result, i);

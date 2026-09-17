@@ -5,7 +5,7 @@ namespace ccxt;
 
 public partial class coinone : Exchange
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "id", "coinone" },
@@ -429,7 +429,7 @@ public partial class coinone : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
-    public async override Task<object> fetchCurrencies(object parameters = null)
+    public async override Task<IDictionary<string, object>> fetchCurrencies(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> response = await this.v2PublicGetCurrencies(parameters);
@@ -457,7 +457,7 @@ public partial class coinone : Exchange
         return this.parseCurrencies(currencies);
     }
 
-    public override object parseCurrency(object rawCurrency)
+    public override Dictionary<string, object> parseCurrency(object rawCurrency)
     {
         string? id = this.safeString(rawCurrency, "symbol");
         string? code = this.safeCurrencyCode(id);
@@ -613,7 +613,7 @@ public partial class coinone : Exchange
             string? currencyId = ((string)getValue(currencyIds, i));
             object balance = getValue(balances, currencyId);
             string? code = this.safeCurrencyCode(currencyId);
-            object account = this.account();
+            Dictionary<string, object> account = this.account();
             ((IDictionary<string,object>)account)["free"] = this.safeString(balance, "avail");
             ((IDictionary<string,object>)account)["total"] = this.safeString(balance, "balance");
             if (isTrue(!isEqual(code, null)))
@@ -1475,7 +1475,7 @@ public partial class coinone : Exchange
         api ??= "public";
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        string request = this.implodeParams(path, parameters);
+        string? request = this.implodeParams(path, parameters);
         object query = this.omit(parameters, this.extractParams(path));
         object url = add(getValue(getValue(this.urls, "api"), "rest"), "/");
         if (isTrue(isEqual(api, "v2Public")))

@@ -161,27 +161,27 @@ class lighter extends \ccxt\async\lighter {
     public function handle_order_book(Client $client, mixed $message) {
         //
         // {
-        //     "channel" => "order_book:0",
-        //     "offset" => 11413309,
-        //     "order_book" => {
-        //         "code" => 0,
-        //         "asks" => array(
+        //     "channel": "order_book:0",
+        //     "offset": 11413309,
+        //     "order_book": {
+        //         "code": 0,
+        //         "asks": [
         //             {
-        //                 "price" => "2979.64",
-        //                 "size" => "61.9487"
+        //                 "price": "2979.64",
+        //                 "size": "61.9487"
         //             }
-        //         ),
-        //         "bids" => array(
-        //             array(
-        //                 "price" => "2979.36",
-        //                 "size" => "0.0000"
+        //         ],
+        //         "bids": [
+        //             {
+        //                 "price": "2979.36",
+        //                 "size": "0.0000"
         //             }
-        //         ),
-        //         "offset" => 11413309,
-        //         "nonce" => 3107818665
-        //     ),
-        //     "timestamp" => 1763448665923,
-        //     "type" => "update/order_book"
+        //         ],
+        //         "offset": 11413309,
+        //         "nonce": 3107818665
+        //     },
+        //     "timestamp": 1763448665923,
+        //     "type": "update/order_book"
         // }
         //
         $data = $this->safe_dict($message, 'order_book', array());
@@ -263,52 +263,52 @@ class lighter extends \ccxt\async\lighter {
         //
         // watchTicker
         //     {
-        //         "channel" => "market_stats:0",
-        //         "market_stats" => array(
-        //             "market_id" => 0,
-        //             "index_price" => "3015.56",
-        //             "mark_price" => "3013.91",
-        //             "open_interest" => "122736286.659423",
-        //             "open_interest_limit" => "72057594037927936.000000",
-        //             "funding_clamp_small" => "0.0500",
-        //             "funding_clamp_big" => "4.0000",
-        //             "last_trade_price" => "3013.13",
-        //             "current_funding_rate" => "0.0012",
-        //             "funding_rate" => "0.0012",
-        //             "funding_timestamp" => 1763532000004,
-        //             "daily_base_token_volume" => 643235.2763,
-        //             "daily_quote_token_volume" => 1983505435.673896,
-        //             "daily_price_low" => 2977.42,
-        //             "daily_price_high" => 3170.81,
-        //             "daily_price_change" => -0.3061987051035322
-        //         ),
-        //         "type" => "update/market_stats"
+        //         "channel": "market_stats:0",
+        //         "market_stats": {
+        //             "market_id": 0,
+        //             "index_price": "3015.56",
+        //             "mark_price": "3013.91",
+        //             "open_interest": "122736286.659423",
+        //             "open_interest_limit": "72057594037927936.000000",
+        //             "funding_clamp_small": "0.0500",
+        //             "funding_clamp_big": "4.0000",
+        //             "last_trade_price": "3013.13",
+        //             "current_funding_rate": "0.0012",
+        //             "funding_rate": "0.0012",
+        //             "funding_timestamp": 1763532000004,
+        //             "daily_base_token_volume": 643235.2763,
+        //             "daily_quote_token_volume": 1983505435.673896,
+        //             "daily_price_low": 2977.42,
+        //             "daily_price_high": 3170.81,
+        //             "daily_price_change": -0.3061987051035322
+        //         },
+        //         "type": "update/market_stats"
         //     }
         //
         // watchTickers
         // {
-        //     "channel" => "market_stats:all",
-        //     "market_stats" => {
-        //         "96" => array(
-        //             "market_id" => 96,
-        //             "index_price" => "1.15901",
-        //             "mark_price" => "1.15954",
-        //             "open_interest" => "19392952.260530",
-        //             "open_interest_limit" => "50000000000000.000000",
-        //             "funding_clamp_small" => "0.0500",
-        //             "funding_clamp_big" => "4.0000",
-        //             "last_trade_price" => "1.15955",
-        //             "current_funding_rate" => "0.0000",
-        //             "funding_rate" => "0.0000",
-        //             "funding_timestamp" => 1763532000004,
-        //             "daily_base_token_volume" => 117634224.1,
-        //             "daily_quote_token_volume" => 136339744.383989,
-        //             "daily_price_low" => 1.15774,
-        //             "daily_price_high" => 1.16105,
-        //             "daily_price_change" => -0.004311757299805109
+        //     "channel": "market_stats:all",
+        //     "market_stats": {
+        //         "96": {
+        //             "market_id": 96,
+        //             "index_price": "1.15901",
+        //             "mark_price": "1.15954",
+        //             "open_interest": "19392952.260530",
+        //             "open_interest_limit": "50000000000000.000000",
+        //             "funding_clamp_small": "0.0500",
+        //             "funding_clamp_big": "4.0000",
+        //             "last_trade_price": "1.15955",
+        //             "current_funding_rate": "0.0000",
+        //             "funding_rate": "0.0000",
+        //             "funding_timestamp": 1763532000004,
+        //             "daily_base_token_volume": 117634224.1,
+        //             "daily_quote_token_volume": 136339744.383989,
+        //             "daily_price_low": 1.15774,
+        //             "daily_price_high": 1.16105,
+        //             "daily_price_change": -0.004311757299805109
         //         }
-        //     ),
-        //     "type" => "update/market_stats"
+        //     },
+        //     "type": "update/market_stats"
         // }
         //
         $data = $this->safe_dict($message, 'market_stats', array());
@@ -507,30 +507,30 @@ class lighter extends \ccxt\async\lighter {
     public function parse_ws_trade(mixed $trade, ?array $market = null) {
         //
         //     {
-        //         "trade_id" => 526801155,
-        //         "tx_hash" => "1998d9df580acb7540aa141cc369d6ef926d003b3062196d2007bca15f978ab208e0caae4ac5872b",
-        //         "type" => "trade",
-        //         "market_id" => 0,
-        //         "size" => "0.0346",
-        //         "price" => "3028.85",
-        //         "usd_amount" => "104.798210",
-        //         "ask_id" => 281475673670566,
-        //         "bid_id" => 562949291740362,
-        //         "ask_client_id" => 76303170,
-        //         "bid_client_id" => 27601,
-        //         "ask_account_id" => 99349,
-        //         "bid_account_id" => 243008,
-        //         "is_maker_ask" => false,
-        //         "block_height" => 102322769,
-        //         "timestamp" => 1763623734215,
-        //         "taker_position_size_before" => "0.0346",
-        //         "taker_entry_quote_before" => "104.359926",
-        //         "taker_initial_margin_fraction_before" => 500,
-        //         "taker_position_sign_changed" => true,
-        //         "maker_fee" => 20,
-        //         "maker_position_size_before" => "2.1277",
-        //         "maker_entry_quote_before" => "6444.179555",
-        //         "maker_initial_margin_fraction_before" => 200
+        //         "trade_id": 526801155,
+        //         "tx_hash": "1998d9df580acb7540aa141cc369d6ef926d003b3062196d2007bca15f978ab208e0caae4ac5872b",
+        //         "type": "trade",
+        //         "market_id": 0,
+        //         "size": "0.0346",
+        //         "price": "3028.85",
+        //         "usd_amount": "104.798210",
+        //         "ask_id": 281475673670566,
+        //         "bid_id": 562949291740362,
+        //         "ask_client_id": 76303170,
+        //         "bid_client_id": 27601,
+        //         "ask_account_id": 99349,
+        //         "bid_account_id": 243008,
+        //         "is_maker_ask": false,
+        //         "block_height": 102322769,
+        //         "timestamp": 1763623734215,
+        //         "taker_position_size_before": "0.0346",
+        //         "taker_entry_quote_before": "104.359926",
+        //         "taker_initial_margin_fraction_before": 500,
+        //         "taker_position_sign_changed": true,
+        //         "maker_fee": 20,
+        //         "maker_position_size_before": "2.1277",
+        //         "maker_entry_quote_before": "6444.179555",
+        //         "maker_initial_margin_fraction_before": 200
         //     }
         //
         $timestamp = $this->safe_integer($trade, 'timestamp');
@@ -559,38 +559,38 @@ class lighter extends \ccxt\async\lighter {
     public function handle_trades(Client $client, mixed $message) {
         //
         //     {
-        //         "channel" => "trade:0",
-        //         "liquidation_trades" => array(),
-        //         "nonce" => 3159738569,
-        //         "trades" => array(
+        //         "channel": "trade:0",
+        //         "liquidation_trades": [],
+        //         "nonce": 3159738569,
+        //         "trades": [
         //             {
-        //                 "trade_id" => 526801155,
-        //                 "tx_hash" => "1998d9df580acb7540aa141cc369d6ef926d003b3062196d2007bca15f978ab208e0caae4ac5872b",
-        //                 "type" => "trade",
-        //                 "market_id" => 0,
-        //                 "size" => "0.0346",
-        //                 "price" => "3028.85",
-        //                 "usd_amount" => "104.798210",
-        //                 "ask_id" => 281475673670566,
-        //                 "bid_id" => 562949291740362,
-        //                 "ask_client_id" => 76303170,
-        //                 "bid_client_id" => 27601,
-        //                 "ask_account_id" => 99349,
-        //                 "bid_account_id" => 243008,
-        //                 "is_maker_ask" => false,
-        //                 "block_height" => 102322769,
-        //                 "timestamp" => 1763623734215,
-        //                 "taker_position_size_before" => "0.0346",
-        //                 "taker_entry_quote_before" => "104.359926",
-        //                 "taker_initial_margin_fraction_before" => 500,
-        //                 "taker_position_sign_changed" => true,
-        //                 "maker_fee" => 20,
-        //                 "maker_position_size_before" => "2.1277",
-        //                 "maker_entry_quote_before" => "6444.179555",
-        //                 "maker_initial_margin_fraction_before" => 200
+        //                 "trade_id": 526801155,
+        //                 "tx_hash": "1998d9df580acb7540aa141cc369d6ef926d003b3062196d2007bca15f978ab208e0caae4ac5872b",
+        //                 "type": "trade",
+        //                 "market_id": 0,
+        //                 "size": "0.0346",
+        //                 "price": "3028.85",
+        //                 "usd_amount": "104.798210",
+        //                 "ask_id": 281475673670566,
+        //                 "bid_id": 562949291740362,
+        //                 "ask_client_id": 76303170,
+        //                 "bid_client_id": 27601,
+        //                 "ask_account_id": 99349,
+        //                 "bid_account_id": 243008,
+        //                 "is_maker_ask": false,
+        //                 "block_height": 102322769,
+        //                 "timestamp": 1763623734215,
+        //                 "taker_position_size_before": "0.0346",
+        //                 "taker_entry_quote_before": "104.359926",
+        //                 "taker_initial_margin_fraction_before": 500,
+        //                 "taker_position_sign_changed": true,
+        //                 "maker_fee": 20,
+        //                 "maker_position_size_before": "2.1277",
+        //                 "maker_entry_quote_before": "6444.179555",
+        //                 "maker_initial_margin_fraction_before": 200
         //             }
-        //         ),
-        //         "type" => "subscribed/trade"
+        //         ],
+        //         "type": "subscribed/trade"
         //     }
         //
         $liquidationData = $this->safe_list($message, 'liquidation_trades', array());
@@ -676,30 +676,30 @@ class lighter extends \ccxt\async\lighter {
     public function parse_ws_order_trade(array $trade, ?array $market = null) {
         //
         //     {
-        //         "trade_id" => 526801155,
-        //         "tx_hash" => "1998d9df580acb7540aa141cc369d6ef926d003b3062196d2007bca15f978ab208e0caae4ac5872b",
-        //         "type" => "trade",
-        //         "market_id" => 0,
-        //         "size" => "0.0346",
-        //         "price" => "3028.85",
-        //         "usd_amount" => "104.798210",
-        //         "ask_id" => 281475673670566,
-        //         "bid_id" => 562949291740362,
-        //         "ask_client_id" => 76303170,
-        //         "bid_client_id" => 27601,
-        //         "ask_account_id" => 99349,
-        //         "bid_account_id" => 243008,
-        //         "is_maker_ask" => false,
-        //         "block_height" => 102322769,
-        //         "timestamp" => 1763623734215,
-        //         "taker_position_size_before" => "0.0346",
-        //         "taker_entry_quote_before" => "104.359926",
-        //         "taker_initial_margin_fraction_before" => 500,
-        //         "taker_position_sign_changed" => true,
-        //         "maker_fee" => 20,
-        //         "maker_position_size_before" => "2.1277",
-        //         "maker_entry_quote_before" => "6444.179555",
-        //         "maker_initial_margin_fraction_before" => 200
+        //         "trade_id": 526801155,
+        //         "tx_hash": "1998d9df580acb7540aa141cc369d6ef926d003b3062196d2007bca15f978ab208e0caae4ac5872b",
+        //         "type": "trade",
+        //         "market_id": 0,
+        //         "size": "0.0346",
+        //         "price": "3028.85",
+        //         "usd_amount": "104.798210",
+        //         "ask_id": 281475673670566,
+        //         "bid_id": 562949291740362,
+        //         "ask_client_id": 76303170,
+        //         "bid_client_id": 27601,
+        //         "ask_account_id": 99349,
+        //         "bid_account_id": 243008,
+        //         "is_maker_ask": false,
+        //         "block_height": 102322769,
+        //         "timestamp": 1763623734215,
+        //         "taker_position_size_before": "0.0346",
+        //         "taker_entry_quote_before": "104.359926",
+        //         "taker_initial_margin_fraction_before": 500,
+        //         "taker_position_sign_changed": true,
+        //         "maker_fee": 20,
+        //         "maker_position_size_before": "2.1277",
+        //         "maker_entry_quote_before": "6444.179555",
+        //         "maker_initial_margin_fraction_before": 200
         //     }
         //
         $timestamp = $this->safe_integer($trade, 'timestamp');
@@ -716,7 +716,7 @@ class lighter extends \ccxt\async\lighter {
         $takerOrMaker = null;
         if ($accountIndex !== null) {
             if ($bidAccountId === $accountIndex) {
-                // Own trades should use the account's $order $side
+                // Own trades should use the account's order side
                 $side = 'buy';
                 $order = $this->safe_string($trade, 'bid_id');
                 $takerOrMaker = ($isMakerAsk === true) ? 'taker' : 'maker';
@@ -726,7 +726,7 @@ class lighter extends \ccxt\async\lighter {
                 $takerOrMaker = ($isMakerAsk === true) ? 'maker' : 'taker';
             }
         }
-        // public trades use Lighter's taker-$side convention
+        // public trades use Lighter's taker-side convention
         if ($side === null) {
             $side = ($isMakerAsk === true) ? 'buy' : 'sell';
         }
@@ -758,39 +758,39 @@ class lighter extends \ccxt\async\lighter {
         ), $market);
     }
 
-    public function handle_my_trades(Client $client, mixed $message) {
+    public function handle_my_trades(Client $client, mixed $message): bool {
         //
         //     {
-        //         "channel" => "account_all_trades:723310",
-        //         "trades" => array(
-        //              13 => [array(
-        //                  "trade_id" => 526801155,
-        //                  "tx_hash" => "1998d9df580acb7540aa141cc369d6ef926d003b3062196d2007bca15f978ab208e0caae4ac5872b",
-        //                  "type" => "trade",
-        //                  "market_id" => 0,
-        //                  "size" => "0.0346",
-        //                  "price" => "3028.85",
-        //                  "usd_amount" => "104.798210",
-        //                  "ask_id" => 281475673670566,
-        //                  "bid_id" => 562949291740362,
-        //                  "ask_client_id" => 76303170,
-        //                  "bid_client_id" => 27601,
-        //                  "ask_account_id" => 99349,
-        //                  "bid_account_id" => 243008,
-        //                  "is_maker_ask" => false,
-        //                  "block_height" => 102322769,
-        //                  "timestamp" => 1763623734215,
-        //                  "taker_position_size_before" => "0.0346",
-        //                  "taker_entry_quote_before" => "104.359926",
-        //                  "taker_initial_margin_fraction_before" => 500,
-        //                  "taker_position_sign_changed" => true,
-        //                  "maker_fee" => 20,
-        //                  "maker_position_size_before" => "2.1277",
-        //                  "maker_entry_quote_before" => "6444.179555",
-        //                  "maker_initial_margin_fraction_before" => 200
-        //              )]
-        //         ),
-        //         "type" => "update/account_all_trades"
+        //         "channel": "account_all_trades:723310",
+        //         "trades": {
+        //              13: [{
+        //                  "trade_id": 526801155,
+        //                  "tx_hash": "1998d9df580acb7540aa141cc369d6ef926d003b3062196d2007bca15f978ab208e0caae4ac5872b",
+        //                  "type": "trade",
+        //                  "market_id": 0,
+        //                  "size": "0.0346",
+        //                  "price": "3028.85",
+        //                  "usd_amount": "104.798210",
+        //                  "ask_id": 281475673670566,
+        //                  "bid_id": 562949291740362,
+        //                  "ask_client_id": 76303170,
+        //                  "bid_client_id": 27601,
+        //                  "ask_account_id": 99349,
+        //                  "bid_account_id": 243008,
+        //                  "is_maker_ask": false,
+        //                  "block_height": 102322769,
+        //                  "timestamp": 1763623734215,
+        //                  "taker_position_size_before": "0.0346",
+        //                  "taker_entry_quote_before": "104.359926",
+        //                  "taker_initial_margin_fraction_before": 500,
+        //                  "taker_position_sign_changed": true,
+        //                  "maker_fee": 20,
+        //                  "maker_position_size_before": "2.1277",
+        //                  "maker_entry_quote_before": "6444.179555",
+        //                  "maker_initial_margin_fraction_before": 200
+        //              }]
+        //         },
+        //         "type": "update/account_all_trades"
         //     }
         //
         $channel = $this->safe_string($message, 'channel', '');
@@ -899,30 +899,30 @@ class lighter extends \ccxt\async\lighter {
     public function parse_ws_liquidation(mixed $liquidation, ?array $market = null) {
         //
         //     {
-        //         "trade_id" => 526801155,
-        //         "tx_hash" => "1998d9df580acb7540aa141cc369d6ef926d003b3062196d2007bca15f978ab208e0caae4ac5872b",
-        //         "type" => "liquidation",
-        //         "market_id" => 0,
-        //         "size" => "0.0346",
-        //         "price" => "3028.85",
-        //         "usd_amount" => "104.798210",
-        //         "ask_id" => 281475673670566,
-        //         "bid_id" => 562949291740362,
-        //         "ask_client_id" => 76303170,
-        //         "bid_client_id" => 27601,
-        //         "ask_account_id" => 99349,
-        //         "bid_account_id" => 243008,
-        //         "is_maker_ask" => false,
-        //         "block_height" => 102322769,
-        //         "timestamp" => 1763623734215,
-        //         "taker_position_size_before" => "0.0346",
-        //         "taker_entry_quote_before" => "104.359926",
-        //         "taker_initial_margin_fraction_before" => 500,
-        //         "taker_position_sign_changed" => true,
-        //         "maker_fee" => 20,
-        //         "maker_position_size_before" => "2.1277",
-        //         "maker_entry_quote_before" => "6444.179555",
-        //         "maker_initial_margin_fraction_before" => 200
+        //         "trade_id": 526801155,
+        //         "tx_hash": "1998d9df580acb7540aa141cc369d6ef926d003b3062196d2007bca15f978ab208e0caae4ac5872b",
+        //         "type": "liquidation",
+        //         "market_id": 0,
+        //         "size": "0.0346",
+        //         "price": "3028.85",
+        //         "usd_amount": "104.798210",
+        //         "ask_id": 281475673670566,
+        //         "bid_id": 562949291740362,
+        //         "ask_client_id": 76303170,
+        //         "bid_client_id": 27601,
+        //         "ask_account_id": 99349,
+        //         "bid_account_id": 243008,
+        //         "is_maker_ask": false,
+        //         "block_height": 102322769,
+        //         "timestamp": 1763623734215,
+        //         "taker_position_size_before": "0.0346",
+        //         "taker_entry_quote_before": "104.359926",
+        //         "taker_initial_margin_fraction_before": 500,
+        //         "taker_position_sign_changed": true,
+        //         "maker_fee": 20,
+        //         "maker_position_size_before": "2.1277",
+        //         "maker_entry_quote_before": "6444.179555",
+        //         "maker_initial_margin_fraction_before": 200
         //     }
         //
         $timestamp = $this->safe_integer($liquidation, 'timestamp');
@@ -953,38 +953,38 @@ class lighter extends \ccxt\async\lighter {
     public function handle_liquidation(Client $client, mixed $message) {
         //
         //     {
-        //         "channel" => "trade:0",
-        //         "liquidation_trades" => array(),
-        //         "nonce" => 3159738569,
-        //         "trades" => array(
+        //         "channel": "trade:0",
+        //         "liquidation_trades": [],
+        //         "nonce": 3159738569,
+        //         "trades": [
         //             {
-        //                 "trade_id" => 526801155,
-        //                 "tx_hash" => "1998d9df580acb7540aa141cc369d6ef926d003b3062196d2007bca15f978ab208e0caae4ac5872b",
-        //                 "type" => "trade",
-        //                 "market_id" => 0,
-        //                 "size" => "0.0346",
-        //                 "price" => "3028.85",
-        //                 "usd_amount" => "104.798210",
-        //                 "ask_id" => 281475673670566,
-        //                 "bid_id" => 562949291740362,
-        //                 "ask_client_id" => 76303170,
-        //                 "bid_client_id" => 27601,
-        //                 "ask_account_id" => 99349,
-        //                 "bid_account_id" => 243008,
-        //                 "is_maker_ask" => false,
-        //                 "block_height" => 102322769,
-        //                 "timestamp" => 1763623734215,
-        //                 "taker_position_size_before" => "0.0346",
-        //                 "taker_entry_quote_before" => "104.359926",
-        //                 "taker_initial_margin_fraction_before" => 500,
-        //                 "taker_position_sign_changed" => true,
-        //                 "maker_fee" => 20,
-        //                 "maker_position_size_before" => "2.1277",
-        //                 "maker_entry_quote_before" => "6444.179555",
-        //                 "maker_initial_margin_fraction_before" => 200
+        //                 "trade_id": 526801155,
+        //                 "tx_hash": "1998d9df580acb7540aa141cc369d6ef926d003b3062196d2007bca15f978ab208e0caae4ac5872b",
+        //                 "type": "trade",
+        //                 "market_id": 0,
+        //                 "size": "0.0346",
+        //                 "price": "3028.85",
+        //                 "usd_amount": "104.798210",
+        //                 "ask_id": 281475673670566,
+        //                 "bid_id": 562949291740362,
+        //                 "ask_client_id": 76303170,
+        //                 "bid_client_id": 27601,
+        //                 "ask_account_id": 99349,
+        //                 "bid_account_id": 243008,
+        //                 "is_maker_ask": false,
+        //                 "block_height": 102322769,
+        //                 "timestamp": 1763623734215,
+        //                 "taker_position_size_before": "0.0346",
+        //                 "taker_entry_quote_before": "104.359926",
+        //                 "taker_initial_margin_fraction_before": 500,
+        //                 "taker_position_sign_changed": true,
+        //                 "maker_fee": 20,
+        //                 "maker_position_size_before": "2.1277",
+        //                 "maker_entry_quote_before": "6444.179555",
+        //                 "maker_initial_margin_fraction_before": 200
         //             }
-        //         ),
-        //         "type" => "subscribed/trade"
+        //         ],
+        //         "type": "subscribed/trade"
         //     }
         //
         $data = $this->safe_list($message, 'liquidation_trades', array());
@@ -1069,49 +1069,49 @@ class lighter extends \ccxt\async\lighter {
         }
     }
 
-    public function handle_balance(Client $client, mixed $message) {
+    public function handle_balance(Client $client, mixed $message): bool {
         //
-        //    spot $balance
+        //    spot balance
         //    {
-        //        "assets" => {
-        //              "1" => array(
-        //                    "symbol" => "ETH",
-        //                    "asset_id" => 1,
-        //                    "balance" => "7.1072",
-        //                    "locked_balance" => "0.0000"
-        //              ),
-        //              "3" => array(
-        //                    "symbol" => "USDC",
-        //                    "asset_id" => 3,
-        //                    "balance" => "6343.581906",
-        //                    "locked_balance" => "297.000000"
+        //        "assets": {
+        //              "1": {
+        //                    "symbol": "ETH",
+        //                    "asset_id": 1,
+        //                    "balance": "7.1072",
+        //                    "locked_balance": "0.0000"
+        //              },
+        //              "3": {
+        //                    "symbol": "USDC",
+        //                    "asset_id": 3,
+        //                    "balance": "6343.581906",
+        //                    "locked_balance": "297.000000"
         //              }
-        //        ),
-        //        "channel" => "account_all_assets:1234",
-        //        "timestamp" => 1773158679717,
-        //        "type" => "update/account_all_assets"
+        //        },
+        //        "channel": "account_all_assets:1234",
+        //        "timestamp": 1773158679717,
+        //        "type": "update/account_all_assets"
         //    }
         //
-        //    swap $balance
+        //    swap balance
         //    {
-        //        "channel" => "user_stats:10",
-        //        "stats" => {
-        //            "collateral" => "5000.00",
-        //            "portfolio_value" => "15000.00",
-        //            "leverage" => "3.0",
-        //            "available_balance" => "2000.00",
-        //            "margin_usage" => "0.80",
-        //            "buying_power" => "4000.00",
-        //            "account_trading_mode" => 1,
-        //            "cross_stats":array(
+        //        "channel": "user_stats:10",
+        //        "stats": {
+        //            "collateral": "5000.00",
+        //            "portfolio_value": "15000.00",
+        //            "leverage": "3.0",
+        //            "available_balance": "2000.00",
+        //            "margin_usage": "0.80",
+        //            "buying_power": "4000.00",
+        //            "account_trading_mode": 1,
+        //            "cross_stats":{
         //               "collateral":"0.000000",
         //               "portfolio_value":"0.000000",
         //               "leverage":"0.00",
         //               "available_balance":"0.000000",
         //               "margin_usage":"0.00",
         //               "buying_power":"0"
-        //            ),
-        //            "total_stats":array(
+        //            },
+        //            "total_stats":{
         //               "collateral":"0.000000",
         //               "portfolio_value":"0.000000",
         //               "leverage":"0.00",
@@ -1119,9 +1119,9 @@ class lighter extends \ccxt\async\lighter {
         //               "margin_usage":"0.00",
         //               "buying_power":"0"
         //            }
-        //        ),
-        //        "timestamp" => 1773158679717,
-        //        "type" => "update/user_stats"
+        //        },
+        //        "timestamp": 1773158679717,
+        //        "type": "update/user_stats"
         //    }
         //
         $channel = $this->safe_string($message, 'channel', '');
@@ -1361,30 +1361,30 @@ class lighter extends \ccxt\async\lighter {
 
     public function handle_ws_sendtx_api(Client $client, mixed $message) {
         //
-        //     array("code":200,"id":"1786459718284","predicted_execution_time_ms":1786459719662,"tx_hash":"9959d3feb30d0a89fcfd4532f071ac99a98ee1202aa2a7f2c1299932b1e540b6ecdabd2b92616a14","type":"jsonapi/sendtx")
+        //     {"code":200,"id":"1786459718284","predicted_execution_time_ms":1786459719662,"tx_hash":"9959d3feb30d0a89fcfd4532f071ac99a98ee1202aa2a7f2c1299932b1e540b6ecdabd2b92616a14","type":"jsonapi/sendtx"}
         //
         $id = $this->safe_string($message, 'id');
         $client->resolve($message, 'jsonapi/sendtx:' . $id);
     }
 
-    public function handle_orders(Client $client, mixed $message) {
+    public function handle_orders(Client $client, mixed $message): bool {
         //
         //    {
-        //        "account" => {ACCOUNT_INDEX},
-        //        "channel" => "account_orders:{MARKET_INDEX}",
-        //        "nonce" => INTEGER,
-        //        "orders" => array(
-        //            "{MARKET_INDEX}" => [Order] // the only present $market index will be the one provided
-        //        ),
-        //        "type" => "update/account_orders"
+        //        "account": {ACCOUNT_INDEX},
+        //        "channel": "account_orders:{MARKET_INDEX}",
+        //        "nonce": INTEGER,
+        //        "orders": {
+        //            "{MARKET_INDEX}": [Order] // the only present market index will be the one provided
+        //        },
+        //        "type": "update/account_orders"
         //    }
         //
         //    {
-        //        "channel" => "account_all_orders:{ACCOUNT_ID}",
-        //        "orders" => array(
-        //            "{MARKET_INDEX}" => [Order]
-        //        ),
-        //        "type" => "update/account_all_orders"
+        //        "channel": "account_all_orders:{ACCOUNT_ID}",
+        //        "orders": {
+        //            "{MARKET_INDEX}": [Order]
+        //        },
+        //        "type": "update/account_all_orders"
         //    }
         //
         $data = $this->safe_dict($message, 'orders', array());
@@ -1417,12 +1417,12 @@ class lighter extends \ccxt\async\lighter {
         return true;
     }
 
-    public function handle_error_message(Client $client, mixed $message) {
+    public function handle_error_message(Client $client, mixed $message): bool {
         //
         //     {
-        //         "error" => {
-        //             "code" => 30005,
-        //             "message" => "Invalid Channel =>  (marketId)"
+        //         "error": {
+        //             "code": 30005,
+        //             "message": "Invalid Channel:  (marketId)"
         //         }
         //     }
         //
@@ -1435,7 +1435,7 @@ class lighter extends \ccxt\async\lighter {
                 $this->throw_exactly_matched_exception($this->exceptions['exact'], $code, $feedback);
                 $this->throw_broadly_matched_exception($this->exceptions['broad'], $errorMessage, $feedback);
                 // the rest handler ends with the same unconditional throw. without it an
-                // unmapped $code raises nothing and is dropped by the routing below,
+                // unmapped code raises nothing and is dropped by the routing below,
                 // leaving the request that caused it awaiting a response that never comes
                 throw new ExchangeError($feedback);
             }
@@ -1518,13 +1518,13 @@ class lighter extends \ccxt\async\lighter {
     public function handle_subscription_status(Client $client, mixed $message) {
         //
         //     {
-        //         "session_id" => "8d354239-80e0-4b77-8763-87b6fef2f768",
-        //         "type" => "connected"
+        //         "session_id": "8d354239-80e0-4b77-8763-87b6fef2f768",
+        //         "type": "connected"
         //     }
         //
         //     {
-        //         "type" => "unsubscribed",
-        //         "channel" => "order_book:0"
+        //         "type": "unsubscribed",
+        //         "channel": "order_book:0"
         //     }
         //
         $type = $this->safe_string($message, 'type', '');
@@ -1550,7 +1550,7 @@ class lighter extends \ccxt\async\lighter {
 
     public function handle_ping(Client $client, mixed $message) {
         //
-        //     array( "type" => "ping" )
+        //     { "type": "ping" }
         //
         $this->spawn(array($this, 'pong'), $client, $message);
     }

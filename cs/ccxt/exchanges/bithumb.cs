@@ -5,7 +5,7 @@ namespace ccxt;
 
 public partial class bithumb : Exchange
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "id", "bithumb" },
@@ -777,7 +777,7 @@ public partial class bithumb : Exchange
             for (int i = 0; isLessThan(i, getArrayLength(codes)); postFixIncrement(ref i))
             {
                 string? code = ((string)getValue(codes, i));
-                object account = this.account();
+                Dictionary<string, object> account = this.account();
                 Dictionary<string, object> currency = this.currency(((string)code));
                 string? lowerCurrencyId = this.safeStringLower(currency, "id");
                 ((IDictionary<string,object>)account)["total"] = this.safeString(balances, add("total_", lowerCurrencyId));
@@ -790,7 +790,7 @@ public partial class bithumb : Exchange
             for (int i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
             {
                 object entry = getValue(response, i);
-                object account = this.account();
+                Dictionary<string, object> account = this.account();
                 string? currencyId = this.safeString(entry, "currency");
                 string? code = this.safeCurrencyCode(currencyId);
                 if (isTrue(isEqual(code, null)))
@@ -1042,7 +1042,7 @@ public partial class bithumb : Exchange
         string? change = this.safeString2(ticker, "signed_change_price", "change_price");
         string? percentage = this.safeString2(ticker, "signed_change_rate", "change_rate");
         string? open = this.safeString(ticker, "opening_price");
-        object nonZeroOpen = this.omitZero(open);
+        string? nonZeroOpen = ((string)this.omitZero(open));
         if (isTrue(isTrue(isTrue((!isEqual(marketId, null))) && isTrue((!isEqual(nonZeroOpen, null)))) && isTrue((!isEqual(close, null)))))
         {
             string? computedChange = Precise.stringSub(close, open);
@@ -2237,7 +2237,7 @@ public partial class bithumb : Exchange
             {
                 throw new ArgumentsRequired ((string)add(this.id, " fetchOrder() requires a symbol argument")) ;
             }
-            object marketDefined = market;
+            IDictionary<string, object> marketDefined = market;
             string? bs = this.safeString(marketDefined, "base");
             string? quote = this.safeString(marketDefined, "quote");
             if (isTrue(isTrue((isEqual(bs, null))) || isTrue((isEqual(quote, null)))))
@@ -2832,7 +2832,7 @@ public partial class bithumb : Exchange
             {
                 throw new ArgumentsRequired ((string)add(this.id, " cancelOrder() requires a symbol argument")) ;
             }
-            object marketDefined = market;
+            IDictionary<string, object> marketDefined = market;
             string? bs = this.safeString(marketDefined, "base");
             string? quote = this.safeString(marketDefined, "quote");
             if (isTrue(isTrue((isEqual(bs, null))) || isTrue((isEqual(quote, null)))))

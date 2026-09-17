@@ -239,7 +239,7 @@ class hollaex extends Exchange {
                         'symbolRequired' => false,
                     ),
                     'fetchOHLCV' => array(
-                        'limit' => 1000, // todo => no limit in request
+                        'limit' => 1000, // todo: no limit in request
                     ),
                 ),
                 'swap' => array(
@@ -320,49 +320,49 @@ class hollaex extends Exchange {
         $response = Async\await($this->publicGetConstants($params));
         //
         //     {
-        //         "coins" => array(
-        //             "xmr" => array(
-        //                 "id" => 7,
-        //                 "fullname" => "Monero",
-        //                 "symbol" => "xmr",
-        //                 "active" => true,
-        //                 "allow_deposit" => true,
-        //                 "allow_withdrawal" => true,
-        //                 "withdrawal_fee" => 0.02,
-        //                 "min" => 0.001,
-        //                 "max" => 100000,
-        //                 "increment_unit" => 0.001,
-        //                 "deposit_limits" => array( '1' => 0, '2' => 0, '3' => 0, '4' => 0, "5" => 0, "6" => 0 ),
-        //                 "withdrawal_limits" => array( '1' => 10, '2' => 15, '3' => 100, '4' => 100, '5' => 200, '6' => 300, '7' => 350, '8' => 400, "9" => 500, "10" => -1 ),
-        //                 "created_at" => "2019-12-09T07:14:02.720Z",
-        //                 "updated_at" => "2020-01-16T12:12:53.162Z"
-        //             ),
+        //         "coins": {
+        //             "xmr": {
+        //                 "id": 7,
+        //                 "fullname": "Monero",
+        //                 "symbol": "xmr",
+        //                 "active": true,
+        //                 "allow_deposit": true,
+        //                 "allow_withdrawal": true,
+        //                 "withdrawal_fee": 0.02,
+        //                 "min": 0.001,
+        //                 "max": 100000,
+        //                 "increment_unit": 0.001,
+        //                 "deposit_limits": { '1': 0, '2': 0, '3': 0, '4': 0, "5": 0, "6": 0 },
+        //                 "withdrawal_limits": { '1': 10, '2': 15, '3': 100, '4': 100, '5': 200, '6': 300, '7': 350, '8': 400, "9": 500, "10": -1 },
+        //                 "created_at": "2019-12-09T07:14:02.720Z",
+        //                 "updated_at": "2020-01-16T12:12:53.162Z"
+        //             },
         //             // ...
-        //         ),
-        //         "pairs" => array(
-        //             "btc-usdt" => array(
-        //                 "id" => 2,
-        //                 "name" => "btc-usdt",
-        //                 "pair_base" => "btc",
-        //                 "pair_2" => "usdt",
-        //                 "taker_fees" => array( '1' => 0.3, '2' => 0.25, '3' => 0.2, '4' => 0.18, '5' => 0.1, '6' => 0.09, '7' => 0.08, '8' => 0.06, "9" => 0.04, "10" => 0 ),
-        //                 "maker_fees" => array( '1' => 0.1, '2' => 0.08, '3' => 0.05, '4' => 0.03, '5' => 0, '6' => 0, '7' => 0, '8' => 0, "9" => 0, "10" => 0 ),
-        //                 "min_size" => 0.0001,
-        //                 "max_size" => 1000,
-        //                 "min_price" => 100,
-        //                 "max_price" => 100000,
-        //                 "increment_size" => 0.0001,
-        //                 "increment_price" => 0.05,
-        //                 "active" => true,
-        //                 "created_at" => "2019-12-09T07:15:54.537Z",
-        //                 "updated_at" => "2019-12-09T07:15:54.537Z"
-        //             ),
-        //         ),
-        //         "config" => array( tiers => 10 ),
-        //         "status" => true
+        //         },
+        //         "pairs": {
+        //             "btc-usdt": {
+        //                 "id": 2,
+        //                 "name": "btc-usdt",
+        //                 "pair_base": "btc",
+        //                 "pair_2": "usdt",
+        //                 "taker_fees": { '1': 0.3, '2': 0.25, '3': 0.2, '4': 0.18, '5': 0.1, '6': 0.09, '7': 0.08, '8': 0.06, "9": 0.04, "10": 0 },
+        //                 "maker_fees": { '1': 0.1, '2': 0.08, '3': 0.05, '4': 0.03, '5': 0, '6': 0, '7': 0, '8': 0, "9": 0, "10": 0 },
+        //                 "min_size": 0.0001,
+        //                 "max_size": 1000,
+        //                 "min_price": 100,
+        //                 "max_price": 100000,
+        //                 "increment_size": 0.0001,
+        //                 "increment_price": 0.05,
+        //                 "active": true,
+        //                 "created_at": "2019-12-09T07:15:54.537Z",
+        //                 "updated_at": "2019-12-09T07:15:54.537Z"
+        //             },
+        //         },
+        //         "config": { tiers: 10 },
+        //         "status": true
         //     }
         //
-        $pairs = $this->safe_value($response, 'pairs', array());
+        $pairs = $this->safe_dict($response, 'pairs', array());
         $keys = is_array($pairs) ? array_keys($pairs) : array();
         $result = array();
         for ($i = 0; $i < count($keys); $i++) {
@@ -441,67 +441,67 @@ class hollaex extends Exchange {
         $response = Async\await($this->publicGetConstants($params));
         //
         //    {
-        //        "coins" => {
-        //            "usdt" => array(
-        //                "id" => "6",
-        //                "fullname" => "USD Tether",
-        //                "symbol" => "usdt",
-        //                "active" => true,
-        //                "verified" => true,
-        //                "allow_deposit" => true,
-        //                "allow_withdrawal" => true,
-        //                "withdrawal_fee" => "20",
-        //                "min" => "1",
-        //                "max" => "10000000",
-        //                "increment_unit" => "0.0001",
-        //                "logo" => "https://hollaex-resources.s3.ap-southeast-1.amazonaws.com/icons/usdt.svg",
-        //                "code" => "usdt",
-        //                "is_public" => true,
-        //                "meta" => array(
-        //                    "color" => "#27a17a",
-        //                    "website" => "https://tether.to",
-        //                    "explorer" => "https://blockchair.com/tether",
-        //                    "decimal_points" => "6"
-        //                ),
-        //                "estimated_price" => "1",
-        //                "description" => "<p>Tether (USDT) is a stablecoin pegged 1:1 to the US dollar. It is a digital currency that aims to maintain its value while allowing for fast and secure transfer of funds. It was the first stablecoin, and is the most widely used due stablecoin due to its stability and low volatility compared to other cryptocurrencies. It was launched in 2014 by Tether Limited.</p>",
-        //                "type" => "blockchain",
-        //                "network" => "eth,trx,bnb,matic",
-        //                "standard" => "",
-        //                "issuer" => "HollaEx",
-        //                "withdrawal_fees" => array(
-        //                    "bnb" => array(
-        //                        "value" => "0.8",
-        //                        "active" => true,
-        //                        "symbol" => "usdt"
-        //                    ),
-        //                    "eth" => array(
-        //                        "value" => "1.5",
-        //                        "active" => true,
-        //                        "symbol" => "usdt"
-        //                    ),
-        //                    "trx" => array(
-        //                        "value" => "4",
-        //                        "active" => true,
-        //                        "symbol" => "usdt"
-        //                    ),
-        //                    "matic" => array(
-        //                        "value" => "0.3",
-        //                        "active" => true,
-        //                        "symbol" => "usdt"
+        //        "coins": {
+        //            "usdt": {
+        //                "id": "6",
+        //                "fullname": "USD Tether",
+        //                "symbol": "usdt",
+        //                "active": true,
+        //                "verified": true,
+        //                "allow_deposit": true,
+        //                "allow_withdrawal": true,
+        //                "withdrawal_fee": "20",
+        //                "min": "1",
+        //                "max": "10000000",
+        //                "increment_unit": "0.0001",
+        //                "logo": "https://hollaex-resources.s3.ap-southeast-1.amazonaws.com/icons/usdt.svg",
+        //                "code": "usdt",
+        //                "is_public": true,
+        //                "meta": {
+        //                    "color": "#27a17a",
+        //                    "website": "https://tether.to",
+        //                    "explorer": "https://blockchair.com/tether",
+        //                    "decimal_points": "6"
+        //                },
+        //                "estimated_price": "1",
+        //                "description": "<p>Tether (USDT) is a stablecoin pegged 1:1 to the US dollar. It is a digital currency that aims to maintain its value while allowing for fast and secure transfer of funds. It was the first stablecoin, and is the most widely used due stablecoin due to its stability and low volatility compared to other cryptocurrencies. It was launched in 2014 by Tether Limited.</p>",
+        //                "type": "blockchain",
+        //                "network": "eth,trx,bnb,matic",
+        //                "standard": "",
+        //                "issuer": "HollaEx",
+        //                "withdrawal_fees": {
+        //                    "bnb": {
+        //                        "value": "0.8",
+        //                        "active": true,
+        //                        "symbol": "usdt"
+        //                    },
+        //                    "eth": {
+        //                        "value": "1.5",
+        //                        "active": true,
+        //                        "symbol": "usdt"
+        //                    },
+        //                    "trx": {
+        //                        "value": "4",
+        //                        "active": true,
+        //                        "symbol": "usdt"
+        //                    },
+        //                    "matic": {
+        //                        "value": "0.3",
+        //                        "active": true,
+        //                        "symbol": "usdt"
         //                    }
-        //                ),
-        //                "display_name" => null,
-        //                "deposit_fees" => null,
-        //                "is_risky" => false,
-        //                "market_cap" => "144568098696.29",
-        //                "category" => "stable",
-        //                "created_at" => "2019-08-09T10:45:43.367Z",
-        //                "updated_at" => "2025-03-25T17:12:37.970Z",
-        //                "created_by" => "168",
-        //                "owner_id" => "1"
-        //            ),
-        //         ),
+        //                },
+        //                "display_name": null,
+        //                "deposit_fees": null,
+        //                "is_risky": false,
+        //                "market_cap": "144568098696.29",
+        //                "category": "stable",
+        //                "created_at": "2019-08-09T10:45:43.367Z",
+        //                "updated_at": "2025-03-25T17:12:37.970Z",
+        //                "created_by": "168",
+        //                "owner_id": "1"
+        //            },
+        //         },
         //         "network":"https://api.hollaex.network"
         //     }
         //
@@ -624,20 +624,20 @@ class hollaex extends Exchange {
         $response = Async\await($this->publicGetOrderbook($this->extend($request, $params)));
         //
         //     {
-        //         "btc-usdt" => array(
-        //             "bids" => array(
-        //                 array( 8836.4, 1.022 ),
-        //                 array( 8800, 0.0668 ),
-        //                 array( 8797.75, 0.2398 ),
-        //             ),
-        //             "asks" => array(
-        //                 array( 8839.35, 1.5334 ),
-        //                 array( 8852.6, 0.0579 ),
-        //                 array( 8860.45, 0.1815 ),
-        //             ),
-        //             "timestamp" => "2020-03-03T02:27:25.147Z"
-        //         ),
-        //         "eth-usdt" => array(),
+        //         "btc-usdt": {
+        //             "bids": [
+        //                 [ 8836.4, 1.022 ],
+        //                 [ 8800, 0.0668 ],
+        //                 [ 8797.75, 0.2398 ],
+        //             ],
+        //             "asks": [
+        //                 [ 8839.35, 1.5334 ],
+        //                 [ 8852.6, 0.0579 ],
+        //                 [ 8860.45, 0.1815 ],
+        //             ],
+        //             "timestamp": "2020-03-03T02:27:25.147Z"
+        //         },
+        //         "eth-usdt": {},
         //         // ...
         //     }
         //
@@ -670,13 +670,13 @@ class hollaex extends Exchange {
         $response = Async\await($this->publicGetTicker($this->extend($request, $params)));
         //
         //     {
-        //         "open" => 8615.55,
-        //         "close" => 8841.05,
-        //         "high" => 8921.1,
-        //         "low" => 8607,
-        //         "last" => 8841.05,
-        //         "volume" => 20.2802,
-        //         "timestamp" => "2020-03-03T03:11:18.965Z"
+        //         "open": 8615.55,
+        //         "close": 8841.05,
+        //         "high": 8921.1,
+        //         "low": 8607,
+        //         "last": 8841.05,
+        //         "volume": 20.2802,
+        //         "timestamp": "2020-03-03T03:11:18.965Z"
         //     }
         //
         return $this->parse_ticker($response, $market);
@@ -703,16 +703,16 @@ class hollaex extends Exchange {
         $response = Async\await($this->publicGetTickers($params));
         //
         //     {
-        //         "bch-usdt" => array(
-        //             "time" => "2020-03-02T04:29:45.011Z",
-        //             "open" => 341.65,
+        //         "bch-usdt": {
+        //             "time": "2020-03-02T04:29:45.011Z",
+        //             "open": 341.65,
         //             "close":337.9,
         //             "high":341.65,
         //             "low":337.3,
         //             "last":337.9,
         //             "volume":0.054,
         //             "symbol":"bch-usdt"
-        //         ),
+        //         },
         //         // ...
         //     }
         //
@@ -738,26 +738,26 @@ class hollaex extends Exchange {
         // fetchTicker
         //
         //     {
-        //         "open" => 8615.55,
-        //         "close" => 8841.05,
-        //         "high" => 8921.1,
-        //         "low" => 8607,
-        //         "last" => 8841.05,
-        //         "volume" => 20.2802,
-        //         "timestamp" => "2020-03-03T03:11:18.964Z",
+        //         "open": 8615.55,
+        //         "close": 8841.05,
+        //         "high": 8921.1,
+        //         "low": 8607,
+        //         "last": 8841.05,
+        //         "volume": 20.2802,
+        //         "timestamp": "2020-03-03T03:11:18.964Z",
         //     }
         //
         // fetchTickers
         //
         //     {
-        //         "time" => "2020-03-02T04:29:45.011Z",
-        //         "open" => 341.65,
-        //         "close" => 337.9,
-        //         "high" => 341.65,
-        //         "low" => 337.3,
-        //         "last" => 337.9,
-        //         "volume" => 0.054,
-        //         "symbol" => "bch-usdt"
+        //         "time": "2020-03-02T04:29:45.011Z",
+        //         "open": 341.65,
+        //         "close": 337.9,
+        //         "high": 341.65,
+        //         "low": 337.3,
+        //         "last": 337.9,
+        //         "volume": 0.054,
+        //         "symbol": "bch-usdt"
         //     }
         //
         $marketId = $this->safe_string($ticker, 'symbol');
@@ -815,15 +815,15 @@ class hollaex extends Exchange {
         $response = Async\await($this->publicGetTrades($this->extend($request, $params)));
         //
         //     {
-        //         "btc-usdt" => array(
-        //             array(
-        //                 "size" => 0.5,
-        //                 "price" => 8830,
-        //                 "side" => "buy",
-        //                 "timestamp" => "2020-03-03T04:44:33.034Z"
-        //             ),
+        //         "btc-usdt": [
+        //             {
+        //                 "size": 0.5,
+        //                 "price": 8830,
+        //                 "side": "buy",
+        //                 "timestamp": "2020-03-03T04:44:33.034Z"
+        //             },
         //             // ...
-        //         )
+        //         ]
         //     }
         //
         $trades = $this->safe_list($response, $market['id'], array());
@@ -835,10 +835,10 @@ class hollaex extends Exchange {
         // fetchTrades (public)
         //
         //     {
-        //         "size" => 0.5,
-        //         "price" => 8830,
-        //         "side" => "buy",
-        //         "timestamp" => "2020-03-03T04:44:33.034Z"
+        //         "size": 0.5,
+        //         "price": 8830,
+        //         "side": "buy",
+        //         "timestamp": "2020-03-03T04:44:33.034Z"
         //     }
         //
         // fetchMyTrades (private)
@@ -907,29 +907,29 @@ class hollaex extends Exchange {
         $response = Async\await($this->publicGetTiers($params));
         //
         //     {
-        //         "1" => {
-        //             "id" => "1",
-        //             "name" => "Silver",
-        //             "icon" => '',
-        //             "description" => "Your crypto journey starts here! Make your first deposit to start trading, and verify your account to level up!",
-        //             "deposit_limit" => "0",
-        //             "withdrawal_limit" => "1000",
-        //             "fees" => array(
-        //                 "maker" => array(
-        //                     'eth-btc' => "0.1",
-        //                     'ada-usdt' => "0.1",
+        //         "1": {
+        //             "id": "1",
+        //             "name": "Silver",
+        //             "icon": '',
+        //             "description": "Your crypto journey starts here! Make your first deposit to start trading, and verify your account to level up!",
+        //             "deposit_limit": "0",
+        //             "withdrawal_limit": "1000",
+        //             "fees": {
+        //                 "maker": {
+        //                     'eth-btc': "0.1",
+        //                     'ada-usdt': "0.1",
         //                     ...
-        //                 ),
-        //                 "taker" => array(
-        //                     'eth-btc' => "0.1",
-        //                     'ada-usdt' => "0.1",
+        //                 },
+        //                 "taker": {
+        //                     'eth-btc': "0.1",
+        //                     'ada-usdt': "0.1",
         //                     ...
         //                 }
-        //             ),
-        //             "note" => "<ul>\n<li>Login and verify email</li>\n</ul>\n",
-        //             "created_at" => "2021-03-22T03:51:39.129Z",
-        //             "updated_at" => "2021-11-01T02:51:56.214Z"
-        //         ),
+        //             },
+        //             "note": "<ul>\n<li>Login and verify email</li>\n</ul>\n",
+        //             "created_at": "2021-03-22T03:51:39.129Z",
+        //             "updated_at": "2021-11-01T02:51:56.214Z"
+        //         },
         //         ...
         //     }
         //
@@ -992,7 +992,7 @@ class hollaex extends Exchange {
         $start = $since;
         $now = $this->milliseconds();
         if ($until === null) {
-            $until = $now; // the exchange has not a lot of trades, so if we count $until by $limit and $limit is small, it may return empty result
+            $until = $now; // the exchange has not a lot of trades, so if we count until by limit and limit is small, it may return empty result
         }
         if ($start === null) {
             $start = $until - $timeDelta;
@@ -1002,8 +1002,8 @@ class hollaex extends Exchange {
         $params = $this->omit($params, 'until');
         $response = Async\await($this->publicGetChart($this->extend($request, $params)));
         //
-        //     array(
-        //         array(
+        //     [
+        //         {
         //             "time":"2020-03-02T20:00:00.000Z",
         //             "close":8872.1,
         //             "high":8872.1,
@@ -1011,8 +1011,8 @@ class hollaex extends Exchange {
         //             "open":8858.6,
         //             "symbol":"btc-usdt",
         //             "volume":1.2922
-        //         ),
-        //     )
+        //         },
+        //     ]
         //
         return $this->parse_ohlcvs($this->to_array($response), $market, $timeframe, $since, $limit);
     }
@@ -1083,13 +1083,13 @@ class hollaex extends Exchange {
         $response = Async\await($this->privateGetUserBalance($params));
         //
         //     {
-        //         "updated_at" => "2020-03-02T22:27:38.428Z",
-        //         "btc_balance" => 0,
-        //         "btc_pending" => 0,
-        //         "btc_available" => 0,
-        //         "eth_balance" => 0,
-        //         "eth_pending" => 0,
-        //         "eth_available" => 0,
+        //         "updated_at": "2020-03-02T22:27:38.428Z",
+        //         "btc_balance": 0,
+        //         "btc_pending": 0,
+        //         "btc_available": 0,
+        //         "eth_balance": 0,
+        //         "eth_pending": 0,
+        //         "eth_available": 0,
         //         // ...
         //     }
         //
@@ -1120,25 +1120,25 @@ class hollaex extends Exchange {
         $response = Async\await($this->privateGetOrder($this->extend($request, $params)));
         //
         //     {
-        //         "id" => "string",
-        //         "side" => "sell",
-        //         "symbol" => "xht-usdt",
-        //         "size" => 0.1,
-        //         "filled" => 0,
-        //         "stop" => null,
-        //         "fee" => 0,
-        //         "fee_coin" => "usdt",
-        //         "type" => "limit",
-        //         "price" => 1.09,
-        //         "status" => "new",
-        //         "created_by" => 116,
-        //         "created_at" => "2021-02-17T02:32:38.910Z",
-        //         "updated_at" => "2021-02-17T02:32:38.910Z",
-        //         "User" => {
-        //             "id" => 116,
-        //             "email" => "fight@club.com",
-        //             "username" => "narrator",
-        //             "exchange_id" => 176
+        //         "id": "string",
+        //         "side": "sell",
+        //         "symbol": "xht-usdt",
+        //         "size": 0.1,
+        //         "filled": 0,
+        //         "stop": null,
+        //         "fee": 0,
+        //         "fee_coin": "usdt",
+        //         "type": "limit",
+        //         "price": 1.09,
+        //         "status": "new",
+        //         "created_by": 116,
+        //         "created_at": "2021-02-17T02:32:38.910Z",
+        //         "updated_at": "2021-02-17T02:32:38.910Z",
+        //         "User": {
+        //             "id": 116,
+        //             "email": "fight@club.com",
+        //             "username": "narrator",
+        //             "exchange_id": 176
         //         }
         //     }
         //
@@ -1212,25 +1212,25 @@ class hollaex extends Exchange {
         );
         $response = Async\await($this->privateGetOrder($this->extend($request, $params)));
         //             {
-        //                 "id" => "string",
-        //                 "side" => "sell",
-        //                 "symbol" => "xht-usdt",
-        //                 "size" => 0.1,
-        //                 "filled" => 0,
-        //                 "stop" => null,
-        //                 "fee" => 0,
-        //                 "fee_coin" => "usdt",
-        //                 "type" => "limit",
-        //                 "price" => 1.09,
-        //                 "status" => "new",
-        //                 "created_by" => 116,
-        //                 "created_at" => "2021-02-17T02:32:38.910Z",
-        //                 "updated_at" => "2021-02-17T02:32:38.910Z",
-        //                 "User" => {
-        //                     "id" => 116,
-        //                     "email" => "fight@club.com",
-        //                     "username" => "narrator",
-        //                     "exchange_id" => 176
+        //                 "id": "string",
+        //                 "side": "sell",
+        //                 "symbol": "xht-usdt",
+        //                 "size": 0.1,
+        //                 "filled": 0,
+        //                 "stop": null,
+        //                 "fee": 0,
+        //                 "fee_coin": "usdt",
+        //                 "type": "limit",
+        //                 "price": 1.09,
+        //                 "status": "new",
+        //                 "created_by": 116,
+        //                 "created_at": "2021-02-17T02:32:38.910Z",
+        //                 "updated_at": "2021-02-17T02:32:38.910Z",
+        //                 "User": {
+        //                     "id": 116,
+        //                     "email": "fight@club.com",
+        //                     "username": "narrator",
+        //                     "exchange_id": 176
         //                 }
         //             }
         $order = $response;
@@ -1261,16 +1261,16 @@ class hollaex extends Exchange {
         }
         $market = null;
         $request = array(
-            // 'symbol' => $market['id'],
-            // 'side' => 'buy', // 'sell'
-            // 'status' => 'new', // 'filled', 'pfilled', 'canceled'
-            // 'open' => true,
-            // 'limit' => $limit, // default 50, max 100
-            // 'page' => 1,
-            // 'order_by' => 'created_at', // id, ...
-            // 'order' => 'asc', // 'desc'
-            // 'start_date' => $this->iso8601($since),
-            // 'end_date' => $this->iso8601($this->milliseconds()),
+            // 'symbol': market['id'],
+            // 'side': 'buy', // 'sell'
+            // 'status': 'new', // 'filled', 'pfilled', 'canceled'
+            // 'open': true,
+            // 'limit': limit, // default 50, max 100
+            // 'page': 1,
+            // 'order_by': 'created_at', // id, ...
+            // 'order': 'asc', // 'desc'
+            // 'start_date': this.iso8601 (since),
+            // 'end_date': this.iso8601 (this.milliseconds ()),
         );
         if ($symbol !== null) {
             $market = $this->market($symbol);
@@ -1285,31 +1285,31 @@ class hollaex extends Exchange {
         $response = Async\await($this->privateGetOrders($this->extend($request, $params)));
         //
         //     {
-        //         "count" => 1,
-        //         "data" => array(
+        //         "count": 1,
+        //         "data": [
         //             {
-        //                 "id" => "string",
-        //                 "side" => "sell",
-        //                 "symbol" => "xht-usdt",
-        //                 "size" => 0.1,
-        //                 "filled" => 0,
-        //                 "stop" => null,
-        //                 "fee" => 0,
-        //                 "fee_coin" => "usdt",
-        //                 "type" => "limit",
-        //                 "price" => 1.09,
-        //                 "status" => "new",
-        //                 "created_by" => 116,
-        //                 "created_at" => "2021-02-17T02:32:38.910Z",
-        //                 "updated_at" => "2021-02-17T02:32:38.910Z",
-        //                 "User" => {
-        //                     "id" => 116,
-        //                     "email" => "fight@club.com",
-        //                     "username" => "narrator",
-        //                     "exchange_id" => 176
+        //                 "id": "string",
+        //                 "side": "sell",
+        //                 "symbol": "xht-usdt",
+        //                 "size": 0.1,
+        //                 "filled": 0,
+        //                 "stop": null,
+        //                 "fee": 0,
+        //                 "fee_coin": "usdt",
+        //                 "type": "limit",
+        //                 "price": 1.09,
+        //                 "status": "new",
+        //                 "created_by": 116,
+        //                 "created_at": "2021-02-17T02:32:38.910Z",
+        //                 "updated_at": "2021-02-17T02:32:38.910Z",
+        //                 "User": {
+        //                     "id": 116,
+        //                     "email": "fight@club.com",
+        //                     "username": "narrator",
+        //                     "exchange_id": 176
         //                 }
         //             }
-        //         )
+        //         ]
         //     }
         //
         $data = $this->safe_list($response, 'data', array());
@@ -1344,13 +1344,13 @@ class hollaex extends Exchange {
         //          "status":"canceled",
         //          "fee":0,
         //          "fee_coin":"doge",
-        //          "meta" => array(                 // optional field only returned for $postOnly orders
+        //          "meta": {                 // optional field only returned for postOnly orders
         //              "post_only":true
-        //          ),
-        //          "fee_structure" => array(
+        //          },
+        //          "fee_structure": {
         //              "maker":0.1,
         //              "taker":0.1
-        //          ),
+        //          },
         //          "created_at":"2022-05-31T08:14:14.747Z",
         //          "updated_at":"2022-05-31T08:14:23.727Z"
         //      }
@@ -1421,8 +1421,8 @@ class hollaex extends Exchange {
             'side' => $side,
             'size' => $this->amount_to_precision($symbol, $amount),
             'type' => $type,
-            // 'stop' => floatval($this->price_to_precision($symbol, stopPrice)),
-            // 'meta' => array(), // other options such as post_only
+            // 'stop': parseFloat (this.priceToPrecision (symbol, stopPrice)),
+            // 'meta': {}, // other options such as post_only
         );
         $triggerPrice = $this->safe_number_n($params, array( 'triggerPrice', 'stopPrice', 'stop' ));
         $meta = $this->safe_value($params, 'meta', array());
@@ -1442,25 +1442,25 @@ class hollaex extends Exchange {
         $response = Async\await($this->privatePostOrder($this->extend($request, $params)));
         //
         //     {
-        //         "fee" => 0,
-        //         "meta" => array(),
-        //         "symbol" => "xht-usdt",
-        //         "side" => "sell",
-        //         "size" => 0.1,
-        //         "type" => "limit",
-        //         "price" => 1,
-        //         "fee_structure" => array(
-        //             "maker" => 0.2,
-        //             "taker" => 0.2
-        //         ),
-        //         "fee_coin" => "usdt",
-        //         "id" => "string",
-        //         "created_by" => 116,
-        //         "filled" => 0,
-        //         "status" => "new",
-        //         "updated_at" => "2021-02-17T03:03:19.231Z",
-        //         "created_at" => "2021-02-17T03:03:19.231Z",
-        //         "stop" => null
+        //         "fee": 0,
+        //         "meta": {},
+        //         "symbol": "xht-usdt",
+        //         "side": "sell",
+        //         "size": 0.1,
+        //         "type": "limit",
+        //         "price": 1,
+        //         "fee_structure": {
+        //             "maker": 0.2,
+        //             "taker": 0.2
+        //         },
+        //         "fee_coin": "usdt",
+        //         "id": "string",
+        //         "created_by": 116,
+        //         "filled": 0,
+        //         "status": "new",
+        //         "updated_at": "2021-02-17T03:03:19.231Z",
+        //         "created_at": "2021-02-17T03:03:19.231Z",
+        //         "stop": null
         //     }
         //
         return $this->parse_order($response, $market);
@@ -1490,15 +1490,15 @@ class hollaex extends Exchange {
         $response = Async\await($this->privateDeleteOrder($this->extend($request, $params)));
         //
         //     {
-        //         "title" => "string",
-        //         "symbol" => "xht-usdt",
-        //         "side" => "sell",
-        //         "size" => 1,
-        //         "type" => "limit",
-        //         "price" => 0.1,
-        //         "id" => "string",
-        //         "created_by" => 34,
-        //         "filled" => 0
+        //         "title": "string",
+        //         "symbol": "xht-usdt",
+        //         "side": "sell",
+        //         "size": 1,
+        //         "type": "limit",
+        //         "price": 0.1,
+        //         "id": "string",
+        //         "created_by": 34,
+        //         "filled": 0
         //     }
         //
         return $this->parse_order($response);
@@ -1530,19 +1530,19 @@ class hollaex extends Exchange {
         $request['symbol'] = $market['id'];
         $response = Async\await($this->privateDeleteOrderAll($this->extend($request, $params)));
         //
-        //     array(
+        //     [
         //         {
-        //             "title" => "string",
-        //             "symbol" => "xht-usdt",
-        //             "side" => "sell",
-        //             "size" => 1,
-        //             "type" => "limit",
-        //             "price" => 0.1,
-        //             "id" => "string",
-        //             "created_by" => 34,
-        //             "filled" => 0
+        //             "title": "string",
+        //             "symbol": "xht-usdt",
+        //             "side": "sell",
+        //             "size": 1,
+        //             "type": "limit",
+        //             "price": 0.1,
+        //             "id": "string",
+        //             "created_by": 34,
+        //             "filled": 0
         //         }
-        //     )
+        //     ]
         //
         return $this->parse_orders($response, $market);
     }
@@ -1567,13 +1567,13 @@ class hollaex extends Exchange {
             Async\await($this->load_markets());
         }
         $request = array(
-            // 'symbol' => $market['id'],
-            // 'limit' => 50, // default 50, max 100
-            // 'page' => 1, // page of $data to retrieve
-            // 'order_by' => 'timestamp', // field to order $data
-            // 'order' => 'asc', // asc or desc
-            // 'start_date' => 123, // starting date of queried $data
-            // 'end_date' => 321, // ending date of queried $data
+            // 'symbol': market['id'],
+            // 'limit': 50, // default 50, max 100
+            // 'page': 1, // page of data to retrieve
+            // 'order_by': 'timestamp', // field to order data
+            // 'order': 'asc', // asc or desc
+            // 'start_date': 123, // starting date of queried data
+            // 'end_date': 321, // ending date of queried data
         );
         $market = null;
         if ($symbol !== null) {
@@ -1589,17 +1589,17 @@ class hollaex extends Exchange {
         $response = Async\await($this->privateGetUserTrades($this->extend($request, $params)));
         //
         //     {
-        //         "count" => 1,
-        //         "data" => array(
+        //         "count": 1,
+        //         "data": [
         //             {
-        //                 "side" => "buy",
-        //                 "symbol" => "eth-usdt",
-        //                 "size" => 0.086,
-        //                 "price" => 226.19,
-        //                 "timestamp" => "2020-03-03T08:03:55.459Z",
-        //                 "fee" => 0.1
+        //                 "side": "buy",
+        //                 "symbol": "eth-usdt",
+        //                 "size": 0.086,
+        //                 "price": 226.19,
+        //                 "timestamp": "2020-03-03T08:03:55.459Z",
+        //                 "fee": 0.1
         //             }
-        //         )
+        //         ]
         //     }
         //
         $data = $this->safe_list($response, 'data', array());
@@ -1666,40 +1666,40 @@ class hollaex extends Exchange {
         //         "nationality":"",
         //         "dob":null,
         //         "phone_number":"",
-        //         "address":array("city":"","address":"","country":"","postal_code":""),
-        //         "id_data":array("note":"","type":"","number":"","status":0,"issued_date":"","expiration_date":""),
-        //         "bank_account":array(),
-        //         "crypto_wallet":array(),
+        //         "address":{"city":"","address":"","country":"","postal_code":""},
+        //         "id_data":{"note":"","type":"","number":"","status":0,"issued_date":"","expiration_date":""},
+        //         "bank_account":[],
+        //         "crypto_wallet":{},
         //         "verification_level":1,
         //         "email_verified":true,
         //         "otp_enabled":true,
         //         "activated":true,
         //         "username":"igor.kroitor",
         //         "affiliation_code":"QSWA6G",
-        //         "settings":array(
-        //             "chat":array("set_username":false),
-        //             "risk":array("popup_warning":false,"order_portfolio_percentage":20),
-        //             "audio":array("public_trade":false,"order_completed":true,"order_partially_completed":true),
+        //         "settings":{
+        //             "chat":{"set_username":false},
+        //             "risk":{"popup_warning":false,"order_portfolio_percentage":20},
+        //             "audio":{"public_trade":false,"order_completed":true,"order_partially_completed":true},
         //             "language":"en",
-        //             "interface":array("theme":"white","order_book_levels":10),
-        //             "notification":array("popup_order_completed":true,"popup_order_confirmation":true,"popup_order_partially_filled":true)
-        //         ),
+        //             "interface":{"theme":"white","order_book_levels":10},
+        //             "notification":{"popup_order_completed":true,"popup_order_confirmation":true,"popup_order_partially_filled":true}
+        //         },
         //         "affiliation_rate":0,
         //         "network_id":10620,
         //         "discount":0,
         //         "created_at":"2021-03-24T02:37:57.379Z",
         //         "updated_at":"2021-03-24T02:37:57.379Z",
-        //         "balance":array(
+        //         "balance":{
         //             "btc_balance":0,
         //             "btc_available":0,
         //             "eth_balance":0.000914,
         //             "eth_available":0.000914,
         //             "updated_at":"2020-03-04T04:03:27.174Z
-        //         "),
-        //         "wallet":array(
-        //             array("currency":"usdt","address":"TECLD9XBH31XpyykdHU3uEAeUK7E6Lrmik","network":"trx","standard":null,"is_valid":true,"created_at":"2021-05-12T02:43:05.446Z"),
-        //             array("currency":"xrp","address":"rGcSzmuRx8qngPRnrvpCKkP9V4njeCPGCv:286741597","network":"xrp","standard":null,"is_valid":true,"created_at":"2021-05-12T02:49:01.273Z")
-        //         )
+        //         "},
+        //         "wallet":[
+        //             {"currency":"usdt","address":"TECLD9XBH31XpyykdHU3uEAeUK7E6Lrmik","network":"trx","standard":null,"is_valid":true,"created_at":"2021-05-12T02:43:05.446Z"},
+        //             {"currency":"xrp","address":"rGcSzmuRx8qngPRnrvpCKkP9V4njeCPGCv:286741597","network":"xrp","standard":null,"is_valid":true,"created_at":"2021-05-12T02:49:01.273Z"}
+        //         ]
         //     }
         //
         $wallet = $this->safe_value($response, 'wallet', array());
@@ -1727,13 +1727,13 @@ class hollaex extends Exchange {
             Async\await($this->load_markets());
         }
         $request = array(
-            // 'currency' => $currency['id'],
-            // 'limit' => 50, // default 50, max 100
-            // 'page' => 1, // page of $data to retrieve
-            // 'order_by' => 'timestamp', // field to order $data
-            // 'order' => 'asc', // asc or desc
-            // 'start_date' => 123, // starting date of queried $data
-            // 'end_date' => 321, // ending date of queried $data
+            // 'currency': currency['id'],
+            // 'limit': 50, // default 50, max 100
+            // 'page': 1, // page of data to retrieve
+            // 'order_by': 'timestamp', // field to order data
+            // 'order': 'asc', // asc or desc
+            // 'start_date': 123, // starting date of queried data
+            // 'end_date': 321, // ending date of queried data
         );
         $currency = null;
         if ($code !== null) {
@@ -1749,25 +1749,25 @@ class hollaex extends Exchange {
         $response = Async\await($this->privateGetUserDeposits($this->extend($request, $params)));
         //
         //     {
-        //         "count" => 1,
-        //         "data" => array(
+        //         "count": 1,
+        //         "data": [
         //             {
-        //                 "id" => 539,
-        //                 "amount" => 20,
-        //                 "fee" => 0,
-        //                 "address" => "0x5c0cc98270d7089408fcbcc8e2131287f5be2306",
-        //                 "transaction_id" => "0xd4006327a5ec2c41adbdcf566eaaba6597c3d45906abe78ea1a4a022647c2e28",
-        //                 "status" => true,
-        //                 "dismissed" => false,
-        //                 "rejected" => false,
-        //                 "description" => "",
-        //                 "type" => "deposit",
-        //                 "currency" => "usdt",
-        //                 "created_at" => "2020-03-03T07:56:36.198Z",
-        //                 "updated_at" => "2020-03-03T08:00:05.674Z",
-        //                 "user_id" => 620
+        //                 "id": 539,
+        //                 "amount": 20,
+        //                 "fee": 0,
+        //                 "address": "0x5c0cc98270d7089408fcbcc8e2131287f5be2306",
+        //                 "transaction_id": "0xd4006327a5ec2c41adbdcf566eaaba6597c3d45906abe78ea1a4a022647c2e28",
+        //                 "status": true,
+        //                 "dismissed": false,
+        //                 "rejected": false,
+        //                 "description": "",
+        //                 "type": "deposit",
+        //                 "currency": "usdt",
+        //                 "created_at": "2020-03-03T07:56:36.198Z",
+        //                 "updated_at": "2020-03-03T08:00:05.674Z",
+        //                 "user_id": 620
         //             }
-        //         )
+        //         ]
         //     }
         //
         $data = $this->safe_list($response, 'data', array());
@@ -1803,25 +1803,25 @@ class hollaex extends Exchange {
         $response = Async\await($this->privateGetUserWithdrawals($this->extend($request, $params)));
         //
         //     {
-        //         "count" => 1,
-        //         "data" => array(
+        //         "count": 1,
+        //         "data": [
         //             {
-        //                 "id" => 539,
-        //                 "amount" => 20,
-        //                 "fee" => 0,
-        //                 "address" => "0x5c0cc98270d7089408fcbcc8e2131287f5be2306",
-        //                 "transaction_id" => "0xd4006327a5ec2c41adbdcf566eaaba6597c3d45906abe78ea1a4a022647c2e28",
-        //                 "status" => true,
-        //                 "dismissed" => false,
-        //                 "rejected" => false,
-        //                 "description" => "",
-        //                 "type" => "withdrawal",
-        //                 "currency" => "usdt",
-        //                 "created_at" => "2020-03-03T07:56:36.198Z",
-        //                 "updated_at" => "2020-03-03T08:00:05.674Z",
-        //                 "user_id" => 620
+        //                 "id": 539,
+        //                 "amount": 20,
+        //                 "fee": 0,
+        //                 "address": "0x5c0cc98270d7089408fcbcc8e2131287f5be2306",
+        //                 "transaction_id": "0xd4006327a5ec2c41adbdcf566eaaba6597c3d45906abe78ea1a4a022647c2e28",
+        //                 "status": true,
+        //                 "dismissed": false,
+        //                 "rejected": false,
+        //                 "description": "",
+        //                 "type": "withdrawal",
+        //                 "currency": "usdt",
+        //                 "created_at": "2020-03-03T07:56:36.198Z",
+        //                 "updated_at": "2020-03-03T08:00:05.674Z",
+        //                 "user_id": 620
         //             }
-        //         )
+        //         ]
         //     }
         //
         $data = $this->safe_value($response, 'data', array());
@@ -1849,13 +1849,13 @@ class hollaex extends Exchange {
             Async\await($this->load_markets());
         }
         $request = array(
-            // 'currency' => $currency['id'],
-            // 'limit' => 50, // default 50, max 100
-            // 'page' => 1, // page of $data to retrieve
-            // 'order_by' => 'timestamp', // field to order $data
-            // 'order' => 'asc', // asc or desc
-            // 'start_date' => 123, // starting date of queried $data
-            // 'end_date' => 321, // ending date of queried $data
+            // 'currency': currency['id'],
+            // 'limit': 50, // default 50, max 100
+            // 'page': 1, // page of data to retrieve
+            // 'order_by': 'timestamp', // field to order data
+            // 'order': 'asc', // asc or desc
+            // 'start_date': 123, // starting date of queried data
+            // 'end_date': 321, // ending date of queried data
         );
         $currency = null;
         if ($code !== null) {
@@ -1871,25 +1871,25 @@ class hollaex extends Exchange {
         $response = Async\await($this->privateGetUserWithdrawals($this->extend($request, $params)));
         //
         //     {
-        //         "count" => 1,
-        //         "data" => array(
+        //         "count": 1,
+        //         "data": [
         //             {
-        //                 "id" => 539,
-        //                 "amount" => 20,
-        //                 "fee" => 0,
-        //                 "address" => "0x5c0cc98270d7089408fcbcc8e2131287f5be2306",
-        //                 "transaction_id" => "0xd4006327a5ec2c41adbdcf566eaaba6597c3d45906abe78ea1a4a022647c2e28",
-        //                 "status" => true,
-        //                 "dismissed" => false,
-        //                 "rejected" => false,
-        //                 "description" => "",
-        //                 "type" => "withdrawal",
-        //                 "currency" => "usdt",
-        //                 "created_at" => "2020-03-03T07:56:36.198Z",
-        //                 "updated_at" => "2020-03-03T08:00:05.674Z",
-        //                 "user_id" => 620
+        //                 "id": 539,
+        //                 "amount": 20,
+        //                 "fee": 0,
+        //                 "address": "0x5c0cc98270d7089408fcbcc8e2131287f5be2306",
+        //                 "transaction_id": "0xd4006327a5ec2c41adbdcf566eaaba6597c3d45906abe78ea1a4a022647c2e28",
+        //                 "status": true,
+        //                 "dismissed": false,
+        //                 "rejected": false,
+        //                 "description": "",
+        //                 "type": "withdrawal",
+        //                 "currency": "usdt",
+        //                 "created_at": "2020-03-03T07:56:36.198Z",
+        //                 "updated_at": "2020-03-03T08:00:05.674Z",
+        //                 "user_id": 620
         //             }
-        //         )
+        //         ]
         //     }
         //
         $data = $this->safe_list($response, 'data', array());
@@ -1901,31 +1901,31 @@ class hollaex extends Exchange {
         // fetchWithdrawals, fetchDeposits
         //
         //     {
-        //         "id" => 539,
-        //         "amount" => 20,
-        //         "fee" => 0,
-        //         "address" => "0x5c0cc98270d7089408fcbcc8e2131287f5be2306",
-        //         "transaction_id" => "0xd4006327a5ec2c41adbdcf566eaaba6597c3d45906abe78ea1a4a022647c2e28",
-        //         "status" => true,
-        //         "dismissed" => false,
-        //         "rejected" => false,
-        //         "description" => "",
-        //         "type" => "withdrawal",
-        //         "currency" => "usdt",
-        //         "created_at" => "2020-03-03T07:56:36.198Z",
-        //         "updated_at" => "2020-03-03T08:00:05.674Z",
-        //         "user_id" => 620
+        //         "id": 539,
+        //         "amount": 20,
+        //         "fee": 0,
+        //         "address": "0x5c0cc98270d7089408fcbcc8e2131287f5be2306",
+        //         "transaction_id": "0xd4006327a5ec2c41adbdcf566eaaba6597c3d45906abe78ea1a4a022647c2e28",
+        //         "status": true,
+        //         "dismissed": false,
+        //         "rejected": false,
+        //         "description": "",
+        //         "type": "withdrawal",
+        //         "currency": "usdt",
+        //         "created_at": "2020-03-03T07:56:36.198Z",
+        //         "updated_at": "2020-03-03T08:00:05.674Z",
+        //         "user_id": 620
         //     }
         //
         // withdraw
         //
         //     {
-        //         "message" => "Withdrawal request is in the queue and will be processed.",
-        //         "transaction_id" => "1d1683c3-576a-4d53-8ff5-27c93fd9758a",
-        //         "amount" => 1,
-        //         "currency" => "xht",
-        //         "fee" => 0,
-        //         "fee_coin" => "xht"
+        //         "message": "Withdrawal request is in the queue and will be processed.",
+        //         "transaction_id": "1d1683c3-576a-4d53-8ff5-27c93fd9758a",
+        //         "amount": 1,
+        //         "currency": "xht",
+        //         "fee": 0,
+        //         "fee_coin": "xht"
         //     }
         //
         $id = $this->safe_string($transaction, 'id');
@@ -2035,12 +2035,12 @@ class hollaex extends Exchange {
         $response = Async\await($this->privatePostUserWithdrawal($this->extend($request, $params)));
         //
         //     {
-        //         "message" => "Withdrawal $request is in the queue and will be processed.",
-        //         "transaction_id" => "1d1683c3-576a-4d53-8ff5-27c93fd9758a",
-        //         "amount" => 1,
-        //         "currency" => "xht",
-        //         "fee" => 0,
-        //         "fee_coin" => "xht"
+        //         "message": "Withdrawal request is in the queue and will be processed.",
+        //         "transaction_id": "1d1683c3-576a-4d53-8ff5-27c93fd9758a",
+        //         "amount": 1,
+        //         "currency": "xht",
+        //         "fee": 0,
+        //         "fee_coin": "xht"
         //     }
         //
         return $this->parse_transaction($response, $currency);
@@ -2063,7 +2063,7 @@ class hollaex extends Exchange {
         //        "logo":"https://bitholla.s3.ap-northeast-2.amazonaws.com/icon/BCH-hollaex-asset-01.svg",
         //        "code":"bch",
         //        "is_public":true,
-        //        "meta":array(),
+        //        "meta":{},
         //        "estimated_price":null,
         //        "description":null,
         //        "type":"blockchain",
@@ -2134,8 +2134,8 @@ class hollaex extends Exchange {
         $response = Async\await($this->publicGetConstants($params));
         //
         //     {
-        //         "coins":array(
-        //             "bch":array(
+        //         "coins":{
+        //             "bch":{
         //                 "id":4,
         //                 "fullname":"Bitcoin Cash",
         //                 "symbol":"bch",
@@ -2150,7 +2150,7 @@ class hollaex extends Exchange {
         //                 "logo":"https://bitholla.s3.ap-northeast-2.amazonaws.com/icon/BCH-hollaex-asset-01.svg",
         //                 "code":"bch",
         //                 "is_public":true,
-        //                 "meta":array(),
+        //                 "meta":{},
         //                 "estimated_price":null,
         //                 "description":null,
         //                 "type":"blockchain",
@@ -2162,8 +2162,8 @@ class hollaex extends Exchange {
         //                 "updated_at":"2021-12-13T03:08:32.372Z",
         //                 "created_by":1,
         //                 "owner_id":1
-        //             ),
-        //         ),
+        //             },
+        //         },
         //         "network":"https://api.hollaex.network"
         //     }
         //
@@ -2204,19 +2204,19 @@ class hollaex extends Exchange {
     }
 
     public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
-        // array( "message" => "Invalid token" )
+        // { "message": "Invalid token" }
         if ($response === null) {
             return null;
         }
         if (($code >= 400) && ($code <= 503)) {
             //
-            //  array( "message" => "Invalid token" )
+            //  { "message": "Invalid token" }
             //
-            // different errors return the same $code eg
+            // different errors return the same code eg
             //
-            //  array( "message":"Error 1001 - Order rejected. Order could not be submitted as this order was set to a post only order." )
+            //  { "message":"Error 1001 - Order rejected. Order could not be submitted as this order was set to a post only order." }
             //
-            //  array( "message":"Error 1001 - POST ONLY order can not be of type market" )
+            //  { "message":"Error 1001 - POST ONLY order can not be of type market" }
             //
             $feedback = $this->id . ' ' . $body;
             $message = $this->safe_string($response, 'message');

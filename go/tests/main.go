@@ -16,7 +16,7 @@ func main() {
 			cache.TestWsOrderBook()
 			fmt.Println("Base WS tests passed!")
 		} else {
-			res := <-base.BaseTestsInit()
+			res := <-base.BaseTestsInitAsync()
 			base.PanicOnError(res)
 			fmt.Println("Base REST tests passed!")
 		}
@@ -29,7 +29,7 @@ func main() {
 	argvSymbol := base.GetCliPositionalArg(1)
 	argvMethod := base.GetCliPositionalArg(2)
 
-	res := <-tests.Init(argvExchange, argvSymbol, argvMethod)
+	res := <-tests.InitAsync(argvExchange, argvSymbol, argvMethod)
 	base.Print("Got res: " + base.ToString(res))
 	base.PanicOnError(res)
 }

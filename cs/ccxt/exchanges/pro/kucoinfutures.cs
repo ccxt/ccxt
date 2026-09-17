@@ -7,7 +7,7 @@ namespace ccxt.pro;
 public partial class kucoinfutures { public kucoinfutures(object args = null) : base(args) { } }
 public partial class kucoinfutures : kucoin
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "id", "kucoinfutures" },
@@ -73,7 +73,7 @@ public partial class kucoinfutures : kucoin
             await this.loadMarkets();
         }
         Dictionary<string, object> currency = this.currency(((string)code));
-        object amountToPrecision = this.currencyToPrecision(((string)code), amount);
+        string? amountToPrecision = this.currencyToPrecision(((string)code), amount);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "currency", this.safeString(currency, "id") },
             { "amount", amountToPrecision },
@@ -92,7 +92,7 @@ public partial class kucoinfutures : kucoin
         {
             throw new BadRequest ((string)add(this.id, " transfer() only supports transfers between future/swap, spot and funding accounts")) ;
         }
-        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return ccxt.BaseExchange.ToTransferEntry(this.extend(this.parseTransfer(data, currency), new Dictionary<string, object>() {             { "amount", this.parseNumber(amountToPrecision) },             { "fromAccount", fromAccount },             { "toAccount", toAccount },         }));
     }
 

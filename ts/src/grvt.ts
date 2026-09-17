@@ -497,7 +497,7 @@ export default class grvt extends Exchange {
         };
     }
 
-    usesPrivateKey () {
+    usesPrivateKey (): boolean {
         const privateKeyDefined = this.privateKey !== undefined && this.privateKey !== '';
         const apiKeyDefined = this.apiKey !== undefined && this.apiKey !== '';
         if (privateKeyDefined && apiKeyDefined) {

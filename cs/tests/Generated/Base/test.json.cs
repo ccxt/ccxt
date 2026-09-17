@@ -16,11 +16,11 @@ public partial class BaseTest
             Dictionary<string, object> obj = new Dictionary<string, object>() {
                 { "k", "v" },
             };
-            object objJson = exchange.json(obj);
+            string? objJson = exchange.json(obj);
             Assert(isEqual(objJson, "{\"k\":\"v\"}"));
             // Test: list
             List<object> list = new List<object>() {1, 2};
-            object listJson = exchange.json(list);
+            string? listJson = exchange.json(list);
             Assert(isEqual(listJson, "[1,2]"));
         }
 }

@@ -5,7 +5,7 @@ namespace ccxt;
 
 public partial class upbit : Exchange
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "id", "upbit" },
@@ -589,7 +589,7 @@ public partial class upbit : Exchange
         return ccxt.BaseExchange.ToMarketInterfaceList(this.parseMarkets(response));
     }
 
-    public override object parseMarket(object market)
+    public override Dictionary<string, object> parseMarket(object market)
     {
         string? id = this.safeString(market, "market");
         if (isTrue(isEqual(id, null)))
@@ -666,7 +666,7 @@ public partial class upbit : Exchange
             object balance = getValue(response, i);
             string? currencyId = this.safeString(balance, "currency");
             string? code = this.safeCurrencyCode(currencyId);
-            object account = this.account();
+            Dictionary<string, object> account = this.account();
             ((IDictionary<string,object>)account)["free"] = this.safeString(balance, "balance");
             ((IDictionary<string,object>)account)["used"] = this.safeString(balance, "locked");
             if (isTrue(!isEqual(code, null)))
@@ -893,7 +893,7 @@ public partial class upbit : Exchange
             await this.loadMarkets();
         }
         symbols = this.marketSymbols(symbols);
-        object tickers = new List<object>() {};
+        List<object> tickers = new List<object>() {};
         if (isTrue(isEqual(symbols, null)))
         {
             // ticker/all returns every market of the requested quote currencies with a single request
@@ -926,7 +926,7 @@ public partial class upbit : Exchange
         {
             IList<object> ids = this.marketIds(symbols);
             List<object> promises = new List<object>() {};
-            object queries = this.idsQueryStrings(ids, 4000); // the url is limited to about 8000 characters once the commas are percent-encoded
+            List<object> queries = this.idsQueryStrings(ids, 4000); // the url is limited to about 8000 characters once the commas are percent-encoded
             for (int i = 0; isLessThan(i, getArrayLength(queries)); postFixIncrement(ref i))
             {
                 object idsQuery = getValue(queries, i);
@@ -968,7 +968,7 @@ public partial class upbit : Exchange
         return ccxt.BaseExchange.ToTickers(this.parseTickers(tickers, symbols));
     }
 
-    public virtual object idsQueryStrings(object ids, object maxQueryLength)
+    public virtual List<object> idsQueryStrings(object ids, object maxQueryLength)
     {
         if (isTrue(isEqual(ids, null)))
         {
@@ -994,7 +994,7 @@ public partial class upbit : Exchange
         {
             ((IList<object>)queries).Add(idsString);
         }
-        return queries;
+        return ((List<object>)((object)(queries)));
     }
 
     /**
@@ -1414,7 +1414,7 @@ public partial class upbit : Exchange
         Dictionary<string, object> market = this.market(symbol);
         string? clientOrderId = this.safeString(parameters, "clientOrderId");
         string? customType = this.safeString2(parameters, "ordType", "ord_type");
-        object postOnly = this.isPostOnly(isEqual(type, "market"), false, parameters);
+        bool postOnly = this.isPostOnly(isEqual(type, "market"), false, parameters);
         string? timeInForce = this.safeStringLower2(parameters, "timeInForce", "time_in_force");
         string? selfTradePrevention = this.safeString2(parameters, "selfTradePrevention", "smp_type");
         bool? test = this.safeBool(parameters, "test", false);
@@ -1614,7 +1614,7 @@ public partial class upbit : Exchange
         string? prevClientOrderId = this.safeString(parameters, "clientOrderId");
         string? customType = this.safeString2(parameters, "newOrdType", "new_ord_type");
         string? clientOrderId = this.safeString(parameters, "newClientOrderId");
-        object postOnly = this.isPostOnly(isEqual(type, "market"), false, parameters);
+        bool postOnly = this.isPostOnly(isEqual(type, "market"), false, parameters);
         string? timeInForce = this.safeStringLower2(parameters, "newTimeInForce", "new_time_in_force");
         string? selfTradePrevention = this.safeString2(parameters, "selfTradePrevention", "new_smp_type");
         if (isTrue(isTrue(postOnly) && isTrue((!isEqual(selfTradePrevention, null)))))
@@ -2131,7 +2131,7 @@ public partial class upbit : Exchange
         string? feeCost = this.safeString(order, "paid_fee");
         string? marketId = this.safeString(order, "market");
         market = this.safeMarket(marketId, market);
-        object trades = this.safeValue(order, "trades", new List<object>() {});
+        IList<object> trades = this.safeList(order, "trades", new List<object>() {});
         trades = this.parseTrades(trades, market, null, null, new Dictionary<string, object>() {
             { "order", id },
             { "type", type },
@@ -2687,7 +2687,7 @@ public partial class upbit : Exchange
         api ??= "public";
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        string url = this.implodeParams(getValue(getValue(this.urls, "api"), api), new Dictionary<string, object>() {
+        object url = this.implodeParams(getValue(getValue(this.urls, "api"), api), new Dictionary<string, object>() {
             { "hostname", this.hostname },
         });
         url = add(url, add(add(add("/", this.version), "/"), this.implodeParams(path, parameters)));

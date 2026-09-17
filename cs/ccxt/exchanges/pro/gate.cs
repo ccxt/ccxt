@@ -7,13 +7,13 @@ namespace ccxt.pro;
 public partial class gate { public gate(object args = null) : base(args) { } }
 public partial class gate : ccxt.gate
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         object superDescribe = base.describe();
         return this.deepExtend(superDescribe, this.describeData());
     }
 
-    public virtual object describeData()
+    public virtual Dictionary<string, object> describeData()
     {
         return new Dictionary<string, object>() {
             { "has", new Dictionary<string, object>() {
@@ -1353,7 +1353,7 @@ public partial class gate : ccxt.gate
         //     ]
         // }
         //
-        object result = this.safeValue(message, "result", new List<object>() {});
+        List<object> result = this.safeList(message, "result", new List<object>() {});
         int tradesLength = getArrayLength(result);
         if (isTrue(isEqual(tradesLength, 0)))
         {
@@ -1496,12 +1496,12 @@ public partial class gate : ccxt.gate
         //       ]
         //   }
         //
-        object result = this.safeValue(message, "result", new List<object>() {});
+        List<object> result = this.safeList(message, "result", new List<object>() {});
         ((IDictionary<string,object>)this.balance)["info"] = result;
         for (int i = 0; isLessThan(i, getArrayLength(result)); postFixIncrement(ref i))
         {
             object rawBalance = getValue(result, i);
-            object account = this.account();
+            Dictionary<string, object> account = this.account();
             string? currencyId = this.safeString(rawBalance, "currency", "USDT"); // when not present it is USDT
             string? code = this.safeCurrencyCode(currencyId);
             Int64? timestamp = this.safeInteger2(rawBalance, "time_ms", "timestamp_ms");
@@ -1644,7 +1644,7 @@ public partial class gate : ccxt.gate
         // don't remove the future from the .futures cache
         if (isTrue(inOp(client.futures, messageHash)))
         {
-            var future = getValue(client.futures, messageHash);
+            Future future = ((Future)getValue(client.futures, messageHash));
             (future as Future).resolve(cache);
             callDynamically(client as WebSocketClient, "resolve", new object[] {cache, add(type, ":position")});
         }
@@ -1683,7 +1683,7 @@ public partial class gate : ccxt.gate
         //    }
         //
         object type = this.getMarketTypeByUrl(client.url);
-        object data = this.safeValue(message, "result", new List<object>() {});
+        List<object> data = this.safeList(message, "result", new List<object>() {});
         object cache = getValue(this.positions, type);
         List<object> newPositions = new List<object>() {};
         for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
@@ -1722,7 +1722,7 @@ public partial class gate : ccxt.gate
                 callDynamically(cache, "append", new object[] {position});
             }
         }
-        object messageHashes = this.findMessageHashes(client as WebSocketClient, add(type, ":positions::"));
+        List<object> messageHashes = this.findMessageHashes(client as WebSocketClient, add(type, ":positions::"));
         for (int i = 0; isLessThan(i, getArrayLength(messageHashes)); postFixIncrement(ref i))
         {
             object messageHash = getValue(messageHashes, i);
@@ -2615,7 +2615,7 @@ public partial class gate : ccxt.gate
     public virtual void handleAuthenticationMessage(WebSocketClient client, object message)
     {
         string messageHash = "authenticated";
-        var future = this.safeValue((client as WebSocketClient).futures, messageHash);
+        Future future = ((Future)this.safeValue((client as WebSocketClient).futures, messageHash));
         (future as Future).resolve(true);
     }
 

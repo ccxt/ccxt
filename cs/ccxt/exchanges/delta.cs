@@ -5,7 +5,7 @@ namespace ccxt;
 
 public partial class delta : Exchange
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "id", "delta" },
@@ -419,7 +419,7 @@ public partial class delta : Exchange
         });
     }
 
-    public override object createExpiredOptionMarket(object symbol)
+    public override Dictionary<string, object> createExpiredOptionMarket(object symbol)
     {
         // support expired option contracts
         string quote = "USDT";
@@ -600,7 +600,7 @@ public partial class delta : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
-    public async override Task<object> fetchCurrencies(object parameters = null)
+    public async override Task<IDictionary<string, object>> fetchCurrencies(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> response = await this.publicGetAssets(parameters);
@@ -656,7 +656,7 @@ public partial class delta : Exchange
         return this.parseCurrencies(currencies);
     }
 
-    public override object parseCurrency(object rawCurrency)
+    public override Dictionary<string, object> parseCurrency(object rawCurrency)
     {
         string? id = this.safeString(rawCurrency, "symbol");
         Int64? numericId = this.safeInteger(rawCurrency, "id");
@@ -718,7 +718,7 @@ public partial class delta : Exchange
         });
     }
 
-    public async override Task<object> loadMarkets(object reload = null, object parameters = null)
+    public async override Task<IDictionary<string, object>> loadMarkets(object reload = null, object parameters = null)
     {
         reload ??= false;
         parameters ??= new Dictionary<string, object>();
@@ -733,7 +733,7 @@ public partial class delta : Exchange
         {
             ((IDictionary<string,object>)this.options)["marketsByNumericId"] = this.indexByStringifiedNumericId(this.markets);
         }
-        return markets;
+        return ((IDictionary<string, object>)((object)(markets)));
     }
 
     public virtual object indexByStringifiedNumericId(object input)
@@ -1839,7 +1839,7 @@ public partial class delta : Exchange
             string? currencyId = this.safeString(balance, "asset_id");
             IDictionary<string, object> currency = this.safeDict(currenciesByNumericId, currencyId);
             object code = ((bool) isTrue((isEqual(currency, null)))) ? currencyId : getValue(currency, "code");
-            object account = this.account();
+            Dictionary<string, object> account = this.account();
             ((IDictionary<string,object>)account)["total"] = this.safeString(balance, "balance");
             ((IDictionary<string,object>)account)["free"] = this.safeString(balance, "available_balance");
             ((IDictionary<string,object>)result)[(string)code] = account;
@@ -3475,7 +3475,7 @@ public partial class delta : Exchange
         return ccxt.BaseExchange.ToDictList(this.filterBySymbolSinceLimit(sorted, this.safeString(market, "symbol"), since, limit));
     }
 
-    public virtual object parseSettlement(object settlement, object market)
+    public virtual Dictionary<string, object> parseSettlement(object settlement, object market)
     {
         //
         //     {

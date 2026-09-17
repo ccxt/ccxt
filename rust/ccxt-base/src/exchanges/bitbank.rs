@@ -10,6 +10,10 @@ use crate::runtime::*;
 // `self.load_markets(...)`, … on this Core resolve to the base defaults.
 use crate::exchange_generated::ExchangeBase;
 use crate::exchange::ExchangeRuntime;
+// Dynamic `this[method](...)` re-entries are emitted as
+// `self.call_dynamic_checked(...)` (blanket-impl'd on every Core) so an
+// unresolvable name raises NotSupported instead of yielding a silent Null.
+use crate::exchange::CallDynamicChecked;
 
 
 pub struct BitbankCore {
@@ -917,7 +921,7 @@ impl BitbankCore {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut pairs: Value = self.safe_value_k(data.clone(), "pairs", &[Value::List(vec![])]);
+        let mut pairs: Value = self.safe_list_k(data.clone(), "pairs", &[Value::List(vec![])]);
         let mut result: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1040,7 +1044,7 @@ impl BitbankCore {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut assets: Value = self.safe_value_k(data.clone(), "assets", &[Value::List(vec![])]);
+        let mut assets: Value = self.safe_list_k(data.clone(), "assets", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_311: bool = true;

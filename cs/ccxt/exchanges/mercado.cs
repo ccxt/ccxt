@@ -5,7 +5,7 @@ namespace ccxt;
 
 public partial class mercado : Exchange
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "id", "mercado" },
@@ -598,7 +598,7 @@ public partial class mercado : Exchange
     public override object parseBalance(object response)
     {
         object data = this.safeValue(response, "response_data", new Dictionary<string, object>() {});
-        object balances = this.safeValue(data, "balance", new Dictionary<string, object>() {});
+        IDictionary<string, object> balances = this.safeDict(data, "balance", new Dictionary<string, object>() {});
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
         };
@@ -610,7 +610,7 @@ public partial class mercado : Exchange
             if (isTrue(inOp(balances, currencyId)))
             {
                 object balance = this.safeValue(balances, currencyId, new Dictionary<string, object>() {});
-                object account = this.account();
+                Dictionary<string, object> account = this.account();
                 ((IDictionary<string,object>)account)["free"] = this.safeString(balance, "available");
                 ((IDictionary<string,object>)account)["total"] = this.safeString(balance, "total");
                 if (isTrue(!isEqual(code, null)))
@@ -1133,22 +1133,22 @@ public partial class mercado : Exchange
         object responseData = this.safeValue(response, "response_data", new Dictionary<string, object>() {});
         object ordersRaw = this.safeValue(responseData, "orders", new List<object>() {});
         IList<object> orders = this.parseOrders(ordersRaw, market, since, limit);
-        object trades = this.ordersToTrades(orders);
+        List<object> trades = this.ordersToTrades(orders);
         return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(trades, getValue(market, "symbol"), since, limit));
     }
 
-    public virtual object ordersToTrades(object orders)
+    public virtual List<object> ordersToTrades(object orders)
     {
         List<object> result = new List<object>() {};
         for (int i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
         {
-            object trades = this.safeValue(getValue(orders, i), "trades", new List<object>() {});
+            List<object> trades = this.safeList(getValue(orders, i), "trades", new List<object>() {});
             for (int y = 0; isLessThan(y, getArrayLength(trades)); postFixIncrement(ref y))
             {
                 ((IList<object>)result).Add(getValue(trades, y));
             }
         }
-        return result;
+        return ((List<object>)((object)(result)));
     }
 
     public override object sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)

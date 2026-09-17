@@ -41,6 +41,64 @@
         ],
         "fetchTransfers": [
             {
+                "description": "fetch transfers paginates backward with account filters",
+                "method": "fetchTransfers",
+                "url": "https://open-api.bingx.com/openApi/api/v3/asset/transferRecord?endTime=1721961000000&fromAccount=spot&pageSize=2&timestamp=1752388736730&toAccount=USDTMPerp&signature=dca36b2862fdeb7742a8ee559c4a32424c21ae70191eed9e7376248dec59c88c",
+                "input": [
+                    "USDT",
+                    1721356200000,
+                    10,
+                    {
+                        "fromAccount": "spot",
+                        "toAccount": "swap",
+                        "until": 1721961000000,
+                        "paginate": true,
+                        "paginationDirection": "backward",
+                        "paginationCalls": 1,
+                        "maxRetries": 0,
+                        "maxEntriesPerRequest": 2
+                    }
+                ]
+            },
+            {
+                "description": "fetch transfers paginates forward with account filters",
+                "method": "fetchTransfers",
+                "url": "https://open-api.bingx.com/openApi/api/v3/asset/transferRecord?endTime=1721961000000&fromAccount=spot&pageSize=2&startTime=1721356200000&timestamp=1752388736730&toAccount=USDTMPerp&signature=b9c34af979c19f196dbd90753620735b7d52cb5de78d19115151a37f9253726b",
+                "input": [
+                    "USDT",
+                    1721356200000,
+                    10,
+                    {
+                        "fromAccount": "spot",
+                        "toAccount": "swap",
+                        "until": 1721961000000,
+                        "paginate": true,
+                        "paginationDirection": "forward",
+                        "paginationCalls": 1,
+                        "maxRetries": 0,
+                        "maxEntriesPerRequest": 2
+                    }
+                ]
+            },
+            {
+                "description": "fetch transfers paginates with transferId only",
+                "method": "fetchTransfers",
+                "url": "https://open-api.bingx.com/openApi/api/v3/asset/transferRecord?pageSize=2&startTime=1721356200000&timestamp=1752388736730&transferId=1051461075661819338791&signature=e918279c2b9e18bd94ac254a159e347ed0b1ee695ac96e862cc4f5cc4053bc60",
+                "input": [
+                    "USDT",
+                    1721356200000,
+                    10,
+                    {
+                        "transferId": "1051461075661819338791",
+                        "paginate": true,
+                        "paginationDirection": "forward",
+                        "paginationCalls": 1,
+                        "maxRetries": 0,
+                        "maxEntriesPerRequest": 2
+                    }
+                ]
+            },
+            {
                 "description": "fetch transfers from spot to swap",
                 "method": "fetchTransfers",
                 "url": "https://open-api.bingx.com/openApi/api/v3/asset/transferRecord?fromAccount=spot&timestamp=1752388736730&toAccount=USDTMPerp&signature=e918279c2b9e18bd94ac254a159e347ed0b1ee695ac96e862cc4f5cc4053bc60",
@@ -188,6 +246,21 @@
                     }
                 ],
                 "output": null
+            },
+            {
+                "description": "Spot market buy formats quoteOrderQty",
+                "method": "createOrder",
+                "url": "https://open-api.bingx.com/openApi/spot/v1/trade/order?quoteOrderQty=10&side=BUY&symbol=BTC-USDT&timestamp=1701413688001&type=MARKET&signature=fed01fa9ea12fdeae745f7c7cee390763e21af614d93bc92bde5419dad250399",
+                "input": [
+                    "BTC/USDT",
+                    "market",
+                    "buy",
+                    1,
+                    null,
+                    {
+                        "quoteOrderQty": 10.009
+                    }
+                ]
             },
             {
                 "description": "Spot market buy",
@@ -687,6 +760,44 @@
                 ]
             },
             {
+                "description": "Inverse swap create order with attached stop loss",
+                "disabledJava": true,
+                "disabledGO": true,
+                "method": "createOrder",
+                "url": "https://open-api.bingx.com/openApi/cswap/v1/trade/order?positionSide=BOTH&price=100&quantity=1&side=BUY&stopLoss=%7B%22stopPrice%22%3A90%2C%22workingType%22%3A%22MARK_PRICE%22%2C%22type%22%3A%22STOP_MARKET%22%2C%22quantity%22%3A1%7D&symbol=SOL-USD&timestamp=1720334783819&type=LIMIT&signature=7343c8212f5cfaca9c064c80e50ecc2f071e658ac98bea4581d164e1ed5643f5",
+                "input": [
+                  "SOL/USD:SOL",
+                  "limit",
+                  "buy",
+                  1,
+                  100,
+                  {
+                    "stopLoss": {
+                      "triggerPrice": 90
+                    }
+                  }
+                ]
+            },
+            {
+                "description": "Inverse swap create order with attached take profit",
+                "disabledJava": true,
+                "disabledGO": true,
+                "method": "createOrder",
+                "url": "https://open-api.bingx.com/openApi/cswap/v1/trade/order?positionSide=BOTH&price=100&quantity=1&side=BUY&symbol=SOL-USD&takeProfit=%7B%22stopPrice%22%3A110%2C%22workingType%22%3A%22MARK_PRICE%22%2C%22type%22%3A%22TAKE_PROFIT_MARKET%22%2C%22quantity%22%3A1%7D&timestamp=1720334783819&type=LIMIT&signature=7343c8212f5cfaca9c064c80e50ecc2f071e658ac98bea4581d164e1ed5643f5",
+                "input": [
+                  "SOL/USD:SOL",
+                  "limit",
+                  "buy",
+                  1,
+                  100,
+                  {
+                    "takeProfit": {
+                      "triggerPrice": 110
+                    }
+                  }
+                ]
+            },
+            {
                 "description": "swap reduceOnly order",
                 "method": "createOrder",
                 "url": "https://open-api.bingx.com/openApi/swap/v2/trade/order?positionSide=BOTH&quantity=0.1&reduceOnly=true&side=SELL&symbol=LTC-USDT&timestamp=1725185164341&type=MARKET&signature=829da92de2a03fa34f28ab646785466677cb60b9792b8249a35e79225a6b7907",
@@ -1177,6 +1288,47 @@
                     {
                         "twap": true,
                         "until": 1732697788022
+                    }
+                ]
+            },
+            {
+                "description": "Spot closed orders without symbol",
+                "method": "fetchClosedOrders",
+                "url": "https://open-api.bingx.com/openApi/spot/v1/trade/historyOrders?timestamp=1699458294623&signature=80016769e53019f01380e74b927ad3e36f5980e32c3de4a3a4bcfe9fc68efa7a",
+                "input": [
+                    null,
+                    null,
+                    null,
+                    {
+                        "type": "spot"
+                    }
+                ]
+            },
+            {
+                "description": "Linear swap fetch closed orders without symbol",
+                "method": "fetchClosedOrders",
+                "url": "https://open-api.bingx.com/openApi/swap/v2/trade/allOrders?timestamp=1699458294851&signature=d1622ab21a981576341cb05abaece32622e00a0b296c69e937e792c157e3e687",
+                "input": [
+                    null,
+                    null,
+                    null,
+                    {
+                        "type": "swap",
+                        "subType": "linear"
+                    }
+                ]
+            },
+            {
+                "description": "Inverse swap fetch closed orders without symbol",
+                "method": "fetchClosedOrders",
+                "url": "https://open-api.bingx.com/openApi/cswap/v1/trade/orderHistory?timestamp=1721961756401&signature=e9cfa075457e0a4e8346e2dd32fa082cfb631ecaf87ca7ff414a1fe1096c5a8c",
+                "input": [
+                    null,
+                    null,
+                    null,
+                    {
+                        "type": "swap",
+                        "subType": "inverse"
                     }
                 ]
             }

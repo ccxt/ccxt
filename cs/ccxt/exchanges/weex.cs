@@ -5,7 +5,7 @@ namespace ccxt;
 
 public partial class weex : Exchange
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "id", "weex" },
@@ -87,7 +87,7 @@ public partial class weex : Exchange
                 { "fetchDepositsWithdrawals", false },
                 { "fetchDepositWithdrawFee", false },
                 { "fetchDepositWithdrawFees", false },
-                { "fetchFundingHistory", false },
+                { "fetchFundingHistory", true },
                 { "fetchFundingInterval", false },
                 { "fetchFundingIntervals", false },
                 { "fetchFundingRate", true },
@@ -902,7 +902,7 @@ public partial class weex : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
-    public async override Task<object> fetchCurrencies(object parameters = null)
+    public async override Task<IDictionary<string, object>> fetchCurrencies(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         List<object> response = await this.publicGetApiV3Coins(parameters);
@@ -1019,7 +1019,7 @@ public partial class weex : Exchange
         return this.parseCurrencies(response);
     }
 
-    public override object parseCurrency(object rawCurrency)
+    public override Dictionary<string, object> parseCurrency(object rawCurrency)
     {
         string? currencyId = this.safeString(rawCurrency, "coin");
         string? code = this.safeCurrencyCode(currencyId);
@@ -1115,7 +1115,7 @@ public partial class weex : Exchange
         return ccxt.BaseExchange.ToMarketInterfaceList(this.parseMarkets(result));
     }
 
-    public override object parseMarket(object market)
+    public override Dictionary<string, object> parseMarket(object market)
     {
         //
         // spot
@@ -1206,8 +1206,8 @@ public partial class weex : Exchange
         double? pricePrecision = this.safeNumber(market, "tickSize");
         if (isTrue(isEqual(amountPrecision, null)))
         {
-            object amountPrecisionString = this.parsePrecision(this.safeString(market, "quantityPrecision"));
-            object pricePrecisionString = this.parsePrecision(this.safeString(market, "pricePrecision"));
+            string? amountPrecisionString = this.parsePrecision(this.safeString(market, "quantityPrecision"));
+            string? pricePrecisionString = this.parsePrecision(this.safeString(market, "pricePrecision"));
             amountPrecision = this.parseNumber(amountPrecisionString);
             pricePrecision = this.parseNumber(pricePrecisionString);
         }
@@ -1849,7 +1849,7 @@ public partial class weex : Exchange
             if (isTrue(isTrue((isEqual(since, null))) || isTrue((isEqual(until, null)))))
             {
                 Int64 now = this.milliseconds();
-                object duration = multiply(this.parseTimeframe(timeframeVar), 1000);
+                Int64 duration = multiply(this.parseTimeframe(timeframeVar), 1000);
                 object numberOfCandles = ((bool) isTrue((isTrue(isTrue(!isEqual(limitVar, null)) && isTrue(!isEqual(limitVar, null))) && isTrue(!isEqual(limitVar, 0))))) ? limitVar : maxHistoricalLimit;
                 object timeDelta = multiply(numberOfCandles, duration);
                 if (isTrue(isTrue((isEqual(since, null))) && isTrue((isEqual(until, null)))))
@@ -2358,7 +2358,7 @@ public partial class weex : Exchange
                 currencyId = "USDT"; // demo trading balances are denominated in the demo asset SUSDT
             }
             string? code = this.safeCurrencyCode(currencyId);
-            object account = this.account();
+            Dictionary<string, object> account = this.account();
             ((IDictionary<string,object>)account)["free"] = this.safeString2(entry, "availableBalance", "free");
             ((IDictionary<string,object>)account)["used"] = this.safeString2(entry, "frozen", "locked");
             ((IDictionary<string,object>)account)["total"] = this.safeString(entry, "balance");
@@ -3677,7 +3677,7 @@ public partial class weex : Exchange
         }
         Int64? timestamp = this.safeIntegerN(order, new List<object>() {"transactTime", "time", "createTime"});
         string? rawStatus = this.safeStringLower2(order, "status", "algoStatus"); // algo (trigger) order payloads carry algoStatus instead of status
-        object triggerPrice = this.omitZero(this.safeString2(order, "triggerPrice", "stopPrice"));
+        string? triggerPrice = ((string)this.omitZero(this.safeString2(order, "triggerPrice", "stopPrice")));
         string? rawType = this.safeStringUpper2(order, "type", "orderType");
         bool? isReduceOnly = this.safeBool(order, "reduceOnly");
         // entry conditional orders reuse the STOP/TAKE_PROFIT types with reduceOnly set to false, their trigger price is not a stop loss / take profit price
@@ -3968,11 +3968,7 @@ public partial class weex : Exchange
         }
         if (isTrue(isEqual(accountType, "contract")))
         {
-            if (isTrue(isEqual(currency, null)))
-            {
-                throw new ExchangeError ((string)add(this.id, " fetchLedger() could not resolve currency")) ;
-            }
-            if (isTrue(!isEqual(code, null)))
+            if (isTrue(!isEqual(currency, null)))
             {
                 ((IDictionary<string,object>)request)["currency"] = getValue(currency, "id");
             }
@@ -4135,6 +4131,121 @@ public partial class weex : Exchange
 
     /**
      * @method
+     * @name weex#fetchFundingHistory
+     * @description fetch the history of funding payments paid and received on this account
+     * @see https://www.weex.com/api-doc/contract/Account_API/GetContractBills
+     * @param {string} [symbol] unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch funding history for
+     * @param {int} [limit] the maximum number of funding history structures to retrieve (default 20, max 100)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest funding history entry, requires since to be set, the span may not exceed 100 days
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns {object[]} a list of [funding history structures]{@link https://docs.ccxt.com/?id=funding-history-structure}
+     */
+    public async override Task<List<ccxt.FundingHistory>> FetchFundingHistory(object symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
+        object paginate = false;
+        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchFundingHistory", "paginate", false);
+        paginate = ((IList<object>)paginateparametersVariable)[0];
+        parameters = ((IList<object>)paginateparametersVariable)[1];
+        if (isTrue(paginate))
+        {
+            return ccxt.BaseExchange.ToFundingHistoryList(await this.fetchPaginatedCallDynamic("fetchFundingHistory", symbol, since, limit, parameters, 100));
+        }
+        IDictionary<string, object> market = null;
+        Dictionary<string, object> request = new Dictionary<string, object>() {
+            { "incomeType", "position_funding" },
+        };
+        if (isTrue(!isEqual(symbol, null)))
+        {
+            market = this.market(symbol);
+            if (isTrue(!isEqual(getValue(market, "swap"), true)))
+            {
+                throw new NotSupported ((string)add(this.id, " fetchFundingHistory() supports swap contracts only")) ;
+            }
+            ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+        }
+        if (isTrue(!isEqual(since, null)))
+        {
+            ((IDictionary<string,object>)request)["startTime"] = since;
+        }
+        if (isTrue(!isEqual(limit, null)))
+        {
+            ((IDictionary<string,object>)request)["limit"] = limit;
+        }
+        IList<object> requestparametersVariable = (IList<object>)this.handleUntilOption("endTime", request, parameters);
+        request = (Dictionary<string, object>)((IList<object>)requestparametersVariable)[0];
+        parameters = ((IList<object>)requestparametersVariable)[1];
+        // the exchange rejects startTime and endTime when either is sent alone, they only work as a pair
+        bool hasSince = (inOp(request, "startTime"));
+        bool hasUntil = (inOp(request, "endTime"));
+        if (isTrue(isTrue(hasSince) && !isTrue(hasUntil)))
+        {
+            ((IDictionary<string,object>)request)["endTime"] = this.milliseconds();
+        } else if (isTrue(isTrue(hasUntil) && !isTrue(hasSince)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " fetchFundingHistory() requires since to be set when until is used")) ;
+        }
+        Dictionary<string, object> response = await this.contractPrivatePostCapiV3AccountIncome(this.extend(request, parameters));
+        //
+        //     {
+        //         "hasNextPage": false,
+        //         "nextKey": null,
+        //         "items": [
+        //             {
+        //                 "billId": "793622764958253481",
+        //                 "asset": "USDT",
+        //                 "symbol": "VIRTUALUSDT",
+        //                 "income": "0.00000378",
+        //                 "incomeType": "position_funding",
+        //                 "balance": "29.36239410",
+        //                 "fillFee": "0",
+        //                 "time": "1789214411964",
+        //                 "transferReason": "UNKNOWN_TRANSFER_REASON"
+        //             }
+        //         ]
+        //     }
+        //
+        List<object> items = this.safeList(response, "items", new List<object>() {});
+        return ccxt.BaseExchange.ToFundingHistoryList(this.parseIncomes(items, market, since, limit));
+    }
+
+    public override object parseIncome(object income, object market = null)
+    {
+        //
+        //     {
+        //         "billId": "793622764958253481",
+        //         "asset": "USDT",
+        //         "symbol": "VIRTUALUSDT",
+        //         "income": "0.00000378",
+        //         "incomeType": "position_funding",
+        //         "balance": "29.36239410",
+        //         "fillFee": "0",
+        //         "time": "1789214411964",
+        //         "transferReason": "UNKNOWN_TRANSFER_REASON"
+        //     }
+        //
+        string? marketId = this.safeString(income, "symbol");
+        string? currencyId = this.safeString(income, "asset");
+        Int64? timestamp = this.safeInteger(income, "time");
+        return new Dictionary<string, object>() {
+            { "info", income },
+            { "symbol", this.safeSymbol(marketId, market, null, "swap") },
+            { "code", this.safeCurrencyCode(currencyId) },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
+            { "id", this.safeString(income, "billId") },
+            { "amount", this.safeNumber(income, "income") },
+        };
+    }
+
+    /**
+     * @method
      * @name weex#fetchPositions
      * @description fetch all open positions
      * @see https://www.weex.com/api-doc/contract/Account_API/GetAllPositions
@@ -4175,7 +4286,7 @@ public partial class weex : Exchange
     public async override Task<ccxt.Position> FetchPosition(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object positions = ccxt.BaseExchange.FromPositionList(await this.FetchPositionsForSymbol(symbol, parameters));
+        object positions = ccxt.BaseExchange.FromPositionList(await this.FetchPositionsForSymbol(((string)symbol), parameters));
         return ccxt.BaseExchange.ToPosition(this.safeDict(positions, 0));
     }
 
@@ -4189,7 +4300,7 @@ public partial class weex : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public async override Task<List<ccxt.Position>> FetchPositionsForSymbol(object symbol, object parameters = null)
+    public async override Task<List<ccxt.Position>> FetchPositionsForSymbol(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -4887,7 +4998,7 @@ public partial class weex : Exchange
         }
         if (isTrue(((string)marketId).EndsWith(((string)"SUSDT"))))
         {
-            object baseLength = subtract(((string)marketId).Length, 5);
+            int baseLength = subtract(((string)marketId).Length, 5);
             return add(slice(marketId, 0, baseLength), "USDT");
         }
         return marketId;
@@ -4904,7 +5015,7 @@ public partial class weex : Exchange
         api ??= "public";
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        string endpoint = this.implodeParams(path, parameters);
+        object endpoint = this.implodeParams(path, parameters);
         object query = this.omit(parameters, this.extractParams(path));
         bool isBatch = (isGreaterThanOrEqual(getIndexOf(path, "batch"), 0));
         if (isTrue(!isTrue(isBatch) && isTrue((isTrue((isEqual(method, "GET"))) || isTrue((isEqual(method, "DELETE")))))))

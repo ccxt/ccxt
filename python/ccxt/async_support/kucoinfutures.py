@@ -107,7 +107,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
             #    {
             #        "code": "200000",
             #        "data": {
-            #            "applyId": "5bffb63303aa675e8bbe18f9"  # Transfer-out request ID
+            #            "applyId": "5bffb63303aa675e8bbe18f9" // Transfer-out request ID
             #        }
             #    }
             #

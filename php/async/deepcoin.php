@@ -365,24 +365,24 @@ class deepcoin extends Exchange {
             'commonCurrencies' => array(),
             'exceptions' => array(
                 'exact' => array(
-                    '24' => '\\ccxt\\OrderNotFound', // array("code":"0","msg":"","data":array("ordId":"","clOrdId":"","sCode":"24","sMsg":"OrderNotFound:1"))
-                    '31' => '\\ccxt\\InsufficientFunds', // array("code":"0","msg":"","data":array("ordId":"","clOrdId":"","tag":"","sCode":"31","sMsg":"NotEnoughPositionToClose:Position=0"))
-                    '36' => '\\ccxt\\InsufficientFunds', // array("code":"0","msg":"","data":array("ordId":"","clOrdId":"","tag":"","sCode":"36","sMsg":"InsufficientMoney:-0.000004"))
-                    '44' => '\\ccxt\\BadRequest', // array("code":"0","msg":"","data":array("ordId":"","clOrdId":"","tag":"","sCode":"44","sMsg":"VolumeNotOnTick"))
-                    '49' => '\\ccxt\\InvalidOrder', // array("code":"0","msg":"","data":array("ordId":"","clOrdId":"","tag":"","sCode":"49","sMsg":"PriceOutOfUpperLimit:Price\u003eUpperLimitPrice[0.28422]"))
-                    '194' => '\\ccxt\\InvalidOrder', // array("code":"0","msg":"","data":array("ordId":"","clOrdId":"","tag":"","sCode":"194","sMsg":"LessThanMinVolume"))
-                    '195' => '\\ccxt\\InvalidOrder', // array("code":"0","msg":"","data":array("ordId":"","clOrdId":"","tag":"","sCode":"195","sMsg":"PositionLessThanMinVolume"))
-                    '199' => '\\ccxt\\BadRequest', // array("code":"0","msg":"","data":array("instId":"","lever":"","mgnMode":"","mrgPosition":"","sCode":"199","sMsg":"LeverageTooHigh:Amount[10000.0]\u003eLeverage[75.1880]"))
-                    '100010' => '\\ccxt\\InsufficientFunds', // array("code":"0","msg":"","data":array("retCode":100010,"retMsg":"Balance is insufficient, please deposit first.","retData":array()))
+                    '24' => '\\ccxt\\OrderNotFound', // {"code":"0","msg":"","data":{"ordId":"","clOrdId":"","sCode":"24","sMsg":"OrderNotFound:1"}}
+                    '31' => '\\ccxt\\InsufficientFunds', // {"code":"0","msg":"","data":{"ordId":"","clOrdId":"","tag":"","sCode":"31","sMsg":"NotEnoughPositionToClose:Position=0"}}
+                    '36' => '\\ccxt\\InsufficientFunds', // {"code":"0","msg":"","data":{"ordId":"","clOrdId":"","tag":"","sCode":"36","sMsg":"InsufficientMoney:-0.000004"}}
+                    '44' => '\\ccxt\\BadRequest', // {"code":"0","msg":"","data":{"ordId":"","clOrdId":"","tag":"","sCode":"44","sMsg":"VolumeNotOnTick"}}
+                    '49' => '\\ccxt\\InvalidOrder', // {"code":"0","msg":"","data":{"ordId":"","clOrdId":"","tag":"","sCode":"49","sMsg":"PriceOutOfUpperLimit:Price\u003eUpperLimitPrice[0.28422]"}}
+                    '194' => '\\ccxt\\InvalidOrder', // {"code":"0","msg":"","data":{"ordId":"","clOrdId":"","tag":"","sCode":"194","sMsg":"LessThanMinVolume"}}
+                    '195' => '\\ccxt\\InvalidOrder', // {"code":"0","msg":"","data":{"ordId":"","clOrdId":"","tag":"","sCode":"195","sMsg":"PositionLessThanMinVolume"}}
+                    '199' => '\\ccxt\\BadRequest', // {"code":"0","msg":"","data":{"instId":"","lever":"","mgnMode":"","mrgPosition":"","sCode":"199","sMsg":"LeverageTooHigh:Amount[10000.0]\u003eLeverage[75.1880]"}}
+                    '100010' => '\\ccxt\\InsufficientFunds', // {"code":"0","msg":"","data":{"retCode":100010,"retMsg":"Balance is insufficient, please deposit first.","retData":{}}}
                     'unsupportedAction' => '\\ccxt\\BadRequest',
                     'localIDNotExist' => '\\ccxt\\BadRequest',
                 ),
                 'broad' => array(
-                    'no available' => '\\ccxt\\NotSupported', // orderbook does not exist => ETHUSD_0.1, no available orderbook data
-                    'field is required' => '\\ccxt\\ArgumentsRequired', // array("code":"51","msg":"The productGroup field is required","data":null)
-                    'not in acceptable range' => '\\ccxt\\BadRequest', // array("code":"51","msg":"The instType value `spot` is not in acceptable range => SPOT,SWAP","data":null)
+                    'no available' => '\\ccxt\\NotSupported', // orderbook does not exist: ETHUSD_0.1, no available orderbook data
+                    'field is required' => '\\ccxt\\ArgumentsRequired', // {"code":"51","msg":"The productGroup field is required","data":null}
+                    'not in acceptable range' => '\\ccxt\\BadRequest', // {"code":"51","msg":"The instType value `spot` is not in acceptable range: SPOT,SWAP","data":null}
                     'subscription cluster does not "exist"' => '\\ccxt\\BadRequest',
-                    'must be equal or lesser than' => '\\ccxt\\BadRequest', // array("code":"51","msg":"The Size value `100` must be equal or lesser than 50","data":null)
+                    'must be equal or lesser than' => '\\ccxt\\BadRequest', // {"code":"51","msg":"The Size value `100` must be equal or lesser than 50","data":null}
                 ),
             ),
         ));
@@ -448,29 +448,29 @@ class deepcoin extends Exchange {
         // spot
         //
         //     {
-        //         "code" => "0",
-        //         "msg" => "",
-        //         "data" => array(
+        //         "code": "0",
+        //         "msg": "",
+        //         "data": [
         //             {
-        //                 "instType" => "SPOT",
-        //                 "instId" => "A-USDT",
-        //                 "uly" => "",
-        //                 "baseCcy" => "A",
-        //                 "quoteCcy" => "USDT",
-        //                 "ctVal" => "1",
-        //                 "ctValCcy" => "",
-        //                 "listTime" => "0",
-        //                 "lever" => "1",
-        //                 "tickSz" => "0.0001",
-        //                 "lotSz" => "0.001",
-        //                 "minSz" => "0.5",
-        //                 "ctType" => "",
-        //                 "alias" => "",
-        //                 "state" => "live",
-        //                 "maxLmtSz" => "7692307",
-        //                 "maxMktSz" => "7692307"
+        //                 "instType": "SPOT",
+        //                 "instId": "A-USDT",
+        //                 "uly": "",
+        //                 "baseCcy": "A",
+        //                 "quoteCcy": "USDT",
+        //                 "ctVal": "1",
+        //                 "ctValCcy": "",
+        //                 "listTime": "0",
+        //                 "lever": "1",
+        //                 "tickSz": "0.0001",
+        //                 "lotSz": "0.001",
+        //                 "minSz": "0.5",
+        //                 "ctType": "",
+        //                 "alias": "",
+        //                 "state": "live",
+        //                 "maxLmtSz": "7692307",
+        //                 "maxMktSz": "7692307"
         //             }
-        //         )
+        //         ]
         //     }
         //
         $dataResponse = $this->safe_list($response, 'data', array());
@@ -479,48 +479,48 @@ class deepcoin extends Exchange {
 
     public function parse_market(array $market): array {
         //
-        // $spot markets
+        // spot markets
         //
         //     {
-        //         "instType" => "SPOT",
-        //         "instId" => "A-USDT",
-        //         "uly" => "",
-        //         "baseCcy" => "A",
-        //         "quoteCcy" => "USDT",
-        //         "ctVal" => "1",
-        //         "ctValCcy" => "",
-        //         "listTime" => "0",
-        //         "lever" => "1",
-        //         "tickSz" => "0.0001",
-        //         "lotSz" => "0.001",
-        //         "minSz" => "0.5",
-        //         "ctType" => "",
-        //         "alias" => "",
-        //         "state" => "live",
-        //         "maxLmtSz" => "7692307",
-        //         "maxMktSz" => "7692307"
+        //         "instType": "SPOT",
+        //         "instId": "A-USDT",
+        //         "uly": "",
+        //         "baseCcy": "A",
+        //         "quoteCcy": "USDT",
+        //         "ctVal": "1",
+        //         "ctValCcy": "",
+        //         "listTime": "0",
+        //         "lever": "1",
+        //         "tickSz": "0.0001",
+        //         "lotSz": "0.001",
+        //         "minSz": "0.5",
+        //         "ctType": "",
+        //         "alias": "",
+        //         "state": "live",
+        //         "maxLmtSz": "7692307",
+        //         "maxMktSz": "7692307"
         //     }
         //
-        // $swap markets
+        // swap markets
         //
         //     {
-        //         "instType" => "SWAP",
-        //         "instId" => "ZORA-USDT-SWAP",
-        //         "uly" => "",
-        //         "baseCcy" => "ZORA",
-        //         "quoteCcy" => "USDT",
-        //         "ctVal" => "1",
-        //         "ctValCcy" => "",
-        //         "listTime" => "0",
-        //         "lever" => "20",
-        //         "tickSz" => "0.00001",
-        //         "lotSz" => "1",
-        //         "minSz" => "1685",
-        //         "ctType" => "",
-        //         "alias" => "",
-        //         "state" => "live",
-        //         "maxLmtSz" => "10000000",
-        //         "maxMktSz" => "10000000"
+        //         "instType": "SWAP",
+        //         "instId": "ZORA-USDT-SWAP",
+        //         "uly": "",
+        //         "baseCcy": "ZORA",
+        //         "quoteCcy": "USDT",
+        //         "ctVal": "1",
+        //         "ctValCcy": "",
+        //         "listTime": "0",
+        //         "lever": "20",
+        //         "tickSz": "0.00001",
+        //         "lotSz": "1",
+        //         "minSz": "1685",
+        //         "ctType": "",
+        //         "alias": "",
+        //         "state": "live",
+        //         "maxLmtSz": "10000000",
+        //         "maxMktSz": "10000000"
         //     }
         //
         $id = $this->safe_string($market, 'instId');
@@ -610,7 +610,7 @@ class deepcoin extends Exchange {
             if (($market !== null) && ($market['swap'] === true)) {
                 $additionalId = $this->safe_string($market, 'baseId', '') . $this->safe_string($market, 'quoteId', '');
                 if ($this->markets_by_id !== null) {
-                    $this->markets_by_id[$additionalId] = array( $market ); // some endpoints return swap $market id as base+quote
+                    $this->markets_by_id[$additionalId] = array( $market ); // some endpoints return swap market id as base+quote
                 }
             }
         }
@@ -646,17 +646,17 @@ class deepcoin extends Exchange {
         $response = Async\await($this->publicGetDeepcoinMarketBooks($this->extend($request, $params)));
         //
         //     {
-        //         "code" => "0",
-        //         "msg" => "",
-        //         "data" => {
-        //             "bids" => array(
+        //         "code": "0",
+        //         "msg": "",
+        //         "data": {
+        //             "bids": [
         //                 ["3732.21", "99.6"],
         //                 ["3732.2", "54.7"]
-        //             ),
-        //             "asks" => array(
+        //             ],
+        //             "asks": [
         //                 ["3732.22", "85.1"],
         //                 ["3732.23", "49.4"]
-        //             )
+        //             ]
         //         }
         //     }
         //
@@ -716,8 +716,8 @@ class deepcoin extends Exchange {
         if ($calculateUntil === true) {
             $params = $this->omit($params, 'calculateUntil');
             if ($since !== null) {
-                // the exchange do not have a $since param for this endpoint
-                // we calculate $until (after) for correct pagination
+                // the exchange do not have a since param for this endpoint
+                // we calculate until (after) for correct pagination
                 $duration = $this->parse_timeframe($timeframe);
                 $numberOfCandles = ($limit === null) ? $maxLimit : $limit;
                 $endTime = $since . ($duration * $numberOfCandles) * 1000;
@@ -738,10 +738,10 @@ class deepcoin extends Exchange {
         }
         //
         //     {
-        //         "code" => "0",
-        //         "msg" => "",
-        //         "data":array(
-        //             array(
+        //         "code": "0",
+        //         "msg": "",
+        //         "data":[
+        //             [
         //                 "1760221800000",
         //                 "3739.08",
         //                 "3741.95",
@@ -749,8 +749,8 @@ class deepcoin extends Exchange {
         //                 "3740.1",
         //                 "2849",
         //                 "1065583.744"
-        //             ),
-        //             array(
+        //             ],
+        //             [
         //                 "1760221740000",
         //                 "3742.36",
         //                 "3743.01",
@@ -758,8 +758,8 @@ class deepcoin extends Exchange {
         //                 "3739.08",
         //                 "2723",
         //                 "1018290.723"
-        //             )
-        //         )
+        //             ]
+        //         ]
         //     }
         //
         $data = $this->safe_list($response, 'data', array());
@@ -798,25 +798,25 @@ class deepcoin extends Exchange {
     public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         //     {
-        //         "instType" => "SWAP",
-        //         "instId" => "BTC-USD-SWAP",
-        //         "last" => "114113.3",
-        //         "lastSz" => "",
-        //         "askPx" => "114113.5",
-        //         "askSz" => "56280",
-        //         "bidPx" => "114113.2",
-        //         "bidSz" => "63220",
-        //         "open24h" => "113214.7",
-        //         "high24h" => "116039.2",
-        //         "low24h" => "113214.7",
-        //         "volCcy24h" => "73.31475724",
-        //         "vol24h" => "8406739",
-        //         "sodUtc0" => "",
-        //         "sodUtc8" => "",
-        //         "ts" => "1760367816000"
+        //         "instType": "SWAP",
+        //         "instId": "BTC-USD-SWAP",
+        //         "last": "114113.3",
+        //         "lastSz": "",
+        //         "askPx": "114113.5",
+        //         "askSz": "56280",
+        //         "bidPx": "114113.2",
+        //         "bidSz": "63220",
+        //         "open24h": "113214.7",
+        //         "high24h": "116039.2",
+        //         "low24h": "113214.7",
+        //         "volCcy24h": "73.31475724",
+        //         "vol24h": "8406739",
+        //         "sodUtc0": "",
+        //         "sodUtc8": "",
+        //         "ts": "1760367816000"
         //     }
         //
-        $timestamp = $this->safe_integer($ticker, 'ts');
+        $timestamp = $this->safe_integer_omit_zero($ticker, 'ts');
         $marketId = $this->safe_string($ticker, 'instId');
         $market = $this->safe_market($marketId, $market, '-');
         $symbol = $market['symbol'];
@@ -907,31 +907,31 @@ class deepcoin extends Exchange {
         // public fetchTrades
         //
         //     {
-        //         "instId" => "ETH-USDT",
-        //         "tradeId" => "1001056388761321",
-        //         "px" => "4095.66",
-        //         "sz" => "0.01311251",
-        //         "side" => "sell",
-        //         "ts" => "1760367870000"
+        //         "instId": "ETH-USDT",
+        //         "tradeId": "1001056388761321",
+        //         "px": "4095.66",
+        //         "sz": "0.01311251",
+        //         "side": "sell",
+        //         "ts": "1760367870000"
         //     }
         //
         // private fetchMyTrades
         //     {
-        //         "instType" => "SPOT",
-        //         "instId" => "ETH-USDT",
-        //         "tradeId" => "1001056429613610",
-        //         "ordId" => "1001435238208686",
-        //         "clOrdId" => "",
-        //         "billId" => "10010564296136101",
-        //         "tag" => "",
-        //         "fillPx" => "3791.15",
-        //         "fillSz" => "0.004",
-        //         "side" => "sell",
-        //         "posSide" => "",
-        //         "execType" => "",
-        //         "feeCcy" => "USDT",
-        //         "fee" => "0.0151646",
-        //         "ts" => "1760704540000"
+        //         "instType": "SPOT",
+        //         "instId": "ETH-USDT",
+        //         "tradeId": "1001056429613610",
+        //         "ordId": "1001435238208686",
+        //         "clOrdId": "",
+        //         "billId": "10010564296136101",
+        //         "tag": "",
+        //         "fillPx": "3791.15",
+        //         "fillSz": "0.004",
+        //         "side": "sell",
+        //         "posSide": "",
+        //         "execType": "",
+        //         "feeCcy": "USDT",
+        //         "fee": "0.0151646",
+        //         "ts": "1760704540000"
         //     }
         //
         $marketId = $this->safe_string($trade, 'instId');
@@ -1003,16 +1003,16 @@ class deepcoin extends Exchange {
     public function parse_balance(mixed $response): array {
         //
         //     {
-        //         "code" => "0",
-        //         "msg" => "",
-        //         "data" => array(
+        //         "code": "0",
+        //         "msg": "",
+        //         "data": [
         //             {
-        //                 "ccy" => "USDT",
-        //                 "bal" => "74",
-        //                 "frozenBal" => "0",
-        //                 "availBal" => "74"
+        //                 "ccy": "USDT",
+        //                 "bal": "74",
+        //                 "frozenBal": "0",
+        //                 "availBal": "74"
         //             }
-        //         )
+        //         ]
         //     }
         //
         $result = array(
@@ -1142,12 +1142,12 @@ class deepcoin extends Exchange {
         //
         // fetchDeposits
         //     {
-        //         "createTime" => 1760368656,
-        //         "txHash" => "03fe3244d89e794586222413c61779380da9e9fe5baaa253c38d01a4199a3499",
-        //         "chainName" => "TRC20",
-        //         "amount" => "149",
-        //         "coin" => "USDT",
-        //         "status" => "succeed"
+        //         "createTime": 1760368656,
+        //         "txHash": "03fe3244d89e794586222413c61779380da9e9fe5baaa253c38d01a4199a3499",
+        //         "chainName": "TRC20",
+        //         "amount": "149",
+        //         "coin": "USDT",
+        //         "status": "succeed"
         //     }
         //
         $txid = $this->safe_string($transaction, 'txHash');
@@ -1226,27 +1226,27 @@ class deepcoin extends Exchange {
         $response = Async\await($this->privateGetDeepcoinAssetRechargeChainList($this->extend($request, $params)));
         //
         //     {
-        //         "code" => "0",
-        //         "msg" => "",
-        //         "data" => {
-        //             "list" => array(
+        //         "code": "0",
+        //         "msg": "",
+        //         "data": {
+        //             "list": [
         //                 {
-        //                     "chain" => "TRC20",
-        //                     "state" => 1,
-        //                     "remind" => "Only support deposits and withdrawals via TRC20 network. If you send it via other address by mistake, it will not be credited and will result in the permanent loss of your deposit.",
-        //                     "inNotice" => "",
-        //                     "actLogo" => "",
-        //                     "address" => "TNJYDW9Bk87VwfA6s7FtxURLEMHesQbYgF",
-        //                     "hasMemo" => false,
-        //                     "memo" => "",
-        //                     "estimatedTime" => 1,
-        //                     "fastConfig" => {
-        //                         "fastLimitNum" => 0,
-        //                         "fastBlock" => 10,
-        //                         "realBlock" => 1
+        //                     "chain": "TRC20",
+        //                     "state": 1,
+        //                     "remind": "Only support deposits and withdrawals via TRC20 network. If you send it via other address by mistake, it will not be credited and will result in the permanent loss of your deposit.",
+        //                     "inNotice": "",
+        //                     "actLogo": "",
+        //                     "address": "TNJYDW9Bk87VwfA6s7FtxURLEMHesQbYgF",
+        //                     "hasMemo": false,
+        //                     "memo": "",
+        //                     "estimatedTime": 1,
+        //                     "fastConfig": {
+        //                         "fastLimitNum": 0,
+        //                         "fastBlock": 10,
+        //                         "realBlock": 1
         //                     }
         //                 }
-        //             )
+        //             ]
         //         }
         //     }
         //
@@ -1300,19 +1300,19 @@ class deepcoin extends Exchange {
     public function parse_deposit_address(mixed $response, ?array $currency = null): array {
         //
         //     {
-        //         "chain" => "TRC20",
-        //         "state" => 1,
-        //         "remind" => "Only support deposits and withdrawals via TRC20 network. If you send it via other $address by mistake, it will not be credited and will result in the permanent loss of your deposit.",
-        //         "inNotice" => "",
-        //         "actLogo" => "",
-        //         "address" => "TNJYDW9Bk87VwfA6s7FtxURLEMHesQbYgF",
-        //         "hasMemo" => false,
-        //         "memo" => "",
-        //         "estimatedTime" => 1,
-        //         "fastConfig" => {
-        //             "fastLimitNum" => 0,
-        //             "fastBlock" => 10,
-        //             "realBlock" => 1
+        //         "chain": "TRC20",
+        //         "state": 1,
+        //         "remind": "Only support deposits and withdrawals via TRC20 network. If you send it via other address by mistake, it will not be credited and will result in the permanent loss of your deposit.",
+        //         "inNotice": "",
+        //         "actLogo": "",
+        //         "address": "TNJYDW9Bk87VwfA6s7FtxURLEMHesQbYgF",
+        //         "hasMemo": false,
+        //         "memo": "",
+        //         "estimatedTime": 1,
+        //         "fastConfig": {
+        //             "fastLimitNum": 0,
+        //             "fastBlock": 10,
+        //             "realBlock": 1
         //         }
         //     }
         //
@@ -1374,28 +1374,28 @@ class deepcoin extends Exchange {
         $response = Async\await($this->privateGetDeepcoinAccountBills($this->extend($request, $params)));
         //
         //     {
-        //         "code" => "0",
-        //         "msg" => "",
-        //         "data" => array(
-        //             array(
-        //                 "billId" => "1001044652247714",
-        //                 "ccy" => "USDT",
-        //                 "clientId" => "",
-        //                 "balChg" => "-0.03543537",
-        //                 "bal" => "72.41881427",
-        //                 "type" => "5",
-        //                 "ts" => "1761047448000"
-        //             ),
+        //         "code": "0",
+        //         "msg": "",
+        //         "data": [
         //             {
-        //                 "billId" => "1001044652258368",
-        //                 "ccy" => "DOGE",
-        //                 "clientId" => "",
-        //                 "balChg" => "76",
-        //                 "bal" => "76",
-        //                 "type" => "2",
-        //                 "ts" => "1761051006000"
+        //                 "billId": "1001044652247714",
+        //                 "ccy": "USDT",
+        //                 "clientId": "",
+        //                 "balChg": "-0.03543537",
+        //                 "bal": "72.41881427",
+        //                 "type": "5",
+        //                 "ts": "1761047448000"
+        //             },
+        //             {
+        //                 "billId": "1001044652258368",
+        //                 "ccy": "DOGE",
+        //                 "clientId": "",
+        //                 "balChg": "76",
+        //                 "bal": "76",
+        //                 "type": "2",
+        //                 "ts": "1761051006000"
         //             }
-        //         )
+        //         ]
         //     }
         //
         $data = $this->safe_list($response, 'data', array());
@@ -1405,13 +1405,13 @@ class deepcoin extends Exchange {
     public function parse_ledger_entry(array $item, ?array $currency = null): array {
         //
         //     {
-        //         "billId" => "1001044652247714",
-        //         "ccy" => "USDT",
-        //         "clientId" => "",
-        //         "balChg" => "-0.03543537",
-        //         "bal" => "72.41881427",
-        //         "type" => "5",
-        //         "ts" => "1761047448000"
+        //         "billId": "1001044652247714",
+        //         "ccy": "USDT",
+        //         "clientId": "",
+        //         "balChg": "-0.03543537",
+        //         "bal": "72.41881427",
+        //         "type": "5",
+        //         "ts": "1761047448000"
         //     }
         //
         $timestamp = $this->safe_integer($item, 'ts');
@@ -1492,12 +1492,12 @@ class deepcoin extends Exchange {
         $response = Async\await($this->privatePostDeepcoinAssetTransfer($this->extend($request, $params)));
         //
         //     {
-        //         "code" => "0",
-        //         "msg" => "",
-        //         "data" => {
-        //             "retCode" => 0,
-        //             "retMsg" => "",
-        //             "retData" => array()
+        //         "code": "0",
+        //         "msg": "",
+        //         "data": {
+        //             "retCode": 0,
+        //             "retMsg": "",
+        //             "retData": {}
         //         }
         //     }
         //
@@ -1516,9 +1516,9 @@ class deepcoin extends Exchange {
     public function parse_transfer(array $transfer, ?array $currency = null): array {
         //
         //     {
-        //         "retCode" => 0,
-        //         "retMsg" => "",
-        //         "retData" => array()
+        //         "retCode": 0,
+        //         "retMsg": "",
+        //         "retData": {}
         //     }
         //
         $status = $this->safe_string($transfer, 'retCode');
@@ -1586,14 +1586,14 @@ class deepcoin extends Exchange {
             // regular orders
             //
             //     {
-            //         "code" => "0",
-            //         "msg" => "",
-            //         "data" => {
-            //             "ordId" => "1001434570213727",
-            //             "clOrdId" => "",
-            //             "tag" => "",
-            //             "sCode" => "0",
-            //             "sMsg" => ""
+            //         "code": "0",
+            //         "msg": "",
+            //         "data": {
+            //             "ordId": "1001434570213727",
+            //             "clOrdId": "",
+            //             "tag": "",
+            //             "sCode": "0",
+            //             "sMsg": ""
             //         }
             //     }
             //
@@ -1616,7 +1616,7 @@ class deepcoin extends Exchange {
         }
         $market = $this->market($symbol);
         $triggerPrice = $this->safe_string($params, 'triggerPrice');
-        // $isTriggerOrder = ($triggerPrice !== null) || $this->safe_string_2($params, 'stopLossPrice', 'takeProfitPrice') !== null;
+        // const isTriggerOrder = (triggerPrice !== undefined) || this.safeString2 (params, 'stopLossPrice', 'takeProfitPrice') !== undefined;
         $isTriggerOrder = ($triggerPrice !== null);
         $cost = $this->safe_string($params, 'cost');
         if ($cost !== null) {
@@ -1662,20 +1662,20 @@ class deepcoin extends Exchange {
         list($orderType, $params) = $this->handle_type_post_only_and_time_in_force($type, $params);
         $request = array(
             'instId' => $market['id'],
-            // 'tdMode' => 'cash', // 'cash' for spot, 'cross' or 'isolated' for swap
-            // 'ccy' => currency['id'], // only applicable to cross MARGIN orders in single-currency margin
-            // 'clOrdId' => $clientOrderId,
+            // 'tdMode': 'cash', // 'cash' for spot, 'cross' or 'isolated' for swap
+            // 'ccy': currency['id'], // only applicable to cross MARGIN orders in single-currency margin
+            // 'clOrdId': clientOrderId,
             'side' => $side,
             'ordType' => $orderType,
-            // 'sz' => $amount or $cost
-            // 'px' => $price, // limit orders only
-            // 'reduceOnly' => false, // a mark to reduce the position size for margin and swap orders
-            // 'tgtCcy' => 'base_ccy', // spot only 'base_ccy' or 'quote_ccy', the default is 'base_ccy' for spot orders
-            // 'tpTriggerPx' => $takeProfitPrice, // take profit trigger $price
-            // 'slTriggerPx' => $stopLossPrice, // stop loss trigger $price
-            // 'posSide' => 'long', // swap only 'long' or 'short'
-            // 'mrgPosition' => 'merge', // swap only 'merge' or 'split'
-            // 'closePosId' => 'id', // swap only position ID to close, required in split mode
+            // 'sz': amount or cost
+            // 'px': price, // limit orders only
+            // 'reduceOnly': false, // a mark to reduce the position size for margin and swap orders
+            // 'tgtCcy': 'base_ccy', // spot only 'base_ccy' or 'quote_ccy', the default is 'base_ccy' for spot orders
+            // 'tpTriggerPx': takeProfitPrice, // take profit trigger price
+            // 'slTriggerPx': stopLossPrice, // stop loss trigger price
+            // 'posSide': 'long', // swap only 'long' or 'short'
+            // 'mrgPosition': 'merge', // swap only 'merge' or 'split'
+            // 'closePosId': 'id', // swap only position ID to close, required in split mode
         );
         $clientOrderId = $this->safe_string($params, 'clientOrderId');
         if ($clientOrderId !== null) {
@@ -1771,23 +1771,23 @@ class deepcoin extends Exchange {
             'productGroup' => $this->capitalize($market['type']),
             'sz' => $this->amount_to_precision($symbol, $amount),
             'side' => $side,
-            // 'posSide' => 'long', // 'long' or 'short' - required when product $type is SWAP
-            // 'price' => $price,
-            // 'isCrossMargin' => 1, // 1 for cross margin, 0 for isolated margin
+            // 'posSide': 'long', // 'long' or 'short' - required when product type is SWAP
+            // 'price': price,
+            // 'isCrossMargin': 1, // 1 for cross margin, 0 for isolated margin
             'orderType' => $type,
-            // 'triggerPrice' => $triggerPrice,
-            // 'mrgPosition' => 'merge', // 'merge' or 'split', the default is 'merge' - required when product $type is SWAP
-            // 'tdMode' => 'cash', // 'cash' for spot, 'cross' or 'isolated' for swap
+            // 'triggerPrice': triggerPrice,
+            // 'mrgPosition': 'merge', // 'merge' or 'split', the default is 'merge' - required when product type is SWAP
+            // 'tdMode': 'cash', // 'cash' for spot, 'cross' or 'isolated' for swap
         );
         $triggerPrice = $this->safe_string($params, 'triggerPrice');
-        // $takeProfitPrice = $this->safe_string($params, 'takeProfitPrice');
-        // $stopLossPrice = $this->safe_string($params, 'stopLossPrice');
-        // $isTpOrSlOrder = ($takeProfitPrice !== null) || ($stopLossPrice !== null);
-        // if ($isTpOrSlOrder) {
-        //     if ($takeProfitPrice !== null) {
-        //         $request['triggerPrice'] = $this->price_to_precision($symbol, $takeProfitPrice);
+        // const takeProfitPrice = this.safeString (params, 'takeProfitPrice');
+        // const stopLossPrice = this.safeString (params, 'stopLossPrice');
+        // const isTpOrSlOrder = (takeProfitPrice !== undefined) || (stopLossPrice !== undefined);
+        // if (isTpOrSlOrder) {
+        //     if (takeProfitPrice !== undefined) {
+        //         request['triggerPrice'] = this.priceToPrecision (symbol, takeProfitPrice);
         //     } else {
-        //         $request['triggerPrice'] = $this->price_to_precision($symbol, $stopLossPrice);
+        //         request['triggerPrice'] = this.priceToPrecision (symbol, stopLossPrice);
         //     }
         // } else {
         $request['triggerPrice'] = $this->price_to_precision($symbol, $triggerPrice);
@@ -1920,48 +1920,48 @@ class deepcoin extends Exchange {
         $response = Async\await($this->privateGetDeepcoinTradeFinishOrderByID($this->extend($request, $params)));
         //
         //     {
-        //         "code" => "0",
-        //         "msg" => "",
-        //         "data" => array(
+        //         "code": "0",
+        //         "msg": "",
+        //         "data": [
         //             {
-        //                 "instType" => "SPOT",
-        //                 "instId" => "ETH-USDT",
-        //                 "tgtCcy" => "",
-        //                 "ccy" => "",
-        //                 "ordId" => "1001434573319675",
-        //                 "clOrdId" => "",
-        //                 "tag" => "",
-        //                 "px" => "4056.620000000000",
-        //                 "sz" => "0.004000",
-        //                 "pnl" => "0.000000",
-        //                 "ordType" => "market",
-        //                 "side" => "buy",
-        //                 "posSide" => "",
-        //                 "tdMode" => "cash",
-        //                 "accFillSz" => "0.004000",
-        //                 "fillPx" => "",
-        //                 "tradeId" => "",
-        //                 "fillSz" => "0.004000",
-        //                 "fillTime" => "1760619119000",
-        //                 "avgPx" => "",
-        //                 "state" => "filled",
-        //                 "lever" => "1.000000",
-        //                 "tpTriggerPx" => "",
-        //                 "tpTriggerPxType" => "",
-        //                 "tpOrdPx" => "",
-        //                 "slTriggerPx" => "",
-        //                 "slTriggerPxType" => "",
-        //                 "slOrdPx" => "",
-        //                 "feeCcy" => "USDT",
-        //                 "fee" => "0.000004",
-        //                 "rebateCcy" => "",
-        //                 "source" => "",
-        //                 "rebate" => "",
-        //                 "category" => "normal",
-        //                 "uTime" => "1760619119000",
-        //                 "cTime" => "1760619119000"
+        //                 "instType": "SPOT",
+        //                 "instId": "ETH-USDT",
+        //                 "tgtCcy": "",
+        //                 "ccy": "",
+        //                 "ordId": "1001434573319676",
+        //                 "clOrdId": "",
+        //                 "tag": "",
+        //                 "px": "4056.620000000000",
+        //                 "sz": "0.004000",
+        //                 "pnl": "0.000000",
+        //                 "ordType": "market",
+        //                 "side": "buy",
+        //                 "posSide": "",
+        //                 "tdMode": "cash",
+        //                 "accFillSz": "0.004000",
+        //                 "fillPx": "",
+        //                 "tradeId": "",
+        //                 "fillSz": "0.004000",
+        //                 "fillTime": "1760619119000",
+        //                 "avgPx": "",
+        //                 "state": "filled",
+        //                 "lever": "1.000000",
+        //                 "tpTriggerPx": "",
+        //                 "tpTriggerPxType": "",
+        //                 "tpOrdPx": "",
+        //                 "slTriggerPx": "",
+        //                 "slTriggerPxType": "",
+        //                 "slOrdPx": "",
+        //                 "feeCcy": "USDT",
+        //                 "fee": "0.000004",
+        //                 "rebateCcy": "",
+        //                 "source": "",
+        //                 "rebate": "",
+        //                 "category": "normal",
+        //                 "uTime": "1760619119000",
+        //                 "cTime": "1760619119000"
         //             }
-        //         )
+        //         ]
         //     }
         //
         $data = $this->safe_list($response, 'data', array());
@@ -2061,82 +2061,82 @@ class deepcoin extends Exchange {
             $params = $this->omit($params, 'trigger');
             //
             //     {
-            //         "code" => "0",
-            //         "msg" => "",
-            //         "data" => array(
+            //         "code": "0",
+            //         "msg": "",
+            //         "data": [
             //             {
-            //                 "instType" => "SWAP",
-            //                 "instId" => "DOGE-USDT-SWAP",
-            //                 "ordId" => "1001110510915416",
-            //                 "px" => "0",
-            //                 "sz" => "76",
-            //                 "triggerPx" => "0",
-            //                 "triggerPxType" => "last",
-            //                 "ordType" => "TPSL",
-            //                 "side" => "sell",
-            //                 "posSide" => "long",
-            //                 "tdMode" => "cross",
-            //                 "lever" => "2",
-            //                 "triggerTime" => "0",
-            //                 "uTime" => "1761059366000",
-            //                 "cTime" => "1761059218",
-            //                 "errorCode" => "0",
-            //                 "errorMsg" => ""
+            //                 "instType": "SWAP",
+            //                 "instId": "DOGE-USDT-SWAP",
+            //                 "ordId": "1001110510915416",
+            //                 "px": "0",
+            //                 "sz": "76",
+            //                 "triggerPx": "0",
+            //                 "triggerPxType": "last",
+            //                 "ordType": "TPSL",
+            //                 "side": "sell",
+            //                 "posSide": "long",
+            //                 "tdMode": "cross",
+            //                 "lever": "2",
+            //                 "triggerTime": "0",
+            //                 "uTime": "1761059366000",
+            //                 "cTime": "1761059218",
+            //                 "errorCode": "0",
+            //                 "errorMsg": ""
             //             }
-            //         )
+            //         ]
             //     }
             //
             $response = Async\await($this->privateGetDeepcoinTradeTriggerOrdersHistory($this->extend($request, $params)));
         } else {
             //
             //     {
-            //         "code" => "0",
-            //         "msg" => "",
-            //         "data" => array(
+            //         "code": "0",
+            //         "msg": "",
+            //         "data": [
             //             {
-            //                 "instType" => "SPOT",
-            //                 "instId" => "ETH-USDT",
-            //                 "tgtCcy" => "",
-            //                 "ccy" => "",
-            //                 "ordId" => "1001434573319675",
-            //                 "clOrdId" => "",
-            //                 "tag" => "",
-            //                 "px" => "4056.620000000000",
-            //                 "sz" => "0.004000",
-            //                 "pnl" => "0.000000",
-            //                 "ordType" => "market",
-            //                 "side" => "buy",
-            //                 "posSide" => "",
-            //                 "tdMode" => "cash",
-            //                 "accFillSz" => "0.004000",
-            //                 "fillPx" => "",
-            //                 "tradeId" => "",
-            //                 "fillSz" => "0.004000",
-            //                 "fillTime" => "1760619119000",
-            //                 "avgPx" => "",
-            //                 "state" => "filled",
-            //                 "lever" => "1.000000",
-            //                 "tpTriggerPx" => "",
-            //                 "tpTriggerPxType" => "",
-            //                 "tpOrdPx" => "",
-            //                 "slTriggerPx" => "",
-            //                 "slTriggerPxType" => "",
-            //                 "slOrdPx" => "",
-            //                 "feeCcy" => "USDT",
-            //                 "fee" => "0.000004",
-            //                 "rebateCcy" => "",
-            //                 "source" => "",
-            //                 "rebate" => "",
-            //                 "category" => "normal",
-            //                 "uTime" => "1760619119000",
-            //                 "cTime" => "1760619119000"
+            //                 "instType": "SPOT",
+            //                 "instId": "ETH-USDT",
+            //                 "tgtCcy": "",
+            //                 "ccy": "",
+            //                 "ordId": "1001434573319675",
+            //                 "clOrdId": "",
+            //                 "tag": "",
+            //                 "px": "4056.620000000000",
+            //                 "sz": "0.004000",
+            //                 "pnl": "0.000000",
+            //                 "ordType": "market",
+            //                 "side": "buy",
+            //                 "posSide": "",
+            //                 "tdMode": "cash",
+            //                 "accFillSz": "0.004000",
+            //                 "fillPx": "",
+            //                 "tradeId": "",
+            //                 "fillSz": "0.004000",
+            //                 "fillTime": "1760619119000",
+            //                 "avgPx": "",
+            //                 "state": "filled",
+            //                 "lever": "1.000000",
+            //                 "tpTriggerPx": "",
+            //                 "tpTriggerPxType": "",
+            //                 "tpOrdPx": "",
+            //                 "slTriggerPx": "",
+            //                 "slTriggerPxType": "",
+            //                 "slOrdPx": "",
+            //                 "feeCcy": "USDT",
+            //                 "fee": "0.000004",
+            //                 "rebateCcy": "",
+            //                 "source": "",
+            //                 "rebate": "",
+            //                 "category": "normal",
+            //                 "uTime": "1760619119000",
+            //                 "cTime": "1760619119000"
             //             }
-            //         )
+            //         ]
             //     }
             //
             $response = Async\await($this->privateGetDeepcoinTradeOrdersHistory($this->extend($request, $params)));
         }
-        // todo handle with $since, until and pagination
+        // todo handle with since, until and pagination
         $data = $this->safe_list($response, 'data', array());
         return $this->parse_orders($data, $market, $since, $limit);
     }
@@ -2228,33 +2228,33 @@ class deepcoin extends Exchange {
             $request['instType'] = $this->convert_to_instrument_type($market['type']);
             //
             //     {
-            //         "code" => "0",
-            //         "msg" => "",
-            //         "data" => array(
+            //         "code": "0",
+            //         "msg": "",
+            //         "data": [
             //             {
-            //                 "instType" => "SPOT",
-            //                 "instId" => "DOGE-USDT",
-            //                 "ordId" => "1001442305797142",
-            //                 "triggerPx" => "0.01",
-            //                 "ordPx" => "0.01",
-            //                 "sz" => "20",
-            //                 "ordType" => "",
-            //                 "side" => "buy",
-            //                 "posSide" => "",
-            //                 "tdMode" => "cash",
-            //                 "triggerOrderType" => "Conditional",
-            //                 "triggerPxType" => "last",
-            //                 "lever" => "",
-            //                 "slPrice" => "",
-            //                 "slTriggerPrice" => "",
-            //                 "tpPrice" => "",
-            //                 "tpTriggerPrice" => "",
-            //                 "closeSLTriggerPrice" => "",
-            //                 "closeTPTriggerPrice" => "",
-            //                 "cTime" => "1761814167000",
-            //                 "uTime" => "1761814167000"
+            //                 "instType": "SPOT",
+            //                 "instId": "DOGE-USDT",
+            //                 "ordId": "1001442305797142",
+            //                 "triggerPx": "0.01",
+            //                 "ordPx": "0.01",
+            //                 "sz": "20",
+            //                 "ordType": "",
+            //                 "side": "buy",
+            //                 "posSide": "",
+            //                 "tdMode": "cash",
+            //                 "triggerOrderType": "Conditional",
+            //                 "triggerPxType": "last",
+            //                 "lever": "",
+            //                 "slPrice": "",
+            //                 "slTriggerPrice": "",
+            //                 "tpPrice": "",
+            //                 "tpTriggerPrice": "",
+            //                 "closeSLTriggerPrice": "",
+            //                 "closeTPTriggerPrice": "",
+            //                 "cTime": "1761814167000",
+            //                 "uTime": "1761814167000"
             //             }
-            //         )
+            //         ]
             //     }
             //
             $response = Async\await($this->privateGetDeepcoinTradeTriggerOrdersPending($this->extend($request, $params)));
@@ -2262,48 +2262,48 @@ class deepcoin extends Exchange {
             $request['index'] = $index;
             //
             //     {
-            //         "code" => "0",
-            //         "msg" => "",
-            //         "data" => array(
+            //         "code": "0",
+            //         "msg": "",
+            //         "data": [
             //             {
-            //                 "instType" => "SPOT",
-            //                 "instId" => "ETH-USDT",
-            //                 "tgtCcy" => "",
-            //                 "ccy" => "",
-            //                 "ordId" => "1001435158096314",
-            //                 "clOrdId" => "",
-            //                 "tag" => "",
-            //                 "px" => "1000.000000000000",
-            //                 "sz" => "0.004000",
-            //                 "pnl" => "0.000000",
-            //                 "ordType" => "limit",
-            //                 "side" => "buy",
-            //                 "posSide" => "",
-            //                 "tdMode" => "cash",
-            //                 "accFillSz" => "0.000000",
-            //                 "fillPx" => "",
-            //                 "tradeId" => "",
-            //                 "fillSz" => "0.000000",
-            //                 "fillTime" => "1760695267000",
-            //                 "avgPx" => "",
-            //                 "state" => "live",
-            //                 "lever" => "1",
-            //                 "tpTriggerPx" => "",
-            //                 "tpTriggerPxType" => "",
-            //                 "tpOrdPx" => "",
-            //                 "slTriggerPx" => "",
-            //                 "slTriggerPxType" => "",
-            //                 "slOrdPx" => "",
-            //                 "feeCcy" => "USDT",
-            //                 "fee" => "0.000000",
-            //                 "rebateCcy" => "",
-            //                 "source" => "",
-            //                 "rebate" => "",
-            //                 "category" => "normal",
-            //                 "uTime" => "1760695267000",
-            //                 "cTime" => "1760695267000"
+            //                 "instType": "SPOT",
+            //                 "instId": "ETH-USDT",
+            //                 "tgtCcy": "",
+            //                 "ccy": "",
+            //                 "ordId": "1001435158096314",
+            //                 "clOrdId": "",
+            //                 "tag": "",
+            //                 "px": "1000.000000000000",
+            //                 "sz": "0.004000",
+            //                 "pnl": "0.000000",
+            //                 "ordType": "limit",
+            //                 "side": "buy",
+            //                 "posSide": "",
+            //                 "tdMode": "cash",
+            //                 "accFillSz": "0.000000",
+            //                 "fillPx": "",
+            //                 "tradeId": "",
+            //                 "fillSz": "0.000000",
+            //                 "fillTime": "1760695267000",
+            //                 "avgPx": "",
+            //                 "state": "live",
+            //                 "lever": "1",
+            //                 "tpTriggerPx": "",
+            //                 "tpTriggerPxType": "",
+            //                 "tpOrdPx": "",
+            //                 "slTriggerPx": "",
+            //                 "slTriggerPxType": "",
+            //                 "slOrdPx": "",
+            //                 "feeCcy": "USDT",
+            //                 "fee": "0.000000",
+            //                 "rebateCcy": "",
+            //                 "source": "",
+            //                 "rebate": "",
+            //                 "category": "normal",
+            //                 "uTime": "1760695267000",
+            //                 "cTime": "1760695267000"
             //             }
-            //         )
+            //         ]
             //     }
             //
             $response = Async\await($this->privateGetDeepcoinTradeV2OrdersPending($this->extend($request, $params)));
@@ -2505,69 +2505,69 @@ class deepcoin extends Exchange {
 
     public function parse_order(array $order, ?array $market = null): array {
         //
-        // regular $order
+        // regular order
         //     {
-        //         "instType" => "SPOT",
-        //         "instId" => "ETH-USDT",
-        //         "tgtCcy" => "",
-        //         "ccy" => "",
-        //         "ordId" => "1001434573319675",
-        //         "clOrdId" => "",
-        //         "tag" => "",
-        //         "px" => "4056.620000000000",
-        //         "sz" => "0.004000",
-        //         "pnl" => "0.000000",
-        //         "ordType" => "market",
-        //         "side" => "buy",
-        //         "posSide" => "",
-        //         "tdMode" => "cash",
-        //         "accFillSz" => "0.004000",
-        //         "fillPx" => "",
-        //         "tradeId" => "",
-        //         "fillSz" => "0.004000",
-        //         "fillTime" => "1760619119000",
-        //         "avgPx" => "",
-        //         "state" => "filled",
-        //         "lever" => "1.000000",
-        //         "tpTriggerPx" => "",
-        //         "tpTriggerPxType" => "",
-        //         "tpOrdPx" => "",
-        //         "slTriggerPx" => "",
-        //         "slTriggerPxType" => "",
-        //         "slOrdPx" => "",
-        //         "feeCcy" => "USDT",
-        //         "fee" => "0.000004",
-        //         "rebateCcy" => "",
-        //         "source" => "",
-        //         "rebate" => "",
-        //         "category" => "normal",
-        //         "uTime" => "1760619119000",
-        //         "cTime" => "1760619119000"
+        //         "instType": "SPOT",
+        //         "instId": "ETH-USDT",
+        //         "tgtCcy": "",
+        //         "ccy": "",
+        //         "ordId": "1001434573319675",
+        //         "clOrdId": "",
+        //         "tag": "",
+        //         "px": "4056.620000000000",
+        //         "sz": "0.004000",
+        //         "pnl": "0.000000",
+        //         "ordType": "market",
+        //         "side": "buy",
+        //         "posSide": "",
+        //         "tdMode": "cash",
+        //         "accFillSz": "0.004000",
+        //         "fillPx": "",
+        //         "tradeId": "",
+        //         "fillSz": "0.004000",
+        //         "fillTime": "1760619119000",
+        //         "avgPx": "",
+        //         "state": "filled",
+        //         "lever": "1.000000",
+        //         "tpTriggerPx": "",
+        //         "tpTriggerPxType": "",
+        //         "tpOrdPx": "",
+        //         "slTriggerPx": "",
+        //         "slTriggerPxType": "",
+        //         "slOrdPx": "",
+        //         "feeCcy": "USDT",
+        //         "fee": "0.000004",
+        //         "rebateCcy": "",
+        //         "source": "",
+        //         "rebate": "",
+        //         "category": "normal",
+        //         "uTime": "1760619119000",
+        //         "cTime": "1760619119000"
         //     }
         //
-        // trigger $order
+        // trigger order
         //     {
-        //         "instType" => "SPOT",
-        //         "instId" => "DOGE-USDT",
-        //         "ordId" => "1001442305797142",
-        //         "triggerPx" => "0.01",
-        //         "ordPx" => "0.01",
-        //         "sz" => "20",
-        //         "ordType" => "",
-        //         "side" => "buy",
-        //         "posSide" => "",
-        //         "tdMode" => "cash",
-        //         "triggerOrderType" => "Conditional",
-        //         "triggerPxType" => "last",
-        //         "lever" => "",
-        //         "slPrice" => "",
-        //         "slTriggerPrice" => "",
-        //         "tpPrice" => "",
-        //         "tpTriggerPrice" => "",
-        //         "closeSLTriggerPrice" => "",
-        //         "closeTPTriggerPrice" => "",
-        //         "cTime" => "1761814167000",
-        //         "uTime" => "1761814167000"
+        //         "instType": "SPOT",
+        //         "instId": "DOGE-USDT",
+        //         "ordId": "1001442305797142",
+        //         "triggerPx": "0.01",
+        //         "ordPx": "0.01",
+        //         "sz": "20",
+        //         "ordType": "",
+        //         "side": "buy",
+        //         "posSide": "",
+        //         "tdMode": "cash",
+        //         "triggerOrderType": "Conditional",
+        //         "triggerPxType": "last",
+        //         "lever": "",
+        //         "slPrice": "",
+        //         "slTriggerPrice": "",
+        //         "tpPrice": "",
+        //         "tpTriggerPrice": "",
+        //         "closeSLTriggerPrice": "",
+        //         "closeTPTriggerPrice": "",
+        //         "cTime": "1761814167000",
+        //         "uTime": "1761814167000"
         //     }
         //
         $marketId = $this->safe_string($order, 'instId');
@@ -2713,26 +2713,26 @@ class deepcoin extends Exchange {
         $response = Async\await($this->privateGetDeepcoinAccountPositions($this->extend($request, $params)));
         //
         //     {
-        //         "code" => "0",
-        //         "msg" => "",
-        //         "data" => array(
+        //         "code": "0",
+        //         "msg": "",
+        //         "data": [
         //             {
-        //                 "instType" => "SWAP",
-        //                 "mgnMode" => "cross",
-        //                 "instId" => "DOGE-USDT-SWAP",
-        //                 "posId" => "1001110099878275",
-        //                 "posSide" => "long",
-        //                 "pos" => "20",
-        //                 "avgPx" => "0.18408",
-        //                 "lever" => "75",
-        //                 "liqPx" => "0.00001",
-        //                 "useMargin" => "0.049088",
-        //                 "mrgPosition" => "merge",
-        //                 "ccy" => "USDT",
-        //                 "uTime" => "1760709419000",
-        //                 "cTime" => "1760709419000"
+        //                 "instType": "SWAP",
+        //                 "mgnMode": "cross",
+        //                 "instId": "DOGE-USDT-SWAP",
+        //                 "posId": "1001110099878275",
+        //                 "posSide": "long",
+        //                 "pos": "20",
+        //                 "avgPx": "0.18408",
+        //                 "lever": "75",
+        //                 "liqPx": "0.00001",
+        //                 "useMargin": "0.049088",
+        //                 "mrgPosition": "merge",
+        //                 "ccy": "USDT",
+        //                 "uTime": "1760709419000",
+        //                 "cTime": "1760709419000"
         //             }
-        //         )
+        //         ]
         //     }
         //
         $data = $this->safe_list($response, 'data', array());
@@ -2742,20 +2742,20 @@ class deepcoin extends Exchange {
     public function parse_position(array $position, ?array $market = null): array {
         //
         //     {
-        //         "instType" => "SWAP",
-        //         "mgnMode" => "cross",
-        //         "instId" => "DOGE-USDT-SWAP",
-        //         "posId" => "1001110099878275",
-        //         "posSide" => "long",
-        //         "pos" => "20",
-        //         "avgPx" => "0.18408",
-        //         "lever" => "75",
-        //         "liqPx" => "0.00001",
-        //         "useMargin" => "0.049088",
-        //         "mrgPosition" => "merge",
-        //         "ccy" => "USDT",
-        //         "uTime" => "1760709419000",
-        //         "cTime" => "1760709419000"
+        //         "instType": "SWAP",
+        //         "mgnMode": "cross",
+        //         "instId": "DOGE-USDT-SWAP",
+        //         "posId": "1001110099878275",
+        //         "posSide": "long",
+        //         "pos": "20",
+        //         "avgPx": "0.18408",
+        //         "lever": "75",
+        //         "liqPx": "0.00001",
+        //         "useMargin": "0.049088",
+        //         "mrgPosition": "merge",
+        //         "ccy": "USDT",
+        //         "uTime": "1760709419000",
+        //         "cTime": "1760709419000"
         //     }
         //
         $marketId = $this->safe_string($position, 'instId');
@@ -2813,7 +2813,7 @@ class deepcoin extends Exchange {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' setLeverage() requires a $symbol argument');
         }
-        // WARNING => THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
+        // WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
         // AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
         if ($leverage < 1) {
             throw new BadRequest($this->id . ' setLeverage() $leverage should be minimum 1');
@@ -2841,15 +2841,15 @@ class deepcoin extends Exchange {
         $response = Async\await($this->privatePostDeepcoinAccountSetLeverage($this->extend($request, $params)));
         //
         //     {
-        //         code => '0',
-        //         msg => '',
-        //         data => {
-        //             instId => 'ETH-USDT-SWAP',
-        //             lever => '2',
-        //             mgnMode => 'cross',
-        //             $mrgPosition => 'merge',
-        //             sCode => '0',
-        //             sMsg => ''
+        //         code: '0',
+        //         msg: '',
+        //         data: {
+        //             instId: 'ETH-USDT-SWAP',
+        //             lever: '2',
+        //             mgnMode: 'cross',
+        //             mrgPosition: 'merge',
+        //             sCode: '0',
+        //             sMsg: ''
         //         }
         //     }
         //
@@ -2894,19 +2894,19 @@ class deepcoin extends Exchange {
         $response = Async\await($this->publicGetDeepcoinTradeFundRateCurrentFundingRate($this->extend($request, $params)));
         //
         //     {
-        //         "code" => "0",
-        //         "msg" => "",
-        //         "data" => {
-        //             "current_fund_rates" => array(
-        //                 array(
-        //                     "instrumentId" => "SPKUSDT",
-        //                     "fundingRate" => 0.00005
-        //                 ),
+        //         "code": "0",
+        //         "msg": "",
+        //         "data": {
+        //             "current_fund_rates": [
         //                 {
-        //                     "instrumentId" => "LAUNCHCOINUSDT",
-        //                     "fundingRate" => 0.00005
+        //                     "instrumentId": "SPKUSDT",
+        //                     "fundingRate": 0.00005
+        //                 },
+        //                 {
+        //                     "instrumentId": "LAUNCHCOINUSDT",
+        //                     "fundingRate": 0.00005
         //                 }
-        //             )
+        //             ]
         //         }
         //     }
         //
@@ -2943,15 +2943,15 @@ class deepcoin extends Exchange {
         $response = Async\await($this->publicGetDeepcoinTradeFundRateCurrentFundingRate($this->extend($request, $params)));
         //
         //     {
-        //         "code" => "0",
-        //         "msg" => "",
-        //         "data" => {
-        //             "current_fund_rates" => array(
+        //         "code": "0",
+        //         "msg": "",
+        //         "data": {
+        //             "current_fund_rates": [
         //                 {
-        //                     "instrumentId" => "ETHUSDT",
-        //                     "fundingRate" => 0.0000402356250176
+        //                     "instrumentId": "ETHUSDT",
+        //                     "fundingRate": 0.0000402356250176
         //                 }
-        //             )
+        //             ]
         //         }
         //     }
         //
@@ -2964,8 +2964,8 @@ class deepcoin extends Exchange {
     public function parse_funding_rate(mixed $contract, ?array $market = null): array {
         //
         //     {
-        //         "instrumentId" => "ETHUSDT",
-        //         "fundingRate" => 0.0000402356250176
+        //         "instrumentId": "ETHUSDT",
+        //         "fundingRate": 0.0000402356250176
         //     }
         //
         $marketId = $this->safe_string_2($contract, 'instrumentId', 'instrumentID');
@@ -3025,23 +3025,23 @@ class deepcoin extends Exchange {
         $response = Async\await($this->publicGetDeepcoinTradeFundRateHistory($this->extend($request, $params)));
         //
         //     {
-        //         "code" => "0",
-        //         "msg" => "",
-        //         "data" => {
-        //             "rows" => array(
-        //                 array(
-        //                     "instrumentID" => "ETHUSD",
-        //                     "rate" => "0.00046493",
-        //                     "CreateTime" => 1760860800,
-        //                     "ratePeriodSec" => 0
-        //                 ),
+        //         "code": "0",
+        //         "msg": "",
+        //         "data": {
+        //             "rows": [
         //                 {
-        //                     "instrumentID" => "ETHUSD",
-        //                     "rate" => "0.00047949",
-        //                     "CreateTime" => 1760832000,
-        //                     "ratePeriodSec" => 0
+        //                     "instrumentID": "ETHUSD",
+        //                     "rate": "0.00046493",
+        //                     "CreateTime": 1760860800,
+        //                     "ratePeriodSec": 0
+        //                 },
+        //                 {
+        //                     "instrumentID": "ETHUSD",
+        //                     "rate": "0.00047949",
+        //                     "CreateTime": 1760832000,
+        //                     "ratePeriodSec": 0
         //                 }
-        //             )
+        //             ]
         //         }
         //     }
         //
@@ -3053,10 +3053,10 @@ class deepcoin extends Exchange {
     public function parse_funding_rate_history(mixed $info, ?array $market = null): array {
         //
         //     {
-        //         "instrumentID" => "ETHUSD",
-        //         "rate" => "0.00047949",
-        //         "CreateTime" => 1760832000,
-        //         "ratePeriodSec" => 0
+        //         "instrumentID": "ETHUSD",
+        //         "rate": "0.00047949",
+        //         "CreateTime": 1760832000,
+        //         "ratePeriodSec": 0
         //     }
         //
         $timestamp = $this->safe_timestamp($info, 'CreateTime');
@@ -3124,27 +3124,27 @@ class deepcoin extends Exchange {
         $response = Async\await($this->privateGetDeepcoinTradeFills($this->extend($request, $params)));
         //
         //     {
-        //         "code" => "0",
-        //         "msg" => "",
-        //         "data" => array(
+        //         "code": "0",
+        //         "msg": "",
+        //         "data": [
         //             {
-        //                 "instType" => "SPOT",
-        //                 "instId" => "ETH-USDT",
-        //                 "tradeId" => "1001056429613610",
-        //                 "ordId" => "1001435238208686",
-        //                 "clOrdId" => "",
-        //                 "billId" => "10010564296136101",
-        //                 "tag" => "",
-        //                 "fillPx" => "3791.15",
-        //                 "fillSz" => "0.004",
-        //                 "side" => "sell",
-        //                 "posSide" => "",
-        //                 "execType" => "",
-        //                 "feeCcy" => "USDT",
-        //                 "fee" => "0.0151646",
-        //                 "ts" => "1760704540000"
+        //                 "instType": "SPOT",
+        //                 "instId": "ETH-USDT",
+        //                 "tradeId": "1001056429613610",
+        //                 "ordId": "1001435238208686",
+        //                 "clOrdId": "",
+        //                 "billId": "10010564296136101",
+        //                 "tag": "",
+        //                 "fillPx": "3791.15",
+        //                 "fillSz": "0.004",
+        //                 "side": "sell",
+        //                 "posSide": "",
+        //                 "execType": "",
+        //                 "feeCcy": "USDT",
+        //                 "fee": "0.0151646",
+        //                 "ts": "1760704540000"
         //             }
-        //         )
+        //         ]
         //     }
         //
         $data = $this->safe_list($response, 'data', array());

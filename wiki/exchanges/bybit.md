@@ -564,6 +564,7 @@ create a trade order
 | params.trailingAmount | <code>string</code> | No | the quote amount to trail away from the current market price |
 | params.trailingTriggerPrice | <code>string</code> | No | the price to trigger a trailing order, default uses the price argument |
 | params.tradingStopEndpoint | <code>boolean</code> | No | whether to enforce using the tradingStop (https://bybit-exchange.github.io/docs/v5/position/trading-stop) endpoint, makes difference when submitting single tp/sl order |
+| params.rpiTakerAccess | <code>boolean</code> | No | set to true to match a taker order against retail price improvement quotes (https://announcements.bybit.com/en/article/rpi-liquidity-now-available-to-api-taker-orders-bltb943887bfa4c4d17/), supported order combinations: (1) orderType=Market; (2) orderType=Limit with timeInForce=IOC or FOK |
 
 
 ```javascript
@@ -2126,7 +2127,7 @@ create a trade order
 | params.isLeverage | <code>boolean</code> | No | *unified spot only* false then spot trading true then margin trading |
 | params.tpslMode | <code>string</code> | No | *contract only* 'full' or 'partial' |
 | params.mmp | <code>string</code> | No | *option only* market maker protection |
-| params.triggerDirection | <code>string</code> | No | *contract only* the direction for trigger orders, 'above' or 'below' |
+| params.triggerDirection | <code>string</code> | No | *contract only* the direction for trigger orders, 'ascending' or 'descending' |
 | params.triggerPrice | <code>float</code> | No | The price at which a trigger order is triggered at |
 | params.stopLossPrice | <code>float</code> | No | The price at which a stop loss order is triggered at |
 | params.takeProfitPrice | <code>float</code> | No | The price at which a take profit order is triggered at |

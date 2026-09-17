@@ -163,18 +163,18 @@ class htx extends Exchange {
                 '1y' => '1year',
             ),
             'urls' => array(
-                // 'test' => array(
-                //     'market' => 'https://api.testnet.huobi.pro',
-                //     'public' => 'https://api.testnet.huobi.pro',
-                //     'private' => 'https://api.testnet.huobi.pro',
-                // ),
+                // 'test': {
+                //     'market': 'https://api.testnet.huobi.pro',
+                //     'public': 'https://api.testnet.huobi.pro',
+                //     'private': 'https://api.testnet.huobi.pro',
+                // },
                 'logo' => 'https://user-images.githubusercontent.com/1294454/76137448-22748a80-604e-11ea-8069-6e389271911d.jpg',
                 'hostnames' => array(
                     'contract' => 'api.hbdm.vn', // alternatively use api.hbdm.com
                     'spot' => 'api.huobi.pro',
                     // recommended for AWS
-                    // 'contract' => 'api.hbdm.vn',
-                    // 'spot' => 'api-aws.huobi.pro',
+                    // 'contract': 'api.hbdm.vn',
+                    // 'spot': 'api-aws.huobi.pro',
                 ),
                 'api' => array(
                     'status' => 'https://{hostname}',
@@ -782,75 +782,75 @@ class htx extends Exchange {
                 'broad' => array(
                     'contract is restricted of closing positions on API.  Please contact customer service' => '\\ccxt\\OnMaintenance',
                     'maintain' => '\\ccxt\\OnMaintenance',
-                    'API key has no permission' => '\\ccxt\\PermissionDenied', // array("status":"error","err-code":"api-signature-not-valid","err-msg":"Signature not valid => API key has no permission [API Key没有权限]","data":null)
+                    'API key has no permission' => '\\ccxt\\PermissionDenied', // {"status":"error","err-code":"api-signature-not-valid","err-msg":"Signature not valid: API key has no permission [API Key没有权限]","data":null}
                 ),
                 'exact' => array(
                     // err-code
-                    '403' => '\\ccxt\\AuthenticationError',  // array("status":"error","err_code":403,"err_msg":"Incorrect Access key [Access key错误]","ts":1652774224344)
-                    '1010' => '\\ccxt\\AccountNotEnabled', // array("status":"error","err_code":1010,"err_msg":"Account doesnt exist.","ts":1648137970490)
-                    '1003' => '\\ccxt\\AuthenticationError', // array(code => '1003', message => 'invalid signature')
-                    '1013' => '\\ccxt\\BadSymbol', // array("status":"error","err_code":1013,"err_msg":"This contract symbol doesnt exist.","ts":1640550459583)
-                    '1017' => '\\ccxt\\OrderNotFound', // array("status":"error","err_code":1017,"err_msg":"Order doesnt exist.","ts":1640550859242)
-                    '1034' => '\\ccxt\\InvalidOrder', // array("status":"error","err_code":1034,"err_msg":"Incorrect field of order price type.","ts":1643802870182)
-                    '1036' => '\\ccxt\\InvalidOrder', // array("status":"error","err_code":1036,"err_msg":"Incorrect field of open long form.","ts":1643802518986)
-                    '1039' => '\\ccxt\\InvalidOrder', // array("status":"error","err_code":1039,"err_msg":"Buy price must be lower than 39270.9USDT. Sell price must exceed 37731USDT.","ts":1643802374403)
-                    '1041' => '\\ccxt\\InvalidOrder', // array("status":"error","err_code":1041,"err_msg":"The order amount exceeds the limit (170000Cont), please modify and order again.","ts":1643802784940)
-                    '1047' => '\\ccxt\\InsufficientFunds', // array("status":"error","err_code":1047,"err_msg":"Insufficient margin available.","ts":1643802672652)
-                    '1048' => '\\ccxt\\InsufficientFunds',  // array("status":"error","err_code":1048,"err_msg":"Insufficient close amount available.","ts":1652772408864)
-                    '1061' => '\\ccxt\\OrderNotFound', // array("status":"ok","data":array("errors":[array("order_id":"1349442392365359104","err_code":1061,"err_msg":"The order does not exist.")],"successes":""),"ts":1741773744526)
-                    '1051' => '\\ccxt\\InvalidOrder', // array("status":"error","err_code":1051,"err_msg":"No orders to cancel.","ts":1652552125876)
-                    '1066' => '\\ccxt\\BadSymbol', // array("status":"error","err_code":1066,"err_msg":"The symbol field cannot be empty. Please re-enter.","ts":1640550819147)
-                    '1067' => '\\ccxt\\InvalidOrder', // array("status":"error","err_code":1067,"err_msg":"The client_order_id field is invalid. Please re-enter.","ts":1643802119413)
-                    '1094' => '\\ccxt\\InvalidOrder', // array("status":"error","err_code":1094,"err_msg":"The leverage cannot be empty, please switch the leverage or contact customer service","ts":1640496946243)
-                    '1220' => '\\ccxt\\AccountNotEnabled', // array("status":"error","err_code":1220,"err_msg":"You don’t have access permission as you have not opened contracts trading.","ts":1645096660718)
-                    '1303' => '\\ccxt\\BadRequest', // array("code":1303,"data":null,"message":"Each transfer-out cannot be less than 5USDT.","success":false,"print-log":true)
-                    '1461' => '\\ccxt\\InvalidOrder', // array("status":"error","err_code":1461,"err_msg":"Current positions have triggered position limits (5000USDT). Please modify.","ts":1652554651234)
-                    '4007' => '\\ccxt\\BadRequest', // array("code":"4007","msg":"Unified account special interface, non - one account is not available","data":null,"ts":"1698413427651")'
+                    '403' => '\\ccxt\\AuthenticationError',  // {"status":"error","err_code":403,"err_msg":"Incorrect Access key [Access key错误]","ts":1652774224344}
+                    '1010' => '\\ccxt\\AccountNotEnabled', // {"status":"error","err_code":1010,"err_msg":"Account doesnt exist.","ts":1648137970490}
+                    '1003' => '\\ccxt\\AuthenticationError', // {code: '1003', message: 'invalid signature'}
+                    '1013' => '\\ccxt\\BadSymbol', // {"status":"error","err_code":1013,"err_msg":"This contract symbol doesnt exist.","ts":1640550459583}
+                    '1017' => '\\ccxt\\OrderNotFound', // {"status":"error","err_code":1017,"err_msg":"Order doesnt exist.","ts":1640550859242}
+                    '1034' => '\\ccxt\\InvalidOrder', // {"status":"error","err_code":1034,"err_msg":"Incorrect field of order price type.","ts":1643802870182}
+                    '1036' => '\\ccxt\\InvalidOrder', // {"status":"error","err_code":1036,"err_msg":"Incorrect field of open long form.","ts":1643802518986}
+                    '1039' => '\\ccxt\\InvalidOrder', // {"status":"error","err_code":1039,"err_msg":"Buy price must be lower than 39270.9USDT. Sell price must exceed 37731USDT.","ts":1643802374403}
+                    '1041' => '\\ccxt\\InvalidOrder', // {"status":"error","err_code":1041,"err_msg":"The order amount exceeds the limit (170000Cont), please modify and order again.","ts":1643802784940}
+                    '1047' => '\\ccxt\\InsufficientFunds', // {"status":"error","err_code":1047,"err_msg":"Insufficient margin available.","ts":1643802672652}
+                    '1048' => '\\ccxt\\InsufficientFunds',  // {"status":"error","err_code":1048,"err_msg":"Insufficient close amount available.","ts":1652772408864}
+                    '1061' => '\\ccxt\\OrderNotFound', // {"status":"ok","data":{"errors":[{"order_id":"1349442392365359104","err_code":1061,"err_msg":"The order does not exist."}],"successes":""},"ts":1741773744526}
+                    '1051' => '\\ccxt\\InvalidOrder', // {"status":"error","err_code":1051,"err_msg":"No orders to cancel.","ts":1652552125876}
+                    '1066' => '\\ccxt\\BadSymbol', // {"status":"error","err_code":1066,"err_msg":"The symbol field cannot be empty. Please re-enter.","ts":1640550819147}
+                    '1067' => '\\ccxt\\InvalidOrder', // {"status":"error","err_code":1067,"err_msg":"The client_order_id field is invalid. Please re-enter.","ts":1643802119413}
+                    '1094' => '\\ccxt\\InvalidOrder', // {"status":"error","err_code":1094,"err_msg":"The leverage cannot be empty, please switch the leverage or contact customer service","ts":1640496946243}
+                    '1220' => '\\ccxt\\AccountNotEnabled', // {"status":"error","err_code":1220,"err_msg":"You don’t have access permission as you have not opened contracts trading.","ts":1645096660718}
+                    '1303' => '\\ccxt\\BadRequest', // {"code":1303,"data":null,"message":"Each transfer-out cannot be less than 5USDT.","success":false,"print-log":true}
+                    '1461' => '\\ccxt\\InvalidOrder', // {"status":"error","err_code":1461,"err_msg":"Current positions have triggered position limits (5000USDT). Please modify.","ts":1652554651234}
+                    '4007' => '\\ccxt\\BadRequest', // {"code":"4007","msg":"Unified account special interface, non - one account is not available","data":null,"ts":"1698413427651"}'
                     'bad-request' => '\\ccxt\\BadRequest',
-                    'validation-format-error' => '\\ccxt\\BadRequest', // array("status":"error","err-code":"validation-format-error","err-msg":"Format Error => order-id.","data":null)
-                    'validation-constraints-required' => '\\ccxt\\BadRequest', // array("status":"error","err-code":"validation-constraints-required","err-msg":"Field is missing => client-order-id.","data":null)
-                    'base-date-limit-error' => '\\ccxt\\BadRequest', // array("status":"error","err-code":"base-date-limit-error","err-msg":"date less than system limit","data":null)
-                    'api-not-support-temp-addr' => '\\ccxt\\PermissionDenied', // array("status":"error","err-code":"api-not-support-temp-addr","err-msg":"API withdrawal does not support temporary addresses","data":null)
-                    'timeout' => '\\ccxt\\RequestTimeout', // array("ts":1571653730865,"status":"error","err-code":"timeout","err-msg":"Request Timeout")
-                    'gateway-internal-error' => '\\ccxt\\ExchangeNotAvailable', // array("status":"error","err-code":"gateway-internal-error","err-msg":"Failed to load data. Try again later.","data":null)
-                    'account-frozen-balance-insufficient-error' => '\\ccxt\\InsufficientFunds', // array("status":"error","err-code":"account-frozen-balance-insufficient-error","err-msg":"trade account balance is not enough, left => `0.0027`","data":null)
+                    'validation-format-error' => '\\ccxt\\BadRequest', // {"status":"error","err-code":"validation-format-error","err-msg":"Format Error: order-id.","data":null}
+                    'validation-constraints-required' => '\\ccxt\\BadRequest', // {"status":"error","err-code":"validation-constraints-required","err-msg":"Field is missing: client-order-id.","data":null}
+                    'base-date-limit-error' => '\\ccxt\\BadRequest', // {"status":"error","err-code":"base-date-limit-error","err-msg":"date less than system limit","data":null}
+                    'api-not-support-temp-addr' => '\\ccxt\\PermissionDenied', // {"status":"error","err-code":"api-not-support-temp-addr","err-msg":"API withdrawal does not support temporary addresses","data":null}
+                    'timeout' => '\\ccxt\\RequestTimeout', // {"ts":1571653730865,"status":"error","err-code":"timeout","err-msg":"Request Timeout"}
+                    'gateway-internal-error' => '\\ccxt\\ExchangeNotAvailable', // {"status":"error","err-code":"gateway-internal-error","err-msg":"Failed to load data. Try again later.","data":null}
+                    'account-frozen-balance-insufficient-error' => '\\ccxt\\InsufficientFunds', // {"status":"error","err-code":"account-frozen-balance-insufficient-error","err-msg":"trade account balance is not enough, left: `0.0027`","data":null}
                     'invalid-amount' => '\\ccxt\\InvalidOrder', // eg "Paramemter `amount` is invalid."
-                    'order-limitorder-amount-min-error' => '\\ccxt\\InvalidOrder', // limit order amount error, min => `0.001`
-                    'order-limitorder-amount-max-error' => '\\ccxt\\InvalidOrder', // market order amount error, max => `1000000`
-                    'order-marketorder-amount-min-error' => '\\ccxt\\InvalidOrder', // market order amount error, min => `0.01`
+                    'order-limitorder-amount-min-error' => '\\ccxt\\InvalidOrder', // limit order amount error, min: `0.001`
+                    'order-limitorder-amount-max-error' => '\\ccxt\\InvalidOrder', // market order amount error, max: `1000000`
+                    'order-marketorder-amount-min-error' => '\\ccxt\\InvalidOrder', // market order amount error, min: `0.01`
                     'order-limitorder-price-min-error' => '\\ccxt\\InvalidOrder', // limit order price error
                     'order-limitorder-price-max-error' => '\\ccxt\\InvalidOrder', // limit order price error
-                    'order-limitorder-price-buy-min-error' => '\\ccxt\\InvalidOrder', // array("status":"error","err-code":"order-limitorder-price-buy-min-error","err-msg":"The price cannot be lower than 0.0006 USDT","data":null)
+                    'order-limitorder-price-buy-min-error' => '\\ccxt\\InvalidOrder', // {"status":"error","err-code":"order-limitorder-price-buy-min-error","err-msg":"The price cannot be lower than 0.0006 USDT","data":null}
                     'order-limitorder-price-buy-max-error' => '\\ccxt\\InvalidOrder', // limit order price error
                     'order-limitorder-price-sell-min-error' => '\\ccxt\\InvalidOrder', // limit order price error
                     'order-limitorder-price-sell-max-error' => '\\ccxt\\InvalidOrder', // limit order price error
-                    'order-stop-order-hit-trigger' => '\\ccxt\\InvalidOrder', // array("status":"error","err-code":"order-stop-order-hit-trigger","err-msg":"Orders that are triggered immediately are not supported.","data":null)
-                    'order-value-min-error' => '\\ccxt\\InvalidOrder', // array("status":"error","err-code":"order-value-min-error","err-msg":"Order total cannot be lower than => 1 USDT","data":null)
-                    'order-invalid-price' => '\\ccxt\\InvalidOrder', // array("status":"error","err-code":"order-invalid-price","err-msg":"invalid price","data":null)
-                    'order-holding-limit-failed' => '\\ccxt\\InvalidOrder', // array("status":"error","err-code":"order-holding-limit-failed","err-msg":"Order failed, exceeded the holding limit of this currency","data":null)
-                    'order-orderprice-precision-error' => '\\ccxt\\InvalidOrder', // array("status":"error","err-code":"order-orderprice-precision-error","err-msg":"order price precision error, scale => `4`","data":null)
-                    'order-etp-nav-price-max-error' => '\\ccxt\\InvalidOrder', // array("status":"error","err-code":"order-etp-nav-price-max-error","err-msg":"Order price cannot be higher than 5% of NAV","data":null)
+                    'order-stop-order-hit-trigger' => '\\ccxt\\InvalidOrder', // {"status":"error","err-code":"order-stop-order-hit-trigger","err-msg":"Orders that are triggered immediately are not supported.","data":null}
+                    'order-value-min-error' => '\\ccxt\\InvalidOrder', // {"status":"error","err-code":"order-value-min-error","err-msg":"Order total cannot be lower than: 1 USDT","data":null}
+                    'order-invalid-price' => '\\ccxt\\InvalidOrder', // {"status":"error","err-code":"order-invalid-price","err-msg":"invalid price","data":null}
+                    'order-holding-limit-failed' => '\\ccxt\\InvalidOrder', // {"status":"error","err-code":"order-holding-limit-failed","err-msg":"Order failed, exceeded the holding limit of this currency","data":null}
+                    'order-orderprice-precision-error' => '\\ccxt\\InvalidOrder', // {"status":"error","err-code":"order-orderprice-precision-error","err-msg":"order price precision error, scale: `4`","data":null}
+                    'order-etp-nav-price-max-error' => '\\ccxt\\InvalidOrder', // {"status":"error","err-code":"order-etp-nav-price-max-error","err-msg":"Order price cannot be higher than 5% of NAV","data":null}
                     'order-orderstate-error' => '\\ccxt\\OrderNotFound', // canceling an already canceled order
                     'order-queryorder-invalid' => '\\ccxt\\OrderNotFound', // querying a non-existent order
                     'order-update-error' => '\\ccxt\\ExchangeNotAvailable', // undocumented error
                     'api-signature-check-failed' => '\\ccxt\\AuthenticationError',
-                    'api-signature-not-valid' => '\\ccxt\\AuthenticationError', // array("status":"error","err-code":"api-signature-not-valid","err-msg":"Signature not valid => Incorrect Access key [Access key错误]","data":null)
+                    'api-signature-not-valid' => '\\ccxt\\AuthenticationError', // {"status":"error","err-code":"api-signature-not-valid","err-msg":"Signature not valid: Incorrect Access key [Access key错误]","data":null}
                     'base-record-invalid' => '\\ccxt\\OrderNotFound', // https://github.com/ccxt/ccxt/issues/5750
-                    'base-symbol-trade-disabled' => '\\ccxt\\BadSymbol', // array("status":"error","err-code":"base-symbol-trade-disabled","err-msg":"Trading is disabled for this symbol","data":null)
-                    'base-symbol-error' => '\\ccxt\\BadSymbol', // array("status":"error","err-code":"base-symbol-error","err-msg":"The symbol is invalid","data":null)
-                    'system-maintenance' => '\\ccxt\\OnMaintenance', // array("status" => "error", "err-code" => "system-maintenance", "err-msg" => "System is in maintenance!", "data" => null)
-                    'base-request-exceed-frequency-limit' => '\\ccxt\\RateLimitExceeded', // array("status":"error","err-code":"base-request-exceed-frequency-limit","err-msg":"Frequency of requests has exceeded the limit, please try again later","data":null)
-                    'rate-too-many-requests' => '\\ccxt\\RateLimitExceeded', // array("status":"error","err-code":"rate-too-many-requests","err-msg":"exceeded rate limit","data":null)
+                    'base-symbol-trade-disabled' => '\\ccxt\\BadSymbol', // {"status":"error","err-code":"base-symbol-trade-disabled","err-msg":"Trading is disabled for this symbol","data":null}
+                    'base-symbol-error' => '\\ccxt\\BadSymbol', // {"status":"error","err-code":"base-symbol-error","err-msg":"The symbol is invalid","data":null}
+                    'system-maintenance' => '\\ccxt\\OnMaintenance', // {"status": "error", "err-code": "system-maintenance", "err-msg": "System is in maintenance!", "data": null}
+                    'base-request-exceed-frequency-limit' => '\\ccxt\\RateLimitExceeded', // {"status":"error","err-code":"base-request-exceed-frequency-limit","err-msg":"Frequency of requests has exceeded the limit, please try again later","data":null}
+                    'rate-too-many-requests' => '\\ccxt\\RateLimitExceeded', // {"status":"error","err-code":"rate-too-many-requests","err-msg":"exceeded rate limit","data":null}
                     // err-msg
-                    'invalid symbol' => '\\ccxt\\BadSymbol', // array("ts":1568813334794,"status":"error","err-code":"invalid-parameter","err-msg":"invalid symbol")
-                    'symbol trade not open now' => '\\ccxt\\BadSymbol', // array("ts":1576210479343,"status":"error","err-code":"invalid-parameter","err-msg":"symbol trade not open now")
-                    'require-symbol' => '\\ccxt\\BadSymbol', // array("status":"error","err-code":"require-symbol","err-msg":"Parameter `symbol` is required.","data":null),
-                    'invalid-address' => '\\ccxt\\BadRequest', // array("status":"error","err-code":"invalid-address","err-msg":"Invalid address.","data":null),
-                    'base-currency-chain-error' => '\\ccxt\\BadRequest', // array("status":"error","err-code":"base-currency-chain-error","err-msg":"The current currency chain does not exist","data":null),
-                    'dw-insufficient-balance' => '\\ccxt\\InsufficientFunds', // array("status":"error","err-code":"dw-insufficient-balance","err-msg":"Insufficient balance. You can only transfer `12.3456` at most.","data":null)
-                    'base-withdraw-fee-error' => '\\ccxt\\BadRequest', // array("status":"error","err-code":"base-withdraw-fee-error","err-msg":"withdrawal fee is not within limits","data":null)
-                    'dw-withdraw-min-limit' => '\\ccxt\\BadRequest', // array("status":"error","err-code":"dw-withdraw-min-limit","err-msg":"The withdrawal amount is less than the minimum limit.","data":null)
-                    'request limit' => '\\ccxt\\RateLimitExceeded', // array("ts":1687004814731,"status":"error","err-code":"invalid-parameter","err-msg":"request limit")
+                    'invalid symbol' => '\\ccxt\\BadSymbol', // {"ts":1568813334794,"status":"error","err-code":"invalid-parameter","err-msg":"invalid symbol"}
+                    'symbol trade not open now' => '\\ccxt\\BadSymbol', // {"ts":1576210479343,"status":"error","err-code":"invalid-parameter","err-msg":"symbol trade not open now"}
+                    'require-symbol' => '\\ccxt\\BadSymbol', // {"status":"error","err-code":"require-symbol","err-msg":"Parameter `symbol` is required.","data":null},
+                    'invalid-address' => '\\ccxt\\BadRequest', // {"status":"error","err-code":"invalid-address","err-msg":"Invalid address.","data":null},
+                    'base-currency-chain-error' => '\\ccxt\\BadRequest', // {"status":"error","err-code":"base-currency-chain-error","err-msg":"The current currency chain does not exist","data":null},
+                    'dw-insufficient-balance' => '\\ccxt\\InsufficientFunds', // {"status":"error","err-code":"dw-insufficient-balance","err-msg":"Insufficient balance. You can only transfer `12.3456` at most.","data":null}
+                    'base-withdraw-fee-error' => '\\ccxt\\BadRequest', // {"status":"error","err-code":"base-withdraw-fee-error","err-msg":"withdrawal fee is not within limits","data":null}
+                    'dw-withdraw-min-limit' => '\\ccxt\\BadRequest', // {"status":"error","err-code":"dw-withdraw-min-limit","err-msg":"The withdrawal amount is less than the minimum limit.","data":null}
+                    'request limit' => '\\ccxt\\RateLimitExceeded', // {"ts":1687004814731,"status":"error","err-code":"invalid-parameter","err-msg":"request limit"}
                 ),
             ),
             'precisionMode' => TICK_SIZE,
@@ -1053,23 +1053,23 @@ class htx extends Exchange {
                     'WEMIX' => 'WEMIX',
                     'XDC' => 'XDC',
                     'XPLA' => 'XPLA',
-                    // todo => below
-                    // 'LUNC' => 'LUNC',
-                    // 'TERRA' => 'TERRA', // tbd
-                    // 'LUNA' => 'LUNA', tbd
-                    // 'FCT2' => 'FCT2',
+                    // todo: below
+                    // 'LUNC': 'LUNC',
+                    // 'TERRA': 'TERRA', // tbd
+                    // 'LUNA': 'LUNA', tbd
+                    // 'FCT2': 'FCT2',
                     // FIL-0X ?
-                    // 'COSMOS' => 'ATOM1',
-                    // 'ATOM' => 'ATOM1',
-                    // 'CRO' => 'CRO',
-                    // 'OP' => array( 'OPTIMISM', 'OPTIMISMETH' )
-                    // 'ARB' => ['ARB', 'ARBITRUMETH']
-                    // 'CHZ' => array( 'CHZ', 'CZH' ),
-                    // todo => AVAXCCHAIN CCHAIN AVAX
-                    // 'ALGO' => ['ALGO', 'ALGOUSDT']
-                    // 'ONT' => array( 'ONT', 'ONTOLOGY' ),
-                    // 'BCC' => 'BCC', BCH's somewhat chain
-                    // 'DBC1' => 'DBC1',
+                    // 'COSMOS': 'ATOM1',
+                    // 'ATOM': 'ATOM1',
+                    // 'CRO': 'CRO',
+                    // 'OP': [ 'OPTIMISM', 'OPTIMISMETH' ]
+                    // 'ARB': ['ARB', 'ARBITRUMETH']
+                    // 'CHZ': [ 'CHZ', 'CZH' ],
+                    // todo: AVAXCCHAIN CCHAIN AVAX
+                    // 'ALGO': ['ALGO', 'ALGOUSDT']
+                    // 'ONT': [ 'ONT', 'ONTOLOGY' ],
+                    // 'BCC': 'BCC', BCH's somewhat chain
+                    // 'DBC1': 'DBC1',
                 ),
                 'networksById' => array(
                     'MATIC' => 'MATIC',
@@ -1162,7 +1162,7 @@ class htx extends Exchange {
                         'triggerPrice' => true,
                         'triggerDirection' => true,
                         'triggerPriceType' => null,
-                        'stopLossPrice' => false, // todo => add support by triggerprice
+                        'stopLossPrice' => false, // todo: add support by triggerprice
                         'takeProfitPrice' => false,
                         'attachedStopLossTakeProfit' => null,
                         'timeInForce' => array(
@@ -1232,7 +1232,7 @@ class htx extends Exchange {
                         'takeProfitPrice' => true,
                         'trailing' => true,
                         'hedged' => true,
-                        // 'leverage' => true, // todo
+                        // 'leverage': true, // todo
                     ),
                     'createOrders' => array(
                         'max' => 25,
@@ -1301,7 +1301,7 @@ class htx extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=exchange-$status-structure $status structure~
          */
-        // the former statuspage endpoints ($status*.huobigroup.com) were
+        // the former statuspage endpoints (status*.huobigroup.com) were
         // decommissioned after the huobi -> htx rebrand and no longer resolve,
         // so this method uses the live native endpoints instead
         $marketType = null;
@@ -1313,12 +1313,12 @@ class htx extends Exchange {
             $response = Async\await($this->spotPublicGetV2MarketStatus($params));
             //
             //     {
-            //         "code" => 200,
-            //         "message" => "success",
-            //         "data" => {
-            //             "marketStatus" => 1, // 1 normal, 2 halted, 3 cancel-only
-            //             "haltStartTime" => 1614852011000, // only when halted
-            //             "haltEndTime" => 1614852400000 // only when the end time is estimable
+            //         "code": 200,
+            //         "message": "success",
+            //         "data": {
+            //             "marketStatus": 1, // 1 normal, 2 halted, 3 cancel-only
+            //             "haltStartTime": 1614852011000, // only when halted
+            //             "haltEndTime": 1614852400000 // only when the end time is estimable
             //         }
             //     }
             //
@@ -1332,18 +1332,18 @@ class htx extends Exchange {
             $response = Async\await($this->contractPublicGetHeartbeat($params));
             //
             //     {
-            //         "status" => "ok",
-            //         "data" => array(
-            //             "heartbeat" => 1, // 1 available, 0 unavailable
-            //             "estimated_recovery_time" => null,
-            //             "swap_heartbeat" => 1,
-            //             "swap_estimated_recovery_time" => null,
-            //             "option_heartbeat" => 1,
-            //             "option_estimated_recovery_time" => null,
-            //             "linear_swap_heartbeat" => 1,
-            //             "linear_swap_estimated_recovery_time" => null
-            //         ),
-            //         "ts" => 1557714418033 // stale on the exchange side, do not trust as an update time
+            //         "status": "ok",
+            //         "data": {
+            //             "heartbeat": 1, // 1 available, 0 unavailable
+            //             "estimated_recovery_time": null,
+            //             "swap_heartbeat": 1,
+            //             "swap_estimated_recovery_time": null,
+            //             "option_heartbeat": 1,
+            //             "option_estimated_recovery_time": null,
+            //             "linear_swap_heartbeat": 1,
+            //             "linear_swap_estimated_recovery_time": null
+            //         },
+            //         "ts": 1557714418033 // stale on the exchange side, do not trust as an update time
             //     }
             //
             $data = $this->safe_dict($response, 'data', array());
@@ -1396,11 +1396,11 @@ class htx extends Exchange {
         //
         // spot
         //
-        //     array("status":"ok","data":1637504261099)
+        //     {"status":"ok","data":1637504261099}
         //
         // future, swap
         //
-        //     array("status":"ok","ts":1637504164707)
+        //     {"status":"ok","ts":1637504164707}
         //
         return $this->safe_integer_2($response, 'data', 'ts');
     }
@@ -1451,7 +1451,7 @@ class htx extends Exchange {
         //
         //     {
         //         "code":200,
-        //         "data":array(
+        //         "data":[
         //             {
         //                 "symbol":"btcusdt",
         //                 "actualMakerRate":"0.002",
@@ -1459,7 +1459,7 @@ class htx extends Exchange {
         //                 "takerFeeRate":"0.002",
         //                 "makerFeeRate":"0.002"
         //             }
-        //         ),
+        //         ],
         //         "success":true
         //     }
         //
@@ -1475,7 +1475,7 @@ class htx extends Exchange {
     private function do_fetch_trading_limits(?array $symbols = null, $params = array()) {
         // this method should not be called directly, use loadTradingLimits () instead
         //  by default it will try load withdrawal fees of all currencies (with separate requests)
-        //  however if you define $symbols = array( 'ETH/BTC', 'LTC/BTC' ) in args it will only load those
+        //  however if you define symbols = [ 'ETH/BTC', 'LTC/BTC' ] in args it will only load those
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
@@ -1512,39 +1512,39 @@ class htx extends Exchange {
         );
         $response = Async\await($this->spotPublicGetV1CommonExchange($this->extend($request, $params)));
         //
-        //     { status =>   "ok",
-        //         "data" => {                                  symbol => "aidocbtc",
-        //                              "buy-limit-must-less-than" =>  1.1,
-        //                          "sell-limit-must-greater-than" =>  0.9,
-        //                         "limit-order-must-greater-than" =>  1,
-        //                            "limit-order-must-less-than" =>  5000000,
-        //                    "market-buy-order-must-greater-than" =>  0.0001,
-        //                       "market-buy-order-must-less-than" =>  100,
-        //                   "market-sell-order-must-greater-than" =>  1,
-        //                      "market-sell-order-must-less-than" =>  500000,
-        //                       "circuit-break-when-greater-than" =>  10000,
-        //                          "circuit-break-when-less-than" =>  10,
-        //                 "market-sell-order-rate-must-less-than" =>  0.1,
-        //                  "market-buy-order-rate-must-less-than" =>  0.1        } }
+        //     { status:   "ok",
+        //         "data": {                                  symbol: "aidocbtc",
+        //                              "buy-limit-must-less-than":  1.1,
+        //                          "sell-limit-must-greater-than":  0.9,
+        //                         "limit-order-must-greater-than":  1,
+        //                            "limit-order-must-less-than":  5000000,
+        //                    "market-buy-order-must-greater-than":  0.0001,
+        //                       "market-buy-order-must-less-than":  100,
+        //                   "market-sell-order-must-greater-than":  1,
+        //                      "market-sell-order-must-less-than":  500000,
+        //                       "circuit-break-when-greater-than":  10000,
+        //                          "circuit-break-when-less-than":  10,
+        //                 "market-sell-order-rate-must-less-than":  0.1,
+        //                  "market-buy-order-rate-must-less-than":  0.1        } }
         //
         return $this->parse_trading_limits($this->safe_value($response, 'data', array()));
     }
 
     public function parse_trading_limits(mixed $limits, ?string $symbol = null, $params = array()) {
         //
-        //   {                                "symbol" => "aidocbtc",
-        //                  "buy-limit-must-less-than" =>  1.1,
-        //              "sell-limit-must-greater-than" =>  0.9,
-        //             "limit-order-must-greater-than" =>  1,
-        //                "limit-order-must-less-than" =>  5000000,
-        //        "market-buy-order-must-greater-than" =>  0.0001,
-        //           "market-buy-order-must-less-than" =>  100,
-        //       "market-sell-order-must-greater-than" =>  1,
-        //          "market-sell-order-must-less-than" =>  500000,
-        //           "circuit-break-when-greater-than" =>  10000,
-        //              "circuit-break-when-less-than" =>  10,
-        //     "market-sell-order-rate-must-less-than" =>  0.1,
-        //      "market-buy-order-rate-must-less-than" =>  0.1        }
+        //   {                                "symbol": "aidocbtc",
+        //                  "buy-limit-must-less-than":  1.1,
+        //              "sell-limit-must-greater-than":  0.9,
+        //             "limit-order-must-greater-than":  1,
+        //                "limit-order-must-less-than":  5000000,
+        //        "market-buy-order-must-greater-than":  0.0001,
+        //           "market-buy-order-must-less-than":  100,
+        //       "market-sell-order-must-greater-than":  1,
+        //          "market-sell-order-must-less-than":  500000,
+        //           "circuit-break-when-greater-than":  10000,
+        //              "circuit-break-when-less-than":  10,
+        //     "market-sell-order-rate-must-less-than":  0.1,
+        //      "market-buy-order-rate-must-less-than":  0.1        }
         //
         return array(
             'info' => $limits,
@@ -1629,7 +1629,7 @@ class htx extends Exchange {
         $response = null;
         if (!$isSpot) {
             if ($subType === 'linear') {
-                $request['business_type'] = 'all'; // override default to fetch all $linear $markets
+                $request['business_type'] = 'all'; // override default to fetch all linear markets
                 $response = Async\await($this->contractPublicGetLinearSwapApiV1SwapContractInfo($this->extend($request, $params)));
             } elseif ($subType === 'inverse') {
                 if ($type === 'future') {
@@ -1642,12 +1642,12 @@ class htx extends Exchange {
             $response = Async\await($this->spotPublicGetV1CommonSymbols($this->extend($request, $params)));
         }
         //
-        // $spot
+        // spot
         //
         //     {
         //         "status":"ok",
-        //         "data":array(
-        //             array(
+        //         "data":[
+        //             {
         //                 "base-currency":"xrp3s",
         //                 "quote-currency":"usdt",
         //                 "price-precision":4,
@@ -1663,9 +1663,9 @@ class htx extends Exchange {
         //                 "limit-order-max-order-amt":1616.4353,
         //                 "limit-order-max-buy-amt":1616.4353,
         //                 "limit-order-max-sell-amt":1616.4353,
-        //                 "sell-$market-min-order-amt":0.01,
-        //                 "sell-$market-max-order-amt":1616.4353,
-        //                 "buy-$market-max-order-value":2500,
+        //                 "sell-market-min-order-amt":0.01,
+        //                 "sell-market-max-order-amt":1616.4353,
+        //                 "buy-market-max-order-value":2500,
         //                 "max-order-value":2500,
         //                 "underlying":"xrpusdt",
         //                 "mgmt-fee-rate":0.035000000000000000,
@@ -1675,45 +1675,45 @@ class htx extends Exchange {
         //                 "init-nav":10.000000000000000000,
         //                 "api-trading":"enabled",
         //                 "tags":"etp,nav,holdinglimit"
-        //             ),
-        //         )
+        //             },
+        //         ]
         //     }
         //
-        // $inverse ($swap & $future)
+        // inverse (swap & future)
         //
         //     {
         //         "status":"ok",
-        //         "data":array(
-        //             array(
+        //         "data":[
+        //             {
         //                 "symbol":"BTC",
-        //                 "contract_code":"BTC211126", /// BTC-USD in $swap
-        //                 "contract_type":"this_week", // only in $future
+        //                 "contract_code":"BTC211126", /// BTC-USD in swap
+        //                 "contract_type":"this_week", // only in future
         //                 "contract_size":100,
         //                 "price_tick":0.1,
-        //                 "delivery_date":"20211126", // only in $future
-        //                 "delivery_time":"1637913600000", // empty in $swap
+        //                 "delivery_date":"20211126", // only in future
+        //                 "delivery_time":"1637913600000", // empty in swap
         //                 "create_date":"20211112",
         //                 "contract_status":1,
-        //                 "settlement_time":"1637481600000" // only in $future
-        //                 "settlement_date":"16xxxxxxxxxxx" // only in $swap
-        //             ),
+        //                 "settlement_time":"1637481600000" // only in future
+        //                 "settlement_date":"16xxxxxxxxxxx" // only in swap
+        //             },
         //           ...
-        //         ),
+        //         ],
         //         "ts":1637474595140
         //     }
         //
-        // $linear ($swap & $future)
+        // linear (swap & future)
         //
         //     {
         //         "status":"ok",
-        //         "data":array(
+        //         "data":[
         //             {
         //                 "symbol":"BTC",
-        //                 "contract_code":"BTC-USDT-211231", // or "BTC-USDT" in $swap
+        //                 "contract_code":"BTC-USDT-211231", // or "BTC-USDT" in swap
         //                 "contract_size":0.001,
         //                 "price_tick":0.1,
-        //                 "delivery_date":"20211231", // empty in $swap
-        //                 "delivery_time":"1640937600000", // empty in $swap
+        //                 "delivery_date":"20211231", // empty in swap
+        //                 "delivery_time":"1640937600000", // empty in swap
         //                 "create_date":"20211228",
         //                 "contract_status":1,
         //                 "settlement_date":"1640764800000",
@@ -1723,7 +1723,7 @@ class htx extends Exchange {
         //                 "contract_type":"this_week", // "swap", "this_week", "next_week", "quarter"
         //                 "trade_partition":"USDT",
         //             }
-        //         ),
+        //         ],
         //         "ts":1640736207263
         //     }
         //
@@ -1746,7 +1746,7 @@ class htx extends Exchange {
             $future = false;
             $linear = null;
             $inverse = null;
-            // check if parsed $market is $contract
+            // check if parsed market is contract
             if ($contract) {
                 $id = $this->safe_string($market, 'contract_code');
                 if ($id === null) {
@@ -1840,7 +1840,7 @@ class htx extends Exchange {
                 $active = ($state === 'online');
             } else {
                 $pricePrecision = $this->safe_number($market, 'price_tick');
-                $amountPrecision = $this->parse_number('1'); // other $markets have step size of 1 $contract
+                $amountPrecision = $this->parse_number('1'); // other markets have step size of 1 contract
                 $maker = $this->parse_number('0.0002');
                 $taker = $this->parse_number('0.0005');
                 $contractStatus = $this->safe_integer($market, 'contract_status');
@@ -1860,7 +1860,7 @@ class htx extends Exchange {
             // 8 Delivered
             // 9 Suspending of Trade
             $created = null;
-            $createdDate = $this->safe_string($market, 'create_date'); // $i->e 20230101
+            $createdDate = $this->safe_string($market, 'create_date'); // i.e 20230101
             if ($createdDate !== null) {
                 $createdArray = $this->string_to_chars_array($createdDate);
                 $createdDate = $createdArray[0] . $createdArray[1] . $createdArray[2] . $createdArray[3] . '-' . $createdArray[4] . $createdArray[5] . '-' . $createdArray[6] . $createdArray[7] . ' 00:00:00';
@@ -1928,10 +1928,10 @@ class htx extends Exchange {
         if (($this->markets !== null) && (is_array($this->markets) && array_key_exists($symbolOrMarketId ?? '', $this->markets))) {
             return $symbolOrMarketId;
         }
-        // only on "future" $market type (inverse & linear), $market-id differs between "fetchMarkets" and "fetchTicker"
+        // only on "future" market type (inverse & linear), market-id differs between "fetchMarkets" and "fetchTicker"
         // so we have to create a mapping
-        // - $market-id from fetchMarkts =>    `BTC-USDT-240419` (linear future) or `BTC240412` (inverse future)
-        // - $market-id from fetchTciker[s] => `BTC-USDT-CW`     (linear future) or `BTC_CW`    (inverse future)
+        // - market-id from fetchMarkts:    `BTC-USDT-240419` (linear future) or `BTC240412` (inverse future)
+        // - market-id from fetchTciker[s]: `BTC-USDT-CW`     (linear future) or `BTC_CW`    (inverse future)
         if (!(is_array($this->options) && array_key_exists('futureMarketIdsForSymbols' ?? '', $this->options))) {
             $this->options['futureMarketIdsForSymbols'] = array();
         }
@@ -1969,45 +1969,45 @@ class htx extends Exchange {
         // fetchTicker
         //
         //     {
-        //         "amount" => 26228.672978342216,
-        //         "open" => 9078.95,
-        //         "close" => 9146.86,
-        //         "high" => 9155.41,
-        //         "id" => 209988544334,
-        //         "count" => 265846,
-        //         "low" => 8988.0,
-        //         "version" => 209988544334,
-        //         "ask" => array( 9146.87, 0.156134 ),
-        //         "vol" => 2.3822168242201668E8,
-        //         "bid" => array( 9146.86, 0.080758 ),
+        //         "amount": 26228.672978342216,
+        //         "open": 9078.95,
+        //         "close": 9146.86,
+        //         "high": 9155.41,
+        //         "id": 209988544334,
+        //         "count": 265846,
+        //         "low": 8988.0,
+        //         "version": 209988544334,
+        //         "ask": [ 9146.87, 0.156134 ],
+        //         "vol": 2.3822168242201668E8,
+        //         "bid": [ 9146.86, 0.080758 ],
         //     }
         //
         // fetchTickers
         //
         //     {
-        //         "symbol" => "bhdht",
-        //         "open" =>  2.3938,
-        //         "high" =>  2.4151,
-        //         "low" =>  2.3323,
-        //         "close" =>  2.3909,
-        //         "amount" =>  628.992,
-        //         "vol" =>  1493.71841095,
-        //         "count" =>  2088,
-        //         "bid" =>  2.3643,
-        //         "bidSize" =>  0.7136,
-        //         "ask" =>  2.4061,
-        //         "askSize" =>  0.4156
+        //         "symbol": "bhdht",
+        //         "open":  2.3938,
+        //         "high":  2.4151,
+        //         "low":  2.3323,
+        //         "close":  2.3909,
+        //         "amount":  628.992,
+        //         "vol":  1493.71841095,
+        //         "count":  2088,
+        //         "bid":  2.3643,
+        //         "bidSize":  0.7136,
+        //         "ask":  2.4061,
+        //         "askSize":  0.4156
         //     }
         //
         // watchTikcer - bbo
         //     {
-        //         "seqId" => 161499562790,
-        //         "ask" => 16829.51,
-        //         "askSize" => 0.707776,
-        //         "bid" => 16829.5,
-        //         "bidSize" => 1.685945,
-        //         "quoteTime" => 1671941599612,
-        //         "symbol" => "btcusdt"
+        //         "seqId": 161499562790,
+        //         "ask": 16829.51,
+        //         "askSize": 0.707776,
+        //         "bid": 16829.5,
+        //         "bidSize": 1.685945,
+        //         "quoteTime": 1671941599612,
+        //         "symbol": "btcusdt"
         //     }
         //
         $marketId = $this->safe_string_2($ticker, 'symbol', 'contract_code');
@@ -2106,21 +2106,21 @@ class htx extends Exchange {
         // spot
         //
         //     {
-        //         "status" => "ok",
-        //         "ch" => "market.btcusdt.detail.merged",
-        //         "ts" => 1583494336669,
-        //         "tick" => {
-        //             "amount" => 26228.672978342216,
-        //             "open" => 9078.95,
-        //             "close" => 9146.86,
-        //             "high" => 9155.41,
-        //             "id" => 209988544334,
-        //             "count" => 265846,
-        //             "low" => 8988.0,
-        //             "version" => 209988544334,
-        //             "ask" => array( 9146.87, 0.156134 ),
-        //             "vol" => 2.3822168242201668E8,
-        //             "bid" => array( 9146.86, 0.080758 ),
+        //         "status": "ok",
+        //         "ch": "market.btcusdt.detail.merged",
+        //         "ts": 1583494336669,
+        //         "tick": {
+        //             "amount": 26228.672978342216,
+        //             "open": 9078.95,
+        //             "close": 9146.86,
+        //             "high": 9155.41,
+        //             "id": 209988544334,
+        //             "count": 265846,
+        //             "low": 8988.0,
+        //             "version": 209988544334,
+        //             "ask": [ 9146.87, 0.156134 ],
+        //             "vol": 2.3822168242201668E8,
+        //             "bid": [ 9146.86, 0.080758 ],
         //         }
         //     }
         //
@@ -2129,7 +2129,7 @@ class htx extends Exchange {
         //     {
         //         "ch":"market.BTC211126.detail.merged",
         //         "status":"ok",
-        //         "tick":array(
+        //         "tick":{
         //             "amount":"669.3385682049668320322569544150680718474",
         //             "ask":[59117.44,48],
         //             "bid":[59082,48],
@@ -2141,7 +2141,7 @@ class htx extends Exchange {
         //             "open":"57638",
         //             "ts":1637502670059,
         //             "vol":"394598"
-        //         ),
+        //         },
         //         "ts":1637502670059
         //     }
         //
@@ -2193,7 +2193,7 @@ class htx extends Exchange {
         $response = null;
         if (!$isSpot || $isSubTypeRequested) {
             if ($linear) {
-                // independently of $type, supports calling all $linear $symbols i.e. fetchTickers(null, array($subType:'linear'))
+                // independently of type, supports calling all linear symbols i.e. fetchTickers(undefined, {subType:'linear'})
                 if ($future) {
                     $request['business_type'] = 'futures';
                 } elseif ($swap) {
@@ -2220,8 +2220,8 @@ class htx extends Exchange {
         // spot
         //
         //     {
-        //         "data":array(
-        //             array(
+        //         "data":[
+        //             {
         //                 "symbol":"hbcbtc",
         //                 "open":5.313E-5,
         //                 "high":5.34E-5,
@@ -2234,17 +2234,17 @@ class htx extends Exchange {
         //                 "bidSize":5.25,
         //                 "ask":5.214E-5,
         //                 "askSize":150.0
-        //             ),
-        //         ),
+        //             },
+        //         ],
         //         "status":"ok",
         //         "ts":1639547261293
         //     }
         //
-        // $linear $swap, $linear $future, $inverse $swap, $inverse $future
+        // linear swap, linear future, inverse swap, inverse future
         //
         //     {
         //         "status":"ok",
-        //         "ticks":array(
+        //         "ticks":[
         //             {
         //                 "id":1637504679,
         //                 "ts":1637504679372,
@@ -2258,11 +2258,11 @@ class htx extends Exchange {
         //                 "amount":"2340267.415144052378486261756692535687481566",
         //                 "count":882,
         //                 "vol":"24706",
-        //                 "trade_turnover":"840726.5048", // only in $linear futures
-        //                 "business_type":"futures", // only in $linear futures
-        //                 "contract_code":"BTC-USDT-CW", // only in $linear futures, instead of 'symbol'
+        //                 "trade_turnover":"840726.5048", // only in linear futures
+        //                 "business_type":"futures", // only in linear futures
+        //                 "contract_code":"BTC-USDT-CW", // only in linear futures, instead of 'symbol'
         //             }
-        //         ),
+        //         ],
         //         "ts":1637504679376
         //     }
         //
@@ -2301,75 +2301,75 @@ class htx extends Exchange {
             $response = Async\await($this->contractPublicGetLinearSwapExMarketTrade($params));
             //
             //     {
-            //         "ch" => "market.*.trade.detail",
-            //         "status" => "ok",
-            //         "tick" => array(
-            //           "data" => array(
-            //             array(
-            //               "amount" => "4",
-            //               "quantity" => "40",
-            //               "trade_turnover" => "22.176",
-            //               "ts" => 1703697705028,
-            //               "id" => 1000003558478170000,
-            //               "price" => "0.5544",
-            //               "direction" => "buy",
-            //               "contract_code" => "MANA-USDT",
-            //               "business_type" => "swap",
-            //               "trade_partition" => "USDT"
-            //             ),
-            //           ),
-            //           "id" => 1703697740147,
-            //           "ts" => 1703697740147
-            //         ),
-            //         "ts" => 1703697740147
+            //         "ch": "market.*.trade.detail",
+            //         "status": "ok",
+            //         "tick": {
+            //           "data": [
+            //             {
+            //               "amount": "4",
+            //               "quantity": "40",
+            //               "trade_turnover": "22.176",
+            //               "ts": 1703697705028,
+            //               "id": 1000003558478170000,
+            //               "price": "0.5544",
+            //               "direction": "buy",
+            //               "contract_code": "MANA-USDT",
+            //               "business_type": "swap",
+            //               "trade_partition": "USDT"
+            //             },
+            //           ],
+            //           "id": 1703697740147,
+            //           "ts": 1703697740147
+            //         },
+            //         "ts": 1703697740147
             //     }
             //
         } elseif (($type === 'swap') && ($subType === 'inverse')) {
             $response = Async\await($this->contractPublicGetSwapExMarketTrade($params));
             //
             //     {
-            //         "ch" => "market.*.trade.detail",
-            //         "status" => "ok",
-            //         "tick" => array(
-            //           "data" => array(
-            //             array(
-            //               "amount" => "6",
-            //               "quantity" => "94.5000945000945000945000945000945000945",
-            //               "ts" => 1703698704594,
-            //               "id" => 1000001187811060000,
-            //               "price" => "0.63492",
-            //               "direction" => "buy",
-            //               "contract_code" => "XRP-USD"
-            //             ),
-            //           ),
-            //           "id" => 1703698706589,
-            //           "ts" => 1703698706589
-            //         ),
-            //         "ts" => 1703698706589
+            //         "ch": "market.*.trade.detail",
+            //         "status": "ok",
+            //         "tick": {
+            //           "data": [
+            //             {
+            //               "amount": "6",
+            //               "quantity": "94.5000945000945000945000945000945000945",
+            //               "ts": 1703698704594,
+            //               "id": 1000001187811060000,
+            //               "price": "0.63492",
+            //               "direction": "buy",
+            //               "contract_code": "XRP-USD"
+            //             },
+            //           ],
+            //           "id": 1703698706589,
+            //           "ts": 1703698706589
+            //         },
+            //         "ts": 1703698706589
             //     }
             //
         } elseif (($type === 'future') && ($subType === 'inverse')) {
             $response = Async\await($this->contractPublicGetMarketTrade($params));
             //
             //     {
-            //         "ch" => "market.*.trade.detail",
-            //         "status" => "ok",
-            //         "tick" => array(
-            //           "data" => array(
-            //             array(
-            //               "amount" => "20",
-            //               "quantity" => "44.4444444444444444444444444444444444444",
-            //               "ts" => 1686134498885,
-            //               "id" => 2323000000174820000,
-            //               "price" => "4.5",
-            //               "direction" => "sell",
-            //               "symbol" => "DORA_CW"
-            //             ),
-            //           ),
-            //           "id" => 1703698855142,
-            //           "ts" => 1703698855142
-            //         ),
-            //         "ts" => 1703698855142
+            //         "ch": "market.*.trade.detail",
+            //         "status": "ok",
+            //         "tick": {
+            //           "data": [
+            //             {
+            //               "amount": "20",
+            //               "quantity": "44.4444444444444444444444444444444444444",
+            //               "ts": 1686134498885,
+            //               "id": 2323000000174820000,
+            //               "price": "4.5",
+            //               "direction": "sell",
+            //               "symbol": "DORA_CW"
+            //             },
+            //           ],
+            //           "id": 1703698855142,
+            //           "ts": 1703698855142
+            //         },
+            //         "ts": 1703698855142
             //     }
             //
         } else {
@@ -2427,8 +2427,8 @@ class htx extends Exchange {
             //     to get depth data within step 20, use step6, step7, step8, step9, step10, step11, step12, step13(merged depth data 7-13), when step is 6, depth data will not be merged
             //
             'type' => 'step0',
-            // 'symbol' => $market['id'], // spot, future
-            // 'contract_code' => $market['id'], // swap
+            // 'symbol': market['id'], // spot, future
+            // 'contract_code': market['id'], // swap
         );
         $response = null;
         if ($market['linear'] === true) {
@@ -2444,7 +2444,7 @@ class htx extends Exchange {
             }
         } else {
             if ($limit !== null) {
-                // Valid depths are 5, 10, 20 or empty https://huobiapi.github.io/docs/spot/v1/en/#get-$market-depth
+                // Valid depths are 5, 10, 20 or empty https://huobiapi.github.io/docs/spot/v1/en/#get-market-depth
                 if (($limit !== 5) && ($limit !== 10) && ($limit !== 20) && ($limit !== 150)) {
                     throw new BadRequest($this->id . ' fetchOrderBook() $limit argument must be null, 5, 10, 20, or 150, default is 150');
                 }
@@ -2462,20 +2462,20 @@ class htx extends Exchange {
         // spot, future, swap
         //
         //     {
-        //         "status" => "ok",
-        //         "ch" => "market.btcusdt.depth.step0",
-        //         "ts" => 1583474832790,
-        //         "tick" => {
-        //             "bids" => array(
-        //                 array( 9100.290000000000000000, 0.200000000000000000 ),
-        //                 array( 9099.820000000000000000, 0.200000000000000000 ),
-        //                 array( 9099.610000000000000000, 0.205000000000000000 ),
-        //             ),
-        //             "asks" => array(
-        //                 array( 9100.640000000000000000, 0.005904000000000000 ),
-        //                 array( 9101.010000000000000000, 0.287311000000000000 ),
-        //                 array( 9101.030000000000000000, 0.012121000000000000 ),
-        //             ),
+        //         "status": "ok",
+        //         "ch": "market.btcusdt.depth.step0",
+        //         "ts": 1583474832790,
+        //         "tick": {
+        //             "bids": [
+        //                 [ 9100.290000000000000000, 0.200000000000000000 ],
+        //                 [ 9099.820000000000000000, 0.200000000000000000 ],
+        //                 [ 9099.610000000000000000, 0.205000000000000000 ],
+        //             ],
+        //             "asks": [
+        //                 [ 9100.640000000000000000, 0.005904000000000000 ],
+        //                 [ 9101.010000000000000000, 0.287311000000000000 ],
+        //                 [ 9101.030000000000000000, 0.012121000000000000 ],
+        //             ],
         //             "ch":"market.BTC-USD.depth.step0",
         //             "ts":1583474832008,
         //             "id":1637554816,
@@ -2505,48 +2505,48 @@ class htx extends Exchange {
         // spot fetchTrades (public)
         //
         //     {
-        //         "amount" => 0.010411000000000000,
-        //         "trade-$id" => 102090736910,
-        //         "ts" => 1583497692182,
-        //         "id" => 10500517034273194594947,
-        //         "price" => 9096.050000000000000000,
-        //         "direction" => "sell"
+        //         "amount": 0.010411000000000000,
+        //         "trade-id": 102090736910,
+        //         "ts": 1583497692182,
+        //         "id": 10500517034273194594947,
+        //         "price": 9096.050000000000000000,
+        //         "direction": "sell"
         //     }
         //
         // spot fetchMyTrades (private)
         //
         //     {
-        //          "symbol" => "swftcbtc",
-        //          "fee-currency" => "swftc",
-        //          "filled-fees" => "0",
-        //          "source" => "spot-api",
-        //          "id" => 83789509854000,
-        //          "type" => "buy-limit",
-        //          "order-$id" => 83711103204909,
-        //          'filled-points' => "0.005826843283532154",
-        //          "fee-deduct-currency" => "ht",
-        //          'filled-amount' => "45941.53",
-        //          "price" => "0.0000001401",
-        //          "created-at" => 1597933260729,
-        //          "match-$id" => 100087455560,
-        //          "role" => "maker",
-        //          "trade-$id" => 100050305348
+        //          "symbol": "swftcbtc",
+        //          "fee-currency": "swftc",
+        //          "filled-fees": "0",
+        //          "source": "spot-api",
+        //          "id": 83789509854000,
+        //          "type": "buy-limit",
+        //          "order-id": 83711103204909,
+        //          'filled-points': "0.005826843283532154",
+        //          "fee-deduct-currency": "ht",
+        //          'filled-amount': "45941.53",
+        //          "price": "0.0000001401",
+        //          "created-at": 1597933260729,
+        //          "match-id": 100087455560,
+        //          "role": "maker",
+        //          "trade-id": 100050305348
         //     }
         //
         // linear swap isolated margin fetchOrder details
         //
         //     {
-        //         "trade_id" => 131560927,
-        //         "trade_price" => 13059.800000000000000000,
-        //         "trade_volume" => 1.000000000000000000,
-        //         "trade_turnover" => 13.059800000000000000,
-        //         "trade_fee" => -0.005223920000000000,
-        //         "created_at" => 1603703614715,
-        //         "role" => "taker",
-        //         "fee_asset" => "USDT",
-        //         "profit" => 0,
-        //         "real_profit" => 0,
-        //         "id" => "131560927-770334322963152896-1"
+        //         "trade_id": 131560927,
+        //         "trade_price": 13059.800000000000000000,
+        //         "trade_volume": 1.000000000000000000,
+        //         "trade_turnover": 13.059800000000000000,
+        //         "trade_fee": -0.005223920000000000,
+        //         "created_at": 1603703614715,
+        //         "role": "taker",
+        //         "fee_asset": "USDT",
+        //         "profit": 0,
+        //         "real_profit": 0,
+        //         "id": "131560927-770334322963152896-1"
         //     }
         //
         // inverse swap cross margin fetchMyTrades
@@ -2582,27 +2582,27 @@ class htx extends Exchange {
         // linear swap fetchMyTrades
         //
         //     {
-        //         "id" => "1513834754679549965",
-        //         "contract_code" => "BTC-USDT",
-        //         "order_id" => "1513834754585190400",
-        //         "trade_id" => "152022944",
-        //         "side" => "sell",
-        //         "position_side" => "long",
-        //         "order_type" => "1",
-        //         "margin_mode" => "cross",
-        //         "type" => "market",
-        //         "role" => "TAKER",
-        //         "trade_price" => "62688.2",
-        //         "trade_volume" => "2",
-        //         "trade_turnover" => "125.3764",
-        //         "created_time" => "1780967931197",
-        //         "updated_time" => "1780967931197",
-        //         "order_source" => "api",
-        //         "fee_currency" => "USDT",
-        //         "trade_fee" => "0.07522584",
-        //         "deduction_price" => "",
-        //         "profit" => "-0.3656",
-        //         "contract_type" => "swap"
+        //         "id": "1513834754679549965",
+        //         "contract_code": "BTC-USDT",
+        //         "order_id": "1513834754585190400",
+        //         "trade_id": "152022944",
+        //         "side": "sell",
+        //         "position_side": "long",
+        //         "order_type": "1",
+        //         "margin_mode": "cross",
+        //         "type": "market",
+        //         "role": "TAKER",
+        //         "trade_price": "62688.2",
+        //         "trade_volume": "2",
+        //         "trade_turnover": "125.3764",
+        //         "created_time": "1780967931197",
+        //         "updated_time": "1780967931197",
+        //         "order_source": "api",
+        //         "fee_currency": "USDT",
+        //         "trade_fee": "0.07522584",
+        //         "deduction_price": "",
+        //         "profit": "-0.3656",
+        //         "contract_type": "swap"
         //     }
         //
         $marketId = $this->safe_string_2($trade, 'contract_code', 'symbol');
@@ -2645,9 +2645,9 @@ class htx extends Exchange {
                 'currency' => $feeCurrency,
             );
         }
-        // htx's multi-$market $trade-$id is a bit complex to parse accordingly.
-        // - for `$id` which contains hyphen, it would be the unique $id, eg. xxxxxx-1, xxxxxx-2 (this happens mostly for contract markets)
-        // - otherwise the least priority is given to the `$id` key
+        // htx's multi-market trade-id is a bit complex to parse accordingly.
+        // - for `id` which contains hyphen, it would be the unique id, eg. xxxxxx-1, xxxxxx-2 (this happens mostly for contract markets)
+        // - otherwise the least priority is given to the `id` key
         $id = null;
         $safeId = $this->safe_string($trade, 'id');
         if ($safeId !== null && mb_strpos($safeId, '-') !== false) {
@@ -2765,22 +2765,22 @@ class htx extends Exchange {
         list($marketType, $params) = $this->handle_market_type_and_params('fetchMyTrades', $market, $params);
         $request = array(
             // spot -----------------------------------------------------------
-            // 'symbol' => $market['id'],
-            // 'types' => 'buy-$market,sell-$market,buy-$limit,sell-$limit,buy-ioc,sell-ioc,buy-$limit-maker,sell-$limit-maker,buy-stop-$limit,sell-stop-limit',
-            // 'start-time' => $since, // max 48 hours within 120 days
-            // 'end-time' => $this->milliseconds(), // max 48 hours within 120 days
-            // 'from' => 'id', // tring false N/A Search internal id to begin with if search next page, then this should be the last id (not trade-id) of last page; if search previous page, then this should be the first id (not trade-id) of last page
-            // 'direct' => 'next', // next, prev
-            // 'size' => $limit, // default 100, max 500 The number of orders to return [1-500]
+            // 'symbol': market['id'],
+            // 'types': 'buy-market,sell-market,buy-limit,sell-limit,buy-ioc,sell-ioc,buy-limit-maker,sell-limit-maker,buy-stop-limit,sell-stop-limit',
+            // 'start-time': since, // max 48 hours within 120 days
+            // 'end-time': this.milliseconds (), // max 48 hours within 120 days
+            // 'from': 'id', // tring false N/A Search internal id to begin with if search next page, then this should be the last id (not trade-id) of last page; if search previous page, then this should be the first id (not trade-id) of last page
+            // 'direct': 'next', // next, prev
+            // 'size': limit, // default 100, max 500 The number of orders to return [1-500]
             // contracts ------------------------------------------------------
-            // 'symbol' => $market['settleId'], // required
-            // 'trade_type' => 0, // required, 0 all, 1 open long, 2 open short, 3 close short, 4 close long, 5 liquidate long positions, 6 liquidate short positions
-            // 'contract_code' => $market['id'],
-            // 'start_time' => $since, // max 48 hours within 120 days
-            // 'end_time' => $this->milliseconds(), // max 48 hours within 120 days
-            // 'from_id' => 'id', // tring false N/A Search internal id to begin with if search next page, then this should be the last id (not trade-id) of last page; if search previous page, then this should be the first id (not trade-id) of last page
-            // 'direct' => 'prev', // next, prev
-            // 'size' => $limit, // default 20, max 50
+            // 'symbol': market['settleId'], // required
+            // 'trade_type': 0, // required, 0 all, 1 open long, 2 open short, 3 close short, 4 close long, 5 liquidate long positions, 6 liquidate short positions
+            // 'contract_code': market['id'],
+            // 'start_time': since, // max 48 hours within 120 days
+            // 'end_time': this.milliseconds (), // max 48 hours within 120 days
+            // 'from_id': 'id', // tring false N/A Search internal id to begin with if search next page, then this should be the last id (not trade-id) of last page; if search previous page, then this should be the first id (not trade-id) of last page
+            // 'direct': 'prev', // next, prev
+            // 'size': limit, // default 20, max 50
         );
         $response = null;
         if ($marketType === 'spot') {
@@ -2793,7 +2793,7 @@ class htx extends Exchange {
             }
             if ($since !== null) {
                 $request['start-time'] = $since; // a date within 120 days from today
-                // $request['end-time'] = $this->sum($since, 172800000); // 48 hours window
+                // request['end-time'] = this.sum (since, 172800000); // 48 hours window
             }
             list($request, $params) = $this->handle_until_option('end-time', $request, $params);
             $response = Async\await($this->spotPrivateGetV1OrderMatchresults($this->extend($request, $params)));
@@ -2831,99 +2831,99 @@ class htx extends Exchange {
         // spot
         //
         //     {
-        //         "status" => "ok",
-        //         "data" => array(
+        //         "status": "ok",
+        //         "data": [
         //             {
-        //                 "symbol" => "polyusdt",
-        //                 "fee-currency" => "poly",
-        //                 "source" => "spot-web",
-        //                 "price" => "0.338",
-        //                 "created-at" => 1629443051839,
-        //                 "role" => "taker",
-        //                 "order-id" => 345487249132375,
-        //                 "match-id" => 5014,
-        //                 "trade-id" => 1085,
-        //                 "filled-amount" => "147.928994082840236",
-        //                 "filled-fees" => "0",
-        //                 "filled-points" => "0.1",
-        //                 "fee-deduct-currency" => "hbpoint",
-        //                 "fee-deduct-state" => "done",
-        //                 "id" => 313288753120940,
-        //                 "type" => "buy-$market"
+        //                 "symbol": "polyusdt",
+        //                 "fee-currency": "poly",
+        //                 "source": "spot-web",
+        //                 "price": "0.338",
+        //                 "created-at": 1629443051839,
+        //                 "role": "taker",
+        //                 "order-id": 345487249132375,
+        //                 "match-id": 5014,
+        //                 "trade-id": 1085,
+        //                 "filled-amount": "147.928994082840236",
+        //                 "filled-fees": "0",
+        //                 "filled-points": "0.1",
+        //                 "fee-deduct-currency": "hbpoint",
+        //                 "fee-deduct-state": "done",
+        //                 "id": 313288753120940,
+        //                 "type": "buy-market"
         //             }
-        //         )
+        //         ]
         //     }
         //
         // contracts
         //
         //     {
-        //         "status" => "ok",
-        //         "data" => {
-        //             "trades" => array(
-        //                 array(
-        //                     "query_id" => 2424420723,
-        //                     "match_id" => 113891764710,
-        //                     "order_id" => 773135295142658048,
-        //                     "symbol" => "ADA",
-        //                     "contract_type" => "quarter", // swap
-        //                     "business_type" => "futures", // swap
-        //                     "contract_code" => "ADA201225",
-        //                     "direction" => "buy",
-        //                     "offset" => "open",
-        //                     "trade_volume" => 1,
-        //                     "trade_price" => 0.092,
-        //                     "trade_turnover" => 10,
-        //                     "trade_fee" => -0.021739130434782608,
-        //                     "offset_profitloss" => 0,
-        //                     "create_date" => 1604371703183,
-        //                     "role" => "Maker",
-        //                     "order_source" => "web",
-        //                     "order_id_str" => "773135295142658048",
-        //                     "fee_asset" => "ADA",
-        //                     "margin_mode" => "isolated", // cross
-        //                     "margin_account" => "BTC-USDT",
-        //                     "real_profit" => 0,
-        //                     "id" => "113891764710-773135295142658048-1",
+        //         "status": "ok",
+        //         "data": {
+        //             "trades": [
+        //                 {
+        //                     "query_id": 2424420723,
+        //                     "match_id": 113891764710,
+        //                     "order_id": 773135295142658048,
+        //                     "symbol": "ADA",
+        //                     "contract_type": "quarter", // swap
+        //                     "business_type": "futures", // swap
+        //                     "contract_code": "ADA201225",
+        //                     "direction": "buy",
+        //                     "offset": "open",
+        //                     "trade_volume": 1,
+        //                     "trade_price": 0.092,
+        //                     "trade_turnover": 10,
+        //                     "trade_fee": -0.021739130434782608,
+        //                     "offset_profitloss": 0,
+        //                     "create_date": 1604371703183,
+        //                     "role": "Maker",
+        //                     "order_source": "web",
+        //                     "order_id_str": "773135295142658048",
+        //                     "fee_asset": "ADA",
+        //                     "margin_mode": "isolated", // cross
+        //                     "margin_account": "BTC-USDT",
+        //                     "real_profit": 0,
+        //                     "id": "113891764710-773135295142658048-1",
         //                     "trade_partition":"USDT",
         //                 }
-        //             ),
-        //             "remain_size" => 15,
-        //             "next_id" => 2424413094
-        //         ),
-        //         "ts" => 1604372202243
+        //             ],
+        //             "remain_size": 15,
+        //             "next_id": 2424413094
+        //         },
+        //         "ts": 1604372202243
         //     }
         //
         // linear swap
         //
         //     {
-        //         "code" => 200,
-        //         "message" => "Success",
-        //         "data" => array(
+        //         "code": 200,
+        //         "message": "Success",
+        //         "data": [
         //             {
-        //                 "id" => "1513834754679549965",
-        //                 "contract_code" => "BTC-USDT",
-        //                 "order_id" => "1513834754585190400",
-        //                 "trade_id" => "152022944",
-        //                 "side" => "sell",
-        //                 "position_side" => "long",
-        //                 "order_type" => "1",
-        //                 "margin_mode" => "cross",
-        //                 "type" => "market",
-        //                 "role" => "TAKER",
-        //                 "trade_price" => "62688.2",
-        //                 "trade_volume" => "2",
-        //                 "trade_turnover" => "125.3764",
-        //                 "created_time" => "1780967931197",
-        //                 "updated_time" => "1780967931197",
-        //                 "order_source" => "api",
-        //                 "fee_currency" => "USDT",
-        //                 "trade_fee" => "0.07522584",
-        //                 "deduction_price" => "",
-        //                 "profit" => "-0.3656",
-        //                 "contract_type" => "swap"
+        //                 "id": "1513834754679549965",
+        //                 "contract_code": "BTC-USDT",
+        //                 "order_id": "1513834754585190400",
+        //                 "trade_id": "152022944",
+        //                 "side": "sell",
+        //                 "position_side": "long",
+        //                 "order_type": "1",
+        //                 "margin_mode": "cross",
+        //                 "type": "market",
+        //                 "role": "TAKER",
+        //                 "trade_price": "62688.2",
+        //                 "trade_volume": "2",
+        //                 "trade_turnover": "125.3764",
+        //                 "created_time": "1780967931197",
+        //                 "updated_time": "1780967931197",
+        //                 "order_source": "api",
+        //                 "fee_currency": "USDT",
+        //                 "trade_fee": "0.07522584",
+        //                 "deduction_price": "",
+        //                 "profit": "-0.3656",
+        //                 "contract_type": "swap"
         //             }
-        //         ),
-        //         "ts" => 1781066959396
+        //         ],
+        //         "ts": 1781066959396
         //     }
         //
         $trades = $this->safe_value($response, 'data');
@@ -2957,8 +2957,8 @@ class htx extends Exchange {
         }
         $market = $this->market($symbol);
         $request = array(
-            // 'symbol' => $market['id'], // spot, future
-            // 'contract_code' => $market['id'], // swap
+            // 'symbol': market['id'], // spot, future
+            // 'contract_code': market['id'], // swap
         );
         if ($limit !== null) {
             $request['size'] = min($limit, 2000); // max 2000
@@ -2985,32 +2985,32 @@ class htx extends Exchange {
         }
         //
         //     {
-        //         "status" => "ok",
-        //         "ch" => "market.btcusdt.trade.detail",
-        //         "ts" => 1583497692365,
-        //         "data" => array(
+        //         "status": "ok",
+        //         "ch": "market.btcusdt.trade.detail",
+        //         "ts": 1583497692365,
+        //         "data": [
         //             {
-        //                 "id" => 105005170342,
-        //                 "ts" => 1583497692182,
-        //                 "data" => array(
-        //                     array(
-        //                         "amount" => 0.010411000000000000,
-        //                         "trade-id" => 102090736910,
-        //                         "ts" => 1583497692182,
-        //                         "id" => 10500517034273194594947,
-        //                         "price" => 9096.050000000000000000,
-        //                         "direction" => "sell"
+        //                 "id": 105005170342,
+        //                 "ts": 1583497692182,
+        //                 "data": [
+        //                     {
+        //                         "amount": 0.010411000000000000,
+        //                         "trade-id": 102090736910,
+        //                         "ts": 1583497692182,
+        //                         "id": 10500517034273194594947,
+        //                         "price": 9096.050000000000000000,
+        //                         "direction": "sell"
         //                     }
-        //                 )
-        //             ),
+        //                 ]
+        //             },
         //             // ...
-        //         )
+        //         ]
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_list($response, 'data', array());
         $result = array();
         for ($i = 0; $i < count($data); $i++) {
-            $trades = $this->safe_value($data[$i], 'data', array());
+            $trades = $this->safe_list($data[$i], 'data', array());
             for ($j = 0; $j < count($trades); $j++) {
                 $trade = $this->parse_trade($trades[$j], $market);
                 $result[] = $trade;
@@ -3076,11 +3076,11 @@ class htx extends Exchange {
         $market = $this->market($symbol);
         $request = array(
             'period' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
-            // 'symbol' => $market['id'], // spot, future
-            // 'contract_code' => $market['id'], // swap
-            // 'size' => 1000, // max 1000 for spot, 2000 for contracts
-            // 'from' => intval(($since / (string) 1000)), spot only
-            // 'to' => $this->seconds(), spot only
+            // 'symbol': market['id'], // spot, future
+            // 'contract_code': market['id'], // swap
+            // 'size': 1000, // max 1000 for spot, 2000 for contracts
+            // 'from': parseInt ((since / 1000).toString ()), spot only
+            // 'to': this.seconds (), spot only
         );
         $priceType = $this->safe_string_2($params, 'priceType', 'price');
         $params = $this->omit($params, array( 'priceType', 'price' ));
@@ -3089,8 +3089,8 @@ class htx extends Exchange {
         $untilSeconds = ($until !== null) ? $this->parse_to_int($until / 1000) : null;
         if ($market['contract'] === true) {
             if ($limit !== null) {
-                $request['size'] = min($limit, 2000); // when using $limit => from & to are ignored
-                // https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-get-kline-$data
+                $request['size'] = min($limit, 2000); // when using limit: from & to are ignored
+                // https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-get-kline-data
             } else {
                 $limit = 2000; // only used for from/to calculation
             }
@@ -3185,11 +3185,11 @@ class htx extends Exchange {
         //         "status":"ok",
         //         "ch":"market.ethbtc.kline.1min",
         //         "ts":1591515374371,
-        //         "data":array(
-        //             array("amount":0.0,"open":0.025095,"close":0.025095,"high":0.025095,"id":1591515360,"count":0,"low":0.025095,"vol":0.0),
-        //             array("amount":1.2082,"open":0.025096,"close":0.025095,"high":0.025096,"id":1591515300,"count":6,"low":0.025095,"vol":0.0303205097),
-        //             array("amount":0.0648,"open":0.025096,"close":0.025096,"high":0.025096,"id":1591515240,"count":2,"low":0.025096,"vol":0.0016262208),
-        //         )
+        //         "data":[
+        //             {"amount":0.0,"open":0.025095,"close":0.025095,"high":0.025095,"id":1591515360,"count":0,"low":0.025095,"vol":0.0},
+        //             {"amount":1.2082,"open":0.025096,"close":0.025095,"high":0.025096,"id":1591515300,"count":6,"low":0.025095,"vol":0.0303205097},
+        //             {"amount":0.0648,"open":0.025096,"close":0.025096,"high":0.025096,"id":1591515240,"count":2,"low":0.025096,"vol":0.0016262208},
+        //         ]
         //     }
         //
         $data = $this->safe_list($response, 'data', array());
@@ -3216,10 +3216,10 @@ class htx extends Exchange {
         //
         //     {
         //         "status":"ok",
-        //         "data":array(
-        //             array("id":5202591,"type":"point","subtype":"","state":"working"),
-        //             array("id":1528640,"type":"spot","subtype":"","state":"working"),
-        //         )
+        //         "data":[
+        //             {"id":5202591,"type":"point","subtype":"","state":"working"},
+        //             {"id":1528640,"type":"spot","subtype":"","state":"working"},
+        //         ]
         //     }
         //
         $data = $this->safe_value($response, 'data');
@@ -3229,10 +3229,10 @@ class htx extends Exchange {
     public function parse_account(mixed $account) {
         //
         //     {
-        //         "id" => 5202591,
-        //         "type" => "point",   // spot, margin, otc, point, super-margin, investment, borrow, grid-trading, deposit-earning, otc-options
-        //         "subtype" => "",     // The corresponding trading symbol (currency pair) the isolated margin is based on, e.g. btcusdt
-        //         "state" => "working" // working, lock
+        //         "id": 5202591,
+        //         "type": "point",   // spot, margin, otc, point, super-margin, investment, borrow, grid-trading, deposit-earning, otc-options
+        //         "subtype": "",     // The corresponding trading symbol (currency pair) the isolated margin is based on, e.g. btcusdt
+        //         "state": "working" // working, lock
         //     }
         //
         $typeId = $this->safe_string($account, 'type');
@@ -3311,38 +3311,38 @@ class htx extends Exchange {
         $response = Async\await($this->spotPublicGetV2ReferenceCurrencies($params));
         //
         //    {
-        //        "code" => 200,
-        //        "data" => array(
+        //        "code": 200,
+        //        "data": [
         //            {
-        //                "currency" => "sxp",
-        //                "assetType" => "1",
-        //                "chains" => array(
+        //                "currency": "sxp",
+        //                "assetType": "1",
+        //                "chains": [
         //                    {
-        //                        "chain" => "sxp",
-        //                        "displayName" => "ERC20",
-        //                        "baseChain" => "ETH",
-        //                        "baseChainProtocol" => "ERC20",
-        //                        "isDynamic" => true,
-        //                        "numOfConfirmations" => "12",
-        //                        "numOfFastConfirmations" => "12",
-        //                        "depositStatus" => "allowed",
-        //                        "minDepositAmt" => "0.23",
-        //                        "withdrawStatus" => "allowed",
-        //                        "minWithdrawAmt" => "0.23",
-        //                        "withdrawPrecision" => "8",
-        //                        "maxWithdrawAmt" => "227000.000000000000000000",
-        //                        "withdrawQuotaPerDay" => "227000.000000000000000000",
-        //                        "withdrawQuotaPerYear" => null,
-        //                        "withdrawQuotaTotal" => null,
-        //                        "withdrawFeeType" => "fixed",
-        //                        "transactFeeWithdraw" => "11.1654",
-        //                        "addrWithTag" => false,
-        //                        "addrDepositTag" => false
+        //                        "chain": "sxp",
+        //                        "displayName": "ERC20",
+        //                        "baseChain": "ETH",
+        //                        "baseChainProtocol": "ERC20",
+        //                        "isDynamic": true,
+        //                        "numOfConfirmations": "12",
+        //                        "numOfFastConfirmations": "12",
+        //                        "depositStatus": "allowed",
+        //                        "minDepositAmt": "0.23",
+        //                        "withdrawStatus": "allowed",
+        //                        "minWithdrawAmt": "0.23",
+        //                        "withdrawPrecision": "8",
+        //                        "maxWithdrawAmt": "227000.000000000000000000",
+        //                        "withdrawQuotaPerDay": "227000.000000000000000000",
+        //                        "withdrawQuotaPerYear": null,
+        //                        "withdrawQuotaTotal": null,
+        //                        "withdrawFeeType": "fixed",
+        //                        "transactFeeWithdraw": "11.1654",
+        //                        "addrWithTag": false,
+        //                        "addrDepositTag": false
         //                    }
-        //                ),
-        //                "instStatus" => "normal"
+        //                ],
+        //                "instStatus": "normal"
         //            }
-        //        )
+        //        ]
         //    }
         //
         $data = $this->safe_list($response, 'data', array());
@@ -3453,7 +3453,7 @@ class htx extends Exchange {
         if ($keysLength === 0) {
             throw new ExchangeError($this->id . ' networkCodeToId() - markets need to be loaded at first');
         }
-        $uniqueNetworkIds = $this->safe_value($this->options['networkChainIdsByNames'], $currencyCode, array());
+        $uniqueNetworkIds = $this->safe_dict($this->options['networkChainIdsByNames'], $currencyCode, array());
         if (is_array($uniqueNetworkIds) && array_key_exists($networkCode ?? '', $uniqueNetworkIds)) {
             return $uniqueNetworkIds[$networkCode];
         } else {
@@ -3534,144 +3534,144 @@ class htx extends Exchange {
             }
         }
         //
-        // $spot
+        // spot
         //
         //     {
-        //         "status" => "ok",
-        //         "data" => array(
-        //             "id" => 1528640,
-        //             "type" => "spot",
-        //             "state" => "working",
-        //             "list" => array(
-        //                 array( "currency" => "lun", "type" => "trade", "balance" => "0", "seq-num" => "0" ),
-        //                 array( "currency" => "lun", "type" => "frozen", "balance" => "0", "seq-num" => "0" ),
-        //                 array( "currency" => "ht", "type" => "frozen", "balance" => "0", "seq-num" => "145" ),
-        //             )
-        //         ),
+        //         "status": "ok",
+        //         "data": {
+        //             "id": 1528640,
+        //             "type": "spot",
+        //             "state": "working",
+        //             "list": [
+        //                 { "currency": "lun", "type": "trade", "balance": "0", "seq-num": "0" },
+        //                 { "currency": "lun", "type": "frozen", "balance": "0", "seq-num": "0" },
+        //                 { "currency": "ht", "type": "frozen", "balance": "0", "seq-num": "145" },
+        //             ]
+        //         },
         //         "ts":1637644827566
         //     }
         //
-        // $cross $margin
+        // cross margin
         //
         //     {
-        //         "status" => "ok",
-        //         "data" => array(
-        //             "id" => 51015302,
-        //             "type" => "cross-$margin",
-        //             "state" => "working",
-        //             "risk-rate" => "2",
-        //             "acct-$balance-sum" => "100",
-        //             "debt-$balance-sum" => "0",
-        //             "list" => array(
-        //                 array( "currency" => "usdt", "type" => "trade", "balance" => "100" ),
-        //                 array( "currency" => "usdt", "type" => "frozen", "balance" => "0" ),
-        //                 array( "currency" => "usdt", "type" => "loan-available", "balance" => "200" ),
-        //                 array( "currency" => "usdt", "type" => "transfer-out-available", "balance" => "-1" ),
-        //                 array( "currency" => "ht", "type" => "loan-available", "balance" => "36.60724091" ),
-        //                 array( "currency" => "ht", "type" => "transfer-out-available", "balance" => "-1" ),
-        //                 array( "currency" => "btc", "type" => "trade", "balance" => "1168.533000000000000000" ),
-        //                 array( "currency" => "btc", "type" => "frozen", "balance" => "0.000000000000000000" ),
-        //                 array( "currency" => "btc", "type" => "loan", "balance" => "-2.433000000000000000" ),
-        //                 array( "currency" => "btc", "type" => "interest", "balance" => "-0.000533000000000000" ),
-        //                 array( "currency" => "btc", "type" => "transfer-out-available", "balance" => "1163.872174670000000000" ),
-        //                 array( "currency" => "btc", "type" => "loan-available", "balance" => "8161.876538350676000000" )
-        //             )
-        //         ),
-        //         "code" => 200
+        //         "status": "ok",
+        //         "data": {
+        //             "id": 51015302,
+        //             "type": "cross-margin",
+        //             "state": "working",
+        //             "risk-rate": "2",
+        //             "acct-balance-sum": "100",
+        //             "debt-balance-sum": "0",
+        //             "list": [
+        //                 { "currency": "usdt", "type": "trade", "balance": "100" },
+        //                 { "currency": "usdt", "type": "frozen", "balance": "0" },
+        //                 { "currency": "usdt", "type": "loan-available", "balance": "200" },
+        //                 { "currency": "usdt", "type": "transfer-out-available", "balance": "-1" },
+        //                 { "currency": "ht", "type": "loan-available", "balance": "36.60724091" },
+        //                 { "currency": "ht", "type": "transfer-out-available", "balance": "-1" },
+        //                 { "currency": "btc", "type": "trade", "balance": "1168.533000000000000000" },
+        //                 { "currency": "btc", "type": "frozen", "balance": "0.000000000000000000" },
+        //                 { "currency": "btc", "type": "loan", "balance": "-2.433000000000000000" },
+        //                 { "currency": "btc", "type": "interest", "balance": "-0.000533000000000000" },
+        //                 { "currency": "btc", "type": "transfer-out-available", "balance": "1163.872174670000000000" },
+        //                 { "currency": "btc", "type": "loan-available", "balance": "8161.876538350676000000" }
+        //             ]
+        //         },
+        //         "code": 200
         //     }
         //
-        // $isolated $margin
+        // isolated margin
         //
         //     {
-        //         "data" => array(
+        //         "data": [
         //             {
-        //                 "id" => 18264,
-        //                 "type" => "margin",
-        //                 "state" => "working",
-        //                 "symbol" => "btcusdt",
-        //                 "fl-price" => "0",
-        //                 "fl-$type" => "safe",
-        //                 "risk-rate" => "475.952571086994250554",
-        //                 "list" => array(
-        //                     array( "currency" => "btc","type" => "trade","balance" => "1168.533000000000000000" ),
-        //                     array( "currency" => "btc","type" => "frozen","balance" => "0.000000000000000000" ),
-        //                     array( "currency" => "btc","type" => "loan","balance" => "-2.433000000000000000" ),
-        //                     array( "currency" => "btc","type" => "interest","balance" => "-0.000533000000000000" ),
-        //                     array( "currency" => "btc","type" => "transfer-out-available", "balance" => "1163.872174670000000000" ),
-        //                     array( "currency" => "btc","type" => "loan-available", "balance" => "8161.876538350676000000" )
-        //                 )
+        //                 "id": 18264,
+        //                 "type": "margin",
+        //                 "state": "working",
+        //                 "symbol": "btcusdt",
+        //                 "fl-price": "0",
+        //                 "fl-type": "safe",
+        //                 "risk-rate": "475.952571086994250554",
+        //                 "list": [
+        //                     { "currency": "btc","type": "trade","balance": "1168.533000000000000000" },
+        //                     { "currency": "btc","type": "frozen","balance": "0.000000000000000000" },
+        //                     { "currency": "btc","type": "loan","balance": "-2.433000000000000000" },
+        //                     { "currency": "btc","type": "interest","balance": "-0.000533000000000000" },
+        //                     { "currency": "btc","type": "transfer-out-available", "balance": "1163.872174670000000000" },
+        //                     { "currency": "btc","type": "loan-available", "balance": "8161.876538350676000000" }
+        //                 ]
         //             }
-        //         )
+        //         ]
         //     }
         //
-        // $future, $swap $isolated
+        // future, swap isolated
         //
         //     {
-        //         "status" => "ok",
-        //         "data" => array(
-        //             array(
-        //                 "symbol" => "BTC",
-        //                 "margin_balance" => 0,
-        //                 "margin_position" => 0E-18,
-        //                 "margin_frozen" => 0,
-        //                 "margin_available" => 0E-18,
-        //                 "profit_real" => 0,
-        //                 "profit_unreal" => 0,
-        //                 "risk_rate" => null,
-        //                 "withdraw_available" => 0,
-        //                 "liquidation_price" => null,
-        //                 "lever_rate" => 5,
-        //                 "adjust_factor" => 0.025000000000000000,
-        //                 "margin_static" => 0,
-        //                 "is_debit" => 0, // $future only
-        //                 "contract_code" => "BTC-USD", // $swap only
-        //                 "margin_asset" => "USDT", // $linear only
-        //                 "margin_mode" => "isolated", // $linear only
-        //                 "margin_account" => "BTC-USDT" // $linear only
-        //                 "transfer_profit_ratio" => null // $inverse only
-        //             ),
-        //         ),
-        //         "ts" => 1637644827566
+        //         "status": "ok",
+        //         "data": [
+        //             {
+        //                 "symbol": "BTC",
+        //                 "margin_balance": 0,
+        //                 "margin_position": 0E-18,
+        //                 "margin_frozen": 0,
+        //                 "margin_available": 0E-18,
+        //                 "profit_real": 0,
+        //                 "profit_unreal": 0,
+        //                 "risk_rate": null,
+        //                 "withdraw_available": 0,
+        //                 "liquidation_price": null,
+        //                 "lever_rate": 5,
+        //                 "adjust_factor": 0.025000000000000000,
+        //                 "margin_static": 0,
+        //                 "is_debit": 0, // future only
+        //                 "contract_code": "BTC-USD", // swap only
+        //                 "margin_asset": "USDT", // linear only
+        //                 "margin_mode": "isolated", // linear only
+        //                 "margin_account": "BTC-USDT" // linear only
+        //                 "transfer_profit_ratio": null // inverse only
+        //             },
+        //         ],
+        //         "ts": 1637644827566
         //     }
         //
-        // $linear $swap and multi asset mode
+        // linear swap and multi asset mode
         //
         //     {
-        //         "code" => 200,
-        //         "message" => "Success",
-        //         "data" => {
-        //             "state" => "normal",
-        //             "equity" => "174.216697577770536136",
-        //             "details" => array(
-        //                 array(
-        //                     "currency" => "USDT",
-        //                     "equity" => "174.216697577770536136",
-        //                     "available" => "174.216697577770536136",
-        //                     "profit_unreal" => "0",
-        //                     "initial_margin" => "0",
-        //                     "maintenance_margin" => "0",
-        //                     "maintenance_margin_rate" => "0",
-        //                     "initial_margin_rate" => "0",
-        //                     "available_margin" => "174.216697577770536136",
-        //                     "voucher" => "0",
-        //                     "voucher_value" => "0",
-        //                     "withdraw_available" => "174.216697577770536136",
-        //                     "created_time" => 1770293270932,
-        //                     "updated_time" => 1770293270932,
-        //                     "isolated_equity" => "0",
-        //                     "isolated_profit_unreal" => "0"
+        //         "code": 200,
+        //         "message": "Success",
+        //         "data": {
+        //             "state": "normal",
+        //             "equity": "174.216697577770536136",
+        //             "details": [
+        //                 {
+        //                     "currency": "USDT",
+        //                     "equity": "174.216697577770536136",
+        //                     "available": "174.216697577770536136",
+        //                     "profit_unreal": "0",
+        //                     "initial_margin": "0",
+        //                     "maintenance_margin": "0",
+        //                     "maintenance_margin_rate": "0",
+        //                     "initial_margin_rate": "0",
+        //                     "available_margin": "174.216697577770536136",
+        //                     "voucher": "0",
+        //                     "voucher_value": "0",
+        //                     "withdraw_available": "174.216697577770536136",
+        //                     "created_time": 1770293270932,
+        //                     "updated_time": 1770293270932,
+        //                     "isolated_equity": "0",
+        //                     "isolated_profit_unreal": "0"
         //                 }
-        //             ),
-        //             "initial_margin" => "0",
-        //             "maintenance_margin" => "0",
-        //             "maintenance_margin_rate" => "0",
-        //             "profit_unreal" => "0",
-        //             "available_margin" => "174.216697577770536136",
-        //             "voucher_value" => "0",
-        //             "created_time" => 1770293268881,
-        //             "updated_time" => 1770293270932
-        //         ),
-        //         "ts" => 1770293281344
+        //             ],
+        //             "initial_margin": "0",
+        //             "maintenance_margin": "0",
+        //             "maintenance_margin_rate": "0",
+        //             "profit_unreal": "0",
+        //             "available_margin": "174.216697577770536136",
+        //             "voucher_value": "0",
+        //             "created_time": 1770293268881,
+        //             "updated_time": 1770293270932
+        //         },
+        //         "ts": 1770293281344
         //     }
         //
         $finalResponse = $response;
@@ -3713,7 +3713,7 @@ class htx extends Exchange {
                 }
                 $result = $this->safe_balance($result);
             } else {
-                $balances = $this->safe_value($data, 'list', array());
+                $balances = $this->safe_list($data, 'list', array());
                 for ($i = 0; $i < count($balances); $i++) {
                     $balance = $balances[$i];
                     $currencyId = $this->safe_string($balance, 'currency');
@@ -3776,24 +3776,24 @@ class htx extends Exchange {
         list($marketType, $params) = $this->handle_market_type_and_params('fetchOrder', $market, $params);
         $request = array(
             // spot -----------------------------------------------------------
-            // 'order-id' => 'id',
-            // 'symbol' => $market['id'],
-            // 'client-$order-id' => $clientOrderId,
-            // 'clientOrderId' => $clientOrderId,
+            // 'order-id': 'id',
+            // 'symbol': market['id'],
+            // 'client-order-id': clientOrderId,
+            // 'clientOrderId': clientOrderId,
             // contracts ------------------------------------------------------
-            // 'order_id' => $id,
-            // 'client_order_id' => $clientOrderId,
-            // 'contract_code' => $market['id'],
-            // 'pair' => 'BTC-USDT',
-            // 'contract_type' => 'this_week', // swap, this_week, next_week, quarter, next_ quarter
+            // 'order_id': id,
+            // 'client_order_id': clientOrderId,
+            // 'contract_code': market['id'],
+            // 'pair': 'BTC-USDT',
+            // 'contract_type': 'this_week', // swap, this_week, next_week, quarter, next_ quarter
         );
         $response = null;
         if ($marketType === 'spot') {
             $clientOrderId = $this->safe_string($params, 'clientOrderId');
             if ($clientOrderId !== null) {
                 // will be filled below in extend ()
-                // they expect $clientOrderId instead of client-$order-$id
-                // $request['clientOrderId'] = $clientOrderId;
+                // they expect clientOrderId instead of client-order-id
+                // request['clientOrderId'] = clientOrderId;
                 $response = Async\await($this->spotPrivateGetV1OrderOrdersGetClientOrder($this->extend($request, $params)));
             } else {
                 $request['order-id'] = $id;
@@ -3867,8 +3867,8 @@ class htx extends Exchange {
         //         "data":{
         //             "id":438398393065481,
         //             "symbol":"ethusdt",
-        //             "account-$id":1528640,
-        //             "client-$order-$id":"AA03022abc2163433e-006b-480e-9ad1-d4781478c5e7",
+        //             "account-id":1528640,
+        //             "client-order-id":"AA03022abc2163433e-006b-480e-9ad1-d4781478c5e7",
         //             "amount":"0.100000000000000000",
         //             "price":"3000.000000000000000000",
         //             "created-at":1640549994642,
@@ -3886,76 +3886,76 @@ class htx extends Exchange {
         // linear swap
         //
         //     {
-        //         "code" => 200,
-        //         "message" => "Success",
-        //         "data" => array(
-        //             "id" => "1513828877079584768",
-        //             "side" => "buy",
-        //             "type" => "limit",
-        //             "price" => "50000",
-        //             "volume" => "1",
-        //             "state" => "new",
-        //             "profit" => null,
-        //             "contract_code" => "BTC-USDT",
-        //             "position_side" => "long",
-        //             "price_match" => null,
-        //             "order_id" => "1513828877079584768",
-        //             "client_order_id" => "1513828877079584768",
-        //             "margin_mode" => "cross",
-        //             "lever_rate" => 20,
-        //             "order_source" => "api",
-        //             "reduce_only" => false,
-        //             "time_in_force" => "gtc",
-        //             "tp_trigger_price" => "",
-        //             "tp_order_price" => "",
-        //             "tp_type" => "0",
-        //             "tp_trigger_price_type" => "",
-        //             "sl_trigger_price" => "",
-        //             "sl_order_price" => "",
-        //             "sl_type" => "0",
-        //             "sl_trigger_price_type" => "",
-        //             "trade_avg_price" => "0",
-        //             "trade_volume" => "0",
-        //             "trade_turnover" => "0",
-        //             "fee_currency" => "",
-        //             "fee" => "0",
-        //             "price_protect" => false,
-        //             "real_profit" => null,
-        //             "contract_type" => "swap",
-        //             "created_time" => "1780966529876",
-        //             "updated_time" => "1780966572409",
-        //             "cancel_reason" => null,
-        //             "self_match_prevent" => "cancel_taker"
-        //         ),
-        //         "ts" => 1780966573200
+        //         "code": 200,
+        //         "message": "Success",
+        //         "data": {
+        //             "id": "1513828877079584768",
+        //             "side": "buy",
+        //             "type": "limit",
+        //             "price": "50000",
+        //             "volume": "1",
+        //             "state": "new",
+        //             "profit": null,
+        //             "contract_code": "BTC-USDT",
+        //             "position_side": "long",
+        //             "price_match": null,
+        //             "order_id": "1513828877079584768",
+        //             "client_order_id": "1513828877079584768",
+        //             "margin_mode": "cross",
+        //             "lever_rate": 20,
+        //             "order_source": "api",
+        //             "reduce_only": false,
+        //             "time_in_force": "gtc",
+        //             "tp_trigger_price": "",
+        //             "tp_order_price": "",
+        //             "tp_type": "0",
+        //             "tp_trigger_price_type": "",
+        //             "sl_trigger_price": "",
+        //             "sl_order_price": "",
+        //             "sl_type": "0",
+        //             "sl_trigger_price_type": "",
+        //             "trade_avg_price": "0",
+        //             "trade_volume": "0",
+        //             "trade_turnover": "0",
+        //             "fee_currency": "",
+        //             "fee": "0",
+        //             "price_protect": false,
+        //             "real_profit": null,
+        //             "contract_type": "swap",
+        //             "created_time": "1780966529876",
+        //             "updated_time": "1780966572409",
+        //             "cancel_reason": null,
+        //             "self_match_prevent": "cancel_taker"
+        //         },
+        //         "ts": 1780966573200
         //     }
         //
         // linear swap algo
         //
         //     {
-        //         "code" => 200,
-        //         "message" => "Success",
-        //         "data" => array(
+        //         "code": 200,
+        //         "message": "Success",
+        //         "data": [
         //             {
-        //                 "id" => "162320614",
-        //                 "volume" => "2",
-        //                 "type" => "tp",
-        //                 "state" => "active",
-        //                 "side" => "sell",
-        //                 "algo_id" => "1513832307038027776",
-        //                 "contract_code" => "BTC-USDT",
-        //                 "position_side" => "long",
-        //                 "margin_mode" => "cross",
-        //                 "created_time" => "1780967347642",
-        //                 "updated_time" => "1780967347848",
-        //                 "order_source" => "api",
-        //                 "tp_trigger_price" => "101000",
-        //                 "tp_order_price" => "0",
-        //                 "tp_type" => "market",
-        //                 "tp_trigger_price_type" => "last"
+        //                 "id": "162320614",
+        //                 "volume": "2",
+        //                 "type": "tp",
+        //                 "state": "active",
+        //                 "side": "sell",
+        //                 "algo_id": "1513832307038027776",
+        //                 "contract_code": "BTC-USDT",
+        //                 "position_side": "long",
+        //                 "margin_mode": "cross",
+        //                 "created_time": "1780967347642",
+        //                 "updated_time": "1780967347848",
+        //                 "order_source": "api",
+        //                 "tp_trigger_price": "101000",
+        //                 "tp_order_price": "0",
+        //                 "tp_type": "market",
+        //                 "tp_trigger_price_type": "last"
         //             }
-        //         ),
-        //         "ts" => 1780967407144
+        //         ],
+        //         "ts": 1780967407144
         //     }
         //
         $order = $this->safe_value($response, 'data');
@@ -4004,20 +4004,20 @@ class htx extends Exchange {
         $market = null;
         $request = array(
             // spot_private_get_v1_order_orders GET /v1/order/orders ----------
-            // 'symbol' => $market['id'], // required
-            // 'types' => 'buy-$market,sell-$market,buy-$limit,sell-$limit,buy-ioc,sell-ioc,buy-stop-$limit,sell-stop-$limit,buy-$limit-fok,sell-$limit-fok,buy-stop-$limit-fok,sell-stop-$limit-fok',
-            // 'start-time' => $since, // max window of 48h within a range of 180 days, within past 2 hours for cancelled orders
-            // 'end-time' => $this->milliseconds(),
+            // 'symbol': market['id'], // required
+            // 'types': 'buy-market,sell-market,buy-limit,sell-limit,buy-ioc,sell-ioc,buy-stop-limit,sell-stop-limit,buy-limit-fok,sell-limit-fok,buy-stop-limit-fok,sell-stop-limit-fok',
+            // 'start-time': since, // max window of 48h within a range of 180 days, within past 2 hours for cancelled orders
+            // 'end-time': this.milliseconds (),
             'states' => $states, // filled, partial-canceled, canceled
-            // 'from' => order['id'],
-            // 'direct' => 'next', // next, prev, used with from
-            // 'size' => 100, // max 100
+            // 'from': order['id'],
+            // 'direct': 'next', // next, prev, used with from
+            // 'size': 100, // max 100
             // spot_private_get_v1_order_history GET /v1/order/history --------
-            // 'symbol' => $market['id'], // optional
-            // 'start-time' => $since, // max window of 48h within a range of 180 days, within past 2 hours for cancelled orders
-            // 'end-time' => $this->milliseconds(),
-            // 'direct' => 'next', // next, prev, used with from
-            // 'size' => 100, // max 100
+            // 'symbol': market['id'], // optional
+            // 'start-time': since, // max window of 48h within a range of 180 days, within past 2 hours for cancelled orders
+            // 'end-time': this.milliseconds (),
+            // 'direct': 'next', // next, prev, used with from
+            // 'size': 100, // max 100
         );
         if ($symbol !== null) {
             $market = $this->market($symbol);
@@ -4041,26 +4041,26 @@ class htx extends Exchange {
         // spot_private_get_v1_order_orders GET /v1/order/orders
         //
         //     {
-        //         "status" => "ok",
-        //         "data" => array(
+        //         "status": "ok",
+        //         "data": [
         //             {
-        //                 "id" => 13997833014,
-        //                 "symbol" => "ethbtc",
-        //                 "account-id" => 3398321,
-        //                 "client-order-id" => "23456",
-        //                 "amount" => "0.045000000000000000",
-        //                 "price" => "0.034014000000000000",
-        //                 "created-at" => 1545836976871,
-        //                 "type" => "sell-$limit",
-        //                 "field-amount" => "0.045000000000000000",
-        //                 "field-cash-amount" => "0.001530630000000000",
-        //                 "field-fees" => "0.000003061260000000",
-        //                 "finished-at" => 1545837948214,
-        //                 "source" => "spot-api",
-        //                 "state" => "filled",
-        //                 "canceled-at" => 0
+        //                 "id": 13997833014,
+        //                 "symbol": "ethbtc",
+        //                 "account-id": 3398321,
+        //                 "client-order-id": "23456",
+        //                 "amount": "0.045000000000000000",
+        //                 "price": "0.034014000000000000",
+        //                 "created-at": 1545836976871,
+        //                 "type": "sell-limit",
+        //                 "field-amount": "0.045000000000000000",
+        //                 "field-cash-amount": "0.001530630000000000",
+        //                 "field-fees": "0.000003061260000000",
+        //                 "finished-at": 1545837948214,
+        //                 "source": "spot-api",
+        //                 "state": "filled",
+        //                 "canceled-at": 0
         //             }
-        //         )
+        //         ]
         //     }
         //
         $data = $this->safe_list($response, 'data', array());
@@ -4132,86 +4132,86 @@ class htx extends Exchange {
                 $response = Async\await($this->contractPrivateGetV5AlgoOrderHistory($this->extend($request, $params)));
                 //
                 //     {
-                //         "code" => 200,
-                //         "message" => "Success",
-                //         "data" => array(
+                //         "code": 200,
+                //         "message": "Success",
+                //         "data": [
                 //             {
-                //                 "id" => "162320614",
-                //                 "volume" => "2",
-                //                 "type" => "tp",
-                //                 "state" => "canceled",
-                //                 "side" => "sell",
-                //                 "algo_id" => "1513832307038027776",
-                //                 "contract_code" => "BTC-USDT",
-                //                 "position_side" => "long",
-                //                 "margin_mode" => "cross",
-                //                 "created_time" => "1780967347642",
-                //                 "updated_time" => "1780967772476",
-                //                 "order_source" => "api",
-                //                 "tp_trigger_price" => "101000",
-                //                 "tp_order_price" => "0",
-                //                 "tp_type" => "market",
-                //                 "tp_trigger_price_type" => "last"
+                //                 "id": "162320614",
+                //                 "volume": "2",
+                //                 "type": "tp",
+                //                 "state": "canceled",
+                //                 "side": "sell",
+                //                 "algo_id": "1513832307038027776",
+                //                 "contract_code": "BTC-USDT",
+                //                 "position_side": "long",
+                //                 "margin_mode": "cross",
+                //                 "created_time": "1780967347642",
+                //                 "updated_time": "1780967772476",
+                //                 "order_source": "api",
+                //                 "tp_trigger_price": "101000",
+                //                 "tp_order_price": "0",
+                //                 "tp_type": "market",
+                //                 "tp_trigger_price_type": "last"
                 //             }
-                //         ),
-                //         "ts" => 1780997351797
+                //         ],
+                //         "ts": 1780997351797
                 //     }
                 //
             } else {
                 $response = Async\await($this->contractPrivateGetV5TradeOrderHistory($this->extend($request, $params)));
                 //
                 //     {
-                //         "code" => 200,
-                //         "message" => "Success",
-                //         "data" => array(
+                //         "code": 200,
+                //         "message": "Success",
+                //         "data": [
                 //             {
-                //                 "id" => "1513834754654384129",
-                //                 "side" => "sell",
-                //                 "type" => "market",
-                //                 "price" => "0",
-                //                 "volume" => "2",
-                //                 "state" => "filled",
-                //                 "profit" => "-0.3656",
-                //                 "contract_code" => "BTC-USDT",
-                //                 "position_side" => "long",
-                //                 "price_match" => null,
-                //                 "order_id" => "1513834754585190400",
-                //                 "client_order_id" => "1513834754585190400",
-                //                 "margin_mode" => "cross",
-                //                 "lever_rate" => 20,
-                //                 "order_source" => "api",
-                //                 "reduce_only" => true,
-                //                 "time_in_force" => "gtc",
-                //                 "tp_trigger_price" => "",
-                //                 "tp_order_price" => "",
-                //                 "tp_type" => null,
-                //                 "tp_trigger_price_type" => null,
-                //                 "sl_trigger_price" => "",
-                //                 "sl_order_price" => "",
-                //                 "sl_type" => null,
-                //                 "sl_trigger_price_type" => null,
-                //                 "trade_avg_price" => "62688.2",
-                //                 "trade_volume" => "2",
-                //                 "trade_turnover" => "125.3764",
-                //                 "fee_currency" => "USDT",
-                //                 "fee" => "-0.07522584",
-                //                 "price_protect" => false,
-                //                 "contract_type" => "swap",
-                //                 "created_time" => "1780967931182",
-                //                 "updated_time" => "1780967931194",
-                //                 "cancel_reason" => null,
-                //                 "self_match_prevent" => "cancel_taker"
+                //                 "id": "1513834754654384129",
+                //                 "side": "sell",
+                //                 "type": "market",
+                //                 "price": "0",
+                //                 "volume": "2",
+                //                 "state": "filled",
+                //                 "profit": "-0.3656",
+                //                 "contract_code": "BTC-USDT",
+                //                 "position_side": "long",
+                //                 "price_match": null,
+                //                 "order_id": "1513834754585190400",
+                //                 "client_order_id": "1513834754585190400",
+                //                 "margin_mode": "cross",
+                //                 "lever_rate": 20,
+                //                 "order_source": "api",
+                //                 "reduce_only": true,
+                //                 "time_in_force": "gtc",
+                //                 "tp_trigger_price": "",
+                //                 "tp_order_price": "",
+                //                 "tp_type": null,
+                //                 "tp_trigger_price_type": null,
+                //                 "sl_trigger_price": "",
+                //                 "sl_order_price": "",
+                //                 "sl_type": null,
+                //                 "sl_trigger_price_type": null,
+                //                 "trade_avg_price": "62688.2",
+                //                 "trade_volume": "2",
+                //                 "trade_turnover": "125.3764",
+                //                 "fee_currency": "USDT",
+                //                 "fee": "-0.07522584",
+                //                 "price_protect": false,
+                //                 "contract_type": "swap",
+                //                 "created_time": "1780967931182",
+                //                 "updated_time": "1780967931194",
+                //                 "cancel_reason": null,
+                //                 "self_match_prevent": "cancel_taker"
                 //             }
-                //         ),
-                //         "ts" => 1780998077332
+                //         ],
+                //         "ts": 1780998077332
                 //     }
                 //
             }
         } elseif ($market['inverse'] === true) {
             $request['contract'] = $market['id'];
             $request['type'] = 1; // 1:All Orders,2:Order in Finished Status
-            $request['trade_type'] = 0; // 0:All; 1 => Open long; 2 => Open short; 3 => Close short; 4 => Close long; 5 => Liquidate long positions; 6 => Liquidate short positions, 17:buy(one-way mode), 18:sell(one-way mode)
-            $request['status'] = '0'; // support multiple query separated by ',',such as '3,4,5', 0 => all. 3. Have submitted the $orders; 4. Orders partially matched; 5. Orders cancelled with partially matched; 6. Orders fully matched; 7. Orders cancelled;
+            $request['trade_type'] = 0; // 0:All; 1: Open long; 2: Open short; 3: Close short; 4: Close long; 5: Liquidate long positions; 6: Liquidate short positions, 17:buy(one-way mode), 18:sell(one-way mode)
+            $request['status'] = '0'; // support multiple query separated by ',',such as '3,4,5', 0: all. 3. Have submitted the orders; 4. Orders partially matched; 5. Orders cancelled with partially matched; 6. Orders fully matched; 7. Orders cancelled;
             if ($market['swap'] === true) {
                 if ($trigger === true) {
                     $response = Async\await($this->contractPrivatePostSwapApiV1SwapTriggerHisorders($this->extend($request, $params)));
@@ -4471,7 +4471,7 @@ class htx extends Exchange {
             // todo replace with fetchAccountIdByType
             $accountId = $this->safe_string($params, 'account-id');
             if ($accountId === null) {
-                // pick the first $account
+                // pick the first account
                 Async\await($this->load_accounts());
                 for ($i = 0; $i < count($this->accounts); $i++) {
                     $account = $this->accounts[$i];
@@ -4491,7 +4491,7 @@ class htx extends Exchange {
             $response = Async\await($this->spotPrivateGetV1OrderOpenOrders($this->extend($request, $params)));
         } else {
             if ($symbol !== null) {
-                // throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a $symbol argument');
+                // throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires a symbol argument');
                 $request['contract_code'] = $this->safe_string($market, 'id');
             }
             if ($limit !== null) {
@@ -4554,7 +4554,7 @@ class htx extends Exchange {
         //
         //     {
         //         "status":"ok",
-        //         "data":array(
+        //         "data":[
         //             {
         //                 "symbol":"ethusdt",
         //                 "source":"api",
@@ -4567,246 +4567,246 @@ class htx extends Exchange {
         //                 "filled-fees":"0.0",
         //                 "id":38477101630,
         //                 "state":"submitted",
-        //                 "type":"sell-$limit"
+        //                 "type":"sell-limit"
         //             }
-        //         )
+        //         ]
         //     }
         //
         // futures
         //
         //     {
-        //         "status" => "ok",
-        //         "data" => {
-        //             "orders" => array(
-        //                 array(
-        //                     "symbol" => "ADA",
-        //                     "contract_code" => "ADA201225",
-        //                     "contract_type" => "quarter",
-        //                     "volume" => 1,
-        //                     "price" => 0.0925,
-        //                     "order_price_type" => "post_only",
-        //                     "order_type" => 1,
-        //                     "direction" => "buy",
-        //                     "offset" => "close",
-        //                     "lever_rate" => 20,
-        //                     "order_id" => 773131315209248768,
-        //                     "client_order_id" => null,
-        //                     "created_at" => 1604370469629,
-        //                     "trade_volume" => 0,
-        //                     "trade_turnover" => 0,
-        //                     "fee" => 0,
-        //                     "trade_avg_price" => null,
-        //                     "margin_frozen" => 0,
-        //                     "profit" => 0,
-        //                     "status" => 3,
-        //                     "order_source" => "web",
-        //                     "order_id_str" => "773131315209248768",
-        //                     "fee_asset" => "ADA",
-        //                     "liquidation_type" => null,
-        //                     "canceled_at" => null,
-        //                     "is_tpsl" => 0,
-        //                     "update_time" => 1606975980467,
-        //                     "real_profit" => 0
+        //         "status": "ok",
+        //         "data": {
+        //             "orders": [
+        //                 {
+        //                     "symbol": "ADA",
+        //                     "contract_code": "ADA201225",
+        //                     "contract_type": "quarter",
+        //                     "volume": 1,
+        //                     "price": 0.0925,
+        //                     "order_price_type": "post_only",
+        //                     "order_type": 1,
+        //                     "direction": "buy",
+        //                     "offset": "close",
+        //                     "lever_rate": 20,
+        //                     "order_id": 773131315209248768,
+        //                     "client_order_id": null,
+        //                     "created_at": 1604370469629,
+        //                     "trade_volume": 0,
+        //                     "trade_turnover": 0,
+        //                     "fee": 0,
+        //                     "trade_avg_price": null,
+        //                     "margin_frozen": 0,
+        //                     "profit": 0,
+        //                     "status": 3,
+        //                     "order_source": "web",
+        //                     "order_id_str": "773131315209248768",
+        //                     "fee_asset": "ADA",
+        //                     "liquidation_type": null,
+        //                     "canceled_at": null,
+        //                     "is_tpsl": 0,
+        //                     "update_time": 1606975980467,
+        //                     "real_profit": 0
         //                 }
-        //             ),
-        //             "total_page" => 1,
-        //             "current_page" => 1,
-        //             "total_size" => 1
-        //         ),
-        //         "ts" => 1604370488518
+        //             ],
+        //             "total_page": 1,
+        //             "current_page": 1,
+        //             "total_size": 1
+        //         },
+        //         "ts": 1604370488518
         //     }
         //
-        // $trigger
+        // trigger
         //
         //     {
-        //         "status" => "ok",
-        //         "data" => {
-        //             "orders" => array(
-        //                 array(
-        //                     "contract_type" => "swap",
-        //                     "business_type" => "swap",
-        //                     "pair" => "BTC-USDT",
-        //                     "symbol" => "BTC",
-        //                     "contract_code" => "BTC-USDT",
-        //                     "trigger_type" => "le",
-        //                     "volume" => 1.000000000000000000,
-        //                     "order_type" => 1,
-        //                     "direction" => "buy",
-        //                     "offset" => "open",
-        //                     "lever_rate" => 1,
-        //                     "order_id" => 1103670703588327424,
-        //                     "order_id_str" => "1103670703588327424",
-        //                     "order_source" => "web",
-        //                     "trigger_price" => 25000.000000000000000000,
-        //                     "order_price" => 24000.000000000000000000,
-        //                     "created_at" => 1683177200945,
-        //                     "order_price_type" => "limit",
-        //                     "status" => 2,
-        //                     "margin_mode" => "cross",
-        //                     "margin_account" => "USDT",
-        //                     "trade_partition" => "USDT",
-        //                     "reduce_only" => 0
+        //         "status": "ok",
+        //         "data": {
+        //             "orders": [
+        //                 {
+        //                     "contract_type": "swap",
+        //                     "business_type": "swap",
+        //                     "pair": "BTC-USDT",
+        //                     "symbol": "BTC",
+        //                     "contract_code": "BTC-USDT",
+        //                     "trigger_type": "le",
+        //                     "volume": 1.000000000000000000,
+        //                     "order_type": 1,
+        //                     "direction": "buy",
+        //                     "offset": "open",
+        //                     "lever_rate": 1,
+        //                     "order_id": 1103670703588327424,
+        //                     "order_id_str": "1103670703588327424",
+        //                     "order_source": "web",
+        //                     "trigger_price": 25000.000000000000000000,
+        //                     "order_price": 24000.000000000000000000,
+        //                     "created_at": 1683177200945,
+        //                     "order_price_type": "limit",
+        //                     "status": 2,
+        //                     "margin_mode": "cross",
+        //                     "margin_account": "USDT",
+        //                     "trade_partition": "USDT",
+        //                     "reduce_only": 0
         //                 }
-        //             ),
-        //             "total_page" => 1,
-        //             "current_page" => 1,
-        //             "total_size" => 1
-        //         ),
-        //         "ts" => 1683177805320
+        //             ],
+        //             "total_page": 1,
+        //             "current_page": 1,
+        //             "total_size": 1
+        //         },
+        //         "ts": 1683177805320
         //     }
         //
         // stop-loss and take-profit
         //
         //     {
-        //         "status" => "ok",
-        //         "data" => {
-        //             "orders" => array(
-        //                 array(
-        //                     "contract_type" => "swap",
-        //                     "business_type" => "swap",
-        //                     "pair" => "BTC-USDT",
-        //                     "symbol" => "BTC",
-        //                     "contract_code" => "BTC-USDT",
-        //                     "margin_mode" => "cross",
-        //                     "margin_account" => "USDT",
-        //                     "volume" => 1.000000000000000000,
-        //                     "order_type" => 1,
-        //                     "direction" => "sell",
-        //                     "order_id" => 1103680386844839936,
-        //                     "order_id_str" => "1103680386844839936",
-        //                     "order_source" => "web",
-        //                     "trigger_type" => "le",
-        //                     "trigger_price" => 25000.000000000000000000,
-        //                     "order_price" => 0E-18,
-        //                     "created_at" => 1683179509613,
-        //                     "order_price_type" => "market",
-        //                     "status" => 2,
-        //                     "tpsl_order_type" => "sl",
-        //                     "source_order_id" => null,
-        //                     "relation_tpsl_order_id" => "-1",
-        //                     "trade_partition" => "USDT"
+        //         "status": "ok",
+        //         "data": {
+        //             "orders": [
+        //                 {
+        //                     "contract_type": "swap",
+        //                     "business_type": "swap",
+        //                     "pair": "BTC-USDT",
+        //                     "symbol": "BTC",
+        //                     "contract_code": "BTC-USDT",
+        //                     "margin_mode": "cross",
+        //                     "margin_account": "USDT",
+        //                     "volume": 1.000000000000000000,
+        //                     "order_type": 1,
+        //                     "direction": "sell",
+        //                     "order_id": 1103680386844839936,
+        //                     "order_id_str": "1103680386844839936",
+        //                     "order_source": "web",
+        //                     "trigger_type": "le",
+        //                     "trigger_price": 25000.000000000000000000,
+        //                     "order_price": 0E-18,
+        //                     "created_at": 1683179509613,
+        //                     "order_price_type": "market",
+        //                     "status": 2,
+        //                     "tpsl_order_type": "sl",
+        //                     "source_order_id": null,
+        //                     "relation_tpsl_order_id": "-1",
+        //                     "trade_partition": "USDT"
         //                 }
-        //             ),
-        //             "total_page" => 1,
-        //             "current_page" => 1,
-        //             "total_size" => 1
-        //         ),
-        //         "ts" => 1683179527011
+        //             ],
+        //             "total_page": 1,
+        //             "current_page": 1,
+        //             "total_size": 1
+        //         },
+        //         "ts": 1683179527011
         //     }
         //
-        // $trailing
+        // trailing
         //
         //     {
-        //         "status" => "ok",
-        //         "data" => array(
-        //             "orders" => array(
-        //                 array(
-        //                     "contract_type" => "swap",
-        //                     "business_type" => "swap",
-        //                     "pair" => "BTC-USDT",
-        //                     "symbol" => "BTC",
-        //                     "contract_code" => "BTC-USDT",
-        //                     "volume" => 1.000000000000000000,
-        //                     "order_type" => 1,
-        //                     "direction" => "sell",
-        //                     "offset" => "close",
-        //                     "lever_rate" => 1,
-        //                     "order_id" => 1192021437253877761,
-        //                     "order_id_str" => "1192021437253877761",
-        //                     "order_source" => "api",
-        //                     "created_at" => 1704241657328,
-        //                     "order_price_type" => "formula_price",
-        //                     "status" => 2,
-        //                     "callback_rate" => 0.050000000000000000,
-        //                     "active_price" => 50000.000000000000000000,
-        //                     "is_active" => 0,
-        //                     "margin_mode" => "cross",
-        //                     "margin_account" => "USDT",
-        //                     "trade_partition" => "USDT",
-        //                     "reduce_only" => 1
-        //                 ),
-        //             ),
-        //             "total_page" => 1,
-        //             "current_page" => 1,
-        //             "total_size" => 2
-        //         ),
-        //         "ts" => 1704242440106
+        //         "status": "ok",
+        //         "data": {
+        //             "orders": [
+        //                 {
+        //                     "contract_type": "swap",
+        //                     "business_type": "swap",
+        //                     "pair": "BTC-USDT",
+        //                     "symbol": "BTC",
+        //                     "contract_code": "BTC-USDT",
+        //                     "volume": 1.000000000000000000,
+        //                     "order_type": 1,
+        //                     "direction": "sell",
+        //                     "offset": "close",
+        //                     "lever_rate": 1,
+        //                     "order_id": 1192021437253877761,
+        //                     "order_id_str": "1192021437253877761",
+        //                     "order_source": "api",
+        //                     "created_at": 1704241657328,
+        //                     "order_price_type": "formula_price",
+        //                     "status": 2,
+        //                     "callback_rate": 0.050000000000000000,
+        //                     "active_price": 50000.000000000000000000,
+        //                     "is_active": 0,
+        //                     "margin_mode": "cross",
+        //                     "margin_account": "USDT",
+        //                     "trade_partition": "USDT",
+        //                     "reduce_only": 1
+        //                 },
+        //             ],
+        //             "total_page": 1,
+        //             "current_page": 1,
+        //             "total_size": 2
+        //         },
+        //         "ts": 1704242440106
         //     }
         //
         // linear swap
         //
         //     {
-        //         "code" => 200,
-        //         "message" => "Success",
-        //         "data" => array(
+        //         "code": 200,
+        //         "message": "Success",
+        //         "data": [
         //             {
-        //                 "id" => "1512509978516443136",
-        //                 "side" => "buy",
-        //                 "type" => "limit",
-        //                 "price" => "30",
-        //                 "volume" => "1",
-        //                 "state" => "new",
-        //                 "profit" => null,
-        //                 "contract_code" => "LTC-USDT",
-        //                 "position_side" => "long",
-        //                 "price_match" => null,
-        //                 "order_id" => "1512509978516443136",
-        //                 "client_order_id" => "1512509978516443136",
-        //                 "margin_mode" => "isolated",
-        //                 "lever_rate" => 10,
-        //                 "order_source" => "api",
-        //                 "reduce_only" => false,
-        //                 "time_in_force" => "gtc",
-        //                 "tp_trigger_price" => "",
-        //                 "tp_order_price" => "",
-        //                 "tp_type" => "0",
-        //                 "tp_trigger_price_type" => "",
-        //                 "sl_trigger_price" => "",
-        //                 "sl_order_price" => "",
-        //                 "sl_type" => "0",
-        //                 "sl_trigger_price_type" => "",
-        //                 "trade_avg_price" => "0",
-        //                 "trade_volume" => "0",
-        //                 "trade_turnover" => "0",
-        //                 "fee_currency" => "",
-        //                 "fee" => "0",
-        //                 "price_protect" => false,
-        //                 "contract_type" => "swap",
-        //                 "created_time" => "1780652079954",
-        //                 "updated_time" => "1780652079954",
-        //                 "cancel_reason" => null,
-        //                 "self_match_prevent" => "cancel_taker"
+        //                 "id": "1512509978516443136",
+        //                 "side": "buy",
+        //                 "type": "limit",
+        //                 "price": "30",
+        //                 "volume": "1",
+        //                 "state": "new",
+        //                 "profit": null,
+        //                 "contract_code": "LTC-USDT",
+        //                 "position_side": "long",
+        //                 "price_match": null,
+        //                 "order_id": "1512509978516443136",
+        //                 "client_order_id": "1512509978516443136",
+        //                 "margin_mode": "isolated",
+        //                 "lever_rate": 10,
+        //                 "order_source": "api",
+        //                 "reduce_only": false,
+        //                 "time_in_force": "gtc",
+        //                 "tp_trigger_price": "",
+        //                 "tp_order_price": "",
+        //                 "tp_type": "0",
+        //                 "tp_trigger_price_type": "",
+        //                 "sl_trigger_price": "",
+        //                 "sl_order_price": "",
+        //                 "sl_type": "0",
+        //                 "sl_trigger_price_type": "",
+        //                 "trade_avg_price": "0",
+        //                 "trade_volume": "0",
+        //                 "trade_turnover": "0",
+        //                 "fee_currency": "",
+        //                 "fee": "0",
+        //                 "price_protect": false,
+        //                 "contract_type": "swap",
+        //                 "created_time": "1780652079954",
+        //                 "updated_time": "1780652079954",
+        //                 "cancel_reason": null,
+        //                 "self_match_prevent": "cancel_taker"
         //             }
-        //         ),
-        //         "ts" => 1780652167077
+        //         ],
+        //         "ts": 1780652167077
         //     }
         //
         // linear swap algo
         //
         //     {
-        //         "code" => 200,
-        //         "message" => "Success",
-        //         "data" => array(
+        //         "code": 200,
+        //         "message": "Success",
+        //         "data": [
         //             {
-        //                 "id" => "162173672",
-        //                 "volume" => "1",
-        //                 "type" => "tp",
-        //                 "state" => "active",
-        //                 "side" => "sell",
-        //                 "algo_id" => "1512871666507657216",
-        //                 "contract_code" => "BTC-USDT",
-        //                 "position_side" => "long",
-        //                 "margin_mode" => "cross",
-        //                 "created_time" => "1780738313091",
-        //                 "updated_time" => "1780738313187",
-        //                 "order_source" => "api",
-        //                 "tp_trigger_price" => "101000",
-        //                 "tp_order_price" => "0",
-        //                 "tp_type" => "market",
-        //                 "tp_trigger_price_type" => "last"
+        //                 "id": "162173672",
+        //                 "volume": "1",
+        //                 "type": "tp",
+        //                 "state": "active",
+        //                 "side": "sell",
+        //                 "algo_id": "1512871666507657216",
+        //                 "contract_code": "BTC-USDT",
+        //                 "position_side": "long",
+        //                 "margin_mode": "cross",
+        //                 "created_time": "1780738313091",
+        //                 "updated_time": "1780738313187",
+        //                 "order_source": "api",
+        //                 "tp_trigger_price": "101000",
+        //                 "tp_order_price": "0",
+        //                 "tp_type": "market",
+        //                 "tp_trigger_price_type": "last"
         //             }
-        //         ),
-        //         "ts" => 1780739390596
+        //         ],
+        //         "ts": 1780739390596
         //     }
         //
         $orders = $this->safe_value($response, 'data');
@@ -4848,203 +4848,203 @@ class htx extends Exchange {
         // spot
         //
         //     {
-        //         "id" =>  13997833014,
-        //         "symbol" => "ethbtc",
-        //         "account-$id" =>  3398321,
-        //         "amount" => "0.045000000000000000",
-        //         "price" => "0.034014000000000000",
-        //         "created-at" =>  1545836976871,
-        //         "type" => "sell-limit",
-        //         "field-$amount" => "0.045000000000000000", // they have fixed it for $filled-$amount
-        //         "field-cash-$amount" => "0.001530630000000000", // they have fixed it for $filled-cash-$amount
-        //         "field-fees" => "0.000003061260000000", // they have fixed it for $filled-fees
-        //         "finished-at" =>  1545837948214,
-        //         "source" => "spot-api",
-        //         "state" => "filled",
-        //         "canceled-at" =>  0
+        //         "id":  13997833014,
+        //         "symbol": "ethbtc",
+        //         "account-id":  3398321,
+        //         "amount": "0.045000000000000000",
+        //         "price": "0.034014000000000000",
+        //         "created-at":  1545836976871,
+        //         "type": "sell-limit",
+        //         "field-amount": "0.045000000000000000", // they have fixed it for filled-amount
+        //         "field-cash-amount": "0.001530630000000000", // they have fixed it for filled-cash-amount
+        //         "field-fees": "0.000003061260000000", // they have fixed it for filled-fees
+        //         "finished-at":  1545837948214,
+        //         "source": "spot-api",
+        //         "state": "filled",
+        //         "canceled-at":  0
         //     }
         //
         //     {
-        //         "id" =>  20395337822,
-        //         "symbol" => "ethbtc",
-        //         "account-$id" =>  5685075,
-        //         "amount" => "0.001000000000000000",
-        //         "price" => "0.0",
-        //         "created-at" =>  1545831584023,
-        //         "type" => "buy-$market",
-        //         "field-$amount" => "0.029100000000000000", // they have fixed it for $filled-$amount
-        //         "field-cash-$amount" => "0.000999788700000000", // they have fixed it for $filled-cash-$amount
-        //         "field-fees" => "0.000058200000000000", // they have fixed it for $filled-fees
-        //         "finished-at" =>  1545831584181,
-        //         "source" => "spot-api",
-        //         "state" => "filled",
-        //         "canceled-at" =>  0
+        //         "id":  20395337822,
+        //         "symbol": "ethbtc",
+        //         "account-id":  5685075,
+        //         "amount": "0.001000000000000000",
+        //         "price": "0.0",
+        //         "created-at":  1545831584023,
+        //         "type": "buy-market",
+        //         "field-amount": "0.029100000000000000", // they have fixed it for filled-amount
+        //         "field-cash-amount": "0.000999788700000000", // they have fixed it for filled-cash-amount
+        //         "field-fees": "0.000058200000000000", // they have fixed it for filled-fees
+        //         "finished-at":  1545831584181,
+        //         "source": "spot-api",
+        //         "state": "filled",
+        //         "canceled-at":  0
         //     }
         //
         // linear swap createOrder, closePosition
         //
         //     {
-        //         "order_id" => "1512501029504577536",
-        //         "client_order_id" => "1512501029504577536"
+        //         "order_id": "1512501029504577536",
+        //         "client_order_id": "1512501029504577536"
         //     }
         //
         // linear swap algo createOrder
         //
         //     {
-        //         "algo_id" => "1512871666507657216",
-        //         "algo_client_order_id" => null
+        //         "algo_id": "1512871666507657216",
+        //         "algo_client_order_id": null
         //     }
         //
-        // future and swap => fetchOrders
+        // future and swap: fetchOrders
         //
         //     {
-        //         "order_id" => 773131315209248768,
-        //         "contract_code" => "ADA201225",
-        //         "symbol" => "ADA",
-        //         "lever_rate" => 20,
-        //         "direction" => "buy",
-        //         "offset" => "close",
-        //         "volume" => 1,
-        //         "price" => 0.0925,
-        //         "create_date" => 1604370469629,
-        //         "update_time" => 1603704221118,
-        //         "order_source" => "web",
-        //         "order_price_type" => 6,
-        //         "order_type" => 1,
-        //         "margin_frozen" => 0,
-        //         "profit" => 0,
-        //         "contract_type" => "quarter",
-        //         "trade_volume" => 0,
-        //         "trade_turnover" => 0,
-        //         "fee" => 0,
-        //         "trade_avg_price" => 0,
-        //         "status" => 3,
-        //         "order_id_str" => "773131315209248768",
-        //         "fee_asset" => "ADA",
-        //         "liquidation_type" => "0",
-        //         "is_tpsl" => 0,
-        //         "real_profit" => 0
-        //         "margin_asset" => "USDT",
-        //         "margin_mode" => "cross",
-        //         "margin_account" => "USDT",
-        //         "trade_partition" => "USDT", // only in isolated & cross of linear
-        //         "reduce_only" => "1", // only in isolated & cross of linear
-        //         "contract_type" => "quarter", // only in cross-margin (inverse & linear)
-        //         "pair" => "BTC-USDT", // only in cross-margin (inverse & linear)
-        //         "business_type" => "futures" // only in cross-margin (inverse & linear)
+        //         "order_id": 773131315209248768,
+        //         "contract_code": "ADA201225",
+        //         "symbol": "ADA",
+        //         "lever_rate": 20,
+        //         "direction": "buy",
+        //         "offset": "close",
+        //         "volume": 1,
+        //         "price": 0.0925,
+        //         "create_date": 1604370469629,
+        //         "update_time": 1603704221118,
+        //         "order_source": "web",
+        //         "order_price_type": 6,
+        //         "order_type": 1,
+        //         "margin_frozen": 0,
+        //         "profit": 0,
+        //         "contract_type": "quarter",
+        //         "trade_volume": 0,
+        //         "trade_turnover": 0,
+        //         "fee": 0,
+        //         "trade_avg_price": 0,
+        //         "status": 3,
+        //         "order_id_str": "773131315209248768",
+        //         "fee_asset": "ADA",
+        //         "liquidation_type": "0",
+        //         "is_tpsl": 0,
+        //         "real_profit": 0
+        //         "margin_asset": "USDT",
+        //         "margin_mode": "cross",
+        //         "margin_account": "USDT",
+        //         "trade_partition": "USDT", // only in isolated & cross of linear
+        //         "reduce_only": "1", // only in isolated & cross of linear
+        //         "contract_type": "quarter", // only in cross-margin (inverse & linear)
+        //         "pair": "BTC-USDT", // only in cross-margin (inverse & linear)
+        //         "business_type": "futures" // only in cross-margin (inverse & linear)
         //     }
         //
-        // spot => createOrders
+        // spot: createOrders
         //
-        //     array(
-        //         array(
-        //             "order-$id" => 936847569789079,
-        //             "client-$order-$id" => "AA03022abc3a55e82c-0087-4fc2-beac-112fdebb1ee9"
-        //         ),
+        //     [
         //         {
-        //             "client-$order-$id" => "AA03022abcdb3baefb-3cfa-4891-8009-082b3d46ca82",
-        //             "err-code" => "account-frozen-balance-insufficient-error",
-        //             "err-msg" => "trade account balance is not enough, left => `89`"
-        //         }
-        //     )
-        //
-        // swap and future => createOrders
-        //
-        //     array(
-        //         array(
-        //             "index" => 2,
-        //             "err_code" => 1047,
-        //             "err_msg" => "Insufficient margin available."
-        //         ),
+        //             "order-id": 936847569789079,
+        //             "client-order-id": "AA03022abc3a55e82c-0087-4fc2-beac-112fdebb1ee9"
+        //         },
         //         {
-        //             "order_id" => 1172923090632953857,
-        //             "index" => 1,
-        //             "order_id_str" => "1172923090632953857"
+        //             "client-order-id": "AA03022abcdb3baefb-3cfa-4891-8009-082b3d46ca82",
+        //             "err-code": "account-frozen-balance-insufficient-error",
+        //             "err-msg": "trade account balance is not enough, left: `89`"
         //         }
-        //     )
+        //     ]
+        //
+        // swap and future: createOrders
+        //
+        //     [
+        //         {
+        //             "index": 2,
+        //             "err_code": 1047,
+        //             "err_msg": "Insufficient margin available."
+        //         },
+        //         {
+        //             "order_id": 1172923090632953857,
+        //             "index": 1,
+        //             "order_id_str": "1172923090632953857"
+        //         }
+        //     ]
         //
         // linear swap fetchOpenOrders, fetchOrder, fetchOrders
         //
         //     {
-        //         "id" => "1512509978516443136",
-        //         "side" => "buy",
-        //         "type" => "limit",
-        //         "price" => "30",
-        //         "volume" => "1",
-        //         "state" => "new",
-        //         "profit" => null,
-        //         "contract_code" => "LTC-USDT",
-        //         "position_side" => "long",
-        //         "price_match" => null,
-        //         "order_id" => "1512509978516443136",
-        //         "client_order_id" => "1512509978516443136",
-        //         "margin_mode" => "isolated",
-        //         "lever_rate" => 10,
-        //         "order_source" => "api",
-        //         "reduce_only" => false,
-        //         "time_in_force" => "gtc",
-        //         "tp_trigger_price" => "",
-        //         "tp_order_price" => "",
-        //         "tp_type" => "0",
-        //         "tp_trigger_price_type" => "",
-        //         "sl_trigger_price" => "",
-        //         "sl_order_price" => "",
-        //         "sl_type" => "0",
-        //         "sl_trigger_price_type" => "",
-        //         "trade_avg_price" => "0",
-        //         "trade_volume" => "0",
-        //         "trade_turnover" => "0",
-        //         "fee_currency" => "",
-        //         "fee" => "0",
-        //         "price_protect" => false,
-        //         "real_profit" => null,
-        //         "contract_type" => "swap",
-        //         "created_time" => "1780652079954",
-        //         "updated_time" => "1780652079954",
-        //         "cancel_reason" => null,
-        //         "self_match_prevent" => "cancel_taker"
+        //         "id": "1512509978516443136",
+        //         "side": "buy",
+        //         "type": "limit",
+        //         "price": "30",
+        //         "volume": "1",
+        //         "state": "new",
+        //         "profit": null,
+        //         "contract_code": "LTC-USDT",
+        //         "position_side": "long",
+        //         "price_match": null,
+        //         "order_id": "1512509978516443136",
+        //         "client_order_id": "1512509978516443136",
+        //         "margin_mode": "isolated",
+        //         "lever_rate": 10,
+        //         "order_source": "api",
+        //         "reduce_only": false,
+        //         "time_in_force": "gtc",
+        //         "tp_trigger_price": "",
+        //         "tp_order_price": "",
+        //         "tp_type": "0",
+        //         "tp_trigger_price_type": "",
+        //         "sl_trigger_price": "",
+        //         "sl_order_price": "",
+        //         "sl_type": "0",
+        //         "sl_trigger_price_type": "",
+        //         "trade_avg_price": "0",
+        //         "trade_volume": "0",
+        //         "trade_turnover": "0",
+        //         "fee_currency": "",
+        //         "fee": "0",
+        //         "price_protect": false,
+        //         "real_profit": null,
+        //         "contract_type": "swap",
+        //         "created_time": "1780652079954",
+        //         "updated_time": "1780652079954",
+        //         "cancel_reason": null,
+        //         "self_match_prevent": "cancel_taker"
         //     }
         //
         // linear swap algo fetchOpenOrders, fetchOrder, fetchOrders
         //
         //     {
-        //         "id" => "162173672",
-        //         "volume" => "1",
-        //         "type" => "tp",
-        //         "state" => "active",
-        //         "side" => "sell",
-        //         "algo_id" => "1512871666507657216",
-        //         "contract_code" => "BTC-USDT",
-        //         "position_side" => "long",
-        //         "margin_mode" => "cross",
-        //         "created_time" => "1780738313091",
-        //         "updated_time" => "1780738313187",
-        //         "order_source" => "api",
-        //         "tp_trigger_price" => "101000",
-        //         "tp_order_price" => "0",
-        //         "tp_type" => "market",
-        //         "tp_trigger_price_type" => "last"
+        //         "id": "162173672",
+        //         "volume": "1",
+        //         "type": "tp",
+        //         "state": "active",
+        //         "side": "sell",
+        //         "algo_id": "1512871666507657216",
+        //         "contract_code": "BTC-USDT",
+        //         "position_side": "long",
+        //         "margin_mode": "cross",
+        //         "created_time": "1780738313091",
+        //         "updated_time": "1780738313187",
+        //         "order_source": "api",
+        //         "tp_trigger_price": "101000",
+        //         "tp_order_price": "0",
+        //         "tp_type": "market",
+        //         "tp_trigger_price_type": "last"
         //     }
         //
         // linear swap trailing fetchOpenOrders, fetchOrder, fetchOrders
         //
         //     {
-        //         "id" => "1163773",
-        //         "volume" => "1",
-        //         "type" => "trailing_stop",
-        //         "state" => "active",
-        //         "side" => "sell",
-        //         "algo_id" => "1512889773167009792",
-        //         "contract_code" => "BTC-USDT",
-        //         "position_side" => "long",
-        //         "margin_mode" => "cross",
-        //         "created_time" => "1780742630055",
-        //         "updated_time" => "1780742630223",
-        //         "order_source" => "api",
-        //         "active_price" => "90000",
-        //         "callback_rate" => "0.05",
-        //         "reduce_only" => true,
-        //         "order_price_type" => "formula_price"
+        //         "id": "1163773",
+        //         "volume": "1",
+        //         "type": "trailing_stop",
+        //         "state": "active",
+        //         "side": "sell",
+        //         "algo_id": "1512889773167009792",
+        //         "contract_code": "BTC-USDT",
+        //         "position_side": "long",
+        //         "margin_mode": "cross",
+        //         "created_time": "1780742630055",
+        //         "updated_time": "1780742630223",
+        //         "order_source": "api",
+        //         "active_price": "90000",
+        //         "callback_rate": "0.05",
+        //         "reduce_only": true,
+        //         "order_price_type": "formula_price"
         //     }
         //
         $marketId = $this->safe_string_2($order, 'contract_code', 'symbol');
@@ -5090,9 +5090,9 @@ class htx extends Exchange {
             $amount = $this->safe_string_2($order, 'volume', 'amount');
             $cost = $this->safe_string_n($order, array( 'filled-cash-amount', 'field-cash-amount', 'trade_turnover' )); // same typo here
         }
-        $filled = $this->safe_string_n($order, array( 'filled-amount', 'field-amount', 'trade_volume' )); // typo in their API, $filled $amount
+        $filled = $this->safe_string_n($order, array( 'filled-amount', 'field-amount', 'trade_volume' )); // typo in their API, filled amount
         $price = $this->safe_string_2($order, 'price', 'order_price');
-        $feeCost = $this->safe_string_2($order, 'filled-fees', 'field-fees'); // typo in their API, $filled feeSide
+        $feeCost = $this->safe_string_2($order, 'filled-fees', 'field-fees'); // typo in their API, filled feeSide
         $feeCost = $this->safe_string($order, 'fee', $feeCost);
         $fee = null;
         if (($feeCost !== null) && ($feeCost !== '0') && ($feeCost !== '0.0')) {
@@ -5237,20 +5237,20 @@ class htx extends Exchange {
             // spot -----------------------------------------------------------
             'account-id' => $accountId,
             'symbol' => $market['id'],
-            // 'type' => $side . '-' . $type, // buy-$market, sell-$market, buy-limit, sell-limit, buy-ioc, sell-ioc, buy-limit-maker, sell-limit-maker, buy-stop-limit, sell-stop-limit, buy-limit-fok, sell-limit-fok, buy-stop-limit-fok, sell-stop-limit-fok
-            // 'amount' => $this->amount_to_precision($symbol, $amount), // for buy $market orders it's the order $cost
-            // 'price' => $this->price_to_precision($symbol, $price),
-            // 'source' => 'spot-api', // optional, spot-api, margin-api = isolated margin, super-margin-api = cross margin, c2c-margin-api
-            // 'client-order-id' => $clientOrderId, // optional, max 64 chars, must be unique within 8 hours
-            // 'stop-price' => $this->price_to_precision($symbol, stopPrice), // trigger $price for stop limit orders
-            // 'operator' => 'gte', // gte, lte, trigger $price condition
+            // 'type': side + '-' + type, // buy-market, sell-market, buy-limit, sell-limit, buy-ioc, sell-ioc, buy-limit-maker, sell-limit-maker, buy-stop-limit, sell-stop-limit, buy-limit-fok, sell-limit-fok, buy-stop-limit-fok, sell-stop-limit-fok
+            // 'amount': this.amountToPrecision (symbol, amount), // for buy market orders it's the order cost
+            // 'price': this.priceToPrecision (symbol, price),
+            // 'source': 'spot-api', // optional, spot-api, margin-api = isolated margin, super-margin-api = cross margin, c2c-margin-api
+            // 'client-order-id': clientOrderId, // optional, max 64 chars, must be unique within 8 hours
+            // 'stop-price': this.priceToPrecision (symbol, stopPrice), // trigger price for stop limit orders
+            // 'operator': 'gte', // gte, lte, trigger price condition
         );
         $orderType = str_replace('buy-', '', $type);
         $orderType = str_replace('sell-', '', $orderType);
         $options = $this->safe_value($this->options, $market['type'], array());
         $triggerPrice = $this->safe_string_n($params, array( 'triggerPrice', 'stopPrice', 'stop-price' ));
         if ($triggerPrice === null) {
-            $stopOrderTypes = $this->safe_value($options, 'stopOrderTypes', array());
+            $stopOrderTypes = $this->safe_dict($options, 'stopOrderTypes', array());
             if (is_array($stopOrderTypes) && array_key_exists($orderType ?? '', $stopOrderTypes)) {
                 throw new ArgumentsRequired($this->id . ' createOrder() requires a $triggerPrice for a trigger order');
             }
@@ -5304,12 +5304,12 @@ class htx extends Exchange {
                 if ($price === null) {
                     throw new InvalidOrder($this->id . ' createOrder() requires the $price argument for $market buy orders to calculate the total $cost to spend ($amount * $price), alternatively set the $createMarketBuyOrderRequiresPrice option or param to false and pass the $cost to spend in the $amount argument');
                 } else {
-                    // despite that $cost = $amount * $price is in quote currency and should have quote precision
-                    // the exchange API requires the $cost supplied in 'amount' to be of base precision
+                    // despite that cost = amount * price is in quote currency and should have quote precision
+                    // the exchange API requires the cost supplied in 'amount' to be of base precision
                     // more about it here:
                     // https://github.com/ccxt/ccxt/pull/4395
                     // https://github.com/ccxt/ccxt/issues/7611
-                    // we use amountToPrecision here because the exchange requires $cost in base precision
+                    // we use amountToPrecision here because the exchange requires cost in base precision
                     $amountString = $this->number_to_string($amount);
                     $priceString = $this->number_to_string($price);
                     $quoteAmount = $this->amount_to_precision($symbol, Precise::string_mul($amountString, $priceString));
@@ -5321,7 +5321,7 @@ class htx extends Exchange {
         } else {
             $request['amount'] = $this->amount_to_precision($symbol, $amount);
         }
-        $limitOrderTypes = $this->safe_value($options, 'limitOrderTypes', array());
+        $limitOrderTypes = $this->safe_dict($options, 'limitOrderTypes', array());
         if (is_array($limitOrderTypes) && array_key_exists($orderType ?? '', $limitOrderTypes)) {
             $request['price'] = $this->price_to_precision($symbol, $price);
         }
@@ -5630,57 +5630,57 @@ class htx extends Exchange {
         //
         // spot
         //
-        //     array("status":"ok","data":"438398393065481")
+        //     {"status":"ok","data":"438398393065481"}
         //
         // swap and future
         //
         //     {
-        //         "status" => "ok",
-        //         "data" => array(
-        //             "order_id" => 924660854912552960,
-        //             "order_id_str" => "924660854912552960"
-        //         ),
-        //         "ts" => 1640497927185
+        //         "status": "ok",
+        //         "data": {
+        //             "order_id": 924660854912552960,
+        //             "order_id_str": "924660854912552960"
+        //         },
+        //         "ts": 1640497927185
         //     }
         //
         // linear swap
         //
         //     {
-        //         "code" => 200,
-        //         "message" => "Success",
-        //         "data" => array(
-        //             "order_id" => "1512501029504577536",
-        //             "client_order_id" => "1512501029504577536"
-        //         ),
-        //         "ts" => 1780649946353
+        //         "code": 200,
+        //         "message": "Success",
+        //         "data": {
+        //             "order_id": "1512501029504577536",
+        //             "client_order_id": "1512501029504577536"
+        //         },
+        //         "ts": 1780649946353
         //     }
         //
         // linear swap algo
         //
         //     {
-        //         "code" => 200,
-        //         "message" => "Success",
-        //         "data" => array(
+        //         "code": 200,
+        //         "message": "Success",
+        //         "data": [
         //             {
-        //                 "algo_id" => "1512871666507657216",
-        //                 "algo_client_order_id" => null
+        //                 "algo_id": "1512871666507657216",
+        //                 "algo_client_order_id": null
         //             }
-        //         ),
-        //         "ts" => 1780738313102
+        //         ],
+        //         "ts": 1780738313102
         //     }
         //
         // stop-loss and take-profit
         //
         //     {
-        //         "status" => "ok",
-        //         "data" => array(
-        //             "tp_order" => array(
-        //                 "order_id" => 1101494204040163328,
-        //                 "order_id_str" => "1101494204040163328"
-        //             ),
-        //             "sl_order" => null
-        //         ),
-        //         "ts" => :1682658283024
+        //         "status": "ok",
+        //         "data": {
+        //             "tp_order": {
+        //                 "order_id": 1101494204040163328,
+        //                 "order_id_str": "1101494204040163328"
+        //             },
+        //             "sl_order": null
+        //         },
+        //         "ts": :1682658283024
         //     }
         //
         $data = null;
@@ -5817,63 +5817,63 @@ class htx extends Exchange {
         // spot
         //
         //     {
-        //         "status" => "ok",
-        //         "data" => array(
-        //             array(
-        //                 "order-id" => 936847569789079,
-        //                 "client-order-id" => "AA03022abc3a55e82c-0087-4fc2-beac-112fdebb1ee9"
-        //             ),
+        //         "status": "ok",
+        //         "data": [
         //             {
-        //                 "client-order-id" => "AA03022abcdb3baefb-3cfa-4891-8009-082b3d46ca82",
-        //                 "err-code" => "account-frozen-balance-insufficient-error",
-        //                 "err-msg" => "trade account balance is not enough, left => `89`"
+        //                 "order-id": 936847569789079,
+        //                 "client-order-id": "AA03022abc3a55e82c-0087-4fc2-beac-112fdebb1ee9"
+        //             },
+        //             {
+        //                 "client-order-id": "AA03022abcdb3baefb-3cfa-4891-8009-082b3d46ca82",
+        //                 "err-code": "account-frozen-balance-insufficient-error",
+        //                 "err-msg": "trade account balance is not enough, left: `89`"
         //             }
-        //         )
+        //         ]
         //     }
         //
         // swap and future
         //
         //     {
-        //         "status" => "ok",
-        //         "data" => {
-        //             "errors" => array(
+        //         "status": "ok",
+        //         "data": {
+        //             "errors": [
         //                 {
-        //                     "index" => 2,
-        //                     "err_code" => 1047,
-        //                     "err_msg" => "Insufficient margin available."
+        //                     "index": 2,
+        //                     "err_code": 1047,
+        //                     "err_msg": "Insufficient margin available."
         //                 }
-        //             ),
-        //             "success" => array(
-        //                 array(
-        //                     "order_id" => 1172923090632953857,
-        //                     "index" => 1,
-        //                     "order_id_str" => "1172923090632953857"
+        //             ],
+        //             "success": [
+        //                 {
+        //                     "order_id": 1172923090632953857,
+        //                     "index": 1,
+        //                     "order_id_str": "1172923090632953857"
         //                 }
-        //             )
-        //         ),
-        //         "ts" => 1699688256671
+        //             ]
+        //         },
+        //         "ts": 1699688256671
         //     }
         //
         // linear swap
         //
         //     {
-        //         "code" => 200,
-        //         "message" => "Success",
-        //         "data" => array(
-        //             array(
-        //                 "code" => 200,
-        //                 "message" => "Success",
-        //                 "order_id" => "1513217421638275072",
-        //                 "client_order_id" => "1513217421638275072"
-        //             ),
+        //         "code": 200,
+        //         "message": "Success",
+        //         "data": [
         //             {
-        //                 "code" => 200,
-        //                 "message" => "Success",
-        //                 "order_id" => "1513217421638275073",
-        //                 "client_order_id" => "1513217421638275073"
+        //                 "code": 200,
+        //                 "message": "Success",
+        //                 "order_id": "1513217421638275072",
+        //                 "client_order_id": "1513217421638275072"
+        //             },
+        //             {
+        //                 "code": 200,
+        //                 "message": "Success",
+        //                 "order_id": "1513217421638275073",
+        //                 "client_order_id": "1513217421638275073"
         //             }
-        //         ),
-        //         "ts" => 1780820747555
+        //         ],
+        //         "ts": 1780820747555
         //     }
         //
         //
@@ -5929,15 +5929,15 @@ class htx extends Exchange {
         $isLinear = ($subType === 'linear');
         $request = array(
             // spot -----------------------------------------------------------
-            // 'order-id' => 'id',
-            // 'symbol' => $market['id'],
-            // 'client-order-id' => $clientOrderId,
+            // 'order-id': 'id',
+            // 'symbol': market['id'],
+            // 'client-order-id': clientOrderId,
             // contracts ------------------------------------------------------
-            // 'order_id' => $id,
-            // 'client_order_id' => $clientOrderId,
-            // 'contract_code' => $market['id'],
-            // 'pair' => 'BTC-USDT',
-            // 'contract_type' => 'this_week', // swap, this_week, next_week, quarter, next_ quarter
+            // 'order_id': id,
+            // 'client_order_id': clientOrderId,
+            // 'contract_code': market['id'],
+            // 'pair': 'BTC-USDT',
+            // 'contract_type': 'this_week', // swap, this_week, next_week, quarter, next_ quarter
         );
         $trigger = $this->safe_bool_2($params, 'stop', 'trigger');
         $stopLossTakeProfit = $this->safe_bool_n($params, array( 'stopLossTakeProfit', 'stopLoss', 'takeProfit' ));
@@ -6019,47 +6019,47 @@ class htx extends Exchange {
         // spot
         //
         //     {
-        //         "status" => "ok",
-        //         "data" => "10138899000",
+        //         "status": "ok",
+        //         "data": "10138899000",
         //     }
         //
         // future and swap
         //
         //     {
-        //         "status" => "ok",
-        //         "data" => array(
-        //             "errors" => array(),
-        //             "successes" => "924660854912552960"
-        //         ),
-        //         "ts" => 1640504486089
+        //         "status": "ok",
+        //         "data": {
+        //             "errors": [],
+        //             "successes": "924660854912552960"
+        //         },
+        //         "ts": 1640504486089
         //     }
         //
         // linear swap
         //
         //     {
-        //         "code" => 200,
-        //         "data" => array(
-        //             "client_order_id" => "1512509978516443136",
-        //             "order_id" => "1512509978516443136"
-        //         ),
-        //         "message" => "Success",
-        //         "ts" => 1780653244729
+        //         "code": 200,
+        //         "data": {
+        //             "client_order_id": "1512509978516443136",
+        //             "order_id": "1512509978516443136"
+        //         },
+        //         "message": "Success",
+        //         "ts": 1780653244729
         //     }
         //
         // linear swap algo
         //
         //     {
-        //         "code" => 200,
-        //         "data" => array(
-        //             array(
-        //                 "algo_client_order_id" => "1329854623927160832",
-        //                 "code" => 200,
-        //                 "message" => "Success",
-        //                 "algo_id" => "1329854623927160832"
-        //             ),
-        //         ),
-        //         "message" => "Success",
-        //         "ts" => 1737103890390
+        //         "code": 200,
+        //         "data": [
+        //             {
+        //                 "algo_client_order_id": "1329854623927160832",
+        //                 "code": 200,
+        //                 "message": "Success",
+        //                 "algo_id": "1329854623927160832"
+        //             },
+        //         ],
+        //         "message": "Success",
+        //         "ts": 1737103890390
         //     }
         //
         $result = null;
@@ -6110,13 +6110,13 @@ class htx extends Exchange {
         list($marketType, $params) = $this->handle_market_type_and_params('cancelOrders', $market, $params);
         $request = array(
             // spot -----------------------------------------------------------
-            // 'order-ids' => implode(',', $ids), // max 50
-            // 'client-order-ids' => implode(',', $ids), // max 50
+            // 'order-ids': ids.join (','), // max 50
+            // 'client-order-ids': ids.join (','), // max 50
             // contracts ------------------------------------------------------
-            // 'order_id' => id, // comma separated, max 10
-            // 'client_order_id' => clientOrderId, // comma separated, max 10
-            // 'contract_code' => $market['id'],
-            // 'symbol' => $market['settleId'],
+            // 'order_id': id, // comma separated, max 10
+            // 'client_order_id': clientOrderId, // comma separated, max 10
+            // 'contract_code': market['id'],
+            // 'symbol': market['settleId'],
         );
         $trigger = $this->safe_bool_2($params, 'stop', 'trigger');
         $stopLossTakeProfit = $this->safe_value($params, 'stopLossTakeProfit');
@@ -6196,73 +6196,73 @@ class htx extends Exchange {
         // spot
         //
         //     {
-        //         "status" => "ok",
-        //         "data" => {
-        //             "success" => array(
+        //         "status": "ok",
+        //         "data": {
+        //             "success": [
         //                 "5983466"
-        //             ),
-        //             "failed" => array(
-        //                 array(
-        //                     "err-msg" => "Incorrect order state",
-        //                     "order-state" => 7,
-        //                     "order-id" => "",
-        //                     "err-code" => "order-orderstate-error",
-        //                     "client-order-id" => "first"
-        //                 ),
-        //                 array(
-        //                     "err-msg" => "Incorrect order state",
-        //                     "order-state" => 7,
-        //                     "order-id" => "",
-        //                     "err-code" => "order-orderstate-error",
-        //                     "client-order-id" => "second"
-        //                 ),
+        //             ],
+        //             "failed": [
         //                 {
-        //                     "err-msg" => "The record is not found.",
-        //                     "order-id" => "",
-        //                     "err-code" => "base-not-found",
-        //                     "client-order-id" => "third"
+        //                     "err-msg": "Incorrect order state",
+        //                     "order-state": 7,
+        //                     "order-id": "",
+        //                     "err-code": "order-orderstate-error",
+        //                     "client-order-id": "first"
+        //                 },
+        //                 {
+        //                     "err-msg": "Incorrect order state",
+        //                     "order-state": 7,
+        //                     "order-id": "",
+        //                     "err-code": "order-orderstate-error",
+        //                     "client-order-id": "second"
+        //                 },
+        //                 {
+        //                     "err-msg": "The record is not found.",
+        //                     "order-id": "",
+        //                     "err-code": "base-not-found",
+        //                     "client-order-id": "third"
         //                 }
-        //             )
+        //             ]
         //         }
         //     }
         //
         // future and swap
         //
         //     {
-        //         "status" => "ok",
-        //         "data" => {
-        //             "errors" => array(
-        //                 array(
-        //                     "order_id" => "769206471845261312",
-        //                     "err_code" => 1061,
-        //                     "err_msg" => "This order doesnt exist."
+        //         "status": "ok",
+        //         "data": {
+        //             "errors": [
+        //                 {
+        //                     "order_id": "769206471845261312",
+        //                     "err_code": 1061,
+        //                     "err_msg": "This order doesnt exist."
         //                 }
-        //             ),
-        //             "successes" => "773120304138219520"
-        //         ),
-        //         "ts" => 1604367997451
+        //             ],
+        //             "successes": "773120304138219520"
+        //         },
+        //         "ts": 1604367997451
         //     }
         //
         // linear swap
         //
         //     {
-        //         "code" => 200,
-        //         "message" => "Success",
-        //         "data" => array(
-        //             array(
-        //                 "code" => 200,
-        //                 "message" => "Success",
-        //                 "order_id" => "1513217421638275072",
-        //                 "client_order_id" => "1513217421638275072"
-        //             ),
+        //         "code": 200,
+        //         "message": "Success",
+        //         "data": [
         //             {
-        //                 "code" => 200,
-        //                 "message" => "Success",
-        //                 "order_id" => "1513217421638275073",
-        //                 "client_order_id" => "1513217421638275073"
+        //                 "code": 200,
+        //                 "message": "Success",
+        //                 "order_id": "1513217421638275072",
+        //                 "client_order_id": "1513217421638275072"
+        //             },
+        //             {
+        //                 "code": 200,
+        //                 "message": "Success",
+        //                 "order_id": "1513217421638275073",
+        //                 "client_order_id": "1513217421638275073"
         //             }
-        //         ),
-        //         "ts" => 1780822053167
+        //         ],
+        //         "ts": 1780822053167
         //     }
         //
         if (($this->safe_bool($market, 'linear') === true) && ($trigger !== true) && ($stopLossTakeProfit !== true)) {
@@ -6275,52 +6275,52 @@ class htx extends Exchange {
     public function parse_cancel_orders(mixed $orders) {
         //
         //    {
-        //        "success" => array(
+        //        "success": [
         //            "5983466"
-        //        ),
-        //        "failed" => array(
-        //            array(
-        //                "err-msg" => "Incorrect $order state",
-        //                "order-state" => 7,
-        //                "order-id" => "",
-        //                "err-code" => "order-orderstate-error",
-        //                "client-$order-id" => "first"
-        //            ),
+        //        ],
+        //        "failed": [
+        //            {
+        //                "err-msg": "Incorrect order state",
+        //                "order-state": 7,
+        //                "order-id": "",
+        //                "err-code": "order-orderstate-error",
+        //                "client-order-id": "first"
+        //            },
         //            ...
-        //        )
+        //        ]
         //    }
         //
         //    {
-        //        "errors" => array(
+        //        "errors": [
         //            {
-        //                "order_id" => "769206471845261312",
-        //                "err_code" => 1061,
-        //                "err_msg" => "This $order doesnt exist."
+        //                "order_id": "769206471845261312",
+        //                "err_code": 1061,
+        //                "err_msg": "This order doesnt exist."
         //            }
-        //        ),
-        //        "successes" => "1258075374411399168,1258075393254871040"
+        //        ],
+        //        "successes": "1258075374411399168,1258075393254871040"
         //    }
         //
         // linear swap
         //
         //     {
-        //         "code" => 200,
-        //         "message" => "Success",
-        //         "data" => array(
-        //             array(
-        //                 "code" => 200,
-        //                 "message" => "Success",
-        //                 "order_id" => "1513217421638275072",
-        //                 "client_order_id" => "1513217421638275072"
-        //             ),
+        //         "code": 200,
+        //         "message": "Success",
+        //         "data": [
         //             {
-        //                 "code" => 200,
-        //                 "message" => "Success",
-        //                 "order_id" => "1513217421638275073",
-        //                 "client_order_id" => "1513217421638275073"
+        //                 "code": 200,
+        //                 "message": "Success",
+        //                 "order_id": "1513217421638275072",
+        //                 "client_order_id": "1513217421638275072"
+        //             },
+        //             {
+        //                 "code": 200,
+        //                 "message": "Success",
+        //                 "order_id": "1513217421638275073",
+        //                 "client_order_id": "1513217421638275073"
         //             }
-        //         ),
-        //         "ts" => 1780822053167
+        //         ],
+        //         "ts": 1780822053167
         //     }
         //
         $successes = $this->safe_string($orders, 'successes');
@@ -6390,17 +6390,17 @@ class htx extends Exchange {
         list($marketType, $params) = $this->handle_market_type_and_params('cancelAllOrders', $market, $params);
         $request = array(
             // spot -----------------------------------------------------------
-            // 'account-id' => account['id'],
-            // 'symbol' => $market['id'], // a list of comma-separated symbols, all symbols by default
-            // 'types' 'string', buy-$market, sell-$market, buy-limit, sell-limit, buy-ioc, sell-ioc, buy-stop-limit, sell-stop-limit, buy-limit-fok, sell-limit-fok, buy-stop-limit-fok, sell-stop-limit-fok
-            // 'side' => 'buy', // or 'sell'
-            // 'size' => 100, // the number of orders to cancel 1-100
+            // 'account-id': account['id'],
+            // 'symbol': market['id'], // a list of comma-separated symbols, all symbols by default
+            // 'types' 'string', buy-market, sell-market, buy-limit, sell-limit, buy-ioc, sell-ioc, buy-stop-limit, sell-stop-limit, buy-limit-fok, sell-limit-fok, buy-stop-limit-fok, sell-stop-limit-fok
+            // 'side': 'buy', // or 'sell'
+            // 'size': 100, // the number of orders to cancel 1-100
             // contract -------------------------------------------------------
-            // 'symbol' => $market['settleId'], // required
-            // 'contract_code' => $market['id'],
-            // 'contract_type' => 'this_week', // swap, this_week, next_week, quarter, next_ quarter
-            // 'direction' => 'buy' => // buy, sell
-            // 'offset' => 'open', // open, close
+            // 'symbol': market['settleId'], // required
+            // 'contract_code': market['id'],
+            // 'contract_type': 'this_week', // swap, this_week, next_week, quarter, next_ quarter
+            // 'direction': 'buy': // buy, sell
+            // 'offset': 'open', // open, close
         );
         $response = null;
         if ($marketType === 'spot') {
@@ -6410,11 +6410,11 @@ class htx extends Exchange {
             $response = Async\await($this->spotPrivatePostV1OrderOrdersBatchCancelOpenOrders($this->extend($request, $params)));
             //
             //     {
-            //         "code" => 200,
-            //         "data" => {
-            //             "success-count" => 2,
-            //             "failed-count" => 0,
-            //             "next-id" => 5454600
+            //         "code": 200,
+            //         "data": {
+            //             "success-count": 2,
+            //             "failed-count": 0,
+            //             "next-id": 5454600
             //         }
             //     }
             //
@@ -6440,17 +6440,17 @@ class htx extends Exchange {
                 $response = Async\await($this->contractPrivatePostV5TradeCancelAllOrders($this->extend($request, $params)));
                 //
                 //     {
-                //         "code" => 200,
-                //         "message" => "Success",
-                //         "data" => array(
-                //             array(
-                //                 "code" => 200,
-                //                 "message" => "Success",
-                //                 "order_id" => "1513547991763062784",
-                //                 "client_order_id" => "1513547991763062784"
-                //             ),
-                //         ),
-                //         "ts" => 1780899655629
+                //         "code": 200,
+                //         "message": "Success",
+                //         "data": [
+                //             {
+                //                 "code": 200,
+                //                 "message": "Success",
+                //                 "order_id": "1513547991763062784",
+                //                 "client_order_id": "1513547991763062784"
+                //             },
+                //         ],
+                //         "ts": 1780899655629
                 //     }
                 //
             } elseif ($this->safe_bool($market, 'inverse') === true) {
@@ -6480,12 +6480,12 @@ class htx extends Exchange {
             }
             //
             //     {
-            //         "status" => "ok",
-            //         "data" => array(
-            //             "errors" => array(),
-            //             "successes" => "1104754904426696704"
-            //         ),
-            //         "ts" => "1683435723755"
+            //         "status": "ok",
+            //         "data": {
+            //             "errors": [],
+            //             "successes": "1104754904426696704"
+            //         },
+            //         "ts": "1683435723755"
             //     }
             //
             if (($this->safe_bool($market, 'linear') === true) && (($trigger !== true) && ($trailing !== true) && ($stopLossTakeProfit !== true))) {
@@ -6522,11 +6522,11 @@ class htx extends Exchange {
         $response = Async\await($this->v2PrivatePostAlgoOrdersCancelAllAfter($this->extend($request, $params)));
         //
         //     {
-        //         "code" => 200,
-        //         "message" => "success",
-        //         "data" => {
-        //             "currentTime" => 1630491627230,
-        //             "triggerTime" => 1630491637230
+        //         "code": 200,
+        //         "message": "success",
+        //         "data": {
+        //             "currentTime": 1630491627230,
+        //             "triggerTime": 1630491637230
         //         }
         //     }
         //
@@ -6536,10 +6536,10 @@ class htx extends Exchange {
     public function parse_deposit_address(mixed $depositAddress, ?array $currency = null) {
         //
         //     {
-        //         "currency" => "usdt",
-        //         "address" => "0xf7292eb9ba7bc50358e27f0e025a4d225a64127b",
-        //         "addressTag" => "",
-        //         "chain" => "usdterc20", // trc20usdt, hrc20usdt, usdt, algousdt
+        //         "currency": "usdt",
+        //         "address": "0xf7292eb9ba7bc50358e27f0e025a4d225a64127b",
+        //         "addressTag": "",
+        //         "chain": "usdterc20", // trc20usdt, hrc20usdt, usdt, algousdt
         //     }
         //
         $address = $this->safe_string($depositAddress, 'address');
@@ -6584,15 +6584,15 @@ class htx extends Exchange {
         $response = Async\await($this->spotPrivateGetV2AccountDepositAddress($this->extend($request, $params)));
         //
         //     {
-        //         "code" => 200,
-        //         "data" => array(
+        //         "code": 200,
+        //         "data": [
         //             {
-        //                 "currency" => "eth",
-        //                 "address" => "0xf7292eb9ba7bc50358e27f0e025a4d225a64127b",
-        //                 "addressTag" => "",
-        //                 "chain" => "eth"
+        //                 "currency": "eth",
+        //                 "address": "0xf7292eb9ba7bc50358e27f0e025a4d225a64127b",
+        //                 "addressTag": "",
+        //                 "chain": "eth"
         //             }
-        //         )
+        //         ]
         //     }
         //
         $data = $this->safe_value($response, 'data', array());
@@ -6639,16 +6639,16 @@ class htx extends Exchange {
         $response = Async\await($this->spotPrivateGetV2AccountWithdrawAddress($this->extend($request, $params)));
         //
         //     {
-        //         "code" => 200,
-        //         "data" => array(
+        //         "code": 200,
+        //         "data": [
         //             {
-        //                 "currency" => "eth",
-        //                 "chain" => "eth"
-        //                 "note" => "Binance - TRC20",
-        //                 "addressTag" => "",
-        //                 "address" => "0xf7292eb9ba7bc50358e27f0e025a4d225a64127b",
+        //                 "currency": "eth",
+        //                 "chain": "eth"
+        //                 "note": "Binance - TRC20",
+        //                 "addressTag": "",
+        //                 "address": "0xf7292eb9ba7bc50358e27f0e025a4d225a64127b",
         //             }
-        //         )
+        //         ]
         //     }
         //
         $data = $this->safe_value($response, 'data', array());
@@ -6694,7 +6694,7 @@ class htx extends Exchange {
         $request = array(
             'type' => 'deposit',
             'direct' => 'next',
-            'from' => 0, // From 'id' ... if you want to get results after a particular transaction id, pass the id in $params->from
+            'from' => 0, // From 'id' ... if you want to get results after a particular transaction id, pass the id in params.from
         );
         if ($currency !== null) {
             $request['currency'] = $currency['id'];
@@ -6705,28 +6705,28 @@ class htx extends Exchange {
         $response = Async\await($this->spotPrivateGetV1QueryDepositWithdraw($this->extend($request, $params)));
         //
         //    {
-        //         "status" => "ok",
-        //         "data" => array(
-        //             array(
-        //                 "id" => "75115912",
-        //                 "type" => "deposit",
-        //                 "sub-type" => "NORMAL",
-        //                 "request-id" => "trc20usdt-a2e229a44ef2a948c874366230bb56aa73631cc0a03d177bd8b4c9d38262d7ff-200",
-        //                 "currency" => "usdt",
-        //                 "chain" => "trc20usdt",
-        //                 "tx-hash" => "a2e229a44ef2a948c874366230bb56aa73631cc0a03d177bd8b4c9d38262d7ff",
-        //                 "amount" => "12.000000000000000000",
-        //                 "from-addr-tag" => "",
-        //                 "address-id" => "0",
-        //                 "address" => "TRFTd1FxepQE6CnpwzUEMEbFaLm5bJK67s",
-        //                 "address-tag" => "",
-        //                 "fee" => "0",
-        //                 "state" => "safe",
-        //                 "wallet-confirm" => "2",
-        //                 "created-at" => "1621843808662",
-        //                 "updated-at" => "1621843857137"
-        //             ),
-        //         )
+        //         "status": "ok",
+        //         "data": [
+        //             {
+        //                 "id": "75115912",
+        //                 "type": "deposit",
+        //                 "sub-type": "NORMAL",
+        //                 "request-id": "trc20usdt-a2e229a44ef2a948c874366230bb56aa73631cc0a03d177bd8b4c9d38262d7ff-200",
+        //                 "currency": "usdt",
+        //                 "chain": "trc20usdt",
+        //                 "tx-hash": "a2e229a44ef2a948c874366230bb56aa73631cc0a03d177bd8b4c9d38262d7ff",
+        //                 "amount": "12.000000000000000000",
+        //                 "from-addr-tag": "",
+        //                 "address-id": "0",
+        //                 "address": "TRFTd1FxepQE6CnpwzUEMEbFaLm5bJK67s",
+        //                 "address-tag": "",
+        //                 "fee": "0",
+        //                 "state": "safe",
+        //                 "wallet-confirm": "2",
+        //                 "created-at": "1621843808662",
+        //                 "updated-at": "1621843857137"
+        //             },
+        //         ]
         //     }
         //
         $data = $this->safe_list($response, 'data', array());
@@ -6762,7 +6762,7 @@ class htx extends Exchange {
         $request = array(
             'type' => 'withdraw',
             'direct' => 'next',
-            'from' => 0, // From 'id' ... if you want to get results after a particular transaction id, pass the id in $params->from
+            'from' => 0, // From 'id' ... if you want to get results after a particular transaction id, pass the id in params.from
         );
         if ($currency !== null) {
             $request['currency'] = $currency['id'];
@@ -6773,26 +6773,26 @@ class htx extends Exchange {
         $response = Async\await($this->spotPrivateGetV1QueryDepositWithdraw($this->extend($request, $params)));
         //
         //    {
-        //         "status" => "ok",
-        //         "data" => array(
-        //             array(
-        //                 "id" => "61335312",
-        //                 "type" => "withdraw",
-        //                 "sub-type" => "NORMAL",
-        //                 "currency" => "usdt",
-        //                 "chain" => "trc20usdt",
-        //                 "tx-hash" => "30a3111f2fead74fae45c6218ca3150fc33cab2aa59cfe41526b96aae79ce4ec",
-        //                 "amount" => "12.000000000000000000",
-        //                 "from-addr-tag" => "",
-        //                 "address-id" => "27321591",
-        //                 "address" => "TRf5JacJQRsF4Nm2zu11W6maDGeiEWQu9e",
-        //                 "address-tag" => "",
-        //                 "fee" => "1.000000000000000000",
-        //                 "state" => "confirmed",
-        //                 "created-at" => "1621852316553",
-        //                 "updated-at" => "1621852467041"
-        //             ),
-        //         )
+        //         "status": "ok",
+        //         "data": [
+        //             {
+        //                 "id": "61335312",
+        //                 "type": "withdraw",
+        //                 "sub-type": "NORMAL",
+        //                 "currency": "usdt",
+        //                 "chain": "trc20usdt",
+        //                 "tx-hash": "30a3111f2fead74fae45c6218ca3150fc33cab2aa59cfe41526b96aae79ce4ec",
+        //                 "amount": "12.000000000000000000",
+        //                 "from-addr-tag": "",
+        //                 "address-id": "27321591",
+        //                 "address": "TRf5JacJQRsF4Nm2zu11W6maDGeiEWQu9e",
+        //                 "address-tag": "",
+        //                 "fee": "1.000000000000000000",
+        //                 "state": "confirmed",
+        //                 "created-at": "1621852316553",
+        //                 "updated-at": "1621852467041"
+        //             },
+        //         ]
         //     }
         //
         $data = $this->safe_list($response, 'data', array());
@@ -6803,51 +6803,51 @@ class htx extends Exchange {
         //
         // fetchDeposits
         //
-        //     array(
-        //         "id" => "75115912",
-        //         "type" => "deposit",
-        //         "sub-$type" => "NORMAL",
-        //         "request-id" => "trc20usdt-a2e229a44ef2a948c874366230bb56aa73631cc0a03d177bd8b4c9d38262d7ff-200",
-        //         "currency" => "usdt",
-        //         "chain" => "trc20usdt",
-        //         "tx-hash" => "a2e229a44ef2a948c874366230bb56aa73631cc0a03d177bd8b4c9d38262d7ff",
-        //         "amount" => "2849.000000000000000000",
-        //         "from-addr-tag" => "",
-        //         "address-id" => "0",
-        //         "address" => "TRFTd1FxepQE6CnpwzUEMEbFaLm5bJK67s",
-        //         "address-tag" => "",
-        //         "fee" => "0",
-        //         "state" => "safe",
-        //         "wallet-confirm" => "2",
-        //         "created-at" => "1621843808662",
-        //         "updated-at" => "1621843857137"
-        //     ),
+        //     {
+        //         "id": "75115912",
+        //         "type": "deposit",
+        //         "sub-type": "NORMAL",
+        //         "request-id": "trc20usdt-a2e229a44ef2a948c874366230bb56aa73631cc0a03d177bd8b4c9d38262d7ff-200",
+        //         "currency": "usdt",
+        //         "chain": "trc20usdt",
+        //         "tx-hash": "a2e229a44ef2a948c874366230bb56aa73631cc0a03d177bd8b4c9d38262d7ff",
+        //         "amount": "2849.000000000000000000",
+        //         "from-addr-tag": "",
+        //         "address-id": "0",
+        //         "address": "TRFTd1FxepQE6CnpwzUEMEbFaLm5bJK67s",
+        //         "address-tag": "",
+        //         "fee": "0",
+        //         "state": "safe",
+        //         "wallet-confirm": "2",
+        //         "created-at": "1621843808662",
+        //         "updated-at": "1621843857137"
+        //     },
         //
         // fetchWithdrawals
         //
         //     {
-        //         "id" => "61335312",
-        //         "type" => "withdraw",
-        //         "sub-$type" => "NORMAL",
-        //         "currency" => "usdt",
-        //         "chain" => "trc20usdt",
-        //         "tx-hash" => "30a3111f2fead74fae45c6218ca3150fc33cab2aa59cfe41526b96aae79ce4ec",
-        //         "amount" => "12.000000000000000000",
-        //         "from-addr-tag" => "",
-        //         "address-id" => "27321591",
-        //         "address" => "TRf5JacJQRsF4Nm2zu11W6maDGeiEWQu9e",
-        //         "address-tag" => "",
-        //         "fee" => "1.000000000000000000",
-        //         "state" => "confirmed",
-        //         "created-at" => "1621852316553",
-        //         "updated-at" => "1621852467041"
+        //         "id": "61335312",
+        //         "type": "withdraw",
+        //         "sub-type": "NORMAL",
+        //         "currency": "usdt",
+        //         "chain": "trc20usdt",
+        //         "tx-hash": "30a3111f2fead74fae45c6218ca3150fc33cab2aa59cfe41526b96aae79ce4ec",
+        //         "amount": "12.000000000000000000",
+        //         "from-addr-tag": "",
+        //         "address-id": "27321591",
+        //         "address": "TRf5JacJQRsF4Nm2zu11W6maDGeiEWQu9e",
+        //         "address-tag": "",
+        //         "fee": "1.000000000000000000",
+        //         "state": "confirmed",
+        //         "created-at": "1621852316553",
+        //         "updated-at": "1621852467041"
         //     }
         //
         // withdraw
         //
         //     {
-        //         "status" => "ok",
-        //         "data" => "99562054"
+        //         "status": "ok",
+        //         "data": "99562054"
         //     }
         //
         $timestamp = $this->safe_integer($transaction, 'created-at');
@@ -6900,20 +6900,20 @@ class htx extends Exchange {
 
     public function parse_transaction_status(?string $status) {
         $statuses = array(
-            // deposit $statuses
+            // deposit statuses
             'unknown' => 'failed',
             'confirming' => 'pending',
             'confirmed' => 'ok',
             'safe' => 'ok',
             'orphan' => 'failed',
-            // withdrawal $statuses
+            // withdrawal statuses
             'submitted' => 'pending',
             'canceled' => 'canceled',
             'reexamine' => 'pending',
             'reject' => 'failed',
             'pass' => 'pending',
             'wallet-reject' => 'failed',
-            // 'confirmed' => 'ok', // present in deposit $statuses
+            // 'confirmed': 'ok', // present in deposit statuses
             'confirm-error' => 'failed',
             'repealed' => 'failed',
             'wallet-transfer' => 'pending',
@@ -6947,7 +6947,7 @@ class htx extends Exchange {
         $this->check_address($address);
         $currency = $this->currency($code);
         $request = array(
-            'address' => $address, // only supports existing addresses in your withdraw $address list
+            'address' => $address, // only supports existing addresses in your withdraw address list
             'currency' => strtolower($currency['id']),
         );
         if ($tag !== null) {
@@ -6975,7 +6975,7 @@ class htx extends Exchange {
                     throw new ArgumentsRequired($this->id . ' withdraw() function can not find withdraw $fee for chosen network. You need to re-load markets with "exchange.loadMarkets(true)", or provide the "fee" parameter');
                 }
             }
-            // $fee needs to be deducted from whole $amount
+            // fee needs to be deducted from whole amount
             $feeString = $this->currency_to_precision($code, $fee, $networkCode);
             $params = $this->omit($params, 'fee');
             $amountString = $this->number_to_string($amount);
@@ -7000,8 +7000,8 @@ class htx extends Exchange {
         $response = Async\await($this->spotPrivatePostV1DwWithdrawApiCreate($this->extend($request, $params)));
         //
         //     {
-        //         "status" => "ok",
-        //         "data" => "99562054"
+        //         "status": "ok",
+        //         "data": "99562054"
         //     }
         //
         return $this->parse_transaction($response, $currency);
@@ -7009,26 +7009,26 @@ class htx extends Exchange {
 
     public function parse_transfer(array $transfer, ?array $currency = null): array {
         //
-        // $transfer
+        // transfer
         //
         //     {
-        //         "data" => 12345,
-        //         "status" => "ok"
+        //         "data": 12345,
+        //         "status": "ok"
         //     }
         //
         // fetchTransfers
         //
         //     {
-        //         "id" => 12345,
-        //         "transfer_id" => "12345",
-        //         "amount" => "10",
-        //         "currency" => "USDT",
-        //         "status" => "success",
-        //         "from_account_type" => "spot",
-        //         "to_account_type" => "margin",
-        //         "from_asset_type" => "",
-        //         "to_asset_type" => "ETHUSDT",
-        //         "transfer_time" => 1770357494000
+        //         "id": 12345,
+        //         "transfer_id": "12345",
+        //         "amount": "10",
+        //         "currency": "USDT",
+        //         "status": "success",
+        //         "from_account_type": "spot",
+        //         "to_account_type": "margin",
+        //         "from_asset_type": "",
+        //         "to_asset_type": "ETHUSDT",
+        //         "transfer_time": 1770357494000
         //     }
         //
         $accountsById = $this->safe_dict($this->options, 'accountsById', array());
@@ -7153,11 +7153,11 @@ class htx extends Exchange {
         }
         //
         //    {
-        //        "code" => "200",
-        //        "data" => "660150061",
-        //        "message" => "Succeed",
-        //        "success" => true,
-        //        "print-log" => true
+        //        "code": "200",
+        //        "data": "660150061",
+        //        "message": "Succeed",
+        //        "success": true,
+        //        "print-log": true
         //    }
         //
         if ($response === null) {
@@ -7209,22 +7209,22 @@ class htx extends Exchange {
         $response = Async\await($this->spotPrivateGetV5AccountUniversalTransferRecords($this->extend($request, $params)));
         //
         //     {
-        //         "code" => 200,
-        //         "message" => "Success",
-        //         "data" => array(
+        //         "code": 200,
+        //         "message": "Success",
+        //         "data": [
         //             {
-        //                 "id" => 12345,
-        //                 "transfer_id" => "12345",
-        //                 "amount" => "10",
-        //                 "currency" => "USDT",
-        //                 "status" => "success",
-        //                 "from_account_type" => "spot",
-        //                 "to_account_type" => "margin",
-        //                 "from_asset_type" => "",
-        //                 "to_asset_type" => "ETHUSDT",
-        //                 "transfer_time" => 1770357494000
+        //                 "id": 12345,
+        //                 "transfer_id": "12345",
+        //                 "amount": "10",
+        //                 "currency": "USDT",
+        //                 "status": "success",
+        //                 "from_account_type": "spot",
+        //                 "to_account_type": "margin",
+        //                 "from_asset_type": "",
+        //                 "to_asset_type": "ETHUSDT",
+        //                 "transfer_time": 1770357494000
         //             }
-        //         )
+        //         ]
         //     }
         //
         $data = $this->safe_list($response, 'data', array());
@@ -7250,31 +7250,31 @@ class htx extends Exchange {
         $response = Async\await($this->spotPrivateGetV1MarginLoanInfo($params));
         //
         // {
-        //     "status" => "ok",
-        //     "data" => array(
+        //     "status": "ok",
+        //     "data": [
         //         {
-        //             "symbol" => "1inchusdt",
-        //             "currencies" => array(
-        //                 array(
-        //                     "currency" => "1inch",
-        //                     "interest-rate" => "0.00098",
-        //                     "min-loan-amt" => "90.000000000000000000",
-        //                     "max-loan-amt" => "1000.000000000000000000",
-        //                     "loanable-amt" => "0.0",
-        //                     "actual-rate" => "0.00098"
-        //                 ),
-        //                 array(
-        //                     "currency" => "usdt",
-        //                     "interest-rate" => "0.00098",
-        //                     "min-loan-amt" => "100.000000000000000000",
-        //                     "max-loan-amt" => "1000.000000000000000000",
-        //                     "loanable-amt" => "0.0",
-        //                     "actual-rate" => "0.00098"
+        //             "symbol": "1inchusdt",
+        //             "currencies": [
+        //                 {
+        //                     "currency": "1inch",
+        //                     "interest-rate": "0.00098",
+        //                     "min-loan-amt": "90.000000000000000000",
+        //                     "max-loan-amt": "1000.000000000000000000",
+        //                     "loanable-amt": "0.0",
+        //                     "actual-rate": "0.00098"
+        //                 },
+        //                 {
+        //                     "currency": "usdt",
+        //                     "interest-rate": "0.00098",
+        //                     "min-loan-amt": "100.000000000000000000",
+        //                     "max-loan-amt": "1000.000000000000000000",
+        //                     "loanable-amt": "0.0",
+        //                     "actual-rate": "0.00098"
         //                 }
-        //             )
-        //         ),
+        //             ]
+        //         },
         //         ...
-        //     )
+        //     ]
         // }
         //
         $data = $this->safe_value($response, 'data', array());
@@ -7284,26 +7284,26 @@ class htx extends Exchange {
     public function parse_isolated_borrow_rate(array $info, ?array $market = null): array {
         //
         //     {
-        //         "symbol" => "1inchusdt",
-        //         "currencies" => array(
-        //             array(
-        //                 "currency" => "1inch",
-        //                 "interest-rate" => "0.00098",
-        //                 "min-loan-amt" => "90.000000000000000000",
-        //                 "max-loan-amt" => "1000.000000000000000000",
-        //                 "loanable-amt" => "0.0",
-        //                 "actual-rate" => "0.00098"
-        //             ),
-        //             array(
-        //                 "currency" => "usdt",
-        //                 "interest-rate" => "0.00098",
-        //                 "min-loan-amt" => "100.000000000000000000",
-        //                 "max-loan-amt" => "1000.000000000000000000",
-        //                 "loanable-amt" => "0.0",
-        //                 "actual-rate" => "0.00098"
+        //         "symbol": "1inchusdt",
+        //         "currencies": [
+        //             {
+        //                 "currency": "1inch",
+        //                 "interest-rate": "0.00098",
+        //                 "min-loan-amt": "90.000000000000000000",
+        //                 "max-loan-amt": "1000.000000000000000000",
+        //                 "loanable-amt": "0.0",
+        //                 "actual-rate": "0.00098"
+        //             },
+        //             {
+        //                 "currency": "usdt",
+        //                 "interest-rate": "0.00098",
+        //                 "min-loan-amt": "100.000000000000000000",
+        //                 "max-loan-amt": "1000.000000000000000000",
+        //                 "loanable-amt": "0.0",
+        //                 "actual-rate": "0.00098"
         //             }
-        //         )
-        //     ),
+        //         ]
+        //     },
         //
         $marketId = $this->safe_string($info, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market);
@@ -7378,41 +7378,41 @@ class htx extends Exchange {
             $response = Async\await($this->contractPublicGetSwapApiV1SwapHistoricalFundingRate($this->extend($request, $params)));
             //
             //     {
-            //         "status" => "ok",
-            //         "data" => {
-            //             "total_page" => 6810,
-            //             "current_page" => 1,
-            //             "total_size" => 6810,
-            //             "data" => array(
-            //                 array(
-            //                     "avg_premium_index" => "0.000149696771643437",
-            //                     "funding_rate" => "0.000100000000000000",
-            //                     "realized_rate" => null,
-            //                     "funding_time" => "1781251200000",
-            //                     "contract_code" => "BTC-USD",
-            //                     "symbol" => "BTC",
-            //                     "fee_asset" => "BTC"
+            //         "status": "ok",
+            //         "data": {
+            //             "total_page": 6810,
+            //             "current_page": 1,
+            //             "total_size": 6810,
+            //             "data": [
+            //                 {
+            //                     "avg_premium_index": "0.000149696771643437",
+            //                     "funding_rate": "0.000100000000000000",
+            //                     "realized_rate": null,
+            //                     "funding_time": "1781251200000",
+            //                     "contract_code": "BTC-USD",
+            //                     "symbol": "BTC",
+            //                     "fee_asset": "BTC"
             //                 }
-            //             )
-            //         ),
-            //         "ts" => 1781254828066
+            //             ]
+            //         },
+            //         "ts": 1781254828066
             //     }
             //
         } elseif ($market['linear'] === true) {
             $response = Async\await($this->contractPublicGetV5MarketFundingRateHistory($this->extend($request, $params)));
             //
             //     {
-            //         "code" => 200,
-            //         "message" => "Success",
-            //         "data" => array(
+            //         "code": 200,
+            //         "message": "Success",
+            //         "data": [
             //             {
-            //                 "id" => "1",
-            //                 "contract_code" => "BTC-USDT",
-            //                 "funding_rate" => "0.0001",
-            //                 "funding_time" => "1603296000000"
+            //                 "id": "1",
+            //                 "contract_code": "BTC-USDT",
+            //                 "funding_rate": "0.0001",
+            //                 "funding_time": "1603296000000"
             //             }
-            //         ),
-            //         "ts" => 1781254621720
+            //         ],
+            //         "ts": 1781254621720
             //     }
             //
         } else {
@@ -7436,7 +7436,7 @@ class htx extends Exchange {
             }
         } else {
             $cursor = $this->safe_value($data, 'current_page');
-            $result = $this->safe_value($data, 'data', array());
+            $result = $this->safe_list($data, 'data', array());
             for ($i = 0; $i < count($result); $i++) {
                 $entry = $result[$i];
                 $entry['current_page'] = $cursor;
@@ -7461,24 +7461,24 @@ class htx extends Exchange {
         // inverse swap
         //
         //     {
-        //         "estimated_rate" => null,
-        //         "funding_rate" => "0.000100000000000000",
-        //         "contract_code" => "BTC-USD",
-        //         "symbol" => "BTC",
-        //         "fee_asset" => "BTC",
-        //         "funding_time" => "1781280000000",
-        //         "next_funding_time" => null
+        //         "estimated_rate": null,
+        //         "funding_rate": "0.000100000000000000",
+        //         "contract_code": "BTC-USD",
+        //         "symbol": "BTC",
+        //         "fee_asset": "BTC",
+        //         "funding_time": "1781280000000",
+        //         "next_funding_time": null
         //     }
         //
         // linear swap
         //
         //     {
-        //         "contract_code" => "BTC-USDT",
-        //         "funding_rate" => "0.000083024939363172",
-        //         "funding_time" => "1781251200000",
-        //         "next_funding_time" => "1781280000000",
-        //         "min_funding_rate" => "-0.003750000000000000",
-        //         "max_funding_rate" => "0.003750000000000000"
+        //         "contract_code": "BTC-USDT",
+        //         "funding_rate": "0.000083024939363172",
+        //         "funding_time": "1781251200000",
+        //         "next_funding_time": "1781280000000",
+        //         "min_funding_rate": "-0.003750000000000000",
+        //         "max_funding_rate": "0.003750000000000000"
         //     }
         //
         $nextFundingRate = $this->safe_number($contract, 'estimated_rate');
@@ -7549,36 +7549,36 @@ class htx extends Exchange {
             $response = Async\await($this->contractPublicGetSwapApiV1SwapFundingRate($this->extend($request, $params)));
             //
             //     {
-            //         "status" => "ok",
-            //         "data" => array(
-            //             "estimated_rate" => null,
-            //             "funding_rate" => "0.000100000000000000",
-            //             "contract_code" => "BTC-USD",
-            //             "symbol" => "BTC",
-            //             "fee_asset" => "BTC",
-            //             "funding_time" => "1781280000000",
-            //             "next_funding_time" => null
-            //         ),
-            //         "ts" => 1781254404101
+            //         "status": "ok",
+            //         "data": {
+            //             "estimated_rate": null,
+            //             "funding_rate": "0.000100000000000000",
+            //             "contract_code": "BTC-USD",
+            //             "symbol": "BTC",
+            //             "fee_asset": "BTC",
+            //             "funding_time": "1781280000000",
+            //             "next_funding_time": null
+            //         },
+            //         "ts": 1781254404101
             //     }
             //
         } elseif ($market['linear'] === true) {
             $response = Async\await($this->contractPublicGetV5MarketFundingRate($this->extend($request, $params)));
             //
             //     {
-            //         "code" => 200,
-            //         "message" => "Success",
-            //         "data" => array(
+            //         "code": 200,
+            //         "message": "Success",
+            //         "data": [
             //             {
-            //                 "contract_code" => "BTC-USDT",
-            //                 "funding_rate" => "0.000083024939363172",
-            //                 "funding_time" => "1781251200000",
-            //                 "next_funding_time" => "1781280000000",
-            //                 "min_funding_rate" => "-0.003750000000000000",
-            //                 "max_funding_rate" => "0.003750000000000000"
+            //                 "contract_code": "BTC-USDT",
+            //                 "funding_rate": "0.000083024939363172",
+            //                 "funding_time": "1781251200000",
+            //                 "next_funding_time": "1781280000000",
+            //                 "min_funding_rate": "-0.003750000000000000",
+            //                 "max_funding_rate": "0.003750000000000000"
             //             }
-            //         ),
-            //         "ts" => 1781235318758
+            //         ],
+            //         "ts": 1781235318758
             //     }
             //
         } else {
@@ -7622,7 +7622,7 @@ class htx extends Exchange {
             $subType = ($isLinear === true) ? 'linear' : 'inverse';
         }
         $request = array(
-            // 'contract_code' => $market['id'],
+            // 'contract_code': market['id'],
         );
         $response = null;
         if ($subType === 'linear') {
@@ -7634,20 +7634,20 @@ class htx extends Exchange {
         }
         //
         //     {
-        //         "status" => "ok",
-        //         "data" => array(
-        //             array(
-        //                 "estimated_rate" => "0.000100000000000000",
-        //                 "funding_rate" => "0.000100000000000000",
-        //                 "contract_code" => "MANA-USDT",
-        //                 "symbol" => "MANA",
-        //                 "fee_asset" => "USDT",
-        //                 "funding_time" => "1643356800000",
-        //                 "next_funding_time" => "1643385600000",
+        //         "status": "ok",
+        //         "data": [
+        //             {
+        //                 "estimated_rate": "0.000100000000000000",
+        //                 "funding_rate": "0.000100000000000000",
+        //                 "contract_code": "MANA-USDT",
+        //                 "symbol": "MANA",
+        //                 "fee_asset": "USDT",
+        //                 "funding_time": "1643356800000",
+        //                 "next_funding_time": "1643385600000",
         //                 "trade_partition":"USDT"
-        //             ),
-        //         ),
-        //         "ts" => 1643346173103
+        //             },
+        //         ],
+        //         "ts": 1643346173103
         //     }
         //
         $data = $this->safe_value($response, 'data', array());
@@ -7703,7 +7703,7 @@ class htx extends Exchange {
         //
         //    {
         //        "status":"ok",
-        //        "data":array(
+        //        "data":[
         //            {
         //                "loan-balance":"0.100000000000000000",
         //                "interest-balance":"0.000200000000000000",
@@ -7719,7 +7719,7 @@ class htx extends Exchange {
         //                "user-id":119913,
         //                "created-at":1511169724531
         //            }
-        //        )
+        //        ]
         //    }
         //
         $data = $this->safe_value($response, 'data');
@@ -7855,7 +7855,7 @@ class htx extends Exchange {
             )) . $url;
         } else {
             // signing implementation for the new endpoints
-            // list($type, $access) = $api;
+            // const [ type, access ] = api;
             $type = $this->safe_string($api, 0);
             $access = $this->safe_string($api, 1);
             $levelOneNestedPath = $this->safe_string($api, 2);
@@ -7902,7 +7902,7 @@ class htx extends Exchange {
                     'AccessKeyId' => $this->apiKey,
                     'Timestamp' => $timestamp,
                 );
-                // sorting needs such flow exactly, before urlencoding (more at => https://github.com/ccxt/ccxt/issues/24930 )
+                // sorting needs such flow exactly, before urlencoding (more at: https://github.com/ccxt/ccxt/issues/24930 )
                 $request = $this->keysort($request);
                 if ($method !== 'POST') {
                     $sortedQuery = $this->keysort($query);
@@ -7949,8 +7949,8 @@ class htx extends Exchange {
         }
         if (is_array($response) && array_key_exists('status' ?? '', $response)) {
             //
-            //     array("status":"error","err-$code":"o-amount-min-error","err-msg":"limit order amount error, min => `0.001`","data":null)
-            //     array("status":"ok","data":array("errors":[array("order_id":"1349442392365359104","err_code":1061,"err_msg":"The order does not exist.")],"successes":""),"ts":1741773744526)
+            //     {"status":"error","err-code":"o-amount-min-error","err-msg":"limit order amount error, min: `0.001`","data":null}
+            //     {"status":"ok","data":{"errors":[{"order_id":"1349442392365359104","err_code":1061,"err_msg":"The order does not exist."}],"successes":""},"ts":1741773744526}
             //
             $status = $this->safe_string($response, 'status');
             if ($status === 'error') {
@@ -7964,7 +7964,7 @@ class htx extends Exchange {
             }
         }
         if (is_array($response) && array_key_exists('code' ?? '', $response)) {
-            // array($code => '1003', $message => 'invalid signature')
+            // {code: '1003', message: 'invalid signature'}
             $feedback = $this->id . ' ' . $body;
             $code = $this->safe_string($response, 'code');
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $code, $feedback);
@@ -8032,42 +8032,42 @@ class htx extends Exchange {
                 $response = Async\await($this->contractPrivateGetV5AccountBills($this->extend($request, $params)));
                 //
                 //     {
-                //         "code" => 200,
-                //         "message" => "Success",
-                //         "data" => array(
-                //             array(
-                //                 "id" => "2194774775",
-                //                 "type" => "30",
-                //                 "currency" => "USDT",
-                //                 "amount" => "0.000433432461821856",
-                //                 "contract_code" => "BTC-USDT",
-                //                 "margin_mode" => "cross",
-                //                 "created_time" => "1780963213165"
-                //             ),
-                //         ),
-                //         "ts" => 1781772448836
+                //         "code": 200,
+                //         "message": "Success",
+                //         "data": [
+                //             {
+                //                 "id": "2194774775",
+                //                 "type": "30",
+                //                 "currency": "USDT",
+                //                 "amount": "0.000433432461821856",
+                //                 "contract_code": "BTC-USDT",
+                //                 "margin_mode": "cross",
+                //                 "created_time": "1780963213165"
+                //             },
+                //         ],
+                //         "ts": 1781772448836
                 //     }
                 //
             } else {
                 $request['contract'] = $market['id'];
                 //
                 //     {
-                //         "code" => 200,
-                //         "msg" => "",
-                //         "data" => array(
+                //         "code": 200,
+                //         "msg": "",
+                //         "data": [
                 //             {
-                //                 "query_id" => 138798248,
-                //                 "id" => 117840,
-                //                 "type" => 5,
-                //                 "amount" => -0.024464850000000000,
-                //                 "ts" => 1638758435635,
-                //                 "contract_code" => "BTC-USDT-211210",
-                //                 "asset" => "USDT",
-                //                 "margin_account" => "USDT",
-                //                 "face_margin_account" => ""
+                //                 "query_id": 138798248,
+                //                 "id": 117840,
+                //                 "type": 5,
+                //                 "amount": -0.024464850000000000,
+                //                 "ts": 1638758435635,
+                //                 "contract_code": "BTC-USDT-211210",
+                //                 "asset": "USDT",
+                //                 "margin_account": "USDT",
+                //                 "face_margin_account": ""
                 //             }
-                //         ),
-                //         "ts" => 1604312615051
+                //         ],
+                //         "ts": 1604312615051
                 //     }
                 //
                 $response = Async\await($this->contractPrivatePostSwapApiV3SwapFinancialRecordExact($this->extend($request, $params)));
@@ -8123,14 +8123,14 @@ class htx extends Exchange {
             $response = Async\await($this->contractPrivatePostV5PositionLever($this->extend($request, $query)));
             //
             //     {
-            //          "code" => 200,
-            //          "message" => "Success",
-            //          "data" => array(
-            //             "contract_code" => "BTC-USDT",
-            //             "margin_mode" => "cross",
-            //             "lever_rate" => 10
-            //         ),
-            //         "ts" => 1781233510379
+            //          "code": 200,
+            //          "message": "Success",
+            //          "data": {
+            //             "contract_code": "BTC-USDT",
+            //             "margin_mode": "cross",
+            //             "lever_rate": 10
+            //         },
+            //         "ts": 1781233510379
             //     }
             //
         } else {
@@ -8144,17 +8144,17 @@ class htx extends Exchange {
             //
             // future
             //     {
-            //       "status" => "ok",
-            //       "data" => array( $symbol => "BTC", lever_rate => 5 ),
-            //       "ts" => 1641184578678
+            //       "status": "ok",
+            //       "data": { symbol: "BTC", lever_rate: 5 },
+            //       "ts": 1641184578678
             //     }
             //
             // swap
             //
             //     {
-            //       "status" => "ok",
-            //       "data" => array( contract_code => "BTC-USD", lever_rate => "5" ),
-            //       "ts" => "1641184652979"
+            //       "status": "ok",
+            //       "data": { contract_code: "BTC-USD", lever_rate: "5" },
+            //       "ts": "1641184652979"
             //     }
             //
         }
@@ -8167,24 +8167,24 @@ class htx extends Exchange {
     public function parse_income(mixed $income, ?array $market = null) {
         //
         //     {
-        //       "id" => "1667161118",
-        //       "symbol" => "BTC",
-        //       "type" => "31",
-        //       "amount" => "-2.11306593188E-7",
-        //       "ts" => "1641139308983",
-        //       "contract_code" => "BTC-USD"
+        //       "id": "1667161118",
+        //       "symbol": "BTC",
+        //       "type": "31",
+        //       "amount": "-2.11306593188E-7",
+        //       "ts": "1641139308983",
+        //       "contract_code": "BTC-USD"
         //     }
         //
         // linear swap
         //
         //     {
-        //         "id" => "2194774775",
-        //         "type" => "30",
-        //         "currency" => "USDT",
-        //         "amount" => "0.000433432461821856",
-        //         "contract_code" => "BTC-USDT",
-        //         "margin_mode" => "cross",
-        //         "created_time" => "1780963213165"
+        //         "id": "2194774775",
+        //         "type": "30",
+        //         "currency": "USDT",
+        //         "amount": "0.000433432461821856",
+        //         "contract_code": "BTC-USDT",
+        //         "margin_mode": "cross",
+        //         "created_time": "1780963213165"
         //     }
         //
         $marketId = $this->safe_string($income, 'contract_code');
@@ -8208,60 +8208,60 @@ class htx extends Exchange {
     public function parse_position(array $position, ?array $market = null) {
         //
         //    {
-        //        "symbol" => "BTC",
-        //        "contract_code" => "BTC-USDT",
-        //        "volume" => "1.000000000000000000",
-        //        "available" => "1.000000000000000000",
-        //        "frozen" => "0E-18",
-        //        "cost_open" => "47162.000000000000000000",
-        //        "cost_hold" => "47151.300000000000000000",
-        //        "profit_unreal" => "0.007300000000000000",
-        //        "profit_rate" => "-0.000144183876850008",
-        //        "lever_rate" => "2",
-        //        "position_margin" => "23.579300000000000000",
-        //        "direction" => "buy",
-        //        "profit" => "-0.003400000000000000",
-        //        "last_price" => "47158.6",
-        //        "margin_asset" => "USDT",
-        //        "margin_mode" => "isolated",
-        //        "margin_account" => "BTC-USDT",
-        //        "margin_balance" => "24.973020070000000000",
-        //        "margin_position" => "23.579300000000000000",
-        //        "margin_frozen" => "0",
-        //        "margin_available" => "1.393720070000000000",
-        //        "profit_real" => "0E-18",
-        //        "risk_rate" => "1.044107779705080303",
-        //        "withdraw_available" => "1.386420070000000000000000000000000000",
-        //        "liquidation_price" => "22353.229148614609571788",
-        //        "adjust_factor" => "0.015000000000000000",
-        //        "margin_static" => "24.965720070000000000"
+        //        "symbol": "BTC",
+        //        "contract_code": "BTC-USDT",
+        //        "volume": "1.000000000000000000",
+        //        "available": "1.000000000000000000",
+        //        "frozen": "0E-18",
+        //        "cost_open": "47162.000000000000000000",
+        //        "cost_hold": "47151.300000000000000000",
+        //        "profit_unreal": "0.007300000000000000",
+        //        "profit_rate": "-0.000144183876850008",
+        //        "lever_rate": "2",
+        //        "position_margin": "23.579300000000000000",
+        //        "direction": "buy",
+        //        "profit": "-0.003400000000000000",
+        //        "last_price": "47158.6",
+        //        "margin_asset": "USDT",
+        //        "margin_mode": "isolated",
+        //        "margin_account": "BTC-USDT",
+        //        "margin_balance": "24.973020070000000000",
+        //        "margin_position": "23.579300000000000000",
+        //        "margin_frozen": "0",
+        //        "margin_available": "1.393720070000000000",
+        //        "profit_real": "0E-18",
+        //        "risk_rate": "1.044107779705080303",
+        //        "withdraw_available": "1.386420070000000000000000000000000000",
+        //        "liquidation_price": "22353.229148614609571788",
+        //        "adjust_factor": "0.015000000000000000",
+        //        "margin_static": "24.965720070000000000"
         //    }
         //
         // linear swap
         //
         //     {
-        //         "contract_code" => "BTC-USDT",
-        //         "position_side" => "long",
-        //         "direction" => "buy",
-        //         "margin_mode" => "cross",
-        //         "open_avg_price" => "63204.5",
-        //         "volume" => "1",
-        //         "available" => "1",
-        //         "lever_rate" => 20,
-        //         "adl_risk_percent" => 3,
-        //         "liquidation_price" => "-110163.844268282697306843",
-        //         "margin" => "3.158275",
-        //         "initial_margin" => "3.158275",
-        //         "maintenance_margin" => "0.2147627",
-        //         "profit_unreal" => "-0.039",
-        //         "profit_rate" => "-0.0123",
-        //         "margin_rate" => "0.0012",
-        //         "mark_price" => "63165.5",
-        //         "last_price" => "63163.3",
-        //         "margin_currency" => "USDT",
-        //         "contract_type" => "swap",
-        //         "created_time" => "1780903703234",
-        //         "updated_time" => "1780903703234"
+        //         "contract_code": "BTC-USDT",
+        //         "position_side": "long",
+        //         "direction": "buy",
+        //         "margin_mode": "cross",
+        //         "open_avg_price": "63204.5",
+        //         "volume": "1",
+        //         "available": "1",
+        //         "lever_rate": 20,
+        //         "adl_risk_percent": 3,
+        //         "liquidation_price": "-110163.844268282697306843",
+        //         "margin": "3.158275",
+        //         "initial_margin": "3.158275",
+        //         "maintenance_margin": "0.2147627",
+        //         "profit_unreal": "-0.039",
+        //         "profit_rate": "-0.0123",
+        //         "margin_rate": "0.0012",
+        //         "mark_price": "63165.5",
+        //         "last_price": "63163.3",
+        //         "margin_currency": "USDT",
+        //         "contract_type": "swap",
+        //         "created_time": "1780903703234",
+        //         "updated_time": "1780903703234"
         //     }
         //
         $market = $this->safe_market($this->safe_string($position, 'contract_code'));
@@ -8389,35 +8389,35 @@ class htx extends Exchange {
             $response = Async\await($this->contractPrivateGetV5TradePositionOpens($params));
             //
             //     {
-            //         "code" => 200,
-            //         "message" => "Success",
-            //         "data" => array(
+            //         "code": 200,
+            //         "message": "Success",
+            //         "data": [
             //             {
-            //                 "contract_code" => "BTC-USDT",
-            //                 "position_side" => "long",
-            //                 "direction" => "buy",
-            //                 "margin_mode" => "cross",
-            //                 "open_avg_price" => "63204.5",
-            //                 "volume" => "1",
-            //                 "available" => "1",
-            //                 "lever_rate" => 20,
-            //                 "adl_risk_percent" => 3,
-            //                 "liquidation_price" => "-110163.844268282697306843",
-            //                 "margin" => "3.158275",
-            //                 "initial_margin" => "3.158275",
-            //                 "maintenance_margin" => "0.2147627",
-            //                 "profit_unreal" => "-0.039",
-            //                 "profit_rate" => "-0.0123",
-            //                 "margin_rate" => "0.0012",
-            //                 "mark_price" => "63165.5",
-            //                 "last_price" => "63163.3",
-            //                 "margin_currency" => "USDT",
-            //                 "contract_type" => "swap",
-            //                 "created_time" => "1780903703234",
-            //                 "updated_time" => "1780903703234"
+            //                 "contract_code": "BTC-USDT",
+            //                 "position_side": "long",
+            //                 "direction": "buy",
+            //                 "margin_mode": "cross",
+            //                 "open_avg_price": "63204.5",
+            //                 "volume": "1",
+            //                 "available": "1",
+            //                 "lever_rate": 20,
+            //                 "adl_risk_percent": 3,
+            //                 "liquidation_price": "-110163.844268282697306843",
+            //                 "margin": "3.158275",
+            //                 "initial_margin": "3.158275",
+            //                 "maintenance_margin": "0.2147627",
+            //                 "profit_unreal": "-0.039",
+            //                 "profit_rate": "-0.0123",
+            //                 "margin_rate": "0.0012",
+            //                 "mark_price": "63165.5",
+            //                 "last_price": "63163.3",
+            //                 "margin_currency": "USDT",
+            //                 "contract_type": "swap",
+            //                 "created_time": "1780903703234",
+            //                 "updated_time": "1780903703234"
             //             }
-            //         ),
-            //         "ts" => 1780903761300
+            //         ],
+            //         "ts": 1780903761300
             //     }
             //
         } else {
@@ -8431,55 +8431,55 @@ class htx extends Exchange {
             //
             // future
             //     {
-            //       "status" => "ok",
-            //       "data" => array(
+            //       "status": "ok",
+            //       "data": [
             //         {
-            //           "symbol" => "BTC",
-            //           "contract_code" => "BTC220624",
-            //           "contract_type" => "next_quarter",
-            //           "volume" => "1.000000000000000000",
-            //           "available" => "1.000000000000000000",
-            //           "frozen" => "0E-18",
-            //           "cost_open" => "49018.880000000009853343",
-            //           "cost_hold" => "49018.880000000009853343",
-            //           "profit_unreal" => "-8.62360608500000000000000000000000000000000000000E-7",
-            //           "profit_rate" => "-0.000845439023678622",
-            //           "lever_rate" => "2",
-            //           "position_margin" => "0.001019583964880634",
-            //           "direction" => "sell",
-            //           "profit" => "-8.62360608500000000000000000000000000000000000000E-7",
-            //           "last_price" => "49039.61"
+            //           "symbol": "BTC",
+            //           "contract_code": "BTC220624",
+            //           "contract_type": "next_quarter",
+            //           "volume": "1.000000000000000000",
+            //           "available": "1.000000000000000000",
+            //           "frozen": "0E-18",
+            //           "cost_open": "49018.880000000009853343",
+            //           "cost_hold": "49018.880000000009853343",
+            //           "profit_unreal": "-8.62360608500000000000000000000000000000000000000E-7",
+            //           "profit_rate": "-0.000845439023678622",
+            //           "lever_rate": "2",
+            //           "position_margin": "0.001019583964880634",
+            //           "direction": "sell",
+            //           "profit": "-8.62360608500000000000000000000000000000000000000E-7",
+            //           "last_price": "49039.61"
             //         }
-            //       ),
-            //       "ts" => "1641109895199"
+            //       ],
+            //       "ts": "1641109895199"
             //     }
             //
             // swap
             //     {
-            //       "status" => "ok",
-            //       "data" => array(
+            //       "status": "ok",
+            //       "data": [
             //         {
-            //           "symbol" => "BTC",
-            //           "contract_code" => "BTC-USD",
-            //           "volume" => "1.000000000000000000",
-            //           "available" => "1.000000000000000000",
-            //           "frozen" => "0E-18",
-            //           "cost_open" => "47150.000000000012353300",
-            //           "cost_hold" => "47150.000000000012353300",
-            //           "profit_unreal" => "0E-54",
-            //           "profit_rate" => "-7.86E-16",
-            //           "lever_rate" => "3",
-            //           "position_margin" => "0.000706963591375044",
-            //           "direction" => "buy",
-            //           "profit" => "0E-54",
-            //           "last_price" => "47150"
+            //           "symbol": "BTC",
+            //           "contract_code": "BTC-USD",
+            //           "volume": "1.000000000000000000",
+            //           "available": "1.000000000000000000",
+            //           "frozen": "0E-18",
+            //           "cost_open": "47150.000000000012353300",
+            //           "cost_hold": "47150.000000000012353300",
+            //           "profit_unreal": "0E-54",
+            //           "profit_rate": "-7.86E-16",
+            //           "lever_rate": "3",
+            //           "position_margin": "0.000706963591375044",
+            //           "direction": "buy",
+            //           "profit": "0E-54",
+            //           "last_price": "47150"
             //         }
-            //       ),
-            //       "ts" => "1641109636572"
+            //       ],
+            //       "ts": "1641109636572"
             //     }
             //
         }
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_list($response, 'data', array());
         $timestamp = $this->safe_integer($response, 'ts');
         $result = array();
         for ($i = 0; $i < count($data); $i++) {
@@ -8531,35 +8531,35 @@ class htx extends Exchange {
             $response = Async\await($this->contractPrivateGetV5TradePositionOpens($this->extend($request, $query)));
             //
             //     {
-            //         "code" => 200,
-            //         "message" => "Success",
-            //         "data" => array(
+            //         "code": 200,
+            //         "message": "Success",
+            //         "data": [
             //             {
-            //                 "contract_code" => "BTC-USDT",
-            //                 "position_side" => "long",
-            //                 "direction" => "buy",
-            //                 "margin_mode" => "cross",
-            //                 "open_avg_price" => "63204.5",
-            //                 "volume" => "1",
-            //                 "available" => "1",
-            //                 "lever_rate" => 20,
-            //                 "adl_risk_percent" => 3,
-            //                 "liquidation_price" => "-110163.844268282697306843",
-            //                 "margin" => "3.158275",
-            //                 "initial_margin" => "3.158275",
-            //                 "maintenance_margin" => "0.2147627",
-            //                 "profit_unreal" => "-0.039",
-            //                 "profit_rate" => "-0.0123",
-            //                 "margin_rate" => "0.0012",
-            //                 "mark_price" => "63165.5",
-            //                 "last_price" => "63163.3",
-            //                 "margin_currency" => "USDT",
-            //                 "contract_type" => "swap",
-            //                 "created_time" => "1780903703234",
-            //                 "updated_time" => "1780903703234"
+            //                 "contract_code": "BTC-USDT",
+            //                 "position_side": "long",
+            //                 "direction": "buy",
+            //                 "margin_mode": "cross",
+            //                 "open_avg_price": "63204.5",
+            //                 "volume": "1",
+            //                 "available": "1",
+            //                 "lever_rate": 20,
+            //                 "adl_risk_percent": 3,
+            //                 "liquidation_price": "-110163.844268282697306843",
+            //                 "margin": "3.158275",
+            //                 "initial_margin": "3.158275",
+            //                 "maintenance_margin": "0.2147627",
+            //                 "profit_unreal": "-0.039",
+            //                 "profit_rate": "-0.0123",
+            //                 "margin_rate": "0.0012",
+            //                 "mark_price": "63165.5",
+            //                 "last_price": "63163.3",
+            //                 "margin_currency": "USDT",
+            //                 "contract_type": "swap",
+            //                 "created_time": "1780903703234",
+            //                 "updated_time": "1780903703234"
             //             }
-            //         ),
-            //         "ts" => 1780903761300
+            //         ],
+            //         "ts": 1780903761300
             //     }
             //
         } else {
@@ -8574,55 +8574,55 @@ class htx extends Exchange {
             // future, swap
             //
             //     {
-            //       "status" => "ok",
-            //       "data" => array(
+            //       "status": "ok",
+            //       "data": [
             //         {
-            //             "symbol" => "XRP",
-            //             "contract_code" => "XRP-USD", // only present in swap
-            //             "margin_balance" => 12.186361450698276582,
-            //             "margin_position" => 5.036261079774375503,
-            //             "margin_frozen" => 0E-18,
-            //             "margin_available" => 7.150100370923901079,
-            //             "profit_real" => -0.012672343876723438,
-            //             "profit_unreal" => 0.163382354575000020,
-            //             "risk_rate" => 2.344723929650649798,
-            //             "withdraw_available" => 6.986718016348901059,
-            //             "liquidation_price" => 0.271625200493799547,
-            //             "lever_rate" => 5,
-            //             "adjust_factor" => 0.075000000000000000,
-            //             "margin_static" => 12.022979096123276562,
-            //             "positions" => array(
-            //                 array(
-            //                     "symbol" => "XRP",
-            //                     "contract_code" => "XRP-USD",
-            //                     // "contract_type" => "this_week", // only present in future
-            //                     "volume" => 1.0,
-            //                     "available" => 1.0,
-            //                     "frozen" => 0E-18,
-            //                     "cost_open" => 0.394560000000000000,
-            //                     "cost_hold" => 0.394560000000000000,
-            //                     "profit_unreal" => 0.163382354575000020,
-            //                     "profit_rate" => 0.032232070910556005,
-            //                     "lever_rate" => 5,
-            //                     "position_margin" => 5.036261079774375503,
-            //                     "direction" => "buy",
-            //                     "profit" => 0.163382354575000020,
-            //                     "last_price" => 0.39712
-            //                 ),
-            //                 ... opposite side $position can be present here too (if hedge)
-            //             )
+            //             "symbol": "XRP",
+            //             "contract_code": "XRP-USD", // only present in swap
+            //             "margin_balance": 12.186361450698276582,
+            //             "margin_position": 5.036261079774375503,
+            //             "margin_frozen": 0E-18,
+            //             "margin_available": 7.150100370923901079,
+            //             "profit_real": -0.012672343876723438,
+            //             "profit_unreal": 0.163382354575000020,
+            //             "risk_rate": 2.344723929650649798,
+            //             "withdraw_available": 6.986718016348901059,
+            //             "liquidation_price": 0.271625200493799547,
+            //             "lever_rate": 5,
+            //             "adjust_factor": 0.075000000000000000,
+            //             "margin_static": 12.022979096123276562,
+            //             "positions": [
+            //                 {
+            //                     "symbol": "XRP",
+            //                     "contract_code": "XRP-USD",
+            //                     // "contract_type": "this_week", // only present in future
+            //                     "volume": 1.0,
+            //                     "available": 1.0,
+            //                     "frozen": 0E-18,
+            //                     "cost_open": 0.394560000000000000,
+            //                     "cost_hold": 0.394560000000000000,
+            //                     "profit_unreal": 0.163382354575000020,
+            //                     "profit_rate": 0.032232070910556005,
+            //                     "lever_rate": 5,
+            //                     "position_margin": 5.036261079774375503,
+            //                     "direction": "buy",
+            //                     "profit": 0.163382354575000020,
+            //                     "last_price": 0.39712
+            //                 },
+            //                 ... opposite side position can be present here too (if hedge)
+            //             ]
             //         }
-            //       ),
-            //       "ts" => 1653600470199
+            //       ],
+            //       "ts": 1653600470199
             //     }
             //
             // cross usdt swap
             //
             //     {
             //         "status":"ok",
-            //         "data":array(
-            //             "positions":array(),
-            //             "futures_contract_detail":array()
+            //         "data":{
+            //             "positions":[],
+            //             "futures_contract_detail":[]
             //             "margin_mode":"cross",
             //             "margin_account":"USDT",
             //             "margin_asset":"USDT",
@@ -8634,8 +8634,8 @@ class htx extends Exchange {
             //             "profit_unreal":"0",
             //             "withdraw_available":"0",
             //             "risk_rate":"15.666666666666666666",
-            //             "contract_detail":array()
-            //         ),
+            //             "contract_detail":[]
+            //         },
             //         "ts":"1645521118946"
             //     }
             //
@@ -8695,15 +8695,15 @@ class htx extends Exchange {
     public function parse_ledger_entry(array $item, ?array $currency = null): array {
         //
         //     {
-        //         "accountId" => 10000001,
-        //         "currency" => "usdt",
-        //         "transactAmt" => 10.000000000000000000,
-        //         "transactType" => "transfer",
-        //         "transferType" => "margin-transfer-out",
-        //         "transactId" => 0,
-        //         "transactTime" => 1629882331066,
-        //         "transferer" => 28483123,
-        //         "transferee" => 13496526
+        //         "accountId": 10000001,
+        //         "currency": "usdt",
+        //         "transactAmt": 10.000000000000000000,
+        //         "transactType": "transfer",
+        //         "transferType": "margin-transfer-out",
+        //         "transactId": 0,
+        //         "transactTime": 1629882331066,
+        //         "transferer": 28483123,
+        //         "transferee": 13496526
         //     }
         //
         $currencyId = $this->safe_string($item, 'currency');
@@ -8761,13 +8761,13 @@ class htx extends Exchange {
         $accountId = Async\await($this->fetch_account_id_by_type('spot', null, null, $params));
         $request = array(
             'accountId' => $accountId,
-            // 'currency' => $code,
-            // 'transactTypes' => 'all', // default all
-            // 'startTime' => 1546272000000,
-            // 'endTime' => 1546272000000,
-            // 'sort' => asc, // asc, desc
-            // 'limit' => 100, // range 1-500
-            // 'fromId' => 323 // first record property_exists($this, ID) query for pagination
+            // 'currency': code,
+            // 'transactTypes': 'all', // default all
+            // 'startTime': 1546272000000,
+            // 'endTime': 1546272000000,
+            // 'sort': asc, // asc, desc
+            // 'limit': 100, // range 1-500
+            // 'fromId': 323 // first record ID in this query for pagination
         );
         $currency = null;
         if ($code !== null) {
@@ -8784,34 +8784,34 @@ class htx extends Exchange {
         $response = Async\await($this->spotPrivateGetV2AccountLedger($this->extend($request, $params)));
         //
         //     {
-        //         "code" => 200,
-        //         "message" => "success",
-        //         "data" => array(
-        //             array(
-        //                 "accountId" => 10000001,
-        //                 "currency" => "usdt",
-        //                 "transactAmt" => 10.000000000000000000,
-        //                 "transactType" => "transfer",
-        //                 "transferType" => "margin-transfer-out",
-        //                 "transactId" => 0,
-        //                 "transactTime" => 1629882331066,
-        //                 "transferer" => 28483123,
-        //                 "transferee" => 13496526
-        //             ),
+        //         "code": 200,
+        //         "message": "success",
+        //         "data": [
         //             {
-        //                 "accountId" => 10000001,
-        //                 "currency" => "usdt",
-        //                 "transactAmt" => -10.000000000000000000,
-        //                 "transactType" => "transfer",
-        //                 "transferType" => "margin-transfer-in",
-        //                 "transactId" => 0,
-        //                 "transactTime" => 1629882096562,
-        //                 "transferer" => 13496526,
-        //                 "transferee" => 28483123
+        //                 "accountId": 10000001,
+        //                 "currency": "usdt",
+        //                 "transactAmt": 10.000000000000000000,
+        //                 "transactType": "transfer",
+        //                 "transferType": "margin-transfer-out",
+        //                 "transactId": 0,
+        //                 "transactTime": 1629882331066,
+        //                 "transferer": 28483123,
+        //                 "transferee": 13496526
+        //             },
+        //             {
+        //                 "accountId": 10000001,
+        //                 "currency": "usdt",
+        //                 "transactAmt": -10.000000000000000000,
+        //                 "transactType": "transfer",
+        //                 "transferType": "margin-transfer-in",
+        //                 "transactId": 0,
+        //                 "transactTime": 1629882096562,
+        //                 "transferer": 13496526,
+        //                 "transferee": 28483123
         //             }
-        //         ),
-        //         "nextId" => 1624316679,
-        //         "ok" => true
+        //         ],
+        //         "nextId": 1624316679,
+        //         "ok": true
         //     }
         //
         $data = $this->safe_value($response, 'data', array());
@@ -8835,31 +8835,31 @@ class htx extends Exchange {
         $response = Async\await($this->contractPublicGetLinearSwapApiV1SwapAdjustfactor($params));
         //
         //    {
-        //        "status" => "ok",
-        //        "data" => array(
+        //        "status": "ok",
+        //        "data": [
         //            {
-        //                "symbol" => "MANA",
-        //                "contract_code" => "MANA-USDT",
-        //                "margin_mode" => "isolated",
-        //                "trade_partition" => "USDT",
-        //                "list" => array(
-        //                    array(
-        //                        "lever_rate" => 75,
-        //                        "ladders" => array(
-        //                            array(
-        //                                "ladder" => 0,
-        //                                "min_size" => 0,
-        //                                "max_size" => 999,
-        //                                "adjust_factor" => 0.7
-        //                            ),
+        //                "symbol": "MANA",
+        //                "contract_code": "MANA-USDT",
+        //                "margin_mode": "isolated",
+        //                "trade_partition": "USDT",
+        //                "list": [
+        //                    {
+        //                        "lever_rate": 75,
+        //                        "ladders": [
+        //                            {
+        //                                "ladder": 0,
+        //                                "min_size": 0,
+        //                                "max_size": 999,
+        //                                "adjust_factor": 0.7
+        //                            },
         //                            ...
-        //                        )
+        //                        ]
         //                    }
         //                    ...
-        //                )
-        //            ),
+        //                ]
+        //            },
         //            ...
-        //        )
+        //        ]
         //    }
         //
         $data = $this->safe_list($response, 'data', array());
@@ -8955,61 +8955,61 @@ class htx extends Exchange {
         //
         //  contractPublicGetlinearSwapApiV1SwapHisOpenInterest
         //    {
-        //        "status" => "ok",
-        //        "data" => array(
-        //            "symbol" => "BTC",
-        //            "tick" => array(
-        //                array(
-        //                    "volume" => "4385.4350000000000000",
-        //                    "amount_type" => "2",
-        //                    "ts" => "1648220400000",
-        //                    "value" => "194059884.1850000000000000"
-        //                ),
+        //        "status": "ok",
+        //        "data": {
+        //            "symbol": "BTC",
+        //            "tick": [
+        //                {
+        //                    "volume": "4385.4350000000000000",
+        //                    "amount_type": "2",
+        //                    "ts": "1648220400000",
+        //                    "value": "194059884.1850000000000000"
+        //                },
         //                ...
-        //            ),
-        //            "contract_code" => "BTC-USDT",
-        //            "business_type" => "swap",
-        //            "pair" => "BTC-USDT",
-        //            "contract_type" => "swap",
-        //            "trade_partition" => "USDT"
-        //        ),
-        //        "ts" => "1648223733007"
+        //            ],
+        //            "contract_code": "BTC-USDT",
+        //            "business_type": "swap",
+        //            "pair": "BTC-USDT",
+        //            "contract_type": "swap",
+        //            "trade_partition": "USDT"
+        //        },
+        //        "ts": "1648223733007"
         //    }
         //
         //  contractPublicGetSwapApiV1SwapHisOpenInterest
         //    {
-        //        "status" => "ok",
-        //        "data" => array(
-        //            "symbol" => "CRV",
-        //            "tick" => array(
-        //                array(
-        //                    "volume" => 19174.0000000000000000,
-        //                    "amount_type" => 1,
-        //                    "ts" => 1648224000000
-        //                ),
+        //        "status": "ok",
+        //        "data": {
+        //            "symbol": "CRV",
+        //            "tick": [
+        //                {
+        //                    "volume": 19174.0000000000000000,
+        //                    "amount_type": 1,
+        //                    "ts": 1648224000000
+        //                },
         //                ...
-        //            ),
-        //            "contract_code" => "CRV-USD"
-        //        ),
-        //        "ts" => 1648226554260
+        //            ],
+        //            "contract_code": "CRV-USD"
+        //        },
+        //        "ts": 1648226554260
         //    }
         //
         //  contractPublicGetApiV1ContractHisOpenInterest
         //    {
-        //         "status" => "ok",
-        //         "data" => array(
-        //             "symbol" => "BTC",
-        //             "contract_type" => "this_week",
-        //             "tick" => array(
-        //                array(
-        //                     "volume" => "48419.0000000000000000",
-        //                     "amount_type" => 1,
-        //                     "ts" => 1648224000000
-        //                ),
+        //         "status": "ok",
+        //         "data": {
+        //             "symbol": "BTC",
+        //             "contract_type": "this_week",
+        //             "tick": [
+        //                {
+        //                     "volume": "48419.0000000000000000",
+        //                     "amount_type": 1,
+        //                     "ts": 1648224000000
+        //                },
         //                ...
-        //            )
-        //        ),
-        //        "ts" => 1648227062944
+        //            ]
+        //        },
+        //        "ts": 1648227062944
         //    }
         //
         $data = $this->safe_value($response, 'data');
@@ -9054,39 +9054,39 @@ class htx extends Exchange {
             $response = Async\await($this->contractPublicGetApiV1ContractOpenInterest($this->extend($request, $params)));
             //
             //     {
-            //         "status" => "ok",
-            //         "data" => array(
+            //         "status": "ok",
+            //         "data": [
             //             {
-            //                 "volume" => 118850.000000000000000000,
-            //                 "amount" => 635.502025211544374189,
-            //                 "symbol" => "BTC",
-            //                 "contract_type" => "this_week",
-            //                 "contract_code" => "BTC220930",
-            //                 "trade_amount" => 1470.9400749347598691119206024033947897351,
-            //                 "trade_volume" => 286286,
-            //                 "trade_turnover" => 28628600.000000000000000000
+            //                 "volume": 118850.000000000000000000,
+            //                 "amount": 635.502025211544374189,
+            //                 "symbol": "BTC",
+            //                 "contract_type": "this_week",
+            //                 "contract_code": "BTC220930",
+            //                 "trade_amount": 1470.9400749347598691119206024033947897351,
+            //                 "trade_volume": 286286,
+            //                 "trade_turnover": 28628600.000000000000000000
             //             }
-            //         ),
-            //         "ts" => 1664337928805
+            //         ],
+            //         "ts": 1664337928805
             //     }
             //
         } elseif ($subType === 'inverse') {
             $response = Async\await($this->contractPublicGetSwapApiV1SwapOpenInterest($this->extend($request, $params)));
             //
             //     {
-            //         "status" => "ok",
-            //         "data" => array(
+            //         "status": "ok",
+            //         "data": [
             //             {
-            //                 "volume" => 518018.000000000000000000,
-            //                 "amount" => 2769.675777407074725180,
-            //                 "symbol" => "BTC",
-            //                 "contract_code" => "BTC-USD",
-            //                 "trade_amount" => 9544.4032080046491323463688602729806842458,
-            //                 "trade_volume" => 1848448,
-            //                 "trade_turnover" => 184844800.000000000000000000
+            //                 "volume": 518018.000000000000000000,
+            //                 "amount": 2769.675777407074725180,
+            //                 "symbol": "BTC",
+            //                 "contract_code": "BTC-USD",
+            //                 "trade_amount": 9544.4032080046491323463688602729806842458,
+            //                 "trade_volume": 1848448,
+            //                 "trade_turnover": 184844800.000000000000000000
             //             }
-            //         ),
-            //         "ts" => 1664337226028
+            //         ],
+            //         "ts": 1664337226028
             //     }
             //
         } else {
@@ -9142,55 +9142,55 @@ class htx extends Exchange {
         // USDT-M linear swap
         //
         //     {
-        //         "code" => 200,
-        //         "message" => "Success",
-        //         "data" => array(
-        //             "amount" => "32476.092",
-        //             "volume" => "32476092",
-        //             "value" => "2063137924.9668",
-        //             "contract_code" => "BTC-USDT",
-        //             "trade_amount" => "11371.362",
-        //             "trade_volume" => "11371362",
-        //             "trade_turnover" => "723600792.7222"
-        //         ),
-        //         "ts" => 1781327941440
+        //         "code": 200,
+        //         "message": "Success",
+        //         "data": {
+        //             "amount": "32476.092",
+        //             "volume": "32476092",
+        //             "value": "2063137924.9668",
+        //             "contract_code": "BTC-USDT",
+        //             "trade_amount": "11371.362",
+        //             "trade_volume": "11371362",
+        //             "trade_turnover": "723600792.7222"
+        //         },
+        //         "ts": 1781327941440
         //     }
         //
         // COIN-M Swap contractPublicGetSwapApiV1SwapOpenInterest
         //
         //     {
-        //         "status" => "ok",
-        //         "data" => array(
+        //         "status": "ok",
+        //         "data": [
         //             {
-        //                 "volume" => 518018.000000000000000000,
-        //                 "amount" => 2769.675777407074725180,
-        //                 "symbol" => "BTC",
-        //                 "contract_code" => "BTC-USD",
-        //                 "trade_amount" => 9544.4032080046491323463688602729806842458,
-        //                 "trade_volume" => 1848448,
-        //                 "trade_turnover" => 184844800.000000000000000000
+        //                 "volume": 518018.000000000000000000,
+        //                 "amount": 2769.675777407074725180,
+        //                 "symbol": "BTC",
+        //                 "contract_code": "BTC-USD",
+        //                 "trade_amount": 9544.4032080046491323463688602729806842458,
+        //                 "trade_volume": 1848448,
+        //                 "trade_turnover": 184844800.000000000000000000
         //             }
-        //         ),
-        //         "ts" => 1664337226028
+        //         ],
+        //         "ts": 1664337226028
         //     }
         //
         // COIN-M Futures contractPublicGetApiV1ContractOpenInterest
         //
         //     {
-        //         "status" => "ok",
-        //         "data" => array(
+        //         "status": "ok",
+        //         "data": [
         //             {
-        //                 "volume" => 118850.000000000000000000,
-        //                 "amount" => 635.502025211544374189,
-        //                 "symbol" => "BTC",
-        //                 "contract_type" => "this_week",
-        //                 "contract_code" => "BTC220930",
-        //                 "trade_amount" => 1470.9400749347598691119206024033947897351,
-        //                 "trade_volume" => 286286,
-        //                 "trade_turnover" => 28628600.000000000000000000
+        //                 "volume": 118850.000000000000000000,
+        //                 "amount": 635.502025211544374189,
+        //                 "symbol": "BTC",
+        //                 "contract_type": "this_week",
+        //                 "contract_code": "BTC220930",
+        //                 "trade_amount": 1470.9400749347598691119206024033947897351,
+        //                 "trade_volume": 286286,
+        //                 "trade_turnover": 28628600.000000000000000000
         //             }
-        //         ),
-        //         "ts" => 1664337928805
+        //         ],
+        //         "ts": 1664337928805
         //     }
         //
         $timestamp = $this->safe_integer($response, 'ts');
@@ -9201,7 +9201,7 @@ class htx extends Exchange {
                 'datetime' => $this->iso8601($timestamp),
             ));
         }
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_list($response, 'data', array());
         $openInterest = $this->parse_open_interest($data[0], $market);
         $openInterest['timestamp'] = $timestamp;
         $openInterest['datetime'] = $this->iso8601($timestamp);
@@ -9213,47 +9213,47 @@ class htx extends Exchange {
         // fetchOpenInterestHistory
         //
         //    {
-        //        "volume" => "4385.4350000000000000",
-        //        "amount_type" => "2",
-        //        "ts" => "1648220400000",
-        //        "value" => "194059884.1850000000000000"
+        //        "volume": "4385.4350000000000000",
+        //        "amount_type": "2",
+        //        "ts": "1648220400000",
+        //        "value": "194059884.1850000000000000"
         //    }
         //
-        // fetchOpenInterest => USDT-M
+        // fetchOpenInterest: USDT-M
         //
         //     {
-        //         "amount" => "32476.092",
-        //         "volume" => "32476092",
-        //         "value" => "2063137924.9668",
-        //         "contract_code" => "BTC-USDT",
-        //         "trade_amount" => "11371.362",
-        //         "trade_volume" => "11371362",
-        //         "trade_turnover" => "723600792.7222"
+        //         "amount": "32476.092",
+        //         "volume": "32476092",
+        //         "value": "2063137924.9668",
+        //         "contract_code": "BTC-USDT",
+        //         "trade_amount": "11371.362",
+        //         "trade_volume": "11371362",
+        //         "trade_turnover": "723600792.7222"
         //     }
         //
-        // fetchOpenInterest => COIN-M Swap
+        // fetchOpenInterest: COIN-M Swap
         //
         //     {
-        //         "volume" => 518018.000000000000000000,
-        //         "amount" => 2769.675777407074725180,
-        //         "symbol" => "BTC",
-        //         "contract_code" => "BTC-USD",
-        //         "trade_amount" => 9544.4032080046491323463688602729806842458,
-        //         "trade_volume" => 1848448,
-        //         "trade_turnover" => 184844800.000000000000000000
+        //         "volume": 518018.000000000000000000,
+        //         "amount": 2769.675777407074725180,
+        //         "symbol": "BTC",
+        //         "contract_code": "BTC-USD",
+        //         "trade_amount": 9544.4032080046491323463688602729806842458,
+        //         "trade_volume": 1848448,
+        //         "trade_turnover": 184844800.000000000000000000
         //     }
         //
-        // fetchOpenInterest => COIN-M Futures
+        // fetchOpenInterest: COIN-M Futures
         //
         //     {
-        //         "volume" => 118850.000000000000000000,
-        //         "amount" => 635.502025211544374189,
-        //         "symbol" => "BTC",
-        //         "contract_type" => "this_week",
-        //         "contract_code" => "BTC220930",
-        //         "trade_amount" => 1470.9400749347598691119206024033947897351,
-        //         "trade_volume" => 286286,
-        //         "trade_turnover" => 28628600.000000000000000000
+        //         "volume": 118850.000000000000000000,
+        //         "amount": 635.502025211544374189,
+        //         "symbol": "BTC",
+        //         "contract_type": "this_week",
+        //         "contract_code": "BTC220930",
+        //         "trade_amount": 1470.9400749347598691119206024033947897351,
+        //         "trade_volume": 286286,
+        //         "trade_turnover": 28628600.000000000000000000
         //     }
         //
         $timestamp = $this->safe_integer($interest, 'ts');
@@ -9304,7 +9304,7 @@ class htx extends Exchange {
         // Isolated
         //
         //     {
-        //         "data" => 1000
+        //         "data": 1000
         //     }
         //
         $transaction = $this->parse_margin_loan($response, $currency);
@@ -9343,8 +9343,8 @@ class htx extends Exchange {
         // Cross
         //
         //     {
-        //         "status" => "ok",
-        //         "data" => null
+        //         "status": "ok",
+        //         "data": null
         //     }
         //
         $transaction = $this->parse_margin_loan($response, $currency);
@@ -9383,12 +9383,12 @@ class htx extends Exchange {
         //
         //     {
         //         "code":200,
-        //         "data" => array(
+        //         "data": [
         //             {
         //                 "repayId":1174424,
         //                 "repayTime":1600747722018
         //             }
-        //         )
+        //         ]
         //     }
         //
         $data = $this->safe_value($response, 'Data', array());
@@ -9429,12 +9429,12 @@ class htx extends Exchange {
         //
         //     {
         //         "code":200,
-        //         "data" => array(
+        //         "data": [
         //             {
         //                 "repayId":1174424,
         //                 "repayTime":1600747722018
         //             }
-        //         )
+        //         ]
         //     }
         //
         $data = $this->safe_value($response, 'Data', array());
@@ -9450,14 +9450,14 @@ class htx extends Exchange {
         // borrowMargin cross
         //
         //     {
-        //         "status" => "ok",
-        //         "data" => null
+        //         "status": "ok",
+        //         "data": null
         //     }
         //
         // borrowMargin isolated
         //
         //     {
-        //         "data" => 1000
+        //         "data": 1000
         //     }
         //
         // repayMargin
@@ -9535,69 +9535,69 @@ class htx extends Exchange {
         // coin-m swap
         //
         //    {
-        //        "status" => "ok",
-        //        "data" => {
-        //        "total_page" => 14,
-        //        "current_page" => 1,
-        //        "total_size" => 270,
-        //        "settlement_record" => array(
-        //            array(
-        //                "symbol" => "ADA",
-        //                "contract_code" => "ADA-USDT",
-        //                "settlement_time" => 1652313600000,
-        //                "clawback_ratio" => 0E-18,
-        //                "settlement_price" => 0.512303000000000000,
-        //                "settlement_type" => "settlement",
-        //                "business_type" => "swap",
-        //                "pair" => "ADA-USDT",
-        //                "trade_partition" => "USDT"
-        //            ),
+        //        "status": "ok",
+        //        "data": {
+        //        "total_page": 14,
+        //        "current_page": 1,
+        //        "total_size": 270,
+        //        "settlement_record": [
+        //            {
+        //                "symbol": "ADA",
+        //                "contract_code": "ADA-USDT",
+        //                "settlement_time": 1652313600000,
+        //                "clawback_ratio": 0E-18,
+        //                "settlement_price": 0.512303000000000000,
+        //                "settlement_type": "settlement",
+        //                "business_type": "swap",
+        //                "pair": "ADA-USDT",
+        //                "trade_partition": "USDT"
+        //            },
         //            ...
-        //        ),
-        //        "ts" => 1652338693256
+        //        ],
+        //        "ts": 1652338693256
         //    }
         //
         // coin-m future
         //
         //    {
-        //        "status" => "ok",
-        //        "data" => {
-        //            "total_page" => 5,
-        //            "current_page" => 1,
-        //            "total_size" => 90,
-        //            "settlement_record" => array(
-        //                array(
-        //                    "symbol" => "FIL",
-        //                    "settlement_time" => 1652342400000,
-        //                    "clawback_ratio" => 0E-18,
-        //                    "list" => array(
-        //                        array(
-        //                            "contract_code" => "FIL220513",
-        //                            "settlement_price" => 7.016000000000000000,
-        //                            "settlement_type" => "settlement"
-        //                        ),
+        //        "status": "ok",
+        //        "data": {
+        //            "total_page": 5,
+        //            "current_page": 1,
+        //            "total_size": 90,
+        //            "settlement_record": [
+        //                {
+        //                    "symbol": "FIL",
+        //                    "settlement_time": 1652342400000,
+        //                    "clawback_ratio": 0E-18,
+        //                    "list": [
+        //                        {
+        //                            "contract_code": "FIL220513",
+        //                            "settlement_price": 7.016000000000000000,
+        //                            "settlement_type": "settlement"
+        //                        },
         //                        ...
-        //                    )
-        //                ),
-        //            )
+        //                    ]
+        //                },
+        //            ]
         //        }
         //    }
         //
         // linear swap
         //
         //     {
-        //         "code" => 200,
-        //         "message" => "Success",
-        //         "data" => array(
-        //             array(
-        //                 "id" => "14900",
-        //                 "contract_code" => "BTC-USDT",
-        //                 "settlement_time" => "1781827200000",
-        //                 "clawback_ratio" => "0",
-        //                 "settlement_price" => "62933.747161774209291325"
-        //             ),
-        //         ),
-        //         "ts" => 1781853150623
+        //         "code": 200,
+        //         "message": "Success",
+        //         "data": [
+        //             {
+        //                 "id": "14900",
+        //                 "contract_code": "BTC-USDT",
+        //                 "settlement_time": "1781827200000",
+        //                 "clawback_ratio": "0",
+        //                 "settlement_price": "62933.747161774209291325"
+        //             },
+        //         ],
+        //         "ts": 1781853150623
         //     }
         //
         if ($market['linear'] === true) {
@@ -9631,38 +9631,38 @@ class htx extends Exchange {
         $response = Async\await($this->spotPublicGetV2ReferenceCurrencies($params));
         //
         //    {
-        //        "code" => 200,
-        //        "data" => array(
+        //        "code": 200,
+        //        "data": [
         //            {
-        //                "currency" => "sxp",
-        //                "assetType" => "1",
-        //                "chains" => array(
+        //                "currency": "sxp",
+        //                "assetType": "1",
+        //                "chains": [
         //                    {
-        //                        "chain" => "sxp",
-        //                        "displayName" => "ERC20",
-        //                        "baseChain" => "ETH",
-        //                        "baseChainProtocol" => "ERC20",
-        //                        "isDynamic" => true,
-        //                        "numOfConfirmations" => "12",
-        //                        "numOfFastConfirmations" => "12",
-        //                        "depositStatus" => "allowed",
-        //                        "minDepositAmt" => "0.23",
-        //                        "withdrawStatus" => "allowed",
-        //                        "minWithdrawAmt" => "0.23",
-        //                        "withdrawPrecision" => "8",
-        //                        "maxWithdrawAmt" => "227000.000000000000000000",
-        //                        "withdrawQuotaPerDay" => "227000.000000000000000000",
-        //                        "withdrawQuotaPerYear" => null,
-        //                        "withdrawQuotaTotal" => null,
-        //                        "withdrawFeeType" => "fixed",
-        //                        "transactFeeWithdraw" => "11.1653",
-        //                        "addrWithTag" => false,
-        //                        "addrDepositTag" => false
+        //                        "chain": "sxp",
+        //                        "displayName": "ERC20",
+        //                        "baseChain": "ETH",
+        //                        "baseChainProtocol": "ERC20",
+        //                        "isDynamic": true,
+        //                        "numOfConfirmations": "12",
+        //                        "numOfFastConfirmations": "12",
+        //                        "depositStatus": "allowed",
+        //                        "minDepositAmt": "0.23",
+        //                        "withdrawStatus": "allowed",
+        //                        "minWithdrawAmt": "0.23",
+        //                        "withdrawPrecision": "8",
+        //                        "maxWithdrawAmt": "227000.000000000000000000",
+        //                        "withdrawQuotaPerDay": "227000.000000000000000000",
+        //                        "withdrawQuotaPerYear": null,
+        //                        "withdrawQuotaTotal": null,
+        //                        "withdrawFeeType": "fixed",
+        //                        "transactFeeWithdraw": "11.1653",
+        //                        "addrWithTag": false,
+        //                        "addrDepositTag": false
         //                    }
-        //                ),
-        //                "instStatus" => "normal"
+        //                ],
+        //                "instStatus": "normal"
         //            }
-        //        )
+        //        ]
         //    }
         //
         $data = $this->safe_list($response, 'data');
@@ -9672,36 +9672,36 @@ class htx extends Exchange {
     public function parse_deposit_withdraw_fee(mixed $fee, ?array $currency = null) {
         //
         //            {
-        //              "currency" => "sxp",
-        //              "assetType" => "1",
-        //              "chains" => array(
+        //              "currency": "sxp",
+        //              "assetType": "1",
+        //              "chains": [
         //                  {
-        //                      "chain" => "sxp",
-        //                      "displayName" => "ERC20",
-        //                      "baseChain" => "ETH",
-        //                      "baseChainProtocol" => "ERC20",
-        //                      "isDynamic" => true,
-        //                      "numOfConfirmations" => "12",
-        //                      "numOfFastConfirmations" => "12",
-        //                      "depositStatus" => "allowed",
-        //                      "minDepositAmt" => "0.23",
-        //                      "withdrawStatus" => "allowed",
-        //                      "minWithdrawAmt" => "0.23",
-        //                      "withdrawPrecision" => "8",
-        //                      "maxWithdrawAmt" => "227000.000000000000000000",
-        //                      "withdrawQuotaPerDay" => "227000.000000000000000000",
-        //                      "withdrawQuotaPerYear" => null,
-        //                      "withdrawQuotaTotal" => null,
-        //                      "withdrawFeeType" => "fixed",
-        //                      "transactFeeWithdraw" => "11.1653",
-        //                      "addrWithTag" => false,
-        //                      "addrDepositTag" => false
+        //                      "chain": "sxp",
+        //                      "displayName": "ERC20",
+        //                      "baseChain": "ETH",
+        //                      "baseChainProtocol": "ERC20",
+        //                      "isDynamic": true,
+        //                      "numOfConfirmations": "12",
+        //                      "numOfFastConfirmations": "12",
+        //                      "depositStatus": "allowed",
+        //                      "minDepositAmt": "0.23",
+        //                      "withdrawStatus": "allowed",
+        //                      "minWithdrawAmt": "0.23",
+        //                      "withdrawPrecision": "8",
+        //                      "maxWithdrawAmt": "227000.000000000000000000",
+        //                      "withdrawQuotaPerDay": "227000.000000000000000000",
+        //                      "withdrawQuotaPerYear": null,
+        //                      "withdrawQuotaTotal": null,
+        //                      "withdrawFeeType": "fixed",
+        //                      "transactFeeWithdraw": "11.1653",
+        //                      "addrWithTag": false,
+        //                      "addrDepositTag": false
         //                  }
-        //              ),
-        //              "instStatus" => "normal"
+        //              ],
+        //              "instStatus": "normal"
         //          }
         //
-        $chains = $this->safe_value($fee, 'chains', array());
+        $chains = $this->safe_list($fee, 'chains', array());
         $code = $this->safe_string($currency, 'code');
         $result = $this->deposit_withdraw_fee($fee);
         for ($j = 0; $j < count($chains); $j++) {
@@ -9742,50 +9742,50 @@ class htx extends Exchange {
         //
         // coin-m swap, fetchSettlementHistory
         //
-        //    array(
-        //        array(
-        //            "symbol" => "ADA",
-        //            "contract_code" => "ADA-USDT",
-        //            "settlement_time" => 1652313600000,
-        //            "clawback_ratio" => 0E-18,
-        //            "settlement_price" => 0.512303000000000000,
-        //            "settlement_type" => "settlement",
-        //            "business_type" => "swap",
-        //            "pair" => "ADA-USDT",
-        //            "trade_partition" => "USDT"
-        //        ),
+        //    [
+        //        {
+        //            "symbol": "ADA",
+        //            "contract_code": "ADA-USDT",
+        //            "settlement_time": 1652313600000,
+        //            "clawback_ratio": 0E-18,
+        //            "settlement_price": 0.512303000000000000,
+        //            "settlement_type": "settlement",
+        //            "business_type": "swap",
+        //            "pair": "ADA-USDT",
+        //            "trade_partition": "USDT"
+        //        },
         //        ...
-        //    )
+        //    ]
         //
         // coin-m future, fetchSettlementHistory
         //
-        //    array(
-        //        array(
-        //            "symbol" => "FIL",
-        //            "settlement_time" => 1652342400000,
-        //            "clawback_ratio" => 0E-18,
-        //            "list" => array(
-        //                array(
-        //                    "contract_code" => "FIL220513",
-        //                    "settlement_price" => 7.016000000000000000,
-        //                    "settlement_type" => "settlement"
-        //                ),
+        //    [
+        //        {
+        //            "symbol": "FIL",
+        //            "settlement_time": 1652342400000,
+        //            "clawback_ratio": 0E-18,
+        //            "list": [
+        //                {
+        //                    "contract_code": "FIL220513",
+        //                    "settlement_price": 7.016000000000000000,
+        //                    "settlement_type": "settlement"
+        //                },
         //                ...
-        //            )
-        //        ),
-        //    )
+        //            ]
+        //        },
+        //    ]
         //
         // linear swap fetchSettlementHistory
         //
-        //     array(
+        //     [
         //         {
-        //             "id" => "14900",
-        //             "contract_code" => "BTC-USDT",
-        //             "settlement_time" => "1781827200000",
-        //             "clawback_ratio" => "0",
-        //             "settlement_price" => "62933.747161774209291325"
+        //             "id": "14900",
+        //             "contract_code": "BTC-USDT",
+        //             "settlement_time": "1781827200000",
+        //             "clawback_ratio": "0",
+        //             "settlement_price": "62933.747161774209291325"
         //         }
-        //     )
+        //     ]
         //
         $result = array();
         for ($i = 0; $i < count($settlements); $i++) {
@@ -9817,33 +9817,33 @@ class htx extends Exchange {
         // coin-m swap, fetchSettlementHistory
         //
         //    {
-        //        "symbol" => "ADA",
-        //        "contract_code" => "ADA-USDT",
-        //        "settlement_time" => 1652313600000,
-        //        "clawback_ratio" => 0E-18,
-        //        "settlement_price" => 0.512303000000000000,
-        //        "settlement_type" => "settlement",
-        //        "business_type" => "swap",
-        //        "pair" => "ADA-USDT",
-        //        "trade_partition" => "USDT"
+        //        "symbol": "ADA",
+        //        "contract_code": "ADA-USDT",
+        //        "settlement_time": 1652313600000,
+        //        "clawback_ratio": 0E-18,
+        //        "settlement_price": 0.512303000000000000,
+        //        "settlement_type": "settlement",
+        //        "business_type": "swap",
+        //        "pair": "ADA-USDT",
+        //        "trade_partition": "USDT"
         //    }
         //
         // coin-m future, fetchSettlementHistory
         //
         //    {
-        //        "contract_code" => "FIL220513",
-        //        "settlement_price" => 7.016000000000000000,
-        //        "settlement_type" => "settlement"
+        //        "contract_code": "FIL220513",
+        //        "settlement_price": 7.016000000000000000,
+        //        "settlement_type": "settlement"
         //    }
         //
         // linear swap fetchSettlementHistory
         //
         //     {
-        //         "id" => "14900",
-        //         "contract_code" => "BTC-USDT",
-        //         "settlement_time" => "1781827200000",
-        //         "clawback_ratio" => "0",
-        //         "settlement_price" => "62933.747161774209291325"
+        //         "id": "14900",
+        //         "contract_code": "BTC-USDT",
+        //         "settlement_time": "1781827200000",
+        //         "clawback_ratio": "0",
+        //         "settlement_price": "62933.747161774209291325"
         //     }
         //
         $timestamp = $this->safe_integer($settlement, 'settlement_time');
@@ -9901,22 +9901,22 @@ class htx extends Exchange {
                 $response = Async\await($this->contractPublicGetV5MarketLiquidationOrders($this->extend($request, $params)));
                 //
                 //     {
-                //         "code" => 200,
-                //         "message" => "Success",
-                //         "data" => array(
+                //         "code": 200,
+                //         "message": "Success",
+                //         "data": [
                 //             {
-                //                 "id" => "150153038758",
-                //                 "contract_code" => "BTC-USDT",
-                //                 "liquidation_time" => "1781849094165",
-                //                 "side" => "buy",
-                //                 "position_side" => "short",
-                //                 "volume" => "2",
-                //                 "amount" => "2",
-                //                 "bankrupt_price" => "62978.5",
-                //                 "trade_turnover" => "125.957"
+                //                 "id": "150153038758",
+                //                 "contract_code": "BTC-USDT",
+                //                 "liquidation_time": "1781849094165",
+                //                 "side": "buy",
+                //                 "position_side": "short",
+                //                 "volume": "2",
+                //                 "amount": "2",
+                //                 "bankrupt_price": "62978.5",
+                //                 "trade_turnover": "125.957"
                 //             }
-                //         ),
-                //         "ts" => 1781854869221
+                //         ],
+                //         "ts": 1781854869221
                 //     }
                 //
             } else {
@@ -9931,25 +9931,25 @@ class htx extends Exchange {
         }
         //
         //     {
-        //         "code" => 200,
-        //         "msg" => "",
-        //         "data" => array(
+        //         "code": 200,
+        //         "msg": "",
+        //         "data": [
         //             {
-        //                 "query_id" => 452057,
-        //                 "contract_code" => "BTC-USDT-211210",
-        //                 "symbol" => "USDT",
-        //                 "direction" => "sell",
-        //                 "offset" => "close",
-        //                 "volume" => 479.000000000000000000,
-        //                 "price" => 51441.700000000000000000,
-        //                 "created_at" => 1638593647864,
-        //                 "amount" => 0.479000000000000000,
-        //                 "trade_turnover" => 24640.574300000000000000,
-        //                 "business_type" => "futures",
-        //                 "pair" => "BTC-USDT"
+        //                 "query_id": 452057,
+        //                 "contract_code": "BTC-USDT-211210",
+        //                 "symbol": "USDT",
+        //                 "direction": "sell",
+        //                 "offset": "close",
+        //                 "volume": 479.000000000000000000,
+        //                 "price": 51441.700000000000000000,
+        //                 "created_at": 1638593647864,
+        //                 "amount": 0.479000000000000000,
+        //                 "trade_turnover": 24640.574300000000000000,
+        //                 "business_type": "futures",
+        //                 "pair": "BTC-USDT"
         //             }
-        //         ),
-        //         "ts" => 1604312615051
+        //         ],
+        //         "ts": 1604312615051
         //     }
         //
         $data = $this->safe_list($response, 'data', array());
@@ -9959,32 +9959,32 @@ class htx extends Exchange {
     public function parse_liquidation(mixed $liquidation, ?array $market = null) {
         //
         //     {
-        //         "query_id" => 452057,
-        //         "contract_code" => "BTC-USDT-211210",
-        //         "symbol" => "USDT",
-        //         "direction" => "sell",
-        //         "offset" => "close",
-        //         "volume" => 479.000000000000000000,
-        //         "price" => 51441.700000000000000000,
-        //         "created_at" => 1638593647864,
-        //         "amount" => 0.479000000000000000,
-        //         "trade_turnover" => 24640.574300000000000000,
-        //         "business_type" => "futures",
-        //         "pair" => "BTC-USDT"
+        //         "query_id": 452057,
+        //         "contract_code": "BTC-USDT-211210",
+        //         "symbol": "USDT",
+        //         "direction": "sell",
+        //         "offset": "close",
+        //         "volume": 479.000000000000000000,
+        //         "price": 51441.700000000000000000,
+        //         "created_at": 1638593647864,
+        //         "amount": 0.479000000000000000,
+        //         "trade_turnover": 24640.574300000000000000,
+        //         "business_type": "futures",
+        //         "pair": "BTC-USDT"
         //     }
         //
         // linear swap
         //
         //     {
-        //         "id" => "150153038758",
-        //         "contract_code" => "BTC-USDT",
-        //         "liquidation_time" => "1781849094165",
-        //         "side" => "buy",
-        //         "position_side" => "short",
-        //         "volume" => "2",
-        //         "amount" => "2",
-        //         "bankrupt_price" => "62978.5",
-        //         "trade_turnover" => "125.957"
+        //         "id": "150153038758",
+        //         "contract_code": "BTC-USDT",
+        //         "liquidation_time": "1781849094165",
+        //         "side": "buy",
+        //         "position_side": "short",
+        //         "volume": "2",
+        //         "amount": "2",
+        //         "bankrupt_price": "62978.5",
+        //         "trade_turnover": "125.957"
         //     }
         //
         $marketId = $this->safe_string($liquidation, 'contract_code');
@@ -10050,13 +10050,13 @@ class htx extends Exchange {
             $response = Async\await($this->contractPrivatePostV5TradePosition($this->extend($request, $params)));
             //
             //     {
-            //         "code" => 200,
-            //         "message" => "Success",
-            //         "data" => array(
-            //             "order_id" => 1513557136321597440,
-            //             "client_order_id" => "1513557136321597440"
-            //         ),
-            //         "ts" => 1780901741840
+            //         "code": 200,
+            //         "message": "Success",
+            //         "data": {
+            //             "order_id": 1513557136321597440,
+            //             "client_order_id": "1513557136321597440"
+            //         },
+            //         "ts": 1780901741840
             //     }
             //
         } else {
@@ -10117,12 +10117,12 @@ class htx extends Exchange {
         $response = Async\await($this->contractPrivatePostV5PositionMode($this->extend($request, $params)));
         //
         //     {
-        //         "code" => 200,
-        //         "message" => "Success",
-        //         "data" => array(
-        //             "position_mode" => "single_side"
-        //         ),
-        //         "ts" => 1781233894454
+        //         "code": 200,
+        //         "message": "Success",
+        //         "data": {
+        //             "position_mode": "single_side"
+        //         },
+        //         "ts": 1781233894454
         //     }
         //
         return $response;
@@ -10168,35 +10168,35 @@ class htx extends Exchange {
             $response = Async\await($this->contractPrivateGetV5TradePositionOpens($params));
             //
             //     {
-            //         "code" => 200,
-            //         "message" => "Success",
-            //         "data" => array(
+            //         "code": 200,
+            //         "message": "Success",
+            //         "data": [
             //             {
-            //                 "contract_code" => "BTC-USDT",
-            //                 "position_side" => "long",
-            //                 "direction" => "buy",
-            //                 "margin_mode" => "cross",
-            //                 "open_avg_price" => "63204.5",
-            //                 "volume" => "1",
-            //                 "available" => "1",
-            //                 "lever_rate" => 20,
-            //                 "adl_risk_percent" => 3,
-            //                 "liquidation_price" => "-110163.844268282697306843",
-            //                 "margin" => "3.158275",
-            //                 "initial_margin" => "3.158275",
-            //                 "maintenance_margin" => "0.2147627",
-            //                 "profit_unreal" => "-0.039",
-            //                 "profit_rate" => "-0.0123",
-            //                 "margin_rate" => "0.0012",
-            //                 "mark_price" => "63165.5",
-            //                 "last_price" => "63163.3",
-            //                 "margin_currency" => "USDT",
-            //                 "contract_type" => "swap",
-            //                 "created_time" => "1780903703234",
-            //                 "updated_time" => "1780903703234"
+            //                 "contract_code": "BTC-USDT",
+            //                 "position_side": "long",
+            //                 "direction": "buy",
+            //                 "margin_mode": "cross",
+            //                 "open_avg_price": "63204.5",
+            //                 "volume": "1",
+            //                 "available": "1",
+            //                 "lever_rate": 20,
+            //                 "adl_risk_percent": 3,
+            //                 "liquidation_price": "-110163.844268282697306843",
+            //                 "margin": "3.158275",
+            //                 "initial_margin": "3.158275",
+            //                 "maintenance_margin": "0.2147627",
+            //                 "profit_unreal": "-0.039",
+            //                 "profit_rate": "-0.0123",
+            //                 "margin_rate": "0.0012",
+            //                 "mark_price": "63165.5",
+            //                 "last_price": "63163.3",
+            //                 "margin_currency": "USDT",
+            //                 "contract_type": "swap",
+            //                 "created_time": "1780903703234",
+            //                 "updated_time": "1780903703234"
             //             }
-            //         ),
-            //         "ts" => 1780903761300
+            //         ],
+            //         "ts": 1780903761300
             //     }
             //
         } else {
@@ -10204,80 +10204,80 @@ class htx extends Exchange {
                 $response = Async\await($this->contractPrivatePostApiV1ContractPositionInfo($params));
                 //
                 //     {
-                //         "status" => "ok",
-                //         "data" => array(
+                //         "status": "ok",
+                //         "data": [
                 //             {
-                //                 "symbol" => "BTC",
-                //                 "contract_code" => "BTC-USDT-260123",
-                //                 "volume" => 1.000000000000000000,
-                //                 "available" => 1.000000000000000000,
-                //                 "frozen" => 0E-18,
-                //                 "cost_open" => 96203.100000000000000000,
-                //                 "cost_hold" => 96203.100000000000000000,
-                //                 "profit_unreal" => -0.199400000000000000,
-                //                 "profit_rate" => -0.002072698281032524,
-                //                 "lever_rate" => 1,
-                //                 "position_margin" => 96.003700000000000000,
-                //                 "direction" => "buy",
-                //                 "profit" => -0.199400000000000000,
-                //                 "last_price" => 96003.7,
-                //                 "margin_asset" => "USDT",
-                //                 "margin_mode" => "cross",
-                //                 "margin_account" => "USDT",
-                //                 "contract_type" => "next_week",
-                //                 "pair" => "BTC-USDT",
-                //                 "business_type" => "futures",
-                //                 "trade_partition" => "USDT",
-                //                 "position_mode" => "single_side",
-                //                 "store_time" => "2026-01-15 23:45:21",
-                //                 "liquidation_price" => null,
-                //                 "market_closing_slippage" => null,
-                //                 "risk_rate" => 249.265098252125343196,
-                //                 "new_risk_rate" => 0.003995762920935011,
-                //                 "risk_rate_percent" => 0.003995762920935011,
-                //                 "withdraw_available" => null,
-                //                 "open_adl" => 1,
-                //                 "adl_risk_percent" => 2,
-                //                 "tp_trigger_price" => null,
-                //                 "sl_trigger_price" => null,
-                //                 "tp_order_id" => null,
-                //                 "sl_order_id" => null,
-                //                 "tp_trigger_type" => null,
-                //                 "sl_trigger_type" => null,
-                //                 "adjust_value" => null
+                //                 "symbol": "BTC",
+                //                 "contract_code": "BTC-USDT-260123",
+                //                 "volume": 1.000000000000000000,
+                //                 "available": 1.000000000000000000,
+                //                 "frozen": 0E-18,
+                //                 "cost_open": 96203.100000000000000000,
+                //                 "cost_hold": 96203.100000000000000000,
+                //                 "profit_unreal": -0.199400000000000000,
+                //                 "profit_rate": -0.002072698281032524,
+                //                 "lever_rate": 1,
+                //                 "position_margin": 96.003700000000000000,
+                //                 "direction": "buy",
+                //                 "profit": -0.199400000000000000,
+                //                 "last_price": 96003.7,
+                //                 "margin_asset": "USDT",
+                //                 "margin_mode": "cross",
+                //                 "margin_account": "USDT",
+                //                 "contract_type": "next_week",
+                //                 "pair": "BTC-USDT",
+                //                 "business_type": "futures",
+                //                 "trade_partition": "USDT",
+                //                 "position_mode": "single_side",
+                //                 "store_time": "2026-01-15 23:45:21",
+                //                 "liquidation_price": null,
+                //                 "market_closing_slippage": null,
+                //                 "risk_rate": 249.265098252125343196,
+                //                 "new_risk_rate": 0.003995762920935011,
+                //                 "risk_rate_percent": 0.003995762920935011,
+                //                 "withdraw_available": null,
+                //                 "open_adl": 1,
+                //                 "adl_risk_percent": 2,
+                //                 "tp_trigger_price": null,
+                //                 "sl_trigger_price": null,
+                //                 "tp_order_id": null,
+                //                 "sl_order_id": null,
+                //                 "tp_trigger_type": null,
+                //                 "sl_trigger_type": null,
+                //                 "adjust_value": null
                 //             }
-                //         ),
-                //         "ts" => 1768491964551
+                //         ],
+                //         "ts": 1768491964551
                 //     }
                 //
             } elseif ($marketType === 'swap') {
                 $response = Async\await($this->contractPrivatePostSwapApiV1SwapPositionInfo($params));
                 //
                 //     {
-                //         "status" => "ok"
-                //         "data" => array(
+                //         "status": "ok"
+                //         "data": [
                 //             {
-                //                 "symbol" => "THETA"
-                //                 "contract_code" => "THETA-USD"
-                //                 "volume" => 20
-                //                 "available" => 20
-                //                 "frozen" => 0
-                //                 "cost_open" => 0.6048347107438017
-                //                 "cost_hold" => 0.65931
-                //                 "profit_unreal" => -10.5257562398811
-                //                 "profit_rate" => 1.0158596753357925
-                //                 "lever_rate" => 20
-                //                 "position_margin" => 15.693659761456372
-                //                 "direction" => "buy"
-                //                 "profit" => 16.795657677889032
-                //                 "last_price" => 0.6372
-                //                 "adl_risk_percent" => "3"
-                //                 "liq_px" => "112"
-                //                 "new_risk_rate" => ""
-                //                 "trade_partition" => ""
+                //                 "symbol": "THETA"
+                //                 "contract_code": "THETA-USD"
+                //                 "volume": 20
+                //                 "available": 20
+                //                 "frozen": 0
+                //                 "cost_open": 0.6048347107438017
+                //                 "cost_hold": 0.65931
+                //                 "profit_unreal": -10.5257562398811
+                //                 "profit_rate": 1.0158596753357925
+                //                 "lever_rate": 20
+                //                 "position_margin": 15.693659761456372
+                //                 "direction": "buy"
+                //                 "profit": 16.795657677889032
+                //                 "last_price": 0.6372
+                //                 "adl_risk_percent": "3"
+                //                 "liq_px": "112"
+                //                 "new_risk_rate": ""
+                //                 "trade_partition": ""
                 //             }
-                //         )
-                //         "ts" => 1603868312729
+                //         ]
+                //         "ts": 1603868312729
                 //     }
                 //
             } else {
@@ -10293,51 +10293,51 @@ class htx extends Exchange {
         // fetchPositionADLRank linear
         //
         //     {
-        //         "contract_code" => "BTC-USDT",
-        //         "position_side" => "long",
-        //         "direction" => "buy",
-        //         "margin_mode" => "cross",
-        //         "open_avg_price" => "63204.5",
-        //         "volume" => "1",
-        //         "available" => "1",
-        //         "lever_rate" => 20,
-        //         "adl_risk_percent" => 3,
-        //         "liquidation_price" => "-110163.844268282697306843",
-        //         "margin" => "3.158275",
-        //         "initial_margin" => "3.158275",
-        //         "maintenance_margin" => "0.2147627",
-        //         "profit_unreal" => "-0.039",
-        //         "profit_rate" => "-0.0123",
-        //         "margin_rate" => "0.0012",
-        //         "mark_price" => "63165.5",
-        //         "last_price" => "63163.3",
-        //         "margin_currency" => "USDT",
-        //         "contract_type" => "swap",
-        //         "created_time" => "1780903703234",
-        //         "updated_time" => "1780903703234"
+        //         "contract_code": "BTC-USDT",
+        //         "position_side": "long",
+        //         "direction": "buy",
+        //         "margin_mode": "cross",
+        //         "open_avg_price": "63204.5",
+        //         "volume": "1",
+        //         "available": "1",
+        //         "lever_rate": 20,
+        //         "adl_risk_percent": 3,
+        //         "liquidation_price": "-110163.844268282697306843",
+        //         "margin": "3.158275",
+        //         "initial_margin": "3.158275",
+        //         "maintenance_margin": "0.2147627",
+        //         "profit_unreal": "-0.039",
+        //         "profit_rate": "-0.0123",
+        //         "margin_rate": "0.0012",
+        //         "mark_price": "63165.5",
+        //         "last_price": "63163.3",
+        //         "margin_currency": "USDT",
+        //         "contract_type": "swap",
+        //         "created_time": "1780903703234",
+        //         "updated_time": "1780903703234"
         //     }
         //
         // fetchPositionADLRank inverse
         //
         //     {
-        //         "symbol" => "THETA"
-        //         "contract_code" => "THETA-USD"
-        //         "volume" => 20
-        //         "available" => 20
-        //         "frozen" => 0
-        //         "cost_open" => 0.6048347107438017
-        //         "cost_hold" => 0.65931
-        //         "profit_unreal" => -10.5257562398811
-        //         "profit_rate" => 1.0158596753357925
-        //         "lever_rate" => 20
-        //         "position_margin" => 15.693659761456372
-        //         "direction" => "buy"
-        //         "profit" => 16.795657677889032
-        //         "last_price" => 0.6372
-        //         "adl_risk_percent" => "3"
-        //         "liq_px" => "112"
-        //         "new_risk_rate" => ""
-        //         "trade_partition" => ""
+        //         "symbol": "THETA"
+        //         "contract_code": "THETA-USD"
+        //         "volume": 20
+        //         "available": 20
+        //         "frozen": 0
+        //         "cost_open": 0.6048347107438017
+        //         "cost_hold": 0.65931
+        //         "profit_unreal": -10.5257562398811
+        //         "profit_rate": 1.0158596753357925
+        //         "lever_rate": 20
+        //         "position_margin": 15.693659761456372
+        //         "direction": "buy"
+        //         "profit": 16.795657677889032
+        //         "last_price": 0.6372
+        //         "adl_risk_percent": "3"
+        //         "liq_px": "112"
+        //         "new_risk_rate": ""
+        //         "trade_partition": ""
         //     }
         //
         $marketId = $this->safe_string($info, 'contract_code');

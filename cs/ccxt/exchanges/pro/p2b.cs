@@ -7,7 +7,7 @@ namespace ccxt.pro;
 public partial class p2b { public p2b(object args = null) : base(args) { } }
 public partial class p2b : ccxt.p2b
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "has", new Dictionary<string, object>() {

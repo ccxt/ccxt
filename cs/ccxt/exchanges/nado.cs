@@ -5,7 +5,7 @@ namespace ccxt;
 
 public partial class nado : Exchange
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "id", "nado" },
@@ -499,7 +499,7 @@ public partial class nado : Exchange
             ((IDictionary<string,object>)placeOrder)["trigger"] = trigger;
         } else if (isTrue(isTrue(isStopLossOrder) || isTrue(isTakeProfitOrder)))
         {
-            object triggerDirection = "";
+            string triggerDirection = "";
             if (isTrue(isBuy))
             {
                 triggerDirection = ((bool) isTrue(isStopLossOrder)) ? "above" : "below";
@@ -1868,7 +1868,7 @@ public partial class nado : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
-    public async override Task<object> fetchCurrencies(object parameters = null)
+    public async override Task<IDictionary<string, object>> fetchCurrencies(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         List<object> response = await this.gatewayV2PublicGetAssets(parameters);
@@ -1877,7 +1877,7 @@ public partial class nado : Exchange
         for (int i = 0; isLessThan(i, getArrayLength(assets)); postFixIncrement(ref i))
         {
             object currency = getValue(assets, i);
-            object parsed = this.parseCurrency(currency);
+            Dictionary<string, object> parsed = this.parseCurrency(currency);
             string? code = this.safeString(parsed, "code");
             if (isTrue(isEqual(code, null)))
             {
@@ -1899,7 +1899,7 @@ public partial class nado : Exchange
                 }
             }
         }
-        return result;
+        return ((IDictionary<string, object>)((object)(result)));
     }
 
     /**
@@ -1952,7 +1952,7 @@ public partial class nado : Exchange
         Dictionary<string, object> market = this.market(symbolVar);
         symbolVar = getValue(market, "symbol");
         object tickers = ccxt.BaseExchange.FromTickers(await this.FetchTickers(new List<object>() {symbolVar}, parameters));
-        object ticker = this.safeDict(tickers, symbolVar);
+        IDictionary<string, object> ticker = this.safeDict(tickers, symbolVar);
         if (isTrue(isEqual(ticker, null)))
         {
             throw new BadSymbol ((string)add(add(this.id, " fetchTicker() ticker not found for "), symbolVar)) ;
@@ -2648,7 +2648,7 @@ public partial class nado : Exchange
         }, market);
     }
 
-    public override object parseCurrency(object rawCurrency)
+    public override Dictionary<string, object> parseCurrency(object rawCurrency)
     {
         bool? canDeposit = this.safeBool(rawCurrency, "can_deposit", false);
         bool? canWithdraw = this.safeBool(rawCurrency, "can_withdraw", false);
@@ -2719,7 +2719,7 @@ public partial class nado : Exchange
             }
             IDictionary<string, object> balance = this.safeDict(rawBalance, "balance", new Dictionary<string, object>() {});
             string? amount = Precise.stringDiv(this.safeString(balance, "amount"), "1000000000000000000");
-            object account = this.account();
+            Dictionary<string, object> account = this.account();
             ((IDictionary<string,object>)account)["total"] = amount;
             // the subaccount balance carries no locked/reserved breakdown, the whole amount is spendable
             ((IDictionary<string,object>)account)["free"] = amount;
@@ -3149,7 +3149,7 @@ public partial class nado : Exchange
         // | 127..64 | 63..48  | 47..38           | 37..14   | 13..12  | 11          | 10..9      | 8        | 7..0    |
         parameters ??= new Dictionary<string, object>();
         bool? reduceOnly = this.safeBool(parameters, "reduceOnly", false);
-        object postOnly = this.isPostOnly(false, null, parameters);
+        bool postOnly = this.isPostOnly(false, null, parameters);
         string? timeInForce = this.safeStringUpper(parameters, "timeInForce");
         int orderType = 0;
         if (isTrue(isEqual(timeInForce, "IOC")))

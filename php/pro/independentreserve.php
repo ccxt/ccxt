@@ -38,7 +38,7 @@ class independentreserve extends \ccxt\async\independentreserve {
             ),
             'options' => array(
                 'watchOrderBook' => array(
-                    'checksum' => true, // TODO => currently only working for snapshot
+                    'checksum' => true, // TODO: currently only working for snapshot
                 ),
             ),
             'streaming' => array(
@@ -75,20 +75,20 @@ class independentreserve extends \ccxt\async\independentreserve {
     public function handle_trades(Client $client, mixed $message) {
         //
         //    {
-        //        "Channel" => "ticker-btc-usd",
-        //        "Nonce" => 130,
-        //        "Data" => array(
-        //          "TradeGuid" => "7a669f2a-d564-472b-8493-6ef982eb1e96",
-        //          "Pair" => "btc-aud",
-        //          "TradeDate" => "2023-02-12T10:04:13.0804889+11:00",
-        //          "Price" => 31640,
-        //          "Volume" => 0.00079029,
-        //          "BidGuid" => "ba8a78b5-be69-4d33-92bb-9df0daa6314e",
-        //          "OfferGuid" => "27d20270-f21f-4c25-9905-152e70b2f6ec",
-        //          "Side" => "Buy"
-        //        ),
-        //        "Time" => 1676156653111,
-        //        "Event" => "Trade"
+        //        "Channel": "ticker-btc-usd",
+        //        "Nonce": 130,
+        //        "Data": {
+        //          "TradeGuid": "7a669f2a-d564-472b-8493-6ef982eb1e96",
+        //          "Pair": "btc-aud",
+        //          "TradeDate": "2023-02-12T10:04:13.0804889+11:00",
+        //          "Price": 31640,
+        //          "Volume": 0.00079029,
+        //          "BidGuid": "ba8a78b5-be69-4d33-92bb-9df0daa6314e",
+        //          "OfferGuid": "27d20270-f21f-4c25-9905-152e70b2f6ec",
+        //          "Side": "Buy"
+        //        },
+        //        "Time": 1676156653111,
+        //        "Event": "Trade"
         //    }
         //
         $data = $this->safe_value($message, 'Data', array());
@@ -110,14 +110,14 @@ class independentreserve extends \ccxt\async\independentreserve {
     public function parse_ws_trade(mixed $trade, ?array $market = null) {
         //
         //    {
-        //        "TradeGuid" => "2f316718-0d0b-4e33-a30c-c2c06f3cfb34",
-        //        "Pair" => "xbt-aud",
-        //        "TradeDate" => "2023-02-12T09:22:35.4207494+11:00",
-        //        "Price" => 31573.8,
-        //        "Volume" => 0.05,
-        //        "BidGuid" => "adb63d74-4c02-47f9-9cc3-f287e3b48ab6",
-        //        "OfferGuid" => "b94d9bc4-addd-4633-a18f-69cf7e1b6f47",
-        //        "Side" => "Buy"
+        //        "TradeGuid": "2f316718-0d0b-4e33-a30c-c2c06f3cfb34",
+        //        "Pair": "xbt-aud",
+        //        "TradeDate": "2023-02-12T09:22:35.4207494+11:00",
+        //        "Price": 31573.8,
+        //        "Volume": 0.05,
+        //        "BidGuid": "adb63d74-4c02-47f9-9cc3-f287e3b48ab6",
+        //        "OfferGuid": "b94d9bc4-addd-4633-a18f-69cf7e1b6f47",
+        //        "Side": "Buy"
         //    }
         //
         $datetime = $this->safe_string($trade, 'TradeDate');
@@ -172,24 +172,24 @@ class independentreserve extends \ccxt\async\independentreserve {
     public function handle_order_book(Client $client, mixed $message) {
         //
         //    {
-        //        "Channel" => "orderbook/1/eth/aud",
-        //        "Data" => array(
-        //          "Bids" => array(
-        //            array(
-        //              "Price" => 2198.09,
-        //              "Volume" => 0.16143952,
-        //            ),
-        //          ),
-        //          "Offers" => array(
-        //            array(
-        //              "Price" => 2201.25,
-        //              "Volume" => 15,
-        //            ),
-        //          ),
-        //          "Crc32" => 1519697650,
-        //        ),
-        //        "Time" => 1676150558254,
-        //        "Event" => "OrderBookSnapshot",
+        //        "Channel": "orderbook/1/eth/aud",
+        //        "Data": {
+        //          "Bids": [
+        //            {
+        //              "Price": 2198.09,
+        //              "Volume": 0.16143952,
+        //            },
+        //          ],
+        //          "Offers": [
+        //            {
+        //              "Price": 2201.25,
+        //              "Volume": 15,
+        //            },
+        //          ],
+        //          "Crc32": 1519697650,
+        //        },
+        //        "Time": 1676150558254,
+        //        "Event": "OrderBookSnapshot",
         //    }
         //
         $event = $this->safe_string($message, 'Event');
@@ -209,7 +209,7 @@ class independentreserve extends \ccxt\async\independentreserve {
         $subscription = $this->safe_value($client->subscriptions, $messageHash, array());
         $receivedSnapshot = $this->safe_bool($subscription, 'receivedSnapshot', false);
         $timestamp = $this->safe_integer($message, 'Time');
-        // $orderbook = $this->safe_value($this->orderbooks, $symbol);
+        // let orderbook = this.safeValue (this.orderbooks, symbol);
         if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
             $this->orderbooks[$symbol] = $this->order_book(array());
         }
@@ -217,7 +217,7 @@ class independentreserve extends \ccxt\async\independentreserve {
         if ($event === 'OrderBookSnapshot') {
             $snapshot = $this->parse_order_book($orderBook, $symbol, $timestamp, 'Bids', 'Offers', 'Price', 'Volume');
             $orderbook->reset($snapshot);
-            // write through the parent index => php copies arrays by value, so
+            // write through the parent index: php copies arrays by value, so
             // mutating the local bind would not persist the flag
             $client->subscriptions[$messageHash] = $this->extend($subscription, array(
                 'receivedSnapshot' => true,
@@ -288,8 +288,8 @@ class independentreserve extends \ccxt\async\independentreserve {
     public function handle_heartbeat(Client $client, mixed $message) {
         //
         //    {
-        //        "Time" => 1676156208182,
-        //        "Event" => "Heartbeat"
+        //        "Time": 1676156208182,
+        //        "Event": "Heartbeat"
         //    }
         //
         return $message;
@@ -298,9 +298,9 @@ class independentreserve extends \ccxt\async\independentreserve {
     public function handle_subscriptions(Client $client, mixed $message) {
         //
         //    {
-        //        "Data" => array( "ticker-btc-sgd" ),
-        //        "Time" => 1676157556223,
-        //        "Event" => "Subscriptions"
+        //        "Data": [ "ticker-btc-sgd" ],
+        //        "Time": 1676157556223,
+        //        "Event": "Subscriptions"
         //    }
         //
         return $message;

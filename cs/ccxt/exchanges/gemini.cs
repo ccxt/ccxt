@@ -5,7 +5,7 @@ namespace ccxt;
 
 public partial class gemini : Exchange
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "id", "gemini" },
@@ -646,10 +646,10 @@ public partial class gemini : Exchange
      * @param {object} [params] extra parameters specific to the endpoint
      * @returns {object} an associative dictionary of currencies
      */
-    public async override Task<object> fetchCurrencies(object parameters = null)
+    public async override Task<IDictionary<string, object>> fetchCurrencies(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return ccxt.BaseExchange.FromCurrencies(await this.FetchCurrenciesFromWeb(parameters));
+        return ((IDictionary<string, object>)((object)(ccxt.BaseExchange.FromCurrencies(await this.FetchCurrenciesFromWeb(parameters)))));
     }
 
     /**
@@ -693,7 +693,7 @@ public partial class gemini : Exchange
         return ccxt.BaseExchange.ToCurrencies(this.parseCurrencies(currenciesArray));
     }
 
-    public override object parseCurrency(object rawCurrency)
+    public override Dictionary<string, object> parseCurrency(object rawCurrency)
     {
         string? id = this.safeString(rawCurrency, 0);
         string? code = this.safeCurrencyCode(id);
@@ -883,7 +883,7 @@ public partial class gemini : Exchange
         return ccxt.BaseExchange.ToMarketInterfaceList(result);
     }
 
-    public virtual object parseMarketActive(object status)
+    public virtual bool? parseMarketActive(object status)
     {
         Dictionary<string, object> statuses = new Dictionary<string, object>() {
             { "open", true },
@@ -894,9 +894,9 @@ public partial class gemini : Exchange
         };
         if (isTrue(isEqual(status, null)))
         {
-            return true;  // as defaulted below
+            return ((bool?)((object)(true)));  // as defaulted below
         }
-        return this.safeBool(statuses, status, true);
+        return ((bool?)((object)(this.safeBool(statuses, status, true))));
     }
 
     public async virtual Task<List<ccxt.MarketInterface>> FetchUSDTMarkets(object parameters = null)
@@ -908,7 +908,7 @@ public partial class gemini : Exchange
         {
             return ccxt.BaseExchange.ToMarketInterfaceList(new List<object>() {});  // sandbox does not have usdt markets
         }
-        object fetchUsdtMarkets = this.safeValue(this.options, "fetchUsdtMarkets", new List<object>() {});
+        List<object> fetchUsdtMarkets = this.safeList(this.options, "fetchUsdtMarkets", new List<object>() {});
         List<object> result = new List<object>() {};
         for (int i = 0; isLessThan(i, getArrayLength(fetchUsdtMarkets)); postFixIncrement(ref i))
         {
@@ -996,7 +996,7 @@ public partial class gemini : Exchange
         return ccxt.BaseExchange.ToMarketInterfaceList(result);
     }
 
-    public override object parseMarket(object response)
+    public override Dictionary<string, object> parseMarket(object response)
     {
         //
         // response might be:
@@ -1037,7 +1037,7 @@ public partial class gemini : Exchange
         double? tickSize = null;
         double? amountPrecision = null;
         double? minSize = null;
-        object status = null;
+        bool? status = null;
         bool swap = false;
         double? contractSize = null;
         bool? linear = null;
@@ -1337,7 +1337,7 @@ public partial class gemini : Exchange
         string? quote = null;
         if (isTrue(isTrue((!isEqual(marketId, null))) && isTrue((isEqual(market, null)))))
         {
-            object idLength = subtract(((string)marketId).Length, 0);
+            int idLength = subtract(((string)marketId).Length, 0);
             if (isTrue(isEqual(idLength, 7)))
             {
                 baseId = slice(marketId, 0, 4);
@@ -1545,7 +1545,7 @@ public partial class gemini : Exchange
             object balance = getValue(response, i);
             string? currencyId = this.safeString(balance, "currency");
             string? code = this.safeCurrencyCode(currencyId);
-            object account = this.account();
+            Dictionary<string, object> account = this.account();
             ((IDictionary<string,object>)account)["free"] = this.safeString(balance, "available");
             ((IDictionary<string,object>)account)["total"] = this.safeString(balance, "amount");
             if (isTrue(!isEqual(code, null)))
@@ -2394,7 +2394,7 @@ public partial class gemini : Exchange
                 { "request", finalUrl },
                 { "nonce", nonce },
             }, query);
-            string payload = this.json(request);
+            string? payload = this.json(request);
             payload = this.stringToBase64(payload);
             string signature = this.hmac(this.encode(payload), this.encode(this.secret), sha384);
             headers = new Dictionary<string, object>() {

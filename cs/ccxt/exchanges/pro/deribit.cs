@@ -7,7 +7,7 @@ namespace ccxt.pro;
 public partial class deribit { public deribit(object args = null) : base(args) { } }
 public partial class deribit : ccxt.deribit
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "has", new Dictionary<string, object>() {
@@ -86,7 +86,7 @@ public partial class deribit : ccxt.deribit
         await this.authenticate(parameters);
         string messageHash = "balance";
         object url = getValue(getValue(this.urls, "api"), "ws");
-        object currencies = this.safeValue(this.options, "currencies", new List<object>() {});
+        List<object> currencies = this.safeList(this.options, "currencies", new List<object>() {});
         List<object> channels = new List<object>() {};
         for (int i = 0; isLessThan(i, getArrayLength(currencies)); postFixIncrement(ref i))
         {
@@ -865,7 +865,7 @@ public partial class deribit : ccxt.deribit
         object parameters = this.safeValue(message, "params", new Dictionary<string, object>() {});
         string? channel = this.safeString(parameters, "channel", "");
         object data = this.safeValue(parameters, "data", new Dictionary<string, object>() {});
-        object orders = new List<object>() {};
+        IList<object> orders = new List<object>() {};
         if (isTrue(((data is IList<object>) || (data.GetType().IsGenericType && data.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
         {
             orders = this.parseOrders(data);
@@ -1051,7 +1051,7 @@ public partial class deribit : ccxt.deribit
             { "id", this.requestId() },
         };
         Dictionary<string, object> extendedRequest = this.deepExtend(request, parameters);
-        object maxMessageByteLimit = subtract(32768, 1); // 'Message Too Big: limit 32768B'
+        int maxMessageByteLimit = subtract(32768, 1); // 'Message Too Big: limit 32768B'
         string jsonedText = this.json(extendedRequest);
         if (isTrue(isGreaterThanOrEqual(((string)jsonedText).Length, maxMessageByteLimit)))
         {

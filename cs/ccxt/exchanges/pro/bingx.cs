@@ -7,7 +7,7 @@ namespace ccxt.pro;
 public partial class bingx { public bingx(object args = null) : base(args) { } }
 public partial class bingx : ccxt.bingx
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "has", new Dictionary<string, object>() {
@@ -180,7 +180,7 @@ public partial class bingx : ccxt.bingx
             url = this.safeString(getValue(getValue(this.urls, "api"), "ws"), marketType);
         }
         object dataType = add(getValue(market, "id"), "@ticker");
-        object messageHash = this.getMessageHash("ticker", getValue(market, "symbol"));
+        string? messageHash = ((string)this.getMessageHash("ticker", getValue(market, "symbol")));
         string uuid = this.uuid();
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "id", uuid },
@@ -217,7 +217,7 @@ public partial class bingx : ccxt.bingx
         }
         Dictionary<string, object> market = this.market(symbol);
         object dataType = add(getValue(market, "id"), "@ticker");
-        object subMessageHash = this.getMessageHash("ticker", getValue(market, "symbol"));
+        string? subMessageHash = ((string)this.getMessageHash("ticker", getValue(market, "symbol")));
         string messageHash = add("unsubscribe::", subMessageHash);
         string topic = "ticker";
         string methodName = "unWatchTicker";
@@ -474,7 +474,7 @@ public partial class bingx : ccxt.bingx
         }
         Dictionary<string, object> market = this.market(symbol);
         object dataType = add(getValue(market, "id"), "@trade");
-        object subMessageHash = this.getMessageHash("trade", getValue(market, "symbol"));
+        string? subMessageHash = ((string)this.getMessageHash("trade", getValue(market, "symbol")));
         string messageHash = add("unsubscribe::", subMessageHash);
         string topic = "trades";
         string methodName = "unWatchTrades";
@@ -633,7 +633,7 @@ public partial class bingx : ccxt.bingx
         IDictionary<string, object> options = this.safeDict(this.options, "watchOrderBook", new Dictionary<string, object>() {});
         Int64? depth = this.safeInteger(options, "depth", 100);
         object subscriptionHash = add(add(add(getValue(market, "id"), "@"), "depth"), this.numberToString(depth));
-        object messageHash = this.getMessageHash("orderbook", getValue(market, "symbol"));
+        string? messageHash = ((string)this.getMessageHash("orderbook", getValue(market, "symbol")));
         string uuid = this.uuid();
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "id", uuid },
@@ -804,12 +804,12 @@ public partial class bingx : ccxt.bingx
         Int64? nonce = this.safeInteger(data, "lastUpdateId");
         ((IDictionary<string,object>)snapshot)["nonce"] = nonce;
         (orderbook as IOrderBook).reset(snapshot);
-        object messageHash = this.getMessageHash("orderbook", symbol);
+        string? messageHash = ((string)this.getMessageHash("orderbook", symbol));
         callDynamically(client as WebSocketClient, "resolve", new object[] {orderbook, messageHash});
         // resolve for "all"
         if (isTrue(isAllEndpoint))
         {
-            object messageHashForAll = this.getMessageHash("orderbook");
+            string? messageHashForAll = ((string)this.getMessageHash("orderbook"));
             callDynamically(client as WebSocketClient, "resolve", new object[] {orderbook, messageHashForAll});
         }
     }
@@ -952,12 +952,12 @@ public partial class bingx : ccxt.bingx
             callDynamically(stored, "append", new object[] {parsed});
         }
         List<object> resolveData = new List<object>() {symbol, unifiedTimeframe, stored};
-        object messageHash = this.getMessageHash("ohlcv", symbol, unifiedTimeframe);
+        string? messageHash = ((string)this.getMessageHash("ohlcv", symbol, unifiedTimeframe));
         callDynamically(client as WebSocketClient, "resolve", new object[] {resolveData, messageHash});
         // resolve for "all"
         if (isTrue(isAllEndpoint))
         {
-            object messageHashForAll = this.getMessageHash("ohlcv", null, unifiedTimeframe);
+            string? messageHashForAll = ((string)this.getMessageHash("ohlcv", null, unifiedTimeframe));
             callDynamically(client as WebSocketClient, "resolve", new object[] {resolveData, messageHashForAll});
         }
     }
@@ -1010,7 +1010,7 @@ public partial class bingx : ccxt.bingx
         object options = this.safeValue(this.options, marketType, new Dictionary<string, object>() {});
         object timeframes = this.safeValue(options, "timeframes", new Dictionary<string, object>() {});
         string? rawTimeframe = this.safeString(timeframes, timeframeVar, timeframeVar);
-        object messageHash = this.getMessageHash("ohlcv", getValue(market, "symbol"), timeframeVar);
+        string? messageHash = ((string)this.getMessageHash("ohlcv", getValue(market, "symbol"), timeframeVar));
         object subscriptionHash = add(add(getValue(market, "id"), "@kline_"), rawTimeframe);
         string uuid = this.uuid();
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -1336,7 +1336,7 @@ public partial class bingx : ccxt.bingx
         // don't remove the future from the .futures cache
         if (isTrue(inOp(client.futures, messageHash)))
         {
-            var future = getValue(client.futures, messageHash);
+            Future future = ((Future)getValue(client.futures, messageHash));
             (future as Future).resolve();
             callDynamically(client as WebSocketClient, "resolve", new object[] {getValue(this.balance, type), add(type, ":balance")});
         }
@@ -1455,7 +1455,7 @@ public partial class bingx : ccxt.bingx
         // don't remove the future from the .futures cache
         if (isTrue(inOp(client.futures, messageHash)))
         {
-            var future = getValue(client.futures, messageHash);
+            Future future = ((Future)getValue(client.futures, messageHash));
             (future as Future).resolve(cache);
             callDynamically(client as WebSocketClient, "resolve", new object[] {cache, "swap:positions"});
         }
@@ -1555,7 +1555,7 @@ public partial class bingx : ccxt.bingx
         {
             return;
         }
-        object rawPositions = this.safeList(data, "P", new List<object>() {});
+        List<object> rawPositions = this.safeList(data, "P", new List<object>() {});
         List<object> newPositions = new List<object>() {};
         for (int i = 0; isLessThan(i, getArrayLength(rawPositions)); postFixIncrement(ref i))
         {
@@ -1572,7 +1572,7 @@ public partial class bingx : ccxt.bingx
             ((IList<object>)newPositions).Add(position);
             callDynamically(cache, "append", new object[] {position});
         }
-        object messageHashes = this.findMessageHashes(client as WebSocketClient, "swap:positions::");
+        List<object> messageHashes = this.findMessageHashes(client as WebSocketClient, "swap:positions::");
         for (int i = 0; isLessThan(i, getArrayLength(messageHashes)); postFixIncrement(ref i))
         {
             object messageHash = getValue(messageHashes, i);
@@ -1588,7 +1588,7 @@ public partial class bingx : ccxt.bingx
         callDynamically(client as WebSocketClient, "resolve", new object[] {newPositions, "swap:positions"});
     }
 
-    public virtual object handleErrorMessage(WebSocketClient client, object message)
+    public virtual bool handleErrorMessage(WebSocketClient client, object message)
     {
         //
         // { code: 100400, msg: '', timestamp: 1696245808833 }
@@ -1611,7 +1611,7 @@ public partial class bingx : ccxt.bingx
         {
             ((WebSocketClient)client).reject(e);
         }
-        return true;
+        return ((bool)((object)(true))!);
     }
 
     public async virtual Task keepAliveListenKey(object parameters = null)
@@ -1955,7 +1955,7 @@ public partial class bingx : ccxt.bingx
         //     }
         //
         IDictionary<string, object> a = this.safeDict(message, "a", new Dictionary<string, object>() {});
-        object data = this.safeList(a, "B", new List<object>() {});
+        List<object> data = this.safeList(a, "B", new List<object>() {});
         Int64? timestamp = this.safeInteger2(message, "T", "E");
         string? spotUrl = this.safeString(getValue(getValue(this.urls, "api"), "ws"), "spot");
         bool isSpot = isTrue((!isEqual(spotUrl, null))) && isTrue((isEqual(getIndexOf(client.url, spotUrl), 0)));
@@ -1972,7 +1972,7 @@ public partial class bingx : ccxt.bingx
             object balance = getValue(data, i);
             string? currencyId = this.safeString(balance, "a");
             string? code = this.safeCurrencyCode(currencyId);
-            object account = this.account();
+            Dictionary<string, object> account = this.account();
             ((IDictionary<string,object>)account)["info"] = balance;
             ((IDictionary<string,object>)account)["used"] = this.safeString(balance, "lk");
             ((IDictionary<string,object>)account)["free"] = this.safeString(balance, "wb");
@@ -2081,8 +2081,8 @@ public partial class bingx : ccxt.bingx
 
     public virtual void handleUnSubscription(WebSocketClient client, object subscription)
     {
-        object messageHashes = this.safeList(subscription, "messageHashes", new List<object>() {});
-        object subMessageHashes = this.safeList(subscription, "subMessageHashes", new List<object>() {});
+        List<object> messageHashes = this.safeList(subscription, "messageHashes", new List<object>() {});
+        List<object> subMessageHashes = this.safeList(subscription, "subMessageHashes", new List<object>() {});
         for (int i = 0; isLessThan(i, getArrayLength(messageHashes)); postFixIncrement(ref i))
         {
             object unsubHash = getValue(messageHashes, i);

@@ -5,7 +5,7 @@ namespace ccxt;
 
 public partial class mudrex : Exchange
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "id", "mudrex" },
@@ -618,7 +618,7 @@ public partial class mudrex : Exchange
         return ccxt.BaseExchange.ToMarketInterfaceList(result);
     }
 
-    public override object parseMarket(object asset)
+    public override Dictionary<string, object> parseMarket(object asset)
     {
         string? ms = this.safeString(asset, "symbol");
         object bs = ms;
@@ -745,7 +745,7 @@ public partial class mudrex : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
         };
-        object account = this.account();
+        Dictionary<string, object> account = this.account();
         string? futuresBalance = this.safeString(data, "balance");
         if (isTrue(!isEqual(futuresBalance, null)))
         {

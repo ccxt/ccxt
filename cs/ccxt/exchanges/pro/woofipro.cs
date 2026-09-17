@@ -7,7 +7,7 @@ namespace ccxt.pro;
 public partial class woofipro { public woofipro(object args = null) : base(args) { } }
 public partial class woofipro : ccxt.woofipro
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "has", new Dictionary<string, object>() {
@@ -654,7 +654,7 @@ public partial class woofipro : ccxt.woofipro
         if (isTrue(isEqual(success, true)))
         {
             // client.resolve (message, messageHash);
-            var future = this.safeValue((client as WebSocketClient).futures, "authenticated");
+            Future future = ((Future)this.safeValue((client as WebSocketClient).futures, "authenticated"));
             (future as Future).resolve(true);
         } else
         {
@@ -981,7 +981,7 @@ public partial class woofipro : ccxt.woofipro
             for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
             {
                 object order = getValue(data, i);
-                object tradeId = this.omitZero(this.safeString(data, "tradeId"));
+                string? tradeId = ((string)this.omitZero(this.safeString(data, "tradeId")));
                 if (isTrue(!isEqual(tradeId, null)))
                 {
                     this.handleMyTrade(client as WebSocketClient, order);
@@ -991,7 +991,7 @@ public partial class woofipro : ccxt.woofipro
         } else
         {
             // executionreport
-            object tradeId = this.omitZero(this.safeString(data, "tradeId"));
+            string? tradeId = ((string)this.omitZero(this.safeString(data, "tradeId")));
             if (isTrue(!isEqual(tradeId, null)))
             {
                 this.handleMyTrade(client as WebSocketClient, data);
@@ -1181,7 +1181,7 @@ public partial class woofipro : ccxt.woofipro
         // don't remove the future from the .futures cache
         if (isTrue(inOp(client.futures, messageHash)))
         {
-            var future = getValue(client.futures, messageHash);
+            Future future = ((Future)getValue(client.futures, messageHash));
             (future as Future).resolve(cache);
             callDynamically(client as WebSocketClient, "resolve", new object[] {cache, "positions"});
         }

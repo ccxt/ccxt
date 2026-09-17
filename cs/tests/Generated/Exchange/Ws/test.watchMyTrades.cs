@@ -11,7 +11,7 @@ public partial class testMainClass : BaseTest
     async static public Task<object> testWatchMyTrades(Exchange exchange, object skippedProperties, object symbol)
     {
         string method = "watchMyTrades";
-        object now = exchange.milliseconds();
+        Int64 now = exchange.milliseconds();
         object ends = add(now, 15000);
         while (isLessThan(now, ends))
         {
@@ -36,7 +36,7 @@ public partial class testMainClass : BaseTest
                 now = exchange.milliseconds();
                 for (int i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
                 {
-                    testTrade(exchange, skippedProperties, method, getValue(response, i), symbol, now);
+                    testTrade(exchange, skippedProperties, method, getValue(response, i), symbol, now, false);
                 }
                 testSharedMethods.assertTimestampOrder(exchange, method, symbol, response);
             }

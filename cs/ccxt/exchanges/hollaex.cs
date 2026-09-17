@@ -5,7 +5,7 @@ namespace ccxt;
 
 public partial class hollaex : Exchange
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "id", "hollaex" },
@@ -408,7 +408,7 @@ public partial class hollaex : Exchange
         //         "status": true
         //     }
         //
-        object pairs = this.safeValue(response, "pairs", new Dictionary<string, object>() {});
+        IDictionary<string, object> pairs = this.safeDict(response, "pairs", new Dictionary<string, object>() {});
         List<object> keys = new List<object>(((IDictionary<string,object>)pairs).Keys);
         List<object> result = new List<object>() {};
         for (int i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
@@ -480,7 +480,7 @@ public partial class hollaex : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
-    public async override Task<object> fetchCurrencies(object parameters = null)
+    public async override Task<IDictionary<string, object>> fetchCurrencies(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> response = await this.publicGetConstants(parameters);
@@ -555,7 +555,7 @@ public partial class hollaex : Exchange
         return this.parseCurrencies(values);
     }
 
-    public override object parseCurrency(object rawCurrency)
+    public override Dictionary<string, object> parseCurrency(object rawCurrency)
     {
         string? id = this.safeString(rawCurrency, "symbol");
         string? code = this.safeCurrencyCode(id);
@@ -874,7 +874,7 @@ public partial class hollaex : Exchange
         //         ]
         //     }
         //
-        object trades = this.safeList(response, getValue(market, "id"), new List<object>() {});
+        List<object> trades = this.safeList(response, getValue(market, "id"), new List<object>() {});
         return ccxt.BaseExchange.ToTradeList(this.parseTrades(trades, market, since, limit));
     }
 
@@ -1042,7 +1042,7 @@ public partial class hollaex : Exchange
             return ccxt.BaseExchange.ToOHLCVList(await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit,((string)timeframeVar), parameters, maxLimit));
         }
         Int64? until = this.safeInteger(parameters, "until");
-        object timeDelta = multiply(multiply(this.parseTimeframe(timeframeVar), maxLimit), 1000);
+        Int64 timeDelta = multiply(multiply(this.parseTimeframe(timeframeVar), maxLimit), 1000);
         object start = since;
         Int64 now = this.milliseconds();
         if (isTrue(isEqual(until, null)))
@@ -1107,7 +1107,7 @@ public partial class hollaex : Exchange
         {
             object currencyId = getValue(currencyIds, i);
             string? code = this.safeCurrencyCode(currencyId);
-            object account = this.account();
+            Dictionary<string, object> account = this.account();
             ((IDictionary<string,object>)account)["free"] = this.safeString(response, add(currencyId, "_available"));
             ((IDictionary<string,object>)account)["total"] = this.safeString(response, add(currencyId, "_balance"));
             if (isTrue(!isEqual(code, null)))
@@ -1351,7 +1351,7 @@ public partial class hollaex : Exchange
         //         ]
         //     }
         //
-        object data = this.safeList(response, "data", new List<object>() {});
+        List<object> data = this.safeList(response, "data", new List<object>() {});
         return ccxt.BaseExchange.ToOrderList(this.parseOrders(data, market, since, limit));
     }
 
@@ -1466,7 +1466,7 @@ public partial class hollaex : Exchange
         object meta = this.safeValue(parameters, "meta", new Dictionary<string, object>() {});
         bool? exchangeSpecificParam = this.safeBool(meta, "post_only", false);
         bool isMarketOrder = isEqual(type, "market");
-        object postOnly = this.isPostOnly(isMarketOrder, exchangeSpecificParam, parameters);
+        bool postOnly = this.isPostOnly(isMarketOrder, exchangeSpecificParam, parameters);
         if (!isTrue(isMarketOrder))
         {
             ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, price);
@@ -1638,7 +1638,7 @@ public partial class hollaex : Exchange
         //         ]
         //     }
         //
-        object data = this.safeList(response, "data", new List<object>() {});
+        List<object> data = this.safeList(response, "data", new List<object>() {});
         return ccxt.BaseExchange.ToTradeList(this.parseTrades(data, market, since, limit));
     }
 
@@ -1801,7 +1801,7 @@ public partial class hollaex : Exchange
         //         ]
         //     }
         //
-        object data = this.safeList(response, "data", new List<object>() {});
+        List<object> data = this.safeList(response, "data", new List<object>() {});
         return ccxt.BaseExchange.ToTransactionList(this.parseTransactions(data, currency, since, limit));
     }
 
@@ -1917,7 +1917,7 @@ public partial class hollaex : Exchange
         //         ]
         //     }
         //
-        object data = this.safeList(response, "data", new List<object>() {});
+        List<object> data = this.safeList(response, "data", new List<object>() {});
         return ccxt.BaseExchange.ToTransactionList(this.parseTransactions(data, currency, since, limit));
     }
 

@@ -442,13 +442,13 @@ class lighter(ccxt.async_support.lighter):
         #         "bid_client_id": 27601,
         #         "ask_account_id": 99349,
         #         "bid_account_id": 243008,
-        #         "is_maker_ask": False,
+        #         "is_maker_ask": false,
         #         "block_height": 102322769,
         #         "timestamp": 1763623734215,
         #         "taker_position_size_before": "0.0346",
         #         "taker_entry_quote_before": "104.359926",
         #         "taker_initial_margin_fraction_before": 500,
-        #         "taker_position_sign_changed": True,
+        #         "taker_position_sign_changed": true,
         #         "maker_fee": 20,
         #         "maker_position_size_before": "2.1277",
         #         "maker_entry_quote_before": "6444.179555",
@@ -498,13 +498,13 @@ class lighter(ccxt.async_support.lighter):
         #                 "bid_client_id": 27601,
         #                 "ask_account_id": 99349,
         #                 "bid_account_id": 243008,
-        #                 "is_maker_ask": False,
+        #                 "is_maker_ask": false,
         #                 "block_height": 102322769,
         #                 "timestamp": 1763623734215,
         #                 "taker_position_size_before": "0.0346",
         #                 "taker_entry_quote_before": "104.359926",
         #                 "taker_initial_margin_fraction_before": 500,
-        #                 "taker_position_sign_changed": True,
+        #                 "taker_position_sign_changed": true,
         #                 "maker_fee": 20,
         #                 "maker_position_size_before": "2.1277",
         #                 "maker_entry_quote_before": "6444.179555",
@@ -594,13 +594,13 @@ class lighter(ccxt.async_support.lighter):
         #         "bid_client_id": 27601,
         #         "ask_account_id": 99349,
         #         "bid_account_id": 243008,
-        #         "is_maker_ask": False,
+        #         "is_maker_ask": false,
         #         "block_height": 102322769,
         #         "timestamp": 1763623734215,
         #         "taker_position_size_before": "0.0346",
         #         "taker_entry_quote_before": "104.359926",
         #         "taker_initial_margin_fraction_before": 500,
-        #         "taker_position_sign_changed": True,
+        #         "taker_position_sign_changed": true,
         #         "maker_fee": 20,
         #         "maker_position_size_before": "2.1277",
         #         "maker_entry_quote_before": "6444.179555",
@@ -658,7 +658,7 @@ class lighter(ccxt.async_support.lighter):
             'fee': fee,
         }, market)
 
-    def handle_my_trades(self, client: Client, message: object):
+    def handle_my_trades(self, client: Client, message: object) -> bool:
         #
         #     {
         #         "channel": "account_all_trades:723310",
@@ -677,13 +677,13 @@ class lighter(ccxt.async_support.lighter):
         #                  "bid_client_id": 27601,
         #                  "ask_account_id": 99349,
         #                  "bid_account_id": 243008,
-        #                  "is_maker_ask": False,
+        #                  "is_maker_ask": false,
         #                  "block_height": 102322769,
         #                  "timestamp": 1763623734215,
         #                  "taker_position_size_before": "0.0346",
         #                  "taker_entry_quote_before": "104.359926",
         #                  "taker_initial_margin_fraction_before": 500,
-        #                  "taker_position_sign_changed": True,
+        #                  "taker_position_sign_changed": true,
         #                  "maker_fee": 20,
         #                  "maker_position_size_before": "2.1277",
         #                  "maker_entry_quote_before": "6444.179555",
@@ -792,13 +792,13 @@ class lighter(ccxt.async_support.lighter):
         #         "bid_client_id": 27601,
         #         "ask_account_id": 99349,
         #         "bid_account_id": 243008,
-        #         "is_maker_ask": False,
+        #         "is_maker_ask": false,
         #         "block_height": 102322769,
         #         "timestamp": 1763623734215,
         #         "taker_position_size_before": "0.0346",
         #         "taker_entry_quote_before": "104.359926",
         #         "taker_initial_margin_fraction_before": 500,
-        #         "taker_position_sign_changed": True,
+        #         "taker_position_sign_changed": true,
         #         "maker_fee": 20,
         #         "maker_position_size_before": "2.1277",
         #         "maker_entry_quote_before": "6444.179555",
@@ -849,13 +849,13 @@ class lighter(ccxt.async_support.lighter):
         #                 "bid_client_id": 27601,
         #                 "ask_account_id": 99349,
         #                 "bid_account_id": 243008,
-        #                 "is_maker_ask": False,
+        #                 "is_maker_ask": false,
         #                 "block_height": 102322769,
         #                 "timestamp": 1763623734215,
         #                 "taker_position_size_before": "0.0346",
         #                 "taker_entry_quote_before": "104.359926",
         #                 "taker_initial_margin_fraction_before": 500,
-        #                 "taker_position_sign_changed": True,
+        #                 "taker_position_sign_changed": true,
         #                 "maker_fee": 20,
         #                 "maker_position_size_before": "2.1277",
         #                 "maker_entry_quote_before": "6444.179555",
@@ -931,7 +931,7 @@ class lighter(ccxt.async_support.lighter):
             request['channel'] = 'user_stats/' + self.number_to_string(accountIndex)
             return await self.subscribe_public(messageHash, self.extend(request, params))
 
-    def handle_balance(self, client: Client, message: object):
+    def handle_balance(self, client: Client, message: object) -> bool:
         #
         #    spot balance
         #    {
@@ -1192,14 +1192,14 @@ class lighter(ccxt.async_support.lighter):
         id = self.safe_string(message, 'id')
         client.resolve(message, 'jsonapi/sendtx:' + id)
 
-    def handle_orders(self, client: Client, message: object):
+    def handle_orders(self, client: Client, message: object) -> bool:
         #
         #    {
         #        "account": {ACCOUNT_INDEX},
         #        "channel": "account_orders:{MARKET_INDEX}",
         #        "nonce": INTEGER,
         #        "orders": {
-        #            "{MARKET_INDEX}": [Order]  # the only present market index will be the one provided
+        #            "{MARKET_INDEX}": [Order] // the only present market index will be the one provided
         #        },
         #        "type": "update/account_orders"
         #    }
@@ -1236,7 +1236,7 @@ class lighter(ccxt.async_support.lighter):
         client.resolve(stored, messageHash)
         return True
 
-    def handle_error_message(self, client: Client, message: object):
+    def handle_error_message(self, client: Client, message: object) -> bool:
         #
         #     {
         #         "error": {
@@ -1344,7 +1344,7 @@ class lighter(ccxt.async_support.lighter):
 
     def handle_ping(self, client: Client, message: object):
         #
-        #     {"type": "ping"}
+        #     { "type": "ping" }
         #
         self.spawn(self.pong, client, message)
 

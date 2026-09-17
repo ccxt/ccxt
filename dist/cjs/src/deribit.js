@@ -860,7 +860,7 @@ class deribit extends deribit$1["default"] {
             //         "testnet": false
             //     }
             //
-            const currenciesResult = this.safeValue(currenciesResponse, 'result', []);
+            const currenciesResult = this.safeList(currenciesResponse, 'result', []);
             for (let i = 0; i < currenciesResult.length; i++) {
                 const currencyId = this.safeString(currenciesResult[i], 'currency');
                 const request = {
@@ -944,7 +944,7 @@ class deribit extends deribit$1["default"] {
             }
         }
         for (let i = 0; i < instrumentsResponses.length; i++) {
-            const instrumentsResult = this.safeValue(instrumentsResponses[i], 'result', []);
+            const instrumentsResult = this.safeList(instrumentsResponses[i], 'result', []);
             for (let k = 0; k < instrumentsResult.length; k++) {
                 const market = instrumentsResult[k];
                 const kind = this.safeString(market, 'kind');
@@ -1774,7 +1774,7 @@ class deribit extends deribit$1["default"] {
         //     }
         //
         const result = this.safeValue(response, 'result', {});
-        const fees = this.safeValue(result, 'fees', []);
+        const fees = this.safeList(result, 'fees', []);
         let perpetualFee = {};
         let futureFee = {};
         let optionFee = {};
@@ -2974,7 +2974,7 @@ class deribit extends deribit$1["default"] {
         //         "testnet": false
         //     }
         //
-        const volatilityResult = this.safeValue(volatility, 'result', []);
+        const volatilityResult = this.safeList(volatility, 'result', []);
         const result = [];
         for (let i = 0; i < volatilityResult.length; i++) {
             const timestamp = this.safeInteger(volatilityResult[i], 0);
@@ -3352,7 +3352,7 @@ class deribit extends deribit$1["default"] {
         //    }
         //
         const rates = [];
-        const result = this.safeValue(response, 'result', []);
+        const result = this.safeList(response, 'result', []);
         for (let i = 0; i < result.length; i++) {
             const fr = result[i];
             const rate = this.parseFundingRate(fr, market);

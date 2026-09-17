@@ -11,6 +11,7 @@ use crate::Value;
 use crate::ExchangeError;
 use crate::exchange::Exchange;
 use crate::exchange::ExchangeRuntime;
+use crate::exchange::CallDynamicChecked;
 
 
 
@@ -3771,7 +3772,8 @@ pub trait ExchangeBase:
             }
             // close (using average)
             if is_equal(&close, &Value::Null) && !is_equal(&average, &Value::Null) {
-                close = crate::precise::Precise::stringMul(&average, &Value::Str("2".to_string()));
+                // average is the midpoint of open and close, so twice it is their sum
+                close = crate::precise::Precise::stringSub(&crate::precise::Precise::stringMul(&average, &Value::Str("2".to_string())), &open);
             }
             // average
             if is_equal(&average, &Value::Null) && !is_equal(&close, &Value::Null) {
@@ -4080,10 +4082,10 @@ pub trait ExchangeBase:
             let mut shouldBreak: bool = false;
             while is_less_than(&retry, &maxRetries) {
                 {
-                    response = self.call_method(endpointMethod.clone(), &[Value::Map({
+                    response = self.call_dynamic_checked(endpointMethod.clone(), vec![(Value::Map({
                         let mut m = indexmap::IndexMap::new();
                         m
-                    })]).await;
+                    })).clone()]).await;
                     shouldBreak = true;
                     break;
                 }
@@ -5294,12 +5296,12 @@ pub trait ExchangeBase:
         { let __destr_tmp = self.handle_option_and_params(params.clone(), path.clone(), Value::Str("maxRetriesOnFailure".to_string()), &[retries.clone()]); retries = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut retryDelay: Value = Value::Int(0);
         { let __destr_tmp = self.handle_option_and_params(params.clone(), path.clone(), Value::Str("maxRetriesOnFailureDelay".to_string()), &[retryDelay.clone()]); retryDelay = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
-        let mut fetchData: Value = Value::Null;
         let mut fetchDataCacheEnabled: bool = is_greater_than(&self.fetchHistoryCacheSize, &Value::Int(0));
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_130: bool = true;
             while { if !__for_first_130 { i = add(&i, &Value::Int(1)); } __for_first_130 = false; is_less_than(&i, &add(&retries, &Value::Int(1))) } {
+            let mut fetchData: Value = Value::Null;
             if is_true(&fetchDataCacheEnabled) {
                 fetchData = Value::Map({
                     let mut m = indexmap::IndexMap::new();
@@ -5316,19 +5318,19 @@ pub trait ExchangeBase:
             let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
                 self.set_last_rest_request_timestamp();
                 let mut request: Value = <Self as crate::exchange_generated::ExchangeBase>::sign(self, path.clone(), &[api.clone(), method.clone(), params.clone(), headers.clone(), body.clone()]);
-                if is_true(&fetchDataCacheEnabled) && is_true(&(!is_equal(&fetchData, &Value::Null))) {
+                if !is_equal(&fetchData, &Value::Null) {
                     add_element_to_object(&mut fetchData, &Value::Str("request".to_string()), request.clone());
                 }
                 self.set_last_request(request.clone());
                 let mut response: Value = self.fetch(get_value(&request, &Value::Str("url".to_string())), &[get_value(&request, &Value::Str("method".to_string())), get_value(&request, &Value::Str("headers".to_string())), get_value(&request, &Value::Str("body".to_string()))]).await;
-                if is_true(&fetchDataCacheEnabled) && is_true(&(!is_equal(&fetchData, &Value::Null))) {
+                if !is_equal(&fetchData, &Value::Null) {
                     add_element_to_object(get_value_mut(&mut fetchData, &Value::Str("response".to_string())), &Value::Str("body".to_string()), response.clone());
                     self.add_fetch_cache(fetchData.clone());
                 }
                 return response.clone();
              #[allow(unreachable_code)] { Value::Null }})).await;
 match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { return __try_ok; } return Value::Null; } Err(_try_err) => { let e: Value = panic_to_value(_try_err); 
-                if is_true(&fetchDataCacheEnabled) && is_true(&(!is_equal(&fetchData, &Value::Null))) {
+                if !is_equal(&fetchData, &Value::Null) {
                     add_element_to_object(&mut fetchData, &Value::Str("error".to_string()), e.clone());
                     self.add_fetch_cache(fetchData.clone());
                 }
@@ -8279,7 +8281,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                     if !is_equal(&paginationTimestamp, &Value::Null) {
                         add_element_to_object(&mut params, &Value::Str("until".to_string()), subtract(&paginationTimestamp, &Value::Int(1)));
                     }
-                    let mut response: Value = self.call_method(method.clone(), &[symbol.clone(), Value::Null, maxEntriesPerRequest.clone(), params.clone()]).await;
+                    let mut response: Value = self.call_dynamic_checked(method.clone(), vec![(symbol).clone(), (Value::Null).clone(), (maxEntriesPerRequest).clone(), (params).clone()]).await;
                     let mut responseLength: Value = get_array_length(&response);
                     if is_true(&self.verbose) {
                         let mut backwardMessage: Value = add(&add(&add(&add(&add(&Value::Str("Dynamic pagination call ".to_string()), &self.number_to_string(calls.clone())), &Value::Str(" method ".to_string())), &method), &Value::Str(" response length ".to_string())), &self.number_to_string(responseLength.clone()));
@@ -8303,7 +8305,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                     }
                 }  else {
                     // do it forwards, starting from the since
-                    let mut response: Value = self.call_method(method.clone(), &[symbol.clone(), paginationTimestamp.clone(), maxEntriesPerRequest.clone(), params.clone()]).await;
+                    let mut response: Value = self.call_dynamic_checked(method.clone(), vec![(symbol).clone(), (paginationTimestamp).clone(), (maxEntriesPerRequest).clone(), (params).clone()]).await;
                     let mut responseLength: Value = get_array_length(&response);
                     if is_true(&self.verbose) {
                         let mut forwardMessage: Value = add(&add(&add(&add(&add(&Value::Str("Dynamic pagination call ".to_string()), &self.number_to_string(calls.clone())), &Value::Str(" method ".to_string())), &method), &Value::Str(" response length ".to_string())), &self.number_to_string(responseLength.clone()));
@@ -8356,9 +8358,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         while is_less_than_or_equal(&errors, &maxRetries) {
             let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
                 if is_true(&(!is_equal(&timeframe, &Value::Null) && !is_equal(&timeframe, &Value::Str("".to_string())))) && !is_equal(&method, &Value::Str("fetchFundingRateHistory".to_string())) {
-                    return self.call_method(method.clone(), &[symbol.clone(), timeframe.clone(), since.clone(), limit.clone(), params.clone()]).await;
+                    return self.call_dynamic_checked(method.clone(), vec![(symbol).clone(), (timeframe).clone(), (since).clone(), (limit).clone(), (params).clone()]).await;
                 }  else {
-                    return self.call_method(method.clone(), &[symbol.clone(), since.clone(), limit.clone(), params.clone()]).await;
+                    return self.call_dynamic_checked(method.clone(), vec![(symbol).clone(), (since).clone(), (limit).clone(), (params).clone()]).await;
                 }
              #[allow(unreachable_code)] { Value::Null }})).await;
 match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { return __try_ok; } return Value::Null; } Err(_try_err) => { let e: Value = panic_to_value(_try_err); 
@@ -8487,9 +8489,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 }
                 let mut response: Value = Value::Null;
                 if is_equal(&method, &Value::Str("fetchAccounts".to_string())) {
-                    response = self.call_method(method.clone(), &[params.clone()]).await;
+                    response = self.call_dynamic_checked(method.clone(), vec![(params).clone()]).await;
                 }  else if is_equal(&method, &Value::Str("getLeverageTiersPaginated".to_string())) || is_equal(&method, &Value::Str("fetchPositions".to_string())) {
-                    response = self.call_method(method.clone(), &[symbol.clone(), params.clone()]).await;
+                    response = self.call_dynamic_checked(method.clone(), vec![(symbol).clone(), (params).clone()]).await;
                 }  else if is_equal(&method, &Value::Str("fetchOpenInterestHistory".to_string())) {
                     if !is_string(&symbol) {
                         panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchPaginatedCallCursor() requires a symbol argument".to_string()))));
@@ -8497,9 +8499,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                     if is_equal(&timeframe, &Value::Null) {
                         panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchPaginatedCallCursor() requires a timeframe argument".to_string()))));
                     }
-                    response = self.call_method(method.clone(), &[symbol.clone(), timeframe.clone(), since.clone(), maxEntriesPerRequest.clone(), params.clone()]).await;
+                    response = self.call_dynamic_checked(method.clone(), vec![(symbol).clone(), (timeframe).clone(), (since).clone(), (maxEntriesPerRequest).clone(), (params).clone()]).await;
                 }  else {
-                    response = self.call_method(method.clone(), &[symbol.clone(), since.clone(), maxEntriesPerRequest.clone(), params.clone()]).await;
+                    response = self.call_dynamic_checked(method.clone(), vec![(symbol).clone(), (since).clone(), (maxEntriesPerRequest).clone(), (params).clone()]).await;
                 }
                 errors = Value::Int(0);
                 if is_equal(&response, &Value::Null) {
@@ -8576,7 +8578,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         while is_less_than(&i, &maxCalls) {
             {
                 add_element_to_object(&mut params, &pageKey, add(&i, &Value::Int(1)));
-                let mut response: Value = self.call_method(method.clone(), &[symbol.clone(), since.clone(), maxEntriesPerRequest.clone(), params.clone()]).await;
+                let mut response: Value = self.call_dynamic_checked(method.clone(), vec![(symbol).clone(), (since).clone(), (maxEntriesPerRequest).clone(), (params).clone()]).await;
                 errors = Value::Int(0);
                 let mut responseLength: Value = get_array_length(&response);
                 if is_true(&self.verbose) {
@@ -11921,6 +11923,12 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 // computes a null url. Route them the way those wrappers do.
                 // Guarded on the api block so a genuinely unknown name still
                 // returns Null rather than panicking inside call_method.
+                //
+                // Returning Null keeps an optional probe cheap, but a dynamic
+                // re-entry (`fetchPaginatedCall*` / `fetchWebEndpoint`, which
+                // reach here via `method_name_to_snake_case`) must not silently
+                // see an empty page — so record the miss for
+                // `crate::exchange::call_dynamic_required` to raise on.
                 _ => {
                     if self.internals.implicit_api.is_empty() {
                         self.build_implicit_api();
@@ -11928,6 +11936,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                     if self.internals.implicit_api.contains_key(method) {
                         self.call_method(crate::Value::Str(method.to_string()), &args[..]).await
                     } else {
+                        self.internals.dynamic_dispatch_miss = Some(method.to_string());
                         crate::Value::Null
                     }
                 }

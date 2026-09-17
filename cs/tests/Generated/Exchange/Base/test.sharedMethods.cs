@@ -14,7 +14,7 @@ public partial class testMainClass : BaseTest
             // there are cases when exchange is undefined (eg. base tests)
             object id = ((bool) isTrue((!isEqual(exchange, null)))) ? exchange.id : "undefined";
             object methodString = ((bool) isTrue((!isEqual(method, null)))) ? method : "undefined";
-            object entryString = ((bool) isTrue((isTrue(!isEqual(exchange, null)) && isTrue(!isEqual(entry, null))))) ? exchange.json(entry) : "";
+            string? entryString = ((bool) isTrue((isTrue(!isEqual(exchange, null)) && isTrue(!isEqual(entry, null))))) ? exchange.json(entry) : "";
             return add(add(add(add(add(add(" <<< ", id), " "), methodString), " ::: "), entryString), " >>> ");
         }
         public object isTemporaryFailure(object e)
@@ -67,7 +67,7 @@ public partial class testMainClass : BaseTest
             object logText = logTemplate(exchange, method, entry);
             assert(!isEqual(entry, null), add("item is null/undefined", logText));
             // get all expected & predefined keys for this specific item and ensure thos ekeys exist in parsed structure
-            object allowEmptySkips = exchange.safeList(skippedProperties, "allowNull", new List<object>() {});
+            List<object> allowEmptySkips = exchange.safeList(skippedProperties, "allowNull", new List<object>() {});
             if (isTrue(!isEqual(emptyAllowedFor, null)))
             {
                 emptyAllowedFor = concat(emptyAllowedFor, allowEmptySkips);
@@ -194,7 +194,7 @@ public partial class testMainClass : BaseTest
                     // there are exceptional cases, like getting microsecond-targeted string '2022-08-08T22:03:19.014680Z', so parsed unified timestamp, which carries only 13 digits (millisecond precision) can not be stringified back to microsecond accuracy, causing the bellow assertion to fail
                     //    assert (dt === exchange.iso8601 (entry['timestamp']))
                     // so, we have to compare with millisecond accururacy
-                    object dtParsed = exchange.parse8601(dt);
+                    Int64? dtParsed = exchange.parse8601(dt);
                     object tsMs = getValue(entry, "timestamp");
                     if (isTrue(isEqual(dtParsed, null)))
                     {
@@ -203,8 +203,8 @@ public partial class testMainClass : BaseTest
                     double diff = Math.Abs(Convert.ToDouble(subtract(dtParsed, tsMs)));
                     if (isTrue(isGreaterThanOrEqual(diff, 500)))
                     {
-                        object dtParsedString = exchange.iso8601(dtParsed);
-                        object dtEntryString = exchange.iso8601(tsMs);
+                        string? dtParsedString = exchange.iso8601(dtParsed);
+                        string? dtEntryString = exchange.iso8601(tsMs);
                         assert(false, add(add(add(add(add("datetime is not iso8601 of timestamp:", dtParsedString), "(string) != "), dtEntryString), "(from ts)"), logText));
                     }
                 }
@@ -245,10 +245,10 @@ public partial class testMainClass : BaseTest
             if (isTrue(definedValues))
             {
                 // check by code
-                object currencyByCode = exchange.currency(((string)currencyCode));
+                Dictionary<string, object> currencyByCode = exchange.currency(((string)currencyCode));
                 assert(isEqual(getValue(currencyByCode, "id"), currencyId), add(add(add(add(add("currencyId \"", stringValue(currencyId)), "\" does not match currency id from instance: \""), stringValue(getValue(currencyByCode, "id"))), "\""), logText));
                 // check by id
-                object currencyById = exchange.safeCurrency(currencyId);
+                Dictionary<string, object> currencyById = exchange.safeCurrency(currencyId);
                 assert(isEqual(getValue(currencyById, "code"), currencyCode), add(add(add(add("currencyCode ", stringValue(currencyCode)), " does not match currency of id: "), stringValue(currencyId)), logText));
             }
         }
@@ -260,7 +260,7 @@ public partial class testMainClass : BaseTest
                 return;
             }
             object logText = logTemplate(exchange, method, entry);
-            object actualSymbol = exchange.safeString(entry, key);
+            string? actualSymbol = exchange.safeString(entry, key);
             if (isTrue(!isEqual(actualSymbol, null)))
             {
                 assert((actualSymbol is string), add("symbol should be either undefined or a string", logText));
@@ -285,7 +285,7 @@ public partial class testMainClass : BaseTest
                 return;
             }
             object logText = logTemplate(exchange, method, entry);
-            object value = exchange.safeString(entry, key);
+            string? value = exchange.safeString(entry, key);
             assert(isTrue(!isEqual(value, null)) || isTrue(allowNull), add("value is null", logText));
             if (isTrue(!isEqual(value, null)))
             {
@@ -300,7 +300,7 @@ public partial class testMainClass : BaseTest
                 return;
             }
             object logText = logTemplate(exchange, method, entry);
-            object value = exchange.safeString(entry, key);
+            string? value = exchange.safeString(entry, key);
             assert(isTrue(!isEqual(value, null)) || isTrue(allowNull), add("value is null", logText));
             if (isTrue(isTrue(!isEqual(value, null)) && isTrue(!isEqual(compareTo, null))))
             {
@@ -315,7 +315,7 @@ public partial class testMainClass : BaseTest
                 return;
             }
             object logText = logTemplate(exchange, method, entry);
-            object value = exchange.safeString(entry, key);
+            string? value = exchange.safeString(entry, key);
             assert(isTrue(!isEqual(value, null)) || isTrue(allowNull), add("value is null", logText));
             if (isTrue(isTrue(!isEqual(value, null)) && isTrue(!isEqual(compareTo, null))))
             {
@@ -330,7 +330,7 @@ public partial class testMainClass : BaseTest
                 return;
             }
             object logText = logTemplate(exchange, method, entry);
-            object value = exchange.safeString(entry, key);
+            string? value = exchange.safeString(entry, key);
             assert(isTrue(!isEqual(value, null)) || isTrue(allowNull), add("value is null", logText));
             if (isTrue(isTrue(!isEqual(value, null)) && isTrue(!isEqual(compareTo, null))))
             {
@@ -345,7 +345,7 @@ public partial class testMainClass : BaseTest
                 return;
             }
             object logText = logTemplate(exchange, method, entry);
-            object value = exchange.safeString(entry, key);
+            string? value = exchange.safeString(entry, key);
             assert(isTrue(!isEqual(value, null)) || isTrue(allowNull), add("value is null", logText));
             if (isTrue(isTrue(!isEqual(value, null)) && isTrue(!isEqual(compareTo, null))))
             {
@@ -360,7 +360,7 @@ public partial class testMainClass : BaseTest
                 return;
             }
             object logText = logTemplate(exchange, method, entry);
-            object value = exchange.safeString(entry, key);
+            string? value = exchange.safeString(entry, key);
             assert(isTrue(!isEqual(value, null)) || isTrue(allowNull), add("value is null", logText));
             if (isTrue(!isEqual(value, null)))
             {
@@ -380,7 +380,7 @@ public partial class testMainClass : BaseTest
             // todo: remove undefined check
             if (isTrue(!isEqual(value, null)))
             {
-                object stingifiedArrayValue = exchange.json(expectedArray); // don't use expectedArray.join (','), as it bugs in other languages, if values are bool, undefined or etc..
+                string? stingifiedArrayValue = exchange.json(expectedArray); // don't use expectedArray.join (','), as it bugs in other languages, if values are bool, undefined or etc..
                 assert(exchange.inArray(value, expectedArray), add(add(add(add(add(add(add("\"", stringValue(key)), "\" key (value \""), stringValue(value)), "\") is not from the expected list : ["), stingifiedArrayValue), "]"), logText));
             }
         }
@@ -741,7 +741,7 @@ public partial class testMainClass : BaseTest
                 return;
             }
             object logText = logTemplate(exchange, method, entry);
-            object ts = exchange.safeString(entry, key);
+            string? ts = exchange.safeString(entry, key);
             assert(isEqual(Precise.stringMod(ts, "60000"), "0"), add("timestamp should be a multiple of 60 seconds (1 minute)", logText));
         }
         public object deepEqual(BaseExchange exchange, object a, object b)
@@ -761,7 +761,7 @@ public partial class testMainClass : BaseTest
                 return value;
             }
             // try UpperCase key also, for other langs
-            object keyUpper = exchange.capitalize(((object)key).ToString());
+            string keyUpper = exchange.capitalize(((object)key).ToString());
             return exchange.getProperty(exchange, keyUpper, defaultValue);
         }
         public object tickerExceptionNeedsOhlcv(object ex, BaseExchange exchange, object ticker)

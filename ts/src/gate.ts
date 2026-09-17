@@ -7203,7 +7203,7 @@ export default class gate extends Exchange {
                     body = this.json (query);
                 }
             } else {
-                const urlQueryParams = this.safeValue (query, 'query', {});
+                const urlQueryParams = this.safeDict (query, 'query', {});
                 if (Object.keys (urlQueryParams).length > 0) {
                     queryString = this.urlencode (urlQueryParams);
                     url += '?' + queryString;

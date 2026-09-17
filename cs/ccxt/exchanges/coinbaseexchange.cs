@@ -5,7 +5,7 @@ namespace ccxt;
 
 public partial class coinbaseexchange : Exchange
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "id", "coinbaseexchange" },
@@ -655,7 +655,7 @@ public partial class coinbaseexchange : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
-    public async override Task<object> fetchCurrencies(object parameters = null)
+    public async override Task<IDictionary<string, object>> fetchCurrencies(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         List<object> response = await this.publicGetCurrencies(parameters);
@@ -703,7 +703,7 @@ public partial class coinbaseexchange : Exchange
         return this.parseCurrencies(response);
     }
 
-    public override object parseCurrency(object rawCurrency)
+    public override Dictionary<string, object> parseCurrency(object rawCurrency)
     {
         string? id = this.safeString(rawCurrency, "id");
         string? name = this.safeString(rawCurrency, "name");
@@ -962,7 +962,7 @@ public partial class coinbaseexchange : Exchange
             object balance = getValue(response, i);
             string? currencyId = this.safeString(balance, "currency");
             string? code = this.safeCurrencyCode(currencyId);
-            object account = this.account();
+            Dictionary<string, object> account = this.account();
             ((IDictionary<string,object>)account)["free"] = this.safeString(balance, "available");
             ((IDictionary<string,object>)account)["used"] = this.safeString(balance, "hold");
             ((IDictionary<string,object>)account)["total"] = this.safeString(balance, "balance");

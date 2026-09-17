@@ -7,7 +7,7 @@ namespace ccxt.pro;
 public partial class dydx { public dydx(object args = null) : base(args) { } }
 public partial class dydx : ccxt.dydx
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "has", new Dictionary<string, object>() {
@@ -282,7 +282,7 @@ public partial class dydx : ccxt.dydx
             (bookside as IOrderBookSide).store(price, amount);
         } else
         {
-            object bidAsk = this.parseOrderBookBidAsk(delta, "price", "size");
+            List<object> bidAsk = this.parseOrderBookBidAsk(delta, "price", "size");
             (bookside as IOrderBookSide).storeArray(bidAsk);
         }
     }
@@ -435,7 +435,7 @@ public partial class dydx : ccxt.dydx
         callDynamically(client as WebSocketClient, "resolve", new object[] {stored, messageHash});
     }
 
-    public virtual object handleErrorMessage(WebSocketClient client, object message)
+    public virtual bool handleErrorMessage(WebSocketClient client, object message)
     {
         try
         {
@@ -445,7 +445,7 @@ public partial class dydx : ccxt.dydx
         {
             ((WebSocketClient)client).reject(e);
         }
-        return true;
+        return ((bool)((object)(true))!);
     }
 
     public override void handleMessage(WebSocketClient client, object message)

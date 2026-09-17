@@ -8,111 +8,111 @@
 package ccxt
 
 // PublicGetOrderbook returns a channel that yields a JSON object.
-func (this *BtcturkCore) PublicGetOrderbook(args ...any) <-chan any {
+func (this *Btcturk) PublicGetOrderbook(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetOrderbook", args...)
 }
 
 // PublicGetTicker returns a channel that yields a JSON object.
-func (this *BtcturkCore) PublicGetTicker(args ...any) <-chan any {
+func (this *Btcturk) PublicGetTicker(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetTicker", args...)
 }
 
 // PublicGetTickerCurrency returns a channel that yields a JSON object.
-func (this *BtcturkCore) PublicGetTickerCurrency(args ...any) <-chan any {
+func (this *Btcturk) PublicGetTickerCurrency(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetTickerCurrency", args...)
 }
 
 // PublicGetTrades returns a channel that yields a JSON object.
-func (this *BtcturkCore) PublicGetTrades(args ...any) <-chan any {
+func (this *Btcturk) PublicGetTrades(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetTrades", args...)
 }
 
 // PublicGetOhlc returns a channel that yields a JSON object.
-func (this *BtcturkCore) PublicGetOhlc(args ...any) <-chan any {
+func (this *Btcturk) PublicGetOhlc(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetOhlc", args...)
 }
 
 // PublicGetServerExchangeinfo returns a channel that yields a JSON object.
-func (this *BtcturkCore) PublicGetServerExchangeinfo(args ...any) <-chan any {
+func (this *Btcturk) PublicGetServerExchangeinfo(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetServerExchangeinfo", args...)
 }
 
 // PrivateGetUsersBalances returns a channel that yields a JSON object.
-func (this *BtcturkCore) PrivateGetUsersBalances(args ...any) <-chan any {
+func (this *Btcturk) PrivateGetUsersBalances(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetUsersBalances", args...)
 }
 
 // PrivateGetOpenOrders returns a channel that yields a JSON object.
-func (this *BtcturkCore) PrivateGetOpenOrders(args ...any) <-chan any {
+func (this *Btcturk) PrivateGetOpenOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetOpenOrders", args...)
 }
 
 // PrivateGetAllOrders returns a channel that yields a JSON object.
-func (this *BtcturkCore) PrivateGetAllOrders(args ...any) <-chan any {
+func (this *Btcturk) PrivateGetAllOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetAllOrders", args...)
 }
 
 // PrivateGetOrderOrderId returns a channel that yields a JSON object.
-func (this *BtcturkCore) PrivateGetOrderOrderId(args ...any) <-chan any {
+func (this *Btcturk) PrivateGetOrderOrderId(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetOrderOrderId", args...)
 }
 
 // PrivateGetUsersTransactionsTrade returns a channel that yields a JSON object.
-func (this *BtcturkCore) PrivateGetUsersTransactionsTrade(args ...any) <-chan any {
+func (this *Btcturk) PrivateGetUsersTransactionsTrade(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetUsersTransactionsTrade", args...)
 }
 
 // PrivateGetUsersTransactionsCrypto returns a channel that yields a JSON object.
-func (this *BtcturkCore) PrivateGetUsersTransactionsCrypto(args ...any) <-chan any {
+func (this *Btcturk) PrivateGetUsersTransactionsCrypto(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetUsersTransactionsCrypto", args...)
 }
 
 // PrivateGetUsersTransactionsFiat returns a channel that yields a JSON object.
-func (this *BtcturkCore) PrivateGetUsersTransactionsFiat(args ...any) <-chan any {
+func (this *Btcturk) PrivateGetUsersTransactionsFiat(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetUsersTransactionsFiat", args...)
 }
 
 // PrivateGetCryptoDepositDeclarations returns a channel that yields a JSON array.
-func (this *BtcturkCore) PrivateGetCryptoDepositDeclarations(args ...any) <-chan any {
+func (this *Btcturk) PrivateGetCryptoDepositDeclarations(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetCryptoDepositDeclarations", args...)
 }
 
 // PrivatePostUsersTransactionsCrypto returns a channel that yields a JSON object.
-func (this *BtcturkCore) PrivatePostUsersTransactionsCrypto(args ...any) <-chan any {
+func (this *Btcturk) PrivatePostUsersTransactionsCrypto(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostUsersTransactionsCrypto", args...)
 }
 
 // PrivatePostUsersTransactionsFiat returns a channel that yields a JSON object.
-func (this *BtcturkCore) PrivatePostUsersTransactionsFiat(args ...any) <-chan any {
+func (this *Btcturk) PrivatePostUsersTransactionsFiat(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostUsersTransactionsFiat", args...)
 }
 
 // PrivatePostOrder returns a channel that yields a JSON object.
-func (this *BtcturkCore) PrivatePostOrder(args ...any) <-chan any {
+func (this *Btcturk) PrivatePostOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostOrder", args...)
 }
 
 // PrivatePostCancelOrder returns a channel that yields a JSON object.
-func (this *BtcturkCore) PrivatePostCancelOrder(args ...any) <-chan any {
+func (this *Btcturk) PrivatePostCancelOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostCancelOrder", args...)
 }
 
 // PrivatePostCryptoDepositDeclarationsConfirm returns a channel that yields a JSON object.
-func (this *BtcturkCore) PrivatePostCryptoDepositDeclarationsConfirm(args ...any) <-chan any {
+func (this *Btcturk) PrivatePostCryptoDepositDeclarationsConfirm(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostCryptoDepositDeclarationsConfirm", args...)
 }
 
 // PrivateDeleteOrder returns a channel that yields a JSON object.
-func (this *BtcturkCore) PrivateDeleteOrder(args ...any) <-chan any {
+func (this *Btcturk) PrivateDeleteOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("privateDeleteOrder", args...)
 }
 
 // GraphGetOhlcs returns a channel that yields a JSON array.
-func (this *BtcturkCore) GraphGetOhlcs(args ...any) <-chan any {
+func (this *Btcturk) GraphGetOhlcs(args ...any) <-chan any {
 	return this.callEndpointAsync("graphGetOhlcs", args...)
 }
 
 // GraphGetKlinesHistory returns a channel that yields a JSON object.
-func (this *BtcturkCore) GraphGetKlinesHistory(args ...any) <-chan any {
+func (this *Btcturk) GraphGetKlinesHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("graphGetKlinesHistory", args...)
 }

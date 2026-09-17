@@ -5,7 +5,7 @@ namespace ccxt;
 
 public partial class btcturk : Exchange
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "id", "btcturk" },
@@ -350,7 +350,7 @@ public partial class btcturk : Exchange
         return ccxt.BaseExchange.ToMarketInterfaceList(this.parseMarkets(markets));
     }
 
-    public override object parseMarket(object entry)
+    public override Dictionary<string, object> parseMarket(object entry)
     {
         string? id = this.safeString(entry, "name");
         string? baseId = this.safeString(entry, "numerator");
@@ -441,7 +441,7 @@ public partial class btcturk : Exchange
             object entry = getValue(data, i);
             string? currencyId = this.safeString(entry, "asset");
             string? code = this.safeCurrencyCode(currencyId);
-            object account = this.account();
+            Dictionary<string, object> account = this.account();
             ((IDictionary<string,object>)account)["total"] = this.safeString(entry, "balance");
             ((IDictionary<string,object>)account)["free"] = this.safeString(entry, "free");
             ((IDictionary<string,object>)account)["used"] = this.safeString(entry, "locked");

@@ -685,7 +685,7 @@ export default class pacifica extends pacificaRest {
         return await this.watch (url, messageHash, message, messageHash);
     }
 
-    handleWsTickers (client: Client, message: any) {
+    handleWsTickers (client: Client, message: any): boolean {
         //
         // {
         //     "channel": "prices",

@@ -8,6 +8,90 @@
     },
     "isSandboxModeEnabled": true,
     "methods": {
+        "createSubAccount": [
+            {
+                "description": "create a subaccount with an agent wallet header",
+                "method": "createSubAccount",
+                "input": [
+                    "ccxtsub5",
+                    {
+                        "subAccountAddress": "AUCaxhvyYhnYH7RqBz2g19riU4HEhvETzauGsL6DxUQS",
+                        "subAccountPrivateKey": "2HwJG4ffT7dRyRXbutkPjxjciXHLadsS9r569H8ZQZzFsh9YdGWgz8JXF1xBjM1C6SFGjBkSYmCpNfoocD7YbFEy",
+                        "agentAddress": "8g1g9FMKw7HfAMiD8L3p28RKfv7LQJzAf56A4ftSxMt9"
+                    }
+                ],
+                "httpResponse": {
+                    "success": true,
+                    "data": null,
+                    "error": null,
+                    "code": null
+                },
+                "parsedResponse": {
+                    "success": true,
+                    "data": null,
+                    "error": null,
+                    "code": null
+                }
+            },
+            {
+                "description": "create a subaccount",
+                "method": "createSubAccount",
+                "input": [
+                    "ccxtsub2",
+                    {
+                        "subAccountAddress": "AubBvFpKrUiVnXpRq7wZYSUnrx4K5yBYepdmZm75iySQ",
+                        "subAccountPrivateKey": "65qLgAgXZ4Vu7PyzLHHiPy77w2ca6ryWZvzS1nNqSK5YWWj3Ekuq74cEFjEh2UHNLd8drM33WK3Vuc2QvpuAkQhN"
+                    }
+                ],
+                "httpResponse": {
+                    "success": true,
+                    "data": null,
+                    "error": null,
+                    "code": null
+                },
+                "parsedResponse": {
+                    "success": true,
+                    "data": null,
+                    "error": null,
+                    "code": null
+                }
+            }
+        ],
+        "transfer": [
+            {
+                "description": "transfer between own accounts",
+                "method": "transfer",
+                "input": [
+                    "USDC",
+                    10,
+                    "bNMBfVAEjgxhNruYTR2vSZ92UdVKP2pdZewEG7978Vt",
+                    "B9AJ1AD23xkhgoJn4dBtUn8iGpHTXa9Rj4DoH5R5S6FJ"
+                ],
+                "httpResponse": {
+                    "success": true,
+                    "data": {
+                        "success": true,
+                        "error": null
+                    },
+                    "error": null,
+                    "code": null
+                },
+                "parsedResponse": {
+                    "info": {
+                        "success": true,
+                        "error": null
+                    },
+                    "id": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "currency": "USDC",
+                    "amount": 10,
+                    "fromAccount": "bNMBfVAEjgxhNruYTR2vSZ92UdVKP2pdZewEG7978Vt",
+                    "toAccount": "B9AJ1AD23xkhgoJn4dBtUn8iGpHTXa9Rj4DoH5R5S6FJ",
+                    "status": "ok"
+                }
+            }
+        ],
         "cancelOrders": [
             {
                 "description": "Cancel Orders with ids",
@@ -984,54 +1068,101 @@
         ],
         "fetchBalance": [
             {
-                "description": "Fetch account balance",
+                "description": "spot plus perp collateral balance",
                 "method": "fetchBalance",
                 "input": [],
                 "httpResponse": {
                     "success": true,
                     "data": {
-                        "balance": "100.717133",
-                        "fee_level": "0",
+                        "balance": "4970.000323",
+                        "fee_level": 0,
                         "maker_fee": "0.00015",
                         "taker_fee": "0.0004",
-                        "account_equity": "100.717133",
-                        "available_to_spend": "100.717133",
-                        "available_to_withdraw": "100.717133",
+                        "account_equity": "5478.054466",
+                        "cross_account_equity": "5376.443638",
+                        "spot_market_value": "508.054143",
+                        "spot_collateral": "406.443315",
+                        "available_to_spend": "5376.443638",
+                        "available_to_withdraw": "5376.443638",
                         "pending_balance": "0",
                         "pending_interest": "0",
                         "total_margin_used": "0",
                         "cross_mmr": "0",
-                        "positions_count": "0",
-                        "orders_count": "0",
-                        "stop_orders_count": "0",
-                        "updated_at": "1769553883269"
+                        "positions_count": 0,
+                        "orders_count": 0,
+                        "stop_orders_count": 0,
+                        "spot_balances": [
+                            {
+                                "symbol": "SOL",
+                                "amount": "5",
+                                "available_to_withdraw": "5",
+                                "pending_balance": "0",
+                                "daily_withdraw_amount_usd": "0",
+                                "effective_daily_deposit_limit_usd": "50000",
+                                "effective_daily_withdraw_limit_usd": "250000"
+                            }
+                        ],
+                        "updated_at": 1789394748222
                     },
                     "error": null,
                     "code": null
                 },
                 "parsedResponse": {
                     "info": {
-                        "balance": "100.717133",
-                        "fee_level": "0",
+                        "balance": "4970.000323",
+                        "fee_level": 0,
                         "maker_fee": "0.00015",
                         "taker_fee": "0.0004",
-                        "account_equity": "100.717133",
-                        "available_to_spend": "100.717133",
-                        "available_to_withdraw": "100.717133",
+                        "account_equity": "5478.054466",
+                        "cross_account_equity": "5376.443638",
+                        "spot_market_value": "508.054143",
+                        "spot_collateral": "406.443315",
+                        "available_to_spend": "5376.443638",
+                        "available_to_withdraw": "5376.443638",
                         "pending_balance": "0",
                         "pending_interest": "0",
                         "total_margin_used": "0",
                         "cross_mmr": "0",
-                        "positions_count": "0",
-                        "orders_count": "0",
-                        "stop_orders_count": "0",
-                        "updated_at": "1769553883269"
+                        "positions_count": 0,
+                        "orders_count": 0,
+                        "stop_orders_count": 0,
+                        "spot_balances": [
+                            {
+                                "symbol": "SOL",
+                                "amount": "5",
+                                "available_to_withdraw": "5",
+                                "pending_balance": "0",
+                                "daily_withdraw_amount_usd": "0",
+                                "effective_daily_deposit_limit_usd": "50000",
+                                "effective_daily_withdraw_limit_usd": "250000"
+                            }
+                        ],
+                        "updated_at": 1789394748222
                     },
-                    "free": {},
-                    "used": {},
-                    "total": {},
-                    "timestamp": 1769553883269,
-                    "datetime": "2026-01-27T22:44:43.269Z"
+                    "USDC": {
+                        "free": 4970.000323,
+                        "used": 0,
+                        "total": 4970.000323
+                    },
+                    "SOL": {
+                        "free": 5,
+                        "used": 0,
+                        "total": 5
+                    },
+                    "timestamp": 1789394748222,
+                    "datetime": "2026-09-14T14:05:48.222Z",
+                    "free": {
+                        "USDC": 4970.000323,
+                        "SOL": 5
+                    },
+                    "used": {
+                        "USDC": 0,
+                        "SOL": 0
+                    },
+                    "total": {
+                        "USDC": 4970.000323,
+                        "SOL": 5
+                    }
                 }
             }
         ],

@@ -7,6 +7,9 @@
 
 package io.github.ccxt.api;
 import io.github.ccxt.Exchange;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 public class PaymiumApi extends Exchange
 {
@@ -25,7 +28,7 @@ public class PaymiumApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetCountries (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicGetCountries (Object... optionalArgs)
     {
         return this.callAsync ("publicGetCountries", optionalArgs);
     }
@@ -36,7 +39,7 @@ public class PaymiumApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetCurrencies (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicGetCurrencies (Object... optionalArgs)
     {
         return this.callAsync ("publicGetCurrencies", optionalArgs);
     }
@@ -47,7 +50,7 @@ public class PaymiumApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetDataCurrencyTicker (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetDataCurrencyTicker (Object... optionalArgs)
     {
         return this.callAsync ("publicGetDataCurrencyTicker", optionalArgs);
     }
@@ -58,7 +61,7 @@ public class PaymiumApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetDataCurrencyTrades (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicGetDataCurrencyTrades (Object... optionalArgs)
     {
         return this.callAsync ("publicGetDataCurrencyTrades", optionalArgs);
     }
@@ -69,7 +72,7 @@ public class PaymiumApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetDataCurrencyDepth (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetDataCurrencyDepth (Object... optionalArgs)
     {
         return this.callAsync ("publicGetDataCurrencyDepth", optionalArgs);
     }
@@ -80,7 +83,7 @@ public class PaymiumApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetBitcoinChartsIdTrades (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicGetBitcoinChartsIdTrades (Object... optionalArgs)
     {
         return this.callAsync ("publicGetBitcoinChartsIdTrades", optionalArgs);
     }
@@ -91,7 +94,7 @@ public class PaymiumApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetBitcoinChartsIdDepth (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetBitcoinChartsIdDepth (Object... optionalArgs)
     {
         return this.callAsync ("publicGetBitcoinChartsIdDepth", optionalArgs);
     }
@@ -102,7 +105,7 @@ public class PaymiumApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetUser (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetUser (Object... optionalArgs)
     {
         return this.callAsync ("privateGetUser", optionalArgs);
     }
@@ -113,7 +116,7 @@ public class PaymiumApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetUserAddresses (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetUserAddresses (Object... optionalArgs)
     {
         return this.callAsync ("privateGetUserAddresses", optionalArgs);
     }
@@ -124,7 +127,7 @@ public class PaymiumApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetUserAddressesAddress (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetUserAddressesAddress (Object... optionalArgs)
     {
         return this.callAsync ("privateGetUserAddressesAddress", optionalArgs);
     }
@@ -135,7 +138,7 @@ public class PaymiumApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetUserOrders (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetUserOrders (Object... optionalArgs)
     {
         return this.callAsync ("privateGetUserOrders", optionalArgs);
     }
@@ -146,7 +149,7 @@ public class PaymiumApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetUserOrdersUuid (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetUserOrdersUuid (Object... optionalArgs)
     {
         return this.callAsync ("privateGetUserOrdersUuid", optionalArgs);
     }
@@ -157,7 +160,7 @@ public class PaymiumApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetUserPriceAlerts (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetUserPriceAlerts (Object... optionalArgs)
     {
         return this.callAsync ("privateGetUserPriceAlerts", optionalArgs);
     }
@@ -168,7 +171,7 @@ public class PaymiumApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetUserWithdrawals (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetUserWithdrawals (Object... optionalArgs)
     {
         return this.callAsync ("privateGetUserWithdrawals", optionalArgs);
     }
@@ -179,7 +182,7 @@ public class PaymiumApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetMerchantGetPaymentUuid (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetMerchantGetPaymentUuid (Object... optionalArgs)
     {
         return this.callAsync ("privateGetMerchantGetPaymentUuid", optionalArgs);
     }
@@ -190,7 +193,7 @@ public class PaymiumApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostUserAddresses (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostUserAddresses (Object... optionalArgs)
     {
         return this.callAsync ("privatePostUserAddresses", optionalArgs);
     }
@@ -201,7 +204,7 @@ public class PaymiumApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostUserOrders (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostUserOrders (Object... optionalArgs)
     {
         return this.callAsync ("privatePostUserOrders", optionalArgs);
     }
@@ -212,7 +215,7 @@ public class PaymiumApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostUserWithdrawals (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostUserWithdrawals (Object... optionalArgs)
     {
         return this.callAsync ("privatePostUserWithdrawals", optionalArgs);
     }
@@ -223,7 +226,7 @@ public class PaymiumApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostUserEmailTransfers (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostUserEmailTransfers (Object... optionalArgs)
     {
         return this.callAsync ("privatePostUserEmailTransfers", optionalArgs);
     }
@@ -234,7 +237,7 @@ public class PaymiumApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privatePostUserPaymentRequests (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privatePostUserPaymentRequests (Object... optionalArgs)
     {
         return this.callAsync ("privatePostUserPaymentRequests", optionalArgs);
     }
@@ -245,7 +248,7 @@ public class PaymiumApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostUserPriceAlerts (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostUserPriceAlerts (Object... optionalArgs)
     {
         return this.callAsync ("privatePostUserPriceAlerts", optionalArgs);
     }
@@ -256,7 +259,7 @@ public class PaymiumApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostMerchantCreatePayment (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostMerchantCreatePayment (Object... optionalArgs)
     {
         return this.callAsync ("privatePostMerchantCreatePayment", optionalArgs);
     }
@@ -267,7 +270,7 @@ public class PaymiumApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateDeleteUserOrdersUuid (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateDeleteUserOrdersUuid (Object... optionalArgs)
     {
         return this.callAsync ("privateDeleteUserOrdersUuid", optionalArgs);
     }
@@ -278,7 +281,7 @@ public class PaymiumApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateDeleteUserOrdersUuidCancel (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateDeleteUserOrdersUuidCancel (Object... optionalArgs)
     {
         return this.callAsync ("privateDeleteUserOrdersUuidCancel", optionalArgs);
     }
@@ -289,7 +292,7 @@ public class PaymiumApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateDeleteUserPriceAlertsId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateDeleteUserPriceAlertsId (Object... optionalArgs)
     {
         return this.callAsync ("privateDeleteUserPriceAlertsId", optionalArgs);
     }

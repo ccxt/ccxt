@@ -382,8 +382,8 @@ class alpaca(Exchange, ImplicitAPI):
                         },
                         'timeInForce': {
                             'IOC': True,
-                            'FOK': True,
-                            'PO': True,
+                            'FOK': False,  # {"code":42210000,"message":"invalid crypto time_in_force"} — verified live 2026-09-13
+                            'PO': False,  # {"code":40010001,"message":"invalid time_in_force for crypto order"} — verified live 2026-09-13
                             'GTD': False,
                         },
                         'hedged': False,
@@ -450,16 +450,17 @@ class alpaca(Exchange, ImplicitAPI):
             'exceptions': {
                 'exact': {
                     'forbidden.': PermissionDenied,  # {"message": "forbidden."}
-                    '40410000': InvalidOrder,  # {"code": 40410000, "message": "order is not found."}
+                    '40410000': InvalidOrder,  # { "code": 40410000, "message": "order is not found."}
                     '40010001': BadRequest,  # {"code":40010001,"message":"invalid order type for crypto order"}
-                    '40110000': PermissionDenied,  # {"code": 40110000, "message": "request is not authorized"}
+                    '40110000': PermissionDenied,  # { "code": 40110000, "message": "request is not authorized"}
+                    '42210000': BadRequest,  # {"code":42210000,"message":"invalid crypto time_in_force"}
                     '42910000': RateLimitExceeded,  # {"code":42910000,"message":"rate limit exceeded"}
                 },
                 'broad': {
-                    'Invalid format for parameter': BadRequest,  # {"message":"Invalid format for parameter start: error parsing '0' or 2006-01-02 time: parsing time \"0\" as \"2006-01-02\": cannot parse \"0\" as \"2006\""}
+                    'Invalid format for parameter': BadRequest,  # {"message":"Invalid format for parameter start: error parsing '0' as RFC3339 or 2006-01-02 time: parsing time \"0\" as \"2006-01-02\": cannot parse \"0\" as \"2006\""}
                     'Invalid symbol': BadSymbol,  # {"message":"Invalid symbol(s): BTC/USDdsda does not match ^[A-Z]+/[A-Z]+$"}
                     'cost basis must be': InvalidOrder,  # {"code":40310000,"message":"cost basis must be >= minimal amount of order 10"}
-                    'insufficient balance for': InsufficientFunds,  # {"available":"0","balance":"0","code":40310000,"message":"insufficient balance for USDT(requested: 221.63, available: 0)","symbol":"USDT"}
+                    'insufficient balance for': InsufficientFunds,  # {"available":"0","balance":"0","code":40310000,"message":"insufficient balance for USDT (requested: 221.63, available: 0)","symbol":"USDT"}
                     'orders are rejected by user request': PermissionDenied,  # {"code":40310000,"message":"new orders are rejected by user request"} — the account has suspend_trade enabled
                 },
             },
@@ -475,7 +476,7 @@ class alpaca(Exchange, ImplicitAPI):
         #
         #     {
         #         timestamp: '2023-11-22T08:07:57.654738097-05:00',
-        #         is_open: False,
+        #         is_open: false,
         #         next_open: '2023-11-22T09:30:00-05:00',
         #         next_close: '2023-11-22T16:00:00-05:00'
         #     }
@@ -519,12 +520,12 @@ class alpaca(Exchange, ImplicitAPI):
         #             "symbol": "BTC/USDT",
         #             "name": "Bitcoin / USD Tether",
         #             "status": "active",
-        #             "tradable": True,
-        #             "marginable": False,
+        #             "tradable": true,
+        #             "marginable": false,
         #             "maintenance_margin_requirement": 100,
-        #             "shortable": False,
-        #             "easy_to_borrow": False,
-        #             "fractionable": True,
+        #             "shortable": false,
+        #             "easy_to_borrow": false,
+        #             "fractionable": true,
         #             "attributes": [],
         #             "min_order_size": "0.000026873",
         #             "min_trade_increment": "0.000000001",
@@ -543,12 +544,12 @@ class alpaca(Exchange, ImplicitAPI):
         #         "symbol": "BTC/USDT",
         #         "name": "Bitcoin / USD Tether",
         #         "status": "active",
-        #         "tradable": True,
-        #         "marginable": False,
+        #         "tradable": true,
+        #         "marginable": false,
         #         "maintenance_margin_requirement": 101,
-        #         "shortable": False,
-        #         "easy_to_borrow": False,
-        #         "fractionable": True,
+        #         "shortable": false,
+        #         "easy_to_borrow": false,
+        #         "fractionable": true,
         #         "attributes": [],
         #         "min_order_size": "0.000026873",
         #         "min_trade_increment": "0.000000001",
@@ -1121,6 +1122,7 @@ class alpaca(Exchange, ImplicitAPI):
         :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param float [params.triggerPrice]: The price at which a trigger order is triggered at
+        :param str [params.timeInForce]: 'GTC' or 'IOC', the venue supports only these two for crypto orders, defaults to 'GTC'
         :param float [params.cost]: *market orders only* the cost of the order in units of the quote currency
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
@@ -1152,6 +1154,9 @@ class alpaca(Exchange, ImplicitAPI):
             request['qty'] = self.amount_to_precision(symbol, amount)
         defaultTIF = None
         defaultTIF, params = self.handle_option_and_params(params, 'createOrder', 'timeInForce')
+        if defaultTIF is not None:
+            # the venue only accepts lowercase values, normalize the unified uppercase spellings
+            defaultTIF = defaultTIF.lower()
         request['time_in_force'] = defaultTIF
         params = self.omit(params, ['timeInForce', 'triggerPrice'])
         request['client_order_id'] = self.generate_client_order_id(params)
@@ -1186,7 +1191,7 @@ class alpaca(Exchange, ImplicitAPI):
         #      "limit_price": null,
         #      "stop_price": null,
         #      "status": "accepted",
-        #      "extended_hours": False,
+        #      "extended_hours": false,
         #      "legs": null,
         #      "trail_percent": null,
         #      "trail_price": null,
@@ -1272,6 +1277,7 @@ class alpaca(Exchange, ImplicitAPI):
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: the latest time in ms to fetch orders for
+        :param str [params.direction]: the ordering of the results, 'asc' or 'desc', defaults to 'asc' when since is set
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         if self.markets is None:
@@ -1286,9 +1292,13 @@ class alpaca(Exchange, ImplicitAPI):
         until = self.safe_integer(params, 'until')
         if until is not None:
             params = self.omit(params, 'until')
-            request['endTime'] = self.iso8601(until)
+            request['until'] = self.iso8601(until)
         if since is not None:
             request['after'] = self.iso8601(since)
+            direction = self.safe_string(params, 'direction')
+            if direction is None:
+                # the server default is desc, so a limit would truncate the newest window instead of the range starting at since — request oldest-first like krakenfutures does
+                request['direction'] = 'asc'
         if limit is not None:
             request['limit'] = limit
         response = self.traderPrivateGetV2Orders(self.extend(request, params))
@@ -1322,7 +1332,7 @@ class alpaca(Exchange, ImplicitAPI):
         #           "limit_price": "1000",
         #           "stop_price": null,
         #           "status": "canceled",
-        #           "extended_hours": False,
+        #           "extended_hours": false,
         #           "legs": null,
         #           "trail_percent": null,
         #           "trail_price": null,
@@ -1345,6 +1355,7 @@ class alpaca(Exchange, ImplicitAPI):
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: the latest time in ms to fetch orders for
+        :param str [params.direction]: the ordering of the results, 'asc' or 'desc', defaults to 'asc' when since is set
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         request = {
@@ -1363,6 +1374,7 @@ class alpaca(Exchange, ImplicitAPI):
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: the latest time in ms to fetch orders for
+        :param str [params.direction]: the ordering of the results, 'asc' or 'desc', defaults to 'asc' when since is set
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         request = {
@@ -1384,7 +1396,7 @@ class alpaca(Exchange, ImplicitAPI):
         :param float [price]: the price for the order, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.triggerPrice]: the price to trigger a stop order
-        :param str [params.timeInForce]: for crypto trading either 'gtc' or 'ioc' can be used
+        :param str [params.timeInForce]: 'GTC' or 'IOC', the venue supports only these two for crypto orders, defaults to 'GTC'
         :param str [params.clientOrderId]: a unique identifier for the order, automatically generated if not sent
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
@@ -1407,7 +1419,8 @@ class alpaca(Exchange, ImplicitAPI):
         timeInForce = None
         timeInForce, params = self.handle_option_and_params(params, 'editOrder', 'timeInForce', 'gtc')
         if timeInForce is not None:
-            request['time_in_force'] = timeInForce
+            # the venue only accepts lowercase values, normalize the unified uppercase spellings
+            request['time_in_force'] = timeInForce.lower()
         request['client_order_id'] = self.generate_client_order_id(params)
         params = self.omit(params, ['clientOrderId'])
         response = self.traderPrivatePatchV2OrdersOrderId(self.extend(request, params))
@@ -1462,7 +1475,7 @@ class alpaca(Exchange, ImplicitAPI):
         if feeValue is not None:
             fee = {
                 'cost': feeValue,
-                'currency': 'USD',
+                'currency': 'USD',  # commission is denominated per the account currency; crypto fills omit the field entirely — their fee is taken from the received asset, verified live 2026-09-15
             }
         orderType = self.safe_string(order, 'order_type')
         if orderType is not None:
@@ -1476,7 +1489,7 @@ class alpaca(Exchange, ImplicitAPI):
             'clientOrderId': self.safe_string(order, 'client_order_id'),
             'timestamp': timestamp,
             'datetime': datetime,
-            'lastTradeTimeStamp': None,
+            'lastTradeTimestamp': self.parse8601(self.safe_string(order, 'filled_at')),  # set on complete fills only — per-fill timestamps for partials come from the account activities used by fetchMyTrades, and updated_at also moves on non-fill transitions so it is no substitute
             'status': status,
             'symbol': symbol,
             'type': orderType,
@@ -1499,16 +1512,31 @@ class alpaca(Exchange, ImplicitAPI):
         statuses = {
             'pending_new': 'open',
             'accepted': 'open',
+            'accepted_for_bidding': 'open',
             'new': 'open',
             'partially_filled': 'open',
             'activated': 'open',
+            'done_for_day': 'open',  # no more executions on that day, the order itself stays live
+            'stopped': 'open',  # a fill is guaranteed at a stated price but has not occurred yet
+            'suspended': 'open',
+            'held': 'open',
+            'pending_replace': 'open',
+            'pending_cancel': 'canceling',
             'filled': 'closed',
+            'calculated': 'closed',  # completed for the day, settlement calculations are pending
+            'canceled': 'canceled',
+            'replaced': 'canceled',  # the venue closes the replaced id and opens a new order id for the replacement
+            'expired': 'expired',
+            'rejected': 'rejected',
         }
         return self.safe_string(statuses, status, status)
 
     def parse_time_in_force(self, timeInForce: Str):
         timeInForces = {
-            'day': 'Day',
+            'day': 'Day',  # equities-only value kept as-is deliberately: crypto orders reject it with 42210000, verified live 2026-09-13, and the unified set has no day spelling either way
+            'gtc': 'GTC',
+            'ioc': 'IOC',
+            'fok': 'FOK',
         }
         return self.safe_string(timeInForces, timeInForce, timeInForce)
 
@@ -1832,7 +1860,7 @@ class alpaca(Exchange, ImplicitAPI):
 
     def parse_transaction(self, transaction: dict, currency: Currency = None) -> Transaction:
         #
-        # account activities ledger entry(paper-trading path), see https://github.com/ccxt/ccxt/issues/24847
+        # account activities ledger entry (paper-trading path), see https://github.com/ccxt/ccxt/issues/24847
         #
         #     {
         #         "id": "20250110000000000::7f6cba2b-4c72-46b9-8e34-8e5b0b8d8e10",
@@ -1974,11 +2002,11 @@ class alpaca(Exchange, ImplicitAPI):
         #     {
         #         "id": "43a01bde-4eb1-64fssc26adb5",
         #         "admin_configurations": {
-        #             "allow_instant_ach": True,
+        #             "allow_instant_ach": true,
         #             "max_margin_multiplier": "4"
         #         },
         #         "user_configurations": {
-        #             "fractional_trading": True,
+        #             "fractional_trading": true,
         #             "max_margin_multiplier": "4"
         #         },
         #         "account_number": "744873727",
@@ -1994,14 +2022,14 @@ class alpaca(Exchange, ImplicitAPI):
         #         "cash": "5.92",
         #         "accrued_fees": "0",
         #         "portfolio_value": "48.6",
-        #         "pattern_day_trader": False,
-        #         "trading_blocked": False,
-        #         "transfers_blocked": False,
-        #         "account_blocked": False,
+        #         "pattern_day_trader": false,
+        #         "trading_blocked": false,
+        #         "transfers_blocked": false,
+        #         "account_blocked": false,
         #         "created_at": "2022-06-13T14:59:18.318096Z",
-        #         "trade_suspended_by_user": False,
+        #         "trade_suspended_by_user": false,
         #         "multiplier": "1",
-        #         "shorting_enabled": False,
+        #         "shorting_enabled": false,
         #         "equity": "48.6",
         #         "last_equity": "48.8014266",
         #         "long_market_value": "42.68",
@@ -2066,7 +2094,7 @@ class alpaca(Exchange, ImplicitAPI):
             self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
             codeAsString = str(code)
             if (code < 400) or not (codeAsString in self.httpExceptions):
-                # an error envelope must always raise — also for statuses the http-status handler has no entry for
+                # an error envelope must always throw — also for statuses the http-status handler has no entry for
                 raise ExchangeError(feedback)
             # unmapped messages on the remaining error statuses fall through to the default http-status handler
         return None

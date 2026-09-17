@@ -2497,14 +2497,16 @@ export default class bitstamp extends Exchange {
         //         "next_funding_time": "1644406050"
         //     }
         //
+        // the websocket funding_rate channel additionally carries mark_price and index_price
+        //
         const currentTime = this.safeIntegerProduct (fundingRate, 'timestamp', 1000);
         const nextFundingRateTimestamp = this.safeIntegerProduct (fundingRate, 'next_funding_time', 1000);
         const marketId = this.safeString (fundingRate, 'market');
         return {
             'info': fundingRate,
             'symbol': this.safeSymbol (marketId, market),
-            'markPrice': undefined,
-            'indexPrice': undefined,
+            'markPrice': this.safeNumber (fundingRate, 'mark_price'),
+            'indexPrice': this.safeNumber (fundingRate, 'index_price'),
             'interestRate': undefined,
             'estimatedSettlePrice': undefined,
             'timestamp': currentTime,
@@ -2572,7 +2574,7 @@ export default class bitstamp extends Exchange {
         return code.toLowerCase ();
     }
 
-    isFiat (code: any) {
+    isFiat (code: any): boolean {
         return code === 'USD' || code === 'EUR' || code === 'GBP';
     }
 
@@ -2807,7 +2809,7 @@ export default class bitstamp extends Exchange {
             if (typeof reasonInner === 'string') {
                 errors.push (reasonInner);
             } else {
-                const all = this.safeValue (reasonInner, '__all__', []);
+                const all = this.safeList (reasonInner, '__all__', []);
                 for (let i = 0; i < all.length; i++) {
                     errors.push (all[i]);
                 }

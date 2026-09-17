@@ -5,7 +5,7 @@ namespace ccxt;
 
 public partial class bitteam : Exchange
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "id", "bitteam" },
@@ -501,7 +501,7 @@ public partial class bitteam : Exchange
         return ccxt.BaseExchange.ToMarketInterfaceList(this.parseMarkets(markets));
     }
 
-    public override object parseMarket(object market)
+    public override Dictionary<string, object> parseMarket(object market)
     {
         string? id = this.safeString(market, "name");
         Int64? numericId = this.safeInteger(market, "id");
@@ -581,7 +581,7 @@ public partial class bitteam : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
-    public async override Task<object> fetchCurrencies(object parameters = null)
+    public async override Task<IDictionary<string, object>> fetchCurrencies(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> response = await this.publicGetTradeApiCurrencies(parameters);
@@ -703,10 +703,10 @@ public partial class bitteam : Exchange
         ((IDictionary<string,object>)this.options)["_temp_currencies_statuses"] = statusesResponse;
         Dictionary<string, object> result = this.parseCurrencies(currencies);
         ((IDictionary<string,object>)this.options).Remove((string)"_temp_currencies_statuses");
-        return result;
+        return ((IDictionary<string, object>)((object)(result)));
     }
 
-    public override object parseCurrency(object currency)
+    public override Dictionary<string, object> parseCurrency(object currency)
     {
         object statusesResponse = this.safeValue(this.options, "_temp_currencies_statuses", new Dictionary<string, object>() {});
         string? id = this.safeString(currency, "symbol");
@@ -856,7 +856,7 @@ public partial class bitteam : Exchange
         //     }
         //
         object result = this.safeValue(response, "result", new Dictionary<string, object>() {});
-        object data = this.safeList(result, "data", new List<object>() {});
+        List<object> data = this.safeList(result, "data", new List<object>() {});
         return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(data, market,((string)timeframeVar), since, limit));
     }
 
@@ -1046,7 +1046,7 @@ public partial class bitteam : Exchange
         //     }
         //
         object result = this.safeValue(response, "result", new Dictionary<string, object>() {});
-        object orders = this.safeList(result, "orders", new List<object>() {});
+        List<object> orders = this.safeList(result, "orders", new List<object>() {});
         return ccxt.BaseExchange.ToOrderList(this.parseOrders(orders, market, since, limit));
     }
 
@@ -1113,7 +1113,7 @@ public partial class bitteam : Exchange
         //         }
         //     }
         //
-        object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
+        IDictionary<string, object> result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         return ccxt.BaseExchange.ToOrder(this.parseOrder(result, market));
     }
 
@@ -1250,7 +1250,7 @@ public partial class bitteam : Exchange
         //         }
         //     }
         //
-        object order = this.safeDict(response, "result", new Dictionary<string, object>() {});
+        IDictionary<string, object> order = this.safeDict(response, "result", new Dictionary<string, object>() {});
         return ccxt.BaseExchange.ToOrder(this.parseOrder(order, market));
     }
 
@@ -1283,7 +1283,7 @@ public partial class bitteam : Exchange
         //         }
         //     }
         //
-        object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
+        IDictionary<string, object> result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         return ccxt.BaseExchange.ToOrder(this.parseOrder(result));
     }
 
@@ -1505,7 +1505,7 @@ public partial class bitteam : Exchange
         {
             return null;
         }
-        object precisionString = this.parsePrecision(precisionRawString);
+        string? precisionString = this.parsePrecision(precisionRawString);
         return Precise.stringMul(valueRawString, precisionString);
     }
 
@@ -1777,7 +1777,7 @@ public partial class bitteam : Exchange
         //     }
         //
         object result = this.safeValue(response, "result", new Dictionary<string, object>() {});
-        object pair = this.safeDict(result, "pair", new Dictionary<string, object>() {});
+        IDictionary<string, object> pair = this.safeDict(result, "pair", new Dictionary<string, object>() {});
         return ccxt.BaseExchange.ToTicker(this.parseTicker(pair, market));
     }
 
@@ -2123,7 +2123,7 @@ public partial class bitteam : Exchange
         //     }
         //
         object result = this.safeValue(response, "result", new Dictionary<string, object>() {});
-        object trades = this.safeList(result, "trades", new List<object>() {});
+        List<object> trades = this.safeList(result, "trades", new List<object>() {});
         return ccxt.BaseExchange.ToTradeList(this.parseTrades(trades, market, since, limit));
     }
 
@@ -2450,7 +2450,7 @@ public partial class bitteam : Exchange
         //     }
         //
         object result = this.safeValue(response, "result", new Dictionary<string, object>() {});
-        object transactions = this.safeList(result, "transactions", new List<object>() {});
+        List<object> transactions = this.safeList(result, "transactions", new List<object>() {});
         return ccxt.BaseExchange.ToTransactionList(this.parseTransactions(transactions, currency, since, limit));
     }
 

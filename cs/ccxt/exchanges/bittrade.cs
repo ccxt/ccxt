@@ -5,7 +5,7 @@ namespace ccxt;
 
 public partial class bittrade : Exchange
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "id", "bittrade" },
@@ -692,7 +692,7 @@ public partial class bittrade : Exchange
         return ccxt.BaseExchange.ToDict(this.parseTradingLimits(this.safeValue(response, "data", new Dictionary<string, object>() {})));
     }
 
-    public virtual object parseTradingLimits(object limits, object symbol = null, object parameters = null)
+    public virtual Dictionary<string, object> parseTradingLimits(object limits, object symbol = null, object parameters = null)
     {
         //
         //   {                                  symbol: "aidocbtc",
@@ -777,7 +777,7 @@ public partial class bittrade : Exchange
         //         ]
         //    }
         //
-        object markets = this.safeValue(response, "data", new List<object>() {});
+        List<object> markets = this.safeList(response, "data", new List<object>() {});
         int numMarkets = getArrayLength(markets);
         if (isTrue(isLessThan(numMarkets, 1)))
         {
@@ -1077,7 +1077,7 @@ public partial class bittrade : Exchange
         }
         symbols = this.marketSymbols(symbols);
         Dictionary<string, object> response = await this.marketGetTickers(parameters);
-        object tickers = this.safeValue(response, "data", new List<object>() {});
+        List<object> tickers = this.safeList(response, "data", new List<object>() {});
         Int64? timestamp = this.safeInteger(response, "ts");
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         for (int i = 0; isLessThan(i, getArrayLength(tickers)); postFixIncrement(ref i))
@@ -1296,11 +1296,11 @@ public partial class bittrade : Exchange
         //         ]
         //     }
         //
-        object data = this.safeValue(response, "data", new List<object>() {});
+        List<object> data = this.safeList(response, "data", new List<object>() {});
         List<object> result = new List<object>() {};
         for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
-            object trades = this.safeValue(getValue(data, i), "data", new List<object>() {});
+            List<object> trades = this.safeList(getValue(data, i), "data", new List<object>() {});
             for (int j = 0; isLessThan(j, getArrayLength(trades)); postFixIncrement(ref j))
             {
                 object trade = this.parseTrade(getValue(trades, j), market);
@@ -1401,7 +1401,7 @@ public partial class bittrade : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
-    public async override Task<object> fetchCurrencies(object parameters = null)
+    public async override Task<IDictionary<string, object>> fetchCurrencies(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -1452,7 +1452,7 @@ public partial class bittrade : Exchange
         return this.parseCurrencies(currencies);
     }
 
-    public override object parseCurrency(object currency)
+    public override Dictionary<string, object> parseCurrency(object currency)
     {
         object id = this.safeValue(currency, "name");
         string? code = this.safeCurrencyCode(id);
@@ -1495,7 +1495,7 @@ public partial class bittrade : Exchange
 
     public override object parseBalance(object response)
     {
-        object balances = this.safeValue(getValue(response, "data"), "list", new List<object>() {});
+        List<object> balances = this.safeList(getValue(response, "data"), "list", new List<object>() {});
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
         };
@@ -2064,7 +2064,7 @@ public partial class bittrade : Exchange
         return ccxt.BaseExchange.ToOrderList(this.parseCancelOrders(response));
     }
 
-    public virtual object parseCancelOrders(object orders)
+    public virtual List<object> parseCancelOrders(object orders)
     {
         //
         //    {
@@ -2124,7 +2124,7 @@ public partial class bittrade : Exchange
                 { "clientOrderId", this.safeString(order, "client-order-id") },
             }));
         }
-        return result;
+        return ((List<object>)((object)(result)));
     }
 
     /**

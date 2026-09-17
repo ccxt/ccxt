@@ -5,7 +5,7 @@ namespace ccxt;
 
 public partial class bitfinex : Exchange
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "id", "bitfinex" },
@@ -796,9 +796,9 @@ public partial class bitfinex : Exchange
         });
     }
 
-    public virtual object isFiat(object code)
+    public virtual bool isFiat(object code)
     {
-        return (inOp(getValue(this.options, "fiat"), code));
+        return ((bool)((object)((inOp(getValue(this.options, "fiat"), code))))!);
     }
 
     public virtual object getCurrencyName(object code)
@@ -985,7 +985,7 @@ public partial class bitfinex : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
-    public async override Task<object> fetchCurrencies(object parameters = null)
+    public async override Task<IDictionary<string, object>> fetchCurrencies(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         List<object> labels = new List<object>() {"pub:list:currency", "pub:map:currency:sym", "pub:map:currency:label", "pub:map:currency:unit", "pub:map:currency:undl", "pub:map:currency:pool", "pub:map:currency:explorer", "pub:map:currency:tx:fee", "pub:map:tx:method", "pub:info:tx:status", "pub:list:currency:margin"};
@@ -1102,10 +1102,10 @@ public partial class bitfinex : Exchange
             ((IDictionary<string,object>)indexedNetworks)[(string)((string)networkName)] = networksList;
         }
         List<object> ids = this.safeList(response, 0, new List<object>() {});
-        return this.parseCurrenciesCustom(ids, indexed, indexedNetworks);
+        return ((IDictionary<string, object>)((object)(this.parseCurrenciesCustom(ids, indexed, indexedNetworks))));
     }
 
-    public virtual object parseCurrenciesCustom(object ids, object indexed, object indexedNetworks)
+    public virtual Dictionary<string, object> parseCurrenciesCustom(object ids, object indexed, object indexedNetworks)
     {
         List<object> allowedIds = new List<object>() {};
         for (int i = 0; isLessThan(i, getArrayLength(ids)); postFixIncrement(ref i))
@@ -1121,14 +1121,14 @@ public partial class bitfinex : Exchange
         IList<object> arr = this.toArray(allowedIds);
         for (int i = 0; isLessThan(i, getArrayLength(arr)); postFixIncrement(ref i))
         {
-            object parsed = this.parseCurrencyCustom(getValue(arr, i), indexed, indexedNetworks);
+            Dictionary<string, object> parsed = this.parseCurrencyCustom(getValue(arr, i), indexed, indexedNetworks);
             object code = getValue(parsed, "code");
             ((IDictionary<string,object>)result)[(string)code] = parsed;
         }
-        return result;
+        return ((Dictionary<string, object>)((object)(result)));
     }
 
-    public virtual object parseCurrencyCustom(object id, object indexed, object indexedNetworks)
+    public virtual Dictionary<string, object> parseCurrencyCustom(object id, object indexed, object indexedNetworks)
     {
         string? code = this.safeCurrencyCode(id);
         List<object> label = this.safeList(getValue(indexed, "label"), id, new List<object>() {});
@@ -1180,7 +1180,7 @@ public partial class bitfinex : Exchange
                 };
             }
         }
-        return this.safeCurrencyStructure(new Dictionary<string, object>() {
+        return ((Dictionary<string, object>)((object)(this.safeCurrencyStructure(new Dictionary<string, object>() {
             { "id", id },
             { "code", code },
             { "info", new List<object>() {id, label, pool, feeValues, undl} },
@@ -1203,7 +1203,7 @@ public partial class bitfinex : Exchange
             } },
             { "networks", networks },
             { "margin", this.inArray(id, getValue(indexed, "marginables")) },
-        });
+        }))));
     }
 
     /**
@@ -1223,7 +1223,7 @@ public partial class bitfinex : Exchange
         {
             await this.loadMarkets();
         }
-        object accountsByType = this.safeValue(this.options, "v2AccountsByType", new Dictionary<string, object>() {});
+        IDictionary<string, object> accountsByType = this.safeDict(this.options, "v2AccountsByType", new Dictionary<string, object>() {});
         string? requestedType = this.safeString(parameters, "type", "exchange");
         string? accountType = this.safeString(accountsByType, requestedType, requestedType);
         if (isTrue(isEqual(accountType, null)))
@@ -1241,7 +1241,7 @@ public partial class bitfinex : Exchange
         for (int i = 0; isLessThan(i, getArrayLength(balances)); postFixIncrement(ref i))
         {
             object balance = getValue(balances, i);
-            object account = this.account();
+            Dictionary<string, object> account = this.account();
             string? interest = this.safeString(balance, 3);
             if (isTrue(!isEqual(interest, "0")))
             {
@@ -1249,7 +1249,7 @@ public partial class bitfinex : Exchange
             }
             string? type = this.safeString(balance, 0);
             string? currencyId = this.safeStringLower(balance, 1, "");
-            object start = subtract(((string)((string)currencyId)).Length, 2);
+            int start = subtract(((string)((string)currencyId)).Length, 2);
             bool isDerivativeCode = isEqual(slice(((string)currencyId), start, null), "f0");
             // this will only filter the derivative codes if the requestedType is 'derivatives'
             bool derivativeCondition = (!isTrue(isDerivative) || isTrue(isDerivativeCode));
@@ -1288,7 +1288,7 @@ public partial class bitfinex : Exchange
         {
             await this.loadMarkets();
         }
-        object accountsByType = this.safeValue(this.options, "v2AccountsByType", new Dictionary<string, object>() {});
+        IDictionary<string, object> accountsByType = this.safeDict(this.options, "v2AccountsByType", new Dictionary<string, object>() {});
         string? fromId = this.safeString(accountsByType, fromAccount);
         if (isTrue(isEqual(fromId, null)))
         {
@@ -1304,7 +1304,7 @@ public partial class bitfinex : Exchange
         Dictionary<string, object> currency = this.currency(((string)code));
         object fromCurrencyId = this.convertDerivativesId(currency, fromAccount);
         object toCurrencyId = this.convertDerivativesId(currency, toAccount);
-        object requestedAmount = this.currencyToPrecision(((string)code), amount);
+        string? requestedAmount = this.currencyToPrecision(((string)code), amount);
         // this request is slightly different from v1 fromAccount -> from
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "amount", requestedAmount },
@@ -1415,7 +1415,7 @@ public partial class bitfinex : Exchange
         if (isTrue(isEqual(type, "derivatives")))
         {
             currencyId = this.safeString(underlying, 0, transferId);
-            object start = subtract(((string)((string)currencyId)).Length, 2);
+            int start = subtract(((string)((string)currencyId)).Length, 2);
             bool isDerivativeCode = isEqual(slice(((string)currencyId), start, null), "F0");
             if (!isTrue(isDerivativeCode))
             {
@@ -1528,8 +1528,13 @@ public partial class bitfinex : Exchange
         //     ]
         //
         int length = getArrayLength(ticker);
-        double? firstValue = this.safeNumber(ticker, 0);
-        bool isFetchTicker = !isEqual(firstValue, null); // if it's Nan, then it's string (symbol)
+        // the list shapes (fetchTickers) carry the market id in slot 0, the singular
+        // shapes (fetchTicker) do not. safeNumber is not a portable discriminator here:
+        // in PHP a non numeric string casts to 0.0 instead of undefined, so 'fUSD' would
+        // look like a number and the whole array would be read off by one.
+        string? firstValue = this.safeString(ticker, 0);
+        bool hasMarketId = isTrue((!isEqual(firstValue, null))) && isTrue((isTrue(((string)firstValue).StartsWith(((string)"t"))) || isTrue(((string)firstValue).StartsWith(((string)"f")))));
+        bool isFetchTicker = !isTrue(hasMarketId);
         string? symbol = null;
         object minusIndex = 0;
         if (isTrue(isFetchTicker))
@@ -1557,7 +1562,9 @@ public partial class bitfinex : Exchange
             bid = this.safeString(ticker, subtract(2, minusIndex));
             ask = this.safeString(ticker, subtract(5, minusIndex));
             change = this.safeString(ticker, subtract(8, minusIndex));
-            percentage = this.safeString(ticker, subtract(9, minusIndex));
+            // DAILY_CHANGE_RELATIVE, per the array above: the same field the trading
+            // branch reads at index 6 and scales
+            percentage = Precise.stringMul(this.safeString(ticker, subtract(9, minusIndex)), "100");
             volume = this.safeString(ticker, subtract(11, minusIndex));
             high = this.safeString(ticker, subtract(12, minusIndex));
             low = this.safeString(ticker, subtract(13, minusIndex));
@@ -3165,7 +3172,7 @@ public partial class bitfinex : Exchange
         //     ]
         //
         Dictionary<string, object> result = new Dictionary<string, object>() {};
-        object fiat = this.safeValue(this.options, "fiat", new Dictionary<string, object>() {});
+        IDictionary<string, object> fiat = this.safeDict(this.options, "fiat", new Dictionary<string, object>() {});
         object feeData = this.safeValue(response, 4, new List<object>() {});
         object makerData = this.safeValue(feeData, 0, new List<object>() {});
         object takerData = this.safeValue(feeData, 1, new List<object>() {});
@@ -3884,7 +3891,7 @@ public partial class bitfinex : Exchange
         //
         IList<object> rawRatesData = this.toArray(response);
         List<object> rates = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(rawRatesData)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(rawRatesData)); postFixIncrement(ref i))
         {
             object fr = getValue(rawRatesData, i);
             object rate = this.parseFundingRateHistory(fr, market);
@@ -4137,7 +4144,7 @@ public partial class bitfinex : Exchange
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns An array of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
-    public async override Task<List<ccxt.OpenInterest>> FetchOpenInterestHistory(object symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.OpenInterest>> FetchOpenInterestHistory(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         object timeframeVar = timeframe;
         timeframeVar ??= "1m";
@@ -4394,7 +4401,7 @@ public partial class bitfinex : Exchange
      * @param {object} [params] parameters specific to the exchange API endpoint
      * @returns {object} A [margin structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#add-margin-structure}
      */
-    public async override Task<ccxt.MarginModification> SetMargin(object symbol, object amount, object parameters = null)
+    public async override Task<ccxt.MarginModification> SetMargin(string symbol, double amount, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))

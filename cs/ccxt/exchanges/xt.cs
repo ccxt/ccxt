@@ -5,7 +5,7 @@ namespace ccxt;
 
 public partial class xt : Exchange
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "id", "xt" },
@@ -1250,7 +1250,7 @@ public partial class xt : Exchange
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
-    public async override Task<object> fetchCurrencies(object parameters = null)
+    public async override Task<IDictionary<string, object>> fetchCurrencies(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         List<object> promisesRaw = new List<object> {this.publicSpotGetWalletSupportCurrency(parameters), this.publicSpotGetCurrencies(parameters)};
@@ -1395,7 +1395,7 @@ public partial class xt : Exchange
                 });
             }
         }
-        return result;
+        return ((IDictionary<string, object>)((object)(result)));
     }
 
     /**
@@ -1562,7 +1562,7 @@ public partial class xt : Exchange
         return result;
     }
 
-    public override object parseMarket(object market)
+    public override Dictionary<string, object> parseMarket(object market)
     {
         //
         // spot
@@ -1875,7 +1875,7 @@ public partial class xt : Exchange
             // xt rounds startTime down to the candle boundary, which makes a mid-candle
             // window start return one pre-since candle, shifting paginated windows and
             // dropping one candle per page - align up so the rounding is a no-op, see https://github.com/ccxt/ccxt/issues/25285
-            object duration = multiply(this.parseTimeframe(timeframeVar), 1000);
+            Int64 duration = multiply(this.parseTimeframe(timeframeVar), 1000);
             ((IDictionary<string,object>)request)["startTime"] = multiply(Math.Ceiling(Convert.ToDouble(divide(since, duration))), duration);
         }
         if (isTrue(!isEqual(limitVar, null)))
@@ -3003,7 +3003,7 @@ public partial class xt : Exchange
             object balance = getValue(response, i);
             string? currencyId = this.safeString2(balance, "currency", "coin");
             string? code = this.safeCurrencyCode(currencyId);
-            object account = this.account();
+            Dictionary<string, object> account = this.account();
             string? free = this.safeString2(balance, "availableAmount", "availableBalance");
             string? used = this.safeString(balance, "frozenAmount");
             string? total = this.safeString2(balance, "totalAmount", "walletBalance");
@@ -4124,7 +4124,7 @@ public partial class xt : Exchange
             // and return entries in every state, so filter by status first,
             // otherwise since/limit could cut off matching rows
             IList<object> parsedOrders = this.parseOrders(orders, market);
-            object filteredOrders = this.filterBy(parsedOrders, "status", status);
+            List<object> filteredOrders = this.filterBy(parsedOrders, "status", status);
             return ccxt.BaseExchange.ToOrderList(this.filterBySinceLimit(filteredOrders, since, limit));
         }
         return ccxt.BaseExchange.ToOrderList(this.parseOrders(orders, market, since, limit));
@@ -6045,7 +6045,7 @@ public partial class xt : Exchange
      * @method
      * @param {object[]} breakList the "result" array of a position/break-list response
      */
-    public virtual object indexPositionBreakList(object breakList)
+    public virtual Dictionary<string, object> indexPositionBreakList(object breakList)
     {
         Dictionary<string, object> breakBySymbolSide = new Dictionary<string, object>() {};
         for (int i = 0; isLessThan(i, getArrayLength(breakList)); postFixIncrement(ref i))
@@ -6058,7 +6058,7 @@ public partial class xt : Exchange
             object key = add(add(this.safeString(breakEntry, "symbol"), "_"), this.safeString(breakEntry, "positionSide"));
             ((IDictionary<string,object>)breakBySymbolSide)[(string)key] = breakEntry;
         }
-        return breakBySymbolSide;
+        return ((Dictionary<string, object>)((object)(breakBySymbolSide)));
     }
 
     /**
@@ -6163,7 +6163,7 @@ public partial class xt : Exchange
         //     }
         //
         List<object> positions = this.safeList(response, "result", new List<object>() {});
-        object breakBySymbolSide = this.indexPositionBreakList(this.safeList(breakResponse, "result", new List<object>() {}));
+        Dictionary<string, object> breakBySymbolSide = this.indexPositionBreakList(this.safeList(breakResponse, "result", new List<object>() {}));
         for (int i = 0; isLessThan(i, getArrayLength(positions)); postFixIncrement(ref i))
         {
             object entry = getValue(positions, i);
@@ -6256,7 +6256,7 @@ public partial class xt : Exchange
         //     }
         //
         List<object> positions = this.safeList(response, "result", new List<object>() {});
-        object breakBySymbolSide = this.indexPositionBreakList(this.safeList(breakResponse, "result", new List<object>() {}));
+        Dictionary<string, object> breakBySymbolSide = this.indexPositionBreakList(this.safeList(breakResponse, "result", new List<object>() {}));
         List<object> result = new List<object>() {};
         for (int i = 0; isLessThan(i, getArrayLength(positions)); postFixIncrement(ref i))
         {
@@ -6425,7 +6425,7 @@ public partial class xt : Exchange
         string marginMode = ((bool) isTrue((isCross))) ? "cross" : "isolated";
         double? collateral = this.safeNumber(position, "isolatedMargin");
         // history entries carry the liquidation price in forceMarkPrice when force is true
-        object liquidationPriceString = this.omitZero(this.safeString2(position, "breakPrice", "forceMarkPrice"));
+        string? liquidationPriceString = ((string)this.omitZero(this.safeString2(position, "breakPrice", "forceMarkPrice")));
         Int64? timestamp = this.safeInteger(position, "closeTime");
         return this.safePosition(new Dictionary<string, object>() {
             { "info", position },
@@ -6479,7 +6479,7 @@ public partial class xt : Exchange
         IDictionary<string, object> accountsByType = this.safeDict(this.options, "accountsById");
         string? fromAccountId = this.safeString(accountsByType, fromAccount, fromAccount);
         string? toAccountId = this.safeString(accountsByType, toAccount, toAccount);
-        object amountString = this.currencyToPrecision(((string)code), amount);
+        string? amountString = this.currencyToPrecision(((string)code), amount);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "bizId", this.uuid() },
             { "currency", getValue(currency, "id") },

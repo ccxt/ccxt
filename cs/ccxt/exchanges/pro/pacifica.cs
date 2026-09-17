@@ -7,7 +7,7 @@ namespace ccxt.pro;
 public partial class pacifica { public pacifica(object args = null) : base(args) { } }
 public partial class pacifica : ccxt.pacifica
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "has", new Dictionary<string, object>() {
@@ -119,7 +119,7 @@ public partial class pacifica : ccxt.pacifica
         object isTestnet = this.isSandboxModeEnabled;
         string urlKey = ((bool) isTrue((isTestnet))) ? "test" : "api";
         object url = getValue(getValue(getValue(this.urls, urlKey), "ws"), "public");
-        object wsRequest = this.wrapAsPostAction(operationType, request);
+        Dictionary<string, object> wsRequest = this.wrapAsPostAction(operationType, request);
         string? requestId = this.safeString(wsRequest, "id");
         if (isTrue(isEqual(operationType, "create_stop_order")))
         {
@@ -208,7 +208,7 @@ public partial class pacifica : ccxt.pacifica
         object isTestnet = this.isSandboxModeEnabled;
         string urlKey = ((bool) isTrue((isTestnet))) ? "test" : "api";
         object url = getValue(getValue(getValue(this.urls, urlKey), "ws"), "public");
-        object wsRequest = this.wrapAsPostAction(batchOperationType, request);
+        Dictionary<string, object> wsRequest = this.wrapAsPostAction(batchOperationType, request);
         string? requestId = this.safeString(wsRequest, "id");
         object response = await this.watch(url, requestId, wsRequest, requestId);
         // {
@@ -274,7 +274,7 @@ public partial class pacifica : ccxt.pacifica
         object isTestnet = this.isSandboxModeEnabled;
         string urlKey = ((bool) isTrue((isTestnet))) ? "test" : "api";
         object url = getValue(getValue(getValue(this.urls, urlKey), "ws"), "public");
-        object wsRequest = this.wrapAsPostAction(batchOperationType, request);
+        Dictionary<string, object> wsRequest = this.wrapAsPostAction(batchOperationType, request);
         string? requestId = this.safeString(wsRequest, "id");
         object response = await this.watch(url, requestId, wsRequest, requestId);
         //
@@ -363,7 +363,7 @@ public partial class pacifica : ccxt.pacifica
         object isTestnet = this.isSandboxModeEnabled;
         string urlKey = ((bool) isTrue((isTestnet))) ? "test" : "api";
         object url = getValue(getValue(getValue(this.urls, urlKey), "ws"), "public");
-        object wsRequest = this.wrapAsPostAction(operationType, request);
+        Dictionary<string, object> wsRequest = this.wrapAsPostAction(operationType, request);
         string? requestId = this.safeString(wsRequest, "id");
         object response = await this.watch(url, requestId, wsRequest, requestId);
         //
@@ -425,7 +425,7 @@ public partial class pacifica : ccxt.pacifica
         object isTestnet = this.isSandboxModeEnabled;
         string urlKey = ((bool) isTrue((isTestnet))) ? "test" : "api";
         object url = getValue(getValue(getValue(this.urls, urlKey), "ws"), "public");
-        object wsRequest = this.wrapAsPostAction(operationType, request);
+        Dictionary<string, object> wsRequest = this.wrapAsPostAction(operationType, request);
         string? requestId = this.safeString(wsRequest, "id");
         object response = await this.watch(url, requestId, wsRequest, requestId);
         //  {
@@ -756,7 +756,7 @@ public partial class pacifica : ccxt.pacifica
         return await this.watch(url, messageHash, message, messageHash);
     }
 
-    public virtual object handleWsTickers(WebSocketClient client, object message)
+    public virtual bool handleWsTickers(WebSocketClient client, object message)
     {
         //
         // {
@@ -792,7 +792,7 @@ public partial class pacifica : ccxt.pacifica
         }
         Dictionary<string, object> tickers = this.indexBy(parsedTickers, "symbol");
         callDynamically(client as WebSocketClient, "resolve", new object[] {tickers, "tickers"});
-        return true;
+        return ((bool)((object)(true))!);
     }
 
     public virtual object parseWsTicker(object rawTicker, object market = null)
@@ -1593,7 +1593,7 @@ public partial class pacifica : ccxt.pacifica
         return this.uuid();  // uuid v4
     }
 
-    public virtual object wrapAsPostAction(object operationType, object request)
+    public virtual Dictionary<string, object> wrapAsPostAction(object operationType, object request)
     {
         if (isTrue(isEqual(operationType, null)))
         {
@@ -1605,7 +1605,7 @@ public partial class pacifica : ccxt.pacifica
             { "params", new Dictionary<string, object>() {} },
         };
         ((IDictionary<string,object>)getValue(payload, "params"))[(string)operationType] = request;
-        return payload;
+        return ((Dictionary<string, object>)((object)(payload)));
     }
 
     public virtual void handleWsPost(WebSocketClient client, object message)

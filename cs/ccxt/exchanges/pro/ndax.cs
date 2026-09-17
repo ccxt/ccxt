@@ -7,7 +7,7 @@ namespace ccxt.pro;
 public partial class ndax { public ndax(object args = null) : base(args) { } }
 public partial class ndax : ccxt.ndax
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "has", new Dictionary<string, object>() {
@@ -161,7 +161,7 @@ public partial class ndax : ccxt.ndax
 
     public virtual void handleTrades(WebSocketClient client, object message)
     {
-        object payload = this.safeValue(message, "o", new List<object>() {});
+        List<object> payload = this.safeList(message, "o", new List<object>() {});
         //
         // initial snapshot
         //
@@ -275,7 +275,7 @@ public partial class ndax : ccxt.ndax
         //         "o": [[1608284160000,23113.52,23070.88,23075.76,23075.39,162.44964300,23075.38,23075.39,8,1608284100000]],
         //     }
         //
-        object payload = this.safeValue(message, "o", new List<object>() {});
+        List<object> payload = this.safeList(message, "o", new List<object>() {});
         //
         //     [
         //         [
@@ -445,7 +445,7 @@ public partial class ndax : ccxt.ndax
         //         "o": [[2,1,1608208308265,0,20782.49,1,25000,8,1,1]]
         //     }
         //
-        object payload = this.safeValue(message, "o", new List<object>() {});
+        List<object> payload = this.safeList(message, "o", new List<object>() {});
         //
         //     [
         //         0,   // 0 MDUpdateId
@@ -485,7 +485,7 @@ public partial class ndax : ccxt.ndax
             {
                 Int64? newTimestamp = this.safeInteger(bidask, 2);
                 object currentTimestampValue = ((bool) isTrue((isEqual(timestamp, null)))) ? 0 : timestamp;
-                object newTimestampValue = ((bool) isTrue((isEqual(newTimestamp, null)))) ? 0 : newTimestamp;
+                Int64? newTimestampValue = ((bool) isTrue((isEqual(newTimestamp, null)))) ? 0 : newTimestamp;
                 timestamp = mathMax(currentTimestampValue, newTimestampValue);
             }
             if (isTrue(isEqual(nonce, null)))
@@ -495,7 +495,7 @@ public partial class ndax : ccxt.ndax
             {
                 Int64? newNonce = this.safeInteger(bidask, 0);
                 object currentNonceValue = ((bool) isTrue((isEqual(nonce, null)))) ? 0 : nonce;
-                object newNonceValue = ((bool) isTrue((isEqual(newNonce, null)))) ? 0 : newNonce;
+                Int64? newNonceValue = ((bool) isTrue((isEqual(newNonce, null)))) ? 0 : newNonce;
                 nonce = mathMax(currentNonceValue, newNonceValue);
             }
             // 0 new, 1 update, 2 remove

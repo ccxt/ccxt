@@ -18,7 +18,7 @@ public partial class testMainClass : BaseTest
     {
         argParams ??= new Dictionary<string, object>();
         string method = "watchBidsAsks";
-        object now = exchange.milliseconds();
+        Int64 now = exchange.milliseconds();
         object ends = add(now, 15000);
         int maxIdleTime = 5000;
         bool idle = false;
@@ -27,7 +27,7 @@ public partial class testMainClass : BaseTest
             bool success = true;
             bool shouldReturn = false;
             object response = new Dictionary<string, object>() {};
-            object startTime = exchange.milliseconds();
+            Int64 startTime = exchange.milliseconds();
             try
             {
                 response = detypeForComparison(await exchange.WatchBidsAsks(argSymbols, argParams));

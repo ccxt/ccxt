@@ -556,7 +556,7 @@ export default class bitbank extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', {});
-        const pairs = this.safeValue (data, 'pairs', []);
+        const pairs = this.safeList (data, 'pairs', []);
         const result: Dict = {};
         for (let i = 0; i < pairs.length; i++) {
             const pair = pairs[i];
@@ -658,7 +658,7 @@ export default class bitbank extends Exchange {
             'datetime': undefined,
         };
         const data = this.safeValue (response, 'data', {});
-        const assets = this.safeValue (data, 'assets', []);
+        const assets = this.safeList (data, 'assets', []);
         for (let i = 0; i < assets.length; i++) {
             const balance = assets[i];
             const currencyId = this.safeString (balance, 'asset');

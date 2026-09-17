@@ -1222,7 +1222,7 @@ export default class cryptocom extends Exchange {
     parseBalance(response) {
         const responseResult = this.safeDict(response, 'result', {});
         const data = this.safeList(responseResult, 'data', []);
-        const positionBalances = this.safeValue(data[0], 'position_balances', []);
+        const positionBalances = this.safeList(data[0], 'position_balances', []);
         const result = { 'info': response };
         for (let i = 0; i < positionBalances.length; i++) {
             const balance = positionBalances[i];

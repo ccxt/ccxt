@@ -5,7 +5,7 @@ namespace ccxt;
 
 public partial class coinbaseinternational : Exchange
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "id", "coinbaseinternational" },
@@ -1072,7 +1072,7 @@ public partial class coinbaseinternational : Exchange
         return true;
     }
 
-    public virtual object parseNetworks(object networks, object parameters = null)
+    public virtual Dictionary<string, object> parseNetworks(object networks, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> result = new Dictionary<string, object>() {};
@@ -1081,7 +1081,7 @@ public partial class coinbaseinternational : Exchange
             Dictionary<string, object> network = this.extend(this.parseNetwork(getValue(networks, i)), parameters);
             ((IDictionary<string,object>)result)[(string)getValue(network, "network")] = network;
         }
-        return result;
+        return ((Dictionary<string, object>)((object)(result)));
     }
 
     public virtual object parseNetwork(object network, object parameters = null)
@@ -1139,7 +1139,7 @@ public partial class coinbaseinternational : Exchange
      * @param {object} [params] parameters specific to the exchange API endpoint
      * @returns {object} A [margin structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#add-margin-structure}
      */
-    public async override Task<ccxt.MarginModification> SetMargin(object symbol, object amount, object parameters = null)
+    public async override Task<ccxt.MarginModification> SetMargin(string symbol, double amount, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object portfolio = null;
@@ -1625,7 +1625,7 @@ public partial class coinbaseinternational : Exchange
         return ccxt.BaseExchange.ToMarketInterfaceList(this.parseMarkets(response));
     }
 
-    public override object parseMarket(object market)
+    public override Dictionary<string, object> parseMarket(object market)
     {
         //
         //   {
@@ -1755,7 +1755,7 @@ public partial class coinbaseinternational : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
-    public async override Task<object> fetchCurrencies(object parameters = null)
+    public async override Task<IDictionary<string, object>> fetchCurrencies(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         List<object> currencies = await this.v1PublicGetAssets(parameters);
@@ -1775,7 +1775,7 @@ public partial class coinbaseinternational : Exchange
         return this.parseCurrencies(currencies);
     }
 
-    public override object parseCurrency(object currency)
+    public override Dictionary<string, object> parseCurrency(object currency)
     {
         //
         //    {
@@ -1980,7 +1980,7 @@ public partial class coinbaseinternational : Exchange
             object rawBalance = getValue(response, i);
             string? currencyId = this.safeString(rawBalance, "asset_name");
             string? code = this.safeCurrencyCode(currencyId);
-            object account = this.account();
+            Dictionary<string, object> account = this.account();
             ((IDictionary<string,object>)account)["total"] = this.safeString(rawBalance, "quantity");
             ((IDictionary<string,object>)account)["used"] = this.safeString(rawBalance, "hold");
             if (isTrue(!isEqual(code, null)))

@@ -37,6 +37,7 @@ const langKeys = {
 const debugKeys = {
     '--warnings': false,
     '--info': false,
+    '--show-timer': false,
 }
 
 const exchangeSpecificFlags = {
@@ -82,14 +83,25 @@ if (maxConcurrency === undefined) {
     const lightLangKeys = [ '--js', '--ts', '--python', '--python-async', '--php', '--php-async' ]
     const selectedLangs = Object.keys (langKeys).filter (key => langKeys[key])
     const onlyLightLangs = (selectedLangs.length > 0) && selectedLangs.every (key => lightLangKeys.includes (key))
-    maxConcurrency = langKeys['--java'] ? 3 : (onlyLightLangs ? 20 : 5)
+    // Live tests are network-bound: the processes sit in epoll/futex waiting on exchange
+    // endpoints, so concurrency is limited by memory, not CPU. A rust tests.bin holds
+    // ~100-270 MB, so 20 is affordable and keeps the lane from serialising on latency.
+    const onlyRust = (selectedLangs.length === 1) && langKeys['--rust']
+    maxConcurrency = langKeys['--java'] ? 3 : ((onlyLightLangs || onlyRust) ? 20 : 5)
 }
 
 const wsFlag = exchangeSpecificFlags['--ws'] ? 'WS': '';
 
 const timeoutSeconds = wsFlag ? (langKeys['--java'] ? 180 : 120) : 250;
 
-
+const SHOW_TIMER = debugKeys['--show-timer'];
+if (SHOW_TIMER) {
+    const secondsElapsedFrom = (startTime) => Math.floor((Date.now() - startTime) / 1000);
+    const startTime = Date.now ();
+    setInterval (() => {
+        log.bright.yellow(`\t\t\t\t\t\t\t[RUNTESTS ELAPSED ${wsFlag}: ${secondsElapsedFrom(startTime)} s]`);
+    }, 20 * 1000); // every X seconds
+}
 //  --------------------------------------------------------------------------- //
 
 const exchangeOptions = []

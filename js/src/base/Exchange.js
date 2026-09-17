@@ -1441,12 +1441,13 @@ export class BaseExchange {
             else if ((httpProxyAgent !== undefined) && (httpProxyAgent !== null)) {
                 finalAgent = httpProxyAgent;
             }
-            //
+            const wsThrottler = new Throttler(this.tokenBucket);
             const options = this.deepExtend(this.streaming, {
                 'log': (this.log !== undefined) ? this.log.bind(this) : this.log,
                 'ping': (this.ping !== undefined) ? this.ping.bind(this) : this.ping,
+                'throttle': wsThrottler.throttle.bind(wsThrottler),
                 'verbose': this.verbose,
-                'throttler': new Throttler(this.tokenBucket),
+                'throttler': wsThrottler,
                 // add support for proxies
                 'options': {
                     'agent': finalAgent,
@@ -2102,7 +2103,7 @@ export class BaseExchange {
         return [res.txType, res.txInfo];
     }
     lighterSignCreateOrder(signer, request) {
-        const res = (globalThis.SignCreateOrder(parseInt(request['market_index']), request['client_order_index'], request['base_amount'], request['avg_execution_price'], request['is_ask'], request['order_type'], request['time_in_force'], request['reduce_only'], request['trigger_price'], request['order_expiry'], request['integrator_account_index'], request['integrator_taker_fee'], request['integrator_maker_fee'], 1, // skip nonce
+        const res = (globalThis.SignCreateOrder(parseInt(request['market_index']), request['client_order_index'], request['base_amount'], request['avg_execution_price'], request['is_ask'], request['order_type'], request['time_in_force'], request['reduce_only'], request['trigger_price'], request['order_expiry'], this.safeInteger(request, 'integrator_account_index', 0), this.safeInteger(request, 'integrator_taker_fee', 0), this.safeInteger(request, 'integrator_maker_fee', 0), 1, // skip nonce
         request['nonce'], request['api_key_index'], request['account_index']));
         this.checkLighterSignedError(res);
         return [res.txType, res.txInfo];
@@ -2137,7 +2138,7 @@ export class BaseExchange {
         return [res.txType, res.txInfo];
     }
     lighterSignModifyOrder(signer, request) {
-        const res = (globalThis.SignModifyOrder(request['market_index'], request['index'], request['base_amount'], request['price'], request['trigger_price'], request['integrator_account_index'], request['integrator_taker_fee'], request['integrator_maker_fee'], 1, // skip nonce
+        const res = (globalThis.SignModifyOrder(request['market_index'], request['index'], request['base_amount'], request['price'], request['trigger_price'], this.safeInteger(request, 'integrator_account_index', 0), this.safeInteger(request, 'integrator_taker_fee', 0), this.safeInteger(request, 'integrator_maker_fee', 0), 1, // skip nonce
         request['nonce'], request['api_key_index'], request['account_index']));
         this.checkLighterSignedError(res);
         return [res.txType, res.txInfo];
@@ -4776,7 +4777,8 @@ export class BaseExchange {
             }
             // close (using average)
             if (close === undefined && average !== undefined) {
-                close = Precise.stringMul(average, '2');
+                // average is the midpoint of open and close, so twice it is their sum
+                close = Precise.stringSub(Precise.stringMul(average, '2'), open);
             }
             // average
             if (average === undefined && close !== undefined) {
@@ -5733,28 +5735,28 @@ export class BaseExchange {
         [retries, params] = this.handleOptionAndParams(params, path, 'maxRetriesOnFailure', retries);
         let retryDelay = 0;
         [retryDelay, params] = this.handleOptionAndParams(params, path, 'maxRetriesOnFailureDelay', retryDelay);
-        let fetchData = undefined;
         const fetchDataCacheEnabled = this.fetchHistoryCacheSize > 0;
         for (let i = 0; i < retries + 1; i++) {
+            let fetchData = undefined;
             if (fetchDataCacheEnabled) {
                 fetchData = { 'request': undefined, 'response': { 'body': undefined }, 'error': undefined };
             }
             try {
                 this.setLastRestRequestTimestamp();
                 const request = this.sign(path, api, method, params, headers, body);
-                if (fetchDataCacheEnabled && (fetchData !== undefined)) {
+                if (fetchData !== undefined) {
                     fetchData['request'] = request;
                 }
                 this.setLastRequest(request);
                 const response = await this.fetch(request['url'], request['method'], request['headers'], request['body']);
-                if (fetchDataCacheEnabled && (fetchData !== undefined)) {
+                if (fetchData !== undefined) {
                     fetchData['response']['body'] = response;
                     this.addFetchCache(fetchData);
                 }
                 return response;
             }
             catch (e) {
-                if (fetchDataCacheEnabled && (fetchData !== undefined)) {
+                if (fetchData !== undefined) {
                     fetchData['error'] = e;
                     this.addFetchCache(fetchData);
                 }

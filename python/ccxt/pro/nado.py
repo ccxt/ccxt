@@ -1113,9 +1113,11 @@ class nado(ccxt.async_support.nado):
         value = self.safe_string(message, key)
         if value is None:
             return None
-        length = len(value)
-        if length > 13:
-            return self.parse_to_int(value[0:length - 6])
+        # keep the string-size reads inline: assigning the size to a standalone
+        # local is the regex transpiler's ARRAY hint and would emit php count()
+        # on a string, breaking every ws parser with a TypeError
+        if len(value) > 13:
+            return self.parse_to_int(value[0:len(value) - 6])
         return self.safe_integer(message, key)
 
     def parse_ws_trade(self, trade: dict, market: Market = None) -> Trade:
@@ -1127,7 +1129,7 @@ class nado(ccxt.async_support.nado):
         #         "price": "25000000000000000000000",
         #         "taker_qty": "1000000000000000000",
         #         "maker_qty": "1000000000000000000",
-        #         "is_taker_buyer": True
+        #         "is_taker_buyer": true
         #     }
         #
         marketId = self.safe_string(trade, 'product_id')
@@ -1166,8 +1168,8 @@ class nado(ccxt.async_support.nado):
         #         "remaining_qty": "82000000000000000",
         #         "original_qty": "100000000000000000",
         #         "price": "25000000000000000000000",
-        #         "is_taker": True,
-        #         "is_bid": True,
+        #         "is_taker": true,
+        #         "is_bid": true,
         #         "fee": "4500000000000000",
         #         "submission_idx": 1,
         #         "id": 100
@@ -1193,7 +1195,7 @@ class nado(ccxt.async_support.nado):
             }
         return self.safe_trade({
             'info': trade,
-            # the id is required: myTrades are cached by id, and fills with an None id
+            # the id is required: myTrades are cached by id, and fills with an undefined id
             # would overwrite each other in the cache, collapsing the history to the last fill
             'id': self.safe_string_2(trade, 'id', 'submission_idx'),
             'timestamp': timestamp,
@@ -1345,7 +1347,7 @@ class nado(ccxt.async_support.nado):
         #         "timestamp": "1695081920633151000",
         #         "product_id": 2,
         #         "subaccount": "0x15f43d1f2dee81424afd891943262aa90f22cc2a64656661756c740000000000",
-        #         "isolated": False,
+        #         "isolated": false,
         #         "amount": "100000000000000000",
         #         "v_quote_amount": "-3033500000000000000000",
         #         "reason": "match_orders"
@@ -1464,7 +1466,7 @@ class nado(ccxt.async_support.nado):
         #         "type": "all_bbo",
         #         "time": "1781750134714",
         #         "bbos": {
-        #             "2": {"bid": "64924000000000000000000", "ask": "64935000000000000000000"}
+        #             "2": { "bid": "64924000000000000000000", "ask": "64935000000000000000000" }
         #         }
         #     }
         #
@@ -1667,7 +1669,7 @@ class nado(ccxt.async_support.nado):
         gatewayUrl = self.urls['api']['ws']['gateway']
         if client.url == gatewayUrl:
             # the v2 gateway is kept alive with protocol-level ping frames,
-            # returning None makes the client send one instead of a message
+            # returning undefined makes the client send one instead of a message
             return None
         return {
             'method': 'ping',

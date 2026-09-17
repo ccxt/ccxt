@@ -532,16 +532,16 @@ public partial class BaseExchange
         return Convert.ToInt64(res);
     }
 
-    public async virtual Task<object> loadMarketsHelper(bool reload = false, dict parameters = null)
+    public async virtual Task<IDictionary<string, object>> loadMarketsHelper(bool reload = false, dict parameters = null)
     {
         if (!reload && this.markets != null)
         {
             if (this.markets_by_id == null)
             {
-                return this.setMarkets(this.markets);
+                return ((IDictionary<string, object>)((object)(this.setMarkets(this.markets))));
             }
             // return Task.FromResult(this.markets);
-            return this.markets;
+            return ((IDictionary<string, object>)((object)(this.markets)));
         }
 
         object currencies = null;
@@ -553,10 +553,10 @@ public partial class BaseExchange
         }
         var markets = await this.FetchMarkets();
         this.options.TryRemove("cachedCurrencies", out _);
-        return this.setMarkets(markets, currencies);
+        return ((IDictionary<string, object>)((object)(this.setMarkets(markets, currencies))));
     }
 
-    public virtual Task<object> loadMarkets(object reload2 = null, object parameters2 = null)
+    public virtual Task<IDictionary<string, object>> loadMarkets(object reload2 = null, object parameters2 = null)
     {
         reload2 ??= false;
         var reload = (bool)reload2;
@@ -585,9 +585,9 @@ public partial class BaseExchange
         return ToMarketInterfaceList(this.toArray(this.markets));
     }
 
-    public virtual async Task<object> fetchCurrencies(object parameters = null)
+    public virtual async Task<IDictionary<string, object>> fetchCurrencies(object parameters = null)
     {
-        return this.currencies;
+        return ((IDictionary<string, object>)((object)(this.currencies)));
     }
 
     public async Task<Currencies> FetchCurrencies(object parameters = null)
@@ -596,9 +596,9 @@ public partial class BaseExchange
         return new Currencies(res);
     }
 
-    public virtual async Task<object> fetchCurrenciesWs(object parameters = null)
+    public virtual async Task<IDictionary<string, object>> fetchCurrenciesWs(object parameters = null)
     {
-        return this.currencies;
+        return ((IDictionary<string, object>)((object)(this.currencies)));
     }
 
     public async Task<Currencies> FetchCurrenciesWs(object parameters = null)

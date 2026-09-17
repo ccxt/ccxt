@@ -411,8 +411,8 @@ class cryptomus(Exchange, ImplicitAPI):
         #             {
         #                 'currency_code': 'USDC',
         #                 'network_code': 'bsc',
-        #                 'can_withdraw': True,
-        #                 'can_deposit': True,
+        #                 'can_withdraw': true,
+        #                 'can_deposit': true,
         #                 'min_withdraw': '1.00000000',
         #                 'max_withdraw': '10000000.00000000',
         #                 'max_deposit': '10000000.00000000',
@@ -738,7 +738,7 @@ class cryptomus(Exchange, ImplicitAPI):
                 createMarketBuyOrderRequiresPrice, params = self.handle_option_and_params(params, 'createOrder', 'createMarketBuyOrderRequiresPrice', True)
                 if createMarketBuyOrderRequiresPrice:
                     if (price is None) and (cost is None):
-                        raise InvalidOrder(self.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend(amount * price), alternatively set the createMarketBuyOrderRequiresPrice option of param to False and pass the cost to spend in the amount argument')
+                        raise InvalidOrder(self.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option of param to False and pass the cost to spend in the amount argument')
                     elif cost is None:
                         cost = Precise.string_mul(amountToString, priceToString)
                 else:
@@ -754,7 +754,7 @@ class cryptomus(Exchange, ImplicitAPI):
             request['price'] = price
             response = self.privatePostV2UserApiExchangeOrders(self.extend(request, params))
         else:
-            raise ArgumentsRequired(self.id + ' createOrder() requires a type parameter(limit or market)')
+            raise ArgumentsRequired(self.id + ' createOrder() requires a type parameter (limit or market)')
         #
         #     {
         #         "order_id": "01JEXAFCCC5ZVJPZAAHHDKQBMG"
@@ -780,7 +780,7 @@ class cryptomus(Exchange, ImplicitAPI):
         response = self.privateDeleteV2UserApiExchangeOrdersOrderId(self.extend(request, params))
         #
         #     {
-        #         "success": True
+        #         "success": true
         #     }
         #
         return self.safe_order({'info': response})

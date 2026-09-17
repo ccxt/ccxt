@@ -7,6 +7,8 @@
 
 package io.github.ccxt.api;
 import io.github.ccxt.Exchange;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 public class DeepcoinApi extends Exchange
 {
@@ -25,7 +27,7 @@ public class DeepcoinApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetDeepcoinMarketBooks (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetDeepcoinMarketBooks (Object... optionalArgs)
     {
         return this.callAsync ("publicGetDeepcoinMarketBooks", optionalArgs);
     }
@@ -36,7 +38,7 @@ public class DeepcoinApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetDeepcoinMarketCandles (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetDeepcoinMarketCandles (Object... optionalArgs)
     {
         return this.callAsync ("publicGetDeepcoinMarketCandles", optionalArgs);
     }
@@ -47,7 +49,7 @@ public class DeepcoinApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetDeepcoinMarketInstruments (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetDeepcoinMarketInstruments (Object... optionalArgs)
     {
         return this.callAsync ("publicGetDeepcoinMarketInstruments", optionalArgs);
     }
@@ -58,7 +60,7 @@ public class DeepcoinApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetDeepcoinMarketTickers (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetDeepcoinMarketTickers (Object... optionalArgs)
     {
         return this.callAsync ("publicGetDeepcoinMarketTickers", optionalArgs);
     }
@@ -69,7 +71,7 @@ public class DeepcoinApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetDeepcoinMarketIndexCandles (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetDeepcoinMarketIndexCandles (Object... optionalArgs)
     {
         return this.callAsync ("publicGetDeepcoinMarketIndexCandles", optionalArgs);
     }
@@ -80,7 +82,7 @@ public class DeepcoinApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetDeepcoinMarketTrades (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetDeepcoinMarketTrades (Object... optionalArgs)
     {
         return this.callAsync ("publicGetDeepcoinMarketTrades", optionalArgs);
     }
@@ -91,7 +93,7 @@ public class DeepcoinApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetDeepcoinMarketMarkPriceCandles (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetDeepcoinMarketMarkPriceCandles (Object... optionalArgs)
     {
         return this.callAsync ("publicGetDeepcoinMarketMarkPriceCandles", optionalArgs);
     }
@@ -102,7 +104,7 @@ public class DeepcoinApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetDeepcoinMarketMarkPrice (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetDeepcoinMarketMarkPrice (Object... optionalArgs)
     {
         return this.callAsync ("publicGetDeepcoinMarketMarkPrice", optionalArgs);
     }
@@ -113,7 +115,7 @@ public class DeepcoinApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetDeepcoinMarketOpenInterestVolume (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetDeepcoinMarketOpenInterestVolume (Object... optionalArgs)
     {
         return this.callAsync ("publicGetDeepcoinMarketOpenInterestVolume", optionalArgs);
     }
@@ -124,7 +126,7 @@ public class DeepcoinApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetDeepcoinMarketLongShortRatio (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetDeepcoinMarketLongShortRatio (Object... optionalArgs)
     {
         return this.callAsync ("publicGetDeepcoinMarketLongShortRatio", optionalArgs);
     }
@@ -135,7 +137,7 @@ public class DeepcoinApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetDeepcoinMarketTakerVolume (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetDeepcoinMarketTakerVolume (Object... optionalArgs)
     {
         return this.callAsync ("publicGetDeepcoinMarketTakerVolume", optionalArgs);
     }
@@ -146,7 +148,7 @@ public class DeepcoinApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetDeepcoinMarketStepMargin (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetDeepcoinMarketStepMargin (Object... optionalArgs)
     {
         return this.callAsync ("publicGetDeepcoinMarketStepMargin", optionalArgs);
     }
@@ -157,7 +159,7 @@ public class DeepcoinApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetDeepcoinTradeFundingRate (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetDeepcoinTradeFundingRate (Object... optionalArgs)
     {
         return this.callAsync ("publicGetDeepcoinTradeFundingRate", optionalArgs);
     }
@@ -168,7 +170,7 @@ public class DeepcoinApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetDeepcoinTradeFundRateCurrentFundingRate (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetDeepcoinTradeFundRateCurrentFundingRate (Object... optionalArgs)
     {
         return this.callAsync ("publicGetDeepcoinTradeFundRateCurrentFundingRate", optionalArgs);
     }
@@ -179,7 +181,7 @@ public class DeepcoinApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetDeepcoinTradeFundRateHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetDeepcoinTradeFundRateHistory (Object... optionalArgs)
     {
         return this.callAsync ("publicGetDeepcoinTradeFundRateHistory", optionalArgs);
     }
@@ -190,7 +192,7 @@ public class DeepcoinApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetDeepcoinAccountBalances (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetDeepcoinAccountBalances (Object... optionalArgs)
     {
         return this.callAsync ("privateGetDeepcoinAccountBalances", optionalArgs);
     }
@@ -201,7 +203,7 @@ public class DeepcoinApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetDeepcoinAccountAllBalances (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetDeepcoinAccountAllBalances (Object... optionalArgs)
     {
         return this.callAsync ("privateGetDeepcoinAccountAllBalances", optionalArgs);
     }
@@ -212,7 +214,7 @@ public class DeepcoinApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetDeepcoinAccountBills (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetDeepcoinAccountBills (Object... optionalArgs)
     {
         return this.callAsync ("privateGetDeepcoinAccountBills", optionalArgs);
     }
@@ -223,7 +225,7 @@ public class DeepcoinApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetDeepcoinAccountPositions (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetDeepcoinAccountPositions (Object... optionalArgs)
     {
         return this.callAsync ("privateGetDeepcoinAccountPositions", optionalArgs);
     }
@@ -234,7 +236,7 @@ public class DeepcoinApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetDeepcoinAccountTradeFee (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetDeepcoinAccountTradeFee (Object... optionalArgs)
     {
         return this.callAsync ("privateGetDeepcoinAccountTradeFee", optionalArgs);
     }
@@ -245,7 +247,7 @@ public class DeepcoinApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetDeepcoinAccountLeverageInfo (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetDeepcoinAccountLeverageInfo (Object... optionalArgs)
     {
         return this.callAsync ("privateGetDeepcoinAccountLeverageInfo", optionalArgs);
     }
@@ -256,7 +258,7 @@ public class DeepcoinApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetDeepcoinAccountPositionsHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetDeepcoinAccountPositionsHistory (Object... optionalArgs)
     {
         return this.callAsync ("privateGetDeepcoinAccountPositionsHistory", optionalArgs);
     }
@@ -267,7 +269,7 @@ public class DeepcoinApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetDeepcoinTradeFills (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetDeepcoinTradeFills (Object... optionalArgs)
     {
         return this.callAsync ("privateGetDeepcoinTradeFills", optionalArgs);
     }
@@ -278,7 +280,7 @@ public class DeepcoinApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetDeepcoinTradeOrderByID (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetDeepcoinTradeOrderByID (Object... optionalArgs)
     {
         return this.callAsync ("privateGetDeepcoinTradeOrderByID", optionalArgs);
     }
@@ -289,7 +291,7 @@ public class DeepcoinApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetDeepcoinTradeOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetDeepcoinTradeOrder (Object... optionalArgs)
     {
         return this.callAsync ("privateGetDeepcoinTradeOrder", optionalArgs);
     }
@@ -300,7 +302,7 @@ public class DeepcoinApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetDeepcoinTradeFinishOrderByID (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetDeepcoinTradeFinishOrderByID (Object... optionalArgs)
     {
         return this.callAsync ("privateGetDeepcoinTradeFinishOrderByID", optionalArgs);
     }
@@ -311,7 +313,7 @@ public class DeepcoinApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetDeepcoinTradeOrdersHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetDeepcoinTradeOrdersHistory (Object... optionalArgs)
     {
         return this.callAsync ("privateGetDeepcoinTradeOrdersHistory", optionalArgs);
     }
@@ -322,7 +324,7 @@ public class DeepcoinApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetDeepcoinTradeV2OrdersPending (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetDeepcoinTradeV2OrdersPending (Object... optionalArgs)
     {
         return this.callAsync ("privateGetDeepcoinTradeV2OrdersPending", optionalArgs);
     }
@@ -333,7 +335,7 @@ public class DeepcoinApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetDeepcoinTradeTriggerOrdersPending (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetDeepcoinTradeTriggerOrdersPending (Object... optionalArgs)
     {
         return this.callAsync ("privateGetDeepcoinTradeTriggerOrdersPending", optionalArgs);
     }
@@ -344,7 +346,7 @@ public class DeepcoinApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetDeepcoinTradeTriggerOrdersHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetDeepcoinTradeTriggerOrdersHistory (Object... optionalArgs)
     {
         return this.callAsync ("privateGetDeepcoinTradeTriggerOrdersHistory", optionalArgs);
     }
@@ -355,7 +357,7 @@ public class DeepcoinApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetDeepcoinCopytradingSupportContracts (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetDeepcoinCopytradingSupportContracts (Object... optionalArgs)
     {
         return this.callAsync ("privateGetDeepcoinCopytradingSupportContracts", optionalArgs);
     }
@@ -366,7 +368,7 @@ public class DeepcoinApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetDeepcoinCopytradingLeaderPosition (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetDeepcoinCopytradingLeaderPosition (Object... optionalArgs)
     {
         return this.callAsync ("privateGetDeepcoinCopytradingLeaderPosition", optionalArgs);
     }
@@ -377,7 +379,7 @@ public class DeepcoinApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetDeepcoinCopytradingEstimateProfit (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetDeepcoinCopytradingEstimateProfit (Object... optionalArgs)
     {
         return this.callAsync ("privateGetDeepcoinCopytradingEstimateProfit", optionalArgs);
     }
@@ -388,7 +390,7 @@ public class DeepcoinApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetDeepcoinCopytradingHistoryProfit (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetDeepcoinCopytradingHistoryProfit (Object... optionalArgs)
     {
         return this.callAsync ("privateGetDeepcoinCopytradingHistoryProfit", optionalArgs);
     }
@@ -399,7 +401,7 @@ public class DeepcoinApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetDeepcoinCopytradingFollowerRank (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetDeepcoinCopytradingFollowerRank (Object... optionalArgs)
     {
         return this.callAsync ("privateGetDeepcoinCopytradingFollowerRank", optionalArgs);
     }
@@ -410,7 +412,7 @@ public class DeepcoinApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetDeepcoinInternalTransferSupport (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetDeepcoinInternalTransferSupport (Object... optionalArgs)
     {
         return this.callAsync ("privateGetDeepcoinInternalTransferSupport", optionalArgs);
     }
@@ -421,7 +423,7 @@ public class DeepcoinApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetDeepcoinInternalTransferHistoryOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetDeepcoinInternalTransferHistoryOrder (Object... optionalArgs)
     {
         return this.callAsync ("privateGetDeepcoinInternalTransferHistoryOrder", optionalArgs);
     }
@@ -432,7 +434,7 @@ public class DeepcoinApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetDeepcoinRebateConfig (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetDeepcoinRebateConfig (Object... optionalArgs)
     {
         return this.callAsync ("privateGetDeepcoinRebateConfig", optionalArgs);
     }
@@ -443,7 +445,7 @@ public class DeepcoinApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetDeepcoinAgentsUsers (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetDeepcoinAgentsUsers (Object... optionalArgs)
     {
         return this.callAsync ("privateGetDeepcoinAgentsUsers", optionalArgs);
     }
@@ -454,7 +456,7 @@ public class DeepcoinApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetDeepcoinAgentsUsersRebateList (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetDeepcoinAgentsUsersRebateList (Object... optionalArgs)
     {
         return this.callAsync ("privateGetDeepcoinAgentsUsersRebateList", optionalArgs);
     }
@@ -465,7 +467,7 @@ public class DeepcoinApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetDeepcoinAgentsUsersRebates (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetDeepcoinAgentsUsersRebates (Object... optionalArgs)
     {
         return this.callAsync ("privateGetDeepcoinAgentsUsersRebates", optionalArgs);
     }
@@ -476,7 +478,7 @@ public class DeepcoinApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetDeepcoinAssetDepositList (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetDeepcoinAssetDepositList (Object... optionalArgs)
     {
         return this.callAsync ("privateGetDeepcoinAssetDepositList", optionalArgs);
     }
@@ -487,7 +489,7 @@ public class DeepcoinApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetDeepcoinAssetWithdrawList (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetDeepcoinAssetWithdrawList (Object... optionalArgs)
     {
         return this.callAsync ("privateGetDeepcoinAssetWithdrawList", optionalArgs);
     }
@@ -498,7 +500,7 @@ public class DeepcoinApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetDeepcoinAssetRechargeChainList (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetDeepcoinAssetRechargeChainList (Object... optionalArgs)
     {
         return this.callAsync ("privateGetDeepcoinAssetRechargeChainList", optionalArgs);
     }
@@ -509,7 +511,7 @@ public class DeepcoinApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetDeepcoinListenkeyAcquire (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetDeepcoinListenkeyAcquire (Object... optionalArgs)
     {
         return this.callAsync ("privateGetDeepcoinListenkeyAcquire", optionalArgs);
     }
@@ -520,7 +522,7 @@ public class DeepcoinApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetDeepcoinListenkeyExtend (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetDeepcoinListenkeyExtend (Object... optionalArgs)
     {
         return this.callAsync ("privateGetDeepcoinListenkeyExtend", optionalArgs);
     }
@@ -531,7 +533,7 @@ public class DeepcoinApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetDeepcoinSubAccountSubAccountApikey (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetDeepcoinSubAccountSubAccountApikey (Object... optionalArgs)
     {
         return this.callAsync ("privateGetDeepcoinSubAccountSubAccountApikey", optionalArgs);
     }
@@ -542,7 +544,7 @@ public class DeepcoinApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostDeepcoinAccountSetLeverage (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostDeepcoinAccountSetLeverage (Object... optionalArgs)
     {
         return this.callAsync ("privatePostDeepcoinAccountSetLeverage", optionalArgs);
     }
@@ -553,7 +555,7 @@ public class DeepcoinApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostDeepcoinTradeOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostDeepcoinTradeOrder (Object... optionalArgs)
     {
         return this.callAsync ("privatePostDeepcoinTradeOrder", optionalArgs);
     }
@@ -564,7 +566,7 @@ public class DeepcoinApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostDeepcoinTradeReplaceOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostDeepcoinTradeReplaceOrder (Object... optionalArgs)
     {
         return this.callAsync ("privatePostDeepcoinTradeReplaceOrder", optionalArgs);
     }
@@ -575,7 +577,7 @@ public class DeepcoinApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostDeepcoinTradeCancelOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostDeepcoinTradeCancelOrder (Object... optionalArgs)
     {
         return this.callAsync ("privatePostDeepcoinTradeCancelOrder", optionalArgs);
     }
@@ -586,7 +588,7 @@ public class DeepcoinApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostDeepcoinTradeBatchCancelOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostDeepcoinTradeBatchCancelOrder (Object... optionalArgs)
     {
         return this.callAsync ("privatePostDeepcoinTradeBatchCancelOrder", optionalArgs);
     }
@@ -597,7 +599,7 @@ public class DeepcoinApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostDeepcoinTradeCancelTriggerOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostDeepcoinTradeCancelTriggerOrder (Object... optionalArgs)
     {
         return this.callAsync ("privatePostDeepcoinTradeCancelTriggerOrder", optionalArgs);
     }
@@ -608,7 +610,7 @@ public class DeepcoinApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostDeepcoinTradeSwapCancelAll (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostDeepcoinTradeSwapCancelAll (Object... optionalArgs)
     {
         return this.callAsync ("privatePostDeepcoinTradeSwapCancelAll", optionalArgs);
     }
@@ -619,7 +621,7 @@ public class DeepcoinApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostDeepcoinTradeTriggerOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostDeepcoinTradeTriggerOrder (Object... optionalArgs)
     {
         return this.callAsync ("privatePostDeepcoinTradeTriggerOrder", optionalArgs);
     }
@@ -630,7 +632,7 @@ public class DeepcoinApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostDeepcoinTradeAmendTriggerOrder (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostDeepcoinTradeAmendTriggerOrder (Object... optionalArgs)
     {
         return this.callAsync ("privatePostDeepcoinTradeAmendTriggerOrder", optionalArgs);
     }
@@ -641,7 +643,7 @@ public class DeepcoinApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostDeepcoinTradeBatchClosePosition (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostDeepcoinTradeBatchClosePosition (Object... optionalArgs)
     {
         return this.callAsync ("privatePostDeepcoinTradeBatchClosePosition", optionalArgs);
     }
@@ -652,7 +654,7 @@ public class DeepcoinApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostDeepcoinTradeReplaceOrderSltp (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostDeepcoinTradeReplaceOrderSltp (Object... optionalArgs)
     {
         return this.callAsync ("privatePostDeepcoinTradeReplaceOrderSltp", optionalArgs);
     }
@@ -663,7 +665,7 @@ public class DeepcoinApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostDeepcoinTradeClosePositionByIds (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostDeepcoinTradeClosePositionByIds (Object... optionalArgs)
     {
         return this.callAsync ("privatePostDeepcoinTradeClosePositionByIds", optionalArgs);
     }
@@ -674,7 +676,7 @@ public class DeepcoinApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostDeepcoinTradeIncreasePosition (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostDeepcoinTradeIncreasePosition (Object... optionalArgs)
     {
         return this.callAsync ("privatePostDeepcoinTradeIncreasePosition", optionalArgs);
     }
@@ -685,7 +687,7 @@ public class DeepcoinApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostDeepcoinTradeMergePositions (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostDeepcoinTradeMergePositions (Object... optionalArgs)
     {
         return this.callAsync ("privatePostDeepcoinTradeMergePositions", optionalArgs);
     }
@@ -696,7 +698,7 @@ public class DeepcoinApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostDeepcoinCopytradingLeaderSettings (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostDeepcoinCopytradingLeaderSettings (Object... optionalArgs)
     {
         return this.callAsync ("privatePostDeepcoinCopytradingLeaderSettings", optionalArgs);
     }
@@ -707,7 +709,7 @@ public class DeepcoinApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostDeepcoinCopytradingSetContracts (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostDeepcoinCopytradingSetContracts (Object... optionalArgs)
     {
         return this.callAsync ("privatePostDeepcoinCopytradingSetContracts", optionalArgs);
     }
@@ -718,7 +720,7 @@ public class DeepcoinApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostDeepcoinInternalTransfer (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostDeepcoinInternalTransfer (Object... optionalArgs)
     {
         return this.callAsync ("privatePostDeepcoinInternalTransfer", optionalArgs);
     }
@@ -729,7 +731,7 @@ public class DeepcoinApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostDeepcoinRebateConfig (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostDeepcoinRebateConfig (Object... optionalArgs)
     {
         return this.callAsync ("privatePostDeepcoinRebateConfig", optionalArgs);
     }
@@ -740,7 +742,7 @@ public class DeepcoinApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostDeepcoinAssetTransfer (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostDeepcoinAssetTransfer (Object... optionalArgs)
     {
         return this.callAsync ("privatePostDeepcoinAssetTransfer", optionalArgs);
     }
@@ -751,7 +753,7 @@ public class DeepcoinApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostDeepcoinSubAccountCreateSubAccount (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostDeepcoinSubAccountCreateSubAccount (Object... optionalArgs)
     {
         return this.callAsync ("privatePostDeepcoinSubAccountCreateSubAccount", optionalArgs);
     }
@@ -762,7 +764,7 @@ public class DeepcoinApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostDeepcoinSubAccountSubAccountApikey (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostDeepcoinSubAccountSubAccountApikey (Object... optionalArgs)
     {
         return this.callAsync ("privatePostDeepcoinSubAccountSubAccountApikey", optionalArgs);
     }
@@ -773,7 +775,7 @@ public class DeepcoinApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostDeepcoinSubAccountDeleteSubAccountApikey (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostDeepcoinSubAccountDeleteSubAccountApikey (Object... optionalArgs)
     {
         return this.callAsync ("privatePostDeepcoinSubAccountDeleteSubAccountApikey", optionalArgs);
     }

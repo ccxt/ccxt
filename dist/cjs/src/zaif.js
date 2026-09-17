@@ -331,7 +331,7 @@ class zaif extends zaif$1["default"] {
             'timestamp': undefined,
             'datetime': undefined,
         };
-        const funds = this.safeValue(balances, 'funds', {});
+        const funds = this.safeDict(balances, 'funds', {});
         const currencyIds = Object.keys(funds);
         for (let i = 0; i < currencyIds.length; i++) {
             const currencyId = currencyIds[i];

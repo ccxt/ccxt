@@ -5,7 +5,7 @@ namespace ccxt;
 
 public partial class alpaca : Exchange
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "id", "alpaca" },
@@ -534,8 +534,8 @@ public partial class alpaca : Exchange
                         } },
                         { "timeInForce", new Dictionary<string, object>() {
                             { "IOC", true },
-                            { "FOK", true },
-                            { "PO", true },
+                            { "FOK", false },
+                            { "PO", false },
                             { "GTD", false },
                         } },
                         { "hedged", false },
@@ -605,6 +605,7 @@ public partial class alpaca : Exchange
                     { "40410000", typeof(InvalidOrder) },
                     { "40010001", typeof(BadRequest) },
                     { "40110000", typeof(PermissionDenied) },
+                    { "42210000", typeof(BadRequest) },
                     { "42910000", typeof(RateLimitExceeded) },
                 } },
                 { "broad", new Dictionary<string, object>() {
@@ -647,12 +648,12 @@ public partial class alpaca : Exchange
         {
             throw new ExchangeError ((string)add(this.id, " fetchTime() missing timestamp")) ;
         }
-        object jetlagStrStart = subtract(((string)timestamp).Length, 6);
+        int jetlagStrStart = subtract(((string)timestamp).Length, 6);
         if (isTrue(isEqual(timestamp, null)))
         {
             throw new ExchangeError ((string)add(this.id, " fetchTime() missing timestamp")) ;
         }
-        object jetlagStrEnd = subtract(((string)timestamp).Length, 3);
+        int jetlagStrEnd = subtract(((string)timestamp).Length, 3);
         if (isTrue(isEqual(timestamp, null)))
         {
             throw new ExchangeError ((string)add(this.id, " fetchTime() missing timestamp")) ;
@@ -703,7 +704,7 @@ public partial class alpaca : Exchange
         return ccxt.BaseExchange.ToMarketInterfaceList(this.parseMarkets(assets));
     }
 
-    public override object parseMarket(object asset)
+    public override Dictionary<string, object> parseMarket(object asset)
     {
         //
         //     {
@@ -1252,7 +1253,7 @@ public partial class alpaca : Exchange
             IDictionary<string, object> latestQuote = this.safeDict(entry, "latestQuote", new Dictionary<string, object>() {});
             IDictionary<string, object> latestTrade = this.safeDict(entry, "latestTrade", new Dictionary<string, object>() {});
             string? datetime = this.safeString(latestQuote, "t");
-            object ticker = this.safeTicker(new Dictionary<string, object>() {
+            Dictionary<string, object> ticker = this.safeTicker(new Dictionary<string, object>() {
                 { "info", entry },
                 { "symbol", getValue(market, "symbol") },
                 { "timestamp", this.parse8601(datetime) },
@@ -1285,7 +1286,7 @@ public partial class alpaca : Exchange
         string uuid = this.uuid();
         List<object> parts = ((string)uuid).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
         string random_id = String.Join("", ((IList<object>)parts).ToArray());
-        string defaultClientId = this.implodeParams(clientOrderIdprefix, new Dictionary<string, object>() {
+        string? defaultClientId = this.implodeParams(clientOrderIdprefix, new Dictionary<string, object>() {
             { "id", random_id },
         });
         string? clientOrderId = this.safeString(parameters, "clientOrderId", defaultClientId);
@@ -1374,6 +1375,7 @@ public partial class alpaca : Exchange
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
+     * @param {string} [params.timeInForce] 'GTC' or 'IOC', the venue supports only these two for crypto orders, defaults to 'GTC'
      * @param {float} [params.cost] *market orders only* the cost of the order in units of the quote currency
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -1422,6 +1424,11 @@ public partial class alpaca : Exchange
         IList<object> defaultTIFparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "createOrder", "timeInForce");
         defaultTIF = ((IList<object>)defaultTIFparametersVariable)[0];
         parameters = ((IList<object>)defaultTIFparametersVariable)[1];
+        if (isTrue(!isEqual(defaultTIF, null)))
+        {
+            // the venue only accepts lowercase values, normalize the unified uppercase spellings
+            defaultTIF = ((string)defaultTIF).ToLower();
+        }
         ((IDictionary<string,object>)request)["time_in_force"] = defaultTIF;
         parameters = this.omit(parameters, new List<object>() {"timeInForce", "triggerPrice"});
         ((IDictionary<string,object>)request)["client_order_id"] = this.generateClientOrderId(parameters);
@@ -1554,6 +1561,7 @@ public partial class alpaca : Exchange
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] the latest time in ms to fetch orders for
+     * @param {string} [params.direction] the ordering of the results, 'asc' or 'desc', defaults to 'asc' when since is set
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<List<ccxt.Order>> FetchOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
@@ -1576,11 +1584,17 @@ public partial class alpaca : Exchange
         if (isTrue(!isEqual(until, null)))
         {
             parameters = this.omit(parameters, "until");
-            ((IDictionary<string,object>)request)["endTime"] = this.iso8601(until);
+            ((IDictionary<string,object>)request)["until"] = this.iso8601(until);
         }
         if (isTrue(!isEqual(since, null)))
         {
             ((IDictionary<string,object>)request)["after"] = this.iso8601(since);
+            string? direction = this.safeString(parameters, "direction");
+            if (isTrue(isEqual(direction, null)))
+            {
+                // the server default is desc, so a limit would truncate the newest window instead of the range starting at since — request oldest-first like krakenfutures does
+                ((IDictionary<string,object>)request)["direction"] = "asc";
+            }
         }
         if (isTrue(!isEqual(limit, null)))
         {
@@ -1640,6 +1654,7 @@ public partial class alpaca : Exchange
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] the latest time in ms to fetch orders for
+     * @param {string} [params.direction] the ordering of the results, 'asc' or 'desc', defaults to 'asc' when since is set
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<List<ccxt.Order>> FetchOpenOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
@@ -1661,6 +1676,7 @@ public partial class alpaca : Exchange
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] the latest time in ms to fetch orders for
+     * @param {string} [params.direction] the ordering of the results, 'asc' or 'desc', defaults to 'asc' when since is set
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<List<ccxt.Order>> FetchClosedOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
@@ -1685,7 +1701,7 @@ public partial class alpaca : Exchange
      * @param {float} [price] the price for the order, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.triggerPrice] the price to trigger a stop order
-     * @param {string} [params.timeInForce] for crypto trading either 'gtc' or 'ioc' can be used
+     * @param {string} [params.timeInForce] 'GTC' or 'IOC', the venue supports only these two for crypto orders, defaults to 'GTC'
      * @param {string} [params.clientOrderId] a unique identifier for the order, automatically generated if not sent
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -1724,7 +1740,8 @@ public partial class alpaca : Exchange
         parameters = ((IList<object>)timeInForceparametersVariable)[1];
         if (isTrue(!isEqual(timeInForce, null)))
         {
-            ((IDictionary<string,object>)request)["time_in_force"] = timeInForce;
+            // the venue only accepts lowercase values, normalize the unified uppercase spellings
+            ((IDictionary<string,object>)request)["time_in_force"] = ((string)timeInForce).ToLower();
         }
         ((IDictionary<string,object>)request)["client_order_id"] = this.generateClientOrderId(parameters);
         parameters = this.omit(parameters, new List<object>() {"clientOrderId"});
@@ -1802,7 +1819,7 @@ public partial class alpaca : Exchange
             { "clientOrderId", this.safeString(order, "client_order_id") },
             { "timestamp", timestamp },
             { "datetime", datetime },
-            { "lastTradeTimeStamp", null },
+            { "lastTradeTimestamp", this.parse8601(this.safeString(order, "filled_at")) },
             { "status", status },
             { "symbol", symbol },
             { "type", orderType },
@@ -1827,10 +1844,22 @@ public partial class alpaca : Exchange
         Dictionary<string, object> statuses = new Dictionary<string, object>() {
             { "pending_new", "open" },
             { "accepted", "open" },
+            { "accepted_for_bidding", "open" },
             { "new", "open" },
             { "partially_filled", "open" },
             { "activated", "open" },
+            { "done_for_day", "open" },
+            { "stopped", "open" },
+            { "suspended", "open" },
+            { "held", "open" },
+            { "pending_replace", "open" },
+            { "pending_cancel", "canceling" },
             { "filled", "closed" },
+            { "calculated", "closed" },
+            { "canceled", "canceled" },
+            { "replaced", "canceled" },
+            { "expired", "expired" },
+            { "rejected", "rejected" },
         };
         return this.safeString(statuses, status, status);
     }
@@ -1839,6 +1868,9 @@ public partial class alpaca : Exchange
     {
         Dictionary<string, object> timeInForces = new Dictionary<string, object>() {
             { "day", "Day" },
+            { "gtc", "GTC" },
+            { "ioc", "IOC" },
+            { "fok", "FOK" },
         };
         return this.safeString(timeInForces, timeInForce, timeInForce);
     }
@@ -2444,7 +2476,7 @@ public partial class alpaca : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
         };
-        object account = this.account();
+        Dictionary<string, object> account = this.account();
         string? currencyId = this.safeString(response, "currency");
         string? code = this.safeCurrencyCode(currencyId);
         ((IDictionary<string,object>)account)["free"] = this.safeString(response, "cash");

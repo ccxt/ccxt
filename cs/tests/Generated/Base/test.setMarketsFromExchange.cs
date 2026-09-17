@@ -72,11 +72,11 @@ public partial class BaseTest
             // exchange1.markets['ETH/USD'] = { 'id': 'EthUsd', 'symbol': 'ETH/USD', 'base': 'ETH', 'quote': 'USD', 'baseId': 'Eth', 'quoteId': 'Usd', 'type': 'spot', 'spot': true };
             // Assert ('ETH/USD' in exchange2.markets, 'Modifying exchange1 markets should reflect in exchange2');
             // Test 2: loadMarkets on shared markets should not make API call and be very fast
-            object startTime = emptyExchange.milliseconds();
+            Int64 startTime = emptyExchange.milliseconds();
             await exchange2.loadMarkets();
-            object endTime = emptyExchange.milliseconds();
+            Int64 endTime = emptyExchange.milliseconds();
             // Should be very fast since no API call is made
-            object timeTaken = subtract(endTime, startTime);
+            Int64 timeTaken = subtract(endTime, startTime);
             Assert(isLessThan(timeTaken, 10), "loadMarkets on shared markets should be fast");
             // @SKIP_END_GO
             emptyExchange.describe(); // avoid unused var

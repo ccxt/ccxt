@@ -824,7 +824,7 @@ func SafeInt(v any) int64 {
 
 // it's necessary to load lighter library in python
 // we create client with the given api credential in this function
-func (this *BaseExchange) LoadLighterLibrary(path any, chainId any, privateKey any, apiKeyIndex any, accountIndex any, createClient bool) <-chan any {
+func (this *BaseExchange) LoadLighterLibraryAsync(path any, chainId any, privateKey any, apiKeyIndex any, accountIndex any, createClient bool) <-chan any {
 	ch := make(chan any)
 	go func() {
 		ch <- this.loadLighterLibraryHelper(path.(string), uint32(SafeInt(chainId)), privateKey.(string), uint8(SafeInt(apiKeyIndex)), int64(SafeInt(accountIndex)), createClient)

@@ -10,6 +10,10 @@ use crate::runtime::*;
 // `self.load_markets(...)`, … on this Core resolve to the base defaults.
 use crate::exchange_generated::ExchangeBase;
 use crate::exchange::ExchangeRuntime;
+// Dynamic `this[method](...)` re-entries are emitted as
+// `self.call_dynamic_checked(...)` (blanket-impl'd on every Core) so an
+// unresolvable name raises NotSupported instead of yielding a silent Null.
+use crate::exchange::CallDynamicChecked;
 
 
 pub struct ModetradeCore {
@@ -1575,8 +1579,8 @@ impl ModetradeCore {
         });
         {
                         let mut j: Value = Value::Int(0);
-            let mut __for_first_949: bool = true;
-            while { if !__for_first_949 { j = add(&j, &Value::Int(1)); } __for_first_949 = false; is_less_than(&j, &get_array_length(&networks)) } {
+            let mut __for_first_951: bool = true;
+            while { if !__for_first_951 { j = add(&j, &Value::Int(1)); } __for_first_951 = false; is_less_than(&j, &get_array_length(&networks)) } {
             let mut network: Value = get_value(&networks, &j);
             let mut network: Value = get_value(&networks, &j);
             // TODO: transform chain id to human readable name
@@ -2044,8 +2048,8 @@ impl ModetradeCore {
         let mut rates: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_950: bool = true;
-            while { if !__for_first_950 { i = add(&i, &Value::Int(1)); } __for_first_950 = false; is_less_than(&i, &get_array_length(&result)) } {
+            let mut __for_first_952: bool = true;
+            while { if !__for_first_952 { i = add(&i, &Value::Int(1)); } __for_first_952 = false; is_less_than(&i, &get_array_length(&result)) } {
             let mut entry: Value = get_value(&result, &i);
             let mut entry: Value = get_value(&result, &i);
             let mut marketId: Value = self.safe_string_k(entry.clone(), "symbol", &[]);
@@ -2246,8 +2250,8 @@ impl ModetradeCore {
         if !is_equal(&symbols, &Value::Null) {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_951: bool = true;
-                while { if !__for_first_951 { i = add(&i, &Value::Int(1)); } __for_first_951 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+                let mut __for_first_953: bool = true;
+                while { if !__for_first_953 { i = add(&i, &Value::Int(1)); } __for_first_953 = false; is_less_than(&i, &get_array_length(&symbols)) } {
                 let mut symbol: Value = get_value(&symbols, &i);
                 let mut symbol: Value = get_value(&symbols, &i);
                 add_element_to_object(&mut result, &symbol, Value::Map({
@@ -2473,7 +2477,7 @@ impl ModetradeCore {
         let mut childOrders: Value = self.safe_value_k(order.clone(), "childOrders", &[]);
         if !is_equal(&childOrders, &Value::Null) {
             let mut first: Value = self.safe_value(childOrders.clone(), Value::Int(0), &[]);
-            let mut innerChildOrders: Value = self.safe_value_k(first.clone(), "childOrders", &[Value::List(vec![])]);
+            let mut innerChildOrders: Value = self.safe_list_k(first.clone(), "childOrders", &[Value::List(vec![])]);
             let mut innerChildOrdersLength: Value = get_array_length(&innerChildOrders);
             if is_greater_than(&innerChildOrdersLength, &Value::Int(0)) {
                 let mut takeProfitOrder: Value = self.safe_value(innerChildOrders.clone(), Value::Int(0), &[]);
@@ -2781,8 +2785,8 @@ impl ModetradeCore {
         let mut ordersRequests: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_952: bool = true;
-            while { if !__for_first_952 { i = add(&i, &Value::Int(1)); } __for_first_952 = false; is_less_than(&i, &get_array_length(&orders)) } {
+            let mut __for_first_954: bool = true;
+            while { if !__for_first_954 { i = add(&i, &Value::Int(1)); } __for_first_954 = false; is_less_than(&i, &get_array_length(&orders)) } {
             let mut rawOrder: Value = get_value(&orders, &i);
             let mut rawOrder: Value = get_value(&orders, &i);
             let mut marketId: Value = self.safe_string_k(rawOrder.clone(), "symbol", &[]);
@@ -3569,8 +3573,8 @@ impl ModetradeCore {
         let mut balances: Value = self.safe_list_k(response.clone(), "holding", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_953: bool = true;
-            while { if !__for_first_953 { i = add(&i, &Value::Int(1)); } __for_first_953 = false; is_less_than(&i, &get_array_length(&balances)) } {
+            let mut __for_first_955: bool = true;
+            while { if !__for_first_955 { i = add(&i, &Value::Int(1)); } __for_first_955 = false; is_less_than(&i, &get_array_length(&balances)) } {
             let mut balance: Value = get_value(&balances, &i);
             let mut balance: Value = get_value(&balances, &i);
             let mut code: Value = self.safe_currency_code(self.safe_string_k(balance.clone(), "token", &[]), &[]);
@@ -4448,8 +4452,8 @@ impl ModetradeCore {
                         let mut ordersList: Value = self.safe_list_k(params.clone(), "orders", &[Value::List(vec![])]);
                         {
                                                         let mut i: Value = Value::Int(0);
-                            let mut __for_first_954: bool = true;
-                            while { if !__for_first_954 { i = add(&i, &Value::Int(1)); } __for_first_954 = false; is_less_than(&i, &get_array_length(&ordersList)) } {
+                            let mut __for_first_956: bool = true;
+                            while { if !__for_first_956 { i = add(&i, &Value::Int(1)); } __for_first_956 = false; is_less_than(&i, &get_array_length(&ordersList)) } {
                             add_element_to_object(get_value_mut(get_value_mut(&mut params, &Value::Str("orders".to_string())), &i), &Value::Str("order_tag".to_string()), brokerId.clone());
                         }
                         }

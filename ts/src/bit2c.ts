@@ -549,7 +549,7 @@ export default class bit2c extends Exchange {
         //         }
         //     }
         //
-        const fees = this.safeValue (response, 'Fees', {});
+        const fees = this.safeDict (response, 'Fees', {});
         const keys = Object.keys (fees);
         const result: Dict = {};
         for (let i = 0; i < keys.length; i++) {
@@ -993,7 +993,7 @@ export default class bit2c extends Exchange {
         }, market);
     }
 
-    isFiat (code: any) {
+    isFiat (code: any): boolean {
         return code === 'NIS';
     }
 

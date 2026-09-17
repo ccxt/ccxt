@@ -94,9 +94,9 @@ class coinbase(ccxt.async_support.coinbase):
             'type': 'subscribe',
             'product_ids': productIds,
             'channel': name,
-            # 'api_key': self.apiKey,
+            # 'api_key': this.apiKey,
             # 'timestamp': timestamp,
-            # 'signature': self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256),
+            # 'signature': this.hmac (this.encode (auth), this.encode (this.secret), sha256),
         }
         if isPrivate:
             subscribe = self.extend(subscribe, self.create_ws_auth(name, productIds))
@@ -257,7 +257,7 @@ class coinbase(ccxt.async_support.coinbase):
             subscribe['signature'] = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256)
         else:
             if self.apiKey.startswith('-----BEGIN'):
-                raise ArgumentsRequired(self.id + ' apiKey should contain the name(eg: organizations/3b910e93....) and not the public key')
+                raise ArgumentsRequired(self.id + ' apiKey should contain the name (eg: organizations/3b910e93....) and not the public key')
             currentToken = self.safe_string(self.options, 'wsToken')
             tokenTimestamp = self.safe_integer(self.options, 'wsTokenTimestamp', 0)
             seconds = self.seconds()
@@ -872,7 +872,7 @@ class coinbase(ccxt.async_support.coinbase):
             type = self.safe_string(event, 'type')
             if type == 'snapshot':
                 self.orderbooks[symbol] = self.order_book({}, limit)
-            # unknown bug, can't reproduce, but sometimes orderbook is None
+            # unknown bug, can't reproduce, but sometimes orderbook is undefined
             if not (symbol in self.orderbooks) and self.orderbooks[symbol] is None:
                 continue
             orderbook = self.orderbooks[symbol]
@@ -894,7 +894,7 @@ class coinbase(ccxt.async_support.coinbase):
         #         "channels": [
         #             {
         #                 "name": "level2",
-        #                 "product_ids": ["ETH-BTC"]
+        #                 "product_ids": [ "ETH-BTC" ]
         #             }
         #         ]
         #     }
@@ -905,11 +905,11 @@ class coinbase(ccxt.async_support.coinbase):
         #        client_id: '',
         #        timestamp: '2025-09-15T17:02:49.90120868Z',
         #        sequence_num: 3,
-        #        events: [{subscriptions: {}}]
+        #        events: [ { subscriptions: {} } ]
         #      }
         #
         events = self.safe_list(message, 'events', [])
-        firstEvent = self.safe_value(events, 0, {})
+        firstEvent = self.safe_dict(events, 0, {})
         isUnsub = ('subscriptions' in firstEvent)
         subKeys = list(firstEvent['subscriptions'].keys())
         subKeysLength = len(subKeys)
@@ -925,8 +925,8 @@ class coinbase(ccxt.async_support.coinbase):
         return message
 
     def handle_heartbeats(self, client: Client, message: object):
-        # although the subscription takes a product_ids parameter(i.e. symbol),
-        # there is no(clear) way of mapping the message back to the symbol.
+        # although the subscription takes a product_ids parameter (i.e. symbol),
+        # there is no (clear) way of mapping the message back to the symbol.
         #
         #     {
         #         "channel": "heartbeats",
@@ -957,7 +957,7 @@ class coinbase(ccxt.async_support.coinbase):
         type = self.safe_string(message, 'type')
         if type == 'error':
             errorMessage = self.safe_string(message, 'message')
-            # ternary(not ||) so the ast-transpiler emits a value-typed conditional, not a boolean
+            # ternary (not ||) so the ast-transpiler emits a value-typed conditional, not a boolean
             errorMessageValue = errorMessage if (errorMessage is not None) else 'unknown error'
             raise ExchangeError(errorMessageValue)
         method = self.safe_value(methods, channel)

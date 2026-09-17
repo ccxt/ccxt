@@ -335,9 +335,9 @@ class bithumb extends Exchange {
                 '400' => '\\ccxt\\BadRequest',
                 'Bad Request(SSL)' => '\\ccxt\\BadRequest',
                 'Bad Request(Bad Method)' => '\\ccxt\\BadRequest',
-                'Bad Request.(Auth Data)' => '\\ccxt\\AuthenticationError', // array( "status" => "5100", "message" => "Bad Request.(Auth Data)" )
+                'Bad Request.(Auth Data)' => '\\ccxt\\AuthenticationError', // { "status": "5100", "message": "Bad Request.(Auth Data)" }
                 'Not Member' => '\\ccxt\\AuthenticationError',
-                'Invalid Apikey' => '\\ccxt\\AuthenticationError', // array("status":"5300","message":"Invalid Apikey")
+                'Invalid Apikey' => '\\ccxt\\AuthenticationError', // {"status":"5300","message":"Invalid Apikey"}
                 'Method Not Allowed.(Access IP)' => '\\ccxt\\PermissionDenied',
                 'Method Not Allowed.(BTC Adress)' => '\\ccxt\\InvalidAddress',
                 'Method Not Allowed.(Access)' => '\\ccxt\\PermissionDenied',
@@ -345,7 +345,7 @@ class bithumb extends Exchange {
                 'Invalid Parameter' => '\\ccxt\\BadRequest',
                 '5600' => '\\ccxt\\ExchangeError',
                 'Unknown Error' => '\\ccxt\\ExchangeError',
-                'After May 23th, recent_transactions is no longer, hence users will not be able to connect to recent_transactions' => '\\ccxt\\ExchangeError', // array("status":"5100","message":"After May 23th, recent_transactions is no longer, hence users will not be able to connect to recent_transactions")
+                'After May 23th, recent_transactions is no longer, hence users will not be able to connect to recent_transactions' => '\\ccxt\\ExchangeError', // {"status":"5100","message":"After May 23th, recent_transactions is no longer, hence users will not be able to connect to recent_transactions"}
                 'Missing request parameter error. Check the required parameters!' => '\\ccxt\\BadRequest',
             ),
             'timeframes' => array(
@@ -432,14 +432,14 @@ class bithumb extends Exchange {
             $request['isDetails'] = true;
             $response = $this->publicGetV1MarketAll($this->extend($request, $params));
             //
-            //     array(
-            //         array(
-            //             "market" => "KRW-BTC",
-            //             "korean_name" => "비트코인",
-            //             "english_name" => "Bitcoin",
-            //             "market_warning" => "NONE"
-            //         ),
-            //     )
+            //     [
+            //         {
+            //             "market": "KRW-BTC",
+            //             "korean_name": "비트코인",
+            //             "english_name": "Bitcoin",
+            //             "market_warning": "NONE"
+            //         },
+            //     ]
             //
             for ($i = 0; $i < count($response); $i++) {
                 $entry = $response[$i];
@@ -450,7 +450,7 @@ class bithumb extends Exchange {
                 $quote = null;
                 if ($marketId !== null) {
                     $parts = explode('-', $marketId);
-                    // to match gen 1, the $quoteId is the first currency derived from the $market id
+                    // to match gen 1, the quoteId is the first currency derived from the market id
                     $baseId = $parts[1];
                     $quoteId = $parts[0];
                     $base = $this->safe_currency_code($baseId);
@@ -518,36 +518,36 @@ class bithumb extends Exchange {
                 $promises[] = $this->publicGetPublicTickerALLQuoteId($this->extend($request, $params));
                 //
                 //    {
-                //        "status" => "0000",
-                //        "data" => {
-                //            "ETH" => array(
-                //                "opening_price" => "0.05153399",
-                //                "closing_price" => "0.05145144",
-                //                "min_price" => "0.05145144",
-                //                "max_price" => "0.05160781",
-                //                "units_traded" => "6.541124172077830855",
-                //                "acc_trade_value" => "0.33705472498492329997697755",
-                //                "prev_closing_price" => "0.0515943",
-                //                "units_traded_24H" => "43.368879902677400513",
-                //                "acc_trade_value_24H" => "2.24165339555398079994373342",
-                //                "fluctate_24H" => "-0.00018203",
-                //                "fluctate_rate_24H" => "-0.35"
-                //            ),
-                //            "XRP" => array(
-                //                "opening_price" => "0.00000918",
-                //                "closing_price" => "0.0000092",
-                //                "min_price" => "0.00000918",
-                //                "max_price" => "0.0000092",
-                //                "units_traded" => "6516.949363",
-                //                "acc_trade_value" => "0.0598792533602796",
-                //                "prev_closing_price" => "0.00000916",
-                //                "units_traded_24H" => "229161.50354738",
-                //                "acc_trade_value_24H" => "2.0446589371637117",
-                //                "fluctate_24H" => "0.00000049",
-                //                "fluctate_rate_24H" => "5.63"
-                //            ),
+                //        "status": "0000",
+                //        "data": {
+                //            "ETH": {
+                //                "opening_price": "0.05153399",
+                //                "closing_price": "0.05145144",
+                //                "min_price": "0.05145144",
+                //                "max_price": "0.05160781",
+                //                "units_traded": "6.541124172077830855",
+                //                "acc_trade_value": "0.33705472498492329997697755",
+                //                "prev_closing_price": "0.0515943",
+                //                "units_traded_24H": "43.368879902677400513",
+                //                "acc_trade_value_24H": "2.24165339555398079994373342",
+                //                "fluctate_24H": "-0.00018203",
+                //                "fluctate_rate_24H": "-0.35"
+                //            },
+                //            "XRP": {
+                //                "opening_price": "0.00000918",
+                //                "closing_price": "0.0000092",
+                //                "min_price": "0.00000918",
+                //                "max_price": "0.0000092",
+                //                "units_traded": "6516.949363",
+                //                "acc_trade_value": "0.0598792533602796",
+                //                "prev_closing_price": "0.00000916",
+                //                "units_traded_24H": "229161.50354738",
+                //                "acc_trade_value_24H": "2.0446589371637117",
+                //                "fluctate_24H": "0.00000049",
+                //                "fluctate_rate_24H": "5.63"
+                //            },
                 //            ...
-                //            "date" => "1721675913145"
+                //            "date": "1721675913145"
                 //        }
                 //    }
                 //
@@ -632,26 +632,26 @@ class bithumb extends Exchange {
         // generation 1
         //
         //     {
-        //         "status" => "0000",
-        //         "data" => {
-        //             "total_krw" => "51026.000000",
-        //             "in_use_krw" => "0.00000000",
-        //             "available_krw" => "51026.00000000",
+        //         "status": "0000",
+        //         "data": {
+        //             "total_krw": "51026.000000",
+        //             "in_use_krw": "0.00000000",
+        //             "available_krw": "51026.00000000",
         //         }
         //     }
         //
         // generation 2
         //
-        //     array(
-        //         array(
-        //             "currency" => "KRW",
-        //             "balance" => "51026",
-        //             "locked" => "0",
-        //             "avg_buy_price" => "0",
-        //             "avg_buy_price_modified" => false,
-        //             "unit_currency" => "KRW"
-        //         ),
-        //     )
+        //     [
+        //         {
+        //             "currency": "KRW",
+        //             "balance": "51026",
+        //             "locked": "0",
+        //             "avg_buy_price": "0",
+        //             "avg_buy_price_modified": false,
+        //             "unit_currency": "KRW"
+        //         },
+        //     ]
         //
         $result = array( 'info' => $response );
         $balances = $this->safe_dict($response, 'data');
@@ -704,16 +704,16 @@ class bithumb extends Exchange {
         if ($generation === 2) {
             $response = $this->privateGetV1Accounts($params);
             //
-            //     array(
-            //         array(
-            //             "currency" => "KRW",
-            //             "balance" => "51026",
-            //             "locked" => "0",
-            //             "avg_buy_price" => "0",
-            //             "avg_buy_price_modified" => false,
-            //             "unit_currency" => "KRW"
-            //         ),
-            //     )
+            //     [
+            //         {
+            //             "currency": "KRW",
+            //             "balance": "51026",
+            //             "locked": "0",
+            //             "avg_buy_price": "0",
+            //             "avg_buy_price_modified": false,
+            //             "unit_currency": "KRW"
+            //         },
+            //     ]
             //
         } else {
             $request = array(
@@ -722,11 +722,11 @@ class bithumb extends Exchange {
             $response = $this->privatePostInfoBalance($this->extend($request, $params));
             //
             //     {
-            //         "status" => "0000",
-            //         "data" => {
-            //             "total_krw" => "51026.000000",
-            //             "in_use_krw" => "0.00000000",
-            //             "available_krw" => "51026.00000000",
+            //         "status": "0000",
+            //         "data": {
+            //             "total_krw": "51026.000000",
+            //             "in_use_krw": "0.00000000",
+            //             "available_krw": "51026.00000000",
             //         }
             //     }
             //
@@ -761,22 +761,22 @@ class bithumb extends Exchange {
             $request['markets'] = $this->get_gen2_market_id($market);
             $response = $this->publicGetV1Orderbook($this->extend($request, $params));
             //
-            //     array(
+            //     [
             //         {
-            //             "market" => "BTC-USDC",
-            //             "timestamp" => 1782807920105,
-            //             "total_ask_size" => 40322.8585,
-            //             "total_bid_size" => 174206.4577,
-            //             "orderbook_units" => array(
-            //                 array(
-            //                     "ask_price" => 0.00001687,
-            //                     "bid_price" => 0.0000168,
-            //                     "ask_size" => 155,
-            //                     "bid_size" => 41.6666
-            //                 ),
-            //             )
+            //             "market": "BTC-USDC",
+            //             "timestamp": 1782807920105,
+            //             "total_ask_size": 40322.8585,
+            //             "total_bid_size": 174206.4577,
+            //             "orderbook_units": [
+            //                 {
+            //                     "ask_price": 0.00001687,
+            //                     "bid_price": 0.0000168,
+            //                     "ask_size": 155,
+            //                     "bid_size": 41.6666
+            //                 },
+            //             ]
             //         }
-            //     )
+            //     ]
             //
             $result = $this->safe_dict($response, 0, array());
             $timestamp = $this->safe_integer($result, 'timestamp');
@@ -812,16 +812,16 @@ class bithumb extends Exchange {
             //             "timestamp":"1587621553942",
             //             "payment_currency":"KRW",
             //             "order_currency":"BTC",
-            //             "bids":array(
-            //                 array("price":"8652000","quantity":"0.0043"),
-            //                 array("price":"8651000","quantity":"0.0049"),
-            //                 array("price":"8650000","quantity":"8.4791"),
-            //             ),
-            //             "asks":array(
-            //                 array("price":"8654000","quantity":"0.119"),
-            //                 array("price":"8655000","quantity":"0.254"),
-            //                 array("price":"8658000","quantity":"0.119"),
-            //             )
+            //             "bids":[
+            //                 {"price":"8652000","quantity":"0.0043"},
+            //                 {"price":"8651000","quantity":"0.0049"},
+            //                 {"price":"8650000","quantity":"8.4791"},
+            //             ],
+            //             "asks":[
+            //                 {"price":"8654000","quantity":"0.119"},
+            //                 {"price":"8655000","quantity":"0.254"},
+            //                 {"price":"8658000","quantity":"0.119"},
+            //             ]
             //         }
             //     }
             //
@@ -833,7 +833,7 @@ class bithumb extends Exchange {
 
     public function parse_ticker(array $ticker, ?array $market = null): array {
         //
-        // generation 1 => fetchTicker, fetchTickers
+        // generation 1: fetchTicker, fetchTickers
         //
         //     {
         //         "opening_price":"227100",
@@ -850,73 +850,73 @@ class bithumb extends Exchange {
         //         "date":"1587710327264", // fetchTickers inject this
         //     }
         //
-        // generation 2 => fetchTicker, fetchTickers
+        // generation 2: fetchTicker, fetchTickers
         //
         //     {
-        //         "market" => "BTC-USDC",
-        //         "trade_date" => "20260701",
-        //         "trade_time" => "233533",
-        //         "trade_date_kst" => "20260702",
-        //         "trade_time_kst" => "083533",
-        //         "trade_timestamp" => 1782981333650,
-        //         "opening_price" => 0.00001667,
-        //         "high_price" => 0.00001667,
-        //         "low_price" => 0.00001645,
-        //         "trade_price" => 0.00001659,
-        //         "prev_closing_price" => 0.00001673,
-        //         "change" => "FALL",
-        //         "change_price" => 1.4E-7,
-        //         "change_rate" => 0.0084,
-        //         "signed_change_price" => -1.4E-7,
-        //         "signed_change_rate" => -0.0084,
-        //         "trade_volume" => 1.43724182,
-        //         "acc_trade_price" => 0.77934383561689,
-        //         "acc_trade_price_24h" => 1.76373410121466379999997512,
-        //         "acc_trade_volume" => 47175.3220805,
-        //         "acc_trade_volume_24h" => 104565.90238645676844763,
-        //         "highest_52_week_price" => 0.00006592,
-        //         "highest_52_week_date" => "2025-11-05",
-        //         "lowest_52_week_price" => 0.00000782,
-        //         "lowest_52_week_date" => "2026-02-22",
-        //         "timestamp" => 1782981333650
+        //         "market": "BTC-USDC",
+        //         "trade_date": "20260701",
+        //         "trade_time": "233533",
+        //         "trade_date_kst": "20260702",
+        //         "trade_time_kst": "083533",
+        //         "trade_timestamp": 1782981333650,
+        //         "opening_price": 0.00001667,
+        //         "high_price": 0.00001667,
+        //         "low_price": 0.00001645,
+        //         "trade_price": 0.00001659,
+        //         "prev_closing_price": 0.00001673,
+        //         "change": "FALL",
+        //         "change_price": 1.4E-7,
+        //         "change_rate": 0.0084,
+        //         "signed_change_price": -1.4E-7,
+        //         "signed_change_rate": -0.0084,
+        //         "trade_volume": 1.43724182,
+        //         "acc_trade_price": 0.77934383561689,
+        //         "acc_trade_price_24h": 1.76373410121466379999997512,
+        //         "acc_trade_volume": 47175.3220805,
+        //         "acc_trade_volume_24h": 104565.90238645676844763,
+        //         "highest_52_week_price": 0.00006592,
+        //         "highest_52_week_date": "2025-11-05",
+        //         "lowest_52_week_price": 0.00000782,
+        //         "lowest_52_week_date": "2026-02-22",
+        //         "timestamp": 1782981333650
         //     }
         //
-        // generation 2 => watchTicker
+        // generation 2: watchTicker
         //
         //     {
-        //         "type" => "ticker",
-        //         "code" => "KRW-BTC",
-        //         "opening_price" => 94223000,
-        //         "high_price" => 95465000,
-        //         "low_price" => 93601000,
-        //         "trade_price" => 95299000,
-        //         "prev_closing_price" => 94201000,
-        //         "change" => "RISE",
-        //         "change_price" => 1098000,
-        //         "signed_change_price" => 1098000,
-        //         "change_rate" => 0.01165593,
-        //         "signed_change_rate" => 0.01165593,
-        //         "trade_volume" => 0.0094,
-        //         "acc_trade_volume" => 151.44914647,
-        //         "acc_trade_volume_24h" => 310.44065227,
-        //         "acc_trade_price" => 14330306973.41015,
-        //         "acc_trade_price_24h" => 29226371799.56915,
-        //         "trade_date" => "20260710",
-        //         "trade_time" => "124548",
-        //         "trade_timestamp" => 1783655148303,
-        //         "ask_bid" => "BID",
-        //         "acc_ask_volume" => 52.30413928,
-        //         "acc_bid_volume" => 99.14500719,
-        //         "highest_52_week_price" => 179734000,
-        //         "highest_52_week_date" => "2025-10-09",
-        //         "lowest_52_week_price" => 81110000,
-        //         "lowest_52_week_date" => "2026-02-06",
-        //         "market_state" => "ACTIVE",
-        //         "is_trading_suspended" => false,
-        //         "delisting_date" => "",
-        //         "market_warning" => "NONE",
-        //         "timestamp" => 1783655148485,
-        //         "stream_type" => "REALTIME"
+        //         "type": "ticker",
+        //         "code": "KRW-BTC",
+        //         "opening_price": 94223000,
+        //         "high_price": 95465000,
+        //         "low_price": 93601000,
+        //         "trade_price": 95299000,
+        //         "prev_closing_price": 94201000,
+        //         "change": "RISE",
+        //         "change_price": 1098000,
+        //         "signed_change_price": 1098000,
+        //         "change_rate": 0.01165593,
+        //         "signed_change_rate": 0.01165593,
+        //         "trade_volume": 0.0094,
+        //         "acc_trade_volume": 151.44914647,
+        //         "acc_trade_volume_24h": 310.44065227,
+        //         "acc_trade_price": 14330306973.41015,
+        //         "acc_trade_price_24h": 29226371799.56915,
+        //         "trade_date": "20260710",
+        //         "trade_time": "124548",
+        //         "trade_timestamp": 1783655148303,
+        //         "ask_bid": "BID",
+        //         "acc_ask_volume": 52.30413928,
+        //         "acc_bid_volume": 99.14500719,
+        //         "highest_52_week_price": 179734000,
+        //         "highest_52_week_date": "2025-10-09",
+        //         "lowest_52_week_price": 81110000,
+        //         "lowest_52_week_date": "2026-02-06",
+        //         "market_state": "ACTIVE",
+        //         "is_trading_suspended": false,
+        //         "delisting_date": "",
+        //         "market_warning": "NONE",
+        //         "timestamp": 1783655148485,
+        //         "stream_type": "REALTIME"
         //     }
         //
         $timestamp = $this->safe_integer_2($ticker, 'date', 'trade_timestamp');
@@ -937,7 +937,7 @@ class bithumb extends Exchange {
         }
         $high = $this->safe_string_2($ticker, 'max_price', 'high_price');
         $low = $this->safe_string_2($ticker, 'min_price', 'low_price');
-        // Some generation 2 $ticker payloads can contain inconsistent high/low versus last.
+        // Some generation 2 ticker payloads can contain inconsistent high/low versus last.
         if (($close !== null) && ($high !== null) && Precise::string_gt($close, $high)) {
             $high = $close;
         }
@@ -988,8 +988,8 @@ class bithumb extends Exchange {
         $request = array();
         $result = array();
         if ($generation === 2) {
-            // Bithumb v2 $ticker payloads are inconsistent for all-$market calls,
-            // so we aggregate 300 markets per $request only when $symbols are not provided.
+            // Bithumb v2 ticker payloads are inconsistent for all-market calls,
+            // so we aggregate 300 markets per request only when symbols are not provided.
             $marketIds = array();
             $symbolsForMarketIds = ($symbols === null) ? $this->symbols : $symbols;
             $symbolsForMarketIdsLength = count($symbolsForMarketIds);
@@ -1026,36 +1026,36 @@ class bithumb extends Exchange {
                 }
             }
             //
-            //     array(
-            //         array(
-            //             "market" => "BTC-USDC",
-            //             "trade_date" => "20260701",
-            //             "trade_time" => "233533",
-            //             "trade_date_kst" => "20260702",
-            //             "trade_time_kst" => "083533",
-            //             "trade_timestamp" => 1782981333650,
-            //             "opening_price" => 0.00001667,
-            //             "high_price" => 0.00001667,
-            //             "low_price" => 0.00001645,
-            //             "trade_price" => 0.00001659,
-            //             "prev_closing_price" => 0.00001673,
-            //             "change" => "FALL",
-            //             "change_price" => 1.4E-7,
-            //             "change_rate" => 0.0084,
-            //             "signed_change_price" => -1.4E-7,
-            //             "signed_change_rate" => -0.0084,
-            //             "trade_volume" => 1.43724182,
-            //             "acc_trade_price" => 0.77934383561689,
-            //             "acc_trade_price_24h" => 1.76373410121466379999997512,
-            //             "acc_trade_volume" => 47175.3220805,
-            //             "acc_trade_volume_24h" => 104565.90238645676844763,
-            //             "highest_52_week_price" => 0.00006592,
-            //             "highest_52_week_date" => "2025-11-05",
-            //             "lowest_52_week_price" => 0.00000782,
-            //             "lowest_52_week_date" => "2026-02-22",
-            //             "timestamp" => 1782981333650
-            //         ),
-            //     )
+            //     [
+            //         {
+            //             "market": "BTC-USDC",
+            //             "trade_date": "20260701",
+            //             "trade_time": "233533",
+            //             "trade_date_kst": "20260702",
+            //             "trade_time_kst": "083533",
+            //             "trade_timestamp": 1782981333650,
+            //             "opening_price": 0.00001667,
+            //             "high_price": 0.00001667,
+            //             "low_price": 0.00001645,
+            //             "trade_price": 0.00001659,
+            //             "prev_closing_price": 0.00001673,
+            //             "change": "FALL",
+            //             "change_price": 1.4E-7,
+            //             "change_rate": 0.0084,
+            //             "signed_change_price": -1.4E-7,
+            //             "signed_change_rate": -0.0084,
+            //             "trade_volume": 1.43724182,
+            //             "acc_trade_price": 0.77934383561689,
+            //             "acc_trade_price_24h": 1.76373410121466379999997512,
+            //             "acc_trade_volume": 47175.3220805,
+            //             "acc_trade_volume_24h": 104565.90238645676844763,
+            //             "highest_52_week_price": 0.00006592,
+            //             "highest_52_week_date": "2025-11-05",
+            //             "lowest_52_week_price": 0.00000782,
+            //             "lowest_52_week_date": "2026-02-22",
+            //             "timestamp": 1782981333650
+            //         },
+            //     ]
             //
             $responses = $promises;
             $responsesLength = count($responses);
@@ -1129,7 +1129,7 @@ class bithumb extends Exchange {
                 //     {
                 //         "status":"0000",
                 //         "data":{
-                //             "BTC":array(
+                //             "BTC":{
                 //                 "opening_price":"9045000",
                 //                 "closing_price":"9132000",
                 //                 "min_price":"8938000",
@@ -1141,7 +1141,7 @@ class bithumb extends Exchange {
                 //                 "acc_trade_value_24H":"78933458515.4962",
                 //                 "fluctate_24H":"530000",
                 //                 "fluctate_rate_24H":"6.16"
-                //             ),
+                //             },
                 //             "date":"1587710878669"
                 //         }
                 //     }
@@ -1194,36 +1194,36 @@ class bithumb extends Exchange {
             $request['markets'] = $this->get_gen2_market_id($market);
             $response = $this->publicGetV1Ticker($this->extend($request, $params));
             //
-            //     array(
-            //         array(
-            //             "market" => "BTC-USDC",
-            //             "trade_date" => "20260701",
-            //             "trade_time" => "233533",
-            //             "trade_date_kst" => "20260702",
-            //             "trade_time_kst" => "083533",
-            //             "trade_timestamp" => 1782981333650,
-            //             "opening_price" => 0.00001667,
-            //             "high_price" => 0.00001667,
-            //             "low_price" => 0.00001645,
-            //             "trade_price" => 0.00001659,
-            //             "prev_closing_price" => 0.00001673,
-            //             "change" => "FALL",
-            //             "change_price" => 1.4E-7,
-            //             "change_rate" => 0.0084,
-            //             "signed_change_price" => -1.4E-7,
-            //             "signed_change_rate" => -0.0084,
-            //             "trade_volume" => 1.43724182,
-            //             "acc_trade_price" => 0.77934383561689,
-            //             "acc_trade_price_24h" => 1.76373410121466379999997512,
-            //             "acc_trade_volume" => 47175.3220805,
-            //             "acc_trade_volume_24h" => 104565.90238645676844763,
-            //             "highest_52_week_price" => 0.00006592,
-            //             "highest_52_week_date" => "2025-11-05",
-            //             "lowest_52_week_price" => 0.00000782,
-            //             "lowest_52_week_date" => "2026-02-22",
-            //             "timestamp" => 1782981333650
-            //         ),
-            //     )
+            //     [
+            //         {
+            //             "market": "BTC-USDC",
+            //             "trade_date": "20260701",
+            //             "trade_time": "233533",
+            //             "trade_date_kst": "20260702",
+            //             "trade_time_kst": "083533",
+            //             "trade_timestamp": 1782981333650,
+            //             "opening_price": 0.00001667,
+            //             "high_price": 0.00001667,
+            //             "low_price": 0.00001645,
+            //             "trade_price": 0.00001659,
+            //             "prev_closing_price": 0.00001673,
+            //             "change": "FALL",
+            //             "change_price": 1.4E-7,
+            //             "change_rate": 0.0084,
+            //             "signed_change_price": -1.4E-7,
+            //             "signed_change_rate": -0.0084,
+            //             "trade_volume": 1.43724182,
+            //             "acc_trade_price": 0.77934383561689,
+            //             "acc_trade_price_24h": 1.76373410121466379999997512,
+            //             "acc_trade_volume": 47175.3220805,
+            //             "acc_trade_volume_24h": 104565.90238645676844763,
+            //             "highest_52_week_price": 0.00006592,
+            //             "highest_52_week_date": "2025-11-05",
+            //             "lowest_52_week_price": 0.00000782,
+            //             "lowest_52_week_date": "2026-02-22",
+            //             "timestamp": 1782981333650
+            //         },
+            //     ]
             //
             $data = $this->safe_dict($response, 0, array());
         } else {
@@ -1258,29 +1258,29 @@ class bithumb extends Exchange {
         //
         // generation 1
         //
-        //     array(
+        //     [
         //         1576823400000, // 기준 시간
         //         "8284000", // 시가
         //         "8286000", // 종가
         //         "8289000", // 고가
         //         "8276000", // 저가
         //         "15.41503692" // 거래량
-        //     )
+        //     ]
         //
         // generation 2
         //
         //     {
-        //         "market" => "BTC-USDC",
-        //         "candle_date_time_utc" => "2026-07-02T08:59:00",
-        //         "candle_date_time_kst" => "2026-07-02T17:59:00",
-        //         "opening_price" => 0.0000165,
-        //         "high_price" => 0.0000165,
-        //         "low_price" => 0.0000165,
-        //         "trade_price" => 0.0000165,
-        //         "timestamp" => 1782982784329,
-        //         "candle_acc_trade_price" => 0.001155,
-        //         "candle_acc_trade_volume" => 70,
-        //         "unit" => 1
+        //         "market": "BTC-USDC",
+        //         "candle_date_time_utc": "2026-07-02T08:59:00",
+        //         "candle_date_time_kst": "2026-07-02T17:59:00",
+        //         "opening_price": 0.0000165,
+        //         "high_price": 0.0000165,
+        //         "low_price": 0.0000165,
+        //         "trade_price": 0.0000165,
+        //         "timestamp": 1782982784329,
+        //         "candle_acc_trade_price": 0.001155,
+        //         "candle_acc_trade_volume": 70,
+        //         "unit": 1
         //     }
         //
         $timestamp = null;
@@ -1346,21 +1346,21 @@ class bithumb extends Exchange {
                 $response = $this->publicGetV1CandlesMinutesUnit($this->extend($request, $params));
             }
             //
-            //     array(
-            //         array(
-            //             "market" => "BTC-USDC",
-            //             "candle_date_time_utc" => "2026-07-02T08:59:00",
-            //             "candle_date_time_kst" => "2026-07-02T17:59:00",
-            //             "opening_price" => 0.0000165,
-            //             "high_price" => 0.0000165,
-            //             "low_price" => 0.0000165,
-            //             "trade_price" => 0.0000165,
-            //             "timestamp" => 1782982784329,
-            //             "candle_acc_trade_price" => 0.001155,
-            //             "candle_acc_trade_volume" => 70,
-            //             "unit" => 1
-            //         ),
-            //     )
+            //     [
+            //         {
+            //             "market": "BTC-USDC",
+            //             "candle_date_time_utc": "2026-07-02T08:59:00",
+            //             "candle_date_time_kst": "2026-07-02T17:59:00",
+            //             "opening_price": 0.0000165,
+            //             "high_price": 0.0000165,
+            //             "low_price": 0.0000165,
+            //             "trade_price": 0.0000165,
+            //             "timestamp": 1782982784329,
+            //             "candle_acc_trade_price": 0.001155,
+            //             "candle_acc_trade_volume": 70,
+            //             "unit": 1
+            //         },
+            //     ]
             //
             $data = $response;
         } else {
@@ -1383,24 +1383,24 @@ class bithumb extends Exchange {
             $response = $this->publicGetPublicCandlestickBaseIdQuoteIdInterval($this->extend($request, $params));
             //
             //     {
-            //         "status" => "0000",
-            //         "data" => {
-            //             array(
+            //         "status": "0000",
+            //         "data": {
+            //             [
             //                 1576823400000, // 기준 시간
             //                 "8284000", // 시가
             //                 "8286000", // 종가
             //                 "8289000", // 고가
             //                 "8276000", // 저가
             //                 "15.41503692" // 거래량
-            //             ),
-            //             array(
+            //             ],
+            //             [
             //                 1576824000000, // 기준 시간
             //                 "8284000", // 시가
             //                 "8281000", // 종가
             //                 "8289000", // 고가
             //                 "8275000", // 저가
             //                 "6.19584467" // 거래량
-            //             ),
+            //             ],
             //         }
             //     }
             //
@@ -1411,7 +1411,7 @@ class bithumb extends Exchange {
 
     public function parse_trade(array $trade, ?array $market = null): array {
         //
-        // generation 1 => fetchTrades (public)
+        // generation 1: fetchTrades (public)
         //
         //     {
         //         "transaction_date":"2020-04-23 22:21:46",
@@ -1421,49 +1421,49 @@ class bithumb extends Exchange {
         //         "total":"108337"
         //     }
         //
-        // generation 1 => fetchOrder (private)
+        // generation 1: fetchOrder (private)
         //
         //     {
-        //         "transaction_date" => "1572497603902030",
-        //         "price" => "8601000",
-        //         "units" => "0.005",
-        //         "fee_currency" => "KRW",
-        //         "fee" => "107.51",
-        //         "total" => "43005"
+        //         "transaction_date": "1572497603902030",
+        //         "price": "8601000",
+        //         "units": "0.005",
+        //         "fee_currency": "KRW",
+        //         "fee": "107.51",
+        //         "total": "43005"
         //     }
         //
-        // generation 2 => fetchTrades
+        // generation 2: fetchTrades
         //
         //     {
-        //         "market" => "BTC-USDC",
-        //         "trade_date_utc" => "2026-07-02",
-        //         "trade_time_utc" => "08:41:10",
-        //         "timestamp" => "1782981670705",
-        //         "trade_price" => "0.00001646",
-        //         "trade_volume" => "42.0335581",
-        //         "prev_closing_price" => "0.00001673",
-        //         "change_price" => "-2.7E-7",
-        //         "ask_bid" => "ASK",
-        //         "sequential_id" => "17829816707050000"
+        //         "market": "BTC-USDC",
+        //         "trade_date_utc": "2026-07-02",
+        //         "trade_time_utc": "08:41:10",
+        //         "timestamp": "1782981670705",
+        //         "trade_price": "0.00001646",
+        //         "trade_volume": "42.0335581",
+        //         "prev_closing_price": "0.00001673",
+        //         "change_price": "-2.7E-7",
+        //         "ask_bid": "ASK",
+        //         "sequential_id": "17829816707050000"
         //     }
         //
-        // generation 2 => watchTrades
+        // generation 2: watchTrades
         //
         //     {
-        //         "type" => "trade",
-        //         "code" => "KRW-BTC",
-        //         "trade_price" => 95539000,
-        //         "trade_volume" => 0.00022664,
-        //         "ask_bid" => "ASK",
-        //         "prev_closing_price" => 94201000,
-        //         "change" => "RISE",
-        //         "change_price" => 1338000,
-        //         "trade_date" => "2026-07-10",
-        //         "trade_time" => "13:39:41",
-        //         "trade_timestamp" => 1783658381138,
-        //         "sequential_id" => "862683813820523888",
-        //         "timestamp" => 1783658381398,
-        //         "stream_type" => "REALTIME"
+        //         "type": "trade",
+        //         "code": "KRW-BTC",
+        //         "trade_price": 95539000,
+        //         "trade_volume": 0.00022664,
+        //         "ask_bid": "ASK",
+        //         "prev_closing_price": 94201000,
+        //         "change": "RISE",
+        //         "change_price": 1338000,
+        //         "trade_date": "2026-07-10",
+        //         "trade_time": "13:39:41",
+        //         "trade_timestamp": 1783658381138,
+        //         "sequential_id": "862683813820523888",
+        //         "timestamp": 1783658381398,
+        //         "stream_type": "REALTIME"
         //     }
         //
         // a workaround for their bug in date format, hours are not 0-padded
@@ -1562,20 +1562,20 @@ class bithumb extends Exchange {
             $request['market'] = $this->get_gen2_market_id($market);
             $response = $this->publicGetV1TradesTicks($this->extend($request, $params));
             //
-            //     array(
+            //     [
             //         {
-            //             "market" => "BTC-USDC",
-            //             "trade_date_utc" => "2026-07-02",
-            //             "trade_time_utc" => "08:41:10",
-            //             "timestamp" => "1782981670705",
-            //             "trade_price" => "0.00001646",
-            //             "trade_volume" => "42.0335581",
-            //             "prev_closing_price" => "0.00001673",
-            //             "change_price" => "-2.7E-7",
-            //             "ask_bid" => "ASK",
-            //             "sequential_id" => "17829816707050000"
+            //             "market": "BTC-USDC",
+            //             "trade_date_utc": "2026-07-02",
+            //             "trade_time_utc": "08:41:10",
+            //             "timestamp": "1782981670705",
+            //             "trade_price": "0.00001646",
+            //             "trade_volume": "42.0335581",
+            //             "prev_closing_price": "0.00001673",
+            //             "change_price": "-2.7E-7",
+            //             "ask_bid": "ASK",
+            //             "sequential_id": "17829816707050000"
             //         }
-            //     )
+            //     ]
             //
             $data = $response;
         } else {
@@ -1585,15 +1585,15 @@ class bithumb extends Exchange {
             //
             //     {
             //         "status":"0000",
-            //         "data":array(
-            //             array(
+            //         "data":[
+            //             {
             //                 "transaction_date":"2020-04-23 22:21:46",
             //                 "type":"ask",
             //                 "units_traded":"0.0125",
             //                 "price":"8667000",
             //                 "total":"108337"
-            //             ),
-            //         )
+            //             },
+            //         ]
             //     }
             //
             $data = $this->safe_list($response, 'data', array());
@@ -1658,16 +1658,16 @@ class bithumb extends Exchange {
         $response = $this->privatePostV2OrdersBatch($this->extend($request, $params));
         //
         //     {
-        //         "batch_orders_response" => array(
-        //             array(
-        //                 "order_id" => "C0101000003152500274",
-        //                 "market" => "KRW-BTC",
-        //                 "side" => "bid",
-        //                 "order_type" => "limit",
-        //                 "created_at" => "2026-07-04T15:49:24+09:00",
-        //                 "stp_type" => "cancel_taker"
-        //             ),
-        //         )
+        //         "batch_orders_response": [
+        //             {
+        //                 "order_id": "C0101000003152500274",
+        //                 "market": "KRW-BTC",
+        //                 "side": "bid",
+        //                 "order_type": "limit",
+        //                 "created_at": "2026-07-04T15:49:24+09:00",
+        //                 "stp_type": "cancel_taker"
+        //             },
+        //         ]
         //     }
         //
         $data = $this->safe_list($response, 'batch_orders_response', array());
@@ -1723,7 +1723,7 @@ class bithumb extends Exchange {
             $typeRequest = null;
             if ($side === 'buy') {
                 $typeRequest = 'price';
-                // for $market buy it requires the $amount of quote currency to spend
+                // for market buy it requires the amount of quote currency to spend
                 $cost = $this->safe_string($params, 'cost');
                 $params = $this->omit($params, 'cost');
                 $createMarketBuyOrderRequiresPrice = true;
@@ -1790,12 +1790,12 @@ class bithumb extends Exchange {
             $response = $this->privatePostV2Orders($request);
             //
             //     {
-            //         "order_id" => "C0101000003152350309",
-            //         "market" => "KRW-BTC",
-            //         "side" => "bid",
-            //         "order_type" => "limit",
-            //         "created_at" => "2026-07-04T14:39:04+09:00",
-            //         "stp_type" => "cancel_taker"
+            //         "order_id": "C0101000003152350309",
+            //         "market": "KRW-BTC",
+            //         "side": "bid",
+            //         "order_type": "limit",
+            //         "created_at": "2026-07-04T14:39:04+09:00",
+            //         "stp_type": "cancel_taker"
             //     }
             //
         } else {
@@ -1819,8 +1819,8 @@ class bithumb extends Exchange {
             }
             //
             //     {
-            //         "status" => "0000",
-            //         "order_id" => "C0101000003152294086"
+            //         "status": "0000",
+            //         "order_id": "C0101000003152294086"
             //     }
             //
         }
@@ -1905,7 +1905,7 @@ class bithumb extends Exchange {
         $response = $this->privatePostV1Twap($this->extend($request, $params));
         //
         //     {
-        //         "algo_order_id" => "019f3ed7-4f92-7179-beee-84b4c71e53fa"
+        //         "algo_order_id": "019f3ed7-4f92-7179-beee-84b4c71e53fa"
         //     }
         //
         return $this->parse_order($response, $market);
@@ -1951,26 +1951,26 @@ class bithumb extends Exchange {
                 $response = $this->privateGetV1Twap($this->extend($request, $params));
                 //
                 //     {
-                //         "has_next" => false,
-                //         "next_key" => null,
-                //         "orders" => array(
-                //             array(
-                //                 "uuid" => "019f3ed7-4f92-7179-beee-84b4c71e53fa",
-                //                 "side" => "bid",
-                //                 "price" => "92500000",
-                //                 "state" => "progress",
-                //                 "market" => "KRW-BTC",
-                //                 "created_at" => "2025-12-04T10:00:00+09:00",
-                //                 "volume" => "1.0",
-                //                 "total_order_count" => 60,
-                //                 "total_trades_count" => 10,
-                //                 "progress_count" => 25,
-                //                 "total_executed_amount" => "2312500000",
-                //                 "total_executed_volume" => "0.25",
-                //                 "avg_trade_price" => "92500000.000",
-                //                 "wallet_id" => "0000000000-00-0000"
-                //             ),
-                //         )
+                //         "has_next": false,
+                //         "next_key": null,
+                //         "orders": [
+                //             {
+                //                 "uuid": "019f3ed7-4f92-7179-beee-84b4c71e53fa",
+                //                 "side": "bid",
+                //                 "price": "92500000",
+                //                 "state": "progress",
+                //                 "market": "KRW-BTC",
+                //                 "created_at": "2025-12-04T10:00:00+09:00",
+                //                 "volume": "1.0",
+                //                 "total_order_count": 60,
+                //                 "total_trades_count": 10,
+                //                 "progress_count": 25,
+                //                 "total_executed_amount": "2312500000",
+                //                 "total_executed_volume": "0.25",
+                //                 "avg_trade_price": "92500000.000",
+                //                 "wallet_id": "0000000000-00-0000"
+                //             },
+                //         ]
                 //     }
                 //
                 $orders = $this->safe_list($response, 'orders', array());
@@ -1986,24 +1986,24 @@ class bithumb extends Exchange {
                 $response = $this->privateGetV1Order($this->extend($request, $params));
                 //
                 //     {
-                //         "uuid" => "C0101000003152406454",
-                //         "side" => "bid",
-                //         "ord_type" => "limit",
-                //         "price" => "9500000",
-                //         "state" => "wait",
-                //         "market" => "KRW-BTC",
-                //         "created_at" => "2026-07-04T15:05:46+09:00",
-                //         "volume" => "0.001",
-                //         "remaining_volume" => "0.001",
-                //         "reserved_fee" => "23.75",
-                //         "remaining_fee" => "23.75",
-                //         "paid_fee" => "0",
-                //         "locked" => "9524.75",
-                //         "executed_volume" => "0",
-                //         "executed_funds" => "0",
-                //         "trades_count" => 0,
-                //         "stp_type" => "cancel_taker",
-                //         "trades" => array()
+                //         "uuid": "C0101000003152406454",
+                //         "side": "bid",
+                //         "ord_type": "limit",
+                //         "price": "9500000",
+                //         "state": "wait",
+                //         "market": "KRW-BTC",
+                //         "created_at": "2026-07-04T15:05:46+09:00",
+                //         "volume": "0.001",
+                //         "remaining_volume": "0.001",
+                //         "reserved_fee": "23.75",
+                //         "remaining_fee": "23.75",
+                //         "paid_fee": "0",
+                //         "locked": "9524.75",
+                //         "executed_volume": "0",
+                //         "executed_funds": "0",
+                //         "trades_count": 0,
+                //         "stp_type": "cancel_taker",
+                //         "trades": []
                 //     }
                 //
                 $data = $response;
@@ -2024,28 +2024,28 @@ class bithumb extends Exchange {
             $response = $this->privatePostInfoOrderDetail($this->extend($request, $params));
             //
             //     {
-            //         "status" => "0000",
-            //         "data" => {
-            //             "order_date" => "1603161798539254",
-            //             "type" => "ask",
-            //             "order_status" => "Cancel",
-            //             "order_currency" => "BTC",
-            //             "payment_currency" => "KRW",
-            //             "watch_price" => "0",
-            //             "order_price" => "13344000",
-            //             "order_qty" => "0.0125",
-            //             "cancel_date" => "1603161803809993",
-            //             "cancel_type" => "사용자취소",
-            //             "contract" => array(
+            //         "status": "0000",
+            //         "data": {
+            //             "order_date": "1603161798539254",
+            //             "type": "ask",
+            //             "order_status": "Cancel",
+            //             "order_currency": "BTC",
+            //             "payment_currency": "KRW",
+            //             "watch_price": "0",
+            //             "order_price": "13344000",
+            //             "order_qty": "0.0125",
+            //             "cancel_date": "1603161803809993",
+            //             "cancel_type": "사용자취소",
+            //             "contract": [
             //                 {
-            //                     "transaction_date" => "1603161799976383",
-            //                     "price" => "13344000",
-            //                     "units" => "0.0015",
-            //                     "fee_currency" => "KRW",
-            //                     "fee" => "0",
-            //                     "total" => "20016"
+            //                     "transaction_date": "1603161799976383",
+            //                     "price": "13344000",
+            //                     "units": "0.0015",
+            //                     "fee_currency": "KRW",
+            //                     "fee": "0",
+            //                     "total": "20016"
             //                 }
-            //             ),
+            //             ],
             //         }
             //     }
             //
@@ -2075,118 +2075,118 @@ class bithumb extends Exchange {
     public function parse_order(array $order, ?array $market = null): array {
         //
         //
-        // generation 1 => fetchOrder
+        // generation 1: fetchOrder
         //
         //     {
-        //         "transaction_date" => "1572497603668315",
-        //         "type" => "bid",
-        //         "order_status" => "Completed", // Completed, Cancel ...
-        //         "order_currency" => "BTC",
-        //         "payment_currency" => "KRW",
-        //         "watch_price" => "0", // present in Cancel $order
-        //         "order_price" => "8601000",
-        //         "order_qty" => "0.007",
-        //         "cancel_date" => "", // filled in Cancel $order
-        //         "cancel_type" => "", // filled in Cancel $order, i.e. 사용자취소
-        //         "contract" => array(
-        //             array(
-        //                 "transaction_date" => "1572497603902030",
-        //                 "price" => "8601000",
-        //                 "units" => "0.005",
-        //                 "fee_currency" => "KRW",
-        //                 "fee" => "107.51",
-        //                 "total" => "43005"
-        //             ),
-        //         )
+        //         "transaction_date": "1572497603668315",
+        //         "type": "bid",
+        //         "order_status": "Completed", // Completed, Cancel ...
+        //         "order_currency": "BTC",
+        //         "payment_currency": "KRW",
+        //         "watch_price": "0", // present in Cancel order
+        //         "order_price": "8601000",
+        //         "order_qty": "0.007",
+        //         "cancel_date": "", // filled in Cancel order
+        //         "cancel_type": "", // filled in Cancel order, i.e. 사용자취소
+        //         "contract": [
+        //             {
+        //                 "transaction_date": "1572497603902030",
+        //                 "price": "8601000",
+        //                 "units": "0.005",
+        //                 "fee_currency": "KRW",
+        //                 "fee": "107.51",
+        //                 "total": "43005"
+        //             },
+        //         ]
         //     }
         //
-        // generation 1 => fetchOpenOrders
+        // generation 1: fetchOpenOrders
         //
         //     {
-        //         "order_currency" => "BTC",
-        //         "payment_currency" => "KRW",
-        //         "order_id" => "C0101000003152294086",
-        //         "order_date" => "1783141846061516",
-        //         "type" => "bid",
-        //         "watch_price" => "0",
-        //         "units" => "0.001",
-        //         "units_remaining" => "0.001",
-        //         "price" => "9500000",
-        //         "stp_type" => "cancel_taker"
+        //         "order_currency": "BTC",
+        //         "payment_currency": "KRW",
+        //         "order_id": "C0101000003152294086",
+        //         "order_date": "1783141846061516",
+        //         "type": "bid",
+        //         "watch_price": "0",
+        //         "units": "0.001",
+        //         "units_remaining": "0.001",
+        //         "price": "9500000",
+        //         "stp_type": "cancel_taker"
         //     }
         //
-        // generation 1 => cancelOrder
+        // generation 1: cancelOrder
         //
         //     {
-        //         "status" => "0000"
+        //         "status": "0000"
         //     }
         //
-        // generation 2 => createOrder, createOrders
+        // generation 2: createOrder, createOrders
         //
         //     {
-        //         "order_id" => "C0101000003152350309",
-        //         "market" => "KRW-BTC",
-        //         "side" => "bid",
-        //         "order_type" => "limit",
-        //         "created_at" => "2026-07-04T14:39:04+09:00",
-        //         "stp_type" => "cancel_taker"
+        //         "order_id": "C0101000003152350309",
+        //         "market": "KRW-BTC",
+        //         "side": "bid",
+        //         "order_type": "limit",
+        //         "created_at": "2026-07-04T14:39:04+09:00",
+        //         "stp_type": "cancel_taker"
         //     }
         //
-        // generation 2 => fetchOrder, fetchOrders, fetchOpenOrders, fetchClosedOrders, fetchCanceledOrders
+        // generation 2: fetchOrder, fetchOrders, fetchOpenOrders, fetchClosedOrders, fetchCanceledOrders
         //
         //     {
-        //         "uuid" => "C0101000003152406454",
-        //         "side" => "bid",
-        //         "ord_type" => "limit",
-        //         "price" => "9500000",
-        //         "state" => "wait",
-        //         "market" => "KRW-BTC",
-        //         "created_at" => "2026-07-04T15:05:46+09:00",
-        //         "volume" => "0.001",
-        //         "remaining_volume" => "0.001",
-        //         "reserved_fee" => "23.75",
-        //         "remaining_fee" => "23.75",
-        //         "paid_fee" => "0",
-        //         "locked" => "9524.75",
-        //         "executed_volume" => "0",
-        //         "executed_funds" => "0",
-        //         "trades_count" => 0,
-        //         "stp_type" => "cancel_taker",
-        //         "trades" => array()
+        //         "uuid": "C0101000003152406454",
+        //         "side": "bid",
+        //         "ord_type": "limit",
+        //         "price": "9500000",
+        //         "state": "wait",
+        //         "market": "KRW-BTC",
+        //         "created_at": "2026-07-04T15:05:46+09:00",
+        //         "volume": "0.001",
+        //         "remaining_volume": "0.001",
+        //         "reserved_fee": "23.75",
+        //         "remaining_fee": "23.75",
+        //         "paid_fee": "0",
+        //         "locked": "9524.75",
+        //         "executed_volume": "0",
+        //         "executed_funds": "0",
+        //         "trades_count": 0,
+        //         "stp_type": "cancel_taker",
+        //         "trades": []
         //     }
         //
-        // generation 2 => cancelOrder, cancelOrders
+        // generation 2: cancelOrder, cancelOrders
         //
         //     {
-        //         "order_id" => "C0101000003152350309",
-        //         "created_at" => "2026-07-04T14:39:04+09:00"
+        //         "order_id": "C0101000003152350309",
+        //         "created_at": "2026-07-04T14:39:04+09:00"
         //     }
         //
-        // generation 2 => createTwapOrder, twap cancelOrder
+        // generation 2: createTwapOrder, twap cancelOrder
         //
         //     {
-        //         "algo_order_id" => "019f3ed7-4f92-7179-beee-84b4c71e53fa"
+        //         "algo_order_id": "019f3ed7-4f92-7179-beee-84b4c71e53fa"
         //     }
         //
-        // generation 2 => twap fetchOrder, fetchOrders, fetchOpenOrders, fetchClosedOrders, fetchCanceledOrders
+        // generation 2: twap fetchOrder, fetchOrders, fetchOpenOrders, fetchClosedOrders, fetchCanceledOrders
         //
         //     {
-        //         "uuid" => "019f3ed7-4f92-7179-beee-84b4c71e53fa",
-        //         "side" => "bid",
-        //         "price" => "92500000",
-        //         "state" => "progress",
-        //         "market" => "KRW-BTC",
-        //         "created_at" => "2025-12-03T09:00:00+09:00",
-        //         "volume" => "1.0",
-        //         "total_order_count" => 60,
-        //         "total_trades_count" => 10,
-        //         "progress_count" => 25,
-        //         "total_executed_amount" => "2312500000",
-        //         "total_executed_volume" => "0.25",
-        //         "avg_trade_price" => "92500000.000",
-        //         "wallet_id" => "0000000000-00-0000",
-        //         "canceled_at" => "2025-12-03T09:15:00+09:00",
-        //         "cancel_type" => "user"
+        //         "uuid": "019f3ed7-4f92-7179-beee-84b4c71e53fa",
+        //         "side": "bid",
+        //         "price": "92500000",
+        //         "state": "progress",
+        //         "market": "KRW-BTC",
+        //         "created_at": "2025-12-03T09:00:00+09:00",
+        //         "volume": "1.0",
+        //         "total_order_count": 60,
+        //         "total_trades_count": 10,
+        //         "progress_count": 25,
+        //         "total_executed_amount": "2312500000",
+        //         "total_executed_volume": "0.25",
+        //         "avg_trade_price": "92500000.000",
+        //         "wallet_id": "0000000000-00-0000",
+        //         "canceled_at": "2025-12-03T09:15:00+09:00",
+        //         "cancel_type": "user"
         //     }
         //
         $datetime = $this->safe_string($order, 'created_at');
@@ -2344,21 +2344,21 @@ class bithumb extends Exchange {
             $response = $this->privatePostInfoOrders($this->extend($request, $params));
             //
             //     {
-            //         "status" => "0000",
-            //         "data" => array(
+            //         "status": "0000",
+            //         "data": [
             //             {
-            //                 "order_currency" => "BTC",
-            //                 "payment_currency" => "KRW",
-            //                 "order_id" => "C0101000003152294086",
-            //                 "order_date" => "1783141846061516",
-            //                 "type" => "bid",
-            //                 "watch_price" => "0",
-            //                 "units" => "0.001",
-            //                 "units_remaining" => "0.001",
-            //                 "price" => "9500000",
-            //                 "stp_type" => "cancel_taker"
+            //                 "order_currency": "BTC",
+            //                 "payment_currency": "KRW",
+            //                 "order_id": "C0101000003152294086",
+            //                 "order_date": "1783141846061516",
+            //                 "type": "bid",
+            //                 "watch_price": "0",
+            //                 "units": "0.001",
+            //                 "units_remaining": "0.001",
+            //                 "price": "9500000",
+            //                 "stp_type": "cancel_taker"
             //             }
-            //         )
+            //         ]
             //     }
             //
         }
@@ -2415,53 +2415,53 @@ class bithumb extends Exchange {
             $response = $this->privateGetV1Twap($this->extend($request, $params));
             //
             //     {
-            //         "has_next" => false,
-            //         "next_key" => null,
-            //         "orders" => array(
-            //             array(
-            //                 "uuid" => "019f3ed7-4f92-7179-beee-84b4c71e53fa",
-            //                 "side" => "bid",
-            //                 "price" => "92500000",
-            //                 "state" => "progress",
-            //                 "market" => "KRW-BTC",
-            //                 "created_at" => "2025-12-04T10:00:00+09:00",
-            //                 "volume" => "1.0",
-            //                 "total_order_count" => 60,
-            //                 "total_trades_count" => 10,
-            //                 "progress_count" => 25,
-            //                 "total_executed_amount" => "2312500000",
-            //                 "total_executed_volume" => "0.25",
-            //                 "avg_trade_price" => "92500000.000",
-            //                 "wallet_id" => "0000000000-00-0000"
-            //             ),
-            //         )
+            //         "has_next": false,
+            //         "next_key": null,
+            //         "orders": [
+            //             {
+            //                 "uuid": "019f3ed7-4f92-7179-beee-84b4c71e53fa",
+            //                 "side": "bid",
+            //                 "price": "92500000",
+            //                 "state": "progress",
+            //                 "market": "KRW-BTC",
+            //                 "created_at": "2025-12-04T10:00:00+09:00",
+            //                 "volume": "1.0",
+            //                 "total_order_count": 60,
+            //                 "total_trades_count": 10,
+            //                 "progress_count": 25,
+            //                 "total_executed_amount": "2312500000",
+            //                 "total_executed_volume": "0.25",
+            //                 "avg_trade_price": "92500000.000",
+            //                 "wallet_id": "0000000000-00-0000"
+            //             },
+            //         ]
             //     }
             //
             $data = $this->safe_list($response, 'orders', array());
         } else {
             $response = $this->privateGetV1Orders($this->extend($request, $params));
             //
-            //     array(
+            //     [
             //         {
-            //             "uuid" => "C0101000003152406454",
-            //             "side" => "bid",
-            //             "ord_type" => "limit",
-            //             "price" => "9500000",
-            //             "state" => "wait",
-            //             "market" => "KRW-BTC",
-            //             "created_at" => "2026-07-04T15:05:46+09:00",
-            //             "volume" => "0.001",
-            //             "remaining_volume" => "0.001",
-            //             "reserved_fee" => "23.75",
-            //             "remaining_fee" => "23.75",
-            //             "paid_fee" => "0",
-            //             "locked" => "9524.75",
-            //             "executed_volume" => "0",
-            //             "executed_funds" => "0",
-            //             "trades_count" => 0,
-            //             "stp_type" => "cancel_taker"
+            //             "uuid": "C0101000003152406454",
+            //             "side": "bid",
+            //             "ord_type": "limit",
+            //             "price": "9500000",
+            //             "state": "wait",
+            //             "market": "KRW-BTC",
+            //             "created_at": "2026-07-04T15:05:46+09:00",
+            //             "volume": "0.001",
+            //             "remaining_volume": "0.001",
+            //             "reserved_fee": "23.75",
+            //             "remaining_fee": "23.75",
+            //             "paid_fee": "0",
+            //             "locked": "9524.75",
+            //             "executed_volume": "0",
+            //             "executed_funds": "0",
+            //             "trades_count": 0,
+            //             "stp_type": "cancel_taker"
             //         }
-            //     )
+            //     ]
             //
             $data = $response;
         }
@@ -2555,15 +2555,15 @@ class bithumb extends Exchange {
                 $response = $this->privateDeleteV1Twap($this->extend($request, $params));
                 //
                 //     {
-                //         "algo_order_id" => "TWAP-A01B02C03D04E05F06"
+                //         "algo_order_id": "TWAP-A01B02C03D04E05F06"
                 //     }
                 //
             } else {
                 $response = $this->privateDeleteV2Order($this->extend($request, $params));
                 //
                 //     {
-                //         "order_id" => "C0101000003152350309",
-                //         "created_at" => "2026-07-04T14:39:04+09:00"
+                //         "order_id": "C0101000003152350309",
+                //         "created_at": "2026-07-04T14:39:04+09:00"
                 //     }
                 //
             }
@@ -2595,7 +2595,7 @@ class bithumb extends Exchange {
             $response = $this->privatePostTradeCancel($this->extend($request, $params));
             //
             //     {
-            //         "status" => "0000"
+            //         "status": "0000"
             //     }
             //
         }
@@ -2640,13 +2640,13 @@ class bithumb extends Exchange {
         $response = $this->privatePostV2OrdersCancel($this->extend($request, $params));
         //
         //     {
-        //         "success" => array(
-        //             array(
-        //                 "order_id" => "C0101000003152500274",
+        //         "success": [
+        //             {
+        //                 "order_id": "C0101000003152500274",
         //                 "created_at":"2026-07-04T15:49:24+09:00"
-        //             ),
-        //         ),
-        //         "fail" => array()
+        //             },
+        //         ],
+        //         "fail": []
         //     }
         //
         $data = $this->safe_list($response, 'success', array());
@@ -2719,7 +2719,7 @@ class bithumb extends Exchange {
                 if ($twoFactorType === null) {
                     throw new ArgumentsRequired($this->id . ' ' . $code . ' withdraw() requires a two_factor_type parameter for withdrawing KRW');
                 }
-                $krwRequest = array( 'amount' => $this->number_to_string($amount) ); // KRW withdraw only accepts $amount and two_factor_type parameters
+                $krwRequest = array( 'amount' => $this->number_to_string($amount) ); // KRW withdraw only accepts amount and two_factor_type parameters
                 $response = $this->privatePostV1WithdrawsKrw($this->extend($krwRequest, $params));
             } else {
                 if ($network === null) {
@@ -2739,18 +2739,18 @@ class bithumb extends Exchange {
             }
             //
             //     {
-            //         "type" => "withdraw",
-            //         "uuid" => "200377211",
-            //         "currency" => "BTC",
-            //         "net_type" => "BTC",
-            //         "state" => "processing",
-            //         "created_at" => "2024-07-14T14:54:24+09:00",
-            //         "done_at" => null,
-            //         "amount" => "0.00010000",
-            //         "fee" => "0",
-            //         "krw_amount" => "8400",
-            //         "transaction_type" => null,
-            //         "txid" => null
+            //         "type": "withdraw",
+            //         "uuid": "200377211",
+            //         "currency": "BTC",
+            //         "net_type": "BTC",
+            //         "state": "processing",
+            //         "created_at": "2024-07-14T14:54:24+09:00",
+            //         "done_at": null,
+            //         "amount": "0.00010000",
+            //         "fee": "0",
+            //         "krw_amount": "8400",
+            //         "transaction_type": null,
+            //         "txid": null
             //     }
             //
         } else {
@@ -2775,7 +2775,7 @@ class bithumb extends Exchange {
             $response = $this->privatePostTradeBtcWithdrawal($this->extend($request, $params));
             //
             //     {
-            //         "status" => "0000"
+            //         "status": "0000"
             //     }
             //
         }
@@ -2784,25 +2784,25 @@ class bithumb extends Exchange {
 
     public function parse_transaction(array $transaction, ?array $currency = null): array {
         //
-        // generation 1 => withdraw
+        // generation 1: withdraw
         //
-        //     array("status" => "0000")
+        //     {"status": "0000"}
         //
-        // generation 2 => withdraw, fetchWithdrawal, fetchWithdrawals, fetchDeposit, fetchDeposits
+        // generation 2: withdraw, fetchWithdrawal, fetchWithdrawals, fetchDeposit, fetchDeposits
         //
         //     {
-        //         "type" => "withdraw",
-        //         "uuid" => "200377211",
-        //         "currency" => "BTC",
-        //         "net_type" => "BTC",
-        //         "state" => "processing",
-        //         "created_at" => "2024-07-14T14:54:24+09:00",
-        //         "done_at" => null,
-        //         "amount" => "0.00010000",
-        //         "fee" => "0",
-        //         "krw_amount" => "8400",
-        //         "transaction_type" => null,
-        //         "txid" => null
+        //         "type": "withdraw",
+        //         "uuid": "200377211",
+        //         "currency": "BTC",
+        //         "net_type": "BTC",
+        //         "state": "processing",
+        //         "created_at": "2024-07-14T14:54:24+09:00",
+        //         "done_at": null,
+        //         "amount": "0.00010000",
+        //         "fee": "0",
+        //         "krw_amount": "8400",
+        //         "transaction_type": null,
+        //         "txid": null
         //     }
         //
         $type = $this->safe_string($transaction, 'type');
@@ -2891,18 +2891,18 @@ class bithumb extends Exchange {
         }
         $response = $this->privateGetV1WithdrawsCoinAddresses($params);
         //
-        //     array(
-        //         array(
-        //             "currency" => "BTC",
-        //             "wallet_state" => "working",
-        //             "block_state" => "normal",
-        //             "block_height" => 852086,
-        //             "block_updated_at" => "2024-07-14T13:43:57+09:00",
-        //             "block_elapsed_minutes" => 2,
-        //             "net_type" => "BTC",
-        //             "network_name" => "Bitcoin"
-        //         ),
-        //     )
+        //     [
+        //         {
+        //             "currency": "BTC",
+        //             "wallet_state": "working",
+        //             "block_state": "normal",
+        //             "block_height": 852086,
+        //             "block_updated_at": "2024-07-14T13:43:57+09:00",
+        //             "block_elapsed_minutes": 2,
+        //             "net_type": "BTC",
+        //             "network_name": "Bitcoin"
+        //         },
+        //     ]
         //
         return $response;
     }
@@ -2941,17 +2941,17 @@ class bithumb extends Exchange {
         $response = $this->privateGetV1Withdraw($this->extend($request, $params));
         //
         //     {
-        //         "type" => "withdraw",
-        //         "uuid" => "200377211",
-        //         "currency" => "BTC",
-        //         "net_type" => "BTC",
-        //         "state" => "processing",
-        //         "created_at" => "2024-07-14T14:54:24+09:00",
-        //         "done_at" => null,
-        //         "amount" => "0.00010000",
-        //         "fee" => "0",
-        //         "transaction_type" => null,
-        //         "txid" => null
+        //         "type": "withdraw",
+        //         "uuid": "200377211",
+        //         "currency": "BTC",
+        //         "net_type": "BTC",
+        //         "state": "processing",
+        //         "created_at": "2024-07-14T14:54:24+09:00",
+        //         "done_at": null,
+        //         "amount": "0.00010000",
+        //         "fee": "0",
+        //         "transaction_type": null,
+        //         "txid": null
         //     }
         //
         return $this->parse_transaction($response, $currency);
@@ -3001,21 +3001,21 @@ class bithumb extends Exchange {
             $response = $this->privateGetV1Withdraws($this->extend($request, $params));
         }
         //
-        //     array(
+        //     [
         //         {
-        //             "type" => "withdraw",
-        //             "uuid" => "200377211",
-        //             "currency" => "BTC",
-        //             "net_type" => "BTC",
-        //             "state" => "processing",
-        //             "created_at" => "2024-07-14T14:54:24+09:00",
-        //             "done_at" => null,
-        //             "amount" => "0.00010000",
-        //             "fee" => "0",
-        //             "transaction_type" => null,
-        //             "txid" => null
+        //             "type": "withdraw",
+        //             "uuid": "200377211",
+        //             "currency": "BTC",
+        //             "net_type": "BTC",
+        //             "state": "processing",
+        //             "created_at": "2024-07-14T14:54:24+09:00",
+        //             "done_at": null,
+        //             "amount": "0.00010000",
+        //             "fee": "0",
+        //             "transaction_type": null,
+        //             "txid": null
         //         }
-        //     )
+        //     ]
         //
         return $this->parse_transactions($response, $currency, $since, $limit);
     }
@@ -3054,17 +3054,17 @@ class bithumb extends Exchange {
         $response = $this->privateGetV1Deposit($this->extend($request, $params));
         //
         //     {
-        //         "type" => "deposit",
-        //         "uuid" => "200377211",
-        //         "currency" => "BTC",
-        //         "net_type" => "BTC",
-        //         "state" => "DEPOSIT_ACCEPTED",
-        //         "created_at" => "2024-07-14T14:54:24+09:00",
-        //         "done_at" => null,
-        //         "amount" => "0.00010000",
-        //         "fee" => "0",
-        //         "transaction_type" => null,
-        //         "txid" => null
+        //         "type": "deposit",
+        //         "uuid": "200377211",
+        //         "currency": "BTC",
+        //         "net_type": "BTC",
+        //         "state": "DEPOSIT_ACCEPTED",
+        //         "created_at": "2024-07-14T14:54:24+09:00",
+        //         "done_at": null,
+        //         "amount": "0.00010000",
+        //         "fee": "0",
+        //         "transaction_type": null,
+        //         "txid": null
         //     }
         //
         return $this->parse_transaction($response, $currency);
@@ -3114,21 +3114,21 @@ class bithumb extends Exchange {
             $response = $this->privateGetV1Deposits($this->extend($request, $params));
         }
         //
-        //     array(
+        //     [
         //         {
-        //             "type" => "deposit",
-        //             "uuid" => "200377211",
-        //             "currency" => "BTC",
-        //             "net_type" => "BTC",
-        //             "state" => "DEPOSIT_ACCEPTED",
-        //             "created_at" => "2024-07-14T14:54:24+09:00",
-        //             "done_at" => null,
-        //             "amount" => "0.00010000",
-        //             "fee" => "0",
-        //             "transaction_type" => null,
-        //             "txid" => null
+        //             "type": "deposit",
+        //             "uuid": "200377211",
+        //             "currency": "BTC",
+        //             "net_type": "BTC",
+        //             "state": "DEPOSIT_ACCEPTED",
+        //             "created_at": "2024-07-14T14:54:24+09:00",
+        //             "done_at": null,
+        //             "amount": "0.00010000",
+        //             "fee": "0",
+        //             "transaction_type": null,
+        //             "txid": null
         //         }
-        //     )
+        //     ]
         //
         return $this->parse_transactions($response, $currency, $since, $limit);
     }
@@ -3166,10 +3166,10 @@ class bithumb extends Exchange {
         $response = $this->privatePostV1DepositsGenerateCoinAddress($this->extend($request, $params));
         //
         //     {
-        //         "currency" => "BTC",
-        //         "net_type" => "BTC",
-        //         "deposit_address" => "195Y...rbJ3",
-        //         "secondary_address" => null
+        //         "currency": "BTC",
+        //         "net_type": "BTC",
+        //         "deposit_address": "195Y...rbJ3",
+        //         "secondary_address": null
         //     }
         //
         return $this->parse_deposit_address($response, $currency);
@@ -3208,10 +3208,10 @@ class bithumb extends Exchange {
         $response = $this->privateGetV1DepositsCoinAddress($this->extend($request, $params));
         //
         //     {
-        //         "currency" => "BTC",
-        //         "net_type" => "BTC",
-        //         "deposit_address" => "195Y...rbJ3",
-        //         "secondary_address" => null
+        //         "currency": "BTC",
+        //         "net_type": "BTC",
+        //         "deposit_address": "195Y...rbJ3",
+        //         "secondary_address": null
         //     }
         //
         return $this->parse_deposit_address($response, $currency);
@@ -3238,27 +3238,27 @@ class bithumb extends Exchange {
         }
         $response = $this->privateGetV1DepositsCoinAddresses($params);
         //
-        //     array(
+        //     [
         //         {
-        //             "currency" => "BTC",
-        //             "net_type" => "BTC",
-        //             "deposit_address" => "195Y...rbJ3",
-        //             "secondary_address" => null
+        //             "currency": "BTC",
+        //             "net_type": "BTC",
+        //             "deposit_address": "195Y...rbJ3",
+        //             "secondary_address": null
         //         }
-        //     )
+        //     ]
         //
         return $this->parse_deposit_addresses($response, $codes, false, array());
     }
 
     public function parse_deposit_address(mixed $response, ?array $currency = null): array {
         //
-        // generation 2 => createDepositAddress, fetchDepositAddress, fetchDepositAddresses
+        // generation 2: createDepositAddress, fetchDepositAddress, fetchDepositAddresses
         //
         //     {
-        //         "currency" => "BTC",
-        //         "net_type" => "BTC",
-        //         "deposit_address" => "195Y...rbJ3",
-        //         "secondary_address" => null
+        //         "currency": "BTC",
+        //         "net_type": "BTC",
+        //         "deposit_address": "195Y...rbJ3",
+        //         "secondary_address": null
         //     }
         //
         $currencyId = $this->safe_string($response, 'currency');
@@ -3391,11 +3391,11 @@ class bithumb extends Exchange {
 
     public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         if ($response === null) {
-            return null; // fallback to default $error handler
+            return null; // fallback to default error handler
         }
         // generation 2:
         //
-        //     array("error":array("name":400,"message":"Missing request parameter $error-> Check the required parameters!"))
+        //     {"error":{"name":400,"message":"Missing request parameter error. Check the required parameters!"}}
         //
         $error = $this->safe_dict($response, 'error');
         if ($error !== null) {
@@ -3413,16 +3413,16 @@ class bithumb extends Exchange {
         if (is_array($response) && array_key_exists('status' ?? '', $response)) {
             // generation 1:
             //
-            //     array("status":"5100","message":"After May 23th, recent_transactions is no longer, hence users will not be able to connect to recent_transactions")
+            //     {"status":"5100","message":"After May 23th, recent_transactions is no longer, hence users will not be able to connect to recent_transactions"}
             //
             $status = $this->safe_string($response, 'status');
             $message = $this->safe_string($response, 'message');
             if ($status !== null) {
                 if ($status === '0000') {
-                    return null; // no $error
+                    return null; // no error
                 } elseif ($message === '거래 진행중인 내역이 존재하지 않습니다.') {
                     // https://github.com/ccxt/ccxt/issues/9017
-                    return null; // no $error
+                    return null; // no error
                 }
                 $feedback = $this->id . ' ' . $message;
                 $this->throw_exactly_matched_exception($this->exceptions, $status, $feedback);

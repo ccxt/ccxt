@@ -7,7 +7,7 @@ namespace ccxt.pro;
 public partial class weex { public weex(object args = null) : base(args) { } }
 public partial class weex : ccxt.weex
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "has", new Dictionary<string, object>() {
@@ -146,7 +146,7 @@ public partial class weex : ccxt.weex
             return;
         }
         Int64 timestamp = this.nonce();
-        object payload = add(((object)timestamp).ToString(), "/v3/ws/private");
+        string payload = add(((object)timestamp).ToString(), "/v3/ws/private");
         string signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256, "base64");
         object originalHeaders = getValue(getValue(getValue(this.options, "ws"), "options"), "headers");
         string? userAgent = this.safeString(originalHeaders, "User-Agent", "ccxt");
@@ -333,7 +333,7 @@ public partial class weex : ccxt.weex
         //         ]
         //     }
         //
-        object market = this.getMarketFromClientAndMessage(client as WebSocketClient, message);
+        Dictionary<string, object> market = this.getMarketFromClientAndMessage(client as WebSocketClient, message);
         if (isTrue(isEqual(market, null)))
         {
             return;
@@ -539,7 +539,7 @@ public partial class weex : ccxt.weex
         //         ]
         //     }
         //
-        object market = this.getMarketFromClientAndMessage(client as WebSocketClient, message);
+        Dictionary<string, object> market = this.getMarketFromClientAndMessage(client as WebSocketClient, message);
         if (isTrue(isEqual(market, null)))
         {
             return;
@@ -584,6 +584,14 @@ public partial class weex : ccxt.weex
         //
         Int64? timestamp = this.safeInteger(trade, "T");
         object symbol = ((bool) isTrue((isEqual(market, null)))) ? null : getValue(market, "symbol");
+        bool? isBuyerMaker = this.safeBool(trade, "m"); // m is the isBuyerMaker flag of the REST trades, true means the taker sold
+        string? side = null;
+        string? takerOrMaker = null;
+        if (isTrue(!isEqual(isBuyerMaker, null)))
+        {
+            side = ((bool) isTrue(isBuyerMaker)) ? "sell" : "buy";
+            takerOrMaker = "taker"; // a public trade is reported from the aggressor's side, same as parseTrade
+        }
         return this.safeTrade(new Dictionary<string, object>() {
             { "info", trade },
             { "id", this.safeString(trade, "t") },
@@ -592,8 +600,8 @@ public partial class weex : ccxt.weex
             { "symbol", symbol },
             { "order", null },
             { "type", null },
-            { "side", null },
-            { "takerOrMaker", null },
+            { "side", side },
+            { "takerOrMaker", takerOrMaker },
             { "price", this.safeString(trade, "p") },
             { "amount", this.safeString(trade, "q") },
             { "cost", this.safeString(trade, "v") },
@@ -798,7 +806,7 @@ public partial class weex : ccxt.weex
         //         ]
         //     }
         //
-        object market = this.getMarketFromClientAndMessage(client as WebSocketClient, message);
+        Dictionary<string, object> market = this.getMarketFromClientAndMessage(client as WebSocketClient, message);
         if (isTrue(isEqual(market, null)))
         {
             return;
@@ -1004,7 +1012,7 @@ public partial class weex : ccxt.weex
         //         "a": [ [ "2227.21", "44.092" ], [ "2227.26", "0" ] ]
         //     }
         //
-        object market = this.getMarketFromClientAndMessage(client as WebSocketClient, message);
+        Dictionary<string, object> market = this.getMarketFromClientAndMessage(client as WebSocketClient, message);
         if (isTrue(isEqual(market, null)))
         {
             return;
@@ -1047,7 +1055,7 @@ public partial class weex : ccxt.weex
 
     public override void handleDelta(object bookside, object delta)
     {
-        object bidAsk = this.parseOrderBookBidAsk(delta);
+        List<object> bidAsk = this.parseOrderBookBidAsk(delta);
         (bookside as IOrderBookSide).storeArray(bidAsk);
     }
 
@@ -1154,7 +1162,7 @@ public partial class weex : ccxt.weex
         //         "A": "6.30889"
         //     }
         //
-        object market = this.getMarketFromClientAndMessage(client as WebSocketClient, message);
+        Dictionary<string, object> market = this.getMarketFromClientAndMessage(client as WebSocketClient, message);
         if (isTrue(isEqual(market, null)))
         {
             return;
@@ -1708,9 +1716,9 @@ public partial class weex : ccxt.weex
         }
         string? rawStatus = this.safeStringLower(order, "status");
         string? rawType = this.safeString(order, "type");
-        object triggerPrice = this.omitZero(this.safeString(order, "triggerPrice"));
-        object stopLossPrice = null;
-        object takeProfitPrice = null;
+        string? triggerPrice = ((string)this.omitZero(this.safeString(order, "triggerPrice")));
+        string? stopLossPrice = null;
+        string? takeProfitPrice = null;
         if (isTrue(isTrue(isEqual(rawType, "TAKE_PROFIT_MARKET")) || isTrue(isEqual(rawType, "TAKE_PROFIT"))))
         {
             takeProfitPrice = triggerPrice;
@@ -1817,7 +1825,7 @@ public partial class weex : ccxt.weex
         // don't remove the future from the .futures cache
         if (isTrue(inOp(client.futures, messageHash)))
         {
-            var future = getValue(client.futures, messageHash);
+            Future future = ((Future)getValue(client.futures, messageHash));
             (future as Future).resolve();
             callDynamically(client as WebSocketClient, "resolve", new object[] {getValue(this.balance, type), add(type, ":balance")});
         }
@@ -1882,7 +1890,7 @@ public partial class weex : ccxt.weex
         //         ]
         //     }
         //
-        object url = client.url;
+        string url = client.url;
         string accountType = "spot";
         if (isTrue(isGreaterThanOrEqual(getIndexOf(url, "contract"), 0)))
         {
@@ -1900,7 +1908,7 @@ public partial class weex : ccxt.weex
             IDictionary<string, object> entry = this.safeDict(balanceUpdates, i);
             string? currencyId = this.safeString(entry, "coin");
             string? code = this.safeCurrencyCode(currencyId);
-            object account = this.account();
+            Dictionary<string, object> account = this.account();
             ((IDictionary<string,object>)account)["free"] = this.safeString2(entry, "available", "amount");
             ((IDictionary<string,object>)account)["used"] = this.safeString(entry, "frozen");
             ((IDictionary<string,object>)account)["total"] = this.safeString2(entry, "equity", "legacyAmount");
@@ -1991,7 +1999,7 @@ public partial class weex : ccxt.weex
             callDynamically(cache, "append", new object[] {position});
         }
         // don't remove the future from the .futures cache
-        var future = getValue(client.futures, messageHash);
+        Future future = ((Future)getValue(client.futures, messageHash));
         (future as Future).resolve(cache);
         callDynamically(client as WebSocketClient, "resolve", new object[] {cache, "positions"});
     }
@@ -2079,7 +2087,7 @@ public partial class weex : ccxt.weex
             callDynamically(cache, "append", new object[] {position});
             ((IList<object>)newPositions).Add(position);
         }
-        object messageHashes = this.findMessageHashes(client as WebSocketClient, "positions::");
+        List<object> messageHashes = this.findMessageHashes(client as WebSocketClient, "positions::");
         for (int i = 0; isLessThan(i, getArrayLength(messageHashes)); postFixIncrement(ref i))
         {
             object messageHash = getValue(messageHashes, i);
@@ -2101,9 +2109,9 @@ public partial class weex : ccxt.weex
         return this.parsePosition(position, market);
     }
 
-    public virtual object getMarketFromClientAndMessage(WebSocketClient client, object message)
+    public virtual Dictionary<string, object> getMarketFromClientAndMessage(WebSocketClient client, object message)
     {
-        object url = client.url;
+        string url = client.url;
         string marketType = "spot";
         if (isTrue(isGreaterThanOrEqual(getIndexOf(url, "contract"), 0)))
         {
@@ -2111,7 +2119,7 @@ public partial class weex : ccxt.weex
         }
         string? marketId = this.safeString(message, "s");
         Dictionary<string, object> market = this.safeMarket(marketId, null, null, marketType);
-        return market;
+        return ((Dictionary<string, object>)((object)(market)));
     }
 
     public async virtual Task pong(WebSocketClient client, object message)
@@ -2158,7 +2166,7 @@ public partial class weex : ccxt.weex
         return message;
     }
 
-    public virtual object handleErrorMessage(WebSocketClient client, object message)
+    public virtual bool handleErrorMessage(WebSocketClient client, object message)
     {
         //
         //     {
@@ -2180,10 +2188,10 @@ public partial class weex : ccxt.weex
             } catch(Exception error)
             {
                 ((WebSocketClient)client).reject(error);
-                return true;
+                return ((bool)((object)(true))!);
             }
         }
-        return false;
+        return ((bool)((object)(false))!);
     }
 
     public override void handleMessage(WebSocketClient client, object message)

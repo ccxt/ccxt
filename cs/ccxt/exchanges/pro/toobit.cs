@@ -7,7 +7,7 @@ namespace ccxt.pro;
 public partial class toobit { public toobit(object args = null) : base(args) { } }
 public partial class toobit : ccxt.toobit
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "has", new Dictionary<string, object>() {
@@ -697,7 +697,7 @@ public partial class toobit : ccxt.toobit
 
     public override void handleDelta(object bookside, object delta)
     {
-        object bidAsk = this.parseOrderBookBidAsk(delta);
+        List<object> bidAsk = this.parseOrderBookBidAsk(delta);
         (bookside as IOrderBookSide).storeArray(bidAsk);
     }
 
@@ -862,7 +862,7 @@ public partial class toobit : ccxt.toobit
             object balance = getValue(data, i);
             string? currencyId = this.safeString(balance, "a");
             string? code = this.safeCurrencyCode(currencyId);
-            object account = this.account();
+            Dictionary<string, object> account = this.account();
             ((IDictionary<string,object>)account)["info"] = balance;
             ((IDictionary<string,object>)account)["used"] = this.safeString(balance, "l");
             ((IDictionary<string,object>)account)["free"] = this.safeString(balance, "f");
@@ -883,7 +883,7 @@ public partial class toobit : ccxt.toobit
         // don't remove the future from the .futures cache
         if (isTrue(inOp(client.futures, messageHash)))
         {
-            var future = getValue(client.futures, messageHash);
+            Future future = ((Future)getValue(client.futures, messageHash));
             (future as Future).resolve();
             callDynamically(client as WebSocketClient, "resolve", new object[] {getValue(this.balance, type), add(type, ":fetchBalanceSnapshot")});
             callDynamically(client as WebSocketClient, "resolve", new object[] {getValue(this.balance, type), add(type, ":balance")}); // we should also resolve right away after snapshot, so user doesn't double-fetch balance
@@ -1139,7 +1139,7 @@ public partial class toobit : ccxt.toobit
         }
         await this.authenticate();
         string type = "swap"; // the only account type that carries positions here
-        object messageHash = "";
+        string messageHash = "";
         if (!isTrue(this.isEmpty(symbols)))
         {
             symbols = this.marketSymbols(symbols);
@@ -1209,7 +1209,7 @@ public partial class toobit : ccxt.toobit
         // don't remove the future from the .futures cache
         if (isTrue(inOp(client.futures, messageHash)))
         {
-            var future = getValue(client.futures, messageHash);
+            Future future = ((Future)getValue(client.futures, messageHash));
             (future as Future).resolve(cache);
             callDynamically(client as WebSocketClient, "resolve", new object[] {cache, add(type, ":positions")});
         }
@@ -1272,7 +1272,7 @@ public partial class toobit : ccxt.toobit
         // appends `$` to every local name wherever it appears, string literals
         // included, so a local `positions` rewrites the hash prefix below to
         // ':$positions::' and find_message_hashes () matches nothing in PHP
-        object messageHashes = this.findMessageHashes(client as WebSocketClient, add(accountType, ":positions::"));
+        List<object> messageHashes = this.findMessageHashes(client as WebSocketClient, add(accountType, ":positions::"));
         for (int i = 0; isLessThan(i, getArrayLength(messageHashes)); postFixIncrement(ref i))
         {
             object messageHash = getValue(messageHashes, i);

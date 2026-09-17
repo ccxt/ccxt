@@ -5,7 +5,7 @@ namespace ccxt;
 
 public partial class revolutx : Exchange
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "id", "revolutx" },
@@ -208,7 +208,7 @@ public partial class revolutx : Exchange
         api ??= "public";
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        string implodedPath = this.implodeParams(path, parameters);
+        string? implodedPath = this.implodeParams(path, parameters);
         object query = this.omit(parameters, this.extractParams(path));
         List<object> queryKeys = new List<object>(((IDictionary<string,object>)query).Keys);
         int queryLength = getArrayLength(queryKeys);
@@ -286,7 +286,7 @@ public partial class revolutx : Exchange
      * @param {object} market the raw market data from the exchange
      * @returns {object} a [market structure]{@link https://docs.ccxt.com/?id=market-structure}
      */
-    public override object parseMarket(object market)
+    public override Dictionary<string, object> parseMarket(object market)
     {
         string? id = this.safeString(market, "id");
         object bs = this.safeString(market, "base", "");
@@ -301,7 +301,7 @@ public partial class revolutx : Exchange
         string? status = this.safeString(market, "status");
         bool active = (isEqual(status, "active"));
         object symbol = add(add(bs, "/"), quote);
-        return new Dictionary<string, object>() {
+        return ccxt.BaseExchange.ToDict(new Dictionary<string, object>() {
             { "id", id },
             { "symbol", symbol },
             { "base", bs },
@@ -355,7 +355,7 @@ public partial class revolutx : Exchange
             } },
             { "created", null },
             { "info", market },
-        };
+        });
     }
 
     /**
@@ -413,7 +413,7 @@ public partial class revolutx : Exchange
      * @param {object} currency the raw currency data from the exchange
      * @returns {object} a [currency structure]{@link https://docs.ccxt.com/?id=currency-structure}
      */
-    public override object parseCurrency(object currency)
+    public override Dictionary<string, object> parseCurrency(object currency)
     {
         string? id = this.safeString2(currency, "id", "symbol", "");
         string? code = this.safeCurrencyCode(id);
@@ -424,7 +424,7 @@ public partial class revolutx : Exchange
         string? assetType = this.safeString(currency, "asset_type");
         string type = ((bool) isTrue((isEqual(assetType, "crypto")))) ? "crypto" : "fiat";
         double? precision = ((bool) isTrue((!isEqual(scale, null)))) ? Math.Pow(Convert.ToDouble(10), Convert.ToDouble(prefixUnaryNeg(ref scale))) : null;
-        return new Dictionary<string, object>() {
+        return ccxt.BaseExchange.ToDict(new Dictionary<string, object>() {
             { "info", currency },
             { "id", id },
             { "code", code },
@@ -450,7 +450,7 @@ public partial class revolutx : Exchange
                 } },
             } },
             { "networks", new Dictionary<string, object>() {} },
-        };
+        });
     }
 
     /**
@@ -462,7 +462,7 @@ public partial class revolutx : Exchange
      * @param {string} [params.region] the region to filter currencies by
      * @returns {object} a dictionary of [currency structures]{@link https://docs.ccxt.com/?id=currency-structure}
      */
-    public async override Task<object> fetchCurrencies(object parameters = null)
+    public async override Task<IDictionary<string, object>> fetchCurrencies(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> request = new Dictionary<string, object>() {};
@@ -488,7 +488,7 @@ public partial class revolutx : Exchange
             Dictionary<string, object> currencyData = this.extend(currency, new Dictionary<string, object>() {
                 { "id", key },
             });
-            object parsed = this.parseCurrency(currencyData);
+            Dictionary<string, object> parsed = this.parseCurrency(currencyData);
             string? code = this.safeString(parsed, "code", "");
             if (isTrue(isEqual(code, "")))
             {
@@ -496,7 +496,7 @@ public partial class revolutx : Exchange
             }
             ((IDictionary<string,object>)result)[(string)code] = parsed;
         }
-        return result;
+        return ((IDictionary<string, object>)((object)(result)));
     }
 
     /**
@@ -931,7 +931,7 @@ public partial class revolutx : Exchange
             {
                 continue;
             }
-            object account = this.account();
+            Dictionary<string, object> account = this.account();
             ((IDictionary<string,object>)account)["free"] = this.safeString(balance, "available");
             string? reserved = this.safeString(balance, "reserved");
             string? staked = this.safeString(balance, "staked");

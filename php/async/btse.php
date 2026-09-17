@@ -517,18 +517,18 @@ class btse extends Exchange {
             ),
             'exceptions' => array(
                 'exact' => array(
-                    // 200 array("symbol":"ETH-PERP","timestamp":1770892916507,"status":135,"type":93,"message":"array(\"msgKey\":\"trade.error.invalid.position_id\",\"params\":[\"ETH-PERP-USDT\"] ,\"default_msg\":\"User is in ISOLATE_HEDGE in market => ETH-PERP-USDT, but positionId is empty in the request.\")")
-                    // array("code":400,"msg":"BADREQUEST => startTime can not before than 1569888000000 (2019-10-01T00:00)","time":1770828108074,"data":null,"success":false)
-                    // array("code":400,"msg":"BADREQUEST => resolution too small for the requested time range. Records returned exceeds 300","success":false,"time":1770452248292,"data":array())
-                    // when position mode is wrong array("status":429,"errorCode":-1,"message":"Order not found","extraData":["117","0"])
-                    // array("status":400,"errorCode":-2,"message":"Invalid request parameters","extraData":null)
-                    // array("status":400,"errorCode":-2,"message":"Can't support count more than 500","extraData":null)
+                    // 200 {"symbol":"ETH-PERP","timestamp":1770892916507,"status":135,"type":93,"message":"{\"msgKey\":\"trade.error.invalid.position_id\",\"params\":[\"ETH-PERP-USDT\"] ,\"default_msg\":\"User is in ISOLATE_HEDGE in market: ETH-PERP-USDT, but positionId is empty in the request.\"}"}
+                    // {"code":400,"msg":"BADREQUEST: startTime can not before than 1569888000000 (2019-10-01T00:00)","time":1770828108074,"data":null,"success":false}
+                    // {"code":400,"msg":"BADREQUEST: resolution too small for the requested time range. Records returned exceeds 300","success":false,"time":1770452248292,"data":[]}
+                    // when position mode is wrong {"status":429,"errorCode":-1,"message":"Order not found","extraData":["117","0"]}
+                    // {"status":400,"errorCode":-2,"message":"Invalid request parameters","extraData":null}
+                    // {"status":400,"errorCode":-2,"message":"Can't support count more than 500","extraData":null}
                     // code -1 is ambiguous (TIMEOUT in the official status enum, generic failure with a
                     // varying message in the legacy envelope), so it is classified by message in the broad map
-                    '-2' => '\\ccxt\\BadRequest', // INVALID_REQUEST array("status":400,"errorCode":-2,"message":"symbol parameter is mandatory","extraData":null)
-                    '-7' => '\\ccxt\\AuthenticationError', // array("status":400,"errorCode":-7,"message":"Authenticate failed","extraData":null)
-                    '-7006' => '\\ccxt\\BadSymbol', // array("status":400,"errorCode":-7006,"message":"Unsupported symbol","extraData":null) observed live for a full contract id sent to the unified futures api
-                    '-11' => '\\ccxt\\ExchangeNotAvailable', // 400 Bad Request array("code":-11,"msg":"System error","success":false,"time":1770451790797,"data":array())
+                    '-2' => '\\ccxt\\BadRequest', // INVALID_REQUEST {"status":400,"errorCode":-2,"message":"symbol parameter is mandatory","extraData":null}
+                    '-7' => '\\ccxt\\AuthenticationError', // {"status":400,"errorCode":-7,"message":"Authenticate failed","extraData":null}
+                    '-7006' => '\\ccxt\\BadSymbol', // {"status":400,"errorCode":-7006,"message":"Unsupported symbol","extraData":null} observed live for a full contract id sent to the unified futures api
+                    '-11' => '\\ccxt\\ExchangeNotAvailable', // 400 Bad Request {"code":-11,"msg":"System error","success":false,"time":1770451790797,"data":[]}
                     // the entries below come from the api status enum on the official error
                     // codes reference page, success and neutral codes are deliberately absent
                     '1' => '\\ccxt\\ExchangeNotAvailable', // MARKET_UNAVAILABLE
@@ -543,8 +543,8 @@ class btse extends Exchange {
                     '41' => '\\ccxt\\BadRequest', // ERROR_INVALID_RISK_LIMIT
                     '64' => '\\ccxt\\ExchangeError', // STATUS_LIQUIDATION
                     '101' => '\\ccxt\\InvalidOrder', // FUTURES_ORDER_PRICE_OUTSIDE_LIQUIDATION_PRICE
-                    '133' => '\\ccxt\\InvalidOrder', // array("status":400,"errorCode":133,"message":"Position mode invalid","extraData":["0","150"])
-                    '134' => '\\ccxt\\BadRequest', // array("status":400,"errorCode":134,"message":"failure","extraData":"Remaining positions.")
+                    '133' => '\\ccxt\\InvalidOrder', // {"status":400,"errorCode":133,"message":"Position mode invalid","extraData":["0","150"]}
+                    '134' => '\\ccxt\\BadRequest', // {"status":400,"errorCode":134,"message":"failure","extraData":"Remaining positions."}
                     '135' => '\\ccxt\\BadRequest', // invalid position id, observed live with an embedded json message
                     '300' => '\\ccxt\\InvalidOrder', // ERROR_MAX_ORDER_SIZE_EXCEEDED
                     '301' => '\\ccxt\\InvalidOrder', // ERROR_INVALID_ORDER_SIZE
@@ -554,22 +554,22 @@ class btse extends Exchange {
                     '305' => '\\ccxt\\InvalidOrder', // ERROR_ORDER_PRICE_OUT_OF_PRICE_PROTECTION_RANGE
                     '1003' => '\\ccxt\\InvalidOrder', // ORDER_LIQUIDATION
                     '1004' => '\\ccxt\\InvalidOrder', // ORDER_ADL
-                    '4003' => '\\ccxt\\InvalidOrder', // array("code":4003,"msg":"BADREQUEST => The order amount cannot surpass 100.0 BTC. Please adjust your order size and try again.","time":1786509292895,"data":null,"success":false)
-                    '4005' => '\\ccxt\\InvalidOrder', // array("code":4005,"msg":"BADREQUEST => order price must be at least 0.01 USDT","time":1786622000000,"data":null,"success":false) observed live on the unified spot api
-                    '4051' => '\\ccxt\\InvalidOrder', // array("status":400,"errorCode":4051,"message":"[RAVE-PERP] The order size cannot surpass 50000.0 contracts. Please adjust your order size and try again.","extraData":null)
-                    '10002' => '\\ccxt\\AuthenticationError', // array("code":10002,"msg":"UNAUTHORIZED => Authentication Failed","time":1770477230034,"data":null,"success":false)
-                    '10010004' => '\\ccxt\\BadRequest', // array("code":10010004,"msg":"BADREQUEST => resolution too small for the requested time range. Records returned exceeds 300","success":false) observed live on the unified markets api
-                    '11000001' => '\\ccxt\\BadRequest', // array("code":11000001,"msg":"Request parameter is error, 'asset' is required in spot wallet history query","time":1786624306820,"data":null,"success":false) observed live on the unified wallet api
-                    '51523' => '\\ccxt\\InsufficientFunds', // array("code":51523,"msg":"BADREQUEST => Insufficient wallet balance","time":1770814875493,"data":null,"success":false)
-                    '33001001' => '\\ccxt\\InvalidOrder', // array("code":33001001,"msg":"BADREQUEST => The distance between Trigger Price and Limit Price cannot exceed 5.0 %","time":1770815167145,"data":["5.0 %"],"success":false)
-                    '33001003' => '\\ccxt\\InvalidOrder', // array("status":400,"errorCode":33001003,"message":"You can not SELL ETH lower than 1825.24 USDT","extraData":["SELL","ETH","lower","1825.24","USDT"])
-                    '33199101' => '\\ccxt\\InsufficientFunds', // array("status":400,"errorCode":33199101,"message":"Available balance is insufficient to meet this order.","extraData":["0.013553333"])
-                    '33199120' => '\\ccxt\\InvalidOrder', // array("status":400,"errorCode":33199120,"message":"Reduce only open order canceled because no active position exists","extraData":null)
+                    '4003' => '\\ccxt\\InvalidOrder', // {"code":4003,"msg":"BADREQUEST: The order amount cannot surpass 100.0 BTC. Please adjust your order size and try again.","time":1786509292895,"data":null,"success":false}
+                    '4005' => '\\ccxt\\InvalidOrder', // {"code":4005,"msg":"BADREQUEST: order price must be at least 0.01 USDT","time":1786622000000,"data":null,"success":false} observed live on the unified spot api
+                    '4051' => '\\ccxt\\InvalidOrder', // {"status":400,"errorCode":4051,"message":"[RAVE-PERP] The order size cannot surpass 50000.0 contracts. Please adjust your order size and try again.","extraData":null}
+                    '10002' => '\\ccxt\\AuthenticationError', // {"code":10002,"msg":"UNAUTHORIZED: Authentication Failed","time":1770477230034,"data":null,"success":false}
+                    '10010004' => '\\ccxt\\BadRequest', // {"code":10010004,"msg":"BADREQUEST: resolution too small for the requested time range. Records returned exceeds 300","success":false} observed live on the unified markets api
+                    '11000001' => '\\ccxt\\BadRequest', // {"code":11000001,"msg":"Request parameter is error, 'asset' is required in spot wallet history query","time":1786624306820,"data":null,"success":false} observed live on the unified wallet api
+                    '51523' => '\\ccxt\\InsufficientFunds', // {"code":51523,"msg":"BADREQUEST: Insufficient wallet balance","time":1770814875493,"data":null,"success":false}
+                    '33001001' => '\\ccxt\\InvalidOrder', // {"code":33001001,"msg":"BADREQUEST: The distance between Trigger Price and Limit Price cannot exceed 5.0 %","time":1770815167145,"data":["5.0 %"],"success":false}
+                    '33001003' => '\\ccxt\\InvalidOrder', // {"status":400,"errorCode":33001003,"message":"You can not SELL ETH lower than 1825.24 USDT","extraData":["SELL","ETH","lower","1825.24","USDT"]}
+                    '33199101' => '\\ccxt\\InsufficientFunds', // {"status":400,"errorCode":33199101,"message":"Available balance is insufficient to meet this order.","extraData":["0.013553333"]}
+                    '33199120' => '\\ccxt\\InvalidOrder', // {"status":400,"errorCode":33199120,"message":"Reduce only open order canceled because no active position exists","extraData":null}
                 ),
                 'broad' => array(
                     // the specific strings come from the official error codes reference and
                     // must stay above the generic BADREQUEST catch all
-                    'Order not found' => '\\ccxt\\OrderNotFound', // array("status":429,"errorCode":-1,"message":"Order not found","extraData":["ETHPFC-USD","0","117"])
+                    'Order not found' => '\\ccxt\\OrderNotFound', // {"status":429,"errorCode":-1,"message":"Order not found","extraData":["ETHPFC-USD","0","117"]}
                     'Insufficient wallet balance' => '\\ccxt\\InsufficientFunds',
                     'Insufficient balance' => '\\ccxt\\InsufficientFunds', // official error string for enum code 8
                     'Authentication Failed' => '\\ccxt\\AuthenticationError',
@@ -629,8 +629,8 @@ class btse extends Exchange {
         $response = Async\await($this->publicGetSpotApiV33Time($params));
         //
         //     {
-        //         "iso" => "2026-02-06T11:48:37.976Z",
-        //         "epoch" => 1770378517
+        //         "iso": "2026-02-06T11:48:37.976Z",
+        //         "epoch": 1770378517
         //     }
         //
         return $this->safe_timestamp($response, 'epoch');
@@ -662,67 +662,67 @@ class btse extends Exchange {
         //
         // spot
         //     {
-        //         "symbol" => "BTC-USDT",
-        //         "type" => "Spot",
-        //         "category" => "CRYPTO",
-        //         "tradeCurrency" => "BTC",
-        //         "baseCurrency" => "BTC",
-        //         "quoteCurrency" => "USDT",
-        //         "displayName" => "Bitcoin",
-        //         "active" => true,
-        //         "minOrderPrice" => "0.1",
-        //         "minPriceIncrement" => "0.1",
-        //         "pricePrecision" => 1,
-        //         "minOrderSize" => "0.00001",
-        //         "maxOrderSize" => "100",
-        //         "minSizeIncrement" => "0.00001",
-        //         "sizePrecision" => 5
+        //         "symbol": "BTC-USDT",
+        //         "type": "Spot",
+        //         "category": "CRYPTO",
+        //         "tradeCurrency": "BTC",
+        //         "baseCurrency": "BTC",
+        //         "quoteCurrency": "USDT",
+        //         "displayName": "Bitcoin",
+        //         "active": true,
+        //         "minOrderPrice": "0.1",
+        //         "minPriceIncrement": "0.1",
+        //         "pricePrecision": 1,
+        //         "minOrderSize": "0.00001",
+        //         "maxOrderSize": "100",
+        //         "minSizeIncrement": "0.00001",
+        //         "sizePrecision": 5
         //     }
         //
         // swap
         //     {
-        //         "symbol" => "BTC-PERP-USDT",
-        //         "type" => "FuturesPerpetual",
-        //         "category" => "CRYPTO",
-        //         "tradeCurrency" => "BTC-PERP",
-        //         "baseCurrency" => "BTC",
-        //         "quoteCurrency" => "USDT",
-        //         "displayName" => "Bitcoin",
-        //         "active" => true,
-        //         "minOrderPrice" => "0.1",
-        //         "minPriceIncrement" => "0.1",
-        //         "pricePrecision" => 1,
-        //         "minOrderSize" => "1",
-        //         "maxOrderSize" => "7500000",
-        //         "minSizeIncrement" => "1",
-        //         "sizePrecision" => 0,
-        //         "contractSize" => "0.00001",
-        //         "availableSettlement" => array( "USD", "USDT" )
+        //         "symbol": "BTC-PERP-USDT",
+        //         "type": "FuturesPerpetual",
+        //         "category": "CRYPTO",
+        //         "tradeCurrency": "BTC-PERP",
+        //         "baseCurrency": "BTC",
+        //         "quoteCurrency": "USDT",
+        //         "displayName": "Bitcoin",
+        //         "active": true,
+        //         "minOrderPrice": "0.1",
+        //         "minPriceIncrement": "0.1",
+        //         "pricePrecision": 1,
+        //         "minOrderSize": "1",
+        //         "maxOrderSize": "7500000",
+        //         "minSizeIncrement": "1",
+        //         "sizePrecision": 0,
+        //         "contractSize": "0.00001",
+        //         "availableSettlement": [ "USD", "USDT" ]
         //     }
         //
         // future
         //     {
-        //         "symbol" => "BTC-260925-USDT",
-        //         "type" => "FuturesTimeBased",
-        //         "category" => "CRYPTO",
-        //         "tradeCurrency" => "BTC-260925",
-        //         "baseCurrency" => "BTC",
-        //         "quoteCurrency" => "USDT",
-        //         "displayName" => "Bitcoin",
-        //         "active" => true,
-        //         "minOrderPrice" => "0.1",
-        //         "minPriceIncrement" => "0.1",
-        //         "pricePrecision" => 1,
-        //         "minOrderSize" => "1",
-        //         "maxOrderSize" => "100000",
-        //         "minSizeIncrement" => "1",
-        //         "sizePrecision" => 0,
-        //         "contractSize" => "0.00001",
-        //         "availableSettlement" => array( "USD", "USDT" ),
-        //         "contractStartTime" => 1774569600000,
-        //         "contractEndTime" => 1790323230000,
-        //         "matchingStartTime" => 1774569615000,
-        //         "becomeInactiveTime" => 1790323200000
+        //         "symbol": "BTC-260925-USDT",
+        //         "type": "FuturesTimeBased",
+        //         "category": "CRYPTO",
+        //         "tradeCurrency": "BTC-260925",
+        //         "baseCurrency": "BTC",
+        //         "quoteCurrency": "USDT",
+        //         "displayName": "Bitcoin",
+        //         "active": true,
+        //         "minOrderPrice": "0.1",
+        //         "minPriceIncrement": "0.1",
+        //         "pricePrecision": 1,
+        //         "minOrderSize": "1",
+        //         "maxOrderSize": "100000",
+        //         "minSizeIncrement": "1",
+        //         "sizePrecision": 0,
+        //         "contractSize": "0.00001",
+        //         "availableSettlement": [ "USD", "USDT" ],
+        //         "contractStartTime": 1774569600000,
+        //         "contractEndTime": 1790323230000,
+        //         "matchingStartTime": 1774569615000,
+        //         "becomeInactiveTime": 1790323200000
         //     }
         //
         $marketType = $this->safe_string($market, 'type');
@@ -847,7 +847,7 @@ class btse extends Exchange {
         if ($limit !== null) {
             $request['limit'] = min($limit, $maxLimit);
         } else {
-            // the endpoint returns only 10 candles when the $limit is omitted
+            // the endpoint returns only 10 candles when the limit is omitted
             $request['limit'] = $maxLimit;
         }
         if ($since !== null) {
@@ -858,10 +858,10 @@ class btse extends Exchange {
         list($until, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'until');
         if ($until !== null) {
             if ($since !== null) {
-                // check if the requested time range is too large for one $request
-                // if so, just omit $until for correct paginated calls for not to get an error from the exchange
+                // check if the requested time range is too large for one request
+                // if so, just omit until for correct paginated calls for not to get an error from the exchange
                 $duration = $this->parse_timeframe($timeframe);
-                $maxDelta = $duration * $maxLimit * 1000; // parseTimeframe returns seconds, the $difference below is in milliseconds
+                $maxDelta = $duration * $maxLimit * 1000; // parseTimeframe returns seconds, the difference below is in milliseconds
                 $difference = $until - $since;
                 if ($difference < $maxDelta) {
                     $request['end'] = $this->parse_to_int($until / 1000);
@@ -873,20 +873,20 @@ class btse extends Exchange {
         $response = Async\await($this->publicGetPublicApiMarketV1Klines($this->extend($request, $params)));
         //
         //     {
-        //         "data" => array(
-        //             array(
+        //         "data": [
+        //             [
         //                 "1786600800",
         //                 "1895.78",
         //                 "1898.52",
         //                 "1892.05",
         //                 "1898.3",
         //                 "560622.306372"
-        //             )
-        //         ),
-        //         "code" => 1,
-        //         "msg" => "Success",
-        //         "success" => true,
-        //         "time" => 1786604274378
+        //             ]
+        //         ],
+        //         "code": 1,
+        //         "msg": "Success",
+        //         "success": true,
+        //         "time": 1786604274378
         //     }
         //
         $data = $this->safe_list($response, 'data', array());
@@ -896,14 +896,14 @@ class btse extends Exchange {
 
     public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
         //
-        //     array(
+        //     [
         //         "1786600800", // timestamp in seconds
         //         "1895.78",
         //         "1898.52",
         //         "1892.05",
         //         "1898.3",
         //         "560622.306372" // volume in quote currency, contract rows may use scientific notation
-        //     )
+        //     ]
         //
         return array(
             $this->safe_timestamp($ohlcv, 0),
@@ -941,19 +941,19 @@ class btse extends Exchange {
         $response = Async\await($this->publicGetPublicApiMarketV1Orderbook($this->extend($request, $params)));
         //
         //     {
-        //         "data" => array(
-        //             "timestamp" => 1786605670799,
-        //             "bids" => array(
-        //                 array( "1896.11", "0.015" )
-        //             ),
-        //             "asks" => array(
-        //                 array( "1896.74", "0.945" )
-        //             )
-        //         ),
-        //         "code" => 1,
-        //         "msg" => "Success",
-        //         "success" => true,
-        //         "time" => 1786605670833
+        //         "data": {
+        //             "timestamp": 1786605670799,
+        //             "bids": [
+        //                 [ "1896.11", "0.015" ]
+        //             ],
+        //             "asks": [
+        //                 [ "1896.74", "0.945" ]
+        //             ]
+        //         },
+        //         "code": 1,
+        //         "msg": "Success",
+        //         "success": true,
+        //         "time": 1786605670833
         //     }
         //
         $data = $this->safe_dict($response, 'data', array());
@@ -1010,16 +1010,16 @@ class btse extends Exchange {
         $response = Async\await($this->publicGetPublicApiMarketV1RecentFundingHistory($this->extend($request, $params)));
         //
         //     {
-        //         "data" => array(
+        //         "data": [
         //             {
-        //                 "timestamp" => 1786003200911,
-        //                 "rate" => "0.0000152"
+        //                 "timestamp": 1786003200911,
+        //                 "rate": "0.0000152"
         //             }
-        //         ),
-        //         "code" => 1,
-        //         "msg" => "Success",
-        //         "success" => true,
-        //         "time" => 1786607775380
+        //         ],
+        //         "code": 1,
+        //         "msg": "Success",
+        //         "success": true,
+        //         "time": 1786607775380
         //     }
         //
         $data = $this->safe_list($response, 'data', array());
@@ -1041,8 +1041,8 @@ class btse extends Exchange {
     public function parse_funding_rate_history(mixed $contract, ?array $market = null) {
         //
         //     {
-        //         "timestamp" => 1786003200911,
-        //         "rate" => "0.0000152"
+        //         "timestamp": 1786003200911,
+        //         "rate": "0.0000152"
         //     }
         //
         $timestamp = $this->safe_integer($contract, 'timestamp');
@@ -1079,20 +1079,20 @@ class btse extends Exchange {
             $walletResponse = Async\await($this->privateGetPublicApiWalletV1UserAssets($params));
             //
             //     {
-            //         "data" => array(
+            //         "data": [
             //             {
-            //                 "asset" => "BTC",
-            //                 "type" => "CRYPTO",
-            //                 "totalAmount" => "100.0",
-            //                 "availableAmount" => "100.0",
-            //                 "availableActions" => array( "CONVERT", "TRANSFER", "WITHDRAW", "DEPOSIT", "SEND_TO" ),
-            //                 "cryptoNetwork" => array( "depositNetworks" => array( "BITCOIN" ), "withdrawalNetworks" => array( "BITCOIN" ) )
+            //                 "asset": "BTC",
+            //                 "type": "CRYPTO",
+            //                 "totalAmount": "100.0",
+            //                 "availableAmount": "100.0",
+            //                 "availableActions": [ "CONVERT", "TRANSFER", "WITHDRAW", "DEPOSIT", "SEND_TO" ],
+            //                 "cryptoNetwork": { "depositNetworks": [ "BITCOIN" ], "withdrawalNetworks": [ "BITCOIN" ] }
             //             }
-            //         ),
-            //         "code" => 1,
-            //         "msg" => "Success",
-            //         "success" => true,
-            //         "time" => 1624989977940
+            //         ],
+            //         "code": 1,
+            //         "msg": "Success",
+            //         "success": true,
+            //         "time": 1624989977940
             //     }
             //
             $response = $this->safe_list($walletResponse, 'data', array());
@@ -1104,21 +1104,21 @@ class btse extends Exchange {
             );
             $response = Async\await($this->privateGetFuturesApiV23UserWallet($this->extend($request, $params)));
             //
-            //     array(
+            //     [
             //         {
-            //             "wallet" => "CROSS@",
-            //             "totalValue" => 100,
-            //             "marginBalance" => 100,
-            //             "availableBalance" => 100,
-            //             "unrealisedProfitLoss" => 0,
-            //             "assets" => array(
-            //                 array("balance" => 0.20183537, "assetPrice" => 7158.844999999999, "currency" => "BTC")
-            //             ),
-            //             "assetsInUse" => array(
-            //                 array("balance" => 0.01, "assetPrice" => 7158.844999999999, "currency" => "BTC")
-            //             )
+            //             "wallet": "CROSS@",
+            //             "totalValue": 100,
+            //             "marginBalance": 100,
+            //             "availableBalance": 100,
+            //             "unrealisedProfitLoss": 0,
+            //             "assets": [
+            //                 {"balance": 0.20183537, "assetPrice": 7158.844999999999, "currency": "BTC"}
+            //             ],
+            //             "assetsInUse": [
+            //                 {"balance": 0.01, "assetPrice": 7158.844999999999, "currency": "BTC"}
+            //             ]
             //         }
-            //     )
+            //     ]
             //
         }
         return $this->parse_balance($response);
@@ -1135,7 +1135,7 @@ class btse extends Exchange {
             $row = $response[$i];
             $assets = $this->safe_list($row, 'assets');
             if ($assets !== null) {
-                // futures wallet $row => per-currency $totals in $assets, locked amounts in assetsInUse
+                // futures wallet row: per-currency totals in assets, locked amounts in assetsInUse
                 // several wallet rows can report the same currency, so amounts are aggregated
                 $inUse = $this->safe_list($row, 'assetsInUse', array());
                 for ($j = 0; $j < count($inUse); $j++) {
@@ -1156,8 +1156,8 @@ class btse extends Exchange {
                     $useds[$code] = $this->safe_string($useds, $code, '0');
                 }
             } else {
-                // unified wallet $row => array("asset" => "BTC", "totalAmount" => "100.0", "availableAmount" => "100.0")
-                // legacy spot wallet $row => array("available" => 520.52, "currency" => "USD", "total" => 5566.5566)
+                // unified wallet row: {"asset": "BTC", "totalAmount": "100.0", "availableAmount": "100.0"}
+                // legacy spot wallet row: {"available": 520.52, "currency": "USD", "total": 5566.5566}
                 $code = $this->safe_currency_code($this->safe_string_2($row, 'asset', 'currency'));
                 if ($code === null) {
                     continue;
@@ -1206,22 +1206,22 @@ class btse extends Exchange {
         $response = Async\await($this->publicGetPublicApiMarketV1RiskLimits($this->extend($request, $params)));
         //
         //     {
-        //         "data" => array(
+        //         "data": [
         //             {
-        //                 "symbol" => "BTC-PERP-USDT",
-        //                 "riskLimits" => array(
-        //                     array( "level" => 1, "value" => 3000000 ),
-        //                     array( "level" => 2, "value" => 6000000 )
-        //                 )
+        //                 "symbol": "BTC-PERP-USDT",
+        //                 "riskLimits": [
+        //                     { "level": 1, "value": 3000000 },
+        //                     { "level": 2, "value": 6000000 }
+        //                 ]
         //             }
-        //         ),
-        //         "code" => 1,
-        //         "msg" => "Success",
-        //         "success" => true,
-        //         "time" => 1786609503920
+        //         ],
+        //         "code": 1,
+        //         "msg": "Success",
+        //         "success": true,
+        //         "time": 1786609503920
         //     }
         //
-        // a $single-$symbol $request returns the $entry directly in $data
+        // a single-symbol request returns the entry directly in data
         //
         $data = $this->safe_list($response, 'data');
         if ($data === null) {
@@ -1252,11 +1252,11 @@ class btse extends Exchange {
                         'info' => $level,
                     );
                 }
-                $result[$symbol] = $tiers; // rows arrive ordered by $level ascending, avoid sortBy which compares numeric keys lexicographically in some transpiled runtimes
+                $result[$symbol] = $tiers; // rows arrive ordered by level ascending, avoid sortBy which compares numeric keys lexicographically in some transpiled runtimes
             }
         }
         // the exchange only provides the cap of each risk tier, so the floor
-        // is derived from the previous tier => 0 for the first tier, and the
+        // is derived from the previous tier: 0 for the first tier, and the
         // previous tier's maxNotional for every subsequent tier
         $symbolKeys = is_array($result) ? array_keys($result) : array();
         for ($i = 0; $i < count($symbolKeys); $i++) {
@@ -1343,37 +1343,37 @@ class btse extends Exchange {
         $response = Async\await($this->publicGetPublicApiMarketV1Ticker24hr($this->extend($request, $params)));
         //
         //     {
-        //         "data" => array(
+        //         "data": [
         //             {
-        //                 "symbol" => "BTC-PERP-USDT",
-        //                 "lastPrice" => "63790.1",
-        //                 "openPrice" => "63808.3",
-        //                 "highPrice" => "64446.7",
-        //                 "lowPrice" => "63289.7",
-        //                 "amount" => "789198764",
-        //                 "volume" => "502595131.844331",
-        //                 "openTime" => 1786514400,
-        //                 "closeTime" => 1786602644,
-        //                 "priceChange" => "-18.2",
-        //                 "priceChangePercent" => "0",
-        //                 "prevClosePrice" => "63842.4",
-        //                 "bidPrice" => "63790",
-        //                 "bidQty" => "222000",
-        //                 "askPrice" => "63790.2",
-        //                 "askQty" => "255355",
-        //                 "openInterest" => "29489680",
-        //                 "fundingRate" => "0.0001",
-        //                 "nextFundingTime" => 1786608000000,
-        //                 "fundingIntervalMinutes" => 480
+        //                 "symbol": "BTC-PERP-USDT",
+        //                 "lastPrice": "63790.1",
+        //                 "openPrice": "63808.3",
+        //                 "highPrice": "64446.7",
+        //                 "lowPrice": "63289.7",
+        //                 "amount": "789198764",
+        //                 "volume": "502595131.844331",
+        //                 "openTime": 1786514400,
+        //                 "closeTime": 1786602644,
+        //                 "priceChange": "-18.2",
+        //                 "priceChangePercent": "0",
+        //                 "prevClosePrice": "63842.4",
+        //                 "bidPrice": "63790",
+        //                 "bidQty": "222000",
+        //                 "askPrice": "63790.2",
+        //                 "askQty": "255355",
+        //                 "openInterest": "29489680",
+        //                 "fundingRate": "0.0001",
+        //                 "nextFundingTime": 1786608000000,
+        //                 "fundingIntervalMinutes": 480
         //             }
-        //         ),
-        //         "code" => 1,
-        //         "msg" => "Success",
-        //         "success" => true,
-        //         "time" => 1786602644221
+        //         ],
+        //         "code": 1,
+        //         "msg": "Success",
+        //         "success": true,
+        //         "time": 1786602644221
         //     }
         //
-        // a single-$symbol query returns $data as one object, a multi-$symbol or bare query returns an array
+        // a single-symbol query returns data as one object, a multi-symbol or bare query returns an array
         $data = $this->safe_dict($response, 'data');
         if ($data === null) {
             $rows = $this->safe_list($response, 'data', array());
@@ -1480,7 +1480,7 @@ class btse extends Exchange {
         $rows = array();
         for ($i = 0; $i < count($data); $i++) {
             $row = $data[$i];
-            // spot $rows do not carry an open interest
+            // spot rows do not carry an open interest
             if ($this->safe_string($row, 'openInterest') !== null) {
                 $rows[] = $row;
             }
@@ -1557,7 +1557,7 @@ class btse extends Exchange {
         $rows = array();
         for ($i = 0; $i < count($data); $i++) {
             $row = $data[$i];
-            // spot $rows do not carry a funding rate
+            // spot rows do not carry a funding rate
             if ($this->safe_string($row, 'fundingRate') !== null) {
                 $rows[] = $row;
             }
@@ -1567,28 +1567,28 @@ class btse extends Exchange {
 
     public function parse_funding_rate(mixed $contract, ?array $market = null): array {
         //
-        // ticker/24hr $contract rows
+        // ticker/24hr contract rows
         //     {
-        //         "symbol" => "ETH-PERP-USDT",
-        //         "lastPrice" => "1896.17",
-        //         "openPrice" => "1887.07",
-        //         "highPrice" => "1924",
-        //         "lowPrice" => "1872.44",
-        //         "amount" => "1937140691",
-        //         "volume" => "366459222.269293",
-        //         "openTime" => 1786518000,
-        //         "closeTime" => 1786607054,
-        //         "priceChange" => "9.1",
-        //         "priceChangePercent" => "0.005",
-        //         "prevClosePrice" => "1897.71",
-        //         "bidPrice" => "1896",
-        //         "bidQty" => "105",
-        //         "askPrice" => "1896.01",
-        //         "askQty" => "11354",
-        //         "openInterest" => "19344237",
-        //         "fundingRate" => "0.00006016",
-        //         "nextFundingTime" => 1786608000000,
-        //         "fundingIntervalMinutes" => 480
+        //         "symbol": "ETH-PERP-USDT",
+        //         "lastPrice": "1896.17",
+        //         "openPrice": "1887.07",
+        //         "highPrice": "1924",
+        //         "lowPrice": "1872.44",
+        //         "amount": "1937140691",
+        //         "volume": "366459222.269293",
+        //         "openTime": 1786518000,
+        //         "closeTime": 1786607054,
+        //         "priceChange": "9.1",
+        //         "priceChangePercent": "0.005",
+        //         "prevClosePrice": "1897.71",
+        //         "bidPrice": "1896",
+        //         "bidQty": "105",
+        //         "askPrice": "1896.01",
+        //         "askQty": "11354",
+        //         "openInterest": "19344237",
+        //         "fundingRate": "0.00006016",
+        //         "nextFundingTime": 1786608000000,
+        //         "fundingIntervalMinutes": 480
         //     }
         //
         $marketId = $this->safe_string($contract, 'symbol');
@@ -1599,8 +1599,8 @@ class btse extends Exchange {
         $nextFundingTimestamp = $this->safe_integer_omit_zero($contract, 'nextFundingTime');
         $fundingIntervalMinutes = $this->safe_integer($contract, 'fundingIntervalMinutes');
         $interval = null;
-        // a wire value of zero minutes reaches this, and zero $hours is not an
-        // $interval => a caller annualising a rate divides by it. anything under an
+        // a wire value of zero minutes reaches this, and zero hours is not an
+        // interval: a caller annualising a rate divides by it. anything under an
         // hour rounds to the same string, and the vocabulary has no minutes
         if (($fundingIntervalMinutes !== null) && ($fundingIntervalMinutes >= 60)) {
             $hours = $this->parse_to_int($fundingIntervalMinutes / 60);
@@ -1651,28 +1651,28 @@ class btse extends Exchange {
             'symbol' => $market['id'],
         );
         if ($limit !== null) {
-            $request['limit'] = min($limit, 500); // the endpoint supports a maximum of 500 $trades
+            $request['limit'] = min($limit, 500); // the endpoint supports a maximum of 500 trades
         }
-        // the unified $trades endpoint has no server-side time filtering, $since and $until are applied client-side below
+        // the unified trades endpoint has no server-side time filtering, since and until are applied client-side below
         $until = null;
         list($until, $params) = $this->handle_option_and_params($params, 'fetchTrades', 'until');
         $response = Async\await($this->publicGetPublicApiMarketV1Trades($this->extend($request, $params)));
         //
         //     {
-        //         "data" => array(
+        //         "data": [
         //             {
-        //                 "id" => 91151062,
-        //                 "timestamp" => 1786605669577,
-        //                 "price" => "1896.3291755587",
-        //                 "size" => "0.06",
-        //                 "quoteSize" => "113.7797505335",
-        //                 "side" => "BUY"
+        //                 "id": 91151062,
+        //                 "timestamp": 1786605669577,
+        //                 "price": "1896.3291755587",
+        //                 "size": "0.06",
+        //                 "quoteSize": "113.7797505335",
+        //                 "side": "BUY"
         //             }
-        //         ),
-        //         "code" => 1,
-        //         "msg" => "Success",
-        //         "success" => true,
-        //         "time" => 1786605671650
+        //         ],
+        //         "code": 1,
+        //         "msg": "Success",
+        //         "success": true,
+        //         "time": 1786605671650
         //     }
         //
         $data = $this->safe_list($response, 'data', array());
@@ -1738,73 +1738,73 @@ class btse extends Exchange {
             }
             //
             //     {
-            //         "data" => array(
+            //         "data": [
             //             {
-            //                 "serialId" => 375599088,
-            //                 "tradeId" => "de1a79b8-f408-4e05-b8b7-7ed3c4e86542",
-            //                 "orderId" => "6c72d906-cb8f-469c-8ab0-b97bc8dff9c2",
-            //                 "clOrderId" => null,
-            //                 "symbol" => "BTC-USD",
-            //                 "base" => "BTC",
-            //                 "quote" => "USD",
-            //                 "orderSide" => "BUY",
-            //                 "orderType" => 77,
-            //                 "triggerType" => 0,
-            //                 "triggerPrice" => 0,
-            //                 "price" => 64235.97008,
-            //                 "size" => 1.9,
-            //                 "filledSize" => 0.00002,
-            //                 "feeCurrency" => "BTC",
-            //                 "feeAmount" => 1e-8,
-            //                 "timestamp" => 1784890959551
+            //                 "serialId": 375599088,
+            //                 "tradeId": "de1a79b8-f408-4e05-b8b7-7ed3c4e86542",
+            //                 "orderId": "6c72d906-cb8f-469c-8ab0-b97bc8dff9c2",
+            //                 "clOrderId": null,
+            //                 "symbol": "BTC-USD",
+            //                 "base": "BTC",
+            //                 "quote": "USD",
+            //                 "orderSide": "BUY",
+            //                 "orderType": 77,
+            //                 "triggerType": 0,
+            //                 "triggerPrice": 0,
+            //                 "price": 64235.97008,
+            //                 "size": 1.9,
+            //                 "filledSize": 0.00002,
+            //                 "feeCurrency": "BTC",
+            //                 "feeAmount": 1e-8,
+            //                 "timestamp": 1784890959551
             //             }
-            //         ),
-            //         "code" => 1,
-            //         "msg" => "Success",
-            //         "success" => true,
-            //         "time" => 1786610160164
+            //         ],
+            //         "code": 1,
+            //         "msg": "Success",
+            //         "success": true,
+            //         "time": 1786610160164
             //     }
             //
             $response = Async\await($this->privateGetSpotApiV4TradeTradeHistory($this->extend($request, $params)));
         } else {
-            // the futures endpoint does not support a count parameter, the $limit is applied client-side
+            // the futures endpoint does not support a count parameter, the limit is applied client-side
             $request = $this->omit($request, 'count');
             if ($market !== null) {
                 $request['symbol'] = $this->futures_request_id($market);
             }
             //
             //     {
-            //         "data" => array(
+            //         "data": [
             //             {
-            //                 "tradeId" => "1ad38104-6248-4a45-bc56-5fa9bf7f3868",
-            //                 "orderId" => "8ad94105-8cce-4e01-86b8-2d0fb403db66",
-            //                 "clOrderId" => "",
-            //                 "positionId" => "BTC-PERP-USDT",
-            //                 "orderSide" => "BUY",
-            //                 "type" => 77,
-            //                 "orderDetailType" => null,
-            //                 "price" => 0,
-            //                 "size" => 1,
-            //                 "avgFilledPrice" => 60010,
-            //                 "filledSize" => 1,
-            //                 "triggerPrice" => 0,
-            //                 "contractSize" => 0.00001,
-            //                 "base" => "BTC",
-            //                 "quote" => "USDT",
-            //                 "symbol" => "BTC-PERP",
-            //                 "wallet" => "BTC-PERP Isolated Wallet",
-            //                 "feeCurrency" => "USDT",
-            //                 "feeAmount" => 0.00012002,
-            //                 "realizedPnl" => 0,
-            //                 "total" => -0.00012002,
-            //                 "serialId" => 375598162,
-            //                 "timestamp" => 1784882344446
+            //                 "tradeId": "1ad38104-6248-4a45-bc56-5fa9bf7f3868",
+            //                 "orderId": "8ad94105-8cce-4e01-86b8-2d0fb403db66",
+            //                 "clOrderId": "",
+            //                 "positionId": "BTC-PERP-USDT",
+            //                 "orderSide": "BUY",
+            //                 "type": 77,
+            //                 "orderDetailType": null,
+            //                 "price": 0,
+            //                 "size": 1,
+            //                 "avgFilledPrice": 60010,
+            //                 "filledSize": 1,
+            //                 "triggerPrice": 0,
+            //                 "contractSize": 0.00001,
+            //                 "base": "BTC",
+            //                 "quote": "USDT",
+            //                 "symbol": "BTC-PERP",
+            //                 "wallet": "BTC-PERP Isolated Wallet",
+            //                 "feeCurrency": "USDT",
+            //                 "feeAmount": 0.00012002,
+            //                 "realizedPnl": 0,
+            //                 "total": -0.00012002,
+            //                 "serialId": 375598162,
+            //                 "timestamp": 1784882344446
             //             }
-            //         ),
-            //         "code" => 1,
-            //         "msg" => "Success",
-            //         "success" => true,
-            //         "time" => 1786610160164
+            //         ],
+            //         "code": 1,
+            //         "msg": "Success",
+            //         "success": true,
+            //         "time": 1786610160164
             //     }
             //
             $response = Async\await($this->privateGetFuturesApiV3TradeTradeHistory($this->extend($request, $params)));
@@ -1854,73 +1854,73 @@ class btse extends Exchange {
         //
         // fetchTrades
         //     {
-        //         "id" => 91151062,
-        //         "timestamp" => 1786605669577,
-        //         "price" => "1896.3291755587",
-        //         "size" => "0.06",
-        //         "quoteSize" => "113.7797505335",
-        //         "side" => "BUY"
+        //         "id": 91151062,
+        //         "timestamp": 1786605669577,
+        //         "price": "1896.3291755587",
+        //         "size": "0.06",
+        //         "quoteSize": "113.7797505335",
+        //         "side": "BUY"
         //     }
         //
         // fetchMyTrades spot
         //     {
-        //         "tradeId" => "4b4bd301-6f20-4e39-a682-ce4f9b8400a0",
-        //         "orderId" => "2fa9678b-9945-47ce-9ffe-256dc7b4dd8c",
-        //         "clOrderID" => "test spot $market buy",
-        //         "username" => "romancuhari",
-        //         "side" => "BUY",
-        //         "orderType" => 77,
-        //         "triggerType" => 0,
-        //         "price" => 1952.05859608,
-        //         "size" => 0.19520586,
-        //         "filledPrice" => 1952.05859608,
-        //         "filledSize" => 0.0001,
-        //         "triggerPrice" => 0,
-        //         "base" => "ETH",
-        //         "quote" => "USDT",
-        //         "symbol" => "ETH-USDT",
-        //         "feeCurrency" => "ETH",
-        //         "feeAmount" => 0.0000002,
-        //         "wallet" => "SPOT@",
-        //         "realizedPnl" => 0,
-        //         "total" => 0,
-        //         "serialId" => 49071052,
-        //         "timestamp" => 1770814978685,
-        //         "avgFilledPrice" => 1952.05859608
+        //         "tradeId": "4b4bd301-6f20-4e39-a682-ce4f9b8400a0",
+        //         "orderId": "2fa9678b-9945-47ce-9ffe-256dc7b4dd8c",
+        //         "clOrderID": "test spot market buy",
+        //         "username": "romancuhari",
+        //         "side": "BUY",
+        //         "orderType": 77,
+        //         "triggerType": 0,
+        //         "price": 1952.05859608,
+        //         "size": 0.19520586,
+        //         "filledPrice": 1952.05859608,
+        //         "filledSize": 0.0001,
+        //         "triggerPrice": 0,
+        //         "base": "ETH",
+        //         "quote": "USDT",
+        //         "symbol": "ETH-USDT",
+        //         "feeCurrency": "ETH",
+        //         "feeAmount": 0.0000002,
+        //         "wallet": "SPOT@",
+        //         "realizedPnl": 0,
+        //         "total": 0,
+        //         "serialId": 49071052,
+        //         "timestamp": 1770814978685,
+        //         "avgFilledPrice": 1952.05859608
         //     }
         //
         // fetchMyTrades swap
         //     {
-        //         "tradeId" => "b708489a-19d1-4be2-a6c2-f499f76aa176",
-        //         "orderId" => "5c6a26db-8cfb-45c7-b25d-56927bc36795",
-        //         "username" => "romancuhari",
-        //         "side" => "BUY",
-        //         "orderType" => 77,
-        //         "triggerType" => null,
-        //         "price" => 0,
-        //         "size" => 1,
-        //         "filledPrice" => 1956.59,
-        //         "filledSize" => 1,
-        //         "triggerPrice" => 0,
-        //         "base" => "ETH",
-        //         "quote" => "USDT",
-        //         "symbol" => "ETH-PERP",
-        //         "feeCurrency" => "USDT",
-        //         "feeAmount" => 0.00010761,
-        //         "wallet" => "CROSS@",
-        //         "realizedPnl" => 0,
-        //         "total" => -0.00010761,
-        //         "serialId" => 50953296,
-        //         "timestamp" => 1770821231984,
-        //         "orderDetailType" => null,
-        //         "contractSize" => 0.0001,
-        //         "clOrderID" => "",
-        //         "positionId" => "ETH-PERP-USDT",
-        //         "avgFilledPrice" => 1956.59
+        //         "tradeId": "b708489a-19d1-4be2-a6c2-f499f76aa176",
+        //         "orderId": "5c6a26db-8cfb-45c7-b25d-56927bc36795",
+        //         "username": "romancuhari",
+        //         "side": "BUY",
+        //         "orderType": 77,
+        //         "triggerType": null,
+        //         "price": 0,
+        //         "size": 1,
+        //         "filledPrice": 1956.59,
+        //         "filledSize": 1,
+        //         "triggerPrice": 0,
+        //         "base": "ETH",
+        //         "quote": "USDT",
+        //         "symbol": "ETH-PERP",
+        //         "feeCurrency": "USDT",
+        //         "feeAmount": 0.00010761,
+        //         "wallet": "CROSS@",
+        //         "realizedPnl": 0,
+        //         "total": -0.00010761,
+        //         "serialId": 50953296,
+        //         "timestamp": 1770821231984,
+        //         "orderDetailType": null,
+        //         "contractSize": 0.0001,
+        //         "clOrderID": "",
+        //         "positionId": "ETH-PERP-USDT",
+        //         "avgFilledPrice": 1956.59
         //     }
         //
         // the unified futures rows echo the short symbol form but carry the full
-        // $market id in positionId, which resolves against the markets snapshot
+        // market id in positionId, which resolves against the markets snapshot
         $marketId = $this->safe_string_2($trade, 'positionId', 'symbol');
         $market = $this->safe_market($marketId, $market);
         $timestamp = $this->safe_integer($trade, 'timestamp');
@@ -2046,8 +2046,8 @@ class btse extends Exchange {
         $isMarketOrder = ($type === 'MARKET');
         $isLimitOrder = ($type === 'LIMIT');
         $postOnly = false;
-        // exchange-specific $postOnly is the same as the unified one
-        list($postOnly, $params) = $this->handle_post_only($isMarketOrder, $postOnly, $params); // this will remove PO from $params->timeInForce if present
+        // exchange-specific postOnly is the same as the unified one
+        list($postOnly, $params) = $this->handle_post_only($isMarketOrder, $postOnly, $params); // this will remove PO from params.timeInForce if present
         if ($postOnly) {
             $request['postOnly'] = true;
         }
@@ -2067,7 +2067,7 @@ class btse extends Exchange {
                 throw new InvalidOrder($this->id . ' createOrder() requires a $price argument for ' . $type . ' orders');
             }
         }
-        // $market and trailing buys are denominated in the quote currency while
+        // market and trailing buys are denominated in the quote currency while
         // every other combination is denominated in the base currency, the
         // sizing rules are strict on both sides, verified live
         $needsQuoteSize = ($isMarketOrder || ($type === 'TRAILING')) && ($upperSide === 'BUY');
@@ -2101,33 +2101,33 @@ class btse extends Exchange {
                 $request['orderPrice'] = $this->price_to_precision($symbol, $price);
             }
             //
-            //     array(
+            //     [
             //         {
-            //             "orderId" => "4eca2eb4-e6ad-4355-ae12-5ce757b105b3",
-            //             "clOrderId" => "",
-            //             "status" => 2,
-            //             "market" => "BTC-USD",
-            //             "type" => 76,
-            //             "orderSide" => "BUY",
-            //             "orderPrice" => 61024.1,
-            //             "postOnly" => false,
-            //             "timestamp" => 1784891308063,
-            //             "orderDetailType" => null,
-            //             "message" => null,
-            //             "userQuoteCurrency" => "USD",
-            //             "orderCurrency" => "base",
-            //             "originalOrderBaseSize" => 0.00001,
-            //             "originalOrderQuoteSize" => null,
-            //             "currentOrderBaseSize" => 0.00001,
-            //             "currentOrderQuoteSize" => null,
-            //             "remainingOrderBaseSize" => 0.00001,
-            //             "remainingOrderQuoteSize" => null,
-            //             "filledBaseSize" => 0,
-            //             "totalFilledBaseSize" => 0,
-            //             "avgFilledPrice" => 0,
-            //             "time_in_force" => "GTC"
+            //             "orderId": "4eca2eb4-e6ad-4355-ae12-5ce757b105b3",
+            //             "clOrderId": "",
+            //             "status": 2,
+            //             "market": "BTC-USD",
+            //             "type": 76,
+            //             "orderSide": "BUY",
+            //             "orderPrice": 61024.1,
+            //             "postOnly": false,
+            //             "timestamp": 1784891308063,
+            //             "orderDetailType": null,
+            //             "message": null,
+            //             "userQuoteCurrency": "USD",
+            //             "orderCurrency": "base",
+            //             "originalOrderBaseSize": 0.00001,
+            //             "originalOrderQuoteSize": null,
+            //             "currentOrderBaseSize": 0.00001,
+            //             "currentOrderQuoteSize": null,
+            //             "remainingOrderBaseSize": 0.00001,
+            //             "remainingOrderQuoteSize": null,
+            //             "filledBaseSize": 0,
+            //             "totalFilledBaseSize": 0,
+            //             "avgFilledPrice": 0,
+            //             "time_in_force": "GTC"
             //         }
-            //     )
+            //     ]
             //
             $response = Async\await($this->privatePostSpotApiV4TradeOrders($this->extend($request, $params)));
         } else {
@@ -2157,9 +2157,9 @@ class btse extends Exchange {
             } else {
                 $request['orderType'] = $type;
                 if ($type === 'OCO') {
-                    // the $price argument is the limit $price of the take profit leg,
-                    // the $stopPrice param is the limit $price of the stop loss leg
-                    // and the $triggerPrice param is where the stop loss leg fires
+                    // the price argument is the limit price of the take profit leg,
+                    // the stopPrice param is the limit price of the stop loss leg
+                    // and the triggerPrice param is where the stop loss leg fires
                     $request['takeProfitOrderPrice'] = $this->price_to_precision($symbol, $price);
                     $stopPrice = $this->safe_string($params, 'stopPrice');
                     if ($stopPrice !== null) {
@@ -2172,7 +2172,7 @@ class btse extends Exchange {
                     $request['stopLossTriggerPriceType'] = $this->encode_trigger_price_type($triggerPriceType);
                     $params = $this->omit($params, array( 'stopPrice', 'triggerPrice', 'triggerPriceType' ));
                 } elseif ($type === 'PEG') {
-                    // the required stealth and optional deviation $params pass through
+                    // the required stealth and optional deviation params pass through
                     $request['orderPrice'] = $this->price_to_precision($symbol, $price);
                 } elseif ($type === 'TRAILING') {
                     $trailingAmount = $this->safe_string($params, 'trailingAmount');
@@ -2250,9 +2250,9 @@ class btse extends Exchange {
             $request['clOrderId'] = $clientOrderId;
             $params = $this->omit($params, 'clientOrderId');
         }
-        // handle $positionMode
+        // handle positionMode
         $positionMode = $this->safe_string($params, 'positionMode');
-        // if $positionMode is provided, we will get it from $params and send it as is
+        // if positionMode is provided, we will get it from params and send it as is
         if ($positionMode === null) {
             $hedged = false;
             list($hedged, $params) = $this->handle_option_and_params($params, 'createOrder', 'hedged', $hedged);
@@ -2266,13 +2266,13 @@ class btse extends Exchange {
             } elseif ($hedged) {
                 $request['positionMode'] = 'HEDGE';
             }
-            // if not $hedged and not isolated, the default is ONE_WAY
+            // if not hedged and not isolated, the default is ONE_WAY
         }
         $isMarketOrder = ($type === 'MARKET');
         $isLimitOrder = ($type === 'LIMIT');
         $postOnly = false;
-        // exchange-specific $postOnly is the same as the unified one
-        list($postOnly, $params) = $this->handle_post_only($isMarketOrder, $postOnly, $params); // this will remove PO from $params->timeInForce if present
+        // exchange-specific postOnly is the same as the unified one
+        list($postOnly, $params) = $this->handle_post_only($isMarketOrder, $postOnly, $params); // this will remove PO from params.timeInForce if present
         if ($postOnly) {
             $request['postOnly'] = true;
         }
@@ -2322,33 +2322,33 @@ class btse extends Exchange {
             }
             //
             //     {
-            //         "status" => 2,
-            //         "type" => 0,
-            //         "symbol" => "BTC-PERP",
-            //         "postOnly" => false,
-            //         "orderSide" => "BUY",
-            //         "orderId" => "0251ea47-88b5-48c0-aeb3-b38774fd1f90",
-            //         "clOrderID" => "",
-            //         "timestamp" => 1784882344361,
-            //         "price" => 57009.5,
-            //         "avgFilledPrice" => 0,
-            //         "message" => null,
-            //         "originalOrderSize" => 1,
-            //         "currentOrderSize" => 1,
-            //         "filledSize" => 0,
-            //         "totalFilledSize" => 0,
-            //         "remainingSize" => 1,
-            //         "positionMode" => "ONE_WAY",
-            //         "positionDirection" => null,
-            //         "positionId" => "BTC-PERP-USDT",
-            //         "timeInForce" => "GTC"
+            //         "status": 2,
+            //         "type": 0,
+            //         "symbol": "BTC-PERP",
+            //         "postOnly": false,
+            //         "orderSide": "BUY",
+            //         "orderId": "0251ea47-88b5-48c0-aeb3-b38774fd1f90",
+            //         "clOrderID": "",
+            //         "timestamp": 1784882344361,
+            //         "price": 57009.5,
+            //         "avgFilledPrice": 0,
+            //         "message": null,
+            //         "originalOrderSize": 1,
+            //         "currentOrderSize": 1,
+            //         "filledSize": 0,
+            //         "totalFilledSize": 0,
+            //         "remainingSize": 1,
+            //         "positionMode": "ONE_WAY",
+            //         "positionDirection": null,
+            //         "positionId": "BTC-PERP-USDT",
+            //         "timeInForce": "GTC"
             //     }
             //
             $response = Async\await($this->privatePostFuturesApiV3TradeOrders($this->extend($request, $params)));
         } else {
             if ($isConditionalOrder) {
                 // the futures conditional variant has no trigger direction field,
-                // it takes a plain trigger $price with an optional limit $price
+                // it takes a plain trigger price with an optional limit price
                 $request['orderType'] = 'CONDITIONAL';
                 $triggerPriceToSend = $triggerPrice;
                 if ($triggerPriceToSend === null) {
@@ -2367,9 +2367,9 @@ class btse extends Exchange {
             } else {
                 $request['orderType'] = $type;
                 if ($type === 'OCO') {
-                    // the $price argument is the limit $price of the take profit leg,
-                    // the $stopPrice param is the limit $price of the stop loss leg
-                    // and the $triggerPrice param is where the stop loss leg fires
+                    // the price argument is the limit price of the take profit leg,
+                    // the stopPrice param is the limit price of the stop loss leg
+                    // and the triggerPrice param is where the stop loss leg fires
                     $request['takeProfitOrderPrice'] = $this->price_to_precision($symbol, $price);
                     $stopPrice = $this->safe_string($params, 'stopPrice');
                     if ($stopPrice !== null) {
@@ -2382,8 +2382,8 @@ class btse extends Exchange {
                     $request['stopLossTriggerType'] = $this->encode_trigger_price_type($triggerPriceType);
                     $params = $this->omit($params, array( 'stopPrice', 'triggerPrice', 'triggerPriceType' ));
                 } elseif ($type === 'PEG') {
-                    // the required deviation and stealth $params pass through, the
-                    // optional $price argument becomes a worst-$price bound
+                    // the required deviation and stealth params pass through, the
+                    // optional price argument becomes a worst-price bound
                     if ($price !== null) {
                         $request['orderPrice'] = $this->price_to_precision($symbol, $price);
                     }
@@ -2405,7 +2405,7 @@ class btse extends Exchange {
             }
             $response = Async\await($this->privatePostFuturesApiV3TradeOrdersAlgo($this->extend($request, $params)));
         }
-        // the normal futures endpoint responds with a single $order dict, keep a
+        // the normal futures endpoint responds with a single order dict, keep a
         // one element array guard in case a gateway wraps it
         $order = $response;
         if ((gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response)))) {
@@ -2466,11 +2466,11 @@ class btse extends Exchange {
         if ($marketType === 'spot') {
             $response = Async\await($this->privateGetSpotApiV4TradeOrder($this->extend($request, $params)));
         } else {
-            // the futures endpoint doubles as the single $order lookup when an
-            // $order $id is sent and responds with a bare array
+            // the futures endpoint doubles as the single order lookup when an
+            // order id is sent and responds with a bare array
             $response = Async\await($this->privateGetFuturesApiV3TradeOrders($this->extend($request, $params)));
         }
-        // accept a bare $order dict, a data envelope and a one element array
+        // accept a bare order dict, a data envelope and a one element array
         $order = $this->safe_value($response, 'data', $response);
         if ((gettype($order) === 'array' && array_keys($order) === array_keys(array_keys($order)))) {
             $order = $this->safe_dict($order, 0, array());
@@ -2535,7 +2535,7 @@ class btse extends Exchange {
             $response = Async\await($this->privatePutSpotApiV4TradeOrders($this->extend($request, $params)));
         } else {
             // the futures amend requires an explicit amendType discriminator
-            // which can change the $price and size together or a single field
+            // which can change the price and size together or a single field
             $request['symbol'] = $this->futures_request_id($market);
             if ($triggerPrice !== null) {
                 if (($amount !== null) || ($price !== null)) {
@@ -2593,20 +2593,20 @@ class btse extends Exchange {
             $response = Async\await($this->privateDeleteSpotApiV4TradeOrders($this->extend($request, $params)));
         } else {
             //
-            //     array(
+            //     [
             //         {
-            //             "orderId" => "0251ea47-88b5-48c0-aeb3-b38774fd1f90",
-            //             "clOrderId" => "",
-            //             "symbol" => "BTC-PERP",
-            //             "orderSide" => "BUY",
-            //             "type" => 76,
-            //             "orderPrice" => 56439.4,
-            //             "orderSize" => 1,
-            //             "filledSize" => 0,
-            //             "status" => 6,
-            //             "timestamp" => 1784882344500
+            //             "orderId": "0251ea47-88b5-48c0-aeb3-b38774fd1f90",
+            //             "clOrderId": "",
+            //             "symbol": "BTC-PERP",
+            //             "orderSide": "BUY",
+            //             "type": 76,
+            //             "orderPrice": 56439.4,
+            //             "orderSize": 1,
+            //             "filledSize": 0,
+            //             "status": 6,
+            //             "timestamp": 1784882344500
             //         }
-            //     )
+            //     ]
             //
             $request['symbol'] = $this->futures_request_id($market);
             $response = Async\await($this->privateDeleteFuturesApiV3TradeOrders($this->extend($request, $params)));
@@ -2649,8 +2649,8 @@ class btse extends Exchange {
                 throw new ArgumentsRequired($this->id . ' cancelAllOrders() requires a $symbol argument for contract markets');
             }
             // the unified futures api has no cancel all endpoint, the legacy
-            // endpoint cancels every order for the $symbol when no order id is
-            // sent, and it identifies contracts by the short $symbol form
+            // endpoint cancels every order for the symbol when no order id is
+            // sent, and it identifies contracts by the short symbol form
             $request['symbol'] = $this->futures_request_id($market);
             $response = Async\await($this->privateDeleteFuturesApiV23Order($this->extend($request, $params)));
         }
@@ -2737,68 +2737,68 @@ class btse extends Exchange {
         //
         // createOrder - spot
         //     {
-        //         "status" => 2,
-        //         "symbol" => "ETH-USDT",
-        //         "orderType" => 76,
-        //         "price" => 1000,
-        //         "side" => "BUY",
-        //         "orderID" => "cde4fb37-2e2b-437e-a816-4b55b2e2b7c7",
-        //         "timestamp" => 1770813053751,
-        //         "triggerPrice" => 0,
-        //         "stopPrice" => null,
-        //         "trigger" => false,
-        //         "message" => "",
-        //         "clOrderID" => null,
-        //         "stealth" => 1,
-        //         "deviation" => 1,
-        //         "postOnly" => false,
-        //         "orderDetailType" => null,
-        //         "originalOrderBaseSize" => 0.0001,
-        //         "originalOrderQuoteSize" => null,
-        //         "currentOrderBaseSize" => 0.0001,
-        //         "currentOrderQuoteSize" => null,
-        //         "remainingOrderBaseSize" => 0.0001,
-        //         "remainingOrderQuoteSize" => null,
-        //         "filledBaseSize" => 0,
-        //         "totalFilledBaseSize" => 0,
-        //         "orderCurrency" => "base",
-        //         "avgFilledPrice" => 0,
-        //         "time_in_force" => "GTC"
+        //         "status": 2,
+        //         "symbol": "ETH-USDT",
+        //         "orderType": 76,
+        //         "price": 1000,
+        //         "side": "BUY",
+        //         "orderID": "cde4fb37-2e2b-437e-a816-4b55b2e2b7c7",
+        //         "timestamp": 1770813053751,
+        //         "triggerPrice": 0,
+        //         "stopPrice": null,
+        //         "trigger": false,
+        //         "message": "",
+        //         "clOrderID": null,
+        //         "stealth": 1,
+        //         "deviation": 1,
+        //         "postOnly": false,
+        //         "orderDetailType": null,
+        //         "originalOrderBaseSize": 0.0001,
+        //         "originalOrderQuoteSize": null,
+        //         "currentOrderBaseSize": 0.0001,
+        //         "currentOrderQuoteSize": null,
+        //         "remainingOrderBaseSize": 0.0001,
+        //         "remainingOrderQuoteSize": null,
+        //         "filledBaseSize": 0,
+        //         "totalFilledBaseSize": 0,
+        //         "orderCurrency": "base",
+        //         "avgFilledPrice": 0,
+        //         "time_in_force": "GTC"
         //     }
         //
         // createOrder - swap
         //     {
-        //         "status" => 4,
-        //         "symbol" => "ETH-PERP",
-        //         "orderType" => 77,
-        //         "price" => 1956.59,
-        //         "side" => "BUY",
-        //         "orderID" => "5c6a26db-8cfb-45c7-b25d-56927bc36795",
-        //         "timestamp" => 1770821231984,
-        //         "triggerPrice" => 0,
-        //         "trigger" => false,
-        //         "deviation" => 100,
-        //         "stealth" => 100,
-        //         "message" => "",
-        //         "avgFilledPrice" => 1956.59,
-        //         "clOrderID" => "",
-        //         "originalOrderSize" => 1,
-        //         "currentOrderSize" => 1,
-        //         "filledSize" => 1,
-        //         "totalFilledSize" => 1,
-        //         "remainingSize" => 0,
-        //         "postOnly" => false,
-        //         "orderDetailType" => null,
-        //         "positionMode" => "ONE_WAY",
-        //         "positionDirection" => null,
-        //         "positionId" => "ETH-PERP-USDT",
-        //         "time_in_force" => "GTC"
+        //         "status": 4,
+        //         "symbol": "ETH-PERP",
+        //         "orderType": 77,
+        //         "price": 1956.59,
+        //         "side": "BUY",
+        //         "orderID": "5c6a26db-8cfb-45c7-b25d-56927bc36795",
+        //         "timestamp": 1770821231984,
+        //         "triggerPrice": 0,
+        //         "trigger": false,
+        //         "deviation": 100,
+        //         "stealth": 100,
+        //         "message": "",
+        //         "avgFilledPrice": 1956.59,
+        //         "clOrderID": "",
+        //         "originalOrderSize": 1,
+        //         "currentOrderSize": 1,
+        //         "filledSize": 1,
+        //         "totalFilledSize": 1,
+        //         "remainingSize": 0,
+        //         "postOnly": false,
+        //         "orderDetailType": null,
+        //         "positionMode": "ONE_WAY",
+        //         "positionDirection": null,
+        //         "positionId": "ETH-PERP-USDT",
+        //         "time_in_force": "GTC"
         //     }
         //
         $marketId = $this->safe_string_2($order, 'symbol', 'market');
         $market = $this->safe_market($marketId, $market);
         $timestamp = $this->safe_integer($order, 'timestamp');
-        // open_orders rows carry no numeric $status - the state lives in
+        // open_orders rows carry no numeric status - the state lives in
         // orderState (STATUS_ACTIVE / STATUS_INACTIVE), and time_in_force
         // is spelled timeInForce there (observed live), so both fall back
         $rawStatus = $this->safe_string_2($order, 'status', 'orderState');
@@ -2806,7 +2806,7 @@ class btse extends Exchange {
         $status = $this->parse_order_status($rawStatus);
         $orderType = $this->parse_order_type($rawType);
         if (($orderType === 'market') && ($status === 'open')) {
-            // $market orders never rest on the book, the exchange reports the
+            // market orders never rest on the book, the exchange reports the
             // partially filled code on them when a residual quote dust amount
             // cannot fill, observed live, such orders are finished
             $status = 'closed';
@@ -2869,7 +2869,7 @@ class btse extends Exchange {
     public function parse_order_type(?string $type) {
         $types = array(
             // the unified futures place order response reports a degenerate 0
-            // in the $type field regardless of the real order $type, observed
+            // in the type field regardless of the real order type, observed
             // live, the value is deliberately left unmapped and passes through
             '76' => 'limit', // Limit order
             '77' => 'market', // Market order
@@ -2922,13 +2922,13 @@ class btse extends Exchange {
             $response = Async\await($this->privateGetFuturesApiV23UserFees($params));
         }
         //
-        //     array(
+        //     [
         //         {
-        //             "symbol" => "FUSD-USD",
-        //             "makerFee" => 0.002,
-        //             "takerFee" => 0.002
+        //             "symbol": "FUSD-USD",
+        //             "makerFee": 0.002,
+        //             "takerFee": 0.002
         //         }
-        //     )
+        //     ]
         //
         $rows = $this->safe_list($response, 'data', $response);
         $responseList = $this->array_concat(array(), $rows);
@@ -2957,7 +2957,7 @@ class btse extends Exchange {
     }
 
     private function do_request_wallet_history_rows(string $methodName, array $historyTypes, ?string $code = null, ?int $since = null, ?int $limit = null, $params = array()) {
-        // the helper always receives a non empty history $type list, the list is
+        // the helper always receives a non empty history type list, the list is
         // rebuilt through safeList so the transpilers treat it as an array in
         // every runtime
         $typesList = $this->safe_list(array( 'types' => $historyTypes ), 'types', array());
@@ -2966,7 +2966,7 @@ class btse extends Exchange {
         $request = array(
             'walletType' => $walletType,
         );
-        // the endpoint applies a server side history $type filter sent as a
+        // the endpoint applies a server side history type filter sent as a
         // json encoded array in the query string, verified live
         $request['historyTypes'] = $this->json($typesList);
         $params = $this->omit($params, 'walletType');
@@ -2976,7 +2976,7 @@ class btse extends Exchange {
             $request['asset'] = $currency['id'];
         } elseif ($walletType === 'SPOT') {
             // the exchange rejects spot wallet history queries without an asset,
-            // verified live, and omitting $walletType still defaults to spot
+            // verified live, and omitting walletType still defaults to spot
             throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires a $code argument for the spot wallet history');
         }
         if ($since !== null) {
@@ -2993,28 +2993,28 @@ class btse extends Exchange {
         $response = Async\await($this->privateGetPublicApiWalletV1UserWalletHistory($this->extend($request, $params)));
         //
         //     {
-        //         "code" => 1,
-        //         "msg" => "Success",
-        //         "time" => 1786624541092,
-        //         "data" => array(
+        //         "code": 1,
+        //         "msg": "Success",
+        //         "time": 1786624541092,
+        //         "data": [
         //             {
-        //                 "transactionTime" => 1786510157962,
-        //                 "type" => "DEPOSIT",
-        //                 "walletName" => "SPOT@",
-        //                 "asset" => "USDT",
-        //                 "netAmount" => "100",
-        //                 "amount" => "100",
-        //                 "transactionRef" => "2026081200000367",
-        //                 "status" => "COMPLETED",
-        //                 "description" => null,
-        //                 "fees" => "0",
-        //                 "cryptoNetwork" => "ERC20",
-        //                 "toAddress" => "0x36bd7cbc486658c9777672fe742971bda65d5e6f",
-        //                 "confirmTimes" => "(15/15)",
-        //                 "txId" => "0xb4d88986d013f799d78e6232792c44b45dff1213a015171ddcf4adfcd283b3fd"
+        //                 "transactionTime": 1786510157962,
+        //                 "type": "DEPOSIT",
+        //                 "walletName": "SPOT@",
+        //                 "asset": "USDT",
+        //                 "netAmount": "100",
+        //                 "amount": "100",
+        //                 "transactionRef": "2026081200000367",
+        //                 "status": "COMPLETED",
+        //                 "description": null,
+        //                 "fees": "0",
+        //                 "cryptoNetwork": "ERC20",
+        //                 "toAddress": "0x36bd7cbc486658c9777672fe742971bda65d5e6f",
+        //                 "confirmTimes": "(15/15)",
+        //                 "txId": "0xb4d88986d013f799d78e6232792c44b45dff1213a015171ddcf4adfcd283b3fd"
         //             }
-        //         ),
-        //         "success" => true
+        //         ],
+        //         "success": true
         //     }
         //
         $rawRows = $this->safe_list($response, 'data', $response);
@@ -3107,24 +3107,24 @@ class btse extends Exchange {
     public function parse_transaction(array $transaction, ?array $currency = null): array {
         //
         //     {
-        //         "username" => "user",
-        //         "orderId" => "2026081200000367",
-        //         "wallet" => "SPOT@",
-        //         "currency" => "USDT",
-        //         "type" => "Deposit",
-        //         "amount" => 100,
-        //         "fees" => 0,
-        //         "description" => "",
-        //         "timestamp" => 1786510157962,
-        //         "status" => "PROCESSING",
-        //         "txId" => "",
-        //         "toAddress" => "0x0000000000000000000000000000000000000000",
-        //         "currencyNetwork" => "",
-        //         "sourceCurrency" => "USDT",
-        //         "sourceAmount" => 0,
-        //         "targetCurrency" => "",
-        //         "targetAmount" => 0,
-        //         "rate" => 0
+        //         "username": "user",
+        //         "orderId": "2026081200000367",
+        //         "wallet": "SPOT@",
+        //         "currency": "USDT",
+        //         "type": "Deposit",
+        //         "amount": 100,
+        //         "fees": 0,
+        //         "description": "",
+        //         "timestamp": 1786510157962,
+        //         "status": "PROCESSING",
+        //         "txId": "",
+        //         "toAddress": "0x0000000000000000000000000000000000000000",
+        //         "currencyNetwork": "",
+        //         "sourceCurrency": "USDT",
+        //         "sourceAmount": 0,
+        //         "targetCurrency": "",
+        //         "targetAmount": 0,
+        //         "rate": 0
         //     }
         //
         $currencyId = $this->safe_string_2($transaction, 'currency', 'asset');
@@ -3210,7 +3210,7 @@ class btse extends Exchange {
             $request['asset'] = $currency['id'];
         } elseif ($walletType === 'SPOT') {
             // the exchange rejects spot wallet history queries without an asset,
-            // verified live, and omitting $walletType still defaults to spot
+            // verified live, and omitting walletType still defaults to spot
             throw new ArgumentsRequired($this->id . ' fetchLedger() requires a $code argument for the spot wallet history');
         }
         if ($since !== null) {
@@ -3226,24 +3226,24 @@ class btse extends Exchange {
         }
         $response = Async\await($this->privateGetPublicApiWalletV1UserWalletHistory($this->extend($request, $params)));
         //
-        //     array(
+        //     [
         //         {
-        //             "transactionTime" => 1786510157962,
-        //             "type" => "DEPOSIT",
-        //             "walletName" => "SPOT@",
-        //             "asset" => "USDT",
-        //             "netAmount" => "100",
-        //             "amount" => "100",
-        //             "transactionRef" => "2026081200000367",
-        //             "status" => "PROCESSING",
-        //             "description" => "",
-        //             "fee" => "0",
-        //             "cryptoNetwork" => "",
-        //             "toAddress" => "0x0000000000000000000000000000000000000000",
-        //             "confirmTimes" => "",
-        //             "txId" => ""
+        //             "transactionTime": 1786510157962,
+        //             "type": "DEPOSIT",
+        //             "walletName": "SPOT@",
+        //             "asset": "USDT",
+        //             "netAmount": "100",
+        //             "amount": "100",
+        //             "transactionRef": "2026081200000367",
+        //             "status": "PROCESSING",
+        //             "description": "",
+        //             "fee": "0",
+        //             "cryptoNetwork": "",
+        //             "toAddress": "0x0000000000000000000000000000000000000000",
+        //             "confirmTimes": "",
+        //             "txId": ""
         //         }
-        //     )
+        //     ]
         //
         $rows = $this->safe_list($response, 'data', $response);
         return $this->parse_ledger($rows, $currency, $since, $limit);
@@ -3401,7 +3401,7 @@ class btse extends Exchange {
         $symbols = $this->market_symbols($symbols);
         $response = Async\await($this->privateGetFuturesApiV3TradePositions($params));
         //
-        // the $response is a bare array of position $rows
+        // the response is a bare array of position rows
         //
         $rows = $this->safe_list($response, 'data');
         if ($rows === null) {
@@ -3436,43 +3436,43 @@ class btse extends Exchange {
     public function parse_position(array $position, ?array $market = null) {
         //
         //     {
-        //         "marginType" => 91,
-        //         "entryPrice" => 1968.78,
-        //         "markPrice" => 1967.47829431,
-        //         "symbol" => "ETH-PERP",
-        //         "side" => "BUY",
-        //         "orderValue" => 3.93495658,
-        //         "settleWithAsset" => "USDT",
-        //         "unrealizedProfitLoss" => -0.00260341,
-        //         "totalMaintenanceMargin" => 0.0218963,
-        //         "size" => 20,
-        //         "liquidationPrice" => 0,
-        //         "isolatedLeverage" => 25,
-        //         "adlScoreBucket" => 1,
-        //         "contractSize" => 0.0001,
-        //         "liquidationInProgress" => false,
-        //         "timestamp" => 1770880518034,
-        //         "takeProfitOrder" => array(
-        //             "orderId" => "18b4056a-59de-424a-843e-c2df5c9f7265",
-        //             "side" => "SELL",
-        //             "triggerPrice" => 2500,
-        //             "triggerUseLastPrice" => false
-        //         ),
-        //         "stopLossOrder" => array(
-        //             "orderId" => "e7ef1035-0773-446d-9a80-2de0e1de2c13",
-        //             "side" => "SELL",
-        //             "triggerPrice" => 1000,
-        //             "triggerUseLastPrice" => false
-        //         ),
-        //         "positionMode" => "ONE_WAY",
-        //         "positionDirection" => null,
-        //         "positionId" => "ETH-PERP-USDT",
-        //         "walletName" => "CROSS@",
-        //         "currentLeverage" => 0.2,
-        //         "minimumRequiredMargin" => 0
+        //         "marginType": 91,
+        //         "entryPrice": 1968.78,
+        //         "markPrice": 1967.47829431,
+        //         "symbol": "ETH-PERP",
+        //         "side": "BUY",
+        //         "orderValue": 3.93495658,
+        //         "settleWithAsset": "USDT",
+        //         "unrealizedProfitLoss": -0.00260341,
+        //         "totalMaintenanceMargin": 0.0218963,
+        //         "size": 20,
+        //         "liquidationPrice": 0,
+        //         "isolatedLeverage": 25,
+        //         "adlScoreBucket": 1,
+        //         "contractSize": 0.0001,
+        //         "liquidationInProgress": false,
+        //         "timestamp": 1770880518034,
+        //         "takeProfitOrder": {
+        //             "orderId": "18b4056a-59de-424a-843e-c2df5c9f7265",
+        //             "side": "SELL",
+        //             "triggerPrice": 2500,
+        //             "triggerUseLastPrice": false
+        //         },
+        //         "stopLossOrder": {
+        //             "orderId": "e7ef1035-0773-446d-9a80-2de0e1de2c13",
+        //             "side": "SELL",
+        //             "triggerPrice": 1000,
+        //             "triggerUseLastPrice": false
+        //         },
+        //         "positionMode": "ONE_WAY",
+        //         "positionDirection": null,
+        //         "positionId": "ETH-PERP-USDT",
+        //         "walletName": "CROSS@",
+        //         "currentLeverage": 0.2,
+        //         "minimumRequiredMargin": 0
         //     }
         //
-        // rows echo the short symbol form, while positionId carries the full $market
+        // rows echo the short symbol form, while positionId carries the full market
         // id, optionally suffixed with the isolated wallet discriminator after a pipe
         $marketId = $this->safe_string($position, 'positionId');
         if ($marketId !== null) {
@@ -3565,12 +3565,12 @@ class btse extends Exchange {
         );
         $response = Async\await($this->privateGetFuturesApiV3TradePositionMode($this->extend($request, $params)));
         //
-        //     array(
+        //     [
         //         {
-        //             "symbol" => "ETH-PERP",
-        //             "positionMode" => "HEDGE"
+        //             "symbol": "ETH-PERP",
+        //             "positionMode": "HEDGE"
         //         }
-        //     )
+        //     ]
         //
         $data = $this->safe_dict($response, 0, array());
         $positionMode = $this->safe_string($data, 'positionMode');
@@ -3598,9 +3598,9 @@ class btse extends Exchange {
          */
         // NB!!! This method also sets margin mode to cross on btse
         // btse do not have specific endpoint for marginMode
-        // both marginMode and $positionMode are set and get with the same endpoints
-        // it terms of btse $positionMode could be HEDGE, ONE_WAY or ISOLATED
-        // ISOLATED $positionMode is always $hedged and multi-position
+        // both marginMode and positionMode are set and get with the same endpoints
+        // it terms of btse positionMode could be HEDGE, ONE_WAY or ISOLATED
+        // ISOLATED positionMode is always hedged and multi-position
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' setPositionMode() requires a $symbol argument');
         }
@@ -3641,10 +3641,10 @@ class btse extends Exchange {
     public function parse_margin_mode(array $marginMode, ?array $market = null): array {
         //
         //     {
-        //         "symbol" => "ETH-PERP",
-        //         "leverage" => 10,
-        //         "marginMode" => "ISOLATED",
-        //         "positionDirection" => "SHORT"
+        //         "symbol": "ETH-PERP",
+        //         "leverage": 10,
+        //         "marginMode": "ISOLATED",
+        //         "positionDirection": "SHORT"
         //     }
         //
         $marketId = $this->safe_string($marginMode, 'symbol');
@@ -3677,12 +3677,12 @@ class btse extends Exchange {
          * @param {bool} [$params->hedged] set to true to use dualSidePosition, required for setting $marginMode to cross on btse
          * @return {array} response from the exchange
          */
-        // btse do not have specific endpoint for $marginMode
-        // both $marginMode and $positionMode are set and get with the same endpoints
-        // it terms of btse $positionMode could be HEDGE, ONE_WAY or ISOLATED
-        // ISOLATED $positionMode is always $hedged and multi-position
-        // we use $params->hedged to define the $positionMode when $marginMode is cross
-        // and warn user if the $params are not correct for the $marginMode being set
+        // btse do not have specific endpoint for marginMode
+        // both marginMode and positionMode are set and get with the same endpoints
+        // it terms of btse positionMode could be HEDGE, ONE_WAY or ISOLATED
+        // ISOLATED positionMode is always hedged and multi-position
+        // we use params.hedged to define the positionMode when marginMode is cross
+        // and warn user if the params are not correct for the marginMode being set
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' setMarginMode() requires a $symbol argument');
         }
@@ -3782,20 +3782,20 @@ class btse extends Exchange {
         );
         $response = Async\await($this->privateGetFuturesApiV3TradeLeverage($this->extend($request, $params)));
         //
-        //     array(
-        //         array(
-        //             "symbol" => "ETH-PERP",
-        //             "leverage" => 10,
-        //             "marginMode" => "ISOLATED",
-        //             "positionDirection" => "LONG"
-        //         ),
+        //     [
         //         {
-        //             "symbol" => "ETH-PERP",
-        //             "leverage" => 10,
-        //             "marginMode" => "ISOLATED",
-        //             "positionDirection" => "SHORT"
+        //             "symbol": "ETH-PERP",
+        //             "leverage": 10,
+        //             "marginMode": "ISOLATED",
+        //             "positionDirection": "LONG"
+        //         },
+        //         {
+        //             "symbol": "ETH-PERP",
+        //             "leverage": 10,
+        //             "marginMode": "ISOLATED",
+        //             "positionDirection": "SHORT"
         //         }
-        //     )
+        //     ]
         //
         $safeResponse = array();
         if ((gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response)))) {
@@ -3853,11 +3853,11 @@ class btse extends Exchange {
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $this->futures_request_id($market),
-            'leverage' => $leverage, // a value of 0 requests the maximum cross $leverage per the documentation
+            'leverage' => $leverage, // a value of 0 requests the maximum cross leverage per the documentation
         );
-        // the endpoint defaults to the ISOLATED bucket when $marginMode is omitted,
+        // the endpoint defaults to the ISOLATED bucket when marginMode is omitted,
         // verified live - a bare call on a cross account silently changes the
-        // isolated $leverage only, so the unified $marginMode param is translated here
+        // isolated leverage only, so the unified marginMode param is translated here
         $marginMode = null;
         list($marginMode, $params) = $this->handle_margin_mode_and_params('setLeverage', $params);
         if ($marginMode !== null) {
@@ -3874,13 +3874,13 @@ class btse extends Exchange {
         //
         // spot
         //
-        //     array("code":10002,"msg":"UNAUTHORIZED => Authentication Failed","time":1770477230034,"data":null,"success":false)
-        //     array("code":51523,"msg":"BADREQUEST => Insufficient wallet balance","time":1770814875493,"data":null,"success":false)
+        //     {"code":10002,"msg":"UNAUTHORIZED: Authentication Failed","time":1770477230034,"data":null,"success":false}
+        //     {"code":51523,"msg":"BADREQUEST: Insufficient wallet balance","time":1770814875493,"data":null,"success":false}
         //
         // futures
         //
-        //     array("status":400,"errorCode":-2,"message":"symbol parameter is mandatory","extraData":null)
-        //     array("status":400,"errorCode":-7,"message":"Authenticate failed","extraData":null)
+        //     {"status":400,"errorCode":-2,"message":"symbol parameter is mandatory","extraData":null}
+        //     {"status":400,"errorCode":-7,"message":"Authenticate failed","extraData":null}
         //
         $success = $this->safe_bool($response, 'success', true);
         if ($success !== true) {
@@ -3900,16 +3900,16 @@ class btse extends Exchange {
             throw new ExchangeError($feedback);
         }
         //
-        // futures order and leverage endpoints reply with HTTP 200 and encode failures in a numeric $status field, per the API Enum section of the docs
+        // futures order and leverage endpoints reply with HTTP 200 and encode failures in a numeric status field, per the API Enum section of the docs
         //
-        //     array("symbol":"ETH-PERP","timestamp":1770892916507,"status":135,"type":93,"message":"array(\"msgKey\":\"trade.error.invalid.position_id\",\"params\":[\"ETH-PERP-USDT\"] ,\"default_msg\":\"User is in ISOLATE_HEDGE in market => ETH-PERP-USDT, but positionId is empty in the request.\")")
+        //     {"symbol":"ETH-PERP","timestamp":1770892916507,"status":135,"type":93,"message":"{\"msgKey\":\"trade.error.invalid.position_id\",\"params\":[\"ETH-PERP-USDT\"] ,\"default_msg\":\"User is in ISOLATE_HEDGE in market: ETH-PERP-USDT, but positionId is empty in the request.\"}"}
         //
-        // $success statuses such as 2 ORDER_INSERTED, 4 ORDER_FULLY_TRANSACTED, 5 ORDER_PARTIALLY_TRANSACTED, 6 ORDER_CANCELLED, 9 TRIGGER_INSERTED, 10 TRIGGER_ACTIVATED and 20 SUCCESS fall through without matching
+        // success statuses such as 2 ORDER_INSERTED, 4 ORDER_FULLY_TRANSACTED, 5 ORDER_PARTIALLY_TRANSACTED, 6 ORDER_CANCELLED, 9 TRIGGER_INSERTED, 10 TRIGGER_ACTIVATED and 20 SUCCESS fall through without matching
         //
         // the legacy error envelope documented on the error codes page carries
-        // the numeric api $status enum in the $code field beside the http $status
+        // the numeric api status enum in the code field beside the http status
         //
-        //     array("status":400,"error":"Bad Request","code":301,"message":"Invalid order size")
+        //     {"status":400,"error":"Bad Request","code":301,"message":"Invalid order size"}
         //
         $legacyErrorText = $this->safe_string($response, 'error');
         $legacyEnumCode = $this->safe_string($response, 'code');
@@ -3947,9 +3947,9 @@ class btse extends Exchange {
         $baseUrl = $this->urls['api'][$api];
         $url = $baseUrl . '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
-        // the futures v3 trading $api reads DELETE $params from a signed json
-        // $body like its POST and PUT counterparts, while the spot v4 and the
-        // legacy apis keep DELETE $params in the $query string, verified live
+        // the futures v3 trading api reads DELETE params from a signed json
+        // body like its POST and PUT counterparts, while the spot v4 and the
+        // legacy apis keep DELETE params in the query string, verified live
         // in both directions
         $isBodyDelete = ($method === 'DELETE') && (str_starts_with($path, 'futures/api/v3/') === true);
         $queryString = '';
@@ -3968,10 +3968,10 @@ class btse extends Exchange {
             } else {
                 $body = $bodyString;
             }
-            // the signed urlpath is the $path relative to the base $url of the product, the
+            // the signed urlpath is the path relative to the base url of the product, the
             // spot and futures apis of every generation mount under /spot and /futures and
-            // sign the /api/v... remainder, while the public-$api wallet, otc and markets
-            // endpoints mount on the bare host and sign the full $path with the leading slash
+            // sign the /api/v... remainder, while the public-api wallet, otc and markets
+            // endpoints mount on the bare host and sign the full path with the leading slash
             $signPath = null;
             if (str_starts_with($path, 'public-api/') === true) {
                 $signPath = '/' . $path;
@@ -3993,8 +3993,8 @@ class btse extends Exchange {
 
     public function futures_request_id(mixed $market) {
         // the futures v3 trading api identifies contracts by the short trade-currency
-        // form, for example RAVE-PERP instead of the RAVE-PERP-USDT $market id, read
-        // from the raw $market info so that cached markets resolve it as well
+        // form, for example RAVE-PERP instead of the RAVE-PERP-USDT market id, read
+        // from the raw market info so that cached markets resolve it as well
         return $this->safe_string($market['info'], 'tradeCurrency', $market['id']);
     }
 

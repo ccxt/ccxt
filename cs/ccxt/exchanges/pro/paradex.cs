@@ -7,7 +7,7 @@ namespace ccxt.pro;
 public partial class paradex { public paradex(object args = null) : base(args) { } }
 public partial class paradex : ccxt.paradex
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "has", new Dictionary<string, object>() {
@@ -85,7 +85,7 @@ public partial class paradex : ccxt.paradex
         if (isTrue(!isEqual(result, null)))
         {
             // client.resolve (true, messageHash);
-            var future = this.safeValue((client as WebSocketClient).futures, "authenticated");
+            Future future = ((Future)this.safeValue((client as WebSocketClient).futures, "authenticated"));
             if (isTrue(!isEqual(future, null)))
             {
                 (future as Future).resolve(true);

@@ -7,7 +7,7 @@ namespace ccxt.pro;
 public partial class coinex { public coinex(object args = null) : base(args) { } }
 public partial class coinex : ccxt.coinex
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "has", new Dictionary<string, object>() {
@@ -165,7 +165,7 @@ public partial class coinex : ccxt.coinex
             ((IDictionary<string,object>)this.tickers)[(string)symbol] = parsedTicker;
             ((IDictionary<string,object>)newTickers)[(string)symbol] = parsedTicker;
         }
-        object messageHashes = this.findMessageHashes(client as WebSocketClient, "tickers::");
+        List<object> messageHashes = this.findMessageHashes(client as WebSocketClient, "tickers::");
         for (int i = 0; isLessThan(i, getArrayLength(messageHashes)); postFixIncrement(ref i))
         {
             object messageHash = getValue(messageHashes, i);
@@ -416,7 +416,7 @@ public partial class coinex : ccxt.coinex
         //         "equity": "97.92470982756335000001"
         //     }
         //
-        object account = this.account();
+        Dictionary<string, object> account = this.account();
         string? currencyId = this.safeString(balance, "ccy");
         string? code = this.safeCurrencyCode(currencyId);
         ((IDictionary<string,object>)account)["free"] = this.safeString(balance, "available");
@@ -659,7 +659,7 @@ public partial class coinex : ccxt.coinex
         string? marketId = this.safeString(trade, "market");
         market = this.safeMarket(marketId, market, null, defaultType);
         Dictionary<string, object> fee = new Dictionary<string, object>() {};
-        object feeCost = this.omitZero(this.safeString(trade, "fee"));
+        string? feeCost = ((string)this.omitZero(this.safeString(trade, "fee")));
         if (isTrue(!isEqual(feeCost, null)))
         {
             string? feeCurrencyId = this.safeString(trade, "fee_ccy", getValue(market, "quote"));
@@ -940,7 +940,7 @@ public partial class coinex : ccxt.coinex
 
     public override void handleDelta(object bookside, object delta)
     {
-        object bidAsk = this.parseOrderBookBidAsk(delta, 0, 1);
+        List<object> bidAsk = this.parseOrderBookBidAsk(delta, 0, 1);
         (bookside as IOrderBookSide).storeArray(bidAsk);
     }
 
@@ -1332,7 +1332,7 @@ public partial class coinex : ccxt.coinex
         string defaultType = ((bool) isTrue(isSpot)) ? "spot" : "swap";
         market = this.safeMarket(marketId, market, null, defaultType);
         Dictionary<string, object> fee = null;
-        object feeCost = this.omitZero(this.safeString2(order, "fee", "quote_ccy_fee"));
+        string? feeCost = ((string)this.omitZero(this.safeString2(order, "fee", "quote_ccy_fee")));
         if (isTrue(!isEqual(feeCost, null)))
         {
             string? feeCurrencyId = this.safeString(order, "fee_ccy", getValue(market, "quote"));
@@ -1563,7 +1563,7 @@ public partial class coinex : ccxt.coinex
         string messageHash = "authenticated";
         if (isTrue(isTrue((isEqual(status, "ok"))) || isTrue((isEqual(errorCode, "0")))))
         {
-            var future = this.safeValue((client as WebSocketClient).futures, messageHash);
+            Future future = ((Future)this.safeValue((client as WebSocketClient).futures, messageHash));
             (future as Future).resolve(true);
         } else
         {
@@ -1583,7 +1583,7 @@ public partial class coinex : ccxt.coinex
         if (isTrue(!isEqual(subscription, null)))
         {
             string? futureIndex = this.safeString(subscription, "future");
-            var future = this.safeValue((client as WebSocketClient).futures, futureIndex);
+            Future future = ((Future)this.safeValue((client as WebSocketClient).futures, futureIndex));
             if (isTrue(!isEqual(future, null)))
             {
                 (future as Future).resolve(true);

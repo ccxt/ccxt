@@ -2444,9 +2444,9 @@ class BaseExchange(object):
             request['grouping_type'],
             orders_carr,
             len(orders),
-            request['integrator_account_index'],
-            request['integrator_taker_fee'],
-            request['integrator_maker_fee'],
+            self.safe_integer(request, 'integrator_account_index', 0),
+            self.safe_integer(request, 'integrator_taker_fee', 0),
+            self.safe_integer(request, 'integrator_maker_fee', 0),
             True,
             request['nonce'],
             request['api_key_index'],
@@ -2467,9 +2467,9 @@ class BaseExchange(object):
             request['reduce_only'],
             request['trigger_price'],
             request['order_expiry'],
-            request['integrator_account_index'],
-            request['integrator_taker_fee'],
-            request['integrator_maker_fee'],
+            self.safe_integer(request, 'integrator_account_index', 0),
+            self.safe_integer(request, 'integrator_taker_fee', 0),
+            self.safe_integer(request, 'integrator_maker_fee', 0),
             True,
             request['nonce'],
             request['api_key_index'],
@@ -2542,9 +2542,9 @@ class BaseExchange(object):
             request['base_amount'],
             request['price'],
             request['trigger_price'],
-            request['integrator_account_index'],
-            request['integrator_taker_fee'],
-            request['integrator_maker_fee'],
+            self.safe_integer(request, 'integrator_account_index', 0),
+            self.safe_integer(request, 'integrator_taker_fee', 0),
+            self.safe_integer(request, 'integrator_maker_fee', 0),
             True,
             request['nonce'],
             request['api_key_index'],
@@ -2710,7 +2710,7 @@ class BaseExchange(object):
             'timeout': self.timeout,  # milliseconds = seconds * 1000
             'certified': self.certified,  # if certified by the CCXT dev team
             'pro': self.pro,  # if it is integrated with CCXT Pro for WebSocket support
-            'alias': self.alias,  # whether self exchange is an alias to another exchange
+            'alias': self.alias,  # whether this exchange is an alias to another exchange
             'dex': False,
             'has': {
                 'publicAPI': True,
@@ -2972,7 +2972,7 @@ class BaseExchange(object):
                 'accountId': False,
                 'login': False,
                 'password': False,
-                'twofa': False,  # 2-factor authentication(one-time password key)
+                'twofa': False,  # 2-factor authentication (one-time password key)
                 'privateKey': False,  # a "0x"-prefixed hexstring private key for a wallet
                 'walletAddress': False,  # the wallet address "0x"-prefixed hexstring
                 'token': False,  # reserved for HTTP auth in some cases
@@ -3055,7 +3055,7 @@ class BaseExchange(object):
         self.baseCurrencies = None
         self.quoteCurrencies = None
         self.last_http_response = None
-        # self.last_json_response = None  # not unified prop
+        # this.last_json_response = undefined; // not unified prop
         self.last_response_headers = None
         self.last_request_headers = None
 
@@ -3254,7 +3254,7 @@ class BaseExchange(object):
         length = len(usedProxies)
         if length > 1:
             joinedProxyNames = ','.join(usedProxies)
-            raise InvalidProxySettings(self.id + ' you have multiple conflicting proxy settings(' + joinedProxyNames + '), please use only one from : proxyUrl, proxy_url, proxyUrlCallback, proxy_url_callback')
+            raise InvalidProxySettings(self.id + ' you have multiple conflicting proxy settings (' + joinedProxyNames + '), please use only one from : proxyUrl, proxy_url, proxyUrlCallback, proxy_url_callback')
         return proxyUrl
 
     def url_encoder_for_proxy_url(self, targetUrl: str):
@@ -3305,7 +3305,7 @@ class BaseExchange(object):
         length = len(usedProxies)
         if length > 1:
             joinedProxyNames = ','.join(usedProxies)
-            raise InvalidProxySettings(self.id + ' you have multiple conflicting proxy settings(' + joinedProxyNames + '), please use only one from: httpProxy, httpsProxy, httpProxyCallback, httpsProxyCallback, socksProxy, socksProxyCallback')
+            raise InvalidProxySettings(self.id + ' you have multiple conflicting proxy settings (' + joinedProxyNames + '), please use only one from: httpProxy, httpsProxy, httpProxyCallback, httpsProxyCallback, socksProxy, socksProxyCallback')
         return [httpProxy, httpsProxy, socksProxy]
 
     def check_ws_proxy_settings(self):
@@ -3335,7 +3335,7 @@ class BaseExchange(object):
         length = len(usedProxies)
         if length > 1:
             joinedProxyNames = ','.join(usedProxies)
-            raise InvalidProxySettings(self.id + ' you have multiple conflicting proxy settings(' + joinedProxyNames + '), please use only one from: wsProxy, wssProxy, wsSocksProxy')
+            raise InvalidProxySettings(self.id + ' you have multiple conflicting proxy settings (' + joinedProxyNames + '), please use only one from: wsProxy, wssProxy, wsSocksProxy')
         return [wsProxy, wssProxy, wsSocksProxy]
 
     def check_conflicting_proxies(self, proxyAgentSet: object, proxyUrlSet: object):
@@ -3372,17 +3372,17 @@ class BaseExchange(object):
                     first = array[0][key]
                     last = array[arrayLength - 1][key]
                     if first is not None and last is not None:
-                        ascending = first <= last  # True if array is sorted in ascending order based on 'timestamp'
+                        ascending = first <= last  # true if array is sorted in ascending order based on 'timestamp'
                 if fromStart:
                     if limit > arrayLength:
                         limit = arrayLength
-                    # array = self.array_slice(array, 0, limit) if ascending else self.array_slice(array, -limit)
+                    # array = ascending ? this.arraySlice (array, 0, limit) : this.arraySlice (array, -limit);
                     if ascending:
                         array = self.array_slice(array, 0, limit)
                     else:
                         array = self.array_slice(array, -limit)
                 else:
-                    # array = self.array_slice(array, -limit) if ascending else self.array_slice(array, 0, limit)
+                    # array = ascending ? this.arraySlice (array, -limit) : this.arraySlice (array, 0, limit);
                     if ascending:
                         array = self.array_slice(array, -limit)
                     else:
@@ -3419,7 +3419,7 @@ class BaseExchange(object):
             result = []
             for i in range(0, len(parsedArray)):
                 entry = parsedArray[i]
-                # safeValue(not entry[field]) so a missing field is a non-match, not a
+                # safeValue (not entry[field]) so a missing field is a non-match, not a
                 # KeyError in python/php — prediction structures key on outcome, not symbol
                 entryFiledEqualValue = self.safe_value(entry, field) == value
                 firstCondition = entryFiledEqualValue if valueIsDefined else True
@@ -3538,7 +3538,7 @@ class BaseExchange(object):
             raise NotSupported(self.id + ' fetchMarginMode() is not supported yet')
 
     def fetch_margin_modes(self, symbols: Strings = None, params={}):
-        raise NotSupported(self.id + ' fetchMarginModes() is not supported yet')
+        raise NotSupported(self.id + ' fetchMarginModes () is not supported yet')
 
     def un_watch_order_book(self, symbol: str, params={}):
         raise NotSupported(self.id + ' unWatchOrderBook() is not supported yet')
@@ -3723,7 +3723,7 @@ class BaseExchange(object):
         raise NotSupported(self.id + ' fetchPaymentMethods() is not supported yet')
 
     def parse_to_int(self, number: object):
-        # Solve Common intmisuse ex: int((since / str(1000)))
+        # Solve Common parseInt misuse ex: parseInt ((since / 1000).toString ())
         # using a number as parameter which is not valid in ts
         # numberToString is typed as nullable under strictNullChecks; cast to string
         # the cast is erased at transpile-time, so output matches every target language, rather than
@@ -3733,18 +3733,18 @@ class BaseExchange(object):
         return int(convertedNumber)
 
     def parse_to_numeric(self, number: object):
-        stringVersion = self.number_to_string(number)  # self will convert 1.0 and 1 to "1" and 1.1 to "1.1"
-        # keep self in mind:
-        # in JS:     1 == 1.0 is True
-        # in Python: 1 == 1.0 is True
-        # in PHP:    1 == 1.0 is True, but 1 == 1.0 is False.
+        stringVersion = self.number_to_string(number)  # this will convert 1.0 and 1 to "1" and 1.1 to "1.1"
+        # keep this in mind:
+        # in JS:     1 === 1.0 is true
+        # in Python: 1 == 1.0 is true
+        # in PHP:    1 == 1.0 is true, but 1 === 1.0 is false.
         if stringVersion.find('.') >= 0:
             return float(stringVersion)
         return int(stringVersion)
 
     def is_round_number(self, value: float):
-        # self method is similar to isInteger, but self is more loyal and does not check for types.
-        # i.e. isRoundNumber(1.000) returns True, while isInteger(1.000) returns False
+        # this method is similar to isInteger, but this is more loyal and does not check for types.
+        # i.e. isRoundNumber(1.000) returns true, while isInteger(1.000) returns false
         res = self.parse_to_numeric((value % 1))
         return res == 0
 
@@ -3799,7 +3799,7 @@ class BaseExchange(object):
 
     def features_generator(self):
         #
-        # in the exchange-specific features can be something like self, where we support 'string' aliases too:
+        # in the exchange-specific features can be something like this, where we support 'string' aliases too:
         #
         #     {
         #         'my' : {
@@ -3822,7 +3822,7 @@ class BaseExchange(object):
         # atm only support basic methods, eg: 'createOrder', 'fetchOrder', 'fetchOrders', 'fetchMyTrades'
         for i in range(0, len(unifiedMarketTypes)):
             marketType = unifiedMarketTypes[i]
-            # if marketType is not filled for self exchange, don't add that in `features`
+            # if marketType is not filled for this exchange, don't add that in `features`
             if not (marketType in initialFeatures):
                 self.features[marketType] = None
             else:
@@ -3836,7 +3836,7 @@ class BaseExchange(object):
 
     def features_mapper(self, initialFeatures: object, marketType: Str, subType: Str = None):
         featuresObj = initialFeatures[marketType][subType] if (subType is not None) else initialFeatures[marketType]
-        # if exchange does not have that market-type(eg. future>inverse)
+        # if exchange does not have that market-type (eg. future>inverse)
         if featuresObj is None:
             return None
         extendsStr = self.safe_string(featuresObj, 'extends')
@@ -3845,7 +3845,7 @@ class BaseExchange(object):
             extendObj = self.features_mapper(initialFeatures, extendsStr)
             featuresObj = self.deep_extend(extendObj, featuresObj)
         #
-        #  ### corrections  ###
+        # ### corrections ###
         #
         # createOrder
         if 'createOrder' in featuresObj:
@@ -3853,12 +3853,12 @@ class BaseExchange(object):
             featuresObj['createOrder']['stopLoss'] = value
             featuresObj['createOrder']['takeProfit'] = value
             if marketType == 'spot':
-                # default 'hedged': False
+                # default 'hedged': false
                 featuresObj['createOrder']['hedged'] = False
-                # default 'leverage': False
+                # default 'leverage': false
                 if not ('leverage' in featuresObj['createOrder']):
                     featuresObj['createOrder']['leverage'] = False
-            # default 'GTC' to True
+            # default 'GTC' to true
             if self.safe_bool(featuresObj['createOrder']['timeInForce'], 'GTC') is None:
                 featuresObj['createOrder']['timeInForce']['GTC'] = True
         # other methods
@@ -3867,7 +3867,7 @@ class BaseExchange(object):
             key = keys[i]
             featureBlock = featuresObj[key]
             if not self.in_array(key, ['sandbox']) and featureBlock is not None:
-                # default "symbolRequired" to False to all methods(except `createOrder`)
+                # default "symbolRequired" to false to all methods (except `createOrder`)
                 if not ('symbolRequired' in featureBlock):
                     featureBlock['symbolRequired'] = self.in_array(key, ['createOrder', 'createOrders', 'fetchOHLCV'])
         return featuresObj
@@ -3899,10 +3899,10 @@ class BaseExchange(object):
             return defaultValue
         if marketType is None:
             return defaultValue  # marketType is required
-        # if marketType(e.g. 'option') does not exist in features
+        # if marketType (e.g. 'option') does not exist in features
         if not (marketType in self.features):
             return defaultValue  # unsupported marketType, check "exchange.features" for details
-        # if marketType dict None
+        # if marketType dict undefined
         if self.features[marketType] is None:
             return defaultValue
         methodsContainer = self.features[marketType]
@@ -3912,7 +3912,7 @@ class BaseExchange(object):
         else:
             if not (subType in self.features[marketType]):
                 return defaultValue  # unsupported subType, check "exchange.features" for details
-            # if subType dict None
+            # if subType dict undefined
             if self.features[marketType][subType] is None:
                 return defaultValue
             methodsContainer = self.features[marketType][subType]
@@ -3920,27 +3920,27 @@ class BaseExchange(object):
         if methodName is None:
             return defaultValue if (defaultValue is not None) else methodsContainer
         if not (methodName in methodsContainer):
-            return defaultValue  # unsupported method, check "exchange.features" for details')
+            return defaultValue  # unsupported method, check "exchange.features" for details');
         methodDict = methodsContainer[methodName]
         if methodDict is None:
             return defaultValue
         # if user wanted only method and didn't provide `paramName`, eg: featureIsSupported('swap', 'linear', 'createOrder')
         if paramName is None:
             return defaultValue if (defaultValue is not None) else methodDict
-        splited = paramName.split('.')  # can be only parent key(`stopLoss`) or with child(`stopLoss.triggerPrice`)
+        splited = paramName.split('.')  # can be only parent key (`stopLoss`) or with child (`stopLoss.triggerPrice`)
         parentKey = splited[0]
         subKey = self.safe_string(splited, 1)
         if not (parentKey in methodDict):
-            return defaultValue  # unsupported paramName, check "exchange.features" for details')
+            return defaultValue  # unsupported paramName, check "exchange.features" for details');
         dictionary = self.safe_dict(methodDict, parentKey)
         if dictionary is None:
-            # if the value is not dictionary but a scalar value(or None), return as is
+            # if the value is not dictionary but a scalar value (or undefined), return as is
             return methodDict[parentKey]
         else:
-            # return as is, when calling without subKey eg: featureValueByType('spot', None, 'createOrder', 'stopLoss')
+            # return as is, when calling without subKey eg: featureValueByType('spot', undefined, 'createOrder', 'stopLoss')
             if subKey is None:
                 return methodDict[parentKey]
-            # raise an exception for unsupported subKey
+            # throw an exception for unsupported subKey
             if not (subKey in methodDict[parentKey]):
                 return defaultValue  # unsupported subKey, check "exchange.features" for details
             return methodDict[parentKey][subKey]
@@ -4025,12 +4025,12 @@ class BaseExchange(object):
                 currencyWithdraw = self.safe_bool(currency, 'withdraw')
                 if currencyWithdraw is None or (withdraw is True):
                     currency['withdraw'] = withdraw
-                # find lowest fee(which is more desired)
+                # find lowest fee (which is more desired)
                 fee = self.safe_string(network, 'fee')
                 feeMain = self.safe_string(currency, 'fee')
                 if feeMain is None or Precise.string_lt(fee, feeMain):
                     currency['fee'] = self.parse_number(fee)
-                # find lowest precision(which is more desired)
+                # find lowest precision (which is more desired)
                 precision = self.safe_string(network, 'precision')
                 precisionMain = self.safe_string(currency, 'precision')
                 if precisionMain is None or Precise.string_gt(precision, precisionMain):
@@ -4160,7 +4160,7 @@ class BaseExchange(object):
         }
         if market is not None:
             result = self.extend(cleanStructure, market)
-            # set None swap/future/etc
+            # set undefined swap/future/etc
             if result['spot'] is True:
                 if result['contract'] is None:
                     result['contract'] = False
@@ -4189,9 +4189,9 @@ class BaseExchange(object):
                 self.markets_by_id[value['id']] = marketsByIdArray
             else:
                 self.markets_by_id[value['id']] = [value]
-            # strip None-valued keys from the parsed market before deepExtend,
-            # otherwise an explicit `taker: None`(from safeMarketStructure)
-            # would clobber the fee defaults from self.fees['trading'] in the merge
+            # strip undefined-valued keys from the parsed market before deepExtend,
+            # otherwise an explicit `taker: undefined` (from safeMarketStructure)
+            # would clobber the fee defaults from this.fees['trading'] in the merge
             valueDefined = {}
             valueKeys = list(value.keys())
             for j in range(0, len(valueKeys)):
@@ -4219,7 +4219,7 @@ class BaseExchange(object):
             keys = list(currencies.keys())
             numCurrencies = len(keys)
         if numCurrencies > 0:
-            # currencies is always None when called in constructor but not when called from loadMarkets
+            # currencies is always undefined when called in constructor but not when called from loadMarkets
             self.currencies = self.map_to_safe_map(self.deep_extend(self.currencies, currencies))
         else:
             baseCurrencies = []
@@ -4275,7 +4275,7 @@ class BaseExchange(object):
     def set_markets_from_exchange(self, sourceExchange: object):
         # Validate that both exchanges are of the same type
         if self.id != sourceExchange.id:
-            raise ArgumentsRequired(self.id + ' shareMarkets() can only share markets with exchanges of the same type(got ' + sourceExchange['id'] + ')')
+            raise ArgumentsRequired(self.id + ' shareMarkets() can only share markets with exchanges of the same type (got ' + sourceExchange['id'] + ')')
         # Validate that source exchange has loaded markets
         if (sourceExchange.markets is None) or (sourceExchange.markets is None):
             raise ExchangeError('setMarketsFromExchange() source exchange must have loaded markets first. Can call by using loadMarkets function')
@@ -4365,10 +4365,10 @@ class BaseExchange(object):
         isTriggerOrSLTpOrder = ((self.safe_string(order, 'triggerPrice') is not None or (self.safe_string(order, 'stopLossPrice') is not None)) or (self.safe_string(order, 'takeProfitPrice') is not None))
         if parseFilled or parseCost or shouldParseFees:
             rawTrades = self.safe_value(order, 'trades', trades)
-            # oldNumber = self.number
+            # const oldNumber = this.number;
             # we parse trades as strings here!
-            # i don't think self is needed anymore
-            # self.number = str
+            # i don't think this is needed anymore
+            # (this as any).number = String;
             firstTrade = self.safe_value(rawTrades, 0)
             # parse trades if they haven't already been parsed
             tradesAreParsed = ((firstTrade is not None) and ('info' in firstTrade) and ('id' in firstTrade))
@@ -4376,7 +4376,7 @@ class BaseExchange(object):
                 trades = self.parse_trades(rawTrades, market)
             else:
                 trades = rawTrades
-            # self.number = oldNumber; why parse trades as strings if you read the value using `safeString` ?
+            # this.number = oldNumber; why parse trades as strings if you read the value using `safeString` ?
             tradesLength = 0
             isArray = isinstance(trades, list)
             if isArray:
@@ -4499,7 +4499,7 @@ class BaseExchange(object):
         emptyPrice = (price is None) or Precise.string_equals(price, '0')
         if emptyPrice and (orderType == 'market'):
             price = average
-        # we have trades with string values at self point so we will mutate them
+        # we have trades with string values at this point so we will mutate them
         for i in range(0, len(trades)):
             entry = trades[i]
             entry['amount'] = self.safe_number(entry, 'amount')
@@ -4524,7 +4524,7 @@ class BaseExchange(object):
             if postOnly is True:
                 timeInForce = 'PO'
         elif postOnly is None:
-            # timeInForce is not None here
+            # timeInForce is not undefined here
             postOnly = timeInForce == 'PO'
         timestamp = self.safe_integer(order, 'timestamp')
         lastUpdateTimestamp = self.safe_integer(order, 'lastUpdateTimestamp')
@@ -4569,18 +4569,18 @@ class BaseExchange(object):
         # dict
         #
         #     {
-        #         'id1': {...},
-        #         'id2': {...},
-        #         'id3': {...},
+        #         'id1': { ... },
+        #         'id2': { ... },
+        #         'id3': { ... },
         #         ...
         #     }
         #
         # list
         #
         #     [
-        #         {'id': 'id1', ...},
-        #         {'id': 'id2', ...},
-        #         {'id': 'id3', ...},
+        #         { 'id': 'id1', ... },
+        #         { 'id': 'id2', ... },
+        #         { 'id': 'id3', ... },
         #         ...
         #     ]
         #
@@ -4589,7 +4589,7 @@ class BaseExchange(object):
         results = []
         if isinstance(orders, list):
             for i in range(0, len(orders)):
-                parsed = self.parse_order(orders[i], market)  # don't inline self call
+                parsed = self.parse_order(orders[i], market)  # don't inline this call
                 order = self.extend(parsed, params)
                 results.append(order)
         else:
@@ -4699,7 +4699,7 @@ class BaseExchange(object):
         return trade
 
     def create_ccxt_trade_id(self, timestamp: Int = None, side: OrderSide = None, amount: Str = None, price: Str = None, takerOrMaker: Str = None):
-        # self approach is being used by multiple exchanges(mexc, woo, coinsbit, dydx, ...)
+        # this approach is being used by multiple exchanges (mexc, woo, coinsbit, dydx, ...)
         id = None
         if timestamp is not None:
             id = self.number_to_string(timestamp)
@@ -4740,7 +4740,7 @@ class BaseExchange(object):
                 fee = reducedFees[0]
             elif reducedLength == 0:
                 fee = None
-        # in case `fee & fees` are None, set `fees` as empty array
+        # in case `fee & fees` are undefined, set `fees` as empty array
         if fee is None:
             fee = {
                 'cost': None,
@@ -4757,7 +4757,7 @@ class BaseExchange(object):
         return fee
 
     def find_nearest_ceiling(self, arr: list[float], providedValue: float):
-        #  i.e. findNearestCeiling([10, 30, 50],  23) returns 30
+        #  i.e. findNearestCeiling ([ 10, 30, 50],  23) returns 30
         length = len(arr)
         for i in range(0, length):
             current = arr[i]
@@ -4793,48 +4793,48 @@ class BaseExchange(object):
 
     def reduce_fees_by_currency(self, fees: object):
         #
-        # self function takes a list of fee structures having the following format
+        # this function takes a list of fee structures having the following format
         #
-        #     string = True
+        #     string = true
         #
         #     [
-        #         {'currency': 'BTC', 'cost': '0.1'},
-        #         {'currency': 'BTC', 'cost': '0.2'  },
-        #         {'currency': 'BTC', 'cost': '0.2', 'rate': '0.00123'},
-        #         {'currency': 'BTC', 'cost': '0.4', 'rate': '0.00123'},
-        #         {'currency': 'BTC', 'cost': '0.5', 'rate': '0.00456'},
-        #         {'currency': 'USDT', 'cost': '12.3456'},
+        #         { 'currency': 'BTC', 'cost': '0.1' },
+        #         { 'currency': 'BTC', 'cost': '0.2'  },
+        #         { 'currency': 'BTC', 'cost': '0.2', 'rate': '0.00123' },
+        #         { 'currency': 'BTC', 'cost': '0.4', 'rate': '0.00123' },
+        #         { 'currency': 'BTC', 'cost': '0.5', 'rate': '0.00456' },
+        #         { 'currency': 'USDT', 'cost': '12.3456' },
         #     ]
         #
-        #     string = False
+        #     string = false
         #
         #     [
-        #         {'currency': 'BTC', 'cost': 0.1},
-        #         {'currency': 'BTC', 'cost': 0.2},
-        #         {'currency': 'BTC', 'cost': 0.2, 'rate': 0.00123},
-        #         {'currency': 'BTC', 'cost': 0.4, 'rate': 0.00123},
-        #         {'currency': 'BTC', 'cost': 0.5, 'rate': 0.00456},
-        #         {'currency': 'USDT', 'cost': 12.3456},
+        #         { 'currency': 'BTC', 'cost': 0.1 },
+        #         { 'currency': 'BTC', 'cost': 0.2 },
+        #         { 'currency': 'BTC', 'cost': 0.2, 'rate': 0.00123 },
+        #         { 'currency': 'BTC', 'cost': 0.4, 'rate': 0.00123 },
+        #         { 'currency': 'BTC', 'cost': 0.5, 'rate': 0.00456 },
+        #         { 'currency': 'USDT', 'cost': 12.3456 },
         #     ]
         #
-        # and returns a reduced fee list, where fees are summed per currency and rate(if any)
+        # and returns a reduced fee list, where fees are summed per currency and rate (if any)
         #
-        #     string = True
+        #     string = true
         #
         #     [
-        #         {'currency': 'BTC', 'cost': '0.4'  },
-        #         {'currency': 'BTC', 'cost': '0.6', 'rate': '0.00123'},
-        #         {'currency': 'BTC', 'cost': '0.5', 'rate': '0.00456'},
-        #         {'currency': 'USDT', 'cost': '12.3456'},
+        #         { 'currency': 'BTC', 'cost': '0.4'  },
+        #         { 'currency': 'BTC', 'cost': '0.6', 'rate': '0.00123' },
+        #         { 'currency': 'BTC', 'cost': '0.5', 'rate': '0.00456' },
+        #         { 'currency': 'USDT', 'cost': '12.3456' },
         #     ]
         #
-        #     string  = False
+        #     string  = false
         #
         #     [
-        #         {'currency': 'BTC', 'cost': 0.3  },
-        #         {'currency': 'BTC', 'cost': 0.6, 'rate': 0.00123},
-        #         {'currency': 'BTC', 'cost': 0.5, 'rate': 0.00456},
-        #         {'currency': 'USDT', 'cost': 12.3456},
+        #         { 'currency': 'BTC', 'cost': 0.3  },
+        #         { 'currency': 'BTC', 'cost': 0.6, 'rate': 0.00123 },
+        #         { 'currency': 'BTC', 'cost': 0.5, 'rate': 0.00456 },
+        #         { 'currency': 'USDT', 'cost': 12.3456 },
         #     ]
         #
         reduced = {}
@@ -4846,7 +4846,7 @@ class BaseExchange(object):
                 rate = self.safe_string(fee, 'rate')
                 cost = self.safe_string(fee, 'cost')
                 if cost is None:
-                    # omit None cost, as it does not make sense, however, don't omit '0' costs, as they still make sense
+                    # omit undefined cost, as it does not make sense, however, don't omit '0' costs, as they still make sense
                     continue
                 if not (feeCurrencyCode in reduced):
                     reduced[feeCurrencyCode] = {}
@@ -4901,17 +4901,18 @@ class BaseExchange(object):
                 change = Precise.string_mul(Precise.string_div(percentage, '100'), Precise.string_div(close, '100'))
             elif open is not None and percentage is not None:
                 change = Precise.string_mul(open, Precise.string_div(percentage, '100'))
-        # calculate things according to "open"(similar can be done with "close")
+        # calculate things according to "open" (similar can be done with "close")
         if open is not None:
-            # percentage(using change)
+            # percentage (using change)
             if percentage is None and change is not None:
                 percentage = Precise.string_mul(Precise.string_div(change, open), '100')
-            # close(using change)
+            # close (using change)
             if close is None and change is not None:
                 close = Precise.string_add(open, change)
-            # close(using average)
+            # close (using average)
             if close is None and average is not None:
-                close = Precise.string_mul(average, '2')
+                # average is the midpoint of open and close, so twice it is their sum
+                close = Precise.string_sub(Precise.string_mul(average, '2'), open)
             # average
             if average is None and close is not None:
                 precision = 18
@@ -5052,7 +5053,7 @@ class BaseExchange(object):
                     if retry == maxRetries:
                         raise e
                 if shouldBreak:
-                    break  # self is needed because of GO
+                    break  # this is needed because of GO
             content = response
             if content is None:
                 raise NullResponse(self.id + ' fetchWebEndpoint() returned empty content')
@@ -5256,7 +5257,7 @@ class BaseExchange(object):
             if currencyCode == baseCoin:
                 preferPrimary = True  # mainnet currency uses primary chain
             elif currencyCode is not None:
-                preferPrimary = False  # any other(token) currency uses secondary chain
+                preferPrimary = False  # any other (token) currency uses secondary chain
             elif allowDefault:
                 preferPrimary = (entry['default'] == 'primary')
             else:
@@ -5275,7 +5276,7 @@ class BaseExchange(object):
         if networkCode is None:
             return None
         networkIdsByCodes = self.safe_dict(self.options, 'networks', {})
-        # try the preferred form first, fall back to its alternative(e.g. when only 'ETH' or only 'ERC20' is defined)
+        # try the preferred form first, fall back to its alternative (e.g. when only 'ETH' or only 'ERC20' is defined)
         chainPair = self.prioritized_network_aliases(networkCode, currencyCode, False)
         preferredChain = networkCode if (chainPair is None) else chainPair[0]
         alternativeChain = networkCode if (chainPair is None) else chainPair[1]
@@ -5315,7 +5316,7 @@ class BaseExchange(object):
             return networkCode
         preferredChain = chainPair[0]
         alternativeChain = chainPair[1]
-        # when the exchange explicitly defines both forms in options.networks(e.g. BTC + BRC20),
+        # when the exchange explicitly defines both forms in options.networks (e.g. BTC + BRC20),
         # it disambiguates them — trust the direct id→code inversion instead of guessing
         if currencyCode is None:
             networkIdsByCodes = self.safe_dict(self.options, 'networks', {})
@@ -5337,7 +5338,7 @@ class BaseExchange(object):
             # if currency had set its network in "defaultNetworks", use it
             defaultNetworkCode = defaultNetworks[currencyCode]
         else:
-            # otherwise, try to use the global-scope 'defaultNetwork' value(even if that network is not supported by currency, it doesn't make any problem, self will be just used "at first" if currency supports self network at all)
+            # otherwise, try to use the global-scope 'defaultNetwork' value (even if that network is not supported by currency, it doesn't make any problem, this will be just used "at first" if currency supports this network at all)
             defaultNetwork = self.safe_string(self.options, 'defaultNetwork')
             if defaultNetwork is not None:
                 defaultNetworkCode = defaultNetwork
@@ -5350,7 +5351,7 @@ class BaseExchange(object):
         return self.select_network_key_from_networks(currencyCode, networkCode, indexedNetworkEntries, False)
 
     def select_network_key_from_networks(self, currencyCode: object, networkCode: object, indexedNetworkEntries: object, isIndexedByUnifiedNetworkCode=False):
-        # self method is used against raw & unparse network entries, which are just indexed by network id
+        # this method is used against raw & unparse network entries, which are just indexed by network id
         chosenNetworkId = None
         availableNetworkIds = list(indexedNetworkEntries.keys())
         responseNetworksLength = len(availableNetworkIds)
@@ -5368,7 +5369,7 @@ class BaseExchange(object):
             if responseNetworksLength == 0:
                 raise NotSupported(self.id + ' - no networks were returned for ' + currencyCode)
             else:
-                # if networkCode was not provided by user, then we try to use the default network(if it was defined in "defaultNetworks"), otherwise, we just return the first network entry
+                # if networkCode was not provided by user, then we try to use the default network (if it was defined in "defaultNetworks"), otherwise, we just return the first network entry
                 defaultNetworkCode = self.default_network_code(currencyCode)
                 defaultNetworkId = defaultNetworkCode if isIndexedByUnifiedNetworkCode else self.network_code_to_id(defaultNetworkCode, currencyCode)
                 if defaultNetworkId is None:
@@ -5406,7 +5407,7 @@ class BaseExchange(object):
         return self.filter_by_since_limit(sorted, since, limit, 0, tail)
 
     def parse_leverage_tiers(self, response: object, symbols: Strings = None, marketIdKey: Str = None):
-        # marketIdKey should only be None when response is a dictionary.
+        # marketIdKey should only be undefined when response is a dictionary.
         symbols = self.market_symbols(symbols)
         tiers = {}
         symbolsLength = 0
@@ -5457,10 +5458,10 @@ class BaseExchange(object):
         #
         percentage = self.safe_value(position, 'percentage')
         if (percentage is None) and (unrealizedPnlString is not None) and (initialMarginString is not None):
-            # as it was done in all implementations( aax, btcex, bybit, deribit, gate, kucoinfutures, phemex )
+            # as it was done in all implementations ( aax, btcex, bybit, deribit, gate, kucoinfutures, phemex )
             percentageString = Precise.string_mul(Precise.string_div(unrealizedPnlString, initialMarginString, 4), '100')
             position['percentage'] = self.parse_number(percentageString)
-        # if contractSize is None get from market
+        # if contractSize is undefined get from market
         contractSize = self.safe_number(position, 'contractSize')
         symbol = self.safe_string(position, 'symbol')
         market = None
@@ -5672,7 +5673,7 @@ class BaseExchange(object):
         objects = self.to_array(objects)
         # return all of them if no values were passed
         if (values is None) or (values is None) or (values is False) or (values == 0) or (values == ''):
-            # return self.index_by(objects, key) if indexed else objects
+            # return indexed ? this.indexBy (objects, key) : objects;
             if indexed:
                 return self.index_by(objects, key)
             else:
@@ -5681,7 +5682,7 @@ class BaseExchange(object):
         for i in range(0, len(objects)):
             if self.in_array(objects[i][key], values):
                 results.append(objects[i])
-        # return self.index_by(results, key) if indexed else results
+        # return indexed ? this.indexBy (results, key) : results;
         if indexed:
             return self.index_by(results, key)
         return results
@@ -5690,7 +5691,7 @@ class BaseExchange(object):
         objects = self.to_array(objects)
         # return all of them if no values were passed
         if (values is None) or (values is None) or (values is False) or (values == 0) or (values == ''):
-            # return self.index_by(objects, key) if indexed else objects
+            # return indexed ? this.indexBy (objects, key) : objects;
             if indexed:
                 return self.index_by(objects, key)
             else:
@@ -5699,7 +5700,7 @@ class BaseExchange(object):
         for i in range(0, len(objects)):
             if not self.in_array(objects[i][key], values):
                 results.append(objects[i])
-        # return self.index_by(results, key) if indexed else results
+        # return indexed ? this.indexBy (results, key) : results;
         if indexed:
             return self.index_by(results, key)
         return results
@@ -5712,24 +5713,24 @@ class BaseExchange(object):
         retries, params = self.handle_option_and_params(params, path, 'maxRetriesOnFailure', retries)
         retryDelay = 0
         retryDelay, params = self.handle_option_and_params(params, path, 'maxRetriesOnFailureDelay', retryDelay)
-        fetchData = None
         fetchDataCacheEnabled = self.fetchHistoryCacheSize > 0
         for i in range(0, retries + 1):
+            fetchData = None
             if fetchDataCacheEnabled:
                 fetchData = {'request': None, 'response': {'body': None}, 'error': None}
             try:
                 self.set_last_rest_request_timestamp()
                 request = self.sign(path, api, method, params, headers, body)
-                if fetchDataCacheEnabled and (fetchData is not None):
+                if fetchData is not None:
                     fetchData['request'] = request
                 self.set_last_request(request)
                 response = self.fetch(request['url'], request['method'], request['headers'], request['body'])
-                if fetchDataCacheEnabled and (fetchData is not None):
+                if fetchData is not None:
                     fetchData['response']['body'] = response
                     self.add_fetch_cache(fetchData)
                 return response
             except Exception as e:
-                if fetchDataCacheEnabled and (fetchData is not None):
+                if fetchData is not None:
                     fetchData['error'] = e
                     self.add_fetch_cache(fetchData)
                 if isinstance(e, OperationFailed):
@@ -5743,7 +5744,7 @@ class BaseExchange(object):
                         raise e
                 else:
                     raise e
-        return None  # self line is never reached, but exists for c# value return requirement
+        return None  # this line is never reached, but exists for c# value return requirement
 
     def request(self, path: object, api: object = 'public', method='GET', params={}, headers: object = None, body: object = None, config={}):
         return self.fetch2(path, api, method, params, headers, body, config)
@@ -5760,12 +5761,12 @@ class BaseExchange(object):
         return self.accounts
 
     def build_ohlcvc(self, trades: list[Trade], timeframe: str = '1m', since: float = 0, limit: float = 2147483647):
-        # given a sorted arrays of trades(recent last) and a timeframe builds an array of OHLCV candles
-        # note, default limit value(2147483647) is max int32 value
+        # given a sorted arrays of trades (recent last) and a timeframe builds an array of OHLCV candles
+        # note, default limit value (2147483647) is max int32 value
         ms = self.parse_timeframe(timeframe) * 1000
         ohlcvs = []
         i_timestamp = 0
-        # open = 1
+        # const open = 1;
         i_high = 2
         i_low = 3
         i_close = 4
@@ -5785,7 +5786,7 @@ class BaseExchange(object):
                 continue
             if ts is None:
                 raise ExchangeError(self.id + ' buildOHLCVC() missing ts')
-            openingTime = int(math.floor(ts / ms)) * ms  # shift to the edge of m/h/d(but not M)
+            openingTime = int(math.floor(ts / ms)) * ms  # shift to the edge of m/h/d (but not M)
             if openingTime < since:  # we don't need bars, that have opening time earlier than requested
                 continue
             ohlcv_length = len(ohlcvs)
@@ -6009,24 +6010,24 @@ class BaseExchange(object):
         return value
 
     def handle_option_and_params(self, params: object, methodName: Str, optionName: str, defaultValue: object = None):
-        # This method can be used to obtain method specific properties, i.e: self.handle_option_and_params(params, 'fetchPosition', 'marginMode', 'isolated')
+        # This method can be used to obtain method specific properties, i.e: this.handleOptionAndParams (params, 'fetchPosition', 'marginMode', 'isolated')
         defaultOptionName = 'default' + self.capitalize(optionName)  # we also need to check the 'defaultXyzWhatever'
         # check if params contain the key
         value = self.safe_value_2(params, optionName, defaultOptionName)
         if value is not None:
             params = self.omit(params, [optionName, defaultOptionName])
         else:
-            # handle routed methods like "watchTrades > watchTradesForSymbols"(or "watchTicker > watchTickers")
+            # handle routed methods like "watchTrades > watchTradesForSymbols" (or "watchTicker > watchTickers")
             methodName, params = self.handle_param_string(params, 'callerMethodName', methodName)
-            # check if exchange has properties for self method
+            # check if exchange has properties for this method
             exchangeWideMethodOptions = self.safe_value(self.options, methodName)
             if exchangeWideMethodOptions is not None:
-                # check if the option is defined inside self method's props
+                # check if the option is defined inside this method's props
                 value = self.safe_value_2(exchangeWideMethodOptions, optionName, defaultOptionName)
             if value is None:
-                # if it's still None, check if global exchange-wide option exists
+                # if it's still undefined, check if global exchange-wide option exists
                 value = self.safe_value_2(self.options, optionName, defaultOptionName)
-            # if it's still None, use the default value
+            # if it's still undefined, use the default value
             value = value if (value is not None) else defaultValue
         return [value, params]
 
@@ -6037,7 +6038,7 @@ class BaseExchange(object):
             # omit optionName2 too from params
             params = self.omit(params, optionName2)
             return [value, params]
-        # if still None, try optionName2
+        # if still undefined, try optionName2
         value2 = None
         value2, params = self.handle_option_and_params(params, methodName1, optionName2, defaultValue)
         return [value2, params]
@@ -6132,7 +6133,7 @@ class BaseExchange(object):
 
     def handle_errors(self, statusCode: int, statusText: str, url: str, method: str, responseHeaders: dict, responseBody: str, response: object, requestHeaders: object, requestBody: object):
         # it is a stub method that must be overrided in the derived exchange classes
-        # raise NotSupported(self.id + ' handleErrors() not implemented yet')
+        # throw new NotSupported (this.id + ' handleErrors() not implemented yet');
         return None
 
     def calculate_rate_limiter_cost(self, api: object, method: object, path: object, params: object, config={}):
@@ -6400,12 +6401,12 @@ class BaseExchange(object):
         raise BadSymbol(self.id + ' does not have market symbol ' + symbol)
 
     def create_expired_option_market(self, symbol: str):
-        raise NotSupported(self.id + ' createExpiredOptionMarket() is not supported yet')
+        raise NotSupported(self.id + ' createExpiredOptionMarket () is not supported yet')
 
     def is_leveraged_currency(self, currencyCode: object, checkBaseCoin: Bool = False, existingCurrencies: dict = None):
         leverageSuffixes = [
-            '2L', '2S', '3L', '3S', '4L', '4S', '5L', '5S',  # Leveraged Tokens(LT)
-            'UP', 'DOWN',  # exchange-specific(e.g. BLVT)
+            '2L', '2S', '3L', '3S', '4L', '4S', '5L', '5S',  # Leveraged Tokens (LT)
+            'UP', 'DOWN',  # exchange-specific (e.g. BLVT)
             'BULL', 'BEAR',  # similar
         ]
         for i in range(0, len(leverageSuffixes)):
@@ -6481,13 +6482,13 @@ class BaseExchange(object):
             return self.number_to_string(value)
         return value
 
-    def is_tick_precision(self):
+    def is_tick_precision(self) -> bool:
         return self.precisionMode == TICK_SIZE
 
-    def is_decimal_precision(self):
+    def is_decimal_precision(self) -> bool:
         return self.precisionMode == DECIMAL_PLACES
 
-    def is_significant_precision(self):
+    def is_significant_precision(self) -> bool:
         return self.precisionMode == SIGNIFICANT_DIGITS
 
     def safe_number(self, obj: object, key: NullableIndexType, defaultNumber: Num = None):
@@ -6586,16 +6587,16 @@ class BaseExchange(object):
         # dict
         #
         #     {
-        #         'marketId1': {...},
-        #         'marketId2': {...},
+        #         'marketId1': { ... },
+        #         'marketId2': { ... },
         #         ...
         #     }
         #
         # list
         #
         #     [
-        #         {'market': 'marketId1', ...},
-        #         {'market': 'marketId2', ...},
+        #         { 'market': 'marketId1', ... },
+        #         { 'market': 'marketId2', ... },
         #         ...
         #     ]
         #
@@ -6622,18 +6623,18 @@ class BaseExchange(object):
         # dict
         #
         #     {
-        #         'marketId1': {...},
-        #         'marketId2': {...},
-        #         'marketId3': {...},
+        #         'marketId1': { ... },
+        #         'marketId2': { ... },
+        #         'marketId3': { ... },
         #         ...
         #     }
         #
         # list
         #
         #     [
-        #         {'market': 'marketId1', ...},
-        #         {'market': 'marketId2', ...},
-        #         {'market': 'marketId3', ...},
+        #         { 'market': 'marketId1', ... },
+        #         { 'market': 'marketId2', ... },
+        #         { 'market': 'marketId3', ... },
         #         ...
         #     ]
         #
@@ -6762,9 +6763,9 @@ class BaseExchange(object):
         exchangeSpecificDefined = (exchangeSpecificKey is not None) and (exchangeSpecificKey in params)
         if triggerDirection is not None:
             params = self.omit(params, 'triggerDirection')
-        # raise exception if:
-        # A) if provided value is not unified(support old "up/down" strings too)
-        # B) if exchange specific "trigger direction key"(eg. "stopPriceSide") was not provided
+        # throw exception if:
+        # A) if provided value is not unified (support old "up/down" strings too)
+        # B) if exchange specific "trigger direction key" (eg. "stopPriceSide") was not provided
         if not self.in_array(triggerDirection, ['ascending', 'descending', 'up', 'down', 'above', 'below']) and not exchangeSpecificDefined and not allowEmpty:
             raise ArgumentsRequired(self.id + ' createOrder() : trigger orders require params["triggerDirection"] to be either "ascending" or "descending"')
         # if old format was provided, overwrite to new
@@ -6794,7 +6795,7 @@ class BaseExchange(object):
         """
         timeInForce = self.safe_string_upper(params, 'timeInForce')
         postOnly = self.safe_bool_2(params, 'postOnly', 'post_only', False)
-        # we assume timeInForce is uppercase from safeStringUpper(params, 'timeInForce')
+        # we assume timeInForce is uppercase from safeStringUpper (params, 'timeInForce')
         ioc = timeInForce == 'IOC'
         fok = timeInForce == 'FOK'
         timeInForcePostOnly = timeInForce == 'PO'
@@ -6854,7 +6855,7 @@ class BaseExchange(object):
         raise NotSupported(self.id + ' fetchConvertCurrencies() is not supported yet')
 
     def parse_open_interest(self, interest: object, market: Market = None):
-        raise NotSupported(self.id + ' parseOpenInterest() is not supported yet')
+        raise NotSupported(self.id + ' parseOpenInterest () is not supported yet')
 
     def parse_open_interests(self, response: object, symbols: Strings = None):
         result = {}
@@ -6885,11 +6886,11 @@ class BaseExchange(object):
             rates = self.fetch_funding_rates([symbol], params)
             rate = self.safe_value(rates, symbol)
             if rate is None:
-                raise NullResponse(self.id + ' fetchFundingRate() returned no data for ' + symbol)
+                raise NullResponse(self.id + ' fetchFundingRate () returned no data for ' + symbol)
             else:
                 return rate
         else:
-            raise NotSupported(self.id + ' fetchFundingRate() is not supported yet')
+            raise NotSupported(self.id + ' fetchFundingRate () is not supported yet')
 
     def fetch_funding_interval(self, symbol: str, params={}):
         if self.has['fetchFundingIntervals'] is not None and self.has['fetchFundingIntervals'] is not False:
@@ -6923,7 +6924,7 @@ class BaseExchange(object):
             }
             return self.fetch_ohlcv(symbol, timeframe, since, limit, self.extend(request, params))
         else:
-            raise NotSupported(self.id + ' fetchMarkOHLCV() is not supported yet')
+            raise NotSupported(self.id + ' fetchMarkOHLCV () is not supported yet')
 
     def fetch_index_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}):
         """
@@ -6941,7 +6942,7 @@ class BaseExchange(object):
             }
             return self.fetch_ohlcv(symbol, timeframe, since, limit, self.extend(request, params))
         else:
-            raise NotSupported(self.id + ' fetchIndexOHLCV() is not supported yet')
+            raise NotSupported(self.id + ' fetchIndexOHLCV () is not supported yet')
 
     def fetch_premium_index_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}):
         """
@@ -6959,7 +6960,7 @@ class BaseExchange(object):
             }
             return self.fetch_ohlcv(symbol, timeframe, since, limit, self.extend(request, params))
         else:
-            raise NotSupported(self.id + ' fetchPremiumIndexOHLCV() is not supported yet')
+            raise NotSupported(self.id + ' fetchPremiumIndexOHLCV () is not supported yet')
 
     def handle_time_in_force(self, params={}):
         """
@@ -7088,7 +7089,7 @@ class BaseExchange(object):
         return fee
 
     def parse_income(self, info: object, market: Market = None):
-        raise NotSupported(self.id + ' parseIncome() is not supported yet')
+        raise NotSupported(self.id + ' parseIncome () is not supported yet')
 
     def parse_incomes(self, incomes: object, market: Market = None, since: Int = None, limit: Int = None):
         """
@@ -7119,8 +7120,8 @@ class BaseExchange(object):
             return None
         firstMarket = self.safe_string(symbols, 0)
         if firstMarket is None:
-            # an empty symbols list must behave like an None one,
-            # self.market(None) would raise an unreadable error
+            # an empty symbols list must behave like an undefined one,
+            # this.market (undefined) would throw an unreadable error
             return None
         market = self.market(firstMarket)
         return market
@@ -7144,7 +7145,7 @@ class BaseExchange(object):
         if self.has['fetchDepositsWithdrawals'] is not None and self.has['fetchDepositsWithdrawals'] is not False:
             return self.fetch_deposits_withdrawals(code, since, limit, params)
         else:
-            raise NotSupported(self.id + ' fetchTransactions() is not supported yet')
+            raise NotSupported(self.id + ' fetchTransactions () is not supported yet')
 
     def filter_by_array_positions(self, objects: object, key: IndexType, values: object = None, indexed=True):
         """
@@ -7282,7 +7283,7 @@ class BaseExchange(object):
         maxEntriesPerRequest, params = self.handle_max_entries_per_request_and_params(method, maxEntriesPerRequest, params)
         # paginationDirection is only relevant to fetchPaginatedCallDynamic/Cursor; deterministic
         # pagination always walks forward internally, so strip it here to avoid leaking an
-        # unrecognized param into the underlying exchange request(e.g. binance -1104 errors)
+        # unrecognized param into the underlying exchange request (e.g. binance -1104 errors)
         params = self.omit(params, 'paginationDirection')
         current = self.milliseconds()
         tasks = []
@@ -7293,7 +7294,7 @@ class BaseExchange(object):
         currentSince = current - (maxCalls * step) - 1
         if since is not None:
             if until is not None:
-                # the recent-window floor below would jump past a fully-historical [since, until]
+                # the recent-window floor below would jump past a fully-historical [ since, until ]
                 # range and return an empty result - requiredCalls is validated against maxCalls
                 # further down, so anchoring at since directly is safe here,
                 # see https://github.com/ccxt/ccxt/issues/26252
@@ -7369,7 +7370,7 @@ class BaseExchange(object):
                 if response is not None:
                     result = self.array_concat(result, response)
                 last = self.safe_dict(response, responseLength - 1)
-                # cursorValue = self.safe_value(last['info'], cursorReceived)
+                # cursorValue = this.safeValue (last['info'], cursorReceived);
                 cursorValue = None  # search for the cursor
                 for j in range(0, responseLength):
                     index = responseLength - j - 1
@@ -7500,7 +7501,7 @@ class BaseExchange(object):
         })
 
     def parse_liquidation(self, liquidation: object, market: Market = None):
-        raise NotSupported(self.id + ' parseLiquidation() is not supported yet')
+        raise NotSupported(self.id + ' parseLiquidation () is not supported yet')
 
     def parse_liquidations(self, liquidations: list[dict], market: Market = None, since: Int = None, limit: Int = None):
         """
@@ -7522,7 +7523,7 @@ class BaseExchange(object):
         return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
 
     def parse_greeks(self, greeks: dict, market: Market = None):
-        raise NotSupported(self.id + ' parseGreeks() is not supported yet')
+        raise NotSupported(self.id + ' parseGreeks () is not supported yet')
 
     def parse_all_greeks(self, greeks: object, symbols: Strings = None, params={}):
         #
@@ -7546,7 +7547,7 @@ class BaseExchange(object):
         return self.filter_by_array(results, 'symbol', symbols)
 
     def parse_option(self, chain: dict, currency: Currency = None, market: Market = None):
-        raise NotSupported(self.id + ' parseOption() is not supported yet')
+        raise NotSupported(self.id + ' parseOption () is not supported yet')
 
     def parse_option_chain(self, response: list[object], currencyKey: Str = None, symbolKey: Str = None):
         optionStructures = {}
@@ -7572,7 +7573,7 @@ class BaseExchange(object):
         return marginModeStructures
 
     def parse_margin_mode(self, marginMode: dict, market: Market = None):
-        raise NotSupported(self.id + ' parseMarginMode() is not supported yet')
+        raise NotSupported(self.id + ' parseMarginMode () is not supported yet')
 
     def parse_leverages(self, response: list[object], symbols: Strings = None, symbolKey: Str = None, marketType: MarketType | None = None):
         leverageStructures = {}
@@ -7587,7 +7588,7 @@ class BaseExchange(object):
         return leverageStructures
 
     def parse_leverage(self, leverage: dict, market: Market = None):
-        raise NotSupported(self.id + ' parseLeverage() is not supported yet')
+        raise NotSupported(self.id + ' parseLeverage () is not supported yet')
 
     def parse_conversions(self, conversions: list, code: Str = None, fromCurrencyKey: Str = None, toCurrencyKey: Str = None, since: Int = None, limit: Int = None, params={}):
         conversionsArray = self.to_array(conversions)
@@ -7620,8 +7621,8 @@ class BaseExchange(object):
 
     def parse_conversion(self, conversion: dict, fromCurrency: Currency = None, toCurrency: Currency = None):
         if conversion is None:
-            raise NotSupported(self.id + ' parseConversion() is not supported yet')
-        raise NotSupported(self.id + ' parseConversion() is not supported yet')
+            raise NotSupported(self.id + ' parseConversion () is not supported yet')
+        raise NotSupported(self.id + ' parseConversion () is not supported yet')
 
     def convert_expire_date(self, date: Str):
         if date is None:
@@ -7726,7 +7727,7 @@ class BaseExchange(object):
         :param dict params: extra parameters specific to the exchange api endpoint
         :returns dict: a `transfer structure <https://docs.ccxt.com/?id=transfer-structure>`
         """
-        raise NotSupported(self.id + ' fetchTransfer() is not supported yet')
+        raise NotSupported(self.id + ' fetchTransfer () is not supported yet')
 
     def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
         """
@@ -7737,7 +7738,7 @@ class BaseExchange(object):
         :param dict params: extra parameters specific to the exchange api endpoint
         :returns dict: a `transfer structure <https://docs.ccxt.com/?id=transfer-structure>`
         """
-        raise NotSupported(self.id + ' fetchTransfers() is not supported yet')
+        raise NotSupported(self.id + ' fetchTransfers () is not supported yet')
 
     def un_watch_ohlcv(self, symbol: str, timeframe: str = '1m', params={}):
         """
@@ -7747,7 +7748,7 @@ class BaseExchange(object):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
-        raise NotSupported(self.id + ' unWatchOHLCV() is not supported yet')
+        raise NotSupported(self.id + ' unWatchOHLCV () is not supported yet')
 
     def withdraw_ws(self, code: str, amount: float, address: str, tag: Str = None, params={}):
         """
@@ -7759,7 +7760,7 @@ class BaseExchange(object):
         :param dict [params]: extra parameters specific to the bitvavo api endpoint
         :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        raise NotSupported(self.id + ' withdrawWs() is not supported yet')
+        raise NotSupported(self.id + ' withdrawWs () is not supported yet')
 
     def un_watch_my_trades(self, symbol: Str = None, params={}):
         """
@@ -7768,7 +7769,7 @@ class BaseExchange(object):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        raise NotSupported(self.id + ' unWatchMyTrades() is not supported yet')
+        raise NotSupported(self.id + ' unWatchMyTrades () is not supported yet')
 
     def fetch_orders_by_status_ws(self, status: str, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
@@ -7778,7 +7779,7 @@ class BaseExchange(object):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        raise NotSupported(self.id + ' fetchOrdersByStatusWs() is not supported yet')
+        raise NotSupported(self.id + ' fetchOrdersByStatusWs () is not supported yet')
 
     def un_watch_bids_asks(self, symbols: Strings = None, params={}):
         """
@@ -7787,7 +7788,7 @@ class BaseExchange(object):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        raise NotSupported(self.id + ' unWatchBidsAsks() is not supported yet')
+        raise NotSupported(self.id + ' unWatchBidsAsks () is not supported yet')
 
     def clean_unsubscription(self, client: object, subHash: Str, unsubHash: Str, subHashIsPrefix=False):
         if (unsubHash is not None) and (unsubHash in client.subscriptions):
@@ -7921,7 +7922,7 @@ class Exchange(BaseExchange):
             positions = self.fetchPositionsHistory([symbol], since, limit, params)
             return positions
         else:
-            raise NotSupported(self.id + ' fetchPositionHistory() is not supported yet')
+            raise NotSupported(self.id + ' fetchPositionHistory () is not supported yet')
 
     def fetch_positions_history(self, symbols: Strings = None, since: Int = None, limit: Int = None, params={}):
         """
@@ -7932,7 +7933,7 @@ class Exchange(BaseExchange):
         :param dict params: extra parameters specific to the exchange api endpoint
         :returns dict[]: a list of `position structures <https://docs.ccxt.com/?id=position-structure>`
         """
-        raise NotSupported(self.id + ' fetchPositionsHistory() is not supported yet')
+        raise NotSupported(self.id + ' fetchPositionsHistory () is not supported yet')
 
     def fetch_positions_risk(self, symbols: Strings = None, params={}):
         raise NotSupported(self.id + ' fetchPositionsRisk() is not supported yet')
@@ -7994,7 +7995,7 @@ class Exchange(BaseExchange):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        raise NotSupported(self.id + ' watchMarkPrice() is not supported yet')
+        raise NotSupported(self.id + ' watchMarkPrice () is not supported yet')
 
     def watch_mark_prices(self, symbols: Strings = None, params={}):
         """
@@ -8003,7 +8004,7 @@ class Exchange(BaseExchange):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        raise NotSupported(self.id + ' watchMarkPrices() is not supported yet')
+        raise NotSupported(self.id + ' watchMarkPrices () is not supported yet')
 
     def fetch_l3_order_book(self, symbol: str, limit: Int = None, params={}):
         raise BadRequest(self.id + ' fetchL3OrderBook() is not supported yet')
@@ -8090,7 +8091,7 @@ class Exchange(BaseExchange):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        raise NotSupported(self.id + ' createOrdersWs() is not supported yet')
+        raise NotSupported(self.id + ' createOrdersWs () is not supported yet')
 
     def create_post_only_order_ws(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         if self.has['createPostOnlyOrderWs'] is None or self.has['createPostOnlyOrderWs'] is False:

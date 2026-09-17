@@ -7,7 +7,7 @@ namespace ccxt.pro;
 public partial class backpack { public backpack(object args = null) : base(args) { } }
 public partial class backpack : ccxt.backpack
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "has", new Dictionary<string, object>() {
@@ -1061,7 +1061,7 @@ public partial class backpack : ccxt.backpack
     {
         for (int i = 0; isLessThan(i, getArrayLength(bidAsks)); postFixIncrement(ref i))
         {
-            object bidAsk = this.parseOrderBookBidAsk(getValue(bidAsks, i));
+            List<object> bidAsk = this.parseOrderBookBidAsk(getValue(bidAsks, i));
             (bookSide as IOrderBookSide).storeArray(bidAsk);
         }
     }

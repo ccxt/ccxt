@@ -5,7 +5,7 @@ namespace ccxt;
 
 public partial class bitrue : Exchange
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "id", "bitrue" },
@@ -787,7 +787,7 @@ public partial class bitrue : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
-    public async override Task<object> fetchCurrencies(object parameters = null)
+    public async override Task<IDictionary<string, object>> fetchCurrencies(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> response = await this.spotV1PublicGetExchangeInfo(parameters);
@@ -841,7 +841,7 @@ public partial class bitrue : Exchange
         return this.parseCurrencies(coins);
     }
 
-    public override object parseCurrency(object rawCurrency)
+    public override Dictionary<string, object> parseCurrency(object rawCurrency)
     {
         string? id = this.safeString(rawCurrency, "coin");
         string? name = this.safeString(rawCurrency, "coinFulName");
@@ -1015,7 +1015,7 @@ public partial class bitrue : Exchange
         return ccxt.BaseExchange.ToMarketInterfaceList(this.parseMarkets(markets));
     }
 
-    public override object parseMarket(object market)
+    public override Dictionary<string, object> parseMarket(object market)
     {
         string? id = this.safeString(market, "symbol", "");
         string? lowercaseId = this.safeStringLower(market, "symbol");
@@ -1183,13 +1183,13 @@ public partial class bitrue : Exchange
             { "info", response },
         };
         Int64? timestamp = this.safeInteger(response, "updateTime");
-        object balances = this.safeValue2(response, "balances", "account", new List<object>() {});
+        List<object> balances = this.safeList2(response, "balances", "account", new List<object>() {});
         for (int i = 0; isLessThan(i, getArrayLength(balances)); postFixIncrement(ref i))
         {
             object balance = getValue(balances, i);
             string? currencyId = this.safeString2(balance, "asset", "marginCoin");
             string? code = this.safeCurrencyCode(currencyId);
-            object account = this.account();
+            Dictionary<string, object> account = this.account();
             ((IDictionary<string,object>)account)["free"] = this.safeString2(balance, "free", "accountNormal");
             ((IDictionary<string,object>)account)["used"] = this.safeString2(balance, "locked", "accountLock");
             if (isTrue(!isEqual(code, null)))
@@ -2187,7 +2187,7 @@ public partial class bitrue : Exchange
         {
             bool isMarket = isEqual(uppercaseType, "MARKET");
             string? timeInForce = this.safeStringLower(parameters, "timeInForce");
-            object postOnly = this.isPostOnly(isMarket, null, parameters);
+            bool postOnly = this.isPostOnly(isMarket, null, parameters);
             if (isTrue(postOnly))
             {
                 ((IDictionary<string,object>)request)["type"] = "POST_ONLY";
@@ -3462,7 +3462,7 @@ public partial class bitrue : Exchange
      * @param {object} [params] parameters specific to the exchange API endpoint
      * @returns {object} A [margin structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#add-margin-structure}
      */
-    public async override Task<ccxt.MarginModification> SetMargin(object symbol, object amount, object parameters = null)
+    public async override Task<ccxt.MarginModification> SetMargin(string symbol, double amount, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -3567,7 +3567,7 @@ public partial class bitrue : Exchange
                     url = add(url, add("?", this.urlencode(parameters)));
                 } else
                 {
-                    object query = this.extend(new Dictionary<string, object>() {
+                    Dictionary<string, object> query = this.extend(new Dictionary<string, object>() {
                         { "recvWindow", recvWindow },
                     }, parameters);
                     body = this.json(query);

@@ -5,7 +5,7 @@ namespace ccxt;
 
 public partial class cryptocom : Exchange
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "id", "cryptocom" },
@@ -794,7 +794,7 @@ public partial class cryptocom : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
-    public async override Task<object> fetchCurrencies(object parameters = null)
+    public async override Task<IDictionary<string, object>> fetchCurrencies(object parameters = null)
     {
         // this endpoint requires authentication
         parameters ??= new Dictionary<string, object>();
@@ -870,11 +870,11 @@ public partial class cryptocom : Exchange
         //
         IDictionary<string, object> resultData = this.safeDict(response, "result", new Dictionary<string, object>() {});
         IDictionary<string, object> currencyMap = this.safeDict(resultData, "currency_map", new Dictionary<string, object>() {});
-        object enhancedArray = this.addKeyInArrayItems(currencyMap, "_coin_id");
+        List<object> enhancedArray = this.addKeyInArrayItems(currencyMap, "_coin_id");
         return this.parseCurrencies(enhancedArray);
     }
 
-    public override object parseCurrency(object currency)
+    public override Dictionary<string, object> parseCurrency(object currency)
     {
         string? id = this.safeString(currency, "_coin_id");
         string? code = this.safeCurrencyCode(id);
@@ -1046,7 +1046,7 @@ public partial class cryptocom : Exchange
             string? strike = this.safeString(market, "strike");
             bool? marginBuyEnabled = this.safeBool(market, "margin_buy_enabled");
             bool? marginSellEnabled = this.safeBool(market, "margin_sell_enabled");
-            object expiryString = this.omitZero(this.safeString(market, "expiry_timestamp_ms"));
+            string? expiryString = ((string)this.omitZero(this.safeString(market, "expiry_timestamp_ms")));
             object expiry = ((bool) isTrue((!isEqual(expiryString, null)))) ? parseInt(expiryString) : null;
             object symbol = add(add(bs, "/"), quote);
             string? type = null;
@@ -1527,7 +1527,7 @@ public partial class cryptocom : Exchange
     {
         IDictionary<string, object> responseResult = this.safeDict(response, "result", new Dictionary<string, object>() {});
         List<object> data = this.safeList(responseResult, "data", new List<object>() {});
-        object positionBalances = this.safeValue(getValue(data, 0), "position_balances", new List<object>() {});
+        List<object> positionBalances = this.safeList(getValue(data, 0), "position_balances", new List<object>() {});
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
         };
@@ -1536,7 +1536,7 @@ public partial class cryptocom : Exchange
             object balance = getValue(positionBalances, i);
             string? currencyId = this.safeString(balance, "instrument_name");
             string? code = this.safeCurrencyCode(currencyId);
-            object account = this.account();
+            Dictionary<string, object> account = this.account();
             ((IDictionary<string,object>)account)["total"] = this.safeString(balance, "quantity");
             ((IDictionary<string,object>)account)["used"] = this.safeString(balance, "reserved_qty");
             if (isTrue(!isEqual(code, null)))
@@ -1885,7 +1885,7 @@ public partial class cryptocom : Exchange
             object amount = this.safeValue(rawOrder, "amount");
             object price = this.safeValue(rawOrder, "price");
             IDictionary<string, object> orderParams = this.safeDict(rawOrder, "params", new Dictionary<string, object>() {});
-            object orderRequest = this.createAdvancedOrderRequest(marketId, type, side, amount, price, orderParams);
+            Dictionary<string, object> orderRequest = this.createAdvancedOrderRequest(marketId, type, side, amount, price, orderParams);
             ((IList<object>)ordersRequests).Add(orderRequest);
         }
         string? contigency = this.safeString(parameters, "contingency_type", "LIST");
@@ -1947,7 +1947,7 @@ public partial class cryptocom : Exchange
         return ccxt.BaseExchange.ToOrderList(this.parseOrders(result));
     }
 
-    public virtual object createAdvancedOrderRequest(object symbol, object type, object side, object amount, object price = null, object parameters = null)
+    public virtual Dictionary<string, object> createAdvancedOrderRequest(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(type, null)))
@@ -2465,7 +2465,7 @@ public partial class cryptocom : Exchange
         return ccxt.BaseExchange.ToTradeList(this.parseTrades(trades, market, since, limit));
     }
 
-    public virtual object parseAddress(object addressString)
+    public virtual List<object> parseAddress(object addressString)
     {
         object address = null;
         object tag = null;
@@ -3171,7 +3171,7 @@ public partial class cryptocom : Exchange
         };
     }
 
-    public virtual object customHandleMarginModeAndParams(object methodName, object parameters = null)
+    public virtual List<object> customHandleMarginModeAndParams(object methodName, object parameters = null)
     {
         /**
         * @ignore
@@ -3599,7 +3599,7 @@ public partial class cryptocom : Exchange
         return ccxt.BaseExchange.ToDictList(this.filterBySymbolSinceLimit(sorted, symbol, since, limit));
     }
 
-    public virtual object parseSettlement(object settlement, object market)
+    public virtual Dictionary<string, object> parseSettlement(object settlement, object market)
     {
         //
         //     {
@@ -4162,7 +4162,7 @@ public partial class cryptocom : Exchange
         return ccxt.BaseExchange.ToTradingFees(this.parseTradingFees(result));
     }
 
-    public virtual object parseTradingFees(object response)
+    public virtual Dictionary<string, object> parseTradingFees(object response)
     {
         //
         // {
@@ -4193,7 +4193,7 @@ public partial class cryptocom : Exchange
             };
             ((IDictionary<string,object>)result)[(string)symbol] = tradingFee;
         }
-        return result;
+        return ((Dictionary<string, object>)((object)(result)));
     }
 
     public virtual object parseTradingFee(object fee, object market = null)
