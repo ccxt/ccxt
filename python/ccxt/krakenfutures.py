@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.krakenfutures import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currency, Int, LedgerEntry, Leverage, Leverages, LeverageTier, LeverageTiers, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, TradingFees, TransferEntry
+from ccxt.base.types import Balances, Currency, FundingHistory, Int, LedgerEntry, Leverage, Leverages, LeverageTier, LeverageTiers, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, TradingFees, TransferEntry
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
@@ -71,7 +71,7 @@ class krakenfutures(Exchange, ImplicitAPI):
                 'fetchDepositAddress': False,
                 'fetchDepositAddresses': False,
                 'fetchDepositAddressesByNetwork': False,
-                'fetchFundingHistory': None,
+                'fetchFundingHistory': True,
                 'fetchFundingRate': 'emulated',
                 'fetchFundingRateHistory': True,
                 'fetchFundingRates': True,
@@ -2408,9 +2408,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         request = {}
         if since is not None:
             request['since'] = since
-            sort = self.safe_string(params, 'sort')
-            if sort is None:
-                request['sort'] = 'asc'
+            request['sort'] = 'asc'
         if limit is not None:
             # each trade execution emits two rows and the position-size legs are
             # filtered out below, so ask for twice the limit to compensate,
@@ -2458,6 +2456,108 @@ class krakenfutures(Exchange, ImplicitAPI):
             if (asset is not None) and (asset != contract):
                 rows.append(row)
         return self.parse_ledger(rows, currency, since, limit)
+
+    def fetch_funding_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[FundingHistory]:
+        """
+        fetch the funding payments history of the account
+
+        https://docs.kraken.com/api-reference/account-history/get-account-log
+
+        :param str [symbol]: unified market symbol
+        :param int [since]: the earliest time in ms to fetch funding payments for
+        :param int [limit]: the maximum number of funding payments to return
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.until]: timestamp in ms of the latest funding payment
+        :returns dict[]: a list of `funding history structures <https://docs.ccxt.com/?id=funding-history-structure>`
+        """
+        self.load_markets()
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+        request = {
+            'info': 'funding rate change',  # the account log filters by entry type server-side
+        }
+        if since is not None:
+            request['since'] = since
+            request['sort'] = 'asc'
+        if (limit is not None) and (symbol is None):
+            # the account log has no contract filter, so a symbol is applied on the
+            # client side - a server side page size would truncate the rows of other
+            # contracts away before that filter runs and under-fill the result
+            request['count'] = limit
+        until = self.safe_integer(params, 'until')
+        if until is not None:
+            params = self.omit(params, 'until')
+            request['before'] = until
+        response = self.historyGetAccountLog(self.extend(request, params))
+        #
+        #    {
+        #        "accountUid": "f92fc7de-2fce-4265-b806-4f3c1efb37ee",
+        #        "logs": [
+        #            {
+        #                "asset": "usd",
+        #                "contract": "pf_dogeusd",
+        #                "booking_uid": "124f43a6-389a-4349-abc6-06fc7eeac86b",
+        #                "collateral": null,
+        #                "date": "2026-09-17T12:00:00.000Z",
+        #                "execution": null,
+        #                "fee": 0,
+        #                "funding_rate": 9.288451412e-7,
+        #                "id": 16,
+        #                "info": "funding rate change",
+        #                "margin_account": "flex",
+        #                "mark_price": null,
+        #                "new_average_entry_price": null,
+        #                "new_balance": 0,
+        #                "old_average_entry_price": null,
+        #                "old_balance": 0.0002,
+        #                "realized_funding": -0.0002,
+        #                "realized_pnl": null,
+        #                "trade_price": null,
+        #                "conversion_spread_percentage": null,
+        #                "liquidation_fee": null,
+        #                "position_uid": null
+        #            },
+        #            ...
+        #        ]
+        #    }
+        #
+        logs = self.safe_list(response, 'logs', [])
+        return self.parse_incomes(logs, market, since, limit)
+
+    def parse_income(self, income: object, market: Market = None) -> object:
+        #
+        #    {
+        #        "asset": "usd",
+        #        "contract": "pf_dogeusd",
+        #        "booking_uid": "124f43a6-389a-4349-abc6-06fc7eeac86b",
+        #        "date": "2026-09-17T12:00:00.000Z",
+        #        "fee": 0,
+        #        "funding_rate": 9.288451412e-7,
+        #        "id": 16,
+        #        "info": "funding rate change",
+        #        "margin_account": "flex",
+        #        "new_balance": 0,
+        #        "old_balance": 0.0002,
+        #        "realized_funding": -0.0002,
+        #        ...
+        #    }
+        #
+        # the account log spells the contract in lower case, the market ids are upper case
+        marketId = self.safe_string_upper(income, 'contract')
+        currencyId = self.safe_string(income, 'asset')
+        timestamp = self.parse8601(self.safe_string(income, 'date'))
+        return {
+            'info': income,
+            # no market fallback: the symbol filter runs on the client side, so a row
+            # of an unknown contract must keep its raw id and get filtered out
+            'symbol': self.safe_symbol(marketId),
+            'code': self.safe_currency_code(currencyId),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'id': self.safe_string(income, 'id'),
+            'amount': self.safe_number(income, 'realized_funding'),
+        }
 
     def parse_ledger_entry_type(self, type: object):
         types = {
