@@ -10,7 +10,7 @@ function transpile () {
     installCcxtGoLocalTypes (transpiler.goTranspiler);
     return transpiler.transpileGo (`class Sample {
         safeString (obj, key) { return obj[key]; }
-        safeInteger (obj, key) { return obj[key]; }
+        safeInteger (obj, key): number { return obj[key]; }
         safeFloat (obj, key) { return obj[key]; }
         uuid16 () { return ''; }
         run (obj) {
@@ -18,11 +18,13 @@ function transpile () {
             const timestamp = this.safeInteger (obj, 'timestamp');
             const price = this.safeFloat (obj, 'price');
             const product = Precise.stringMul (text, '100');
+            const isZero = timestamp === 0;
+            const nonZero = timestamp !== 0;
             const matches = Precise.stringEq (text, '0');
             const literal = 'value';
             const identifier = this.uuid16 ();
             const wrapped = (this.safeString (obj, 'wrapped'));
-            return [ text, timestamp, price, product, matches, literal, identifier, wrapped ];
+            return [ text, timestamp, price, product, matches, literal, identifier, wrapped, isZero, nonZero ];
         }
     }`).content;
 }
@@ -35,6 +37,8 @@ test ('nullable helpers retain the current runtime any signatures', () => {
     assert.match (output, /var matches bool = Precise.StringEq/);
     assert.match (output, /var literal string =/);
     assert.match (output, /var identifier string = this.Uuid16/);
+    assert.match (output, /var isZero bool = IsEqual\(timestamp, 0\)/);
+    assert.match (output, /var nonZero bool = !IsEqual\(timestamp, 0\)/);
 });
 
 
