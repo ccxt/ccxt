@@ -1013,7 +1013,15 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         } else {
             const previousChangeId = this.safeInteger (data, 'prev_change_id');
             if ((type !== 'snapshot') && (orderbook['nonce'] !== undefined) && (previousChangeId !== orderbook['nonce'])) {
-                throw new ExchangeError (this.id + ' order book update has a nonce mismatch');
+                // drop the stale book and reject only this channel's future instead of throwing
+                // through handleMessage, which would kill every other subscription on the connection
+                delete this.orderbooks[symbol];
+                if ((channel as string) in client.subscriptions) {
+                    delete client.subscriptions[(channel as string)];
+                }
+                client.reject (new ExchangeError (this.id + ' order book update has a nonce mismatch'), channel);
+                this.spawn (this.resubscribeOrderBook, channel);
+                return;
             }
             this.handleDeltas (orderbook['asks'], this.safeList (data, 'asks', []));
             this.handleDeltas (orderbook['bids'], this.safeList (data, 'bids', []));
@@ -1024,6 +1032,11 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         orderbook['datetime'] = this.iso8601 (timestamp);
         this.orderbooks[symbol] = orderbook;
         client.resolve (orderbook, channel);
+    }
+
+    async resubscribeOrderBook (channel: string) {
+        // the channel un-grouped book stream re-sends a fresh snapshot on (re)subscribe
+        await this.subscribe ([ channel ], [ channel ], false, {});
     }
 
     override handleDelta (bookside: any, delta: any) {
@@ -1145,10 +1158,13 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
                     'token': token,
                 },
             };
-            future = await this.watch (url, messageHash, this.extend (request, params), messageHash);
+            // assign the in-flight (unawaited) future before awaiting it, so a concurrent
+            // caller sees it immediately and joins this authentication instead of sending
+            // its own public/auth on the same connection
+            future = this.watch (url, messageHash, this.extend (request, params), messageHash);
             client.subscriptions[messageHash] = future;
         }
-        return future;
+        return await future;
     }
 
     async requestWs (method: string, params = {}, isPrivate = false) {
