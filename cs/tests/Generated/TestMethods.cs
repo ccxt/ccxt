@@ -2422,6 +2422,11 @@ public partial class testMainClass
                 {
                     continue;
                 }
+                object isDisabledRust = exchange.safeString(result, "disabledRS");
+                if (isTrue(isTrue((!isEqual(isDisabledRust, null))) && isTrue((isEqual(this.lang, "RUST")))))
+                {
+                    continue;
+                }
                 exchange.extendExchangeOptions(globalOptions);
                 object testExchangeOptions = exchange.safeValue(result, "options", new Dictionary<string, object>() {});
                 exchange.extendExchangeOptions(testExchangeOptions);
