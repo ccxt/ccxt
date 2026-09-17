@@ -1134,12 +1134,7 @@ public partial class BaseExchange
         // List<Dictionary<string, object>> coming off a typed core has to be reboxed row by row
         if (values is List<Dictionary<string, object>> typed)
         {
-            var result = new List<object>(typed.Count);
-            foreach (var row in typed)
-            {
-                result.Add(row);
-            }
-            return result;
+            return new List<object>(typed);
         }
         return values;
     }
