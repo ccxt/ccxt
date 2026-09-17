@@ -294,6 +294,8 @@ class bingx(ccxt.async_support.bingx):
         marketId = self.safe_string(message, 's')
         market = self.safe_market(marketId, market)
         close = self.safe_string(message, 'c')
+        # Coin-M m is coin volume; v is contracts and q is already USD turnover.
+        baseVolumeKey = 'm' if (market['inverse'] is True) else 'v'
         return self.safe_ticker({
             'symbol': market['symbol'],
             'timestamp': timestamp,
@@ -312,7 +314,7 @@ class bingx(ccxt.async_support.bingx):
             'change': self.safe_string(message, 'p'),
             'percentage': None,
             'average': None,
-            'baseVolume': self.safe_string(message, 'v'),
+            'baseVolume': self.safe_string(message, baseVolumeKey),
             'quoteVolume': self.safe_string(message, 'q'),
             'info': message,
         }, market)

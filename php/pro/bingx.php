@@ -322,6 +322,8 @@ class bingx extends \ccxt\async\bingx {
         $marketId = $this->safe_string($message, 's');
         $market = $this->safe_market($marketId, $market);
         $close = $this->safe_string($message, 'c');
+        // Coin-M m is coin volume; v is contracts and q is already USD turnover.
+        $baseVolumeKey = ($market['inverse'] === true) ? 'm' : 'v';
         return $this->safe_ticker(array(
             'symbol' => $market['symbol'],
             'timestamp' => $timestamp,
@@ -340,7 +342,7 @@ class bingx extends \ccxt\async\bingx {
             'change' => $this->safe_string($message, 'p'),
             'percentage' => null,
             'average' => null,
-            'baseVolume' => $this->safe_string($message, 'v'),
+            'baseVolume' => $this->safe_string($message, $baseVolumeKey),
             'quoteVolume' => $this->safe_string($message, 'q'),
             'info' => $message,
         ), $market);
