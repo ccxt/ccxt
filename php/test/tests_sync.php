@@ -2026,6 +2026,10 @@ class testMainClass {
                 if (($is_disabled_php !== null) && ($this->lang === 'PHP')) {
                     continue;
                 }
+                $is_disabled_rust = $exchange->safe_string($result, 'disabledRS');
+                if (($is_disabled_rust !== null) && ($this->lang === 'RUST')) {
+                    continue;
+                }
                 $exchange->extend_exchange_options($global_options);
                 $test_exchange_options = $exchange->safe_value($result, 'options', array());
                 $exchange->extend_exchange_options($test_exchange_options);
