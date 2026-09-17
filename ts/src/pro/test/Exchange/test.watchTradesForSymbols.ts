@@ -38,7 +38,8 @@ async function testWatchTradesForSymbols (exchange: Exchange, skippedProperties:
                     returnedSymbols.push (symbol);
                 }
             }
-            if (elapsedMs > maxIdleTime) {
+            // A slow response is not a reason to stop before every subscription is observed.
+            if ((elapsedMs > maxIdleTime) && (returnedSymbols.length === symbols.length)) {
                 idle = true;
             }
         }
