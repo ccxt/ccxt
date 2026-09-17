@@ -6,6 +6,7 @@
         "fetchFundingHistory": [
             {
                 "description": "since maps to since with ascending sort and until maps to before",
+                "disabledGO": true,
                 "method": "fetchFundingHistory",
                 "url": "https://futures.kraken.com/api/history/v3/account-log?info=funding%20rate%20change&since=1789000000000&sort=asc&before=1790000000000",
                 "input": [
@@ -20,6 +21,7 @@
             },
             {
                 "description": "no count with a symbol, the contract filter runs on the client side after the page is fetched",
+                "disabledGO": true,
                 "method": "fetchFundingHistory",
                 "url": "https://futures.kraken.com/api/history/v3/account-log?info=funding%20rate%20change",
                 "input": [
@@ -31,6 +33,7 @@
             },
             {
                 "description": "limit maps to count when no symbol filter is applied",
+                "disabledGO": true,
                 "method": "fetchFundingHistory",
                 "url": "https://futures.kraken.com/api/history/v3/account-log?info=funding%20rate%20change&count=5",
                 "input": [

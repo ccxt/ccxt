@@ -2542,10 +2542,7 @@ export default class krakenfutures extends Exchange {
         const request: Dict = {};
         if (since !== undefined) {
             request['since'] = since;
-            const sort = this.safeString (params, 'sort');
-            if (sort === undefined) {
-                request['sort'] = 'asc';
-            }
+            request['sort'] = 'asc';
         }
         if (limit !== undefined) {
             // each trade execution emits two rows and the position-size legs are
@@ -2623,10 +2620,7 @@ export default class krakenfutures extends Exchange {
         };
         if (since !== undefined) {
             request['since'] = since;
-            const sort = this.safeString (params, 'sort');
-            if (sort === undefined) {
-                request['sort'] = 'asc';
-            }
+            request['sort'] = 'asc';
         }
         if ((limit !== undefined) && (symbol === undefined)) {
             // the account log has no contract filter, so a symbol is applied on the
@@ -2700,7 +2694,9 @@ export default class krakenfutures extends Exchange {
         const timestamp = this.parse8601 (this.safeString (income, 'date'));
         return {
             'info': income,
-            'symbol': this.safeSymbol (marketId, market),
+            // no market fallback: the symbol filter runs on the client side, so a row
+            // of an unknown contract must keep its raw id and get filtered out
+            'symbol': this.safeSymbol (marketId),
             'code': this.safeCurrencyCode (currencyId),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
