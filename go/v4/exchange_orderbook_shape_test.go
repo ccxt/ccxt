@@ -95,6 +95,31 @@ func TestNewOrderBookFromWsIndexedBook(t *testing.T) {
 	assertTypedBookShape(t, book, "IndexedOrderBook")
 }
 
+func TestAddElementToObjectOrderBookTimestamp(t *testing.T) {
+	books := map[string]OrderBookInterface{
+		"plain":   NewWsOrderBook(snapshotFixture(), nil),
+		"counted": NewCountedOrderBook(indexedSnapshotFixture(), nil),
+		"indexed": NewIndexedOrderBook(indexedIdSnapshotFixture(), nil),
+	}
+	for name, book := range books {
+		t.Run(name, func(t *testing.T) {
+			timestamp := int64(1723300002000)
+			for _, input := range []any{int64(1723300001000), &timestamp} {
+				AddElementToObject(book, "timestamp", input)
+				AddElementToObject(book, "datetime", Iso8601(input))
+				expected := ParseInt(input)
+				typed := NewOrderBookFromWs(book)
+				if typed.Timestamp == nil || *typed.Timestamp != expected {
+					t.Fatalf("input %T: expected timestamp %d, got %v", input, expected, typed.Timestamp)
+				}
+				if book.GetValue("datetime", nil) != Iso8601(expected) {
+					t.Fatalf("input %T: timestamp and datetime disagree", input)
+				}
+			}
+		})
+	}
+}
+
 func assertMarshaledSidesAreArrays(t *testing.T, book any, label string) {
 	t.Helper()
 	raw, err := json.Marshal(book)

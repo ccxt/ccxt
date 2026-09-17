@@ -1053,6 +1053,10 @@ func AddElementToObject(arrayOrDict any, stringOrInt any, value any) {
 					valueVal := reflect.ValueOf(value)
 					if valueVal.Type().ConvertibleTo(field.Type()) {
 						field.Set(valueVal.Convert(field.Type()))
+					} else if field.Kind() == reflect.Ptr && valueVal.Type().ConvertibleTo(field.Type().Elem()) {
+						ptr := reflect.New(field.Type().Elem())
+						ptr.Elem().Set(valueVal.Convert(field.Type().Elem()))
+						field.Set(ptr)
 					}
 				}
 			}
