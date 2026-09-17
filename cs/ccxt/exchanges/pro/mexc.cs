@@ -1342,7 +1342,7 @@ public partial class mexc : ccxt.mexc
             { "symbol", this.safeSymbol(null, market) },
             { "type", null },
             { "side", side },
-            { "takerOrMaker", ((bool) isTrue((isTrue(isTrue(!isEqual(isMaker, null)) && isTrue(!isEqual(isMaker, null))) && isTrue(!isEqual(isMaker, 0))))) ? "maker" : "taker" },
+            { "takerOrMaker", ((bool) isTrue((isTrue(!isEqual(isMaker, null)) && isTrue(!isEqual(isMaker, 0))))) ? "maker" : "taker" },
             { "price", priceString },
             { "amount", amountString },
             { "cost", this.safeString(trade, "amount") },

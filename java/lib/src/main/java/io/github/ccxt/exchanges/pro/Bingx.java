@@ -327,7 +327,11 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
         String marketType = ((Helpers.isTrue(isSwap))) ? "swap" : "spot";
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, null, null, marketType);
         Object symbol = Helpers.GetValue(market, "symbol");
-        Object ticker = this.parseWsTicker(data, market);
+        // the Coin-M stream is a distinct endpoint, so it identifies an inverse
+        // ticker even when the market id could not be resolved
+        String inverseUrl = this.safeString(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "inverse");
+        Boolean isInverse = Helpers.isTrue((!Helpers.isEqual(inverseUrl, null))) && Helpers.isTrue((Helpers.isEqual(Helpers.getIndexOf(client.url, inverseUrl), 0)));
+        Object ticker = this.parseWsTicker(data, market, isInverse);
         Helpers.addElementToObject(this.tickers, symbol, ticker);
         client.resolve(ticker, this.getMessageHash("ticker", symbol));
         if (Helpers.isTrue(Helpers.isEqual(this.safeString(message, "dataType"), "all@ticker")))
@@ -361,10 +365,16 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
+        Object isInverse = Helpers.getArg(optionalArgs, 1, null);
         Long timestamp = this.safeInteger(message, "C");
         String marketId = this.safeString(message, "s");
         market = this.safeMarket(marketId, market);
         String close = this.safeString(message, "c");
+        // Coin-M m is coin volume; v is contracts and q is already USD turnover.
+        // prefer the caller's stream-derived flag so an unresolved market id on
+        // the Coin-M endpoint does not silently fall back to the contract count
+        Object inverse = ((Helpers.isTrue((Helpers.isEqual(isInverse, null))))) ? (Helpers.isEqual(Helpers.GetValue(market, "inverse"), true)) : isInverse;
+        String baseVolumeKey = ((Helpers.isTrue(inverse))) ? "m" : "v";
         final Object finalMarket = market;
         return this.safeTicker(new HashMap<String, Object>() {{
             put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
@@ -384,7 +394,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             put( "change", Bingx.this.safeString(message, "p") );
             put( "percentage", null );
             put( "average", null );
-            put( "baseVolume", Bingx.this.safeString(message, "v") );
+            put( "baseVolume", Bingx.this.safeString(message, baseVolumeKey) );
             put( "quoteVolume", Bingx.this.safeString(message, "q") );
             put( "info", message );
         }}, market);

@@ -1751,11 +1751,18 @@ class bingx(Exchange, ImplicitAPI):
         #         "markPrice": "16884.5",
         #         "indexPrice": "16886.9",
         #         "lastFundingRate": "0.0001",
-        #         "nextFundingTime": 1672041600000
+        #         "nextFundingTime": 1672041600000,
+        #         "fundingIntervalHours": 8,
+        #         "updateTime": 1672012800000
         #     }
         #
         marketId = self.safe_string(contract, 'symbol')
         nextFundingTimestamp = self.safe_integer(contract, 'nextFundingTime')
+        timestamp = self.safe_integer(contract, 'updateTime')
+        interval = self.safe_string(contract, 'fundingIntervalHours')
+        intervalString = None
+        if interval is not None:
+            intervalString = interval + 'h'
         return {
             'info': contract,
             'symbol': self.safe_symbol(marketId, market, '-', 'swap'),
@@ -1763,8 +1770,8 @@ class bingx(Exchange, ImplicitAPI):
             'indexPrice': self.safe_number(contract, 'indexPrice'),
             'interestRate': None,
             'estimatedSettlePrice': None,
-            'timestamp': None,
-            'datetime': None,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
             'fundingRate': self.safe_number(contract, 'lastFundingRate'),
             'fundingTimestamp': None,
             'fundingDatetime': None,
@@ -1774,7 +1781,7 @@ class bingx(Exchange, ImplicitAPI):
             'previousFundingRate': None,
             'previousFundingTimestamp': None,
             'previousFundingDatetime': None,
-            'interval': None,
+            'interval': intervalString,
         }
 
     async def fetch_funding_rate_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
