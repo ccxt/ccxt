@@ -9,7 +9,8 @@ import (
 )
 
 func numericSortValue(v any) (float64, bool) {
-	switch t := v.(type) {
+	// bid/ask levels carry typed pointers from the Safe* accessors
+	switch t := derefScalar(v).(type) {
 	case int:
 		return float64(t), true
 	case int8:
@@ -47,7 +48,7 @@ func compareSortValues(a any, b any) bool {
 	if aOk && bOk {
 		return aF < bF
 	}
-	return fmt.Sprintf("%v", a) < fmt.Sprintf("%v", b)
+	return fmt.Sprintf("%v", derefScalar(a)) < fmt.Sprintf("%v", derefScalar(b))
 }
 
 func (this *BaseExchange) SortBy(array any, value1 any, desc2 ...any) []any {
@@ -158,6 +159,10 @@ func (this *BaseExchange) SortBy2(array any, key1 any, key2 any, desc2 ...any) [
 func (this *BaseExchange) FilterBy(aa any, key any, value any) []any {
 	var targetA []any
 
+	// Safe* accessors store typed pointers, so both sides need normalising
+	aa = derefScalar(aa)
+	key = derefScalar(key)
+	value = derefScalar(value)
 	switch v := aa.(type) {
 	case []any:
 		targetA = v
@@ -178,7 +183,7 @@ func (this *BaseExchange) FilterBy(aa any, key any, value any) []any {
 	var outList []any
 	for _, elem := range targetA {
 		if m, ok := elem.(map[string]any); ok {
-			if m[key.(string)] == value {
+			if derefScalar(m[key.(string)]) == value {
 				outList = append(outList, m)
 			}
 		}
@@ -335,6 +340,9 @@ func (this *BaseExchange) DeepExtend(objs ...any) map[string]any {
 }
 
 func (this *BaseExchange) InArray(elem any, list any) bool {
+	// Safe* accessors hand over typed pointers; DeepEqual(*string, string) is never true
+	elem = derefScalar(elem)
+	list = derefScalar(list)
 	// Ensure the list is not nil and is of a slice type
 	if list == nil || reflect.TypeOf(list).Kind() != reflect.Slice {
 		return false
@@ -343,7 +351,7 @@ func (this *BaseExchange) InArray(elem any, list any) bool {
 	// Use reflection to iterate over the slice
 	listValue := reflect.ValueOf(list)
 	for i := 0; i < listValue.Len(); i++ {
-		listElem := listValue.Index(i).Interface()
+		listElem := derefScalar(listValue.Index(i).Interface())
 
 		// Handle number comparison
 		switch e := elem.(type) {
@@ -515,12 +523,13 @@ func (this *BaseExchange) IndexBySafe(a any, key any) *sync.Map {
 }
 
 func (this *BaseExchange) GroupBy(trades any, key2 any) map[string]any {
-	key := key2.(string)
+	key := derefScalar(key2).(string)
 	outDict := make(map[string]any)
 	list := trades.([]any)
 	for _, elem := range list {
 		elemDict := elem.(map[string]any)
 		if val, ok := elemDict[key]; ok {
+			val = derefScalar(val)
 			if val == nil {
 				continue
 			}
@@ -537,6 +546,8 @@ func (this *BaseExchange) GroupBy(trades any, key2 any) map[string]any {
 }
 
 func (this *BaseExchange) OmitZero(value any) any {
+	// Safe* accessors pass typed pointers; the type switch must see the value
+	value = derefScalar(value)
 	switch v := value.(type) {
 	case float64:
 		if v == 0.0 {

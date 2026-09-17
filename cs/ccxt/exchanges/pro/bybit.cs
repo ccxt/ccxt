@@ -2623,13 +2623,64 @@ public partial class bybit : ccxt.bybit
     public async virtual Task<object> watchTopics(object url, object messageHashes, object topics, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "op", "subscribe" },
-            { "req_id", this.requestId() },
-            { "args", topics },
-        };
-        Dictionary<string, object> message = this.extend(request, parameters);
-        return await this.watchMultiple(url, messageHashes, message, messageHashes);
+        var client = this.client(url);
+        List<object> newTopics = new List<object>() {};
+        int topicsLength = getArrayLength(topics);
+        int messageHashesLength = getArrayLength(messageHashes);
+        if (isTrue(isEqual(topicsLength, messageHashesLength)))
+        {
+            for (int i = 0; isLessThan(i, topicsLength); postFixIncrement(ref i))
+            {
+                object messageHash = getValue(messageHashes, i);
+                if (!isTrue((inOp(((WebSocketClient)client).subscriptions, messageHash))))
+                {
+                    ((IList<object>)newTopics).Add(getValue(topics, i));
+                }
+            }
+        } else
+        {
+            // watchOrders spot: two topics, one hash. Collect topics already
+            // recorded on any subscription so a later call with a new hash
+            // does not resend already-subscribed topics.
+            Dictionary<string, object> subscribedTopics = new Dictionary<string, object>() {};
+            List<object> subscriptionHashes = new List<object>(((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Keys);
+            for (int i = 0; isLessThan(i, getArrayLength(subscriptionHashes)); postFixIncrement(ref i))
+            {
+                IDictionary<string, object> existing = this.safeDict(((WebSocketClient)client).subscriptions, getValue(subscriptionHashes, i), new Dictionary<string, object>() {});
+                List<object> recordedTopics = this.safeList(existing, "topics", new List<object>() {});
+                int recordedLength = getArrayLength(recordedTopics);
+                for (int j = 0; isLessThan(j, recordedLength); postFixIncrement(ref j))
+                {
+                    ((IDictionary<string,object>)subscribedTopics)[(string)getValue(recordedTopics, j)] = true;
+                }
+            }
+            for (int i = 0; isLessThan(i, topicsLength); postFixIncrement(ref i))
+            {
+                object topic = getValue(topics, i);
+                if (!isTrue((inOp(subscribedTopics, topic))))
+                {
+                    ((IList<object>)newTopics).Add(topic);
+                }
+            }
+        }
+        Dictionary<string, object> message = null;
+        Dictionary<string, object> subscription = null;
+        int newTopicsLength = getArrayLength(newTopics);
+        if (isTrue(isGreaterThan(newTopicsLength, 0)))
+        {
+            object reqId = this.requestId();
+            Dictionary<string, object> request = new Dictionary<string, object>() {
+                { "op", "subscribe" },
+                { "req_id", reqId },
+                { "args", newTopics },
+            };
+            message = this.extend(request, parameters);
+            subscription = new Dictionary<string, object>() {
+                { "id", reqId },
+                { "topics", newTopics },
+            };
+        }
+        return await this.watchMultiple(url, messageHashes, message, messageHashes, subscription);
     }
 
     public async virtual Task<object> unWatchTopics(object url, object topic, object symbols, object messageHashes, object subMessageHashes, object topics, object parameters = null, object subExtension = null)
@@ -2751,33 +2802,57 @@ public partial class bybit : ccxt.bybit
             return ((bool?)((object)(false)));
         } catch(Exception error)
         {
-            string? messageHash = this.safeString2(message, "req_id", "reqId");
-            if (isTrue(!isEqual(messageHash, null)))
+            string? reqId = this.safeString2(message, "req_id", "reqId");
+            bool foundSubscription = false;
+            if (isTrue(!isEqual(reqId, null)))
             {
-                ((WebSocketClient)client).reject(error, messageHash);
-            } else if (isTrue(error is AuthenticationError))
-            {
-                string authenticatedHash = "authenticated";
-                ((WebSocketClient)client).reject(error, authenticatedHash);
-                if (isTrue(inOp(((WebSocketClient)client).subscriptions, authenticatedHash)))
+                List<object> keys = new List<object>(((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Keys);
+                for (int i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
                 {
-                    ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)authenticatedHash);
+                    string? messageHash = ((string)getValue(keys, i));
+                    if (!isTrue((inOp(((WebSocketClient)client).subscriptions, messageHash))))
+                    {
+                        continue;
+                    }
+                    IDictionary<string, object> subscription = this.safeDict(((WebSocketClient)client).subscriptions, messageHash);
+                    string? subId = this.safeString(subscription, "id");
+                    if (isTrue(isEqual(reqId, subId)))
+                    {
+                        foundSubscription = true;
+                        ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)messageHash);
+                        ((WebSocketClient)client).reject(error, messageHash);
+                    }
                 }
-                string? op = this.safeString(message, "op");
-                if (isTrue(isTrue((!isEqual(op, null))) && isTrue((!isEqual(op, "auth")))))
-                {
-                    // an operation response that carries no reqId, e.g. bybit
-                    // omits it on some permission rejections of trade ops,
-                    // would leave the awaiting future pending forever, and
-                    // since nothing on this client can proceed without
-                    // authentication, reject everything pending, mirroring the
-                    // behavior of unattributable non auth errors, see
-                    // https://github.com/ccxt/ccxt/issues/29361
-                    ((WebSocketClient)client).reject(error);
-                }
-            } else
+            }
+            if (!isTrue(foundSubscription))
             {
-                ((WebSocketClient)client).reject(error, messageHash);
+                if (isTrue(!isEqual(reqId, null)))
+                {
+                    ((WebSocketClient)client).reject(error, reqId);
+                } else if (isTrue(error is AuthenticationError))
+                {
+                    string authenticatedHash = "authenticated";
+                    ((WebSocketClient)client).reject(error, authenticatedHash);
+                    if (isTrue(inOp(((WebSocketClient)client).subscriptions, authenticatedHash)))
+                    {
+                        ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)authenticatedHash);
+                    }
+                    string? op = this.safeString(message, "op");
+                    if (isTrue(isTrue((!isEqual(op, null))) && isTrue((!isEqual(op, "auth")))))
+                    {
+                        // an operation response that carries no reqId, e.g. bybit
+                        // omits it on some permission rejections of trade ops,
+                        // would leave the awaiting future pending forever, and
+                        // since nothing on this client can proceed without
+                        // authentication, reject everything pending, mirroring the
+                        // behavior of unattributable non auth errors, see
+                        // https://github.com/ccxt/ccxt/issues/29361
+                        ((WebSocketClient)client).reject(error);
+                    }
+                } else
+                {
+                    ((WebSocketClient)client).reject(error, reqId);
+                }
             }
             return ((bool?)((object)(true)));
         }

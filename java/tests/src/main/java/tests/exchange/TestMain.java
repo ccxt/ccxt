@@ -2598,7 +2598,7 @@ public class TestMain extends BaseTest
         Object wasmExecPath = null;
         Object libraryPath = null;
         // const wasmExecPath = getRootDir () + '/src/test/static/binaries/wasm_exec.js';
-        // const ligherWasmPath = getRootDir () + 'ts/src/test/static/binaries/lighter.wasm';
+        // const ligherWasmPath = getRootDir () + 'ts/src/test/static/binaries/lighter-signer.wasm';
         // const binaryPath = getRootDir () + '/ts/src/test/static/binaries/lighter-signer-linux-amd64.so';
         // const librarypath = (this.lang === 'JS') ? ligherWasmPath : binaryPath;
         Object basePath = Helpers.add(getRootDir(), "ts/src/test/static/binaries/");
@@ -2607,7 +2607,7 @@ public class TestMain extends BaseTest
             if (Helpers.isTrue(Helpers.isEqual(this.lang, "JS")))
             {
                 wasmExecPath = Helpers.add(basePath, "wasm_exec.js");
-                libraryPath = Helpers.add(basePath, "lighter.wasm");
+                libraryPath = Helpers.add(basePath, "lighter-signer.wasm");
             } else
             {
                 if (Helpers.isTrue(isWindows()))

@@ -2052,7 +2052,7 @@ export class BaseExchange {
         // wasmExecPathExample: '/opt/homebrew/opt/go/libexec/lib/wasm/wasm_exec.js';
         // libraryPath eg: '/Users/cjg/Git/lighter-go/lighter.wasm';
         if (libraryPath === undefined || libraryPath === '') {
-            throw new Error('loadLighterLibrary() requires "libraryPath" that should point to "lighter.wasm".\nYou can build it from source using the official Ligher SDK or download it here https://github.com/ccxt/lighter-wasm.\nExample: exchanges.options["libraryPath"] = "/user/cjg/Git/lighter-wasm/lighter.wasm"');
+            throw new Error('loadLighterLibrary() requires "libraryPath" that should point to "lighter-signer.wasm". The binaries this version of ccxt is built against are in the ccxt repository under "ts/src/test/static/binaries", they can also be built from source using the official Lighter SDK or downloaded here https://github.com/ccxt/lighter-wasm. Please provide the path to it, the binary has to match your ccxt version.\nExample: exchanges.options["libraryPath"] = "/user/cjg/Git/lighter-wasm/lighter-signer.wasm"');
         }
         if (!isNode) {
             throw new NotSupported(this.id + ' loadLighterLibrary() is only supported in node environment.');
@@ -2076,7 +2076,7 @@ export class BaseExchange {
     lighterCreateClient(signer, chainId, privateKey, apiKeyIndex, accountIndex) {
         const url = this.implodeHostname(this.urls['api']['public']);
         const res = globalThis.CreateClient(url, privateKey, chainId, apiKeyIndex, accountIndex);
-        this.checkLighterSignedError(res);
+        this.checkLighterSignedError('lighterCreateClient', res, { 'api_key_index': apiKeyIndex, 'account_index': accountIndex });
         return signer;
     }
     lighterSignCreateGroupedOrders(signer, request) {
@@ -2097,91 +2097,115 @@ export class BaseExchange {
                 'OrderExpiry': order['order_expiry'],
             });
         }
-        const res = globalThis.SignCreateGroupedOrders(request['grouping_type'], ordersArr, this.safeInteger(request, 'integrator_account_index', 0), this.safeInteger(request, 'integrator_taker_fee', 0), this.safeInteger(request, 'integrator_maker_fee', 0), 1, // skip nonce
+        const res = globalThis.SignCreateGroupedOrders(request['grouping_type'], ordersArr, this.safeInteger(request, 'integrator_account_index', 0), this.safeInteger(request, 'integrator_taker_fee', 0), this.safeInteger(request, 'integrator_maker_fee', 0), this.safeInteger(request, 'self_trade_behavior_mode', 0), // SelfTradeBehaviorExpireMaker
+        this.safeInteger(request, 'self_trade_equality_mode', 0), // SelfTradeEqualityAccountIndex
+        1, // skip nonce
         request['nonce'], request['api_key_index'], request['account_index']);
-        this.checkLighterSignedError(res);
+        this.checkLighterSignedError('lighterSignCreateGroupedOrders', res, request);
         return [res.txType, res.txInfo];
     }
     lighterSignCreateOrder(signer, request) {
-        const res = (globalThis.SignCreateOrder(parseInt(request['market_index']), request['client_order_index'], request['base_amount'], request['avg_execution_price'], request['is_ask'], request['order_type'], request['time_in_force'], request['reduce_only'], request['trigger_price'], request['order_expiry'], this.safeInteger(request, 'integrator_account_index', 0), this.safeInteger(request, 'integrator_taker_fee', 0), this.safeInteger(request, 'integrator_maker_fee', 0), 1, // skip nonce
+        const res = (globalThis.SignCreateOrder(parseInt(request['market_index']), request['client_order_index'], request['base_amount'], request['avg_execution_price'], request['is_ask'], request['order_type'], request['time_in_force'], request['reduce_only'], request['trigger_price'], request['order_expiry'], this.safeInteger(request, 'integrator_account_index', 0), this.safeInteger(request, 'integrator_taker_fee', 0), this.safeInteger(request, 'integrator_maker_fee', 0), this.safeInteger(request, 'self_trade_behavior_mode', 0), // SelfTradeBehaviorExpireMaker
+        this.safeInteger(request, 'self_trade_equality_mode', 0), // SelfTradeEqualityAccountIndex
+        1, // skip nonce
         request['nonce'], request['api_key_index'], request['account_index']));
-        this.checkLighterSignedError(res);
+        this.checkLighterSignedError('lighterSignCreateOrder', res, request);
         return [res.txType, res.txInfo];
     }
-    checkLighterSignedError(result) {
+    checkLighterSignedError(method, result, request = undefined) {
         if ('error' in result) {
-            throw new Error('Lighter signing error: ' + result.error);
+            this.raiseLighterSignerError(method, result['error'], request);
         }
+    }
+    raiseLighterSignerError(method, error, request = undefined) {
+        const errorText = String(error);
+        let message = method + '() failed with error: ' + errorText;
+        // the native signer keeps one client per (apiKeyIndex, accountIndex) pair, so this
+        // particular error means it was called with indices it has no client for. When the
+        // indices it reports are not the ones ccxt passed, the signer binary is not the one
+        // this version of ccxt binds against and the arguments are landing in the wrong slots
+        if (errorText.indexOf('client is not created for') >= 0) {
+            let passed = '';
+            if (request !== undefined) {
+                passed = ' ccxt signed this request with apiKeyIndex: ' + this.safeString(request, 'api_key_index') + ' accountIndex: ' + this.safeString(request, 'account_index') + '.';
+            }
+            message += '.' + passed + ' If those indices are not the ones reported above then the signer binary set in options["libraryPath"] is not the one this version of ccxt binds against. The signer has to match this version of ccxt: use the binaries ccxt is tested against, in the ccxt repository under "ts/src/test/static/binaries", or upgrade ccxt if your binary is newer than it.';
+        }
+        throw new Error(message);
     }
     lighterSignCancelOrder(signer, request) {
         const res = (globalThis.SignCancelOrder(request['market_index'], request['order_index'], 1, // skip nonce
         request['nonce'], request['api_key_index'], request['account_index']));
-        this.checkLighterSignedError(res);
+        this.checkLighterSignedError('lighterSignCancelOrder', res, request);
         return [res.txType, res.txInfo];
     }
     lighterSignWithdraw(signer, request) {
         const res = (globalThis.SignWithdraw(request['asset_index'], request['route_type'], request['amount'], 1, // skip nonce
         request['nonce'], request['api_key_index'], request['account_index']));
-        this.checkLighterSignedError(res);
+        this.checkLighterSignedError('lighterSignWithdraw', res, request);
         return [res.txType, res.txInfo];
     }
     lighterSignCreateSubAccount(signer, request) {
         const res = (globalThis.SignCreateSubAccount(1, // skip nonce
         request['nonce'], request['api_key_index'], request['account_index']));
-        this.checkLighterSignedError(res);
+        this.checkLighterSignedError('lighterSignCreateSubAccount', res, request);
         return [res.txType, res.txInfo];
     }
     lighterSignCancelAllOrders(signer, request) {
-        const res = (globalThis.SignCancelAllOrders(request['time_in_force'], request['time'], 1, // skip nonce
+        const res = (globalThis.SignCancelAllOrders(request['time_in_force'], request['time'], this.safeInteger(request, 'cancel_all_market_index', 255), // NilMarketIndex, every market
+        1, // skip nonce
         request['nonce'], request['api_key_index'], request['account_index']));
-        this.checkLighterSignedError(res);
+        this.checkLighterSignedError('lighterSignCancelAllOrders', res, request);
         return [res.txType, res.txInfo];
     }
     lighterSignModifyOrder(signer, request) {
-        const res = (globalThis.SignModifyOrder(request['market_index'], request['index'], request['base_amount'], request['price'], request['trigger_price'], this.safeInteger(request, 'integrator_account_index', 0), this.safeInteger(request, 'integrator_taker_fee', 0), this.safeInteger(request, 'integrator_maker_fee', 0), 1, // skip nonce
-        request['nonce'], request['api_key_index'], request['account_index']));
-        this.checkLighterSignedError(res);
+        const res = (globalThis.SignModifyOrder(request['market_index'], request['index'], request['base_amount'], request['price'], request['trigger_price'], this.safeInteger(request, 'integrator_account_index', 0), this.safeInteger(request, 'integrator_taker_fee', 0), this.safeInteger(request, 'integrator_maker_fee', 0), this.safeInteger(request, 'self_trade_behavior_mode', 0), // SelfTradeBehaviorExpireMaker
+        this.safeInteger(request, 'self_trade_equality_mode', 0), // SelfTradeEqualityAccountIndex
+        1, // skip nonce
+        request['nonce'], this.safeInteger(request, 'order_version', 0), // NilOrderVersion
+        request['api_key_index'], request['account_index']));
+        this.checkLighterSignedError('lighterSignModifyOrder', res, request);
         return [res.txType, res.txInfo];
     }
     lighterSignTransfer(signer, request) {
         const res = globalThis.SignTransfer(request['to_account_index'], request['asset_index'], request['from_route_type'], request['to_route_type'], request['amount'], request['usdc_fee'], request['memo'], 1, // skip nonce
         request['nonce'], request['api_key_index'], request['account_index']);
-        this.checkLighterSignedError(res);
+        this.checkLighterSignedError('lighterSignTransfer', res, request);
         return [res.txType, res.txInfo];
     }
     lighterSignUpdateLeverage(signer, request) {
         const res = (globalThis.SignUpdateLeverage(request['market_index'], request['initial_margin_fraction'], request['margin_mode'], 1, // skip nonce
         request['nonce'], request['api_key_index'], request['account_index']));
-        this.checkLighterSignedError(res);
+        this.checkLighterSignedError('lighterSignUpdateLeverage', res, request);
         return [res.txType, res.txInfo];
     }
     lighterCreateAuthToken(signer, request) {
         const res = globalThis.CreateAuthToken(request['deadline'], request['api_key_index'], request['account_index']);
-        this.checkLighterSignedError(res);
+        this.checkLighterSignedError('lighterCreateAuthToken', res, request);
         return res.authToken;
     }
     lighterSignUpdateMargin(signer, request) {
         const res = globalThis.SignUpdateMargin(request['market_index'], request['usdc_amount'], request['direction'], 1, // skip nonce
         request['nonce'], request['api_key_index'], request['account_index']);
-        this.checkLighterSignedError(res);
+        this.checkLighterSignedError('lighterSignUpdateMargin', res, request);
         return [res.txType, res.txInfo];
     }
     lighterSignApproveIntegrator(signer, request) {
         const res = globalThis.SignApproveIntegrator(request['integrator_account_index'], request['integrator_taker_fee'], request['integrator_maker_fee'], request['integrator_taker_fee'], request['integrator_maker_fee'], request['approval_expiry'], 1, // skip nonce
         request['nonce'], request['api_key_index'], request['account_index']);
-        this.checkLighterSignedError(res);
+        this.checkLighterSignedError('lighterSignApproveIntegrator', res, request);
         return [res.txType, res.txInfo, res.messageToSign];
     }
     // eslint-disable-next-line no-unused-vars
     lighterGenerateApiKey(signer) {
         const res = globalThis.GenerateAPIKey();
-        this.checkLighterSignedError(res);
+        this.checkLighterSignedError('lighterGenerateApiKey', res, undefined);
         return [res.privateKey, res.publicKey];
     }
     lighterSignChangePubkey(signer, request) {
         const res = globalThis.SignChangePubKey(Buffer.from(request['pubkey']).toString(), 1, // skip nonce
         request['nonce'], request['api_key_index'], request['account_index']);
-        this.checkLighterSignedError(res);
+        this.checkLighterSignedError('lighterSignChangePubkey', res, request);
         return [res.txType, res.txInfo, res.messageToSign];
     }
     setLastRestRequestTimestamp() {

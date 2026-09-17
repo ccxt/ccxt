@@ -86,7 +86,7 @@ public class Krakenfutures extends KrakenfuturesApi
                 put( "fetchFundingRate", "emulated" );
                 put( "fetchFundingRateHistory", true );
                 put( "fetchFundingRates", true );
-                put( "fetchIndexOHLCV", false );
+                put( "fetchIndexOHLCV", true );
                 put( "fetchIsolatedBorrowRate", false );
                 put( "fetchIsolatedBorrowRates", false );
                 put( "fetchIsolatedPositions", false );
@@ -1094,6 +1094,7 @@ public class Krakenfutures extends KrakenfuturesApi
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @param {string} [params.price] "mark" for mark-price candles or "index" for index-price candles, defaults to trade-price candles
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     public CompletableFuture<List<OHLCV>> fetchOHLCV(Object symbol, Object... optionalArgs)
@@ -1118,10 +1119,18 @@ public class Krakenfutures extends KrakenfuturesApi
             {
                 return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, parameters, 2000)).join();
             }
-            final Object finalParameters = parameters;
+            String priceType = this.safeString(parameters, "price", "trade");
+            if (Helpers.isTrue(Helpers.isEqual(priceType, "index")))
+            {
+                priceType = "spot"; // the venue's name for index-price candles
+            } else if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(priceType, "trade"))) && Helpers.isTrue((!Helpers.isEqual(priceType, "mark")))) && Helpers.isTrue((!Helpers.isEqual(priceType, "spot")))))
+            {
+                throw new NotSupported(Helpers.add(this.id, " fetchOHLCV() price parameter must be one of \"trade\", \"mark\", \"index\" or \"spot\"")) ;
+            }
+            final Object finalPriceType = priceType;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
-                put( "price_type", Krakenfutures.this.safeString(finalParameters, "price", "trade") );
+                put( "price_type", finalPriceType );
                 put( "interval", Krakenfutures.this.safeString(Krakenfutures.this.timeframes, timeframe, timeframe) );
             }};
             parameters = this.omit(parameters, "price");

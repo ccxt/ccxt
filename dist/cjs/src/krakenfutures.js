@@ -60,7 +60,7 @@ class krakenfutures extends krakenfutures$1["default"] {
                 'fetchFundingRate': 'emulated',
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': true,
-                'fetchIndexOHLCV': false,
+                'fetchIndexOHLCV': true,
                 'fetchIsolatedBorrowRate': false,
                 'fetchIsolatedBorrowRates': false,
                 'fetchIsolatedPositions': false,
@@ -897,6 +897,7 @@ class krakenfutures extends krakenfutures$1["default"] {
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @param {string} [params.price] "mark" for mark-price candles or "index" for index-price candles, defaults to trade-price candles
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
@@ -909,9 +910,16 @@ class krakenfutures extends krakenfutures$1["default"] {
         if (paginate) {
             return await this.fetchPaginatedCallDeterministic('fetchOHLCV', symbol, since, limit, timeframe, params, 2000);
         }
+        let priceType = this.safeString(params, 'price', 'trade');
+        if (priceType === 'index') {
+            priceType = 'spot'; // the venue's name for index-price candles
+        }
+        else if ((priceType !== 'trade') && (priceType !== 'mark') && (priceType !== 'spot')) {
+            throw new errors.NotSupported(this.id + ' fetchOHLCV() price parameter must be one of "trade", "mark", "index" or "spot"');
+        }
         const request = {
             'symbol': market['id'],
-            'price_type': this.safeString(params, 'price', 'trade'),
+            'price_type': priceType,
             'interval': this.safeString(this.timeframes, timeframe, timeframe),
         };
         params = this.omit(params, 'price');
