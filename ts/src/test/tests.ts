@@ -1990,7 +1990,7 @@ class testMainClass {
             // Response fixtures can complete multiple requests; request fixtures stop at the first one.
             const lastRequestUrl = exchange.safeString (data, 'lastRequestUrl');
             if (lastRequestUrl !== undefined) {
-                this.assertStaticRequestOutput (mockedExchange, undefined, skipKeys, lastRequestUrl, mockedExchange.last_request_url as string, undefined, undefined);
+                this.assertStaticRequestOutput (mockedExchange, undefined, skipKeys, lastRequestUrl, getExchangeProp (mockedExchange, 'last_request_url') as string, undefined, undefined);
             }
         }
         catch (e) {
