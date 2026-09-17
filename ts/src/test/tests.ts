@@ -2177,7 +2177,7 @@ class testMainClass {
                 if ((isDisabledPhp !== undefined) && (this.lang === 'PHP')) {
                     continue;
                 }
-                const isDisabledRust = exchange.safeString (result, 'disabledRust');
+                const isDisabledRust = exchange.safeString (result, 'disabledRS');
                 if ((isDisabledRust !== undefined) && (this.lang === 'RUST')) {
                     continue;
                 }
