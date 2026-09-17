@@ -316,19 +316,19 @@ func (this *BaseExchange) EthEncodeStructuredData(domain2 any, messageTypes2 any
 	val, ok := messageData["nonce"]
 	if ok {
 		// messageData["nonce"] = uint64(val.(int64))
-		messageData["nonce"] = (*math.HexOrDecimal256)(big.NewInt(derefScalar(val).(int64)))
+		messageData["nonce"] = (*math.HexOrDecimal256)(big.NewInt(val.(int64)))
 	}
 
 	val, ok = messageData["time"]
 	if ok {
 		// messageData["time"] = uint64(val.(int64))
-		messageData["time"] = (*math.HexOrDecimal256)(big.NewInt(derefScalar(val).(int64)))
+		messageData["time"] = (*math.HexOrDecimal256)(big.NewInt(val.(int64)))
 	}
 
 	domainTyped := apitypes.TypedDataDomain{
 		Name:              SafeString(domain, "name", "").(string),
 		Version:           SafeString(domain, "version", "").(string),
-		ChainId:           (*math.HexOrDecimal256)(big.NewInt(SafeInteger(domain, "chainId", nil).(int64))),
+		ChainId:           (*math.HexOrDecimal256)(big.NewInt(SafeInteger(domain, "chainId", "").(int64))),
 		VerifyingContract: SafeString(domain, "verifyingContract", "").(string),
 	}
 
@@ -342,8 +342,8 @@ func (this *BaseExchange) EthEncodeStructuredData(domain2 any, messageTypes2 any
 		for i, type_ := range types {
 			typeMap := type_.(map[string]any)
 			messageTypesTyped[key][i] = apitypes.Type{
-				Name: derefScalar(typeMap["name"]).(string),
-				Type: derefScalar(typeMap["type"]).(string),
+				Name: typeMap["name"].(string),
+				Type: typeMap["type"].(string),
 			}
 		}
 	}
@@ -394,9 +394,6 @@ func (this *BaseExchange) EthAbiEncode(types2 any, args2 any) any {
 // static types EIP-712 signers use (uintN, intN, address, bytesN, bool); the ABI head encoding
 // of static types is simply each value padded to 32 bytes, so no dynamic-type support is needed.
 func ethAbiEncodeWord(typeStr string, value any) []byte {
-	// a Safe*-carried pointer must encode as the value it points at, not fall
-	// through every type switch below and encode as a zero word
-	value = derefScalar(value)
 	word := make([]byte, 32)
 	if typeStr == "address" {
 		s, _ := value.(string)
@@ -810,6 +807,11 @@ func SafeInt(v any) int64 {
 		return int64(val)
 	case uint8:
 		return int64(val)
+	case *int64:
+		if val == nil {
+			return 0
+		}
+		return *val
 	case string:
 		i, err := strconv.ParseInt(val, 10, 64)
 		if err != nil {
@@ -830,7 +832,7 @@ func SafeInt(v any) int64 {
 func (this *BaseExchange) LoadLighterLibraryAsync(path any, chainId any, privateKey any, apiKeyIndex any, accountIndex any, createClient bool) <-chan any {
 	ch := make(chan any)
 	go func() {
-		ch <- this.loadLighterLibraryHelper(derefScalar(path).(string), uint32(SafeInt(chainId)), derefScalar(privateKey).(string), uint8(SafeInt(apiKeyIndex)), int64(SafeInt(accountIndex)), createClient)
+		ch <- this.loadLighterLibraryHelper(path.(string), uint32(SafeInt(chainId)), privateKey.(string), uint8(SafeInt(apiKeyIndex)), int64(SafeInt(accountIndex)), createClient)
 	}()
 	return ch
 }
@@ -844,7 +846,7 @@ func (this *BaseExchange) loadLighterLibraryHelper(path string, chainId uint32, 
 }
 
 func (this *BaseExchange) LighterCreateClient(signer any, chainId any, privateKey any, apiKeyIndex any, accountIndex any) any {
-	return this.lighterCreateClient(signer, uint32(SafeInt(chainId)), derefScalar(privateKey).(string), uint8(SafeInt(apiKeyIndex)), int64(SafeInt(accountIndex)))
+	return this.lighterCreateClient(signer, uint32(SafeInt(chainId)), privateKey.(string), uint8(SafeInt(apiKeyIndex)), int64(SafeInt(accountIndex)))
 }
 
 func (this *BaseExchange) lighterCreateClient(signer any, chainId uint32, privateKey string, apiKeyIndex uint8, accountIndex int64) any {
@@ -867,22 +869,6 @@ func safeIntOr(v any, defaultValue int64) int64 {
 		return defaultValue
 	}
 	return SafeInt(v)
-}
-
-// lighterIntegratorL2TxAttr mirrors CreateIntegratorTxAttributes from lighter-go's
-// own signer (sharedlib), which the other language bindings go through: the three
-// integrator attributes are ALWAYS attached for create/grouped/modify order txs,
-// even when they are zero (builderFee disabled). Omitting them makes the exchange
-// reject the tx with {"code":20001,"message":"invalid param"}.
-func (this *BaseExchange) lighterIntegratorL2TxAttr(integratorAccountIndex int64, integratorTakerFee uint32, integratorMakerFee uint32, skipNonce uint8) types.L2TxAttributes {
-	l2TxAttr := types.L2TxAttributes{}
-	l2TxAttr.IntegratorAccountIndex = &integratorAccountIndex
-	l2TxAttr.IntegratorTakerFee = &integratorTakerFee
-	l2TxAttr.IntegratorMakerFee = &integratorMakerFee
-	if skipNonce == 1 {
-		l2TxAttr.SkipNonce = &skipNonce
-	}
-	return l2TxAttr
 }
 
 func (this *BaseExchange) lighterL2TxAttr(integratorAccountIndex int64, integratorTakerFee uint32, integratorMakerFee uint32, skipNonce uint8) types.L2TxAttributes {
@@ -947,7 +933,7 @@ func (this *BaseExchange) lighterSignCreateGroupedOrders(signer *client.TxClient
 	}
 
 	nonce := int64(SafeInt(request["nonce"]))
-	l2TxAttr := this.lighterIntegratorL2TxAttr(safeIntOr(request["integrator_account_index"], 0), uint32(safeIntOr(request["integrator_taker_fee"], 0)), uint32(safeIntOr(request["integrator_maker_fee"], 0)), uint8(1))
+	l2TxAttr := this.lighterL2TxAttr(safeIntOr(request["integrator_account_index"], 0), uint32(safeIntOr(request["integrator_taker_fee"], 0)), uint32(safeIntOr(request["integrator_maker_fee"], 0)), uint8(1))
 	ops := &types.TransactOpts{
 		Nonce:        &nonce,
 		TxAttributes: &l2TxAttr,
@@ -993,7 +979,7 @@ func (this *BaseExchange) lighterSignCreateOrder(signer *client.TxClient, reques
 		OrderExpiry:      orderExpiry,
 	}
 	nonce := int64(SafeInt(request["nonce"]))
-	l2TxAttr := this.lighterIntegratorL2TxAttr(safeIntOr(request["integrator_account_index"], 0), uint32(safeIntOr(request["integrator_taker_fee"], 0)), uint32(safeIntOr(request["integrator_maker_fee"], 0)), uint8(1))
+	l2TxAttr := this.lighterL2TxAttr(safeIntOr(request["integrator_account_index"], 0), uint32(safeIntOr(request["integrator_taker_fee"], 0)), uint32(safeIntOr(request["integrator_maker_fee"], 0)), uint8(1))
 	ops := &types.TransactOpts{
 		Nonce:        &nonce,
 		TxAttributes: &l2TxAttr,
@@ -1150,7 +1136,7 @@ func (this *BaseExchange) lighterSignModifyOrder(signer *client.TxClient, reques
 		TriggerPrice: uint32(SafeInt(request["trigger_price"])),
 	}
 	nonce := int64(SafeInt(request["nonce"]))
-	l2TxAttr := this.lighterIntegratorL2TxAttr(safeIntOr(request["integrator_account_index"], 0), uint32(safeIntOr(request["integrator_taker_fee"], 0)), uint32(safeIntOr(request["integrator_maker_fee"], 0)), uint8(1))
+	l2TxAttr := this.lighterL2TxAttr(0, uint32(0), uint32(0), uint8(1))
 	ops := &types.TransactOpts{
 		Nonce:        &nonce,
 		TxAttributes: &l2TxAttr,
@@ -1177,7 +1163,7 @@ func (this *BaseExchange) LighterSignTransfer(signer any, request any) any {
 
 func (this *BaseExchange) lighterSignTransfer(signer *client.TxClient, request map[string]any) any {
 	var memoArr [32]byte
-	bs := []byte(derefScalar(request["memo"]).(string))
+	bs := []byte(request["memo"].(string))
 	if len(bs) != 32 {
 		panic(fmt.Errorf("memo expected to be 32 bytes long"))
 	}
@@ -1343,7 +1329,7 @@ func (this *BaseExchange) LighterSignChangePubkey(signer any, request any) any {
 }
 
 func (this *BaseExchange) lighterSignChangePubkey(signer *client.TxClient, request map[string]any) any {
-	decPubkey, err := hexutil.Decode(derefScalar(request["pubkey"]).(string))
+	decPubkey, err := hexutil.Decode(request["pubkey"].(string))
 	if err != nil {
 		panic(err)
 	}
@@ -1545,19 +1531,16 @@ func toTypedDataDomain(domain map[string]any) (apitypes.TypedDataDomain, error) 
 	if domain == nil {
 		return d, nil
 	}
-	// domain fields arrive from generated exchange code, where Safe* now yields
-	// pointer-carried scalars; a raw type assertion would silently drop them and
-	// geth would then report the field as '<nil>' during hashing
-	if v, ok := derefScalar(domain["name"]).(string); ok {
+	if v, ok := domain["name"].(string); ok {
 		d.Name = v
 	}
-	if v, ok := derefScalar(domain["version"]).(string); ok {
+	if v, ok := domain["version"].(string); ok {
 		d.Version = v
 	}
-	if v, ok := derefScalar(domain["verifyingContract"]).(string); ok {
+	if v, ok := domain["verifyingContract"].(string); ok {
 		d.VerifyingContract = v
 	}
-	if v, ok := domain["chainId"]; ok && derefScalar(v) != nil {
+	if v, ok := domain["chainId"]; ok {
 		bi, err := toBigInt(v)
 		if err != nil {
 			return d, fmt.Errorf("chainId: %w", err)
@@ -1576,7 +1559,7 @@ func normalizeTypedMessage(types map[string][]apitypes.Type, primaryType string,
 }
 
 func normalizeStruct(types map[string][]apitypes.Type, typeName string, value any) (apitypes.TypedDataMessage, error) {
-	obj, ok := derefScalar(value).(map[string]any)
+	obj, ok := value.(map[string]any)
 	if !ok {
 		return nil, fmt.Errorf("value for %s must be object", typeName)
 	}
@@ -1589,7 +1572,6 @@ func normalizeStruct(types map[string][]apitypes.Type, typeName string, value an
 	// Include all fields from type definition - ALL fields must be present
 	for _, f := range fields {
 		raw, exists := obj[f.Name]
-		raw = derefScalar(raw)
 
 		// If field doesn't exist or is nil, provide default zero value
 		if !exists || raw == nil {
@@ -1730,7 +1712,7 @@ func normalizeValue(types map[string][]apitypes.Type, typeName string, value any
 }
 
 func toBigInt(v any) (*big.Int, error) {
-	switch n := derefScalar(v).(type) {
+	switch n := v.(type) {
 	case nil:
 		return nil, fmt.Errorf("nil int value")
 	case *big.Int:
