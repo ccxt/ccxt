@@ -4133,6 +4133,11 @@ impl BithumbCore {
         let mut queryKeysLength: Value = get_array_length(&queryKeys);
         let mut hasQuery: bool = is_greater_than(&queryKeysLength, &Value::Int(0));
         if is_equal(&api, &Value::Str("public".to_string())) {
+            headers = Value::Map({
+                let mut m = indexmap::IndexMap::new();
+                    m.insert("OPEN-API-PARTNER".to_string(), Value::Str("CCXT".to_string()));
+                m
+            });
             if is_true(&hasQuery) {
                 url = add(&url, &add(&Value::Str("?".to_string()), &self.urlencode(query.clone(), &[])));
             }
@@ -4143,6 +4148,7 @@ impl BithumbCore {
                 headers = Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("Accept".to_string(), Value::Str("application/json".to_string()));
+                        m.insert("OPEN-API-PARTNER".to_string(), Value::Str("CCXT".to_string()));
                     m
                 });
                 let mut request: Value = Value::Map({
@@ -4191,6 +4197,7 @@ impl BithumbCore {
                         m.insert("Api-Key".to_string(), self.apiKey.clone());
                         m.insert("Api-Sign".to_string(), signature64.clone());
                         m.insert("Api-Nonce".to_string(), nonce.clone());
+                        m.insert("OPEN-API-PARTNER".to_string(), Value::Str("CCXT".to_string()));
                     m
                 });
             }

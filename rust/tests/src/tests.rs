@@ -3007,7 +3007,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //  -----------------------------------------------------------------------------
         //  --- Init of brokerId tests functions-----------------------------------------
         //  -----------------------------------------------------------------------------
-        let mut promises: Value = Value::List(vec![self.test_binance().await, self.test_okx().await, self.test_cryptocom().await, self.test_bybit().await, self.test_kucoin().await, self.test_kucoinfutures().await, self.test_bitget().await, self.test_mexc().await, self.test_htx().await, self.test_woo().await, self.test_coinex().await, self.test_bingx().await, self.test_phemex().await, self.test_blofin().await, self.test_coinbaseinternational().await, self.test_coinbase_advanced().await, self.test_woofi_pro().await, self.test_xt().await, Value::Null /* paradex broker-id skipped: starknetSign() not ported to Rust */, self.test_hashkey().await, self.test_cryptomus().await, self.test_derive().await, self.test_mode_trade().await, self.test_backpack().await, self.test_toobit().await, self.test_weex().await, self.test_foxbit().await]);
+        let mut promises: Value = Value::List(vec![self.test_binance().await, self.test_okx().await, self.test_cryptocom().await, self.test_bybit().await, self.test_kucoin().await, self.test_kucoinfutures().await, self.test_bitget().await, self.test_mexc().await, self.test_htx().await, self.test_woo().await, self.test_coinex().await, self.test_bingx().await, self.test_phemex().await, self.test_blofin().await, self.test_coinbaseinternational().await, self.test_coinbase_advanced().await, self.test_woofi_pro().await, self.test_xt().await, Value::Null /* paradex broker-id skipped: starknetSign() not ported to Rust */, self.test_hashkey().await, self.test_cryptomus().await, self.test_derive().await, self.test_mode_trade().await, self.test_backpack().await, self.test_toobit().await, self.test_weex().await, self.test_foxbit().await, self.test_bithumb().await]);
         promise_all(&promises).await;
         let mut successMessage: Value = add(&add(&Value::Str("[".to_string()), &self.lang), &Value::Str("][TEST_SUCCESS] brokerId tests passed.".to_string()));
         dump(&[add(&Value::Str("[INFO]".to_string()), &successMessage)]);
@@ -3210,6 +3210,67 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }));
         }
         assert(Value::Bool(is_equal(&get_value(&reqHeaders, &Value::Str("Referer".to_string())), &id)), &[add(&add(&Value::Str("bybit - id: ".to_string()), &id), &Value::Str(" not in headers.".to_string()))]);
+        if !is_true(&isSync()) {
+            close(exchange.clone()).await;
+        }
+        return Value::Bool(true);
+
+    Value::Null
+}
+
+    pub async fn test_bithumb(&mut self) -> Value {
+        let mut exchange: Value = self.init_offline_exchange(Value::Str("bithumb".to_string()), &[]);
+        let mut id: Value = Value::Str("CCXT".to_string());
+        let mut reqHeaders: Value = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        });
+        let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
+            // default path: generation 2, the versioned (jwt-signed) endpoints
+            crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/KRW".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), Value::Int(20000)]).await;
+         #[allow(unreachable_code)] { Value::Null }})).await;
+if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
+            // we expect an error here, we're only interested in the headers
+            reqHeaders = ternary(is_true(&(!is_equal(&get_value(&exchange, &Value::Str("last_request_headers".to_string())), &Value::Null) && !is_equal(&get_value(&exchange, &Value::Str("last_request_headers".to_string())), &Value::Null))), get_value(&exchange, &Value::Str("last_request_headers".to_string())), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        }
+        assert(Value::Bool(is_equal(&get_value(&reqHeaders, &Value::Str("OPEN-API-PARTNER".to_string())), &id)), &[add(&add(&Value::Str("bithumb - id: ".to_string()), &id), &Value::Str(" not in headers (v2 endpoints).".to_string()))]);
+        reqHeaders = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        });
+        let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
+            // legacy path: generation 1, the hmac-signed endpoints
+            crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/KRW".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), Value::Int(20000), Value::Map({
+                let mut m = indexmap::IndexMap::new();
+                    m.insert("generation".to_string(), Value::Int(1));
+                m
+            })]).await;
+         #[allow(unreachable_code)] { Value::Null }})).await;
+if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
+            reqHeaders = ternary(is_true(&(!is_equal(&get_value(&exchange, &Value::Str("last_request_headers".to_string())), &Value::Null) && !is_equal(&get_value(&exchange, &Value::Str("last_request_headers".to_string())), &Value::Null))), get_value(&exchange, &Value::Str("last_request_headers".to_string())), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        }
+        assert(Value::Bool(is_equal(&get_value(&reqHeaders, &Value::Str("OPEN-API-PARTNER".to_string())), &id)), &[add(&add(&Value::Str("bithumb - id: ".to_string()), &id), &Value::Str(" not in headers (legacy endpoints).".to_string()))]);
+        reqHeaders = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        });
+        let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
+            // public endpoints carry the partner header as well
+            crate::live_dispatch::dispatch(&mut exchange, "fetch_ticker", vec![Value::Str("BTC/KRW".to_string())]).await;
+         #[allow(unreachable_code)] { Value::Null }})).await;
+if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
+            reqHeaders = ternary(is_true(&(!is_equal(&get_value(&exchange, &Value::Str("last_request_headers".to_string())), &Value::Null) && !is_equal(&get_value(&exchange, &Value::Str("last_request_headers".to_string())), &Value::Null))), get_value(&exchange, &Value::Str("last_request_headers".to_string())), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        }
+        assert(Value::Bool(is_equal(&get_value(&reqHeaders, &Value::Str("OPEN-API-PARTNER".to_string())), &id)), &[add(&add(&Value::Str("bithumb - id: ".to_string()), &id), &Value::Str(" not in headers (public endpoints).".to_string()))]);
         if !is_true(&isSync()) {
             close(exchange.clone()).await;
         }
